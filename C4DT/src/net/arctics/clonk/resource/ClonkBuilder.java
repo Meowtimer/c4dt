@@ -2,6 +2,7 @@ package net.arctics.clonk.resource;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -45,7 +46,10 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -68,11 +72,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private static final class UIRefresher implements Runnable {
 		
-		private IResource resourceToBeRefreshed;
+		private Iterable<ScriptBase> resourcesToBeRefreshed;
 		
-		public UIRefresher(IResource resource) {
+		public UIRefresher(Iterable<ScriptBase> resourcesToBeRefreshed) {
 			super();
-			resourceToBeRefreshed = resource;
+			this.resourcesToBeRefreshed = resourcesToBeRefreshed;
 		}
 
 		public void run() {
@@ -88,7 +92,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 				CommonNavigator projectExplorer = Utilities.getProjectExplorer(window);
 				if (projectExplorer != null)
-					projectExplorer.getCommonViewer().refresh(resourceToBeRefreshed);
+					for (ScriptBase s : resourcesToBeRefreshed)
+						projectExplorer.getCommonViewer().refresh(s.getResource());
 			}
 		}
 	}
@@ -366,9 +371,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					return null;
 				}
 
-				ClonkProjectNature.get(proj).getIndex().saveShallow();
-
-				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
 				handleDefinitionRenaming();
 
 				// validate files related to the scripts that have been parsed
@@ -420,6 +422,27 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			proj.accept(ultimateVisit0r);
 	}
 	
+	private static class SaveScriptsJob extends Job {
+		private ScriptBase[] scriptsToSave;
+		private IProject project;
+		public SaveScriptsJob(IProject project, ScriptBase... scriptsToSave) {
+			super("Save index files for parsed scripts");
+			this.scriptsToSave = scriptsToSave;
+			this.project = project;
+		}
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+			for (ScriptBase s : scriptsToSave)
+				try {
+					s.save();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			ClonkProjectNature.get(project).getIndex().saveShallow();
+			return Status.OK_STATUS;
+		}
+	}
+	
 	private void performBuildPhases(
 		IProgressMonitor monitor,
 		List<IResource> listOfResourcesToBeRefreshed,
@@ -441,7 +464,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// initialize progress monitor
 			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), 3);
 			
-			// populate toBeParsed list
+			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, 1);
 			currentSubProgressMonitor.beginTask("Determining scripts", counter.getCount());
@@ -466,11 +489,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (monitor.isCanceled())
 						return;
 					performBuildPhaseOne(script);
-					Display.getDefault().asyncExec(new UIRefresher(script.getResource()));
 				}
+				Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet()));
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 				// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
-				// if the function being referenced is defined in an appendto from this index
+				// if the function being referenced is defined in an #appendto from this index
 				index.refreshIndex();
 				// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 				if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
@@ -483,23 +506,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
 			
-			for (ScriptBase s : parserMap.keySet())
-				s.generateFindDeclarationCache();
-
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
-
-			// refresh global func and static var cache
-			//index.refreshIndex();
 			
 			// parse function code
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseCodeTask, parserMap.size());
-			while (!parserMap.isEmpty()) {
+			ScriptBase[] scripts = parserMap.keySet().toArray(new ScriptBase[parserMap.keySet().size()]);
+			for (ScriptBase s : scripts) {
 				if (currentSubProgressMonitor.isCanceled())
 					return;
-				performBuildPhaseTwo(parserMap.keySet().iterator().next());
+				performBuildPhaseTwo(s);
 			}
+			Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
+			new SaveScriptsJob(proj, scripts).schedule();
+			
 			currentSubProgressMonitor.done();
 
 			applyLatentMarkers();
@@ -597,11 +618,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		});
 	}
 	
-	private void refreshUIAfterBuild(List<IResource> listOfResourcesToBeRefreshed) {
-		// refresh outlines
-		//Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
-	}
-	
 	private C4ScriptParser queueScript(ScriptBase script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
@@ -649,11 +665,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					parser.parseCodeOfFunctionsAndValidate();
 					/*System.out.print(System.currentTimeMillis()-s);
 					System.out.print("-");*/
-					try {
-						script.save();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}

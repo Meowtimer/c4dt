@@ -108,6 +108,7 @@ public abstract class IndexEntity extends Structure {
 	 */
 	public final synchronized void save() throws IOException {
 		if (index != null) try {
+			requireLoaded();
 			index.saveEntity(this);
 		} catch (Exception e) {
 			e.printStackTrace();
