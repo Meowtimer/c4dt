@@ -277,6 +277,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		this.exprStart = start;
 		this.exprEnd   = end;
 	}
+	
+	public void setExprRegion(IRegion r) {
+		this.exprStart = r.getOffset();
+		this.exprEnd = r.getOffset()+r.getLength();
+	}
 
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		// i'm totally error-free
