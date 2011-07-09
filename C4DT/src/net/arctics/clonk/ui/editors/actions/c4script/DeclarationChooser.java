@@ -141,19 +141,20 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
 		final String[] patternStrings = ((DeclarationsFilter)itemsFilter).getPatternStrings();
-		index.forAllRelevantIndexes(new Index.r() {
-			@Override
-			public void run(Index index) {
-				MainLoop: for (ScriptBase s : index.allScripts())
-					if (s.dictionary() != null)
-						for (String str : s.dictionary())
-							for (String ps : patternStrings)
-								if (str.startsWith(ps)) {
-									s.requireLoaded();
-									continue MainLoop;
-								}
-			}
-		});
+		if (index != null)
+			index.forAllRelevantIndexes(new Index.r() {
+				@Override
+				public void run(Index index) {
+					MainLoop: for (ScriptBase s : index.allScripts())
+						if (s.dictionary() != null)
+							for (String str : s.dictionary())
+								for (String ps : patternStrings)
+									if (str.startsWith(ps)) {
+										s.requireLoaded();
+										continue MainLoop;
+									}
+				}
+			});
 		if (declarations != null)
 			for (DeclarationLocation d : declarations)
 				contentProvider.add(d, itemsFilter);

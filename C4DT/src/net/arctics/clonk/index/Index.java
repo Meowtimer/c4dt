@@ -309,6 +309,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		else
 			if (indexedScripts.remove(script))
 				scriptRemoved(script);
+		entities.remove(script.entityId());
+		script.index = null;
 	}
 
 	/**
@@ -968,6 +970,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			return obj;
 		else
 			return new EntityDeclaration(getSaveReplacementForEntity(obj.getParentDeclarationOfType(IndexEntity.class)), obj);
+	}
+	
+	public void loadScriptsContainingDeclarationsBeingNamed(String name) {
+		for (ScriptBase s : allScripts()) {
+			if (s.dictionary() != null && s.dictionary().contains(name))
+				s.requireLoaded();
+		}
 	}
 
 }

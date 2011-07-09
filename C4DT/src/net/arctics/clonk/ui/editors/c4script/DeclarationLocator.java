@@ -126,9 +126,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			String declarationName = access.getDeclarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			for (Index i : script.getIndex().relevantIndexes()) {
-				for (ScriptBase s : i.allScripts())
-					if (s.dictionary() != null && s.dictionary().contains(declarationName))
-						s.requireLoaded();
+				i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
 			}
 			for (Index i : script.getIndex().relevantIndexes()) {
 				List<Declaration> decs = i.declarationMap().get(declarationName);

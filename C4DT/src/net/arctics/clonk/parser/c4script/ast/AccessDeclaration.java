@@ -149,6 +149,7 @@ public abstract class AccessDeclaration extends Value {
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
+		root.getContainer().getIndex().loadScriptsContainingDeclarationsBeingNamed(declarationName);
 		getDeclaration(root);
 	}
 	
