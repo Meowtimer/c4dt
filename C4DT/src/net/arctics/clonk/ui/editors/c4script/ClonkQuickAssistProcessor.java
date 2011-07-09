@@ -30,6 +30,7 @@ import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -369,23 +370,18 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			this.existingList = existingList;
 		}
 		public Replacement add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
-			if (alwaysStatement && !(elm instanceof Statement)) {
+			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
-			}
-			if (elm.getExprEnd() == elm.getExprStart() && offending != null) {
+			if (elm.getExprEnd() == elm.getExprStart() && offending != null)
 				elm.setExprRegion(offending.getExprStart(), offending.getExprEnd());
-			}
 			Replacement newOne = new Replacement(replacement, elm, specifiable);
 			// don't add duplicates
-			for (Replacement existing : this) {
+			for (Replacement existing : this)
 				if (existing.equals(newOne))
 					return existing;
-			}
-			for (ICompletionProposal prop : existingList) {
-				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne)) {
+			for (ICompletionProposal prop : existingList)
+				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne))
 					return ((ParameterizedProposal)prop).getReplacement();
-				}
-			}
 			this.add(newOne);
 			return newOne;
 		}
@@ -486,6 +482,13 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
 									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
+						}
+					}
+					if (offendingExpression instanceof CallFunc) {
+						if (offendingExpression.getPredecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.getPredecessorInSequence()).hasTilde()) {
+							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.getPredecessorInSequence()).getId(), 3);
+							opWithTilde.setExprRegion(offendingExpression.getPredecessorInSequence());
+							replacements.add("Use '->~'", opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						}
 					}
 					if (offendingExpression instanceof AccessDeclaration) {
