@@ -13,8 +13,10 @@ import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
@@ -30,6 +32,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -371,21 +374,34 @@ public class CallFunc extends AccessDeclaration {
 			if (declaration == null)
 				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
 
-			// only return found declaration if it's the only choice 
-			if (declaration != null) {
-				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
-				Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
-				int numCandidates = 0;
-				if (allFromLocalIndex != null)
-					numCandidates += allFromLocalIndex.size();
-				if (decl != null)
-					numCandidates++;
-				if (numCandidates == 1) {
-					if (listToAddPotentialDeclarationsTo == null)
-						return declaration;
-					else
-						listToAddPotentialDeclarationsTo.add(declaration);
-				}
+			List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
+			Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
+			int numCandidates = 0;
+			if (allFromLocalIndex != null)
+				numCandidates += allFromLocalIndex.size();
+			if (decl != null)
+				numCandidates++;
+			
+			// only return found global function if it's the only choice 
+			if (declaration != null && numCandidates == 1) {
+				if (listToAddPotentialDeclarationsTo == null)
+					return declaration;
+				else
+					listToAddPotentialDeclarationsTo.add(declaration);
+			} else {
+				if (listToAddPotentialDeclarationsTo != null && allFromLocalIndex != null)
+					listToAddPotentialDeclarationsTo.addAll(allFromLocalIndex);
+			}
+		}
+		if ((lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
+			List<IType> typesWithThatMember = new LinkedList<IType>();
+			for (Declaration d : listToAddPotentialDeclarationsTo)
+				if (!d.isGlobal() && d instanceof Function && d.getParentDeclaration() instanceof IHasIncludes)
+					typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
+			if (typesWithThatMember.size() > 0) {
+				IType ty = TypeSet.create(typesWithThatMember);
+				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, functionName));
+				p.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
 			}
 		}
 		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.iterator().next() : null;

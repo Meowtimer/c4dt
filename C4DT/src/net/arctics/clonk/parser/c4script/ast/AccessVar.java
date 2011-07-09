@@ -171,7 +171,7 @@ public class AccessVar extends AccessDeclaration {
 		if (getDeclaration() == null) {
 			IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
-				if (predType instanceof ProplistDeclaration && !applyTypingByMemberUsage(context)) {
+				if (predType instanceof ProplistDeclaration) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(getDeclarationName(), Variable.Scope.VAR);

@@ -1,29 +1,16 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProplistDeclaration;
-import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
-import net.arctics.clonk.util.ArrayUtil;
-
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -59,12 +46,11 @@ public abstract class AccessDeclaration extends Value {
 	}
 
 	/**
-	 * Obtain the declaration for this node. The base implementation will always return null, but call {@link #applyTypingByMemberUsage(DeclarationObtainmentContext)}
+	 * Obtain the declaration for this node. The base implementation will always return null.
 	 * @param context The {@link DeclarationObtainmentContext} (sounds proper to pass it)
 	 * @return The declaration this node most likely refers to
 	 */
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
-		applyTypingByMemberUsage(context);
 		return null;
 	}
 
@@ -164,60 +150,6 @@ public abstract class AccessDeclaration extends Value {
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		getDeclaration(root);
-	}
-	
-	private transient boolean applyTypingByMemberUsagePending;
-	/**
-	 * Set the type of this expression's predecessor to a set of types that define a declaration called {@link #getDeclarationName()}.
-	 * @param context
-	 * @return
-	 */
-	protected boolean applyTypingByMemberUsage(DeclarationObtainmentContext context) {
-		if (true)
-			return false;
-		if (applyTypingByMemberUsagePending)
-			return false;
-		else
-			applyTypingByMemberUsagePending = true;
-		try {
-			ExprElm pred = getPredecessorInSequence();
-			if (pred == null || (pred instanceof MemberOperator && ((MemberOperator)pred).hasTilde()))
-				return false;
-			IType t = pred.getType(context);
-			if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
-				return false;
-
-			if (context instanceof C4ScriptParser && pred != null) {
-				final List<IType> typesWithThatMember = new LinkedList<IType>();
-				if (context.getCurrentFunc() != null) {
-					for (ProplistDeclaration pd : ArrayUtil.filteredIterable(context.getCurrentFunc().getOtherDeclarations(), ProplistDeclaration.class)) {
-						for (Variable v : pd.getComponents()) {
-							if (v.getName().equals(declarationName))
-								typesWithThatMember.add(new ConstrainedProplist(pd, ConstraintKind.Includes));
-						}
-					}
-				}
-				context.getContainer().getIndex().forAllRelevantIndexes(new Index.r() {
-					@Override
-					public void run(Index index) {
-						for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
-							if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IHasIncludes)
-								typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
-					}
-				});
-				if (typesWithThatMember.size() > 0) {
-					if (t != PrimitiveType.UNKNOWN)
-						typesWithThatMember.add(t);
-					IType ty = TypeSet.create(typesWithThatMember);
-					ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
-					pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
-					return true;
-				}
-			}
-			return false;
-		} finally {
-			applyTypingByMemberUsagePending = false;
-		}
 	}
 	
 }
