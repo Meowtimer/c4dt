@@ -585,14 +585,13 @@
 	</extension>
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
-		<product application="org.eclipse.ui.ide.workbench" name="Eclipse SDK">
-			<property name="windowImages" value="icons/eclipse.gif,icons/eclipse32.gif,icons/eclipse48.png,icons/eclipse.png,icons/eclipse32.png" />
-			<property name="aboutText" value="%productBlurb" />
-			<property name="aboutImage" value="/Clonk/icons/eclipse_lg.gif" />
+		<product application="org.eclipse.ui.ide.workbench" name="Clonklipse">
+			<property name="windowImages" value="res/DistroIcon16x16.gif,res/DistroIcon32x32.gif,res/DistroIcon48x48.gif,res/DistroIcon64x64.gif" />
+			<property name="aboutText" value="Clonk Development Tools for Eclipse" />
 			<property name="startupForegroundColor" value="C8D5EA" />
 			<property name="startupProgressRect" value="0,280,455,15" />
 			<property name="startupMessageRect" value="7,220,441,20" />
-			<property name="appName" value="Eclipse SDK" />
+			<property name="appName" value="Clonklipse" />
 			<property name="preferenceCustomization" value="plugin_customization.ini" />
 		</product>
 	</extension>

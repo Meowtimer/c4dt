@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Eclipse SDK" uid="net.arctics.clonk" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.5" useFeatures="true" includeLaunchers="true">
+<product name="Clonklipse" uid="net.arctics.clonk" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.6" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
       <text>
@@ -23,6 +23,7 @@
       startupMessageRect="7,220,441,20"
       startupForegroundColor="C8D5EA" />
    <launcher name="Clonklipse">
+      <macosx icon="/C4DT/res/DistroIcon.icns"/>
       <solaris/>
       <win useIco="false">
          <bmp/>
@@ -31,6 +32,7 @@
 
 
    <vm>
+      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6</macos>
    </vm>
 
    <license>
@@ -111,8 +113,9 @@
    </plugins>
 
    <features>
-      <feature id="org.eclipse.platform" version="3.5.0.v20090611a-9gEeG1HFtQcmRThO4O3aR_fqSMvJR2sJ"/>
-      <feature id="C4DTFeature" version="1.5"/>
+      <feature id="org.eclipse.platform" version="3.6.2.r362_v20110210-9gF78Gs1FrIGnHDHWkEcopoN8AmxeZflGDGKQi"/>
+      <feature id="net.arctics.clonk.c4dt_de_feature" version="1.6.0.qualifier"/>
+      <feature id="net.arctics.clonk.c4dtFeature" version="1.6.0.qualifier"/>
    </features>
 
    <configurations>
