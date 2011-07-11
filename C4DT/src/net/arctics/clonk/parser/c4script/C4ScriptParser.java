@@ -114,7 +114,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public Variable parsedVariable;
 		public long parsedNumber;
 		public String parsedMemberOperator;
-		public String parsedString;
 		public int parseExpressionRecursion;
 		public int parseStatementRecursion;
 		private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
@@ -536,6 +535,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			parseCodeOfFunctionsAndValidate();
 		}
 	}
+	
+	public String parseTokenAndReturnAsString() throws ParsingException {
+		String s;
+		if ((s = parseString()) != null)
+			return '"'+s+'"';
+		if ((s = parseIdentifier()) != null)
+			return s;
+		if (parseNumber())
+			return String.valueOf(currentFunctionContext.parsedNumber);
+		else
+			return String.valueOf((char)read());
+	}
 
 	/**
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
@@ -797,22 +808,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else {
 			this.seek(startOfDeclaration);
-			String word = readIdent();
-			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, startOfDeclaration))
+			FunctionHeader functionHeader = FunctionHeader.parse(this, true);
+			String word;
+			if (functionHeader != null) {
+				if (parseFunctionDeclaration(functionHeader))
 					return true;
 			}
-			else if (parseVariableDeclaration(false, true, Scope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null)
+			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null)
 				return true;
-			else {
-				// old-style function declaration without visibility
-				eatWhitespace();
-				if (read() == ':' && read() != ':') { // no :: -.-
-					this.seek(startOfDeclaration); // just let parseFunctionDeclaration parse the name again
-					if (parseFunctionDeclaration(Keywords.Public, startOfDeclaration)) // just assume public
-						return true;
-				}
-			}
 		}
 		this.seek(startOfDeclaration);
 		return false;
@@ -829,13 +832,77 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			: null;
 	}
 
-	/**
-	 * Returns whether a parsed word looks like it might be the start of a function declaration (func, private, protected etc.)
-	 * @param word
-	 * @return
-	 */
-	private boolean looksLikeStartOfFunction(String word) {
-		return word.equals(Keywords.Public) || word.equals(Keywords.Protected) || word.equals(Keywords.Private) || word.equals(Keywords.Global) || word.equals(Keywords.Func);
+	private static class FunctionHeader {
+		public String name;
+		public FunctionScope scope;
+		public boolean isOldStyle;
+		public int nameStart;
+		public int start;
+		public PrimitiveType returnType;
+		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, PrimitiveType returnType) {
+			super();
+			this.start = start;
+			this.name = name;
+			this.scope = scope;
+			this.isOldStyle = isOldStyle;
+			this.nameStart = nameStart;
+			this.returnType = returnType;
+		}
+		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ParsingException {
+			int initialOffset = parser.offset;
+			int nameStart = parser.offset;
+			boolean isOldStyle = false;
+			String name = null;
+			String s = parser.parseIdentifier();
+			PrimitiveType returnType = null;
+			if (s != null) {
+				FunctionScope scope = FunctionScope.makeScope(s);
+				if (scope != null) {
+					parser.eatWhitespace();
+					nameStart = parser.offset;
+					s = parser.parseIdentifier();
+				} else
+					scope = FunctionScope.PUBLIC;
+				if (s != null) {
+					if (s.equals(Keywords.Func)) {
+						parser.eatWhitespace();
+						returnType = parser.parseFunctionReturnType();
+						nameStart = parser.offset;
+						parser.eatWhitespace();
+						s = parser.parseIdentifier();
+						if (s != null) {
+							name = s;
+							isOldStyle = false;
+						}
+					} else {
+						name = s;
+						isOldStyle = true;
+					}
+				}
+				if (name != null && (allowOldStyle || !isOldStyle)) {
+					if (isOldStyle) {
+						int backtrack = parser.offset;
+						parser.eatWhitespace();
+						boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
+						parser.seek(backtrack);
+						if (isProperLabel)
+							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType);
+					}
+					else {
+						if (parser.peekAfterWhitespace() == '(')
+							return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType);
+					}
+				}
+			}
+			parser.seek(initialOffset);
+			return null;
+		}
+		public void apply(Function func) {
+			func.setOldStyle(isOldStyle);
+			func.setName(name);
+			func.setVisibility(scope);
+			func.setReturnType(returnType);
+		}
 	}
 
 	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, String comment) throws ParsingException {
@@ -1019,8 +1086,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private PrimitiveType parseFunctionReturnType() throws ParsingException {
-		final int offset = this.offset;
+		final int backtrack = this.offset;
 		eatWhitespace();
+		String str;
 		if (peek() == '&') {
 			if (!container.getEngine().getCurrentSettings().supportsRefs) {
 				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.getEngine().getName());
@@ -1028,85 +1096,43 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			read();
 			return PrimitiveType.REFERENCE;
 		}
-		else if (isEngine && parseIdentifier()) {
-			PrimitiveType t = PrimitiveType.makeType(currentFunctionContext.parsedString, isEngine);
+		else if (isEngine && (str = parseIdentifier()) != null) {
+			PrimitiveType t = PrimitiveType.makeType(str, true);
 			if (t != PrimitiveType.UNKNOWN)
 				return t;
 		}
-		this.seek(offset);
+		this.seek(backtrack);
 		return null;
 	}
 	
-	private int consumeFunctionCodeOrReturnReadChar() throws ParsingException {
-		eatWhitespace();
-		int startOfDeclaration = offset;
-		Token t = parseToken();
-		switch (t) {
-		case Symbol:
-			return currentFunctionContext.parsedString != null ? currentFunctionContext.parsedString.charAt(0) : 0;
-		case Word:
-			if (parseVariableDeclaration(false, false, Scope.makeScope(currentFunctionContext.parsedString), getTextOfLastComment(startOfDeclaration)) != null)
-				return 0;
-			break;
-		}
-		return 0;
-	}
-
 	/**
 	 * Parse a function declaration.
 	 * @param firstWord The first word that led to the conclusion that a function declaration is up next
 	 * @return Whether parsing of the function declaration succeeded
 	 * @throws ParsingException 
 	 */
-	private boolean parseFunctionDeclaration(String firstWord, int startOfFirstWord) throws ParsingException {
+	private boolean parseFunctionDeclaration(FunctionHeader header) throws ParsingException {
 		int endOfHeader;
-		String desc = getTextOfLastComment(startOfFirstWord);
+		String desc = getTextOfLastComment(header.start);
 		eatWhitespace();
-		int startName = 0, endName = 0, startBody = 0, endBody = 0;
-		boolean suspectOldStyle = false;
-		String funcName = null;
-		PrimitiveType retType = PrimitiveType.ANY;
-		FunctionScope scope;
+		int startBody = 0, endBody = 0;
 		
 		setCurrentFunc(null);
-		if (!firstWord.equals(Keywords.Func)) {
-			scope = FunctionScope.makeScope(firstWord);
-			startName = this.offset;
-			String shouldBeFunc = readIdent();
-			if (!shouldBeFunc.equals(Keywords.Func)) {
-				suspectOldStyle = true; // suspicious
-				funcName = shouldBeFunc;
-				endName = this.offset;
-				warningWithCode(ParserErrorCode.OldStyleFunc, startName, endName);
-			}
-		}
-		else
-			scope = FunctionScope.PUBLIC;
-		if (!suspectOldStyle) {
-			retType = parseFunctionReturnType();
-			if (retType == null)
-				retType = PrimitiveType.ANY;
-			eatWhitespace();
-			startName = this.offset;
-			funcName = readIdent();
-			if (funcName == null || funcName.length() == 0)
-				errorWithCode(ParserErrorCode.NameExpected, this.offset-1, this.offset);
-			endName = this.offset;
-		}
+		if (header.isOldStyle)
+			warningWithCode(ParserErrorCode.OldStyleFunc, header.nameStart, header.nameStart+header.name.length());
 		Function currentFunc;
-		currentFunctionContext.currentDeclaration = currentFunc = newFunction(funcName);
-		currentFunc.setUserDescription(desc);
+		currentFunctionContext.currentDeclaration = currentFunc = newFunction(header.name);
+		if (header.name.equals("FindObjects"))
+			System.out.println("fuuu");
+		header.apply(currentFunc);
 		currentFunc.setScript(container);
-		currentFunc.setName(funcName);
-		currentFunc.setReturnType(retType);
-		currentFunc.setOldStyle(suspectOldStyle);
-		currentFunc.setVisibility(scope);
-		if (scope == FunctionScope.GLOBAL)
+		currentFunc.setUserDescription(desc);
+		if (header.scope == FunctionScope.GLOBAL)
 			container.containsGlobals = true;
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
-			if (suspectOldStyle && shouldBeBracket == ':')
+			if (header.isOldStyle && shouldBeBracket == ':')
 				{} // old style funcs have no named parameters
 			else
 				tokenExpectedError("("); //$NON-NLS-1$
@@ -1131,84 +1157,74 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		if (lastComment != null)
 			currentFunc.setUserDescription(lastComment.getComment());
-		// parse code block
+		
+		// check initial opening bracket which is mandatory for NET2 funcs
 		int token = read();
+		int blockDepth = 0;
+		boolean parseBody = true;
 		if (token != '{') {
-			if (suspectOldStyle) {
+			if (isEngine) {
+				if (token != ';')
+					tokenExpectedError(";");
+				else
+					parseBody = false;
+			} else if (!header.isOldStyle)
+				tokenExpectedError("{");
+			else {
 				this.seek(endOfHeader);
-				startBody = this.offset;
-				// body goes from here to start of next function...
-				do {
-					eatWhitespace();
-					endBody = this.offset;
-					String word = readIdent();
-					if (word != null && word.length() > 0) {
-						if (looksLikeStartOfFunction(word)) {
-							this.seek(endBody);
-							break;
-						} else {
-							eatWhitespace();
-							if (read() == ':' && read() != ':') {
-								this.seek(endBody);
-								break;
-							} else {
-								this.seek(endBody);
-							}
-						}
-					}
-					// just move on
-					consumeFunctionCodeOrReturnReadChar();
-
-					endBody = this.offset; // blub
-				} while (!reachedEOF());
-			} else {
-				if (isEngine) {
-					// engine functions don't need a body
-					if (token != ';')
-						tokenExpectedError(";"); //$NON-NLS-1$
-					startBody = endBody = -1;
-				}
-				else {
-					tokenExpectedError("}"); //$NON-NLS-1$
-				}
+				blockDepth = -1;
 			}
-		} else {
-			// body in {...}
-			int blockDepth = 0;
+		}
+		
+		// body
+		if (parseBody) {
 			startBody = this.offset;
 			eatWhitespace();
-
-			// new two pass strategy to be able to check if functions and variables exist
-			// first pass: skip the code, just remember where it is
-			boolean foundLast;
+			boolean properEnd = false;
 			do {
-				int c = consumeFunctionCodeOrReturnReadChar();
-				if (c == '}')
-					blockDepth--;
-				else if (c == '{')
-					blockDepth++;
-				foundLast = blockDepth == -1;
-			} while (!(foundLast || reachedEOF()));
-			if (foundLast)
-				unread(); // go back to last '}'
-
-			endBody = this.offset;
-			eatWhitespace();
-			if (read() != '}') {
-				int pos = Math.min(this.offset, getBufferLength()-1);
+				eatWhitespace();
+				if (header.isOldStyle)
+					endBody = this.offset;
+				int offsetBeforeToken = this.offset;
+				String word;
+				if (FunctionHeader.parse(this, header.isOldStyle) != null) {
+					if (header.isOldStyle)
+						seek(endBody);
+					properEnd = true;
+					if (blockDepth != -1)
+						errorWithCode(ParserErrorCode.MissingBrackets, offsetBeforeToken, offsetBeforeToken+1, NO_THROW, blockDepth+1, '}');
+					seek(offsetBeforeToken);
+				}
+				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), getTextOfLastComment(offsetBeforeToken)) != null)
+					;
+				else if (parseString() == null) {
+					int c = read();
+					if (c == '{')
+						blockDepth++;
+					else if (c == '}')
+						properEnd = --blockDepth == -1 && !header.isOldStyle;
+				}
+			} while (!properEnd && !reachedEOF());
+			if (!header.isOldStyle)
+				endBody = this.offset;
+			if (!properEnd && !(header.isOldStyle && reachedEOF())) {
+				int pos = Math.min(this.offset, this.size-1);
 				errorWithCode(ParserErrorCode.TokenExpected, pos-bodyOffset(), pos+1-bodyOffset(), "}"); //$NON-NLS-1$
 				return false;
 			}
-			// look for comment in the same line as the closing '}' which is common for functions packed into one line
-			// hopefully there won't be multi-line functions with such a comment attached at the end
-			Comment c = getCommentImmediatelyFollowing();
-			if (c != null)
-				currentFunc.setUserDescription(c.getComment());
-		}
+			currentFunc.setBody(startBody != -1 ? absoluteSourceLocation(startBody, endBody) : null);
+		} else
+			currentFunc.setBody(null);
+		eatWhitespace();
+		// look for comment in the same line as the closing '}' which is common for functions packed into one line
+		// hopefully there won't be multi-line functions with such a comment attached at the end
+		Comment c = getCommentImmediatelyFollowing();
+		if (c != null)
+			currentFunc.setUserDescription(c.getComment());
+
 		// finish up
-		currentFunc.setLocation(absoluteSourceLocation(startName,endName));
-		currentFunc.setBody(startBody != -1 ? absoluteSourceLocation(startBody,endBody) : null);
-		currentFunc.setHeader(absoluteSourceLocation(startOfFirstWord, endOfHeader));
+		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
+		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
 		container.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
 			currentFunctionContext.currentDeclaration = null; // to not suppress errors in-between functions
@@ -1249,10 +1265,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return null;
 	}
 
-	private boolean looksLikeVarDeclaration(String word) {
-		return word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed);
-	}
-	
 	private boolean parseHexNumber() throws ParsingException {
 		int offset = this.offset;
 		boolean isHex = read() == '0' && read() == 'x';
@@ -1393,50 +1405,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		 * while (...) ...
 		 */
 		While
-	}
-
-	public enum Token {
-		String,
-		Word,
-		ID,
-		Number,
-		Operator,
-		Symbol
-	}
-	
-	public Token parseToken() throws ParsingException {
-		if (parseString())
-			return Token.String;
-		String word = readIdent();
-		if (word.length() > 0) {
-			currentFunctionContext.parsedString = word;
-			return Token.Word;
-		}
-		if (parseID())
-			return Token.ID;
-		if (parseNumber())
-			return Token.Number;
-		Operator op;
-		if ((op = parseOperator()) != null) {
-			currentFunctionContext.parsedString = op.getOperatorName();
-			return Token.Operator;
-		}
-		currentFunctionContext.parsedString = this.readString(1);
-		return Token.Symbol;
-	}
-
-	public String lastTokenAsString(Token token) {
-		switch (token) {
-		case ID: return currentFunctionContext.parsedID.stringValue();
-		case Number: return String.valueOf(currentFunctionContext.parsedNumber);
-		case String: return "\""+currentFunctionContext.parsedString+"\""; //$NON-NLS-1$ //$NON-NLS-2$
-		case Word: case Symbol: case Operator: return currentFunctionContext.parsedString;
-		}
-		return ""; //$NON-NLS-1$
-	}
-	
-	public String parseTokenAndReturnAsString() throws ParsingException {
-		return lastTokenAsString(parseToken());
 	}
 
 	/**
@@ -1757,18 +1725,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			
 			// string
-			if (elm == null && parseString()) {
-				elm = new StringLiteral(currentFunctionContext.parsedString);
-			}
+			String s;
+			if (elm == null && (s = parseString()) != null)
+				elm = new StringLiteral(s);
 			
 			// array
-			if (elm == null) {
+			if (elm == null)
 				elm = parseArrayExpression(reportErrors, prevElm);
-			}
 			
-			if (elm == null) {
+			if (elm == null)
 				elm = parsePropListExpression(reportErrors, prevElm);
-			}
 		
 			// ->
 			if (elm == null) {
@@ -1816,8 +1782,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			}
 			
-			if (elm == null && parsePlaceholderString()) {
-				elm = new Placeholder(currentFunctionContext.parsedString);
+			String placeholder;
+			if (elm == null && (placeholder = parsePlaceholderString()) != null) {
+				elm = new Placeholder(placeholder);
 			}
 			
 			// §{...}
@@ -1917,8 +1884,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					} else {
 						unread();
 						int nameStart = this.offset;
-						if (parseString() || parseIdentifier()) {
-							String name = currentFunctionContext.parsedString;
+						String name;
+						if ((name = parseString()) != null || (name = parseIdentifier()) != null) {
 							int nameEnd = this.offset;
 							eatWhitespace();
 							int c_ = read();
@@ -2260,26 +2227,29 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return Whether parsing was successful.
 	 * @throws ParsingException
 	 */
-	private boolean parseString() throws ParsingException {
+	private String parseString() throws ParsingException {
 		int quotes = read();
 		if (quotes != '"') {
 			unread();
-			return false;
+			return null;
 		}
 		StringBuilder builder = new StringBuilder();
+		boolean reachedEnd = false;
 		do {
-			if (builder.length() > 0) builder.append(this.readString(1));
+			// append the escaped character
+			if (builder.length() > 0)
+				builder.append((char)this.read());
+			// 
 			builder.append(this.readStringUntil(QUOTES_AND_NEWLINE_CHARS));
 			if (BufferedScanner.isLineDelimiterChar((char) peek())) {
 				errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, NO_THROW|ABSOLUTE_MARKER_LOCATION);
-				return true;
+				reachedEnd = true;
+				break;
 			}
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
-		if (read() != '"') {
+		if (!reachedEnd && read() != '"')
 			errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
-		}
-		currentFunctionContext.parsedString = builder.toString();
-		return true;
+		return builder.toString();
 	}
 	
 	/**
@@ -2287,13 +2257,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return Whether parsing the identifier was successful.
 	 * @throws ParsingException
 	 */
-	private boolean parseIdentifier() throws ParsingException {
+	private String parseIdentifier() throws ParsingException {
 		String word = readIdent();
-		if (word != null && word.length() > 0) {
-			currentFunctionContext.parsedString = word;
-			return true;
-		}
-		return false;
+		if (word != null && word.length() > 0)
+			return word;
+		else
+			return null;
 	}
 	
 	/**
@@ -2301,10 +2270,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return Whether there was a placeholder at the current offset.
 	 * @throws ParsingException
 	 */
-	private boolean parsePlaceholderString() throws ParsingException {
+	private String parsePlaceholderString() throws ParsingException {
 		if (read() != '$') {
 			unread();
-			return false;
+			return null;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
@@ -2312,8 +2281,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			builder.append(this.readStringUntil('$'));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		expect('$');
-		currentFunctionContext.parsedString = builder.toString();
-		return true;
+		return builder.toString();
 	}
 	
 	/**
@@ -2397,8 +2365,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result = parseCommentObject();
 
 			if (result == null) {
-				String readWord = readIdent();
-				if (readWord == null || readWord.length() == 0) {
+				String readWord;
+				// new oldstyle-func begun
+				if (getCurrentFunc() != null && getCurrentFunc().isOldStyle() && FunctionHeader.parse(this, true) != null)
+					result = null;
+				else if ((readWord = readIdent()) == null || readWord.length() == 0) {
 					int read = read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<Statement> subStatements = new LinkedList<Statement>();
@@ -2431,10 +2402,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (initializations != null) {
 						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.getScope());
 					}
-				}
-				else if (looksLikeStartOfFunction(readWord) || peekAfterWhitespace() == ':') {
-					this.seek(start);
-					return null;
 				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement))
 					result = parseKeyword(readWord);
@@ -2721,10 +2688,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else if (keyWord.equals(Keywords.Return)) {
 			result = parseReturn();
-		}
-		else if (getCurrentFunc() != null && getCurrentFunc().isOldStyle() && (looksLikeStartOfFunction(keyWord) || peekAfterWhitespace() == ':')) {
-			// whoops, too far
-			return null;
 		}
 		else
 			result = null;

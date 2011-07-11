@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,7 +92,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	private static final Set<ParserErrorCode> fixableParserErrorCodes = ArrayUtil.set(
-		HashSet.class,
 		ParserErrorCode.VariableCalled,
 		ParserErrorCode.NeverReached,
 		ParserErrorCode.NotFinished,

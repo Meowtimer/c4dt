@@ -75,7 +75,9 @@ public enum ParserErrorCode {
 	IncompatibleFormatArgType(Messages.IncompatibleFormatArgType),
 	DragonsHere(Messages.DragonsHere),
 	TypingJudgment("Typing judgment for '%s': %s"), //$NON-NLS-1$
-	NotSupported(Messages.NotSupported);
+	NotSupported(Messages.NotSupported),
+	MissingBrackets("Missing %d '%s' brackets"),
+	OnlyRefAllowedAsReturnType("Only '&' allowed as return type of function");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

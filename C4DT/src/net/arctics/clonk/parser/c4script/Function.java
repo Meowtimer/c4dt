@@ -3,9 +3,11 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -197,16 +199,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		PROTECTED,
 		PRIVATE;
 		
+		private static final Map<String, FunctionScope> scopeMap = new HashMap<String, FunctionScope>();
+		static {
+			for (FunctionScope s : values())
+				scopeMap.put(s.name().toLowerCase(), s);
+		}
+		
 		private String lowerCaseName;
 		
 		public static FunctionScope makeScope(String scopeString) {
-			if (scopeString == null) return FunctionScope.PUBLIC;
-			if (scopeString.equals(Keywords.Public)) return FunctionScope.PUBLIC;
-			if (scopeString.equals(Keywords.Protected)) return FunctionScope.PROTECTED;
-			if (scopeString.equals(Keywords.Private)) return FunctionScope.PRIVATE;
-			if (scopeString.equals(Keywords.Global)) return FunctionScope.GLOBAL;
-			//if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
-			return FunctionScope.PUBLIC;
+			return scopeMap.get(scopeString);
 		}
 		
 		@Override
@@ -611,7 +613,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			Function f = (Function) declaration;
 			if (f.parameter.size() >= this.parameter.size())
 				this.parameter = f.parameter;
-			this.returnType = f.returnType;
+			this.setReturnType(f.returnType);
 			f.parameter = null;
 		}
 		super.absorb(declaration);

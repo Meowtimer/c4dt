@@ -156,22 +156,6 @@ public class BufferedScanner {
 		} while(!reachedEOF());
 		return readStringAt(start, start+length);
 	}
-	
-	public String readOldStyleClonkID() {
-		int start = offset;
-		int length = 0;
-		do {
-			int readByte = read();
-			if (isWordPart(readByte)) {
-				length++;
-			}
-			else {
-				seek(start);
-				return readString(length);
-			}
-		} while(!reachedEOF());
-		return readStringAt(start, start+length);
-	}
 
 	/**
 	 * Reads a string until a char from <code>delimiters</code> occurs
@@ -180,20 +164,35 @@ public class BufferedScanner {
 	 */
 	public String readStringUntil(char ...delimiters) {
 		int start = offset;
-		int i = 0;
 		int subtract = 0;
 		Outer: do {
 			int readByte = read();
-			for(i = 0; i < delimiters.length;i++) {
+			for (int i = 0; i < delimiters.length; i++) {
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
 			}
 		} while(!reachedEOF());
-		i = offset - start - subtract; // variable reuse
+		int stringLength = offset - start - subtract;
 		seek(start);
-		return readString(i);
+		return readString(stringLength);
+	}
+	
+	public int skipUntil(char... delimiters) {
+		int subtract = 0;
+		int start, len;
+		Outer: for (start = offset, len = 0; !reachedEOF(); start++, len++) {
+			int readByte = read();
+			for(int i = 0; i < delimiters.length;i++) {
+				if (readByte == delimiters[i]) {
+					subtract = 1;
+					break Outer;
+				}
+			}
+		}
+		seek(this.offset-subtract);
+		return len;
 	}
 	
 	/**
@@ -348,11 +347,11 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * If end of file reached
+	 * True if {@link #getPosition()} >= {@link #bufferSize()}
 	 * @return whether eof reached
 	 */
 	public final boolean reachedEOF() {
-		return (offset >= size);
+		return offset >= size;
 	}
 
 	/**
@@ -438,11 +437,11 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * returns the length of the buffer 
-	 * @return the buffer length
+	 * returns the size of the buffer 
+	 * @return the buffer size
 	 */
-	public int getBufferLength() {
-		return buffer.length();
+	public int bufferSize() {
+		return size;
 	}
 	
 	/**

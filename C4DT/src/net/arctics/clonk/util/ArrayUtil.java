@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -158,26 +159,6 @@ public class ArrayUtil {
 		return -1;
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> Set<T> arrayToSet(T[] arr, Class<? extends Set> setClass) {
-		try {
-			Set<T> result = setClass.newInstance();
-			for (T elm : arr)
-				result.add(elm);
-			return result;
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-			return null;
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-			return null;
-		}	
-	}
-	
-	public static <T> Set<T> set(@SuppressWarnings("rawtypes") Class<? extends Set> cls, T... elements) {
-		return arrayToSet(elements, cls);
-	}
-	
 	@SuppressWarnings("unchecked")
 	public static <From, To> To[] map(From[] elms, Class<To> toClass, IConverter<From, To> converter) {
 		To[] result = (To[]) Array.newInstance(toClass, elms.length);
@@ -253,6 +234,13 @@ public class ArrayUtil {
 		for (Collection<?> c : collections)
 			if (c != null)
 				c.removeAll(Collections.singletonList(null));
+	}
+	
+	public static <T> Set<T> set(T... items) {
+		HashSet<T> t = new HashSet<T>();
+		for (T i : items)
+			t.add(i);
+		return t;
 	}
 
 }

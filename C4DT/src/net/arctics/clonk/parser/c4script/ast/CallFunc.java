@@ -401,7 +401,8 @@ public class CallFunc extends AccessDeclaration {
 			if (typesWithThatMember.size() > 0) {
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, functionName));
-				p.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
+				if (context instanceof C4ScriptParser)
+					p.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
 			}
 		}
 		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.iterator().next() : null;
