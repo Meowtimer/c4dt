@@ -131,6 +131,8 @@ public abstract class IndexEntity extends Structure {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
 		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId && ((IndexEntity)obj).index == this.index;
 	}
 	

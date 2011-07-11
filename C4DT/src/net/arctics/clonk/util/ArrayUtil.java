@@ -2,6 +2,7 @@ package net.arctics.clonk.util;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -246,6 +247,12 @@ public class ArrayUtil {
 			if (Utilities.objectsEqual(items[i], item))
 				return i;
 		return -1;
+	}
+	
+	public static void purgeNullEntries(Collection<?>... collections) {
+		for (Collection<?> c : collections)
+			if (c != null)
+				c.removeAll(Collections.singletonList(null));
 	}
 
 }

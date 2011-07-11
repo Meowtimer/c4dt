@@ -39,7 +39,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.ArrayUtil;
+import static net.arctics.clonk.util.ArrayUtil.*;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -103,6 +103,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		definedVariables = (List<Variable>) stream.readObject();
 		definedDirectives = (List<Directive>) stream.readObject();
 		usedScripts = (Set<ScriptBase>) stream.readObject();
+		purgeNullEntries(definedFunctions, definedVariables, definedDirectives, usedScripts);
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
 			if (usedScripts != null)
@@ -270,7 +271,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public Iterable<ScriptBase> dependentScripts() {
 		requireLoaded();
 		if (dependentScripts == null)
-			return ArrayUtil.arrayIterable();
+			return arrayIterable();
 		else
 			return dependentScripts;
 	}
@@ -355,7 +356,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if ((mask & VARIABLES) != 0)
 			its.add(variables());
 		if ((mask & INCLUDES) != 0)
-			its.add(ArrayUtil.filteredIterable(getIncludes(false), Declaration.class));
+			its.add(filteredIterable(getIncludes(false), Declaration.class));
 		if ((mask & DIRECTIVES) != 0)
 			its.add(directives());
 		return new CompoundIterable<Declaration>(its);
@@ -624,7 +625,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				return func;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : ArrayUtil.filteredIterable(getIncludes(false), ScriptBase.class)) {
+			for (ScriptBase script : filteredIterable(getIncludes(false), ScriptBase.class)) {
 				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
 				if (func != null)
 					return func;
@@ -643,7 +644,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				return var;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : ArrayUtil.filteredIterable(getIncludes(false), ScriptBase.class)) {
+			for (ScriptBase script : filteredIterable(getIncludes(false), ScriptBase.class)) {
 				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
 				if (var != null)
 					return var;
@@ -682,7 +683,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	
 	public <T extends Function> Iterable<T> functions(Class<T> cls) {
 		requireLoaded();
-		return ArrayUtil.filteredIterable(functions(), cls);
+		return filteredIterable(functions(), cls);
 	}
 
 	/**
@@ -942,7 +943,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
+		return arrayIterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
 	}
 
 	@Override

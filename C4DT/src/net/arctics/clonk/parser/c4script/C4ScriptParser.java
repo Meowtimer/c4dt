@@ -1080,9 +1080,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				warningWithCode(ParserErrorCode.OldStyleFunc, startName, endName);
 			}
 		}
-		else {
+		else
 			scope = FunctionScope.PUBLIC;
-		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType();
 			if (retType == null)
