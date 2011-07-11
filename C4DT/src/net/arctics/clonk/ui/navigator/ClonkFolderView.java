@@ -210,6 +210,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		linkMenuItem.setText(Messages.ClonkFolderView_Link);
 		importMenuItem = new MenuItem(treeMenu, SWT.PUSH);
 		importMenuItem.setText(Messages.ClonkFolderView_Import);
+		new MenuItem(treeMenu, SWT.SEPARATOR);
 		refreshMenuItem = new MenuItem(treeMenu, SWT.PUSH);
 		refreshMenuItem.setText(Messages.ClonkFolderView_Refresh0);
 		
