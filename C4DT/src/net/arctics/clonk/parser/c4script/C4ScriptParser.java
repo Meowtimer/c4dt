@@ -1143,7 +1143,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					endBody = this.offset;
 					String word = readIdent();
 					if (word != null && word.length() > 0) {
-						if (looksLikeStartOfFunction(word) || looksLikeVarDeclaration(word)) {
+						if (looksLikeStartOfFunction(word)) {
 							this.seek(endBody);
 							break;
 						} else {
@@ -1653,7 +1653,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
-		int off = this.offset-1;
+		int off = this.offset;
 		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
 			off--;
 		errorWithCode(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION, token);

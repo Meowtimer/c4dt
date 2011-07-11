@@ -180,6 +180,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 						if (func.isOldStyle()) {
 							blockBegin = expressionsInRightOrder[0].getExprStart();
 							blockLength = expressionsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+							blockBegin += func.getBody().getStart();
 						}
 						else {
 							blockBegin  = func.getBody().getStart()-1;
