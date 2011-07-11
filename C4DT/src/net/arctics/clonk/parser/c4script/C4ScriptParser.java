@@ -1122,8 +1122,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			warningWithCode(ParserErrorCode.OldStyleFunc, header.nameStart, header.nameStart+header.name.length());
 		Function currentFunc;
 		currentFunctionContext.currentDeclaration = currentFunc = newFunction(header.name);
-		if (header.name.equals("FindObjects"))
-			System.out.println("fuuu");
 		header.apply(currentFunc);
 		currentFunc.setScript(container);
 		currentFunc.setUserDescription(desc);
@@ -1147,9 +1145,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					break; // all parameters parsed
 				else if (readByte == ',')
 					continue; // parse another parameter
-				else {
+				else
 					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-				}
 			} while(!reachedEOF());
 		}
 		endOfHeader = this.offset;
@@ -1205,8 +1202,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						properEnd = --blockDepth == -1 && !header.isOldStyle;
 				}
 			} while (!properEnd && !reachedEOF());
-			if (!header.isOldStyle)
+			if (!header.isOldStyle) {
 				endBody = this.offset;
+				if (properEnd)
+					endBody--;
+			}
 			if (!properEnd && !(header.isOldStyle && reachedEOF())) {
 				int pos = Math.min(this.offset, this.size-1);
 				errorWithCode(ParserErrorCode.TokenExpected, pos-bodyOffset(), pos+1-bodyOffset(), "}"); //$NON-NLS-1$
