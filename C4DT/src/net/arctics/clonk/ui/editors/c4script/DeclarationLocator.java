@@ -10,6 +10,8 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -38,6 +40,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
 	private Declaration declaration;
 	private Set<Declaration> proposedDeclarations;
+	private C4ScriptParser parser;
 	
 	public Set<Declaration> getProposedDeclarations() {
 		return proposedDeclarations;
@@ -92,7 +95,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		}
 		if (region.getOffset() >= d.bodyStart) {
 			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
+			parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
@@ -125,13 +128,16 @@ public class DeclarationLocator extends ExpressionLocator {
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
 			String declarationName = access.getDeclarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			for (Index i : script.getIndex().relevantIndexes()) {
-				i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
-			}
-			for (Index i : script.getIndex().relevantIndexes()) {
-				List<Declaration> decs = i.declarationMap().get(declarationName);
-				if (decs != null)
-					projectDeclarations.addAll(decs);
+			IType t = access.getPredecessorInSequence().getType(parser);
+			if (t != null && t.specificness() <= PrimitiveType.OBJECT.specificness()) {
+				for (Index i : script.getIndex().relevantIndexes()) {
+					i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
+				}
+				for (Index i : script.getIndex().relevantIndexes()) {
+					List<Declaration> decs = i.declarationMap().get(declarationName);
+					if (decs != null)
+						projectDeclarations.addAll(decs);
+				}
 			}
 			
 			if (projectDeclarations != null)

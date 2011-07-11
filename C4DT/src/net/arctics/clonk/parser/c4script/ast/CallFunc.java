@@ -388,9 +388,6 @@ public class CallFunc extends AccessDeclaration {
 					return declaration;
 				else
 					listToAddPotentialDeclarationsTo.add(declaration);
-			} else {
-				if (listToAddPotentialDeclarationsTo != null && allFromLocalIndex != null)
-					listToAddPotentialDeclarationsTo.addAll(allFromLocalIndex);
 			}
 		}
 		if ((lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
@@ -602,7 +599,10 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			return new AccessVar(declarationName);
+			if (getPredecessorInSequence() != null)
+				return new CallFunc("LocalN", new StringLiteral(declarationName));
+			else
+				return new AccessVar(declarationName);
 		}
 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-

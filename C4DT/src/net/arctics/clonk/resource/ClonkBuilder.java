@@ -514,6 +514,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// parse function code
 			monitor.subTask("Parse function code");
 			ScriptBase[] scripts = parserMap.keySet().toArray(new ScriptBase[parserMap.keySet().size()]);
+			for (ScriptBase s : scripts)
+				s.generateFindDeclarationCache();
 			for (ScriptBase s : scripts) {
 				if (monitor.isCanceled())
 					return;

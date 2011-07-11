@@ -575,7 +575,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return;
 			}
 			enableError(ParserErrorCode.StringNotClosed, true);
-			container.generateFindDeclarationCache();
 		}
 	}
 	
