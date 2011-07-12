@@ -848,19 +848,18 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private static class EntityDeclaration implements Serializable, IResolvable {
-		private IResolvable entityId;
-		private String path;
-		public EntityDeclaration(IResolvable entityId, Declaration declaration) {
-			this.entityId = entityId;
-			this.path = declaration.pathRelativeToIndexEntity();
+		private IndexEntity containingEntity;
+		private String declarationPath;
+		public EntityDeclaration(Declaration declaration) {
+			this.containingEntity = declaration.getParentDeclarationOfType(IndexEntity.class);
+			this.declarationPath = declaration.pathRelativeToIndexEntity();
 		}
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		@Override
 		public Declaration resolve(Index index) {
-			if (entityId != null) {
-				IResolvable e = Utilities.as(entityId.resolve(index), IResolvable.class);
-				return e instanceof Structure ? ((Structure)e).findDeclarationByPath(path) : null;
-			} else
+			if (containingEntity instanceof Structure)
+				return containingEntity.findDeclarationByPath(declarationPath);
+			else
 				return null;
 		}
 	}
@@ -969,7 +968,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		if (objIndex == null || objIndex == this)
 			return obj;
 		else
-			return new EntityDeclaration(getSaveReplacementForEntity(obj.getParentDeclarationOfType(IndexEntity.class)), obj);
+			return new EntityDeclaration(obj);
 	}
 	
 	public void loadScriptsContainingDeclarationsBeingNamed(String name) {
