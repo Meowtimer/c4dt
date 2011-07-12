@@ -81,7 +81,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 				types.add(PrimitiveType.OBJECT);
 			if (isType)
 				types.add(PrimitiveType.ID);
-			types.add(this);
+			types.add(constraint);
 			iterable = types;
 		}
 		return iterable.iterator();
