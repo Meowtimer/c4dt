@@ -131,7 +131,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			IType t = access.getPredecessorInSequence() != null ? access.getPredecessorInSequence().getType(parser) : null;
 			if (t == null || t.specificness() <= PrimitiveType.OBJECT.specificness()) {
 				for (Index i : script.getIndex().relevantIndexes())
-					i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
+					i.loadScriptsContainingDeclarationsNamed(declarationName);
 				for (Index i : script.getIndex().relevantIndexes()) {
 					List<Declaration> decs = i.declarationMap().get(declarationName);
 					if (decs != null)

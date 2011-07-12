@@ -165,6 +165,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				Scenario s2 = _activeFunc.getScenario();
 				if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
 					for (Function func : index.globalFunctions()) {
+						if (func == null) {
+							System.out.println("D:");
+							continue;
+						}
 						Scenario s1 = func.getScenario();
 						if (s1 != null && s2 != null && s1 != s2)
 							continue;

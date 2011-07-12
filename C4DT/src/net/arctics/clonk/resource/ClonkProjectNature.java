@@ -163,7 +163,7 @@ public class ClonkProjectNature implements IProjectNature {
 	/**
 	 * Settings stored in ini file
 	 */
-	private Settings settings = new Settings();
+	private Settings settings;
 
 	public ClonkProjectNature() {
 	}
@@ -223,6 +223,7 @@ public class ClonkProjectNature implements IProjectNature {
 
 	private void saveSettings() {
 		try {
+			getSettings();
 			StreamUtil.writeToFile(getSettingsFileLocation().toFile(), new StreamUtil.StreamWriteRunnable() {
 				@Override
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
@@ -240,6 +241,7 @@ public class ClonkProjectNature implements IProjectNature {
 	
 	private void loadSettings() {
 		try {
+			settings = new Settings();
 			CustomIniUnit.load(StreamUtil.stringFromFile(getSettingsFileLocation().toFile()), settings);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -250,7 +252,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Load the index from disk. Exceptions thrown while loading cause a new empty index to be created and returned.
 	 */
 	private synchronized void loadIndex() {
-		loadSettings();
+		getSettings();
 		if (ClonkCore.getDefault().updateTookPlace()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
 			index = new ProjectIndex(getProject(), getIndexFolder());
@@ -361,7 +363,8 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public Settings getSettings() {
-		getIndex(); // trigger loading of index, which includes loading the settings
+		if (settings == null)
+			loadSettings();
 		return settings;
 	}
 	
@@ -414,7 +417,7 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public static Engine getEngine(IResource res) {
 		ClonkProjectNature nat = get(res);
-		return nat != null ? nat.getIndex().getEngine() : null;
+		return nat != null ? nat.getSettings().getEngine() : null;
 	}
 	
 	public static Engine getEngine(ISelection selection) {

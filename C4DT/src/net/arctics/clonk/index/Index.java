@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<String, List<Declaration>>();
+	protected transient Map<String, List<Declaration>> declarationMap = new Hashtable<String, List<Declaration>>();
 	protected transient Map<ID, List<ScriptBase>> appendages = new HashMap<ID, List<ScriptBase>>();
 	
 	public Index(File folder) {
@@ -250,7 +251,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Repopulate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 */
 	public synchronized void refreshIndex() {
 		relevantIndexes = null;
@@ -260,7 +261,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		if (staticVariables == null)
 			staticVariables = new LinkedList<Variable>();
 		if (declarationMap == null)
-			declarationMap = new HashMap<String, List<Declaration>>();
+			declarationMap = new Hashtable<String, List<Declaration>>();
 		if (appendages == null)
 			appendages = new HashMap<ID, List<ScriptBase>>();
 		globalFunctions.clear();
@@ -971,7 +972,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			return new EntityDeclaration(obj);
 	}
 	
-	public void loadScriptsContainingDeclarationsBeingNamed(String name) {
+	public void loadScriptsContainingDeclarationsNamed(String name) {
 		for (ScriptBase s : allScripts()) {
 			if (s.dictionary() != null && s.dictionary().contains(name))
 				s.requireLoaded();
