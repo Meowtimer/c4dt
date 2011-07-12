@@ -130,9 +130,8 @@ public class DeclarationLocator extends ExpressionLocator {
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType t = access.getPredecessorInSequence() != null ? access.getPredecessorInSequence().getType(parser) : null;
 			if (t == null || t.specificness() <= PrimitiveType.OBJECT.specificness()) {
-				for (Index i : script.getIndex().relevantIndexes()) {
+				for (Index i : script.getIndex().relevantIndexes())
 					i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
-				}
 				for (Index i : script.getIndex().relevantIndexes()) {
 					List<Declaration> decs = i.declarationMap().get(declarationName);
 					if (decs != null)

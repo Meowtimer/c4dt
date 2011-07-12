@@ -599,7 +599,7 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			if (getPredecessorInSequence() != null)
+			if (!parser.getContainer().getEngine().getCurrentSettings().proplistsSupported && getPredecessorInSequence() != null)
 				return new CallFunc("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);

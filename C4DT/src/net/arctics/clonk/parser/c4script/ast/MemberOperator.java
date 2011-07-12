@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.util.Utilities;
 
@@ -63,6 +64,10 @@ public class MemberOperator extends ExprElm {
 		this.hasTilde = hasTilde;
 		this.id = id;
 		this.idOffset = idOffset;
+	}
+	
+	public static MemberOperator dotOperator() {
+		return new MemberOperator(true, false, null, 0);
 	}
 
 	@Override
@@ -180,6 +185,16 @@ public class MemberOperator extends ExprElm {
 	
 	public boolean hasTilde() {
 		return hasTilde;
+	}
+	
+	@Override
+	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+		if (context.getContainer().getEngine().getCurrentSettings().proplistsSupported) {
+			ExprElm succ = getSuccessorInSequence();
+			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).getDeclaration(context) instanceof Variable)
+				return dotOperator();
+		}
+		return super.optimize(context);
 	}
 
 }

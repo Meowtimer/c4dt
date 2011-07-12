@@ -88,4 +88,10 @@ public class Sequence extends ExprElmWithSubElementsArray {
 	public void inferTypeFromAssignment(ExprElm rightSide, DeclarationObtainmentContext context) {
 		getLastElement().inferTypeFromAssignment(rightSide, context);
 	}
+	public ExprElm getSuccessor(ExprElm element) {
+		for (int i = 0; i < elements.length; i++)
+			if (elements[i] == element)
+				return i+1 < elements.length ? elements[i+1] : null;
+		return null;
+	}
 }
