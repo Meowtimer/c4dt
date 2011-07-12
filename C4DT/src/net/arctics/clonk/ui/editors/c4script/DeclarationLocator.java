@@ -128,8 +128,8 @@ public class DeclarationLocator extends ExpressionLocator {
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
 			String declarationName = access.getDeclarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			IType t = access.getPredecessorInSequence().getType(parser);
-			if (t != null && t.specificness() <= PrimitiveType.OBJECT.specificness()) {
+			IType t = access.getPredecessorInSequence() != null ? access.getPredecessorInSequence().getType(parser) : null;
+			if (t == null || t.specificness() <= PrimitiveType.OBJECT.specificness()) {
 				for (Index i : script.getIndex().relevantIndexes()) {
 					i.loadScriptsContainingDeclarationsBeingNamed(declarationName);
 				}
