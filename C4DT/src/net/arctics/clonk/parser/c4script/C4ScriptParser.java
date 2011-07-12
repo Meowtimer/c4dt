@@ -720,9 +720,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		finally {
 			currentFunctionContext.currentDeclaration = oldDec;
-			if (oldFunctionContext != null) {
+			if (oldFunctionContext != null)
 				currentFunctionContext = oldFunctionContext;
-			}
 			seek(oldOffset);
 		}
 		

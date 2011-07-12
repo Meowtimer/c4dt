@@ -216,17 +216,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 
-		if (proposalCycle == ProposalCycle.ALL || activeFunc == null) {
-			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
+		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
+			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
-			}
-		}
 
-		if (activeFunc == null) {
+		if (activeFunc == null)
 			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index);
-		} else {
+		else
 			proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
-		}
 
 		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_ShownData);
 		for(String message : statusMessages) {
