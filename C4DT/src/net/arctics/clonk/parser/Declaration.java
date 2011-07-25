@@ -392,7 +392,17 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 
 	@Override
 	public Index getIndex() {
-		return parentDeclaration != null ? parentDeclaration.getIndex() : null;
+		if (parentDeclaration != null)
+			return parentDeclaration.getIndex();
+		else {
+			IResource res = getResource();
+			if (res != null) {
+				ClonkProjectNature nat = ClonkProjectNature.get(res);
+				return nat != null ? nat.getIndex() : null;
+			}
+			else
+				return null;
+		}
 	}
 	
 	/**
