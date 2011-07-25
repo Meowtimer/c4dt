@@ -219,7 +219,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
-			index = ClonkProjectNature.get(definitionFolder).getIndex();
+			//index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}
 	}
 	
