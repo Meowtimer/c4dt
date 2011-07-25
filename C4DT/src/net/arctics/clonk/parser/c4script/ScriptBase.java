@@ -385,6 +385,20 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				if (v != null)
 					return v;
 			}
+		
+		// prefer using the cache
+		if (cachedVariableMap != null || cachedFunctionMap != null) {
+			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
+				Declaration d = cachedVariableMap.get(name);
+				if (d != null)
+					return d;
+			}
+			if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
+				Declaration d = cachedFunctionMap.get(name);
+				if (d != null)
+					return d;
+			}
+		}
 
 		// this object?
 		Declaration thisDec = getThisDeclaration(name, info);
@@ -402,26 +416,13 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				if (v.getName().equals(name))
 					return v;
 
-		if (cachedVariableMap != null || cachedFunctionMap != null) {
-			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
-				Declaration d = cachedVariableMap.get(name);
-				if (d != null)
-					return d;
-			}
-			if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
-				Declaration d = cachedFunctionMap.get(name);
-				if (d != null)
-					return d;
-			}
-		} else {
-			info.recursion++;
-			for (IHasIncludes o : getIncludes(info.index, false)) {
-				Declaration result = o.findDeclaration(name, info);
-				if (result != null)
-					return result;
-			}
-			info.recursion--;
+		info.recursion++;
+		for (IHasIncludes o : getIncludes(info.index, false)) {
+			Declaration result = o.findDeclaration(name, info);
+			if (result != null)
+				return result;
 		}
+		info.recursion--;
 
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
