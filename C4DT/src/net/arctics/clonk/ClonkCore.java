@@ -232,8 +232,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public List<String> getNamesOfAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
-		for (@SuppressWarnings("unchecked")
-		Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
+		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
 			String engineName = engineNameFromPath(paths.nextElement());
 			if (engineName != null) {
 				result.add(engineName);
@@ -308,7 +307,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			public OutputStream getOutputStream(URL storageURL) {
 				return null;
 			}
-			@SuppressWarnings("unchecked")
 			@Override
 			public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
 				Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
