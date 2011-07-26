@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -69,7 +70,6 @@ import org.eclipse.ui.part.*;
 public class ClonkPreviewView extends ViewPart implements ISelectionListener, ControlListener {
 
 	public static final String ID = ClonkCore.id("views.ClonkPreviewView"); //$NON-NLS-1$
-	private static final String MATERIALS_FOLDER = "Material.c4g";
 	private static final float LANDSCAPE_PREVIEW_SCALE = 0.5f;
 	
 	private final class PreviewUpdaterJob extends Job {
@@ -229,13 +229,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private File tempLandscapeRenderFile = null;
 	
 	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
+		String materialFolderBaseName = "Material."+engine.getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
-			IResource matsRes = container.findMember(MATERIALS_FOLDER);
+			IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null) {
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
 			}
 		}
-		return engine.getCurrentSettings().gamePath+"/"+MATERIALS_FOLDER; 
+		return engine.getCurrentSettings().gamePath+"/"+materialFolderBaseName; 
 	}
 
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
