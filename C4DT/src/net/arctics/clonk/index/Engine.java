@@ -19,6 +19,8 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.console.IOConsoleOutputStream;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -52,6 +54,7 @@ import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * Container for engine functions and constants.
@@ -608,14 +611,28 @@ public class Engine extends ScriptBase {
 			for (int i = 0; i < args.length; i++)
 				completeArgs[2+i] = args[i];
 			try {
-				return Runtime.getRuntime().exec(completeArgs);
+				final Process p = Runtime.getRuntime().exec(completeArgs);
+				new Thread() {
+					@Override
+					public void run() {
+						try {
+							IOConsoleOutputStream stream = Utilities.getClonkConsole().newOutputStream();
+							byte[] buffer = new byte[1024];
+							int bytesRead;
+							while ((bytesRead = p.getInputStream().read(buffer)) > 0)
+								stream.write(buffer, 0, bytesRead);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					};
+				}.start();
+				return p;
 			} catch (IOException e) {
 				System.out.println("Failed to execute utility " + name);
 				return null;
 			}
-		} else {
+		} else
 			return null;
-		}
 	}
 	
 	public C4Group.GroupType getGroupTypeForExtension(String ext) {
