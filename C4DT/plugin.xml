@@ -432,6 +432,12 @@
 			id="net.arctics.clonk.ui.ConvertLinkedGroups"
 			defaultHandler="net.arctics.clonk.ui.navigator.ConvertLinkedGroupsHandler"
 			name="%ConvertLinkedGroups_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="%MarkAsRelated"
+			id="net.arctics.clonk.ui.MarkAsRelated"
+			name="%MarkAsRelated_Name"
+		/>
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%TidyUpCode_Desc"
@@ -479,6 +485,16 @@
 			name="%DeclarationFilter_Name" />
 
 	</extension>
+	
+	<extension point="org.eclipse.ui.handlers">
+    	<handler commandId="net.arctics.clonk.ui.MarkAsRelated">
+    		<enabledWhen>
+    			<iterate ifEmpty="false">
+    				<test property="isInClonkProject" />
+    			</iterate>
+    		</enabledWhen>
+    	</handler>
+	</extension>
 
 	<extension point="org.eclipse.ui.menus">
 	
@@ -515,7 +531,7 @@
 			<menu label="Clonk">
 				<visibleWhen checkEnabled="false">
 					<iterate operator="and" ifEmpty="false"> 
-						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.clonknature" /> 
+						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.clonknature" />
 					</iterate> 
 				</visibleWhen>
                 <command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
@@ -541,20 +557,25 @@
 						</iterate>
 					</visibleWhen>
 				</command>
+				<command commandId="net.arctics.clonk.ui.MarkAsRelated" label="%MarkAsRelated_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer" />
+						</iterate>
+					</visibleWhen>
+				</command>
 				<separator name="AfterImportExportSeparator" visible="true" />
 				<command commandId="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk" label="%TidyUpCode_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IResource">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IResource" />
 						</iterate>
 					</visibleWhen>
 				</command>
 				<command commandId="net.arctics.clonk.ui.navigator.actions.FindDuplicates" label="%FindDuplicates_Name">
                     <visibleWhen checkEnabled="false">
                         <iterate ifEmpty="false">
-                            <adapt type="org.eclipse.core.resources.IResource">
-                            </adapt>
+                            <adapt type="org.eclipse.core.resources.IResource" />
                         </iterate>
                     </visibleWhen>
                 </command>
@@ -662,7 +683,7 @@
 
 	<extension point="org.eclipse.core.expressions.propertyTesters">
 		<propertyTester id="net.arctics.clonk.resource.ResourceTester"
-			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject"
+			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject,isPackedGroup"
 			type="org.eclipse.core.resources.IResource" class="net.arctics.clonk.resource.ResourceTester" />
 
 		<propertyTester id="net.arctics.clonk.resource.ResourceTesterEditor"

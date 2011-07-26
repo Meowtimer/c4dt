@@ -6,7 +6,10 @@ import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
 import org.eclipse.core.expressions.PropertyTester;
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IFileEditorInput;
 
 public class ResourceTester extends PropertyTester {
@@ -77,10 +80,20 @@ public class ResourceTester extends PropertyTester {
 		return false;
 	}
 
+	/** @return Whether the given resource is inside a project sporting a Clonk project nature */
 	public static boolean isInClonkProject(IResource res) {
 		try {
 			return res.getProject().hasNature(ClonkCore.CLONK_NATURE_ID);
 		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	/** @return Whether the given folder is a packed c4group */
+	public static boolean isPackedGroup(IResource res) {
+		try {
+			return res instanceof IContainer && EFS.getStore(res.getLocationURI()) instanceof C4Group;
+		} catch (CoreException e) {
 			return false;
 		}
 	}
