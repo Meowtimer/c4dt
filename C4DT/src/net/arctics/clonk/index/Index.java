@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -434,9 +435,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 						newOnes.add(n.getIndex());
 				}
 				result.addAll(newOnes);
-				for (Index i : newOnes) {
+				for (Index i : newOnes)
 					addIndexesFromReferencedProjects(result, i);
-				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -977,6 +977,22 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			if (s.dictionary() != null && s.dictionary().contains(name))
 				s.requireLoaded();
 		}
+	}
+
+	/**
+	 * Return a copy of the current list of declarations with the given name.
+	 * Use this method if you expect your usage of the returned list to trigger loading additional scripts which will in turn
+	 * modify the original lists inside {@link #declarationMap()}, causing {@link ConcurrentModificationException}s.
+	 * @param name Name key passed to {@link #declarationMap()}
+	 * @return The copy or null if no declarations with that name are currently loaded.
+	 */
+	public List<Declaration> snapshotOfDeclarationsNamed(String name) {
+		List<Declaration> decs = declarationMap().get(name);
+		if (decs == null)
+			return null;
+		ArrayList<Declaration> result = new ArrayList<Declaration>(decs.size());
+		result.addAll(decs);
+		return result;
 	}
 
 }

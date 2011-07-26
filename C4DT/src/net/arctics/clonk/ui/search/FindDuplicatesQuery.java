@@ -108,6 +108,8 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 					indexes.add(i);
 		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet()) {
 			for (final Function function : entry.getValue()) {
+				for (Index index : indexes)
+					index.loadScriptsContainingDeclarationsNamed(function.getName());
 				if (deemedDuplicate.contains(function))
 					continue;
 				Block functionCodeBlock = function.getCodeBlock();
@@ -116,7 +118,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 					if (functionCodeBlock == null || functionCodeBlock.getStatements().length == 1 && functionCodeBlock.getStatements()[0] instanceof ReturnStatement)
 						continue;
 				for (Index index : indexes) {
-					List<Declaration> decs = index.declarationMap().get(function.getName());
+					List<Declaration> decs = index.snapshotOfDeclarationsNamed(function.getName());
 					if (decs == null)
 						continue;
 					if (!decs.contains(function)) // happens when a newly-parsed function is not already added to the declaration map
