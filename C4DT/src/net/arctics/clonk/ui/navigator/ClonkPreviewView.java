@@ -376,8 +376,10 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			@Override
 			public void run() {
 				canvas.redraw();
-				browser.setText(finalNewHtml);
-				defInfo.setText(finalNewDefText);	
+				if (!browser.getText().equals(finalNewHtml))
+					browser.setText(finalNewHtml);
+				if (!defInfo.getText().equals(finalNewDefText))
+					defInfo.setText(finalNewDefText);	
 			}
 		});
 	}
