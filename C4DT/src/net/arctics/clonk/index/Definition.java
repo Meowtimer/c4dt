@@ -145,15 +145,15 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	public boolean nameContains(String text) {
-		if (id() != null && id().stringValue().toUpperCase().indexOf(text) != -1)
+	public boolean nameMatches(Matcher matcher) {
+		if (super.nameMatches(matcher))
 			return true;
-		if (getName() != null && getName().toUpperCase().contains(text))
+		if (id() != null && matcher.reset(id().stringValue()).lookingAt())
 			return true;
 		if (localizedNames != null) {
 			for (String key : localizedNames.keySet()) {
 				String value = localizedNames.get(key);
-				if (value.toUpperCase().indexOf(text) != -1)
+				if (matcher.reset(value).lookingAt())
 					return true;
 			}
 		}

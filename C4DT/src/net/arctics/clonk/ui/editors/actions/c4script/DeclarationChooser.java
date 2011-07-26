@@ -3,19 +3,23 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.StringUtil;
+import static net.arctics.clonk.util.ArrayUtil.*;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -27,6 +31,7 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
@@ -34,12 +39,12 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 	private final class DeclarationsFilter extends ItemsFilter {
-		private String[] patternStrings;
+		private Pattern[] patterns;
 
-		public String[] getPatternStrings() {
-			if (patternStrings == null)
-				patternStrings = ArrayUtil.map(this.getPattern().split(" "), String.class, STRING_UPPERCASER);
-			return patternStrings;
+		public Pattern[] getPatterns() {
+			if (patterns == null)
+				patterns = ArrayUtil.map(this.getPattern().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
+			return patterns;
 		}
 		
 		@Override
@@ -54,9 +59,10 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 			if (!(item instanceof Declaration))
 				return false;
 			final Declaration decl = (Declaration) item;
-			for (String p : getPatternStrings()) {
+			for (Pattern p : getPatterns()) {
+				Matcher matcher = p.matcher("");
 				final Structure structure = decl.getTopLevelStructure();
-				if (!(decl.nameContains(p) || (structure != null && structure.nameContains(p))))
+				if (!(decl.nameMatches(matcher) || (structure != null && structure.nameMatches(matcher))))
 					return false;
 			}
 			return true;
@@ -90,16 +96,20 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
+	public DeclarationChooser(Shell shell, Iterable<Declaration> declarations) {
+		this(shell, setFromIterable(declarations), true);
+	}
+	
 	public DeclarationChooser(Shell shell, Index index) {
 		this(shell, (Set<DeclarationLocation>)null);
 		this.index = index;
 	}
 	
 	public DeclarationChooser(Shell shell, Set<Declaration> proposedDeclarations, boolean doYouHateIt) {
-		this(shell, getFirstDeclarationsFromDeclarationLocationsOf(proposedDeclarations));
+		this(shell, declarationLocationsFrom(proposedDeclarations));
 	}
-
-	private static Set<DeclarationLocation> getFirstDeclarationsFromDeclarationLocationsOf(Collection<Declaration> proposedDeclarations) {
+	
+	private static Set<DeclarationLocation> declarationLocationsFrom(Collection<Declaration> proposedDeclarations) {
 		Set<DeclarationLocation> l = new HashSet<DeclarationLocation>();
 		for (Declaration d : proposedDeclarations) {
 			DeclarationLocation[] locations = d.getDeclarationLocations();
@@ -116,7 +126,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	@Override
 	public void create() { 
 		super.create();
-		if (declarations != null)
+		if (declarations != null && getInitialPattern() == null)
 			((Text)this.getPatternControl()).setText(declarations.iterator().next().getDeclaration().getName());
 	}
 
@@ -125,10 +135,14 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return null;
 	}
 
-	private IConverter<String, String> STRING_UPPERCASER = new IConverter<String, String>() {
+	private IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
 		@Override
-		public String convert(String from) {
-			return from.toUpperCase();
+		public Pattern convert(String from) {
+			try {
+				return Pattern.compile(from, Pattern.CASE_INSENSITIVE);
+			} catch (Exception e) {
+				return Pattern.compile(StringUtil.wildcardToRegex(from), Pattern.CASE_INSENSITIVE);
+			}
 		}
 	};
 	
@@ -140,34 +154,41 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	@Override
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
-		final String[] patternStrings = ((DeclarationsFilter)itemsFilter).getPatternStrings();
+		final Pattern[] patternStrings = ((DeclarationsFilter)itemsFilter).getPatterns();
+		final Runnable refreshListRunnable = new Runnable() {
+			@Override
+			public void run() {
+				refresh();
+			}
+		};
 		if (index != null)
 			index.forAllRelevantIndexes(new Index.r() {
 				@Override
 				public void run(Index index) {
+					int declarationsBatchSize = 0;
 					MainLoop: for (ScriptBase s : index.allScripts())
 						if (s.dictionary() != null)
 							for (String str : s.dictionary())
-								for (String ps : patternStrings)
-									if (str.startsWith(ps)) {
+								for (Pattern ps : patternStrings) {
+									Matcher matcher = ps.matcher(str);
+									if (matcher.lookingAt()) {
 										s.requireLoaded();
+										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
+											if (d.nameMatches(matcher)) {
+												contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.getScript().getScriptFile()), itemsFilter);
+												if (++declarationsBatchSize == 5) {
+													Display.getDefault().asyncExec(refreshListRunnable);
+													declarationsBatchSize = 0;
+												}
+											}
 										continue MainLoop;
 									}
+								}
 				}
 			});
 		if (declarations != null)
 			for (DeclarationLocation d : declarations)
 				contentProvider.add(d, itemsFilter);
-		else if (index != null)
-			index.forAllRelevantIndexes(new Index.r() {
-				@Override
-				public void run(Index index) {
-					for (List<Declaration> decs : index.declarationMap().values())
-						for (Declaration d : decs)
-							if (d.getScript() != null && d.getScript().getScriptFile() != null)
-								contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.getScript().getScriptFile()), itemsFilter);
-				}
-			});
 	}
 
 	@Override

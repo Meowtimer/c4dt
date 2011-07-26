@@ -258,7 +258,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	/**
-	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
+	 * Does the same as {@link #gatherIncludes(Set, boolean)}x except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
 	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {

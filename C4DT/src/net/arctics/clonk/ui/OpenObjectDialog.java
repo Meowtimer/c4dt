@@ -1,6 +1,8 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
+import java.util.regex.Pattern;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -62,15 +64,20 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	protected ItemsFilter createFilter() {
 		return new ItemsFilter() {
 		
+			private Pattern pattern;
+			
+			private Pattern getPatternObject() {
+				if (pattern == null)
+					pattern = Pattern.compile(getPattern());
+				return pattern;
+			}
+			
 			@Override
 			public boolean matchItem(Object item) {
-				if (!(item instanceof Definition)) return false;
-				final Definition obj = (Definition) item;
-				final String search = this.getPattern().toUpperCase();
-				if (obj == null || obj.id() == null || obj.getName() == null || search == null) {
+				if (!(item instanceof Definition))
 					return false;
-				}
-				return obj.nameContains(search);
+				final Definition obj = (Definition) item;
+				return obj.nameMatches(getPatternObject().matcher(""));
 			}
 		
 			@Override

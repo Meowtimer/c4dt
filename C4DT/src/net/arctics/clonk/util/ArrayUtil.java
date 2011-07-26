@@ -242,5 +242,12 @@ public class ArrayUtil {
 			t.add(i);
 		return t;
 	}
+	
+	public static <T> Set<T> setFromIterable(Iterable<T> iterable) {
+		Set<T> set = new HashSet<T>();
+		for (T d : iterable)
+			set.add(d);
+		return set;
+	}
 
 }

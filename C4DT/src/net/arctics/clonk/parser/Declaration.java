@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.IPostLoadable;
@@ -346,11 +348,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	
 	/**
 	 * Used to filter declarations based on their name
-	 * @param part The filter string
-	 * @return whether this declaration should be filtered (false) or not (true)
+	 * @param matcher The matcher, obtained from a {@link Pattern}, that will be {@link Matcher#reset(CharSequence)} with all the strings the user might want to filter for in order to refer to this declaration.
+	 * @return whether this declaration should be filtered out (false) or not (true)
 	 */
-	public boolean nameContains(String part) {
-		return getName() != null && getName().toLowerCase().contains(part.toLowerCase());
+	public boolean nameMatches(Matcher matcher) {
+		return getName() != null && matcher.reset(getName()).lookingAt();
 	}
 	
 	@Override

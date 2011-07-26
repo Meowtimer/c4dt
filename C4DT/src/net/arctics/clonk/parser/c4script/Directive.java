@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
+import java.util.regex.Matcher;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
@@ -118,6 +119,13 @@ public class Directive extends Declaration implements Serializable {
 			}
 			break;
 		}
+	}
+	
+	@Override
+	public boolean nameMatches(Matcher matcher) {
+		if (matcher.reset(getType().name()).lookingAt() || matcher.reset("#"+getType().name()).lookingAt())
+			return true;
+		return getContent() != null && matcher.reset(getContent()).lookingAt();
 	}
 
 }
