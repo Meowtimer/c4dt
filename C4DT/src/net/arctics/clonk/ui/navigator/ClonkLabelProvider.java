@@ -14,13 +14,17 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 
-public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
+public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider, IColorProvider {
 	
 	public ClonkLabelProvider() {
 	}
@@ -139,6 +143,26 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	
 	public void testRefresh() {
 		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
+	}
+
+	@Override
+	public Color getForeground(Object element) {
+		return null;
+	}
+
+	@Override
+	public Color getBackground(Object element) {
+		try {
+			if (element instanceof IResource) {
+				for (IResource resource = (IResource)element; resource != null; resource = resource.getParent()) {
+					RGB rgb = ColorTagging.rgbForResource(resource);
+					if (rgb != null)
+						return new Color(Display.getCurrent(), rgb);
+				}
+			}
+		} catch (Exception e) {
+		}
+		return null;
 	}
 	
 }

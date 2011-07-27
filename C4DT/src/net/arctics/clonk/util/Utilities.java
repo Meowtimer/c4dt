@@ -17,15 +17,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPageLayout;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -35,7 +29,6 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
@@ -260,35 +253,6 @@ public abstract class Utilities {
 			}
 		}
 		return false;
-	}
-
-	public static CommonNavigator getProjectExplorer() {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		if (workbench != null) {
-			return getProjectExplorer(workbench.getActiveWorkbenchWindow());
-		}
-		return null;
-	}
-	
-	public static ISelection getProjectExplorerSelection(IWorkbenchSite site) {
-		return site.getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
-	}
-	
-	public static ISelection getProjectExplorerSelection() {
-		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
-	}
-
-	public static CommonNavigator getProjectExplorer(IWorkbenchWindow window) {
-		if (window != null) {
-			IWorkbenchPage page = window.getActivePage();
-			if (page != null) {
-				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
-				if (viewPart instanceof CommonNavigator) {
-					return (CommonNavigator) viewPart;
-				}
-			}
-		}
-		return null;
 	}
 	
 	public static <T> boolean collectionContains(Collection<T> list, T elm) {

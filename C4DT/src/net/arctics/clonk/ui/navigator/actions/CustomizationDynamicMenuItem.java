@@ -8,8 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.CustomizationNature;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -102,7 +101,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			}
 			try {
 				container.refreshLocal(IResource.DEPTH_INFINITE, null);
-				Utilities.getProjectExplorer().selectReveal(new StructuredSelection(container.getFile(resPath.append(path))));
+				UI.projectExplorer().selectReveal(new StructuredSelection(container.getFile(resPath.append(path))));
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

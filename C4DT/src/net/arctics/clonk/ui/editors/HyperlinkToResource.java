@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -38,7 +37,7 @@ public class HyperlinkToResource implements IHyperlink {
 
 	@Override
 	public void open() {
-		Utilities.getProjectExplorer(workbenchWindow).selectReveal(new StructuredSelection(resource));
+		UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(resource));
 	}
 
 }

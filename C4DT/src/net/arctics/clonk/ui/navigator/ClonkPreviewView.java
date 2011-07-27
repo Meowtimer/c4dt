@@ -24,6 +24,7 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -196,7 +197,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	}
 
 	public ISelection getSelectionOfInterest() {
-		return Utilities.getProjectExplorerSelection(getSite());
+		return UI.projectExplorerSelection(getSite());
 	}
 	
 	@Override

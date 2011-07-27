@@ -16,6 +16,13 @@ public class Messages extends NLS {
 	public static String ClonkFolderView_Refresh0;
 	public static String ClonkFolderView_RemoveLinkedFilesOnShutdown;
 	public static String ClonkPreviewView_Updater;
+	public static String ColorTagging_Blue;
+	public static String ColorTagging_ChooseColorColorDialogTitle;
+	public static String ColorTagging_ChooseColorDialogPrompt;
+	public static String ColorTagging_ChooseColorDialogTitle;
+	public static String ColorTagging_ChooseColorMenuItemTitle;
+	public static String ColorTagging_Red;
+	public static String ColorTagging_RemoveTag;
 	public static String ConvertLinkedGroupsHandler_ConfirmationText;
 	public static String ConvertLinkedGroupsHandler_ConfirmationTitle;
 	public static String TidyUpCodeInBulkAction_ConvertingCode;

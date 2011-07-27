@@ -126,30 +126,30 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private TreeViewer folderTree;
 
 	private Button openInCurrentProject;
-	private UI.ProjectEditorBlock projectEditor;
+	private UI.ProjectSelectionBlock projectEditor;
 	private Menu treeMenu;
 	private MenuItem importMenuItem;
 	private MenuItem linkMenuItem;
 	private MenuItem refreshMenuItem;
 
 	private void createProjectEditor(Composite parent, Object groupLayoutData) {
-		projectEditor = new UI.ProjectEditorBlock(parent, null, this, groupLayoutData, null);
+		projectEditor = new UI.ProjectSelectionBlock(parent, null, this, groupLayoutData, null);
 	}
 
 	private IProject selectedProject() {
 		try {
-			return ResourcesPlugin.getWorkspace().getRoot().getProject(projectEditor.Text.getText());
+			return ResourcesPlugin.getWorkspace().getRoot().getProject(projectEditor.text.getText());
 		} catch (Exception e) {
 			return null;
 		}
 	}
 
 	private void updateProjectChooserEnablization() {
-		projectEditor.AddButton.setEnabled(!openInCurrentProject.getSelection());
-		projectEditor.Text.setEnabled(!openInCurrentProject.getSelection());
+		projectEditor.addButton.setEnabled(!openInCurrentProject.getSelection());
+		projectEditor.text.setEnabled(!openInCurrentProject.getSelection());
 		ClonkCore.getDefault().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
 		// trigger setting of project
-		selectionChanged(Utilities.getProjectExplorer(getSite().getWorkbenchWindow()), getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
+		selectionChanged(UI.projectExplorer(getSite().getWorkbenchWindow()), getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
 	}
 
 	@Override
@@ -240,7 +240,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			}
 		}
 		if (proj != null)
-			projectEditor.Text.setText(proj.getName());
+			projectEditor.text.setText(proj.getName());
 		if (folderTree != null)
 			refreshTree(true);
 	}
@@ -306,10 +306,10 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	public void widgetSelected(SelectionEvent e) {
 		if (e.getSource() == openInCurrentProject) {
 			updateProjectChooserEnablization();
-		} else if (e.getSource() == projectEditor.AddButton) {
+		} else if (e.getSource() == projectEditor.addButton) {
 			IProject project = UI.selectClonkProject(selectedProject());
 			if (project != null)
-				projectEditor.Text.setText(project.getName());
+				projectEditor.text.setText(project.getName());
 		} else if (e.getSource() == importMenuItem) {
 			importSelection();
 		} else if (e.getSource() == linkMenuItem) {
@@ -321,8 +321,8 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
-		if (e.getSource() == projectEditor.Text) {
-			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.Text.getText());
+		if (e.getSource() == projectEditor.text) {
+			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
 			refreshTree(true);
 		}
 	}

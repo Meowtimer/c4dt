@@ -6,15 +6,13 @@ import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 public class TogglesPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 	
@@ -41,9 +39,9 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 	public boolean performOk() {
 		boolean r = super.performOk();
 		if (r)
-			for (IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (CommonNavigator nav : UI.projectExplorers())
 				for (IProject proj : ClonkProjectNature.getClonkProjects())
-					Utilities.getProjectExplorer(w).getCommonViewer().refresh(proj);
+					nav.getCommonViewer().refresh(proj);
 		return r;
 	}
 

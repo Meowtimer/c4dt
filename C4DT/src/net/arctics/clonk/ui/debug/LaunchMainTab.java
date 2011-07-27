@@ -38,7 +38,7 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Project selection widgets */
-	private UI.ProjectEditorBlock projectEditor;
+	private UI.ProjectSelectionBlock projectEditor;
 	
 	/** Scenario selection widgets */
 	private Text fScenText;
@@ -61,7 +61,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			if(e.getSource() == projectEditor.AddButton)
+			if(e.getSource() == projectEditor.addButton)
 				chooseClonkProject();
 			else if(e.getSource() == fScenButton)
 				chooseScenario();
@@ -96,7 +96,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	 */
 	private void createProjectEditor(Composite parent)
 	{
-		projectEditor = new UI.ProjectEditorBlock(parent, fListener, fListener, null, Messages.LaunchMainTab_ProjectTitle);
+		projectEditor = new UI.ProjectSelectionBlock(parent, fListener, fListener, null, Messages.LaunchMainTab_ProjectTitle);
 	}
 	
 	
@@ -176,7 +176,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		try {
 
 			// Read attributes
-			projectEditor.Text.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
+			projectEditor.text.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
 			fScenText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "")); //$NON-NLS-1$
 			fFullscreenButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false));
 			fConsoleButton.setSelection(!fFullscreenButton.getSelection());
@@ -188,7 +188,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			
 			// Set defaults
 			fScenText.setText("");	 //$NON-NLS-1$
-			projectEditor.Text.setText(""); //$NON-NLS-1$
+			projectEditor.text.setText(""); //$NON-NLS-1$
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
@@ -199,7 +199,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy wc) {
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.Text.getText());
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.text.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, fFullscreenButton.getSelection());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, fRecordButton.getSelection());
@@ -218,7 +218,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public IProject validateProject() {
 		
 		// Must be a valid path segment
-		String projectName = projectEditor.Text.getText();
+		String projectName = projectEditor.text.getText();
 		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
 			setErrorMessage(Messages.LaunchMainTab_InvalidProjectName);
 			return null;
@@ -282,7 +282,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public void chooseClonkProject() {
 		IProject project = UI.selectClonkProject(validateProject());
 		if (project != null) {
-			projectEditor.Text.setText(project.getName());
+			projectEditor.text.setText(project.getName());
 		}
 	}
 	
@@ -327,7 +327,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Show
 		if(dialog.open() == Window.OK) {
 			IResource scen = (IResource) dialog.getFirstResult();
-			projectEditor.Text.setText(scen.getProject().getName());
+			projectEditor.text.setText(scen.getProject().getName());
 			fScenText.setText(scen.getProjectRelativePath().toString());
 		}
 		

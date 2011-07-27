@@ -8,8 +8,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -50,7 +49,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	
 	public OpenObjectDialog(Shell shell) {
 		super(shell, true);
-		selection = Utilities.getProjectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
+		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
 		setListLabelProvider(new OpenObjectLabelProvider());
 	}
 

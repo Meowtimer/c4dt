@@ -1,6 +1,8 @@
 package net.arctics.clonk.util;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
@@ -13,7 +15,6 @@ import net.arctics.clonk.parser.mapcreator.MapOverlay;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
@@ -24,6 +25,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -40,12 +42,17 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * Stores references to some objects needed for various components of the user interface
@@ -142,10 +149,10 @@ public abstract class UI {
 		return (Image) imageThingieForURL(url, false);
 	}
 	
-	public static class ProjectEditorBlock {
-		public Text Text;
-		public Button AddButton;
-		public ProjectEditorBlock(Composite parent, ModifyListener textModifyListener, SelectionListener addListener, Object groupLayoutData, String groupText) {
+	public static class ProjectSelectionBlock {
+		public Text text;
+		public Button addButton;
+		public ProjectSelectionBlock(Composite parent, ModifyListener textModifyListener, SelectionListener addListener, Object groupLayoutData, String groupText) {
 			// Create widget group
 			Composite container;
 			if (groupText != null) {
@@ -159,17 +166,17 @@ public abstract class UI {
 			container.setLayoutData(groupLayoutData != null ? groupLayoutData : new GridData(GridData.FILL_HORIZONTAL));
 			
 			// Text plus button
-			Text = new Text(container, SWT.SINGLE | SWT.BORDER);
-			Text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
-			Text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			AddButton = new Button(container, SWT.PUSH);
-			AddButton.setText(net.arctics.clonk.ui.navigator.Messages.Browse);
+			text = new Text(container, SWT.SINGLE | SWT.BORDER);
+			text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
+			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			addButton = new Button(container, SWT.PUSH);
+			addButton.setText(net.arctics.clonk.ui.navigator.Messages.Browse);
 			
 			// Install listener
 			if (textModifyListener != null)
-				Text.addModifyListener(textModifyListener);
+				text.addModifyListener(textModifyListener);
 			if (addListener != null)
-				AddButton.addSelectionListener(addListener);
+				addButton.addSelectionListener(addListener);
 		}
 	}
 	
@@ -270,6 +277,50 @@ public abstract class UI {
 			return site.getWorkbenchWindow().getActivePage().findView(id);
 		else
 			return null;
+	}
+	
+	public static CommonNavigator projectExplorer() {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		if (workbench != null) {
+			return projectExplorer(workbench.getActiveWorkbenchWindow());
+		}
+		return null;
+	}
+	
+	public static ISelection projectExplorerSelection(IWorkbenchSite site) {
+		return site.getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
+	}
+	
+	public static ISelection projectExplorerSelection() {
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
+	}
+
+	public static CommonNavigator projectExplorer(IWorkbenchWindow window) {
+		if (window != null) {
+			IWorkbenchPage page = window.getActivePage();
+			if (page != null) {
+				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
+				if (viewPart instanceof CommonNavigator) {
+					return (CommonNavigator) viewPart;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static CommonNavigator[] projectExplorers() {
+		List<CommonNavigator> navs = new ArrayList<CommonNavigator>(PlatformUI.getWorkbench().getWorkbenchWindowCount());
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			CommonNavigator nav = projectExplorer(window);
+			if (nav != null)
+				navs.add(nav);
+		}
+		return navs.toArray(new CommonNavigator[navs.size()]);
+	}
+
+	public static void refreshAllProjectExplorers(final Object at) {
+		for (CommonNavigator nav : projectExplorers())
+			nav.getCommonViewer().refresh(at);
 	}
 
 }

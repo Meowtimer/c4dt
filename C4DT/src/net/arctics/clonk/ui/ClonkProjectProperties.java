@@ -9,11 +9,10 @@ import java.util.Set;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkProjectNature.Settings;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.Messages;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -77,7 +76,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			} else if (n.equals(DISABLED_ERRORS_PROPERTY)) {
 				settings.setDisabledErrors(v);
 			}
-			Utilities.getProjectExplorer().getCommonViewer().refresh(getProject());
+			UI.refreshAllProjectExplorers(getProject());
 		}
 
 		private Settings getSettings() {

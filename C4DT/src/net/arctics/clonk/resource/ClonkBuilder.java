@@ -31,8 +31,6 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
@@ -89,10 +87,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 					}
 				}
-				CommonNavigator projectExplorer = Utilities.getProjectExplorer(window);
+				CommonNavigator projectExplorer = UI.projectExplorer(window);
 				if (projectExplorer != null)
 					for (ScriptBase s : resourcesToBeRefreshed)
-						projectExplorer.getCommonViewer().refresh(s.getResource());
+						UI.refreshAllProjectExplorers(s.getResource());
 			}
 		}
 	}

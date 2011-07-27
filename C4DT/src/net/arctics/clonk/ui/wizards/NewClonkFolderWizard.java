@@ -4,8 +4,7 @@ package net.arctics.clonk.ui.wizards;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -130,7 +129,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					Utilities.getProjectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
+					UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
 				}
 			});
 		} catch (IOException e) {

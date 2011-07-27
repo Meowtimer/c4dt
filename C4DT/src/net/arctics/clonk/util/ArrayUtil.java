@@ -180,12 +180,11 @@ public class ArrayUtil {
 	 * @return the map
 	 */
 	@SuppressWarnings("unchecked")
-	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Map<KeyType, ValueType> resultMap, Object... keysAndValues) {
+	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(boolean modifiable, Map<KeyType, ValueType> resultMap, Object... keysAndValues) {
 		try {
-			for (int i = 0; i < keysAndValues.length-1; i += 2) {
+			for (int i = 0; i < keysAndValues.length-1; i += 2)
 				resultMap.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
-			}
-			return Collections.unmodifiableMap(resultMap);
+			return modifiable ? resultMap : Collections.unmodifiableMap(resultMap);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -211,8 +210,8 @@ public class ArrayUtil {
 	 * @param keysAndValues
 	 * @return
 	 */
-	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
-		return mapOfType(new HashMap<KeyType, ValueType>(), keysAndValues);
+	public static <KeyType, ValueType> Map<KeyType, ValueType> map(boolean modifiable, Object... keysAndValues) {
+		return mapOfType(modifiable, new HashMap<KeyType, ValueType>(), keysAndValues);
 	}
 	
 	public static <A, B> Iterable<B> filteredIterable(final Iterable<A> base, final Class<B> cls) {
@@ -248,6 +247,15 @@ public class ArrayUtil {
 		for (T d : iterable)
 			set.add(d);
 		return set;
+	}
+	
+	public interface λ<Τ> {
+		void 跑(Τ on);
+	}
+	
+	public static <T> void forAll(T[] items, λ<T> λ) {
+		for (T i : items)
+			λ.跑(i);
 	}
 
 }

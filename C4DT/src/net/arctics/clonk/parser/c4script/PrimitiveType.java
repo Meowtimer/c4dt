@@ -49,6 +49,7 @@ public enum PrimitiveType implements IType {
 	 * Map to map type names from Clonk engine source to primitive types.
 	 */
 	public static final Map<String, PrimitiveType> CPP_TO_C4SCRIPT_MAP = ArrayUtil.map(
+		false,
 		"C4Value", PrimitiveType.ANY,
 		"C4Void", PrimitiveType.ANY,
 		"long", PrimitiveType.INT,

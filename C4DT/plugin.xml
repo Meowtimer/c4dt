@@ -100,10 +100,11 @@
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">
 		<navigatorContent name="%ClonkResources_Name"
-			priority="low" icon="icons/Clonk_Object.ico" activeByDefault="true"
+			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
 			contentProvider="net.arctics.clonk.ui.navigator.ClonkNavigator"
 			labelProvider="net.arctics.clonk.ui.navigator.ClonkLabelProvider"
-			providesSaveables="false" id="net.arctics.clonk.navigator.resourceContent">
+			providesSaveables="false"
+			id="net.arctics.clonk.navigator.resourceContent">
 			
 			<!--
 			<override
@@ -432,12 +433,6 @@
 			id="net.arctics.clonk.ui.ConvertLinkedGroups"
 			defaultHandler="net.arctics.clonk.ui.navigator.ConvertLinkedGroupsHandler"
 			name="%ConvertLinkedGroups_Name" />
-		
-		<command categoryId="org.eclipse.ui.category.edit"
-			description="%MarkAsRelated"
-			id="net.arctics.clonk.ui.MarkAsRelated"
-			name="%MarkAsRelated_Name"
-		/>
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%TidyUpCode_Desc"
@@ -484,16 +479,6 @@
 			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
 			name="%DeclarationFilter_Name" />
 
-	</extension>
-	
-	<extension point="org.eclipse.ui.handlers">
-    	<handler commandId="net.arctics.clonk.ui.MarkAsRelated">
-    		<enabledWhen>
-    			<iterate ifEmpty="false">
-    				<test property="isInClonkProject" />
-    			</iterate>
-    		</enabledWhen>
-    	</handler>
 	</extension>
 
 	<extension point="org.eclipse.ui.menus">
@@ -557,13 +542,10 @@
 						</iterate>
 					</visibleWhen>
 				</command>
-				<command commandId="net.arctics.clonk.ui.MarkAsRelated" label="%MarkAsRelated_Name">
-					<visibleWhen checkEnabled="false">
-						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IContainer" />
-						</iterate>
-					</visibleWhen>
-				</command>
+				<separator name="AfterImportExport" visible="true" />
+				<menu label="%ColorTag_Name">
+					<dynamic id="net.arctics.clonk.ui.ColorTagging" class="net.arctics.clonk.ui.navigator.ColorTagging" />
+				</menu>
 				<separator name="AfterImportExportSeparator" visible="true" />
 				<command commandId="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk" label="%TidyUpCode_Name">
 					<visibleWhen checkEnabled="false">

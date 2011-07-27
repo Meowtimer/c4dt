@@ -186,7 +186,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Returns the index of the project, loading it from disk if necessary.
 	 * @return the project index
 	 */
-	public ProjectIndex getIndex() {
+	public synchronized ProjectIndex getIndex() {
 		if (index == null && !indexLoadingPending) {
 			indexLoadingPending = true;
 			loadIndex();

@@ -577,7 +577,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return result;
 	}
 
-	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = ArrayUtil.map(new Object[] {
+	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = ArrayUtil.map(false, new Object[] {
 		ClonkCore.id("scenariocfg")  , ScenarioUnit.class, //$NON-NLS-1$
 		ClonkCore.id("actmap")       , ActMapUnit.class, //$NON-NLS-1$
 		ClonkCore.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$

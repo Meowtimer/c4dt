@@ -13,11 +13,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IFileEditorInput;
 
 public class ResourceTester extends PropertyTester {
-	
+
+	@Override
 	public boolean test(Object receiver, String property, Object[] args, Object expected) {
 		try {
 			// Editor? Resolve to associated resource
-			if(receiver instanceof IFileEditorInput)
+			if (receiver instanceof IFileEditorInput)
 				receiver = ((IFileEditorInput) receiver).getFile();
 
 			IResource res = receiver instanceof IResource ? (IResource) receiver : null;
@@ -26,16 +27,18 @@ public class ResourceTester extends PropertyTester {
 
 			boolean result = false;		
 			// Calculate property value
-			if(property.equals("isScenario")) //$NON-NLS-1$
+			if (property.equals("isScenario")) //$NON-NLS-1$
 				result = isScenario(res);
-			else if(property.equals("isDefinition")) //$NON-NLS-1$
+			else if (property.equals("isDefinition")) //$NON-NLS-1$
 				result = isDefinition(res);
-			else if(property.equals("isFolder")) //$NON-NLS-1$
+			else if (property.equals("isFolder")) //$NON-NLS-1$
 				result = isFolder(res);
-			else if(property.equals("isResource")) //$NON-NLS-1$
+			else if (property.equals("isResource")) //$NON-NLS-1$
 				result = isResource(res);
-			else if(property.equals("isInScenario")) //$NON-NLS-1$
+			else if (property.equals("isInScenario")) //$NON-NLS-1$
 				result = isInScenario(res);
+			else if (property.equals("isInClonkProject"))
+				result = isInClonkProject(res);
 			else
 				assert false;
 
@@ -51,12 +54,12 @@ public class ResourceTester extends PropertyTester {
 		Engine engine = ClonkProjectNature.getEngine(res);
 		return engine != null && engine.getGroupTypeForFileName(res.getName()) == gt;
 	}
-	
+
 	/** @return Whether the given resource is a scenario */
 	public static boolean isScenario(IResource res) {
 		return checkGroupType(res, GroupType.ScenarioGroup);
 	}
-	
+
 	/** @return Whether the given resource is an object definition or object package */
 	public static boolean isDefinition(IResource res) {
 		return checkGroupType(res, GroupType.DefinitionGroup);
@@ -71,7 +74,7 @@ public class ResourceTester extends PropertyTester {
 	public static boolean isResource(IResource res) {
 		return checkGroupType(res, GroupType.ResourceGroup);
 	}
-	
+
 	/** @return Whether the given resource is contained in a scenario */
 	public static boolean isInScenario(IResource res) {
 		for (; res != null; res = res.getParent())
@@ -83,12 +86,12 @@ public class ResourceTester extends PropertyTester {
 	/** @return Whether the given resource is inside a project sporting a Clonk project nature */
 	public static boolean isInClonkProject(IResource res) {
 		try {
-			return res.getProject().hasNature(ClonkCore.CLONK_NATURE_ID);
+			return res.getProject().equals(res.getParent()) && res.getProject().hasNature(ClonkCore.CLONK_NATURE_ID);
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	/** @return Whether the given folder is a packed c4group */
 	public static boolean isPackedGroup(IResource res) {
 		try {
@@ -97,5 +100,5 @@ public class ResourceTester extends PropertyTester {
 			return false;
 		}
 	}
-	
+
 }
