@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,6 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
@@ -34,11 +34,7 @@ public class ColorTagging extends ContributionItem {
 	public static final QualifiedName COLOR_TAG = new QualifiedName(ClonkCore.PLUGIN_ID, "colorTag"); //$NON-NLS-1$
 	public static final QualifiedName COLOR_RGB = new QualifiedName(ClonkCore.PLUGIN_ID, "colorRGB"); //$NON-NLS-1$
 	
-	private static final Map<String, RGB> existingTags = ArrayUtil.map(
-		true,
-		Messages.ColorTagging_Red, new RGB(255, 193, 189),
-		Messages.ColorTagging_Blue, new RGB(199, 216, 255)
-	);
+	private static final Map<String, RGB> existingTags = new HashMap<String, RGB>();
 	
 	public static Map<String, RGB> tags() {
 		return existingTags;
