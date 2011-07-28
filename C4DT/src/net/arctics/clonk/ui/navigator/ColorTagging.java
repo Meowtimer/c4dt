@@ -133,7 +133,8 @@ public class ColorTagging extends ContributionItem {
 			m.setText(defaultColor.getKey());
 			m.addSelectionListener(menuItemListener);
 		}
-		new MenuItem(menu, SWT.SEPARATOR);
+		if (existingTags.size() > 0)
+			new MenuItem(menu, SWT.SEPARATOR);
 		// new color
 		MenuItem m = new MenuItem(menu, SWT.RADIO);
 		m.setText(Messages.ColorTagging_ChooseColorMenuItemTitle);
