@@ -562,15 +562,15 @@
 				description="Himmeltextur wie in der Graphics.c4g vorhanden (ohne Dateierweiterung)." />
 			<entry name="SkyFade" class="IntegerArray"
 				description="Himmelfarbverlauf von RGB nach RGB. Werte von 0-255. Sind alle Werte 0, wird das Vorgabe-Blau der Clonk-Farbpalette verwendet." />
-			<entry name="BottomOpen" class="SignedInteger"
+			<entry name="BottomOpen" class="Boolean"
 				description="0 oder 1. Legt fest, ob die Spielwelt unten offen ist." />
-			<entry name="TopOpen" class="SignedInteger"
+			<entry name="TopOpen" class="Boolean"
 				description="0 oder 1. Legt fest, ob die Spielwelt oben offen ist." />
-			<entry name="LeftOpen" class="SignedInteger"
+			<entry name="LeftOpen" class="Boolean"
 				description="Öffnung des linken Randes bis zum Abstand in Pixel von der Oberkante." />
-			<entry name="RightOpen" class="SignedInteger"
+			<entry name="RightOpen" class="Boolean"
 				description="Öffnung des rechten Randes bis zum Abstand in Pixel von der Oberkante." />
-			<entry name="AutoScanSideOpen" class="SignedInteger"
+			<entry name="AutoScanSideOpen" class="Boolean"
 				description="0 oder 1. Bei 1 werden LeftOpen und RightOpen automatisch angepasst." />
 			<entry name="MapWidth" class="IntegerArray"
 				description="Ausgangsbreite der dynamischen Karte." />
