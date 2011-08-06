@@ -94,8 +94,6 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
 			return null;
-		if (var.getIndex() == null)
-			return null;
 		String displayString = var.getName();
 		int replacementLength = 0;
 		if (prefix != null)
