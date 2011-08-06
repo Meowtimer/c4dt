@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ClonkProjectNature.Settings;
+import net.arctics.clonk.resource.ClonkProjectNature.ProjectSettings;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
@@ -70,16 +70,17 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 
 		public void commit(String n, String v) {
-			Settings settings = getSettings();
+			ProjectSettings settings = getSettings();
 			if (n.equals(ENGINENAME_PROPERTY)) {
 				settings.setEngineName(v);
 			} else if (n.equals(DISABLED_ERRORS_PROPERTY)) {
 				settings.setDisabledErrors(v);
 			}
+			ClonkProjectNature.get(getProject()).saveSettings();
 			UI.refreshAllProjectExplorers(getProject());
 		}
 
-		private Settings getSettings() {
+		private ProjectSettings getSettings() {
 			return ClonkProjectNature.get(getProject()).getSettings();
 		}
 		

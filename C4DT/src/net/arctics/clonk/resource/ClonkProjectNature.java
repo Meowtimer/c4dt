@@ -51,7 +51,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class ClonkProjectNature implements IProjectNature {
 
-	public static class Settings extends SettingsBase {
+	public static class ProjectSettings extends SettingsBase {
 
 		@IniField
 		public String engineName;
@@ -60,6 +60,10 @@ public class ClonkProjectNature implements IProjectNature {
 		
 		private Engine cachedEngine;
 		private Set<ParserErrorCode> disabledErrorsSet;
+		
+		public ProjectSettings() {
+			System.out.println("really?");
+		}
 		
 		public Engine getEngine() {
 			if (cachedEngine == null) {
@@ -162,7 +166,7 @@ public class ClonkProjectNature implements IProjectNature {
 	/**
 	 * Settings stored in ini file
 	 */
-	private Settings settings;
+	private ProjectSettings settings;
 
 	public ClonkProjectNature() {
 	}
@@ -220,7 +224,7 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 	}
 
-	private void saveSettings() {
+	public void saveSettings() {
 		try {
 			getSettings();
 			StreamUtil.writeToFile(getSettingsFileLocation().toFile(), new StreamUtil.StreamWriteRunnable() {
@@ -240,7 +244,7 @@ public class ClonkProjectNature implements IProjectNature {
 	
 	private void loadSettings() {
 		try {
-			settings = new Settings();
+			settings = new ProjectSettings();
 			CustomIniUnit.load(StreamUtil.stringFromFile(getSettingsFileLocation().toFile()), settings);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -358,7 +362,7 @@ public class ClonkProjectNature implements IProjectNature {
 		return null;
 	}
 
-	public Settings getSettings() {
+	public ProjectSettings getSettings() {
 		if (settings == null)
 			loadSettings();
 		return settings;
