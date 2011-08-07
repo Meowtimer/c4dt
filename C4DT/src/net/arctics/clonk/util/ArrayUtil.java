@@ -248,14 +248,5 @@ public class ArrayUtil {
 			set.add(d);
 		return set;
 	}
-	
-	public interface λ<Τ> {
-		void 跑(Τ on);
-	}
-	
-	public static <T> void forAll(T[] items, λ<T> λ) {
-		for (T i : items)
-			λ.跑(i);
-	}
 
 }
