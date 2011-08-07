@@ -1,12 +1,11 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
-import java.util.regex.Pattern;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
@@ -25,9 +24,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
-public class OpenObjectDialog extends FilteredItemsSelectionDialog {
+public class OpenObjectDialog extends DeclarationChooser {
 	
 	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
 	
@@ -48,7 +46,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	}
 	
 	public OpenObjectDialog(Shell shell) {
-		super(shell, true);
+		super(shell, (Index)null);
 		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
 		setListLabelProvider(new OpenObjectLabelProvider());
 	}
@@ -57,34 +55,6 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	protected Control createExtendedContentArea(Composite parent) {
 		// There's nothing special here
 		return null;
-	}
-
-	@Override
-	protected ItemsFilter createFilter() {
-		return new ItemsFilter() {
-		
-			private Pattern pattern;
-			
-			private Pattern getPatternObject() {
-				if (pattern == null)
-					pattern = Pattern.compile(getPattern());
-				return pattern;
-			}
-			
-			@Override
-			public boolean matchItem(Object item) {
-				if (!(item instanceof Definition))
-					return false;
-				final Definition obj = (Definition) item;
-				return obj.nameMatches(getPatternObject().matcher(""));
-			}
-		
-			@Override
-			public boolean isConsistentItem(Object item) {
-				// TODO Auto-generated method stub ??
-				return false;
-			}
-		}; 
 	}
 
 	@Override
@@ -115,12 +85,9 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
-		IDialogSettings settings = ClonkCore.getDefault().getDialogSettings()
-				.getSection(DIALOG_SETTINGS);
-		if (settings == null) {
-			settings = ClonkCore.getDefault().getDialogSettings()
-					.addNewSection(DIALOG_SETTINGS);
-		}
+		IDialogSettings settings = ClonkCore.getDefault().getDialogSettings().getSection(DIALOG_SETTINGS);
+		if (settings == null)
+			settings = ClonkCore.getDefault().getDialogSettings().addNewSection(DIALOG_SETTINGS);
 		return settings;
 	}
 

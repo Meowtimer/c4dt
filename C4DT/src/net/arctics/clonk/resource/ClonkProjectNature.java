@@ -203,7 +203,11 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProjectIndex forceIndexRecreation() {
 		index = null;
 		loadSettings();
-		return index = new ProjectIndex(project, getIndexFolder());
+		File indexFolder = getIndexFolder();
+		// legacy index file - delete
+		if (indexFolder.isFile())
+			indexFolder.delete();
+		return index = new ProjectIndex(project, indexFolder);
 	}
 
 	public IPath getSettingsFileLocation() {

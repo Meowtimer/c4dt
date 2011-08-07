@@ -38,7 +38,7 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
-	private final class DeclarationsFilter extends ItemsFilter {
+	protected final class DeclarationsFilter extends ItemsFilter {
 		private Pattern[] patterns;
 
 		public Pattern[] getPatterns() {
@@ -135,13 +135,17 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return null;
 	}
 
-	private IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
+	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
 		@Override
 		public Pattern convert(String from) {
 			try {
 				return Pattern.compile(from, Pattern.CASE_INSENSITIVE);
 			} catch (Exception e) {
-				return Pattern.compile(StringUtil.wildcardToRegex(from), Pattern.CASE_INSENSITIVE);
+				try {
+					return Pattern.compile(StringUtil.wildcardToRegex(from), Pattern.CASE_INSENSITIVE);
+				} catch (Exception e2) {
+					return Pattern.compile("ponies");
+				}
 			}
 		}
 	};
