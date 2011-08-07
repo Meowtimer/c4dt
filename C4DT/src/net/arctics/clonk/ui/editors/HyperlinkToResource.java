@@ -6,6 +6,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 public class HyperlinkToResource implements IHyperlink {
 
@@ -37,7 +38,9 @@ public class HyperlinkToResource implements IHyperlink {
 
 	@Override
 	public void open() {
-		UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(resource));
+		CommonNavigator nav = UI.projectExplorer(workbenchWindow);
+		nav.setFocus();
+		nav.selectReveal(new StructuredSelection(resource));
 	}
 
 }
