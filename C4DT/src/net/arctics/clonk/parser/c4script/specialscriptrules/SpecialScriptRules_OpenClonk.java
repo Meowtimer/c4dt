@@ -411,7 +411,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		putFuncRule(criteriaSearchRule, "FindObject"); //$NON-NLS-1$
 	}
 
-	private static final Matcher ID_MATCHER = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*").matcher("");
+	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 	
 	@Override
 	public ID parseId(BufferedScanner scanner) {
@@ -419,8 +419,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		// a <match all identifiers> pattern would cause zillions of err0rs
 		if (scanner instanceof C4ScriptParser)
 			return null;
-		if (ID_MATCHER.reset(scanner.getBuffer().substring(scanner.getPosition())).lookingAt()) {
-			String idString = ID_MATCHER.group();
+		Matcher idMatcher = ID_PATTERN.matcher(scanner.getBuffer().substring(scanner.getPosition()));
+		if (idMatcher.lookingAt()) {
+			String idString = idMatcher.group();
 			scanner.advance(idString.length());
 			if (BufferedScanner.isWordPart(scanner.peek()) || C4ScriptParser.NUMERAL_PATTERN.matcher(idString).matches()) {
 				scanner.advance(-idString.length());
