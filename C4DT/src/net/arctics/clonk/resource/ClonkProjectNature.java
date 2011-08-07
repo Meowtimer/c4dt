@@ -60,7 +60,6 @@ public class ClonkProjectNature implements IProjectNature {
 		private HashSet<ParserErrorCode> disabledErrorsSet;
 		
 		public ProjectSettings() {
-			System.out.println("really?");
 		}
 		
 		public Engine getEngine() {
