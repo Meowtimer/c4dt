@@ -390,7 +390,7 @@ public class CallFunc extends AccessDeclaration {
 					listToAddPotentialDeclarationsTo.add(declaration);
 			}
 		}
-		if ((lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
+		if ((p == null || !(p instanceof MemberOperator) || !((MemberOperator)p).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
 			for (Declaration d : listToAddPotentialDeclarationsTo)
 				if (!d.isGlobal() && d instanceof Function && d.getParentDeclaration() instanceof IHasIncludes)
