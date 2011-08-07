@@ -19,6 +19,7 @@ public class Messages extends NLS {
 	public static String C4ScriptSourceViewerConfiguration_StandardProposals;
 	public static String C4ScriptSourceViewerConfiguration_PressTabOrClick;
 	public static String ClonkQuickAssistProcessor_AddMissingSemicolon;
+	public static String ClonkQuickAssistProcessor_AddProjectToReferencedProjects;
 	public static String ClonkQuickAssistProcessor_CommentOutStatement;
 	public static String ClonkQuickAssistProcessor_ConvertComparisonToAssignment;
 	public static String ClonkQuickAssistProcessor_ConvertToReturn;
@@ -39,6 +40,7 @@ public class Messages extends NLS {
 	public static String ClonkQuickAssistProcessor_SpecifyValue;
 	public static String ClonkQuickAssistProcessor_TidyUp;
 	public static String ClonkQuickAssistProcessor_UseInsteadOf;
+	public static String ClonkQuickAssistProcessor_UseTildeWithNoSpace;
 	public static String ClonkQuickAssistProcessor_WrapWithFunctionCall;
 	static {
 		// initialize resource bundle

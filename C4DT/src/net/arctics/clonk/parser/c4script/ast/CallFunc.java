@@ -687,6 +687,14 @@ public class CallFunc extends AccessDeclaration {
 				return i;
 		return -1;
 	}
+	public Variable parmDefinitionForParmExpression(ExprElm parm) {
+		if (declaration instanceof Function) {
+			Function f = (Function) declaration;
+			int i = indexOfParm(parm);
+			return i >= 0 && i < f.getParameters().size() ? f.getParameters().get(i) : null;
+		} else
+			return null;
+	}
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = getDeclaration();

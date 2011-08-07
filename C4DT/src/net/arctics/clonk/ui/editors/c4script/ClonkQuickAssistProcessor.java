@@ -10,6 +10,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.ClonkCore.IDocumentAction;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -38,6 +39,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -46,6 +48,8 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -228,6 +232,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 		@Override
 		public void apply(IDocument document) {
+			replacement.performAdditionalActionsBeforeDoingReplacements();
 			ExprElm replacementExpr = replacement.getReplacementExpression();
 			if (replacementExpr != ExprElm.NULL_EXPR) {
 				for (ExprElm spec : replacement.getSpecifiable()) {
@@ -355,6 +360,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		@Override
 		public String toString() {
 			return String.format("%s: %s", title, replacementExpression.toString()); //$NON-NLS-1$
+		}
+		/**
+		 * Method to override if performing additional actions apart from replacing code segments is desired.
+		 */
+		public void performAdditionalActionsBeforeDoingReplacements() {
+			
 		}
 	}
 	
@@ -486,7 +497,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						if (offendingExpression.getPredecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.getPredecessorInSequence()).hasTilde()) {
 							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.getPredecessorInSequence()).getId(), 3);
 							opWithTilde.setExprRegion(offendingExpression.getPredecessorInSequence());
-							replacements.add("Use '->~'", opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
+							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						}
 					}
 					if (offendingExpression instanceof AccessDeclaration) {
@@ -514,9 +525,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.getParams().length);
 							int p = 0;
-							for (ExprElm parm : callFunc.getParams()) {
+							for (ExprElm parm : callFunc.getParams())
 								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.getType(parser)));
-							}
 							function.setParameters(parms);
 						}
 
@@ -525,9 +535,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						if (offendingExpression.getParent() instanceof Sequence) {
 							Sequence sequence = (Sequence) offendingExpression.getParent();
 							expr = sequence.sequenceWithElementsRemovedFrom(offendingExpression); 
-						} else {
+						} else
 							expr = null;
-						}
 						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression(
 								expr, func, parser, document
 						);
@@ -543,6 +552,46 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
 									ExprElm repl = identifierReplacement(accessDec, dec.getName());
 									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.getName()), repl, false);
+								}
+							}
+						}
+						
+						// propose adding projects to the referenced projects which contain a definition with a matching name
+						if (accessDec.getParent() instanceof CallFunc) {
+							Variable parm = ((CallFunc)accessDec.getParent()).parmDefinitionForParmExpression(accessDec);
+							if (parm != null && parm.getType().canBeAssignedFrom(PrimitiveType.ID)) {
+								final IProject p = marker.getResource().getProject();
+								IProject[] referencedProjects;
+								try {
+									referencedProjects = p.getReferencedProjects();
+								} catch (CoreException e) {
+									e.printStackTrace();
+									break;
+								}
+								ID defId = ID.get(accessDec.getDeclarationName());
+								for (final IProject proj : ClonkProjectNature.getClonkProjects()) {
+									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
+										ClonkProjectNature nat = ClonkProjectNature.get(proj);
+										if (nat.getIndex().getDefinitionsWithID(defId) != null)
+											replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
+												@Override
+												public void performAdditionalActionsBeforeDoingReplacements() {
+													IProjectDescription desc;
+													try {
+														desc = p.getDescription();
+													} catch (CoreException e) {
+														e.printStackTrace();
+														return;
+													}
+													desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), proj));
+													try {
+														p.setDescription(desc, null);
+													} catch (CoreException e) {
+														e.printStackTrace();
+													}
+												}
+											});
+									}
 								}
 							}
 						}
