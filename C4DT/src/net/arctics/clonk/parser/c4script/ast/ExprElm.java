@@ -689,7 +689,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean optionEnabled(Option option) {
-			return false;
+			switch (option) {
+			case CheckForIdentity:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 		@Override
@@ -808,11 +813,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean refersToSameExpression(IStoredTypeInformation other) {
-			if (other instanceof GenericStoredTypeInformation) {
+			if (other instanceof GenericStoredTypeInformation)
 				return ((GenericStoredTypeInformation)other).referenceElm.equals(referenceElm);
-			} else {
+			else
 				return false;
-			}
 		}
 		
 		public static ITypeable getTypeable(ExprElm referenceElm, C4ScriptParser parser) {

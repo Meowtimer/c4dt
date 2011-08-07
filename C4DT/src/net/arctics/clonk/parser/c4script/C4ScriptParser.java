@@ -689,7 +689,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
 			warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 			function.storeBlock(bunch, functionSource(function));
-			
 			applyStoredTypeInformationList(false); // apply short-term inference information
 			List<IStoredTypeInformation> block = endTypeInferenceBlock();
 			if (scriptLevelTypeInformationMerger != null) {
