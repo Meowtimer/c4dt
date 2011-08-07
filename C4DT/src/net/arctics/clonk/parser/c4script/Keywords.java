@@ -28,6 +28,7 @@ public interface Keywords {
 	public static final String Image = "Image"; //$NON-NLS-1$
 	public static final String Condition = "Condition"; //$NON-NLS-1$
 
+	/** Static variable scope */
 	public static final String GlobalNamed = "static"; //$NON-NLS-1$
 	public static final String LocalNamed = "local"; //$NON-NLS-1$
 	public static final String VarNamed = "var"; //$NON-NLS-1$

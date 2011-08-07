@@ -12,8 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Milestones;
 import net.arctics.clonk.index.Engine;
@@ -59,7 +57,7 @@ public class ClonkProjectNature implements IProjectNature {
 		public String disabledErrors;
 		
 		private Engine cachedEngine;
-		private Set<ParserErrorCode> disabledErrorsSet;
+		private HashSet<ParserErrorCode> disabledErrorsSet;
 		
 		public ProjectSettings() {
 			System.out.println("really?");
@@ -75,7 +73,7 @@ public class ClonkProjectNature implements IProjectNature {
 			return cachedEngine;
 		}
 		
-		public Set<ParserErrorCode> getDisabledErrorsSet() {
+		public HashSet<ParserErrorCode> getDisabledErrorsSet() {
 			if (disabledErrorsSet == null) {
 				disabledErrorsSet = new HashSet<ParserErrorCode>();
 				if (!disabledErrors.equals("")) {
@@ -97,7 +95,7 @@ public class ClonkProjectNature implements IProjectNature {
 			disabledErrorsSet = null;
 		}
 		
-		public void setDisabledErrorsSet(Set<ParserErrorCode> errorCodes) {
+		public void setDisabledErrorsSet(HashSet<ParserErrorCode> errorCodes) {
 			this.disabledErrorsSet = errorCodes;
 			if (errorCodes != null)
 				this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);

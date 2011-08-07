@@ -659,11 +659,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		function.forceType(PrimitiveType.UNKNOWN);
 		
-		if (specialScriptRules != null) {
-			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners()) {
+		if (specialScriptRules != null)
+			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
 				eventListener.functionAboutToBeParsed(function, this);
-			}
-		}
 		
 		int oldOffset = this.offset;
 		FunctionContext oldFunctionContext;
@@ -671,9 +669,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			oldFunctionContext = currentFunctionContext;
 			currentFunctionContext = new FunctionContext();
 			currentFunctionContext.initialize();
-		} else {
+		} else
 			oldFunctionContext = null;
-		}
 		Declaration oldDec = currentFunctionContext.currentDeclaration;
 		try {
 			setCurrentFunc(function);
@@ -690,7 +687,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			BunchOfStatements bunch = new BunchOfStatements(statements);
 			if (function.isOldStyle() && statements.size() > 0)
 				function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
-			warnAboutUnusedFunctionVariables(function, bunch);
+			warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 			function.storeBlock(bunch, functionSource(function));
 			
 			applyStoredTypeInformationList(false); // apply short-term inference information
@@ -741,24 +738,31 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param func The function the block belongs to.
 	 * @param block The {@link Block}
 	 */
-	public void warnAboutUnusedFunctionVariables(Function func, Block block) {
+	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, Block block) {
 		if (func == null)
 			return;
 		for (Variable v : func.getLocalVars()) {
-			if (!v.isUsed()) {
-				for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
-					for (VarInitialization initialization : decl.getVarInitializations()) {
-						if (initialization.variableBeingInitialized == v) {
-							ExprElm old = currentFunctionContext.expressionReportingErrors;
-							currentFunctionContext.expressionReportingErrors = decl;
-							warningWithCode(ParserErrorCode.Unused, initialization, v.getName());
-							currentFunctionContext.expressionReportingErrors = old;
-							break;
-						}
-					}
+			if (!v.isUsed())
+				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.getName());
+			Variable shadowed = getContainer().findVariable(v.getName());
+			if (shadowed != null)
+				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.getQualifiedName(), shadowed.getQualifiedName());
+		}
+	}
+
+	private boolean createWarningAtDeclarationOfVariable(Block block, Variable variable, ParserErrorCode code, Object... formatArguments) {
+		for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
+			for (VarInitialization initialization : decl.getVarInitializations()) {
+				if (initialization.variableBeingInitialized == variable) {
+					ExprElm old = currentFunctionContext.expressionReportingErrors;
+					currentFunctionContext.expressionReportingErrors = decl;
+					warningWithCode(code, initialization, formatArguments);
+					currentFunctionContext.expressionReportingErrors = old;
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	private void addVarParmsParm(Function func) {
@@ -931,6 +935,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					scope = Scope.LOCAL;
 				}
 			}
+			
 			do {
 				eatWhitespace();
 				IType typeOfNewVar;
@@ -1025,11 +1030,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			} while(read() == ',');
 			unread();
 			
-			if (checkForFinalSemicolon) {
-				if (read() != ';') {
-					errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
-				}
-			}
+			if (checkForFinalSemicolon && read() != ';')
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
 			
 			// look for comment following directly and decorate the newly created variables with it
 			String inlineComment = getTextOfInlineComment();
@@ -1182,16 +1184,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					endBody = this.offset;
 				int offsetBeforeToken = this.offset;
 				String word;
-				if (FunctionHeader.parse(this, header.isOldStyle) != null) {
+				if (FunctionHeader.parse(this, header.isOldStyle) != null || reachedEOF()) {
 					if (header.isOldStyle)
 						seek(endBody);
 					properEnd = true;
 					if (blockDepth != -1)
-						errorWithCode(ParserErrorCode.MissingBrackets, offsetBeforeToken, offsetBeforeToken+1, NO_THROW, blockDepth+1, '}');
+						errorWithCode(ParserErrorCode.MissingBrackets, header.nameStart, header.nameStart+header.name.length(), NO_THROW, blockDepth+1, '}');
 					seek(offsetBeforeToken);
 				}
 				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), getTextOfLastComment(offsetBeforeToken)) != null)
-					;
+					/* boy, am i glad to have parsed this variable declaration */;
 				else if (parseString() == null) {
 					int c = read();
 					if (c == '{')
@@ -3238,7 +3240,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
 				cachedBlock = new BunchOfStatements(statements);
 				if (func != null) {
-					warnAboutUnusedFunctionVariables(func, cachedBlock);
+					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
 					func.storeBlock(cachedBlock, functionSource);
 				}
 				applyStoredTypeInformationList(true);
@@ -3271,7 +3273,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							return listener.minimumParsingRecursion();
 						}
 					}, this, listener != null ? listener.minimumParsingRecursion() : 1);
-					warnAboutUnusedFunctionVariables(func, cachedBlock);
+					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
 					applyStoredTypeInformationList(true);
 				} else {
 					// just traverse... this should be faster than reparsing -.-

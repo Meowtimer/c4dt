@@ -416,7 +416,7 @@ global func bool CreateMenu(id idSymbol, object pCommandObject, int iExtra, stri
 global func object CreateObject(id id, int xOffset, int yOffset, int iOwner);
 global func bool CreateParticle(string szName, int x, int y, int xDir, int yDir, int a, int b, object obj, bool fBehind);
 global func bool CreateScriptPlayer(string szName, int dwClr, int idTeam, int dwFlags, id idExtraData);
-global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, string portrait, int flags);
+global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, any portrait, int flags);
 global func any DeathAnnounce();
 global func any Definition(proplist def);
 global func any DefinitionCall(id idDef, string szFunction, ...);

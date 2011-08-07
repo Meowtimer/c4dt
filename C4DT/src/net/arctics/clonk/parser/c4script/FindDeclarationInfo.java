@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Index;
@@ -14,8 +13,7 @@ public class FindDeclarationInfo {
 	private Function contextFunction;
 	private Set<ScriptBase> alreadySearched;
 	private ScriptBase searchOrigin;
-	private List<Index> relevantIndexes;
-
+	
 	public FindDeclarationInfo(Index clonkIndex) {
 		super();
 		index = clonkIndex;

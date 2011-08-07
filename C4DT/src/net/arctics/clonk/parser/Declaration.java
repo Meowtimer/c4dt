@@ -559,4 +559,15 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return builder.toString();
 	}
 	
+	/**
+	 * Return a string identifying the declaration and the script it's declared in.
+	 * @return
+	 */
+	public String getQualifiedName() {
+		if (getParentDeclaration() != null)
+			return String.format("%s::%s", getParentDeclaration().getQualifiedName(), this.getName());
+		else
+			return getName();
+	}
+	
 }

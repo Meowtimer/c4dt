@@ -15,8 +15,7 @@ import org.eclipse.swt.layout.GridData;
 public class C4ScriptSearchPage extends DialogPage implements ISearchPage {
 	private Text templateText;
 	private Text replacementText;
-	private ISearchPageContainer container;
-
+	
 	/**
 	 * @wbp.parser.constructor
 	 */
@@ -74,6 +73,5 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage {
 
 	@Override
 	public void setContainer(ISearchPageContainer container) {
-		this.container = container;
 	}
 }

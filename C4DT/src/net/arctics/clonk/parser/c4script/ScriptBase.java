@@ -1027,5 +1027,10 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		super.postLoad(parent, root);
 		generateFindDeclarationCache();
 	}
+	
+	@Override
+	public String getQualifiedName() {
+		return getResource().getProjectRelativePath().toOSString();
+	}
 
 }

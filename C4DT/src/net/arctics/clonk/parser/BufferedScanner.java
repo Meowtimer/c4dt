@@ -181,8 +181,8 @@ public class BufferedScanner {
 	
 	public int skipUntil(char... delimiters) {
 		int subtract = 0;
-		int start, len;
-		Outer: for (start = offset, len = 0; !reachedEOF(); start++, len++) {
+		int len;
+		Outer: for (len = 0; !reachedEOF(); len++) {
 			int readByte = read();
 			for(int i = 0; i < delimiters.length;i++) {
 				if (readByte == delimiters[i]) {

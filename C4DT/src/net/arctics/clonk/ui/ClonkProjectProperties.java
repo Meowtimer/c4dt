@@ -1,12 +1,11 @@
 package net.arctics.clonk.ui;
 
 import java.util.Arrays;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkProjectNature.ProjectSettings;
 import net.arctics.clonk.util.UI;
@@ -23,6 +22,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -73,11 +73,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			ProjectSettings settings = getSettings();
 			if (n.equals(ENGINENAME_PROPERTY)) {
 				settings.setEngineName(v);
-			} else if (n.equals(DISABLED_ERRORS_PROPERTY)) {
-				settings.setDisabledErrors(v);
+				UI.refreshAllProjectExplorers(getProject());
 			}
-			ClonkProjectNature.get(getProject()).saveSettings();
-			UI.refreshAllProjectExplorers(getProject());
+			else if (n.equals(DISABLED_ERRORS_PROPERTY))
+				settings.setDisabledErrors(v);
 		}
 
 		private ProjectSettings getSettings() {
@@ -105,9 +104,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	@Override
 	protected void createFieldEditors() {
 		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
-		addField(new FieldEditor(DISABLED_ERRORS_PROPERTY, Messages.DisabledErrors, getFieldEditorParent()) {
+		addField(new FieldEditor(DISABLED_ERRORS_PROPERTY, Messages.EnabledErrors, getFieldEditorParent()) {
 			
-			Set<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
+			HashSet<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
 			
 			@Override
 			public int getNumberOfControls() {
@@ -117,9 +116,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			@Override
 			protected void doStore() {
 				disabledErrorCodes.clear();
+				disabledErrorCodes.addAll(Arrays.asList(ParserErrorCode.values()));
 				for (Object obj : tableViewer.getCheckedElements()) {
 					if (obj instanceof ParserErrorCode)
-						disabledErrorCodes.add((ParserErrorCode) obj);
+						disabledErrorCodes.remove((ParserErrorCode) obj);
 				}
 				ClonkProjectNature.get(getProject()).getSettings().setDisabledErrorsSet(disabledErrorCodes);
 			}
@@ -129,12 +129,13 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				doLoad();
 			}
 			
+			@SuppressWarnings("unchecked")
 			@Override
 			protected void doLoad() {
-				disabledErrorCodes = ClonkProjectNature.get(getProject()).getSettings().getDisabledErrorsSet();
-				if (tableViewer != null) {
-					tableViewer.setCheckedElements(disabledErrorCodes.toArray());
-				}
+				disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).getSettings().getDisabledErrorsSet().clone();
+				if (tableViewer != null)
+					for (ParserErrorCode c : ParserErrorCode.values())
+						tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 			}
 			
 			private CheckboxTableViewer tableViewer;
@@ -155,12 +156,18 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 								Arrays.sort(elms, new Comparator<ParserErrorCode>() {
 									@Override
 									public int compare(ParserErrorCode o1, ParserErrorCode o2) {
-										return o1.name().compareTo(o2.name());
+										return o1.getMessageWithFormatArgumentDescriptions().compareTo(o2.getMessageWithFormatArgumentDescriptions());
 									}
 								});
 								return elms;
 							}
 							return null;
+						}
+					});
+					tableViewer.setLabelProvider(new LabelProvider() {
+						@Override
+						public String getText(Object element) {
+							return ((ParserErrorCode)element).getMessageWithFormatArgumentDescriptions();
 						}
 					});
 					tableViewer.setInput(ParserErrorCode.class);
@@ -202,6 +209,15 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public boolean performOk() {
+		if (super.performOk()) { 
+			ClonkProjectNature.get(getProject()).saveSettings();
+			return true;
+		} else
+			return false;
 	}
 
 }

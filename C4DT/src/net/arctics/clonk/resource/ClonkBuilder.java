@@ -258,9 +258,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
 				// only create standalone-scripts for *.c files residing in System groups
-				String systemName = nature.getIndex().getEngine().groupName("System", GroupType.ResourceGroup);
+				String systemName = nature.getIndex().getEngine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
 				if (
-					resource.getName().toLowerCase().endsWith(".c") &&
+					resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
 					systemName.equals(resource.getParent().getName())
 				) {
 					ScriptBase script = SystemScript.pinnedScript(file, true);
@@ -424,13 +424,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		private ScriptBase[] scriptsToSave;
 		private IProject project;
 		public SaveScriptsJob(IProject project, ScriptBase... scriptsToSave) {
-			super("Save index files for parsed scripts");
+			super(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts);
 			this.scriptsToSave = scriptsToSave;
 			this.project = project;
 		}
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
-			monitor.beginTask("Saving script index files", scriptsToSave.length+3);
+			monitor.beginTask(Messages.ClonkBuilder_SavingScriptIndexFiles, scriptsToSave.length+3);
 			try {
 				for (ScriptBase s : scriptsToSave)
 					try {
@@ -478,7 +478,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.refreshIndex();
 			
 			// parse declarations
-			monitor.subTask("Parse declarations");
+			monitor.subTask(Messages.ClonkBuilder_ParseDeclarations);
 			int parserMapSize;
 			Map<ScriptBase, C4ScriptParser> newlyEnqueuedParsers = new HashMap<ScriptBase, C4ScriptParser>();
 			Map<ScriptBase, C4ScriptParser> enqueuedFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
@@ -510,7 +510,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				listOfResourcesToBeRefreshed.add(delta.getResource());
 			
 			// parse function code
-			monitor.subTask("Parse function code");
+			monitor.subTask(Messages.ClonkBuilder_ParseFunctionCode);
 			ScriptBase[] scripts = parserMap.keySet().toArray(new ScriptBase[parserMap.keySet().size()]);
 			for (ScriptBase s : scripts)
 				s.generateFindDeclarationCache();
