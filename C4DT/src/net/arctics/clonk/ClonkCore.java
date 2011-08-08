@@ -578,13 +578,18 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		}
 	}
 
+	private static void removeRecursively(File f) {
+		if (f.isDirectory())
+			for (File fi : f.listFiles())
+				removeRecursively(fi);
+		f.delete();
+	}
+	
 	private void removeOldIndexes() {
 		File stateDir = getStateLocation().toFile();
-		for (String file : stateDir.list()) {
-			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null) {
-				new File(stateDir, file).delete();
-			}
-		}
+		for (String file : stateDir.list())
+			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null)
+				removeRecursively(new File(stateDir, file));
 	}
 
 	public static String id(String id) {
