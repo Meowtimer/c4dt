@@ -47,7 +47,12 @@ public class C4GroupTopLevelCompressed extends C4Group {
 		streamPos = 0;
 		if (stream != null)
 			releaseStream();
-		return stream = getGroupFileStream(new FileInputStream(getOrigin()));
+		stream = getGroupFileStream(new FileInputStream(getOrigin()));
+		if (stream == null) {
+			System.out.println("Failed to create stream for " + getOrigin());
+			return null;
+		} else
+			return stream;
 	}
 	
 	@Override
@@ -116,64 +121,69 @@ public class C4GroupTopLevelCompressed extends C4Group {
 //			if (item instanceof C4Group)
 //				((C4Group)item).releaseStream();
 	}
-	
-	private static InputStream getGroupFileStream(final InputStream stream) throws IOException {
-		return new GZIPInputStream(new InputStream() {
-			private int timesRead = 0;
 
-			@Override
-			public int read() throws IOException {
-				if (timesRead < 2) { // deface magic header
-					timesRead++;
-					int readByte = stream.read();
-					if (readByte == 0x1E) return 0x1F;
-					if (readByte == 0x8C) return 0x8B;
-					return readByte;
+	private static InputStream getGroupFileStream(final InputStream stream) throws IOException {
+		try {
+			return new GZIPInputStream(new InputStream() {
+				private int timesRead = 0;
+
+				@Override
+				public int read() throws IOException {
+					if (timesRead < 2) { // deface magic header
+						timesRead++;
+						int readByte = stream.read();
+						if (readByte == 0x1E) return 0x1F;
+						if (readByte == 0x8C) return 0x8B;
+						return readByte;
+					}
+					return stream.read();
 				}
-				return stream.read();
-			}
-			
-			@Override
-			public int read(byte[] b) throws IOException {
-				return stream.read(b);
-			}
-			
-			@Override
-			public int read(byte[] b, int off, int len) throws IOException {
-				return stream.read(b, off, len);
-			}
-			
-			@Override
-			public boolean markSupported() {
-				return stream.markSupported();
-			}
-			
-			@Override
-			public synchronized void mark(int readlimit) {
-				stream.mark(readlimit);
-			}
-			
-			@Override
-			public synchronized void reset() throws IOException {
-				stream.reset();
-			}
-			
-			@Override
-			public long skip(long n) throws IOException {
-				return stream.skip(n);
-			}
-			
-			@Override
-			public void close() throws IOException {
-				stream.close();
-			}
-			
-			@Override
-			public int available() throws IOException {
-				return stream.available();
-			}
-			
-		});
+
+				@Override
+				public int read(byte[] b) throws IOException {
+					return stream.read(b);
+				}
+
+				@Override
+				public int read(byte[] b, int off, int len) throws IOException {
+					return stream.read(b, off, len);
+				}
+
+				@Override
+				public boolean markSupported() {
+					return stream.markSupported();
+				}
+
+				@Override
+				public synchronized void mark(int readlimit) {
+					stream.mark(readlimit);
+				}
+
+				@Override
+				public synchronized void reset() throws IOException {
+					stream.reset();
+				}
+
+				@Override
+				public long skip(long n) throws IOException {
+					return stream.skip(n);
+				}
+
+				@Override
+				public void close() throws IOException {
+					stream.close();
+				}
+
+				@Override
+				public int available() throws IOException {
+					return stream.available();
+				}
+
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	@Override

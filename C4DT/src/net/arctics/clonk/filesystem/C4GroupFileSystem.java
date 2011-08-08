@@ -100,17 +100,15 @@ public class C4GroupFileSystem extends FileSystem {
 
 	private void purgeDeadEntries() {
 		List<File> markedForDeletion = null;
-		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet()) {
+		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet())
 			if (entry.getValue().get() == null) {
 				if (markedForDeletion == null)
 					markedForDeletion = new LinkedList<File>();
 				markedForDeletion.add(entry.getKey());
 			}
-		}
-		if (markedForDeletion != null) {
+		if (markedForDeletion != null)
 			for (File f : markedForDeletion)
 				rootGroups.remove(f);
-		}
 	}
 
 	@Override
