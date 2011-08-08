@@ -380,13 +380,15 @@
 
 	<extension point="org.eclipse.ui.commands">
 	
-		<command categoryId="org.eclipse.ui.category.edit"
+		<category id="net.arctics.clonk.commands" name="%ClonkCommands_Name" description="%ClonkCommands_Description" />
+	
+		<command categoryId="net.arctics.clonk.commands"
 			description="%Meta_AboutDesc"
 			id="net.arctics.clonk.ui.About"
 			defaultHandler="net.arctics.clonk.ui.actions.AboutHandler"
 			name="%Meta_About" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%Meta_CreateCustomizationProject"
 			id="net.arctics.clonk.ui.CreateCustomizationProject"
 			defaultHandler="net.arctics.clonk.ui.actions.CreateCustomizationProjectHandler"
@@ -434,47 +436,47 @@
 			defaultHandler="net.arctics.clonk.ui.navigator.ConvertLinkedGroupsHandler"
 			name="%ConvertLinkedGroups_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%TidyUpCode_Desc"
 			id="net.arctics.clonk.ui.editors.actions.TidyUpCode"
 			name="%TidyUpCode_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%TidyUpCode_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk"
 			defaultHandler="net.arctics.clonk.ui.navigator.TidyUpCodeInBulkHandler"
 			name="%TidyUpCode_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
             description="%FindDuplicates_Desc"
             id="net.arctics.clonk.ui.navigator.actions.FindDuplicates"
             defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
             name="%FindDuplicates_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%LinkC4GroupFile_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile"
 			defaultHandler="net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler"
 			name="%LinkC4GroupFile_Name"
 		/>
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%OpenDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			name="%OpenDeclaration_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%FindReferences_Desc"
 			id="net.arctics.clonk.ui.editors.actions.FindReferences"
 			name="%FindReferences_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%RenameDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
 			name="%RenameDeclaration_Name" />
 		
 		<!-- FIXME: what was that supposed to do -->
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%DeclarationFilter_Desc"
 			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
 			name="%DeclarationFilter_Name" />
