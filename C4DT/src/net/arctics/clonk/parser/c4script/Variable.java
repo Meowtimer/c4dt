@@ -161,13 +161,23 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * @return the description
 	 */
-	public String getUserDescription() {
-		return isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
+	@Override
+	public String obtainUserDescription() {
+		if (isEngineDeclaration())
+			return getEngine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+		else
+			return description;
+	}
+	
+	@Override
+	public String getCurrentlySetUserDescription() {
+		return description;
 	}
 
 	/**
 	 * @param description the description to set
 	 */
+	@Override
 	public void setUserDescription(String description) {
 		this.description = description;
 	}
@@ -241,8 +251,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			initializationExpression != null
 				? String.format(valueFormat, Utilities.htmlerize(initializationExpression.toString()))
 				: "", //$NON-NLS-1$
-			getUserDescription() != null && getUserDescription().length() > 0
-				? String.format(descriptionFormat, getUserDescription())
+			obtainUserDescription() != null && obtainUserDescription().length() > 0
+				? String.format(descriptionFormat, obtainUserDescription())
 				: "" //$NON-NLS-1$
 		);
 	}

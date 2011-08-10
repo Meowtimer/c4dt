@@ -747,9 +747,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().typeName(true))); //$NON-NLS-1$
 			}
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
-			if (f.getUserDescription() != null) {
+			if (f.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>"); //$NON-NLS-1$
-				writer.write(f.getUserDescription());
+				writer.write(f.obtainUserDescription());
 				writer.write("</description>\n"); //$NON-NLS-1$
 			}
 			writer.write("\t\t</function>\n"); //$NON-NLS-1$
@@ -758,9 +758,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (Variable v : variables()) {
 			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
-			if (v.getUserDescription() != null) {
+			if (v.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
-				writer.write("\t\t\t\t"+v.getUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
+				writer.write("\t\t\t\t"+v.obtainUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				writer.write("\t\t\t</description>\n"); //$NON-NLS-1$
 			}
 			writer.write("\t\t</variable>\n"); //$NON-NLS-1$

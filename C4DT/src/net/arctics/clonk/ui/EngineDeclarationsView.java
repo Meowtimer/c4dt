@@ -216,7 +216,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_DescriptionTitle);
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-			if (func.getUserDescription() != null) descriptionField.setText(func.getUserDescription());
+			if (func.obtainUserDescription() != null) descriptionField.setText(func.obtainUserDescription());
 			
 			GridData gridData =
 			      new GridData(

@@ -3,17 +3,18 @@ package net.arctics.clonk.index;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidClassException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -27,24 +28,21 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasName;
+import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
-import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData;
-import net.arctics.clonk.parser.inireader.IniEntry;
-import net.arctics.clonk.parser.inireader.IniItem;
-import net.arctics.clonk.parser.inireader.IniParserException;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -190,7 +188,6 @@ public class Engine extends ScriptBase {
 	
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
-	private transient Map<String, Map<String, String>> descriptions = new HashMap<String, Map<String,String>>();
 	
 	private transient SpecialScriptRules specialScriptRules;
 	
@@ -204,6 +201,7 @@ public class Engine extends ScriptBase {
 
 	public void setCurrentSettings(EngineSettings currentSettings) {
 		this.currentSettings = currentSettings;
+		needsToReReadDocs();
 	}
 
 	public EngineSettings getCurrentSettings() {
@@ -328,29 +326,6 @@ public class Engine extends ScriptBase {
 		}
 	}
 	
-	private class DescriptionsIniConfiguration extends IniConfiguration {
-		public DescriptionsIniConfiguration() {
-			super();
-			sections.put("Descriptions", new IniDataSection() { //$NON-NLS-1$
-				private IniDataEntry entry = new IniDataEntry("", String.class); //$NON-NLS-1$
-				@Override
-				public boolean hasEntry(String entryName) {
-					return Engine.this.findDeclaration(entryName) != null; 
-				}
-				@Override
-				public IniDataEntry getEntry(String key) {
-					return entry;
-				}
-			});
-			factory = new IEntryFactory() {
-				@Override
-				public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
-					return value;
-				}
-			};
-		}
-	}
-	
 	private class DeclarationsConfiguration extends IniConfiguration {
 		@Override
 		public boolean hasSection(String sectionName) {
@@ -358,49 +333,46 @@ public class Engine extends ScriptBase {
 		}
 	}
 
-	public String descriptionFor(Declaration declaration) {
-		Map<String, String> descs;
-		try {
-			descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
-			return descs != null ? descs.get(declaration.getName()) : null;
-		} catch (IOException e) {
-			return null;
-		}
+	private Set<String> namesOfDeclarationsForWhichDocsWereFreshlyObtained = new HashSet<String>();
+	
+	/**
+	 * Tell this engine to discard information about documentation already read on-demand from the repository docs folder so
+	 * the next time documentation needs to be obtained via {@link #getDescriptionPossiblyReadingItFromRepositoryDocs(IHasUserDescription)},
+	 * a repository doc reading will be performed.
+	 */
+	public void needsToReReadDocs() {
+		namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 	}
 	
-	public Map<String, String> loadDescriptions(String language) throws IOException {
-		Map<String, String> result = descriptions.get(language);
-		if (result != null)
-			return result;
-		else {
-			String fileName = String.format("descriptions%s.ini", language); //$NON-NLS-1$
-			for (int i = storageLocations.length-1; i >= 0; i--) {
-				IStorageLocation loc = storageLocations[i];
-				URL descs = loc.getURL(fileName, false);
-				if (descs != null) {
-					InputStream input = descs.openStream();
-					try {
-						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
-						unit.getParser().parse(false);
-						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
-						if (section != null) {
-							result = new HashMap<String, String>();
-							for (Entry<String, IniItem> item : section.subItemMap().entrySet()) {
-								if (item.getValue() instanceof IniEntry) {
-									IniEntry entry = (IniEntry) item.getValue();
-									result.put(entry.getKey(), entry.getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
-								}
-							}
-							descriptions.put(language, result);
-							return result;
-						}
-					} finally {
-						input.close();
-					}
-				}
+	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
+		if (declaration.getCurrentlySetUserDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.getName()))
+			return declaration.getCurrentlySetUserDescription();
+		applyDocumentationFromRepository(declaration);
+		String d = declaration.getCurrentlySetUserDescription();
+		if (d != null)
+			namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.getName());
+		return d;
+	}
+	
+	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationFromRepository(T declaration) {
+		XMLDocImporter importer = repositoryDocImporter();
+		if (importer != null) {
+			ExtractedDeclarationDocumentation d = importer.extractDocumentationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref());
+			if (d != null) {
+				declaration.setUserDescription(d.description);
+				if (declaration instanceof Function && d.parameters != null)
+					((Function)declaration).setParameters(d.parameters);
+				return true;
 			}
 		}
-		return null;
+//		Map<String, String> descs;
+//		try {
+//			descs = loadDescriptions(ClonkPreferences.getLanguagePref());
+//			return descs != null ? descs.get(declaration.getName()) : null;
+//		} catch (IOException e) {
+//			return null;
+//		}
+		return false;
 	}
 	
 	public void loadDeclarationsConfiguration() throws NoSuchFieldException, IllegalAccessException, IOException {
@@ -503,7 +475,7 @@ public class Engine extends ScriptBase {
 		writer.append("\n"); //$NON-NLS-1$
 		for (Function f : functions()) {
 			String returnType = f.getReturnType().toString();
-			String desc = f.getUserDescription();
+			String desc = f.obtainUserDescription();
 			if (desc != null) {
 				if (desc.contains("\n")) { //$NON-NLS-1$
 					desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
@@ -669,6 +641,20 @@ public class Engine extends ScriptBase {
 	 */
 	public String groupName(String name, GroupType groupType) {
 		return name + "." + getCurrentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
+	}
+	
+	private XMLDocImporter xmlDocImporter;
+	
+	/**
+	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #getCurrentSettings()}.
+	 * @return
+	 */
+	public XMLDocImporter repositoryDocImporter() {
+		if ((xmlDocImporter == null || !xmlDocImporter.getRepositoryPath().equals(getCurrentSettings().repositoryPath)) && getCurrentSettings().repositoryPath != null) {
+			xmlDocImporter = new XMLDocImporter();
+			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+		}
+		return xmlDocImporter;
 	}
 
 }

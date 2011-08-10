@@ -3,6 +3,8 @@ package net.arctics.clonk.preferences;
 import java.beans.Beans;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine;
+
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -86,6 +88,16 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 
 	@Override
 	public void init(IWorkbench workbench) {
+	}
+	
+	@Override
+	public boolean performOk() {
+		if (super.performOk()) {
+			for (Engine e : ClonkCore.getDefault().getLoadedEngines().values())
+				e.needsToReReadDocs();
+			return true;
+		} else
+			return false;
 	}
 	
 }

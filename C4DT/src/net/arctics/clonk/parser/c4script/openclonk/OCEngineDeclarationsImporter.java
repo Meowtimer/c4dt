@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script.openclonk;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -20,14 +19,17 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
+import net.arctics.clonk.preferences.ClonkPreferences;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.xml.sax.SAXException;
 
 public class OCEngineDeclarationsImporter {
 
 	public void importFromRepository(ScriptBase importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
-		XMLDocImporter importer = XMLDocImporter.instance();
+		XMLDocImporter importer = importsContainer.getEngine().repositoryDocImporter();
 		importer.setRepositoryPath(repository);
 		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
 		File fnFolder = new File(fnFolderPath);
@@ -44,7 +46,8 @@ public class OCEngineDeclarationsImporter {
 			}
 			Declaration declaration;
 			try {
-				declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName)); //$NON-NLS-1$
+				ExtractedDeclarationDocumentation extracted = importer.extractDocumentationFromFunctionXml(fileName, ClonkPreferences.getLanguagePref()); //$NON-NLS-1$
+				declaration = extracted != null ? extracted.toDeclaration() : null;
 			} catch (Exception e) {
 				declaration = null;
 			}

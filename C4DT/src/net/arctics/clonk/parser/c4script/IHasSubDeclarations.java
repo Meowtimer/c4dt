@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.Declaration;
  * @author madeen
  *
  */
-public interface IHasSubDeclarations {
+public interface IHasSubDeclarations extends IHasName {
 	static final int VARIABLES = 1;
 	static final int FUNCTIONS = 2;
 	static final int INCLUDES  = 4;
@@ -20,5 +20,4 @@ public interface IHasSubDeclarations {
 	Iterable<? extends Declaration> allSubDeclarations(int mask);
 	Function findFunction(String functionName);
 	Declaration findDeclaration(String name, FindDeclarationInfo info);
-	String getName();
 }

@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 
@@ -122,5 +124,14 @@ public class StreamUtil {
 		while ((read = source.read(buffer)) != -1) {
 			dest.write(buffer, 0, read);
 		}
+	}
+	public static FilenameFilter patternFilter(final String pattern) {
+		return new FilenameFilter() {
+			private Pattern p = StringUtil.patternFromRegExOrWildcard(pattern);
+			@Override
+			public boolean accept(File dir, String name) {
+				return p.matcher(name).matches();
+			}
+		};
 	}
 }

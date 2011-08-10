@@ -138,15 +138,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
 		@Override
 		public Pattern convert(String from) {
-			try {
-				return Pattern.compile(from, Pattern.CASE_INSENSITIVE);
-			} catch (Exception e) {
-				try {
-					return Pattern.compile(StringUtil.wildcardToRegex(from), Pattern.CASE_INSENSITIVE);
-				} catch (Exception e2) {
-					return Pattern.compile("ponies");
-				}
-			}
+			return StringUtil.patternFromRegExOrWildcard(from);
 		}
 	};
 	

@@ -413,7 +413,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public void absorb(Declaration declaration) {
 		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription) {
-			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).getUserDescription());
+			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).obtainUserDescription());
 		}
 	}
 	

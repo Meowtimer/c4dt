@@ -147,7 +147,7 @@ public class Command {
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
 			for (Function f : engine.functions()) {
-				String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				String escaped = f.obtainUserDescription() != null ? f.obtainUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				writer.append(String.format("%s=%s\n", f.getName(), escaped)); //$NON-NLS-1$
 			}
 			writer.close();

@@ -168,13 +168,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the description
 	 */
-	public String getUserDescription() {
-		return description == null && isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
+	@Override
+	public String obtainUserDescription() {
+		if (isEngineDeclaration())
+			return getEngine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+		else
+			return description;
+	}
+	
+	@Override
+	public String getCurrentlySetUserDescription() {
+		return description;
 	}
 
 	/**
 	 * @param description the description to set
 	 */
+	@Override
 	public void setUserDescription(String description) {
 		this.description = description;
 	}
@@ -322,7 +332,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public String getInfoText() {
-		String description = getUserDescription();
+		String description = obtainUserDescription();
 		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? Utilities.htmlerize(getReturnType().typeName(true)) : "", Utilities.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 

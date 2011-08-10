@@ -1,6 +1,11 @@
 package net.arctics.clonk.util;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.util.Iterator;
+import java.util.regex.Pattern;
+
+import net.arctics.clonk.parser.BufferedScanner;
 
 /**
  * String utilty functions.
@@ -114,4 +119,95 @@ public class StringUtil {
         s.append('$');
         return(s.toString());
     }
+	
+	public static Pattern patternFromRegExOrWildcard(String pattern) {
+		try {
+			return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+		} catch (Exception e) {
+			try {
+				return Pattern.compile(StringUtil.wildcardToRegex(pattern), Pattern.CASE_INSENSITIVE);
+			} catch (Exception e2) {
+				return Pattern.compile("ponies");
+			}
+		}
+	}
+	
+	public static String rawFileName(String s) {
+
+	    String separator = System.getProperty("file.separator");
+	    String filename;
+
+	    // Remove the path upto the filename.
+	    int lastSeparatorIndex = s.lastIndexOf(separator);
+	    if (lastSeparatorIndex == -1) {
+	        filename = s;
+	    } else {
+	        filename = s.substring(lastSeparatorIndex + 1);
+	    }
+
+	    // Remove the extension.
+	    int extensionIndex = filename.lastIndexOf(".");
+	    if (extensionIndex == -1)
+	        return filename;
+
+	    return filename.substring(0, extensionIndex);
+	}
+	
+	public static String unquote(String s) {
+		if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"')
+			return s.substring(1, s.length()-1);
+		else
+			return s;
+	}
+	
+	public static Iterable<String> lines(final Reader reader) {
+		return new Iterable<String>() {
+			@Override
+			public Iterator<String> iterator() {
+				return new Iterator<String>() {
+
+					private String line;
+					private StringBuilder builder = new StringBuilder(1024);
+					
+					@Override
+					public boolean hasNext() {
+						builder.delete(0, builder.length());
+						int r;
+						try {
+							boolean skippingInitialLineBreak = true;
+							while ((r = reader.read()) != -1) {
+								if (BufferedScanner.isLineDelimiterChar((char)r)) {
+									if (skippingInitialLineBreak)
+										continue;
+									else
+										break;
+								} else
+									skippingInitialLineBreak = false;
+								builder.append((char)r);
+							}
+							if (builder.length() > 0) {
+								line = builder.toString();
+								return true;
+							} else
+								return false;
+						} catch (IOException e) {
+							e.printStackTrace();
+							return false;
+						}
+					}
+
+					@Override
+					public String next() {
+						return line;
+					}
+
+					@Override
+					public void remove() {
+						// ignore
+					}
+					
+				};
+			}
+		};
+	}
 }
