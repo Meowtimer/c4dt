@@ -15,33 +15,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.util.Util;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.console.IOConsoleOutputStream;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
-import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.XMLDocImporter;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.XMLDocImporter;
+import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
-import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -53,6 +46,17 @@ import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.util.Util;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.console.IOConsoleOutputStream;
 
 /**
  * Container for engine functions and constants.
@@ -201,7 +205,8 @@ public class Engine extends ScriptBase {
 
 	public void setCurrentSettings(EngineSettings currentSettings) {
 		this.currentSettings = currentSettings;
-		needsToReReadDocs();
+		saveSettings();
+		loadAdditionalNonVitalThings();
 	}
 
 	public EngineSettings getCurrentSettings() {
@@ -333,7 +338,7 @@ public class Engine extends ScriptBase {
 		}
 	}
 
-	private Set<String> namesOfDeclarationsForWhichDocsWereFreshlyObtained = new HashSet<String>();
+	private final Set<String> namesOfDeclarationsForWhichDocsWereFreshlyObtained = new HashSet<String>();
 	
 	/**
 	 * Tell this engine to discard information about documentation already read on-demand from the repository docs folder so
@@ -356,6 +361,7 @@ public class Engine extends ScriptBase {
 	
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationFromRepository(T declaration) {
 		XMLDocImporter importer = repositoryDocImporter();
+		importer.initialize();
 		if (importer != null) {
 			ExtractedDeclarationDocumentation d = importer.extractDocumentationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref());
 			if (d != null) {
@@ -458,6 +464,7 @@ public class Engine extends ScriptBase {
 					result.createSpecialRules();
 					result.parseEngineScript(url);
 					result.loadDeclarationsConfiguration();
+					result.loadAdditionalNonVitalThings();
 					break;
 				}
 			}
@@ -465,6 +472,20 @@ public class Engine extends ScriptBase {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	private void loadAdditionalNonVitalThings() {
+		if (getCurrentSettings().repositoryPath != null && !getCurrentSettings().repositoryPath.equals("")) {
+			needsToReReadDocs();
+			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+			new Job("Initialize doc importer for " + this.getName()) {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					xmlDocImporter.initialize();
+					return Status.OK_STATUS;
+				}
+			}.schedule();
+		}
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {
@@ -510,7 +531,7 @@ public class Engine extends ScriptBase {
 		}
 	}
 	
-	public void saveSettings() throws IOException {
+	public void saveSettings() {
 		if (!hasCustomSettings())
 			return;
 		for (IStorageLocation loc : storageLocations) {
@@ -521,7 +542,11 @@ public class Engine extends ScriptBase {
 					try {
 						currentSettings.saveTo(output, intrinsicSettings);
 					} finally {
-						output.close();
+						try {
+							output.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 					break;
 				}
@@ -643,18 +668,14 @@ public class Engine extends ScriptBase {
 		return name + "." + getCurrentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
 	}
 	
-	private XMLDocImporter xmlDocImporter;
+	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
 	
 	/**
 	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #getCurrentSettings()}.
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
-		if ((xmlDocImporter == null || !xmlDocImporter.getRepositoryPath().equals(getCurrentSettings().repositoryPath)) && getCurrentSettings().repositoryPath != null) {
-			xmlDocImporter = new XMLDocImporter();
-			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
-		}
-		return xmlDocImporter;
+		return xmlDocImporter.initialize();
 	}
 
 }

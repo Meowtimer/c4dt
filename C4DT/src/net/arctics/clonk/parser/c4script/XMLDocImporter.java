@@ -57,6 +57,10 @@ public class XMLDocImporter {
 	private static final XPathExpression parmsExpr = xp("./funcs/func/syntax/params/param"); //$NON-NLS-1$
 	private static final XPathExpression descExpr = xp("./funcs/func/desc[1]"); //$NON-NLS-1$
 	
+	private static Pattern fileLocationPattern = Pattern.compile("#: (.*?)\\:([0-9]+)\\((.*?)\\)");
+	private static Pattern msgIdPattern = Pattern.compile("msgid \\\"(.*?)\"$");
+	private static Pattern msgStrPattern = Pattern.compile("msgstr \\\"(.*?)\"$");
+	
 	private static class PoTranslationFragment {
 		int line;
 		String english;
@@ -71,27 +75,37 @@ public class XMLDocImporter {
 		}
 	}
 	
-	private Map<String, Map<String, List<PoTranslationFragment>>> translationFragments = new HashMap<String, Map<String, List<PoTranslationFragment>>>(); 
+	private final Map<String, Map<String, List<PoTranslationFragment>>> translationFragments = new HashMap<String, Map<String, List<PoTranslationFragment>>>(); 
 	
 	private String repositoryPath;
 	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>"); //$NON-NLS-1$
+	private boolean initialized = false;
 
-	public String getRepositoryPath() {
+	public synchronized String getRepositoryPath() {
 		return repositoryPath;
 	}
 	
-	private static Pattern fileLocationPattern = Pattern.compile("#: (.*?)\\:([0-9]+)\\((.*?)\\)");
-	private static Pattern msgIdPattern = Pattern.compile("msgid \\\"(.*?)\"$");
-	private static Pattern msgStrPattern = Pattern.compile("msgstr \\\"(.*?)\"$");
+	public synchronized void discardInitialization() {
+		translationFragments.clear();
+		initialized = false;
+	}
+	
+	public synchronized XMLDocImporter initialize() {
+		if (!initialized) {
+			readTranslationFragmentsFromPoFiles();
+			initialized = true;
+		}
+		return this;
+	}
 
-	public void setRepositoryPath(String repositoryPath) {
+	public synchronized void setRepositoryPath(String repositoryPath) {
 		if (Utilities.objectsEqual(repositoryPath, this.repositoryPath))
 			return;
 		this.repositoryPath = repositoryPath;
-		readTranslationFragmentsFromPoFiles(repositoryPath);
+		discardInitialization();
 	}
 
-	protected void readTranslationFragmentsFromPoFiles(String repositoryPath) {
+	protected void readTranslationFragmentsFromPoFiles() {
 		translationFragments.clear();
 		for (File poFile : new File(repositoryPath+"/docs").listFiles(StreamUtil.patternFilter(".*\\.po"))) {
 			String langId = StringUtil.rawFileName(poFile.getName()).toUpperCase();
@@ -179,6 +193,7 @@ public class XMLDocImporter {
 				try {
 					builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 					builder.setEntityResolver(new EntityResolver() {	
+						@Override
 						public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 							if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
 								return new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd"));

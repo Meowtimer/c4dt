@@ -33,8 +33,8 @@ import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.PathUtil;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -104,7 +104,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * List of engines currently loaded
 	 */
-	private Map<String, Engine> loadedEngines = new HashMap<String, Engine>();
+	private final Map<String, Engine> loadedEngines = new HashMap<String, Engine>();
 
 	/**
 	 * Shared instance
@@ -134,6 +134,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	@SuppressWarnings("deprecation")
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -327,7 +328,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	private void getHeadlessStorageLocations(String engineName, IStorageLocation[] locations) {
 		locations[0] = new FolderStorageLocation(engineName) {
-			private IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
+			private final IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
 			@Override
 			protected IPath getStorageLocationForEngine(String engineName) {
 				return storageLocationPath;
@@ -456,6 +457,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	@SuppressWarnings("deprecation")
 	public void stop(BundleContext context) throws Exception {
 		//saveExternIndex(); clean build causes save
@@ -519,15 +521,19 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return descriptor;
 	}
 
+	@Override
 	public void doneSaving(ISaveContext context) {
 	}
 
+	@Override
 	public void prepareToSave(ISaveContext context) throws CoreException {
 	}
 
+	@Override
 	public void rollback(ISaveContext context) {
 	}
 
+	@Override
 	public void saving(ISaveContext context) throws CoreException {
 		ClonkProjectNature clonkProj;
 		switch (context.getKind()) {
@@ -540,13 +546,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
 			rememberCurrentVersion();
-			for (Engine engine : loadedEngines.values()) {
-				try {
-					engine.saveSettings();
-				} catch (IOException e) {
-					UI.informAboutException(Messages.ClonkCore_ErrorWhileSavingSettings, e, engine.getName());
-				}
-			}
+			for (Engine engine : loadedEngines.values())
+				engine.saveSettings();
 			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 				try {
 					if (!project.isOpen())
