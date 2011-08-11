@@ -724,6 +724,7 @@
 				<entry name="TitleOffY" class="SignedInteger" />
 				<entry name="TitleAlign" class="SignedInteger" />
 				<entry name="TitleUseBookFont" class="Boolean" />
+				<entry name="Access" class="java.lang.String" />
 			</section>
 		</section>
 	</file>

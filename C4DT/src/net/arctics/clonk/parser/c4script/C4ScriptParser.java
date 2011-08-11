@@ -13,26 +13,27 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
+
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SilentParsingException;
+import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.SilentParsingException.Reason;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
@@ -50,17 +51,17 @@ import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
-import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
-import net.arctics.clonk.parser.c4script.ast.MissingStatement;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
+import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
+import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
+import net.arctics.clonk.parser.c4script.ast.MissingStatement;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
@@ -75,13 +76,14 @@ import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -91,6 +93,8 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+
+import com.sun.org.apache.xalan.internal.xsltc.compiler.CompilerException;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
@@ -116,7 +120,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public String parsedMemberOperator;
 		public int parseExpressionRecursion;
 		public int parseStatementRecursion;
-		private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
+		private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 		/**
 		 * Whether the current statement is not reached
 		 */
@@ -294,6 +298,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
+	@Override
 	public void storeTypeInformation(ExprElm expression, IType type) {
 		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
@@ -384,6 +389,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param defaultType Default type to return if no type was found.
 	 * @return Expression type as deduced by usage of the expression or the default type.
 	 */
+	@Override
 	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
 		IStoredTypeInformation info = queryStoredTypeInformation(expression);
 		return info != null ? info.getType() : defaultType;
@@ -401,6 +407,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the function that is currently being parsed or otherwise considered "current"
 	 * @return the current function
 	 */
+	@Override
 	public Function getCurrentFunc() {
 		return currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration.getFirstParentDeclarationOfType(Function.class) : null;
 	}
@@ -428,6 +435,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the declaration that is currently being parsed.
 	 * @return
 	 */
+	@Override
 	public Declaration getCurrentDeclaration() {
 		return currentFunctionContext.currentDeclaration;
 	}
@@ -436,6 +444,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the script object that is being parsed by the parser.
 	 * @return
 	 */
+	@Override
 	public final ScriptBase getContainer() {
 		return container;
 	}
@@ -444,6 +453,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
 	 */
+	@Override
 	public Definition getContainerAsDefinition() {
 		if (container instanceof Definition)
 			return (Definition) container;
@@ -641,6 +651,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param function The function to be parsed
 	 * @throws ParsingException
 	 */
+	@Override
 	public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
 		// parser not yet ready to parse functions - deny
 		if (parsedFunctions == null)
@@ -776,6 +787,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param region the region the line to be returned is in
 	 * @return the line string
 	 */
+	@Override
 	public String getLineAt(IRegion region) {
 		return this.getLineAt(region);
 	}
@@ -1175,12 +1187,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// body
 		if (parseBody) {
 			startBody = this.offset;
-			eatWhitespace();
 			boolean properEnd = false;
 			do {
-				eatWhitespace();
 				if (header.isOldStyle)
 					endBody = this.offset;
+				eatWhitespace();
 				int offsetBeforeToken = this.offset;
 				String word;
 				if (FunctionHeader.parse(this, header.isOldStyle) != null || reachedEOF()) {
@@ -1937,6 +1948,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return new SourceLocation(start+offsetOfScriptFragment, end+offsetOfScriptFragment);
 	}
 	
+	@Override
 	public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
 		int bodyOffset = bodyOffset();
 		return absoluteSourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
@@ -3316,7 +3328,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		/**
 		 * The associated marker listener
 		 */
-		private IMarkerListener markerListener;
+		private final IMarkerListener markerListener;
 		/**
 		 * Create the parser
 		 * @param withString Script to parse
