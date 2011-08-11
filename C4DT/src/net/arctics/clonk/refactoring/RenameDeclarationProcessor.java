@@ -85,6 +85,8 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			}
 		}
 		CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
+		// now that references by the old name have been detected, rename the declaration (in case of ProjectDefinition.ProxyVar, this will change the id of the definition being proxied)
+		//composite.add(new SetNameChange("Setting the declaration's name", decl, newName));
 		for (Object element : elements) {
 			IFile file;
 			if (element instanceof IFile)

@@ -197,7 +197,25 @@ public class XMLDocImporter {
 					for (String textLine : StringUtil.lines(new StringReader(text))) {
 						for (PoTranslationFragment f : translationFragments) {
 							if (f.line == lineNo) {
-								textLine = textLine.replace(f.english, f.localized);
+								String englishWithPlaceholdersReplacedWithTagCaptureGroups = Pattern.quote(f.english).replaceAll("<placeholder\\-([0-9]+)/>", "\\\\E(<.*?>.*?</.*?>)\\\\Q");
+								System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
+								Matcher englishMatcher = Pattern.compile(englishWithPlaceholdersReplacedWithTagCaptureGroups).matcher(textLine);
+								Matcher placeHolderInLocalizedMatcher = Pattern.compile("<placeholder\\-([0-9]+)/>").matcher(f.localized);
+								StringBuilder localizedWithTagsPutIn = new StringBuilder(f.localized);
+								int builderOffsetCausedByReplacing = 0;
+								if (englishMatcher.find()) {
+									for (int g = 1; g <= englishMatcher.groupCount(); g++) {
+										if (placeHolderInLocalizedMatcher.find()) {
+											String actualTag = englishMatcher.group(g);
+											placeHolderInLocalizedMatcher.start();
+											localizedWithTagsPutIn.replace(placeHolderInLocalizedMatcher.start()+builderOffsetCausedByReplacing, placeHolderInLocalizedMatcher.end()+builderOffsetCausedByReplacing, actualTag);
+											builderOffsetCausedByReplacing += actualTag.length() - placeHolderInLocalizedMatcher.group().length();
+										}
+									}
+									StringBuilder lineBuilder = new StringBuilder(textLine);
+									lineBuilder.replace(englishMatcher.start(), englishMatcher.end(), localizedWithTagsPutIn.toString());
+									textLine = lineBuilder.toString();
+								}
 							}
 						}
 						translatedRebuild.append(textLine);

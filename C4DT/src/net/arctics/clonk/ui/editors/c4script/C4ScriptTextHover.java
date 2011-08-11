@@ -8,6 +8,9 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.Utilities;
@@ -24,15 +27,26 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 
 	@Override
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
+		IFile scriptFile = Utilities.getFileBeingEditedBy(configuration.getEditor());
 		StringBuilder messageBuilder = new StringBuilder();
-		if (declLocator != null && declLocator.getDeclaration() != null)
+		if (declLocator != null && declLocator.getDeclaration() != null) {
 			messageBuilder.append(declLocator.getDeclaration().getInfoText());
+			if (!declLocator.getDeclaration().isEngineDeclaration()) {
+				Engine engine = ClonkProjectNature.getEngine(scriptFile);
+				if (engine != null) {
+					Declaration engineDeclaration = engine.findDeclaration(declLocator.getDeclaration().getName());
+					if (engineDeclaration != null) {
+						messageBuilder.append("<br/><br/><b>"+"Engine:"+"</b><br/>");
+						messageBuilder.append(engineDeclaration.getInfoText());
+					}
+				}
+			}
+		}
 		else {
 			String superInfo = super.getHoverInfo(viewer, region);
 			if (superInfo != null)
 				messageBuilder.append(superInfo);
 		}
-		IFile scriptFile = Utilities.getFileBeingEditedBy(configuration.getEditor());
 		try {
 			IMarker[] markers = scriptFile.findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
 			boolean foundSomeMarkers = false;
@@ -45,7 +59,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 				if (Utilities.regionContainsOtherRegion(markerRegion, region)) {
 					if (!foundSomeMarkers) {
 						if (messageBuilder.length() > 0)
-							messageBuilder.append("<br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
 						foundSomeMarkers = true;
 					}
 					messageBuilder.append(m.getAttribute(IMarker.MESSAGE));
