@@ -107,7 +107,12 @@ public class XMLDocImporter {
 
 	protected void readTranslationFragmentsFromPoFiles() {
 		translationFragments.clear();
-		for (File poFile : new File(repositoryPath+"/docs").listFiles(StreamUtil.patternFilter(".*\\.po"))) {
+		if (repositoryPath == null)
+			return;
+		File docsFolder = new File(repositoryPath + "/docs");
+		if (!docsFolder.isDirectory())
+			return;
+		for (File poFile : docsFolder.listFiles(StreamUtil.patternFilter(".*\\.po"))) {
 			String langId = StringUtil.rawFileName(poFile.getName()).toUpperCase();
 			InputStreamReader reader;
 			try {
@@ -182,6 +187,8 @@ public class XMLDocImporter {
 	}
 	
 	public ExtractedDeclarationDocumentation extractDocumentationFromFunctionXml(String functionName, String langId) {
+		if (!initialized || repositoryPath == null)
+			return null;
 		Path docsRelativePath = new Path("sdk/script/fn/"+functionName+".xml");
 		File functionXmlFile = new Path(repositoryPath).append("docs").append(docsRelativePath).toFile();
 		if (!functionXmlFile.exists())
@@ -311,6 +318,10 @@ public class XMLDocImporter {
 		StringBuilder b = new StringBuilder();
 		getTextIncludingTags(n, b);
 		return b.toString();
+	}
+
+	public boolean initialized() {
+		return initialized;
 	}
 
 }

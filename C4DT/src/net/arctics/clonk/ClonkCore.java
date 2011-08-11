@@ -158,8 +158,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 					setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+					for (Engine e : loadedEngines())
+						e.reinitializeDocImporter();
 				}
 			}
 		});

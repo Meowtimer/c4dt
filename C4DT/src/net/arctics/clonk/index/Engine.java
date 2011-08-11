@@ -204,9 +204,11 @@ public class Engine extends ScriptBase {
 	}
 
 	public void setCurrentSettings(EngineSettings currentSettings) {
+		String oldRepoPath = currentSettings.repositoryPath;
 		this.currentSettings = currentSettings;
 		saveSettings();
-		loadAdditionalNonVitalThings();
+		if (!Utilities.objectsEqual(oldRepoPath, currentSettings.repositoryPath))
+			reinitializeDocImporter();
 	}
 
 	public EngineSettings getCurrentSettings() {
@@ -345,8 +347,17 @@ public class Engine extends ScriptBase {
 	 * the next time documentation needs to be obtained via {@link #getDescriptionPossiblyReadingItFromRepositoryDocs(IHasUserDescription)},
 	 * a repository doc reading will be performed.
 	 */
-	public void needsToReReadDocs() {
+	public void reinitializeDocImporter() {
+		xmlDocImporter.discardInitialization();
+		xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
+		new Job("Initialize doc importer for " + this.getName()) {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				xmlDocImporter.initialize();
+				return Status.OK_STATUS;
+			}
+		}.schedule();
 	}
 	
 	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
@@ -464,7 +475,7 @@ public class Engine extends ScriptBase {
 					result.createSpecialRules();
 					result.parseEngineScript(url);
 					result.loadDeclarationsConfiguration();
-					result.loadAdditionalNonVitalThings();
+					result.reinitializeDocImporter();
 					break;
 				}
 			}
@@ -472,20 +483,6 @@ public class Engine extends ScriptBase {
 			e.printStackTrace();
 		}
 		return result;
-	}
-
-	private void loadAdditionalNonVitalThings() {
-		if (getCurrentSettings().repositoryPath != null && !getCurrentSettings().repositoryPath.equals("")) {
-			needsToReReadDocs();
-			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
-			new Job("Initialize doc importer for " + this.getName()) {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					xmlDocImporter.initialize();
-					return Status.OK_STATUS;
-				}
-			}.schedule();
-		}
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {
@@ -503,9 +500,8 @@ public class Engine extends ScriptBase {
 				} else {
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
 				}
-			} else {
+			} else
 				desc = ""; //$NON-NLS-1$
-			}
 			String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
 			writer.append(text);
 		}
@@ -675,6 +671,7 @@ public class Engine extends ScriptBase {
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
+		xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
 		return xmlDocImporter.initialize();
 	}
 
