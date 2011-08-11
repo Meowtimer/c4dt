@@ -1,11 +1,10 @@
 package net.arctics.clonk.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.regex.Pattern;
-
-import net.arctics.clonk.parser.BufferedScanner;
 
 /**
  * String utilty functions.
@@ -166,30 +165,13 @@ public class StringUtil {
 			public Iterator<String> iterator() {
 				return new Iterator<String>() {
 
+					private BufferedReader bufferedReader = new BufferedReader(reader);
 					private String line;
-					private StringBuilder builder = new StringBuilder(1024);
 					
 					@Override
 					public boolean hasNext() {
-						builder.delete(0, builder.length());
-						int r;
 						try {
-							boolean skippingInitialLineBreak = true;
-							while ((r = reader.read()) != -1) {
-								if (BufferedScanner.isLineDelimiterChar((char)r)) {
-									if (skippingInitialLineBreak)
-										continue;
-									else
-										break;
-								} else
-									skippingInitialLineBreak = false;
-								builder.append((char)r);
-							}
-							if (builder.length() > 0) {
-								line = builder.toString();
-								return true;
-							} else
-								return false;
+							return (line = bufferedReader.readLine()) != null;
 						} catch (IOException e) {
 							e.printStackTrace();
 							return false;

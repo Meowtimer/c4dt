@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,13 +88,20 @@ public class XMLDocImporter {
 		if (Utilities.objectsEqual(repositoryPath, this.repositoryPath))
 			return;
 		this.repositoryPath = repositoryPath;
+		readTranslationFragmentsFromPoFiles(repositoryPath);
+	}
+
+	protected void readTranslationFragmentsFromPoFiles(String repositoryPath) {
 		translationFragments.clear();
 		for (File poFile : new File(repositoryPath+"/docs").listFiles(StreamUtil.patternFilter(".*\\.po"))) {
 			String langId = StringUtil.rawFileName(poFile.getName()).toUpperCase();
-			FileReader fr;
+			InputStreamReader reader;
 			try {
-				fr = new FileReader(poFile);
-			} catch (FileNotFoundException e) {
+				reader = new InputStreamReader(new FileInputStream(poFile), "UTF8");
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+				continue;
+			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 				continue;
 			}
@@ -102,7 +111,7 @@ public class XMLDocImporter {
 				Matcher msgStrMatcher = msgStrPattern.matcher("");
 				List<PoTranslationFragment> l = new LinkedList<PoTranslationFragment>();
 				String english = null;
-				for (String line : StringUtil.lines(fr)) {
+				for (String line : StringUtil.lines(reader)) {
 					if (fileLocationMatcher.reset(line).matches()) {
 						String file = fileLocationMatcher.group(1);
 						int fileLine = Integer.valueOf(fileLocationMatcher.group(2));
@@ -133,7 +142,7 @@ public class XMLDocImporter {
 				}
 			} finally {
 				try {
-					fr.close();
+					reader.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -180,7 +189,7 @@ public class XMLDocImporter {
 					e.printStackTrace();
 					return null;
 				}
-				String text = StreamUtil.stringFromInputStream(stream, "ISO-8859-1"); //$NON-NLS-1$
+				String text = StreamUtil.stringFromInputStream(stream); //$NON-NLS-1$
 				try {
 					List<PoTranslationFragment> translationFragments = this.translationFragments.get(langId).get(docsRelativePath.toString());
 					int lineNo = 1;

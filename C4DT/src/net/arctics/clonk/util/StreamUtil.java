@@ -45,7 +45,7 @@ public class StreamUtil {
 	
 	public static String stringFromInputStream(InputStream stream) {
 		try {
-			return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
+			return stringFromInputStream(stream, "UTF8"); //$NON-NLS-1$
 		} catch (IOException e) {
 			e.printStackTrace();
 			return "";
