@@ -72,8 +72,6 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		ClonkSearchQuery query = new ClonkSearchQuery(decl, ClonkProjectNature.get(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
-		// now that references by the old name have been detected, rename the declaration (in case of ProjectDefinition.ProxyVar, this will change the id of the definition being proxied) 
-		decl.setName(newName);
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration location

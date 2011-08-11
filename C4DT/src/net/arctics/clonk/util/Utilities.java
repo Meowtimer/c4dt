@@ -93,11 +93,11 @@ public abstract class Utilities {
 		return null;
 	}
 	
-	public static IFile getEditingFile(IEditorPart editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput) {
+	public static IFile getFileBeingEditedBy(IEditorPart editor) {
+		if (editor.getEditorInput() instanceof FileEditorInput)
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
-		}
-		else return null;
+		else
+			return null;
 	}
 	
 	public static ScriptBase getScriptForResource(IResource resource) throws CoreException {
@@ -211,6 +211,10 @@ public abstract class Utilities {
 	
 	public static boolean regionContainsOffset(IRegion region, int offset) {
 		return offset >= region.getOffset() && offset < region.getOffset() + region.getLength();
+	}
+	
+	public static boolean regionContainsOtherRegion(IRegion region, IRegion otherRegion) {
+		return otherRegion.getOffset() >= region.getOffset() && otherRegion.getOffset()+otherRegion.getLength() < region.getOffset()+region.getLength();
 	}
 	
 	public static int clamp(int value, int min, int max) {

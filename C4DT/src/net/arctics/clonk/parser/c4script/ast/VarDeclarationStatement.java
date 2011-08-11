@@ -98,6 +98,10 @@ public class VarDeclarationStatement extends KeywordStatement {
 			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
 		}
+		@Override
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			return new DeclarationRegion(variableBeingInitialized, this);
+		}
 	}
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;

@@ -18,6 +18,7 @@ public class Messages extends NLS {
 	public static String C4ScriptCompletionProcessor_NoProposalsAvailable;
 	public static String C4ScriptSourceViewerConfiguration_StandardProposals;
 	public static String C4ScriptSourceViewerConfiguration_PressTabOrClick;
+	public static String C4ScriptTextHover_Markers1;
 	public static String ClonkQuickAssistProcessor_AddMissingSemicolon;
 	public static String ClonkQuickAssistProcessor_AddProjectToReferencedProjects;
 	public static String ClonkQuickAssistProcessor_CommentOutStatement;
