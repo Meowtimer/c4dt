@@ -381,6 +381,12 @@ public class Engine extends ScriptBase {
 					((Function)declaration).setParameters(d.parameters);
 				return true;
 			}
+			// fallback to description inis
+			if (iniDescriptionsLoader == null)
+				iniDescriptionsLoader = new IniDescriptionsLoader(this);
+			String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
+			if (iniDescription != null)
+				declaration.setUserDescription(iniDescription);
 		}
 //		Map<String, String> descs;
 //		try {
@@ -665,6 +671,7 @@ public class Engine extends ScriptBase {
 	}
 	
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
+	private IniDescriptionsLoader iniDescriptionsLoader;
 	
 	/**
 	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #getCurrentSettings()}.
@@ -673,6 +680,10 @@ public class Engine extends ScriptBase {
 	public XMLDocImporter repositoryDocImporter() {
 		xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
 		return xmlDocImporter.initialize();
+	}
+
+	public IStorageLocation[] storageLocations() {
+		return storageLocations;
 	}
 
 }
