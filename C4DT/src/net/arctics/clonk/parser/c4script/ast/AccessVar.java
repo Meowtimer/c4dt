@@ -97,9 +97,8 @@ public class AccessVar extends AccessDeclaration {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		ExprElm pred = getPredecessorInSequence();
-		if (declaration == null && pred == null) {
+		if (declaration == null && pred == null)
 			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
-		}
 		// local variable used in global function
 		else if (declaration instanceof Variable) {
 			Variable var = (Variable) declaration;

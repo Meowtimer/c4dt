@@ -58,7 +58,7 @@ public abstract class IndexEntity extends Structure {
 	/**
 	 * Require this entity to be loaded. If {@link #notFullyLoaded} is true it is set to false and {@link Index#loadEntity(IndexEntity)} is called.
 	 */
-	public final void requireLoaded() {
+	public final synchronized void requireLoaded() {
 		if (notFullyLoaded) {
 			notFullyLoaded = false;
 			try {

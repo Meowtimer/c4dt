@@ -279,8 +279,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public void setExprRegion(IRegion r) {
-		this.exprStart = r.getOffset();
-		this.exprEnd = r.getOffset()+r.getLength();
+		this.setExprRegion(r.getOffset(), r.getOffset()+r.getLength());
 	}
 
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -931,8 +930,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param amount Amount to increment the location by
 	 */
 	public void incrementLocation(int amount) {
-		exprStart += amount;
-		exprEnd += amount;
+		setExprRegion(exprStart+amount, exprStart+amount);
 		for (ExprElm e : getSubElements())
 			if (e != null)
 				e.incrementLocation(amount);

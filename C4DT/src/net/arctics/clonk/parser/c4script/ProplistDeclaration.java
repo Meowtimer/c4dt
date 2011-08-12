@@ -235,7 +235,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 		List<Variable> clonedComponents = new ArrayList<Variable>(this.components.size());
 		for (Variable v : components)
 			clonedComponents.add(v.clone());
-		ProplistDeclaration clone = new ProplistDeclaration(components);
+		ProplistDeclaration clone = new ProplistDeclaration(clonedComponents);
 		clone.location = this.location.clone();
 		clone.adHoc = this.adHoc;
 		return clone;

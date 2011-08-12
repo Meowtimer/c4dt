@@ -67,6 +67,8 @@ public class PropListExpression extends Value {
 	}
 	@Override
 	public ExprElm[] getSubElements() {
+		if (definedDeclaration == null)
+			return EMPTY_EXPR_ARRAY;
 		List<Variable> components = getComponents();
 		ExprElm[] result = new ExprElm[components.size()];
 		for (int i = 0; i < result.length; i++)
@@ -75,6 +77,8 @@ public class PropListExpression extends Value {
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
+		if (definedDeclaration == null)
+			return;
 		List<Variable> components = getComponents();
 		for (int i = 0; i < Math.min(elms.length, components.size()); i++) {
 			components.get(i).setInitializationExpression(elms[i]);
@@ -141,13 +145,26 @@ public class PropListExpression extends Value {
 	
 	@Override
 	public PropListExpression clone() {
-		PropListExpression e = (PropListExpression) super.clone();
+		// when calling super.clone(), the sub elements obtained from definedDeclaration will be cloned
+		// and then reassigned to the original ProplistDeclaration which is not desired so temporarily
+		// set definedDeclaration to null to avoid this.
+		ProplistDeclaration saved = this.definedDeclaration;
+		this.definedDeclaration = null;
 		try {
-			e.definedDeclaration = this.definedDeclaration.clone();
-		} catch (CloneNotSupportedException e1) {
-			e1.printStackTrace();
+			// regular copying of attributes with no sub element cloning taking place
+			PropListExpression e = (PropListExpression) super.clone();
+			try {
+				// clone the ProplistDeclaration, also cloning sub variables. This will automatically
+				// lead to getSubElements also returning cloned initialization expressions.
+				e.definedDeclaration = saved.clone();
+			} catch (CloneNotSupportedException e1) {
+				e1.printStackTrace();
+			}
+			return e;
+		} finally {
+			// restore state of original expression which is not supposed to be altered by calling clone()
+			this.definedDeclaration = saved;
 		}
-		return e;
 	}
 	
 	@Override
