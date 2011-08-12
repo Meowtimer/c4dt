@@ -80,7 +80,6 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitiali
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
@@ -93,8 +92,6 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-
-import com.sun.org.apache.xalan.internal.xsltc.compiler.CompilerException;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
@@ -184,10 +181,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
 	
-	/**
-	 * Builder if parsing takes place during build
-	 */
-	private ClonkBuilder builder;
+	private boolean allowInterleavedFunctionParsing;
 	
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
@@ -207,12 +201,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return allErrorsDisabled;
 	}
 	
-	/**
-	 * Sets the builder.
-	 * @param builder
-	 */
-	public void setBuilder(ClonkBuilder builder) {
-		this.builder = builder;
+	public void setAllowInterleavedFunctionParsing(boolean allowInterleavedFunctionParsing) {
+		this.allowInterleavedFunctionParsing = allowInterleavedFunctionParsing;
 	}
 	
 	/**
@@ -497,7 +487,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Results are stored in <code>object</code>
 	 * @param scriptFile
 	 * @param obj
-	 * @throws CompilerException
 	 */
 	public C4ScriptParser(IFile scriptFile, ScriptBase script) {
 		super(scriptFile);
@@ -512,7 +501,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param stream
 	 * @param size
 	 * @param object
-	 * @throws CompilerException
 	 */
 	public C4ScriptParser(InputStream stream, ScriptBase script) {
 		super(stream);
@@ -566,6 +554,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			strictLevel = container.getStrictLevel();
 			int offset = 0;
 			this.seek(offset);
+			setAllowInterleavedFunctionParsing(true);
 			enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 			try {
 				eatWhitespace();
@@ -657,8 +646,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (parsedFunctions == null)
 			return;
 		// only allow interleaved function parsing when invoked by ClonkBuilder
-		if (builder == null && withNewContext)
-			return;
+		/*if (builder == null && withNewContext)
+			return;*/
 		// function is weird or does not belong here - ignore
 		if (function.getBody() == null || function.getScript() != container)
 			return;
@@ -1602,6 +1591,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+		if (code == ParserErrorCode.UndeclaredIdentifier)
+			System.out.println("yo");
 		if (!errorEnabled(code))
 			return null;
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {

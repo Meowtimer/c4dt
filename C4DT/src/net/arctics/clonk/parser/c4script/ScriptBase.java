@@ -849,6 +849,11 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 	
 	public void addUsedScript(ScriptBase script) {
+		if (script == null) {
+			// this does happen, for example when adding the script of some variable read from PlayerControls.txt
+			// which is null
+			return;
+		}
 		if (script == this || script instanceof Engine)
 			return;
 		requireLoaded();

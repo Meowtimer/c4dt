@@ -145,7 +145,10 @@ public class ProjectIndex extends Index {
 	@Override
 	public synchronized void refreshIndex() {
 		super.refreshIndex();
-		
+		readVariablesFromPlayerControlsFile();
+	}
+
+	private void readVariablesFromPlayerControlsFile() {
 		try {
 			getProject().accept(new IResourceVisitor() {
 				@Override

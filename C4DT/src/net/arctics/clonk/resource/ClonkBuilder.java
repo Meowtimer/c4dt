@@ -624,7 +624,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			IStorage storage = script.getScriptStorage();
 			if (storage != null) {
 				result = new C4ScriptParser(script);
-				result.setBuilder(this);
+				result.setAllowInterleavedFunctionParsing(true);
 			} else
 				result = null;
 			parserMap.put(script, result);

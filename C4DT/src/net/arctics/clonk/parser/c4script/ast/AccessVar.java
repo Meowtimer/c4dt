@@ -117,7 +117,7 @@ public class AccessVar extends AccessDeclaration {
 						}
 					}
 					break;
-				case STATIC:
+				case STATIC: case CONST:
 					parser.getContainer().addUsedScript(var.getScript());
 					break;
 				case VAR:
