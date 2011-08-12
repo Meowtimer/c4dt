@@ -646,8 +646,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (parsedFunctions == null)
 			return;
 		// only allow interleaved function parsing when invoked by ClonkBuilder
-		/*if (builder == null && withNewContext)
-			return;*/
+		if (!allowInterleavedFunctionParsing && withNewContext)
+			return;
 		// function is weird or does not belong here - ignore
 		if (function.getBody() == null || function.getScript() != container)
 			return;
