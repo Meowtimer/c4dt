@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -135,27 +136,42 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				e1.printStackTrace();
 			}
 		}
-
-		@Override
-		public String getString(String name) {
-			return getString(name, settings);
-		}
-
-		public String getString(String name, Engine.EngineSettings e) {
+		
+		private Object val(EngineSettings settings, String attrName) {
 			try {
-				String result = (String) e.getClass().getField(name).get(e);
-				if (result == null)
-					result = ""; //$NON-NLS-1$
-				return result;
+				return settings.getClass().getField(attrName).get(settings);
+			} catch (Exception e) {
+				return null;
+			}
+		}
+		
+		@Override
+		public void setValue(String name, boolean value) {
+			try {
+				settings.getClass().getField(name).set(settings, value);
 			} catch (Exception e1) {
 				e1.printStackTrace();
-				return null;
 			}
 		}
 
 		@Override
-		public String getDefaultString(String name) {
-			return getString(name, ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings());
+		public String getString(String name) {
+			return (String)val(settings, name);
+		}
+		
+		@Override
+		public boolean getBoolean(String name) {
+			return (Boolean)val(settings, name);
+		}
+
+		@Override
+		public String getDefaultString(String name) { 
+			return (String)val(ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings(), name);
+		}
+		
+		@Override
+		public boolean getDefaultBoolean(String name) {
+			return (Boolean)val(ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings(), name);
 		}
 
 		public void apply() {
@@ -208,6 +224,13 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				new DirectoryFieldEditor(
 						"repositoryPath", //$NON-NLS-1$
 						Messages.OpenClonkRepo,
+						engineConfigurationComposite
+				)
+		);
+		addField(
+				new BooleanFieldEditor(
+						"readDocumentationFromRepository", //$NON-NLS-1$
+						Messages.EngineConfigurationPrefPage_ReadDocFromRepository,
 						engineConfigurationComposite
 				)
 		);

@@ -137,6 +137,9 @@ public class Engine extends ScriptBase {
 		/** Path to c4group executable */
 		@IniField
 		public String c4GroupPath;
+		/** Whether to dynamically load documentation from the given repository **/
+		@IniField
+		public boolean readDocumentationFromRepository;
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
 		private transient Map<C4Group.GroupType, String> rfetgtm;
@@ -204,10 +207,13 @@ public class Engine extends ScriptBase {
 	}
 
 	public void setCurrentSettings(EngineSettings currentSettings) {
-		String oldRepoPath = currentSettings.repositoryPath;
+		EngineSettings oldSettings = this.currentSettings;
 		this.currentSettings = currentSettings;
 		saveSettings();
-		if (!Utilities.objectsEqual(oldRepoPath, currentSettings.repositoryPath))
+		if (
+			!Utilities.objectsEqual(oldSettings.repositoryPath, currentSettings.repositoryPath) ||
+			oldSettings.readDocumentationFromRepository != currentSettings.readDocumentationFromRepository
+		)
 			reinitializeDocImporter();
 	}
 
@@ -371,9 +377,9 @@ public class Engine extends ScriptBase {
 	}
 	
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationFromRepository(T declaration) {
-		XMLDocImporter importer = repositoryDocImporter();
-		importer.initialize();
-		if (importer != null) {
+		// dynamically load from repository
+		if (getCurrentSettings().readDocumentationFromRepository) {
+			XMLDocImporter importer = repositoryDocImporter().initialize();
 			ExtractedDeclarationDocumentation d = importer.extractDocumentationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref());
 			if (d != null) {
 				declaration.setUserDescription(d.description);
@@ -381,20 +387,13 @@ public class Engine extends ScriptBase {
 					((Function)declaration).setParameters(d.parameters);
 				return true;
 			}
-			// fallback to description inis
-			if (iniDescriptionsLoader == null)
-				iniDescriptionsLoader = new IniDescriptionsLoader(this);
-			String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
-			if (iniDescription != null)
-				declaration.setUserDescription(iniDescription);
 		}
-//		Map<String, String> descs;
-//		try {
-//			descs = loadDescriptions(ClonkPreferences.getLanguagePref());
-//			return descs != null ? descs.get(declaration.getName()) : null;
-//		} catch (IOException e) {
-//			return null;
-//		}
+		// fallback to description inis
+		if (iniDescriptionsLoader == null)
+			iniDescriptionsLoader = new IniDescriptionsLoader(this);
+		String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
+		if (iniDescription != null)
+			declaration.setUserDescription(iniDescription);
 		return false;
 	}
 	
