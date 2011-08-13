@@ -26,6 +26,7 @@ import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
@@ -52,10 +53,10 @@ public class XMLDocImporter {
 	private static final XPathExpression parmNameExpr = xp("./name"); //$NON-NLS-1$
 	private static final XPathExpression parmTypeExpr = xp("./type"); //$NON-NLS-1$
 	private static final XPathExpression parmDescExpr = xp("./desc"); //$NON-NLS-1$
-	private static final XPathExpression titleExpr = xp("./funcs/func/title[1]"); //$NON-NLS-1$
-	private static final XPathExpression rtypeExpr = xp("./funcs/func/syntax/rtype[1]"); //$NON-NLS-1$
-	private static final XPathExpression parmsExpr = xp("./funcs/func/syntax/params/param"); //$NON-NLS-1$
-	private static final XPathExpression descExpr = xp("./funcs/func/desc[1]"); //$NON-NLS-1$
+	private static final XPathExpression titleExpr = xp("./funcs/(func|const)/title[1]"); //$NON-NLS-1$
+	private static final XPathExpression rtypeExpr = xp("./funcs/(func|const)/syntax/rtype[1]"); //$NON-NLS-1$
+	private static final XPathExpression parmsExpr = xp("./funcs/(func|const)/syntax/params/param"); //$NON-NLS-1$
+	private static final XPathExpression descExpr = xp("./funcs/(func|const)/desc[1]"); //$NON-NLS-1$
 	
 	private static Pattern fileLocationPattern = Pattern.compile("#: (.*?)\\:([0-9]+)\\((.*?)\\)");
 	private static Pattern msgIdPattern = Pattern.compile("msgid \\\"(.*?)\"$");
@@ -186,7 +187,10 @@ public class XMLDocImporter {
 		}
 	}
 	
-	public ExtractedDeclarationDocumentation extractDocumentationFromFunctionXml(String functionName, String langId) {
+	public static final int DOCUMENTATION = 1;
+	public static final int SIGNATURE = 2;
+	
+	public ExtractedDeclarationDocumentation extractDeclarationInformationFromFunctionXml(String functionName, String langId, int flags) {
 		if (!initialized || repositoryPath == null)
 			return null;
 		Path docsRelativePath = new Path("sdk/script/fn/"+functionName+".xml");
@@ -212,41 +216,44 @@ public class XMLDocImporter {
 					return null;
 				}
 				String text = StreamUtil.stringFromInputStream(stream); //$NON-NLS-1$
-				try {
-					List<PoTranslationFragment> translationFragments = this.translationFragments.get(langId).get(docsRelativePath.toString());
-					int lineNo = 1;
-					StringBuilder translatedRebuild = new StringBuilder(text.length());
-					for (String textLine : StringUtil.lines(new StringReader(text))) {
-						for (PoTranslationFragment f : translationFragments) {
-							if (f.line == lineNo) {
-								String englishWithPlaceholdersReplacedWithTagCaptureGroups = Pattern.quote(f.english).replaceAll("<placeholder\\-([0-9]+)/>", "\\\\E(<.*?>.*?</.*?>)\\\\Q");
-								System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
-								Matcher englishMatcher = Pattern.compile(englishWithPlaceholdersReplacedWithTagCaptureGroups).matcher(textLine);
-								Matcher placeHolderInLocalizedMatcher = Pattern.compile("<placeholder\\-([0-9]+)/>").matcher(f.localized);
-								StringBuilder localizedWithTagsPutIn = new StringBuilder(f.localized);
-								int builderOffsetCausedByReplacing = 0;
-								if (englishMatcher.find()) {
-									for (int g = 1; g <= englishMatcher.groupCount(); g++) {
-										if (placeHolderInLocalizedMatcher.find()) {
-											String actualTag = englishMatcher.group(g);
-											placeHolderInLocalizedMatcher.start();
-											localizedWithTagsPutIn.replace(placeHolderInLocalizedMatcher.start()+builderOffsetCausedByReplacing, placeHolderInLocalizedMatcher.end()+builderOffsetCausedByReplacing, actualTag);
-											builderOffsetCausedByReplacing += actualTag.length() - placeHolderInLocalizedMatcher.group().length();
+				boolean importDocumentation = (flags & DOCUMENTATION) != 0;
+				if (importDocumentation) {
+					try {
+						List<PoTranslationFragment> translationFragments = this.translationFragments.get(langId).get(docsRelativePath.toString());
+						int lineNo = 1;
+						StringBuilder translatedRebuild = new StringBuilder(text.length());
+						for (String textLine : StringUtil.lines(new StringReader(text))) {
+							for (PoTranslationFragment f : translationFragments) {
+								if (f.line == lineNo) {
+									String englishWithPlaceholdersReplacedWithTagCaptureGroups = Pattern.quote(f.english).replaceAll("<placeholder\\-([0-9]+)/>", "\\\\E(<.*?>.*?</.*?>)\\\\Q");
+									System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
+									Matcher englishMatcher = Pattern.compile(englishWithPlaceholdersReplacedWithTagCaptureGroups).matcher(textLine);
+									Matcher placeHolderInLocalizedMatcher = Pattern.compile("<placeholder\\-([0-9]+)/>").matcher(f.localized);
+									StringBuilder localizedWithTagsPutIn = new StringBuilder(f.localized);
+									int builderOffsetCausedByReplacing = 0;
+									if (englishMatcher.find()) {
+										for (int g = 1; g <= englishMatcher.groupCount(); g++) {
+											if (placeHolderInLocalizedMatcher.find()) {
+												String actualTag = englishMatcher.group(g);
+												placeHolderInLocalizedMatcher.start();
+												localizedWithTagsPutIn.replace(placeHolderInLocalizedMatcher.start()+builderOffsetCausedByReplacing, placeHolderInLocalizedMatcher.end()+builderOffsetCausedByReplacing, actualTag);
+												builderOffsetCausedByReplacing += actualTag.length() - placeHolderInLocalizedMatcher.group().length();
+											}
 										}
+										StringBuilder lineBuilder = new StringBuilder(textLine);
+										lineBuilder.replace(englishMatcher.start(), englishMatcher.end(), localizedWithTagsPutIn.toString());
+										textLine = lineBuilder.toString();
 									}
-									StringBuilder lineBuilder = new StringBuilder(textLine);
-									lineBuilder.replace(englishMatcher.start(), englishMatcher.end(), localizedWithTagsPutIn.toString());
-									textLine = lineBuilder.toString();
 								}
 							}
+							translatedRebuild.append(textLine);
+							translatedRebuild.append("\n");
+							lineNo++;
 						}
-						translatedRebuild.append(textLine);
-						translatedRebuild.append("\n");
-						lineNo++;
+						text = translatedRebuild.toString();
+					} catch (NullPointerException e) {
+						// ignore
 					}
-					text = translatedRebuild.toString();
-				} catch (NullPointerException e) {
-					// ignore
 				}
 				// get rid of pesky meta information
 				text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -264,7 +271,7 @@ public class XMLDocImporter {
 				Node titleNode = (Node) titleExpr.evaluate(doc, XPathConstants.NODE);
 				Node rTypeNode = (Node) rtypeExpr.evaluate(doc, XPathConstants.NODE);
 				NodeList parmNodes = (NodeList) parmsExpr.evaluate(doc, XPathConstants.NODESET);
-				Node descNode = (Node) descExpr.evaluate(doc, XPathConstants.NODE);
+				Node descNode = importDocumentation ? (Node) descExpr.evaluate(doc, XPathConstants.NODE) : null;
 				
 				if (titleNode != null && rTypeNode != null) {
 					ExtractedDeclarationDocumentation result = new ExtractedDeclarationDocumentation();
@@ -322,6 +329,22 @@ public class XMLDocImporter {
 
 	public boolean initialized() {
 		return initialized;
+	}
+	
+	public <T extends ITypeable & IHasSubDeclarations> boolean fleshOutPlaceholder(T placeholder, boolean placeholdersFleshedOutFlag) {
+		if (!placeholdersFleshedOutFlag) {
+			ExtractedDeclarationDocumentation d = extractDeclarationInformationFromFunctionXml(placeholder.getName(), ClonkPreferences.getLanguagePref(), XMLDocImporter.SIGNATURE);
+			if (d != null) {
+				if (placeholder instanceof Function) {
+					Function f = (Function)placeholder;
+					if (d.parameters != null)
+						f.setParameters(d.parameters);
+				}
+				if (d.returnType != null)
+					placeholder.forceType(d.returnType);
+			}
+		}
+		return true;
 	}
 
 }

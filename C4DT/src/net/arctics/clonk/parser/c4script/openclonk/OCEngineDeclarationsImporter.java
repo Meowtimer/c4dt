@@ -46,7 +46,7 @@ public class OCEngineDeclarationsImporter {
 			}
 			Declaration declaration;
 			try {
-				ExtractedDeclarationDocumentation extracted = importer.extractDocumentationFromFunctionXml(fileName, ClonkPreferences.getLanguagePref()); //$NON-NLS-1$
+				ExtractedDeclarationDocumentation extracted = importer.extractDeclarationInformationFromFunctionXml(fileName, ClonkPreferences.getLanguagePref()); //$NON-NLS-1$
 				declaration = extracted != null ? extracted.toDeclaration() : null;
 			} catch (Exception e) {
 				declaration = null;

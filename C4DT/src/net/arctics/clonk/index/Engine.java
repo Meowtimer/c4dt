@@ -1,6 +1,8 @@
 package net.arctics.clonk.index;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +26,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
@@ -44,6 +47,7 @@ import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -347,6 +351,51 @@ public class Engine extends ScriptBase {
 	}
 
 	private final Set<String> namesOfDeclarationsForWhichDocsWereFreshlyObtained = new HashSet<String>();
+
+	private void createPlaceholderDeclarationsToBeFleshedOutFromDocumentation() {
+		this.clearDeclarations();
+		for (File xmlFile : new File(getCurrentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+			boolean isConst = false;
+			try {
+				FileReader r = new FileReader(xmlFile);
+				try {
+					for (String l : StringUtil.lines(r)) {
+						if (l.contains("<const>")) {
+							isConst = true;
+							break;
+						} else if (l.contains("<func>")) {
+							isConst = false;
+							break;
+						}
+					}
+				} finally {
+					r.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+			if (isConst)
+				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST));
+			else
+				this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+					private boolean fleshedOut;
+					private synchronized void requireFleshedOut() {
+						if (!fleshedOut) {
+							applyDocumentationAndSignatureFromRepository(this);
+							fleshedOut = true;
+						}
+					}
+					@Override
+					public List<Variable> getParameters() {
+						requireFleshedOut();
+						return super.getParameters();
+					}
+				});
+		}
+	}
 	
 	/**
 	 * Tell this engine to discard information about documentation already read on-demand from the repository docs folder so
@@ -355,36 +404,42 @@ public class Engine extends ScriptBase {
 	 */
 	public void reinitializeDocImporter() {
 		xmlDocImporter.discardInitialization();
-		xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
-		namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
-		new Job("Initialize doc importer for " + this.getName()) {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				xmlDocImporter.initialize();
-				return Status.OK_STATUS;
-			}
-		}.schedule();
+		if (getCurrentSettings().readDocumentationFromRepository) {
+			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
+			new Job("Initialize doc importer for " + this.getName()) {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					xmlDocImporter.initialize();
+					createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
+					return Status.OK_STATUS;
+				}
+			}.schedule();
+		}
 	}
 	
 	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
 		if (declaration.getCurrentlySetUserDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.getName()))
 			return declaration.getCurrentlySetUserDescription();
-		applyDocumentationFromRepository(declaration);
-		String d = declaration.getCurrentlySetUserDescription();
-		if (d != null)
-			namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.getName());
-		return d;
+		applyDocumentationAndSignatureFromRepository(declaration);
+		return declaration.getCurrentlySetUserDescription();
 	}
 	
-	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationFromRepository(T declaration) {
+	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
+		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.getName());
 		// dynamically load from repository
 		if (getCurrentSettings().readDocumentationFromRepository) {
 			XMLDocImporter importer = repositoryDocImporter().initialize();
-			ExtractedDeclarationDocumentation d = importer.extractDocumentationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref());
+			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
 				declaration.setUserDescription(d.description);
-				if (declaration instanceof Function && d.parameters != null)
-					((Function)declaration).setParameters(d.parameters);
+				if (declaration instanceof Function) {
+					Function f = (Function)declaration;
+					if (d.parameters != null)
+						f.setParameters(d.parameters);
+				}
+				if (d.returnType != null && declaration instanceof ITypeable)
+					((ITypeable)declaration).forceType(d.returnType);
 				return true;
 			}
 		}
@@ -474,13 +529,7 @@ public class Engine extends ScriptBase {
 				URL url = location.getURL(location.getName()+".c", false); //$NON-NLS-1$
 				if (url != null) {
 					result = new Engine(location.getName());
-					result.storageLocations = providers;
-					result.loadSettings();
-					result.loadIniConfigurations();
-					result.createSpecialRules();
-					result.parseEngineScript(url);
-					result.loadDeclarationsConfiguration();
-					result.reinitializeDocImporter();
+					result.load(url, providers);
 					break;
 				}
 			}
@@ -488,6 +537,17 @@ public class Engine extends ScriptBase {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	private void load(URL url, final IStorageLocation... providers) throws IOException, ParsingException, NoSuchFieldException, IllegalAccessException {
+		this.storageLocations = providers;
+		loadSettings();
+		loadIniConfigurations();
+		createSpecialRules();
+		if (!getCurrentSettings().readDocumentationFromRepository)
+			parseEngineScript(url);
+		loadDeclarationsConfiguration();
+		reinitializeDocImporter();
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {
