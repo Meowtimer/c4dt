@@ -1,5 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
+import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -15,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,11 +29,11 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -39,7 +44,6 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import static net.arctics.clonk.util.ArrayUtil.*;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -261,6 +265,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 * Does the same as {@link #gatherIncludes(Set, boolean)}x except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
+	@Override
 	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
 		Index index = getIndex();
 		if (index == null)
@@ -305,6 +310,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 * Finds a declaration in this script or an included one
 	 * @return The declaration or null if not found
 	 */
+	@Override
 	public Declaration findDeclaration(String name) {
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
@@ -368,6 +374,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 * @param info Additional info
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
+	@Override
 	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
 		requireLoaded();
 
@@ -387,16 +394,19 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			}
 		
 		// prefer using the cache
+		boolean didUseCacheForLocalDeclarations = false;
 		if (cachedVariableMap != null || cachedFunctionMap != null) {
 			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
 				Declaration d = cachedVariableMap.get(name);
 				if (d != null)
 					return d;
+				didUseCacheForLocalDeclarations = true;
 			}
 			if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
 				Declaration d = cachedFunctionMap.get(name);
 				if (d != null)
 					return d;
+				didUseCacheForLocalDeclarations = true;
 			}
 		}
 
@@ -405,24 +415,27 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (thisDec != null)
 			return thisDec;
 
-		// a function defined in this object
-		if (decClass == null || decClass == Function.class)
-			for (Function f : functions())
-				if (f.getName().equals(name))
-					return f;
-		// a variable
-		if (decClass == null || decClass == Variable.class)
-			for (Variable v : variables())
-				if (v.getName().equals(name))
-					return v;
+		if (!didUseCacheForLocalDeclarations) {
 
-		info.recursion++;
-		for (IHasIncludes o : getIncludes(info.index, false)) {
-			Declaration result = o.findDeclaration(name, info);
-			if (result != null)
-				return result;
+			// a function defined in this object
+			if (decClass == null || decClass == Function.class)
+				for (Function f : functions())
+					if (f.getName().equals(name))
+						return f;
+			// a variable
+			if (decClass == null || decClass == Variable.class)
+				for (Variable v : variables())
+					if (v.getName().equals(name))
+						return v;
+
+			info.recursion++;
+			for (IHasIncludes o : getIncludes(info.index, false)) {
+				Declaration result = o.findDeclaration(name, info);
+				if (result != null)
+					return result;
+			}
+			info.recursion--;
 		}
-		info.recursion--;
 
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
@@ -486,11 +499,11 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			declaration.setScript(this);
 		if (declaration instanceof Function) {
 			if (definedFunctions != null)
-				definedFunctions.remove((Function)declaration);
+				definedFunctions.remove(declaration);
 		}
 		else if (declaration instanceof Variable) {
 			if (definedVariables != null)
-				definedVariables.remove((Variable)declaration);
+				definedVariables.remove(declaration);
 		}
 	}
 
@@ -504,6 +517,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		cachedVariableMap = null;
 	}
 
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -536,6 +550,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return (Function) findDeclaration(functionName, info);
 	}
 
+	@Override
 	public Function findFunction(String functionName) {
 		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		return findFunction(functionName, info);
@@ -825,23 +840,28 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return super.getInfoText();
 	}
 
+	@Override
 	public ITreeNode getParentNode() {
 		return getParentDeclaration() instanceof ITreeNode ? (ITreeNode)getParentDeclaration() : null;
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Collection<? extends INode> getChildCollection() {
 		return Utilities.collectionFromArray(LinkedList.class, getSubDeclarationsForOutline());
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 		requireLoaded();
 		if (node instanceof Declaration)

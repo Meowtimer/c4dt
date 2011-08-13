@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -377,21 +378,28 @@ public class Engine extends ScriptBase {
 			}
 			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
 			if (isConst)
-				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST));
+				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+					private boolean fleshedOut;
+					@Override
+					public synchronized IType getType() {
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+						return super.getType();
+					}
+				});
 			else
 				this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
 					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 					private boolean fleshedOut;
-					private synchronized void requireFleshedOut() {
-						if (!fleshedOut) {
-							applyDocumentationAndSignatureFromRepository(this);
-							fleshedOut = true;
-						}
-					}
 					@Override
 					public List<Variable> getParameters() {
-						requireFleshedOut();
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
 						return super.getParameters();
+					}
+					@Override
+					public IType getReturnType() {
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+						return super.getReturnType();
 					}
 				});
 		}
@@ -636,6 +644,12 @@ public class Engine extends ScriptBase {
 			}
 		}
 		return null;
+	}
+	
+	@Override
+	public void clearDeclarations() {
+		super.clearDeclarations();
+		cachedPrefixedVariables = null;
 	}
 	
 	public Variable[] variablesWithPrefix(String prefix) {

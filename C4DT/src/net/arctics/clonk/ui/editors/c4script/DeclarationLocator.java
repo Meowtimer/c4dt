@@ -9,19 +9,18 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
-import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -51,6 +50,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	}
 
 	private static IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
+		@Override
 		public boolean test(Declaration item) {
 			return item.isGlobal();
 		};
@@ -112,10 +112,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			this.proposedDeclarations = declRegion.getPotentialDeclarations();
 			setRegion = true;
 		}
-		else if (
-			declRegion != null && declRegion.getConcreteDeclaration() != null &&
-			(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getConcreteDeclaration().isGlobal())
-		) {
+		else if (declRegion != null && declRegion.getConcreteDeclaration() != null) {
 			// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
 			// in which case the type of the calling object is probably known
 			this.declaration = declRegion.getConcreteDeclaration();
@@ -208,6 +205,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	@Override
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 		expression.traverse(new ScriptParserListener() {
+			@Override
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
 					exprAtRegion = expression;

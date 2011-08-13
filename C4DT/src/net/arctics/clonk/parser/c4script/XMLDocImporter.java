@@ -53,10 +53,10 @@ public class XMLDocImporter {
 	private static final XPathExpression parmNameExpr = xp("./name"); //$NON-NLS-1$
 	private static final XPathExpression parmTypeExpr = xp("./type"); //$NON-NLS-1$
 	private static final XPathExpression parmDescExpr = xp("./desc"); //$NON-NLS-1$
-	private static final XPathExpression titleExpr = xp("./funcs/(func|const)/title[1]"); //$NON-NLS-1$
-	private static final XPathExpression rtypeExpr = xp("./funcs/(func|const)/syntax/rtype[1]"); //$NON-NLS-1$
-	private static final XPathExpression parmsExpr = xp("./funcs/(func|const)/syntax/params/param"); //$NON-NLS-1$
-	private static final XPathExpression descExpr = xp("./funcs/(func|const)/desc[1]"); //$NON-NLS-1$
+	private static final XPathExpression titleExpr = xp("./funcs/*[self::func or self::const]/title[1]"); //$NON-NLS-1$
+	private static final XPathExpression rtypeExpr = xp("./funcs/*[self::func or self::const]/syntax/rtype[1]"); //$NON-NLS-1$
+	private static final XPathExpression parmsExpr = xp("./funcs/*[self::func or self::const]/syntax/params/param"); //$NON-NLS-1$
+	private static final XPathExpression descExpr = xp("./funcs/*[self::func or self::const]/desc[1]"); //$NON-NLS-1$
 	
 	private static Pattern fileLocationPattern = Pattern.compile("#: (.*?)\\:([0-9]+)\\((.*?)\\)");
 	private static Pattern msgIdPattern = Pattern.compile("msgid \\\"(.*?)\"$");
