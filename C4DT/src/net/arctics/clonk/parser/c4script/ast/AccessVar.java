@@ -72,25 +72,28 @@ public class AccessVar extends AccessDeclaration {
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
 		ExprElm sequencePredecessor = getPredecessorInSequence();
-		ScriptBase scriptToLookIn = null;
-		if (sequencePredecessor != null) {
-			IType type = sequencePredecessor.getType(context);
-			if ((scriptToLookIn = Definition.scriptFrom(type)) == null) {
+		IType type = context.getContainer();
+		if (sequencePredecessor != null)
+			type = sequencePredecessor.getType(context);
+		if (type != null) for (IType t : type) {
+			ScriptBase scriptToLookIn;
+			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 				// find pseudo-variable from proplist expression
-				if (type instanceof ProplistDeclaration) {
-					Variable proplistComponent = ((ProplistDeclaration)type).findComponent(getDeclarationName());
-					return proplistComponent;
+				if (t instanceof ProplistDeclaration) {
+					Variable proplistComponent = ((ProplistDeclaration)t).findComponent(getDeclarationName());
+					if (proplistComponent != null)
+						return proplistComponent;
 				}
+			} else {
+				FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
+				info.setContextFunction(context.getCurrentFunc());
+				info.setSearchOrigin(scriptToLookIn);
+				Variable v = scriptToLookIn.findVariable(declarationName, info);
+				if (v != null)
+					return v;
 			}
-		} else
-			scriptToLookIn = context.getContainer();
-		if (scriptToLookIn != null) {
-			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
-			info.setContextFunction(context.getCurrentFunc());
-			info.setSearchOrigin(scriptToLookIn);
-			return scriptToLookIn.findVariable(declarationName, info);
-		} else
-			return null;
+		}
+		return null;
 	}
 
 	@Override
