@@ -130,6 +130,8 @@ public class Engine extends ScriptBase {
 		/** Template for Documentation URL. */
 		@IniField
 		public String docURLTemplate;
+		@IniField
+		public boolean useDocsFromRepository;
 		/** Path to engine executable. */
 		@IniField
 		public String engineExecutablePath;
@@ -188,6 +190,13 @@ public class Engine extends ScriptBase {
 				fileDialogFilterString = builder.toString();
 			}
 			return fileDialogFilterString;
+		}
+
+		public String getDocumentationURLForFunction(String functionName) {
+			String urlFormatString = useDocsFromRepository
+				? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
+				: docURLTemplate;
+			return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 		}
 
 	}
@@ -355,53 +364,59 @@ public class Engine extends ScriptBase {
 
 	private void createPlaceholderDeclarationsToBeFleshedOutFromDocumentation() {
 		this.clearDeclarations();
-		for (File xmlFile : new File(getCurrentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
-			boolean isConst = false;
-			try {
-				FileReader r = new FileReader(xmlFile);
+		try {
+			for (File xmlFile : new File(getCurrentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+				boolean isConst = false;
 				try {
-					for (String l : StringUtil.lines(r)) {
-						if (l.contains("<const>")) {
-							isConst = true;
-							break;
-						} else if (l.contains("<func>")) {
-							isConst = false;
-							break;
+					FileReader r = new FileReader(xmlFile);
+					try {
+						for (String l : StringUtil.lines(r)) {
+							if (l.contains("<const>")) {
+								isConst = true;
+								break;
+							} else if (l.contains("<func>")) {
+								isConst = false;
+								break;
+							}
 						}
+					} finally {
+						r.close();
 					}
-				} finally {
-					r.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+					continue;
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				continue;
+				String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+				if (isConst)
+					this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
+						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+						private boolean fleshedOut;
+						@Override
+						public synchronized IType getType() {
+							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+							return super.getType();
+						}
+					});
+				else
+					this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
+						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+						private boolean fleshedOut;
+						@Override
+						public List<Variable> getParameters() {
+							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+							return super.getParameters();
+						}
+						@Override
+						public IType getReturnType() {
+							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+							return super.getReturnType();
+						}
+					});
 			}
-			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
-			if (isConst)
-				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-					private boolean fleshedOut;
-					@Override
-					public synchronized IType getType() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.getType();
-					}
-				});
-			else
-				this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-					private boolean fleshedOut;
-					@Override
-					public List<Variable> getParameters() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.getParameters();
-					}
-					@Override
-					public IType getReturnType() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.getReturnType();
-					}
-				});
+			if (findFunction("this") == null)
+				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
+		} finally {
+			modified();
 		}
 	}
 	

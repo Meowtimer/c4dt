@@ -20,11 +20,14 @@ import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.PreferenceStore;
-import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.jface.preference.StringButtonFieldEditor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
@@ -228,16 +231,56 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				)
 		);
 		addField(
+				new StringButtonFieldEditor(
+						"docURLTemplate", //$NON-NLS-1$
+						Messages.DocumentURLTemplate,
+						engineConfigurationComposite
+				) {
+					private Button checker;
+					@Override
+					protected Button getChangeControl(Composite parent) {
+						if (checker == null) {
+							checker = new Button(parent, SWT.CHECK);
+							checker.setText("Use repository docs folder");
+							checker.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									setTextControlEnablement();
+								}
+							});
+						}
+						return checker;
+					};
+					@Override
+					public void setEnabled(boolean enabled, Composite parent) {
+						super.setEnabled(enabled, parent);
+						if (checker != null)
+							checker.setEnabled(enabled);
+					};
+					@Override
+					protected String changePressed() {
+						return "";
+					};
+					private void setTextControlEnablement() {
+						getTextControl().setEnabled(!checker.getSelection());
+					}
+					@Override
+					public void load() {
+						super.load();
+						checker.setSelection(getPreferenceStore().getBoolean("useDocsFromRepository"));
+						setTextControlEnablement();
+					};
+					@Override
+					protected void doStore() {
+						super.doStore();
+						getPreferenceStore().setValue("useDocsFromRepository", checker.getSelection());
+					};
+				}
+		);
+		addField(
 				new BooleanFieldEditor(
 						"readDocumentationFromRepository", //$NON-NLS-1$
 						Messages.EngineConfigurationPrefPage_ReadDocFromRepository,
-						engineConfigurationComposite
-				)
-		);
-		addField(
-				new StringFieldEditor(
-						"docURLTemplate", //$NON-NLS-1$
-						Messages.DocumentURLTemplate,
 						engineConfigurationComposite
 				)
 		);

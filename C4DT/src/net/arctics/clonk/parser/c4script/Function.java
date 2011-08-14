@@ -25,7 +25,6 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.Utilities;
@@ -318,8 +317,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public static String getDocumentationURL(String functionName, Engine engine) {
-		String docURLTemplate = engine.getCurrentSettings().docURLTemplate;
-		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
+		return engine.getCurrentSettings().getDocumentationURLForFunction(functionName);
 	}
 	
 	/**

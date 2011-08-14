@@ -33,7 +33,7 @@ public class CachedEngineFuncs {
 	public Function AppendCommand;
 	public Function ObjectCall;
 	public Function GetID;
-	public Object     This; // this as variable name not allowed so exclude this var -.-
+	public Object   This; // this as variable name not allowed so exclude this var -.-
 	
 	public final Function[] ObjectCallFunctions;
 	
