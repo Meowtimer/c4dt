@@ -2,15 +2,12 @@ package net.arctics.clonk.parser.c4script;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.StringUtil;
 
 /**
  * Array type where either general element type or the types for specific elements is known.
@@ -90,16 +87,41 @@ public class ArrayType implements IType {
 	 */
 	@Override
 	public String typeName(final boolean special) {
-		if (elementTypeMapping.size() > 0)
-			return String.format("%s%s", PrimitiveType.ARRAY.typeName(special), StringUtil.writeBlock(null, "[", "]", ", ",
-					ArrayUtil.map(elementTypeMapping.entrySet(), new IConverter<Map.Entry<Integer, IType>, String>() {
-						@Override
-						public String convert(Entry<Integer, IType> from) {
-							return String.format("%d: %s", from.getKey(), from.getValue().typeName(special));
-						}
-					}))
-			);
-		else if (generalElementType != null)
+		if (elementTypeMapping.size() > 0) {
+			StringBuilder builder = new StringBuilder();
+			builder.append('[');
+			
+			List<Integer> sorted = ArrayUtil.asSortedList(elementTypeMapping.keySet());
+			sorted.add(sorted.get(sorted.size()-1)+2);
+			int old = -1, min = -1;
+			IType t = null;
+			boolean hadCluster = false;
+			for (Integer i : sorted) {
+				IType it = elementTypeMapping.get(i);
+				if (old == -1) {
+					old = min = i;
+					t = it;
+				} else if (i != old+1 || !t.equals(it)) {
+					if (hadCluster)
+						builder.append(", ");
+					builder.append(min);
+					if (min != old) {
+						builder.append('-');
+						builder.append(old);
+					}
+					builder.append(": ");
+					builder.append(t.typeName(special));
+					hadCluster = true;
+					old = min = i;
+					t = it;
+				} else {
+					old = i;
+				}
+			}
+			
+			builder.append(']');
+			return builder.toString();
+		} else if (generalElementType != null)
 			return String.format("%s[%s, ...]", PrimitiveType.ARRAY.typeName(special), generalElementType.typeName(special));
 		else
 			return PrimitiveType.ARRAY.typeName(special);
