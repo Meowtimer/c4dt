@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class WhileStatement extends ConditionalStatement implements ILoop {
 
@@ -23,5 +24,16 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 		EnumSet<ControlFlow> result = body.getPossibleControlFlows();
 		result.removeAll(EnumSet.of(ControlFlow.BreakLoop, ControlFlow.NextIteration));
 		return result;
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		Object ev = null;
+		while (true) {
+			if (condition != null && !convertToBool(condition.evaluate(context)))
+				break;
+			ev = body.evaluate(context);
+		}
+		return ev;
 	}
 }

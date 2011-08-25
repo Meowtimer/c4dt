@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class IfStatement extends ConditionalStatement {
 
@@ -67,6 +68,16 @@ public class IfStatement extends ConditionalStatement {
 		ControlFlow ifCase = body.getControlFlow();
 		ControlFlow elseCase = elseExpr != null ? elseExpr.getControlFlow() : ControlFlow.Continue;
 		return ifCase.ordinal() < elseCase.ordinal() ? ifCase : elseCase;
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		if (!condition.evaluate(context).equals(false))
+			return body.evaluate(context);
+		else if (elseExpr != null)
+			return elseExpr.evaluate(context);
+		else
+			return null;
 	}
 
 }

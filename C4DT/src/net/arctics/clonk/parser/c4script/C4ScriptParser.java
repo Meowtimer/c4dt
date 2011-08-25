@@ -1591,8 +1591,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
-		if (code == ParserErrorCode.UndeclaredIdentifier)
-			System.out.println("yo");
 		if (!errorEnabled(code))
 			return null;
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {

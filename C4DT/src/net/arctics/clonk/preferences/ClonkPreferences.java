@@ -61,7 +61,11 @@ public class ClonkPreferences {
 	}
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
-		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+		try {
+			return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+		} catch (Exception e) {
+			return def;
+		}
 	}
 	
 	public static String getPreference(String prefName) {

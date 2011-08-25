@@ -134,11 +134,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
-	@Override
 	@SuppressWarnings("deprecation")
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		
 		try {
 			versionFromLastRun = new Version(StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE)));
 		} catch (Exception e) {
@@ -146,14 +145,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		}
 		
 		plugin = this;
-
+		
 		loadActiveEngine();
 
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
-		//ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_DELETE);
 
 		registerStructureClasses();
-		
+
 		// react to active engine being changed
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
@@ -166,12 +164,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				}
 			}
 		});
-		
-		if (updateTookPlace()) {
+
+		if (updateTookPlace())
 			informAboutUpdate(versionFromLastRun, getBundle().getVersion());
-		}
 	}
-	
+
 	private static boolean versionAtLeast(Version version, int major, int minor, int micro) {
 		return
 			version.getMajor() >= major &&
@@ -478,9 +475,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return plugin;
 	}
 	
+	private boolean runsHeadless;
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (plugin == null) {
 			plugin = new ClonkCore();
+			plugin.runsHeadless = true;
 			plugin.engineConfigurationFolder = engineConfigurationFolder;
 			plugin.setActiveEngineByName(engine);
 		}
@@ -673,6 +672,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public void reportException(Exception e) {
 		e.printStackTrace();
 		getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage()));
+	}
+
+	public boolean runsHeadless() {
+		return runsHeadless;
 	}
 
 }

@@ -52,9 +52,10 @@ public class InvokableFunction extends Function {
 			}
 
 		};
+		Object lastEvaluation = null;
 		for (Statement s : getCodeBlock().getStatements()) {
 			try {
-				s.evaluate(context);
+				lastEvaluation = s.evaluate(context);
 			} catch (ReturnException e) {
 				return e.getResult();
 			} catch (ControlFlowException e) {
@@ -68,6 +69,6 @@ public class InvokableFunction extends Function {
 				}
 			}
 		}
-		return null;
+		return lastEvaluation;
 	}
 }

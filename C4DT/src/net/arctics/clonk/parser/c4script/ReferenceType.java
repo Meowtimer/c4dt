@@ -49,7 +49,7 @@ public class ReferenceType implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type.equals(this) || type.containsType(type) || PrimitiveType.REFERENCE.containsType(type);
+		return TypeRelationshipAssessor.typesEqual(type, this) || type.containsType(type) || PrimitiveType.REFERENCE.containsType(type);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class ReferenceType implements IType {
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof ReferenceType && ((ReferenceType)obj).type.equals(type);
+		return obj instanceof ReferenceType && TypeRelationshipAssessor.typesEqual(((ReferenceType)obj).type, type);
 	}
 	
 	public static ReferenceType get(IType type) {

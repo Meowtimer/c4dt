@@ -5,6 +5,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -43,15 +44,17 @@ public abstract class Conf {
 	}
 	
 	static {
-		EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
-					configureByEditorPreferences();
+		if (!ClonkCore.getDefault().runsHeadless()) {
+			EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent event) {
+					if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
+						configureByEditorPreferences();
+					}
 				}
-			}
-		});
-		configureByEditorPreferences();
+			});
+			configureByEditorPreferences();
+		}
 	}
 
 }

@@ -155,7 +155,8 @@ public class AccessVar extends AccessDeclaration {
 		if (stored != null)
 			return stored;
 		if (d instanceof ITypeable)
-			return ((ITypeable)d).getType();
+			return ((ITypeable) d).getType();
+			//return new SameTypeAsSomeTypeable((ITypeable)d);
 		return PrimitiveType.UNKNOWN;
 	}
 

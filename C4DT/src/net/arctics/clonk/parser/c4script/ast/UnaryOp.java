@@ -130,5 +130,11 @@ public class UnaryOp extends OperatorExpression {
 		catch (NullPointerException e) {}
 		return super.evaluateAtParseTime(context);
 	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		// TODO Auto-generated method stub
+		return super.evaluate(context);
+	}
 
 }

@@ -201,7 +201,7 @@ public class Engine extends ScriptBase {
 
 	}
 
-	private transient CachedEngineFuncs cachedFuncs;
+	private transient CachedEngineDeclarations cachedFuncs;
 	private transient Map<String, Variable[]> cachedPrefixedVariables;
 
 	private transient EngineSettings intrinsicSettings;
@@ -235,7 +235,7 @@ public class Engine extends ScriptBase {
 		return currentSettings;
 	}
 
-	public final CachedEngineFuncs getCachedFuncs() {
+	public final CachedEngineDeclarations getCachedFuncs() {
 		return cachedFuncs;
 	}
 	
@@ -253,7 +253,7 @@ public class Engine extends ScriptBase {
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
 		}
-		cachedFuncs = new CachedEngineFuncs(this);
+		cachedFuncs = new CachedEngineDeclarations(this);
 		cachedPrefixedVariables = null;
 	}
 

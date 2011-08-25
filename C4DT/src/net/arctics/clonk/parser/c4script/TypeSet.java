@@ -122,7 +122,7 @@ public class TypeSet implements IType, IResolvable {
 			IType t = ingredients[i];
 			for (int j = actualCount-1; j > i; j--) {
 				IType other = ingredients[j];
-				if (other.equals(t) || (t.specificness() > other.specificness() && t.containsType(other))) {
+				if (TypeRelationshipAssessor.typesEqual(other, t) || (t.specificness() > other.specificness() && t.containsType(other))) {
 					for (int z = actualCount-1; z > j; z--)
 						ingredients[z-1] = ingredients[z];
 					actualCount--;

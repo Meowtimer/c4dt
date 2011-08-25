@@ -58,6 +58,10 @@ public class Command {
 		for (Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(c);
 	}
+	
+	public static ExecutableScript executableScriptFromCommand(String command) {
+		return new ExecutableScript("command", String.format(Command.COMMAND_SCRIPT_TEMPLATE, command), Command.COMMANDS_INDEX);
+	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
 		for (Method m : classs.getMethods()) {
@@ -109,22 +113,24 @@ public class Command {
 		}
 	}
 
-	@CommandFunction
-	public static void Log(Object context, String message) {
-		System.out.println(message);
-	}
+	public static class BaseCommands {
+		@CommandFunction
+		public static void Log(Object context, String message) {
+			System.out.println(message);
+		}
 
-	@CommandFunction
-	public static String Format(Object context, String format, Object... args) {
-		return String.format(format, args);
-	}
+		@CommandFunction
+		public static String Format(Object context, String format, Object... args) {
+			return String.format(format, args);
+		}
 
-	@CommandFunction
-	public static void OpenDoc(Object context, String funcName) {
-		try {
-			ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.getDefault().getActiveEngine());
-		} catch (Exception e) {
-			e.printStackTrace();
+		@CommandFunction
+		public static void OpenDoc(Object context, String funcName) {
+			try {
+				ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.getDefault().getActiveEngine());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class ForStatement extends ConditionalStatement implements ILoop {
 
@@ -44,5 +45,20 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		condition   = elms[1];
 		increment   = elms[2];
 		body        = elms[3];
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		if (initializer != null)
+			initializer.evaluate(context);
+		Object ev = null;
+		while (true) {
+			if (condition != null && !convertToBool(condition.evaluate(context)))
+				break;
+			ev = body.evaluate(context);
+			if (increment != null)
+				increment.evaluate(context);
+		}
+		return ev;
 	}
 }

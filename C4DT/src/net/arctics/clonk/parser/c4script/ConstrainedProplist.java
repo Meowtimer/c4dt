@@ -181,7 +181,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	public boolean equals(Object obj) {
 		if (obj instanceof ConstrainedProplist) {
 			ConstrainedProplist cobj = (ConstrainedProplist) obj;
-			return cobj.constraintKind == this.constraintKind && cobj.constraint != null && cobj.constraint.equals(this.constraint);
+			return cobj.constraintKind == this.constraintKind && cobj.constraint != null && TypeRelationshipAssessor.typesEqual(cobj.constraint, this.constraint);
 		}
 		return false;
 	}

@@ -6,15 +6,48 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.SameTypeAsSomeTypeable;
+import net.arctics.clonk.parser.c4script.TypeRelationshipAssessor;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
 public final class NumberLiteral extends Literal<Long> {
 
+	public static class ZeroType extends SameTypeAsSomeTypeable {
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		
+		public ZeroType() {
+			super(null);
+		}
+
+		@Override
+		protected IType actualType() {
+			return PrimitiveType.INT;
+		}
+		
+		@Override
+		public String typeName(boolean special) {
+			if (special)
+				return "zero";
+			else
+				return PrimitiveType.INT.typeName(false);
+		}
+		
+		static {
+			TypeRelationshipAssessor.register(new TypeRelationshipAssessor() {
+				@Override
+				public boolean typesAreEqual(IType a, IType b) {
+					return a == PrimitiveType.INT || b == PrimitiveType.INT;
+				}
+			}, ZeroType.class, PrimitiveType.class, true);
+		}
+	}
+	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public static final NumberLiteral ZERO = new NumberLiteral(0);
-
+	public static final ZeroType ZERO_TYPE = new ZeroType();
+	
 	private boolean hex;
 
 	public NumberLiteral(long value, boolean hex) {
@@ -47,7 +80,7 @@ public final class NumberLiteral extends Literal<Long> {
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		if (longValue() == 0 && context.getContainer().getEngine().getCurrentSettings().treatZeroAsAny)
-			return PrimitiveType.ANY;
+			return ZERO_TYPE;
 		else
 			return PrimitiveType.INT;
 	}

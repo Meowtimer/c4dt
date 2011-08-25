@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
@@ -513,6 +513,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		Object ev = this.evaluateAtParseTime(context);
 		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
 	}
+	
+	public static boolean convertToBool(Object value) {
+		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
+	}
 
 	public boolean containedIn(ExprElm expression) {
 		if (expression == this)
@@ -591,9 +595,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	/**
 	 * Shortcut for obtaining {@link Engine#getCachedFuncs()}
 	 * @param context Context the {@link Engine} is lifted from
-	 * @return The {@link CachedEngineFuncs}
+	 * @return The {@link CachedEngineDeclarations}
 	 */
-	public final CachedEngineFuncs getCachedFuncs(DeclarationObtainmentContext context) {
+	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
 		return context.getContainer().getIndex().getEngine().getCachedFuncs();
 	}
 	

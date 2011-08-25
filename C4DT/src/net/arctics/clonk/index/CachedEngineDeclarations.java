@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.c4script.Function;
 /**
  * Contains cached engine functions that may be used frequently.
  */
-public class CachedEngineFuncs {
+public class CachedEngineDeclarations {
 
 	private final Engine engine;
 	
@@ -39,10 +39,10 @@ public class CachedEngineFuncs {
 	
 	public final Function[] CallFunctions;
 
-	public CachedEngineFuncs(Engine engine) {
+	public CachedEngineDeclarations(Engine engine) {
 		this.engine = engine;
 		try {
-			for (Field f : CachedEngineFuncs.class.getFields()) {
+			for (Field f : CachedEngineDeclarations.class.getFields()) {
 				if (f.getType() == Function.class) {
 					f.set(this, this.f(f.getName()));
 				}

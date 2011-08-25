@@ -101,7 +101,7 @@ public class ArrayType implements IType {
 				if (old == -1) {
 					old = min = i;
 					t = it;
-				} else if (i != old+1 || !t.equals(it)) {
+				} else if (i != old+1 || !TypeRelationshipAssessor.typesEqual(t, it)) {
 					if (hadCluster)
 						builder.append(", ");
 					builder.append(min);
@@ -163,7 +163,7 @@ public class ArrayType implements IType {
 			ArrayType otherArrType = (ArrayType) obj;
 			if (otherArrType.generalElementType == null && this.generalElementType != null)
 				return false;
-			if (this.generalElementType != null && !otherArrType.generalElementType.equals(this.generalElementType))
+			if (this.generalElementType != null && !TypeRelationshipAssessor.typesEqual(otherArrType.generalElementType, this.generalElementType))
 				return false;
 			return otherArrType.elementTypeMapping.equals(elementTypeMapping);
 		} else

@@ -9,7 +9,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
@@ -698,7 +698,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = getDeclaration();
-		CachedEngineFuncs cache = getCachedFuncs(parser);
+		CachedEngineDeclarations cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
 			if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) {
