@@ -45,7 +45,6 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IStorage;
 import org.junit.*;
 
@@ -139,7 +138,7 @@ public class C4ScriptParserTestCase {
 			};
 			this.parser = new C4ScriptParser(script, this.script, null) {
 				@Override
-				public IMarker markerWithCode(ParserErrorCode code,
+				public void markerWithCode(ParserErrorCode code,
 						int markerStart, int markerEnd, int flags,
 						int severity, Object... args) throws ParsingException {
 					try {
@@ -148,7 +147,6 @@ public class C4ScriptParserTestCase {
 						e.printStackTrace();
 					}
 					errors.add(code);
-					return null;
 				};
 			};
 		}
