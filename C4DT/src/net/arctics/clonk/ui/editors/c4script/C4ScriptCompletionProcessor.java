@@ -543,8 +543,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		// propose objects for #include or something
 		if (directiveExpectingObject) {
+			if (prefix == null)
+				prefix = "";
 			for (Index i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.DIRECT_SUBDECLARATIONS);
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.STATIC_VARIABLES);
 		}
 	}
 
