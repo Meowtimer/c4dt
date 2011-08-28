@@ -28,6 +28,7 @@ public class Messages extends NLS {
 	public static String C4GroupExecutable;
 	public static String EngineConfigurationPrefPage_ReadDocFromRepository;
 	public static String EngineConfigurationPrefPage_SettingsForEngineTitle;
+	public static String EngineConfigurationPrefPage_UseRepositoryDocsFolder0;
 	public static String EngineExecutable;
 	public static String OpenClonkRepo;
 	public static String PreferredLangID;

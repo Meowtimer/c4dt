@@ -241,7 +241,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 					protected Button getChangeControl(Composite parent) {
 						if (checker == null) {
 							checker = new Button(parent, SWT.CHECK);
-							checker.setText("Use repository docs folder");
+							checker.setText(Messages.EngineConfigurationPrefPage_UseRepositoryDocsFolder0);
 							checker.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent e) {
@@ -259,7 +259,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 					};
 					@Override
 					protected String changePressed() {
-						return "";
+						return ""; //$NON-NLS-1$
 					};
 					private void setTextControlEnablement() {
 						getTextControl().setEnabled(!checker.getSelection());
@@ -267,13 +267,13 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 					@Override
 					public void load() {
 						super.load();
-						checker.setSelection(getPreferenceStore().getBoolean("useDocsFromRepository"));
+						checker.setSelection(getPreferenceStore().getBoolean("useDocsFromRepository")); //$NON-NLS-1$
 						setTextControlEnablement();
 					};
 					@Override
 					protected void doStore() {
 						super.doStore();
-						getPreferenceStore().setValue("useDocsFromRepository", checker.getSelection());
+						getPreferenceStore().setValue("useDocsFromRepository", checker.getSelection()); //$NON-NLS-1$
 					};
 				}
 		);
