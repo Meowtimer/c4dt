@@ -33,7 +33,12 @@ public class IfStatement extends ConditionalStatement {
 			builder.append("\n"); //$NON-NLS-1$
 			Conf.printIndent(builder, depth-1);
 			builder.append(Keywords.Else);
-			printBody(elseExpr, builder, depth);
+			if (!(elseExpr instanceof IfStatement))
+				printBody(elseExpr, builder, depth);
+			else {
+				builder.append(" ");
+				elseExpr.print(builder, depth);
+			}
 		}
 	}
 
