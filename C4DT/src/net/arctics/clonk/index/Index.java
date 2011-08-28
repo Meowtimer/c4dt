@@ -443,7 +443,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private List<Index> relevantIndexes;
+	private transient List<Index> relevantIndexes;
 	
 	public List<Index> relevantIndexes() {
 		if (relevantIndexes == null) {
