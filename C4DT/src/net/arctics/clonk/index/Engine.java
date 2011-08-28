@@ -53,7 +53,6 @@ import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -507,7 +506,7 @@ public class Engine extends ScriptBase {
 			C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 				private boolean firstMessage = true;
 				@Override
-				public IMarker markerWithCode(ParserErrorCode code,
+				public void markerWithCode(ParserErrorCode code,
 						int errorStart, int errorEnd, int flags,
 						int severity, Object... args) throws ParsingException {
 					if (firstMessage) {
@@ -520,7 +519,7 @@ public class Engine extends ScriptBase {
 						lno.obtainLineNumber(errorStart),
 						lno.obtainCharNumberInObtainedLine()
 					));
-					return super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
+					super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
 				}
 			};
 			parser.parse();

@@ -90,6 +90,10 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return dictionary;
 	}
 	
+	public Set<ScriptBase> usedScripts() {
+		return usedScripts;
+	}
+	
 	/**
 	 * Flag hinting that this script contains global functions/static variables. This will flag will be consulted to decide whether to fully load the script when looking for global declarations.
 	 */

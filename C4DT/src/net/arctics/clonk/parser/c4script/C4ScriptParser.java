@@ -88,6 +88,10 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -527,11 +531,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public void parse() throws ParsingException {
-		synchronized (container) {
-			clean();
-			parseDeclarations();
-			parseCodeOfFunctionsAndValidate();
-		}
+		clean();
+		parseDeclarations();
+		parseCodeOfFunctionsAndValidate();
 	}
 	
 	public String parseTokenAndReturnAsString() throws ParsingException {
@@ -575,6 +577,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			enableError(ParserErrorCode.StringNotClosed, true);
 		}
+		deployMarkers();
 	}
 	
 	/**
@@ -613,6 +616,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			container.notDirty();
 			distillAdditionalInformation();
 		}
+		deployMarkers();
 	}
 
 	/**
@@ -1547,37 +1551,91 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	public IMarker warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
 		try {
-			return markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_WARNING, args);
+			markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (ParsingException e) {
 			// ignore
-			return null;
 		}
 	}
 	
-	public IMarker warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
-		return warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
+	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
+		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
 	}
 	
-	public IMarker errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
-		return errorWithCode(code, errorRegion, 0, args);
+	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+		errorWithCode(code, errorRegion, 0, args);
 	}
 	
-	public IMarker errorWithCode(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) throws ParsingException {
-		return errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
+	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) throws ParsingException {
+		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
 	
-	public IMarker errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
-		return markerWithCode(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
+	public void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
+		markerWithCode(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 	
-	private IMarker errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
-		return markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_ERROR, args);
+	private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+		markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_ERROR, args);
 	}
 	
 	public static final int NO_THROW = 1;
 	public static final int ABSOLUTE_MARKER_LOCATION = 2;
+	
+	private static class MarkerInfo {
+		public ParserErrorCode code;
+		public int start, end;
+		public int severity;
+		public Object[] args;
+		
+		private Declaration cf;
+		private int offset;
+		private ExprElm reporter;
+		private IFile scriptFile;
+		private ScriptBase container;
+		
+		public MarkerInfo(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
+			super();
+			this.code = code;
+			this.start = start;
+			this.end = end;
+			this.severity = severity;
+			this.args = args;
+			
+			this.cf = parser.getCurrentDeclaration();
+			this.offset = parser.offset;
+			this.reporter = parser.getExpressionReportingErrors();
+			this.scriptFile = parser.scriptFile;
+			this.container = parser.getContainer();
+		}
+		public IMarker deploy() {
+			IMarker result = code.createMarker(scriptFile, container, ClonkCore.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
+			if (cf != null)
+				ParserErrorCode.setDeclarationTag(result, cf.getNameUniqueToParent());
+			IRegion exprLocation = reporter;
+			if (exprLocation != null)
+				ParserErrorCode.setExpressionLocation(result, exprLocation);
+			result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
+			return result;
+		}
+	}
+	
+	private LinkedList<MarkerInfo> markers = new LinkedList<MarkerInfo>();
+	
+	private void deployMarkers() {
+		final List<MarkerInfo> markersToDeploy = markers;
+		markers = new LinkedList<MarkerInfo>();
+		new Job("Deploying markers") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				synchronized (markers) {
+					for (MarkerInfo m : markersToDeploy)
+						m.deploy();
+					return Status.OK_STATUS;
+				}
+			}
+		}.schedule();
+	}
 	
 	/**
 	 * Create a code marker.
@@ -1590,33 +1648,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The created marker or null if for some reason it was decided to not create a marker.
 	 * @throws ParsingException
 	 */
-	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+	public void markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
 		if (!errorEnabled(code))
-			return null;
+			return;
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			int offs = bodyOffset();
 			markerStart += offs;
 			markerEnd += offs;
 		}
-		IMarker result = null;
 		Function cf = getCurrentFunc();
 		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.getBody() != null && this.offset > cf.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
-			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, currentFunctionContext.expressionReportingErrors, args);
-			if (getCurrentDeclaration() != null)
-				ParserErrorCode.setDeclarationTag(result, getCurrentDeclaration().getNameUniqueToParent());
-			IRegion exprLocation = currentFunctionContext.expressionReportingErrors;
-			if (exprLocation != null)
-				ParserErrorCode.setExpressionLocation(result, exprLocation);
-			problem = result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
-		} else
-			problem = code.getErrorString(args);
+		if (!misplacedErrorOrNoFileToAttachMarkerTo)
+			markers.add(new MarkerInfo(this, code, markerStart, markerEnd, severity, args));
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw misplacedErrorOrNoFileToAttachMarkerTo
 				? new SilentParsingException(Reason.SilenceRequested, problem)
 				: new ParsingException(problem);
-		return result;
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
@@ -3332,7 +3380,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		 * Overridden to notify the {@link #markerListener} and possibly cancel creating the marker if the listener says so.
 		 */
 		@Override
-		public IMarker markerWithCode(ParserErrorCode code,
+		public void markerWithCode(ParserErrorCode code,
 				int markerStart, int markerEnd, int flags,
 				int severity, Object... args) throws ParsingException {
 			if (markerListener != null) {
@@ -3341,9 +3389,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					markerEnd += offsetOfScriptFragment;
 				}
 				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == WhatToDo.DropCharges)
-					return null;
+					return;
 			}
-			return super.markerWithCode(code, markerStart, markerEnd, flags, severity, args);
+			super.markerWithCode(code, markerStart, markerEnd, flags, severity, args);
 		}
 	}
 	
