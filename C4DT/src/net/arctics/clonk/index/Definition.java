@@ -65,7 +65,7 @@ public abstract class Definition extends ScriptBase {
 
 	@Override
 	public String toString() {
-		return getName() + (id != null ? " (" + id.toString() + ")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		return getName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public String idWithName() {
