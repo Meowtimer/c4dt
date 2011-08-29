@@ -58,15 +58,19 @@ public abstract class IndexEntity extends Structure {
 	/**
 	 * Require this entity to be loaded. If {@link #notFullyLoaded} is true it is set to false and {@link Index#loadEntity(IndexEntity)} is called.
 	 */
-	public final synchronized void requireLoaded() {
-		if (notFullyLoaded) {
-			notFullyLoaded = false;
-			try {
-				index.loadEntity(this);
-			} catch (Exception e) {
-				if (e instanceof FileNotFoundException)
-					System.out.println("Entity file for " + this.toString() + " not found");
-				e.printStackTrace();
+	public final void requireLoaded() {
+		if (index == null)
+			return;
+		synchronized (index) {
+			if (notFullyLoaded) {
+				notFullyLoaded = false;
+				try {
+					index.loadEntity(this);
+				} catch (Exception e) {
+					if (e instanceof FileNotFoundException)
+						System.out.println("Entity file for " + this.toString() + " not found");
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -98,7 +102,7 @@ public abstract class IndexEntity extends Structure {
 	 * @param stream The stream to save the entity's state to
 	 * @throws IOException 
 	 */
-	public synchronized void save(ObjectOutputStream stream) throws IOException {
+	public void save(ObjectOutputStream stream) throws IOException {
 		// override
 	}
 	
@@ -106,12 +110,14 @@ public abstract class IndexEntity extends Structure {
 	 * Save this entity by requesting a stream to write to from the index.
 	 * @throws IOException 
 	 */
-	public final synchronized void save() throws IOException {
-		if (index != null) try {
-			requireLoaded();
-			index.saveEntity(this);
-		} catch (Exception e) {
-			e.printStackTrace();
+	public final void save() throws IOException {
+		synchronized (index) {
+			if (index != null) try {
+				requireLoaded();
+				index.saveEntity(this);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
