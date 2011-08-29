@@ -34,7 +34,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 /**
- * base class for making expression trees
+ * Base class for making expression trees
  */
 public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
@@ -48,6 +48,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public static final int STATEMENT_REACHED = 2;
 	public static final int MISPLACED = 4;
 
+	/**
+	 * Create a new expression to signify some non-expression at a given location.
+	 * @param start The start of the location to mark as 'missing an expression'
+	 * @param length The length of the null-expression
+	 * @param parser Parser used to adjust the expression location to be relative to the function body
+	 * @return The constructed null expression
+	 */
 	public static final ExprElm nullExpr(int start, int length, C4ScriptParser parser) {
 		ExprElm result = new ExprElm();
 		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
@@ -90,6 +97,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public boolean isFinishedProperly() {return flagsEnabled(PROPERLY_FINISHED);}
 	public void setFinishedProperly(boolean finished) {setFlagsEnabled(PROPERLY_FINISHED, finished);}
 
+	/**
+	 * Assign 'this' as the parent element of all elements returned by {@link #getSubElements()}.
+	 * One should not forget calling this when creating sub elements.
+	 */
 	protected void assignParentToSubElements() {
 		// cheap man's solution to the mutability-of-exprelms problem:
 		// Clone sub elements if they look like they might belong to some other parent
@@ -131,10 +142,19 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return clone;
 	}
 
+	/**
+	 * Return the parent of this expression.
+	 * @return
+	 */
 	public ExprElm getParent() {
 		return parent;
 	}
 	
+	/**
+	 * Return the first parent in the parent chain of this expression that is of the given class
+	 * @param cls The class to test for
+	 * @return The first parent of the given class or null if such parent does not exist
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends ExprElm> T getParent(Class<T> cls) {
 		ExprElm e;
@@ -142,19 +162,50 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return (T) e;
 	}
 
+	/**
+	 * Emit a warning if this expression is erroneously used at a place where only expressions with side effects are allowed. 
+	 * @param parser The parser used to create the warning marker if conditions are met (!{@link #hasSideEffects()})
+	 */
 	public void warnIfNoSideEffects(C4ScriptParser parser) {
 		if (!hasSideEffects())
 			parser.warningWithCode(ParserErrorCode.NoSideEffects, this);
 	}
 
+	/**
+	 * Set the parent of this expression.
+	 * @param parent
+	 */
 	public void setParent(ExprElm parent) {
 		this.parent = parent;
 	}
 	
+	/**
+	 * Print additional text prepended to the actual expression text ({@link #doPrint(ExprWriter, int)})
+	 * @param output The output writer to print the prependix to
+	 * @param depth Print depth inherited from the underlying {@link #print(ExprWriter, int)} call
+	 */
 	public void printPrependix(ExprWriter output, int depth) {}
+	
+	/**
+	 * Perform the actual intrinsic C4Script-printing for this kind of expression
+	 * @param output Output writer
+	 * @param depth Depth inherited from {@link #print(ExprWriter, int)}
+	 */
 	public void doPrint(ExprWriter output, int depth) {}
+	
+	/**
+	 * Print additional text appended to the actual expression text ({@link #doPrint(ExprWriter, int)})
+	 * @param output Output writer
+	 * @param depth Depth inherited from {@link #print(ExprWriter, int)}
+	 */
 	public void printAppendix(ExprWriter output, int depth) {}
 	
+	/**
+	 * Call all the printing methods in one bundle ({@link #printPrependix(ExprWriter, int)}, {@link #doPrint(ExprWriter, int)}, {@link #printAppendix(ExprWriter, int)})
+	 * The {@link ExprWriter} is also given a chance to do its own custom printing using {@link ExprWriter#doCustomPrinting(ExprElm, int)}
+	 * @param output Output writer
+	 * @param depth Depth determining the indentation level of the output
+	 */
 	public final void print(ExprWriter output, int depth) {
 		if (!output.doCustomPrinting(this, depth)) {
 			this.printPrependix(output, depth);
