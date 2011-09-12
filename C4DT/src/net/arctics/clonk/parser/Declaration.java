@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,8 +11,8 @@ import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Index.r;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -18,7 +20,6 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -255,16 +256,27 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Returns the objects this declaration might be referenced in (includes C4Functions, IResources and other types)
+	 * Returns the objects this declaration might be referenced in (includes {@link Function}s, {@link IResource}s and other scripts)
 	 * @param project
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		ScriptBase script = getScript();
-		if (script instanceof ProjectDefinition || script instanceof SystemScript) {
-			return new Object[] {((IResource) script.getScriptStorage()).getProject()};
-		}
-		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
+		final ScriptBase script = getScript();
+		if (isGlobal())
+			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
+		final Set<Object> scope = new HashSet<Object>();
+		scope.add(script);
+		ClonkProjectNature nat = ClonkProjectNature.get(script.getResource());
+		nat.getIndex().forAllRelevantIndexes(new r() {
+			@Override
+			public void run(Index index) {
+				for (ScriptBase s : index.allScripts())
+					if (s.usedScripts() != null && s.usedScripts().contains(script))
+						scope.add(s);
+			}
+		});
+		return scope.toArray();
+		//return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 	}
 	
 	/**
