@@ -109,7 +109,6 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
 													LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
-													parser.setListener(TidyUpCodeAction.expressionCollector(null, chunks, 0));
 													try {
 														parser.parse();
 													} catch (ParsingException e1) {
@@ -120,7 +119,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 														IDocument document = textFileDocProvider.getDocument(file);
 
 														if (document != null)
-															TidyUpCodeAction.runOnDocument(parser, true, document, chunks);
+															TidyUpCodeAction.runOnDocument(script, null, parser, document);
 
 														try {
 															textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
