@@ -14,11 +14,11 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.CStyleScanner;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.foldermap.FolderMapUnit;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -42,7 +42,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.ui.ide.IDE;
 
 /**
  * Reads Windows ini style configuration files
@@ -432,6 +431,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			return null;
 	}
 
+	@Override
 	public Iterator<IniSection> iterator() {
 		return sectionsList.iterator();
 	}
@@ -458,35 +458,43 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return sectionsList.toArray(new IniSection[sectionsList.size()]);
 	}
 
+	@Override
 	public Object[] getChildren() {
 		return getSections();
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return !sectionsMap.isEmpty();
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public List<? extends IniItem> getChildCollection() {
 		return sectionsList;
 	}
 
+	@Override
 	public String getNodeName() {
 		return iniFile != null ? iniFile.getName() : toString();
 	}
 
+	@Override
 	public ITreeNode getParentNode() {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
@@ -550,6 +558,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	public static void register() {
 		Structure.registerStructureFactory(new IStructureFactory() {
+			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile) {
 					try {
@@ -594,11 +603,15 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @return the IniUnit class or null if no suitable one could be found
 	 */
 	public static Class<? extends IniUnit> getIniUnitClass(IResource resource) {
-		IContentType contentType = resource instanceof IFile ? IDE.getContentType((IFile) resource) : null;
-		if (contentType == null)
+		try {
+			IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
+			if (contentType == null)
+				return null;
+			Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
+			return cls != null ? cls : null;
+		} catch (CoreException ce) { 
 			return null;
-		Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
-		return cls != null ? cls : null;
+		}
 	}
 	
 	@Override
