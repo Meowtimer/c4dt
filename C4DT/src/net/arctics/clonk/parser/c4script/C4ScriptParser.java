@@ -96,6 +96,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
@@ -1625,16 +1626,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private void deployMarkers() {
 		final List<MarkerInfo> markersToDeploy = markers;
 		markers = new LinkedList<MarkerInfo>();
-		new Job("Deploying markers") {
+		Display.getDefault().asyncExec(new Runnable() {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
+			public void run() {
 				synchronized (markers) {
 					for (MarkerInfo m : markersToDeploy)
 						m.deploy();
-					return Status.OK_STATUS;
 				}
 			}
-		}.schedule();
+		});
 	}
 	
 	/**
