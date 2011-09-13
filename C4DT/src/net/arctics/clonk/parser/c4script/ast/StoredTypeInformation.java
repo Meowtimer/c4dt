@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeRelationshipAssessor;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -42,7 +41,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		if (getType() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
 			storeType(type);
-		else if (!TypeRelationshipAssessor.typesEqual(getType(), other.getType()))
+		else if (getType().equals(other.getType()))
 			// assignments of multiple types - construct type set
 			storeType(TypeSet.create(getType(), other.getType()));
 	}

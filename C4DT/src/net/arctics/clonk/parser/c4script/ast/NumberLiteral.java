@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.Iterator;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -7,9 +9,9 @@ import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.SameTypeAsSomeTypeable;
-import net.arctics.clonk.parser.c4script.TypeRelationshipAssessor;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.util.ArrayUtil;
 
 public final class NumberLiteral extends Literal<Long> {
 
@@ -33,13 +35,9 @@ public final class NumberLiteral extends Literal<Long> {
 				return PrimitiveType.INT.typeName(false);
 		}
 		
-		static {
-			TypeRelationshipAssessor.register(new TypeRelationshipAssessor() {
-				@Override
-				public boolean typesAreEqual(IType a, IType b) {
-					return a == PrimitiveType.INT || b == PrimitiveType.INT;
-				}
-			}, ZeroType.class, PrimitiveType.class, true);
+		@Override
+		public Iterator<IType> iterator() {
+			return ArrayUtil.arrayIterable(this, PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ID).iterator();
 		}
 	}
 	
