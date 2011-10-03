@@ -422,6 +422,7 @@ global func any Definition(proplist def);
 global func any DefinitionCall(id idDef, string szFunction, ...);
 global func any DigFree(int x, int y, int iRadius);
 global func any DigFreeRect(int x, int y, int iWdt, int iHgt);
+global func any ClearFreeRect(int x, int y, int wdt, int hgt);
 global func int Distance(int x1, int y1, int x2, int y2);
 global func bool DoBreath(int iChange, object obj);
 global func any DoCon(int iChange);
