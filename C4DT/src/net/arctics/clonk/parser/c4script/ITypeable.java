@@ -46,7 +46,7 @@ public interface ITypeable extends IEntityLocatedInIndex {
 			if (instance.getType() == PrimitiveType.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
 				instance.forceType(type);
-			else if (instance.getType().equals(type))
+			else if (!instance.getType().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
 				instance.forceType(TypeSet.create(type, instance.getType()));
 		}
