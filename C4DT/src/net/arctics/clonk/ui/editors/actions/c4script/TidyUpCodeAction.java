@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -19,7 +18,6 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.CoreException;
@@ -53,18 +51,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 		}
 	}
 
-	private static final IPredicate<CodeChunk> VAR_AND_EXPRESSION_LINKED = new IPredicate<TidyUpCodeAction.CodeChunk>() {
-		@Override
-		public boolean test(CodeChunk item) {
-			if (item.relatedDeclaration instanceof Variable) {
-				Variable var = (Variable) item.relatedDeclaration;
-				return item.expressions.size() == 1 && var.getInitializationExpression() == item.expressions.get(0);
-			} else {
-				return true;
-			}
-		}
-	};
-	
 	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setId(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
@@ -78,8 +64,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 		final C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
 		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		final LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
-		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 		C4ScriptParser parser;
 		try {
 			parser = editor.reparseWithDocumentContents(null, false);
@@ -128,7 +112,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 			for (Declaration d : decs) {
 				try {
 					Function func = d instanceof Function ? (Function)d : null;
-					Variable var = d instanceof Variable ? (Variable)d : null;
 					// variable declared inside function -> ignore
 					/*if (var != null && parser.getContainer().funcAt(var.getLocation().getOffset()) != null)
 						continue;*/

@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
-import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction.CodeChunk;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -108,7 +107,6 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 												ScriptBase script = ScriptBase.get(file, true);
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
-													LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
 													try {
 														parser.parse();
 													} catch (ParsingException e1) {
