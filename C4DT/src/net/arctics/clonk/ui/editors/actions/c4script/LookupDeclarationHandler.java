@@ -6,7 +6,7 @@ import java.util.Set;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
@@ -22,14 +22,14 @@ public class LookupDeclarationHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		if (part instanceof C4ScriptEditor) {
-			ScriptBase script = ((C4ScriptEditor)part).scriptBeingEdited();
+			Script script = ((C4ScriptEditor)part).scriptBeingEdited();
 			if (script != null) {
 				Set<IHasIncludes> scripts = new HashSet<IHasIncludes>();
 				script.gatherIncludes(scripts, true);
 				Set<Declaration> declarations = new HashSet<Declaration>();
 				for (IHasIncludes s : scripts)
-					if (s instanceof ScriptBase)
-						for (Declaration d : ((ScriptBase)s).allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
+					if (s instanceof Script)
+						for (Declaration d : ((Script)s).allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 							declarations.add(d);
 				DeclarationChooser chooser = new DeclarationChooser(HandlerUtil.getActiveShell(event), declarations);
 				chooser.setInitialPattern(".*");

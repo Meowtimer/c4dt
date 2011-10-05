@@ -29,7 +29,7 @@ import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -67,7 +67,7 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
  * @author Madeen
  *
  */
-public class Engine extends ScriptBase {
+public class Engine extends Script {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 

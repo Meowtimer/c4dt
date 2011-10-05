@@ -4,7 +4,6 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
@@ -150,8 +149,8 @@ public class ClonkTextEditor extends TextEditor {
 				}
 			}
 			// if a definition has no script fall back to opening DefCore.txt
-			else if (structure instanceof ProjectDefinition) {
-				ProjectDefinition obj = (ProjectDefinition) structure;
+			else if (structure instanceof Definition) {
+				Definition obj = (Definition) structure;
 				IFile defCore = obj.defCoreFile();
 				if (defCore != null) {
 					try {
@@ -188,7 +187,7 @@ public class ClonkTextEditor extends TextEditor {
 				ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
 			}
 			else if (location.getResource() instanceof IContainer) {
-				Definition def = ProjectDefinition.definitionCorrespondingToFolder((IContainer) location.getResource());
+				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.getResource());
 				if (def != null) {
 					ed = openDeclaration(def);
 				}

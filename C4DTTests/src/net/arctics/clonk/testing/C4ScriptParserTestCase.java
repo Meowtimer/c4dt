@@ -22,7 +22,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -58,13 +58,13 @@ public class C4ScriptParserTestCase {
 	}
 
 	public class Setup {
-		public ScriptBase script;
+		public Script script;
 		public C4ScriptParser parser;
 		private List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(
 				20);
 
 		public Setup(final String script) throws UnsupportedEncodingException {
-			this.script = new ScriptBase(new Index() {
+			this.script = new Script(new Index() {
 				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 				private Engine engine = new Engine("TestEngine") {
 					private final SpecialScriptRules rules = new SpecialScriptRules() {

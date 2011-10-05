@@ -20,7 +20,7 @@ import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -331,9 +331,9 @@ public class CallFunc extends AccessDeclaration {
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.getContainer() : p.getType(context);
 		if (lookIn != null) for (IType ty : lookIn) {
-			if (!(ty instanceof ScriptBase))
+			if (!(ty instanceof Script))
 				continue;
-			ScriptBase script = (ScriptBase)ty;
+			Script script = (Script)ty;
 			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
 			info.setSearchOrigin(context.getContainer());
 			Declaration dec = script.findFunction(functionName, info);
@@ -424,7 +424,7 @@ public class CallFunc extends AccessDeclaration {
 				IHasConstraint hasConstraint = (IHasConstraint) t;
 				anythingNonPrimitive = true;
 				// something resolved to something less specific than a ScriptBase? drop
-				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof ScriptBase))
+				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof Script))
 					return false;
 			}
 		}

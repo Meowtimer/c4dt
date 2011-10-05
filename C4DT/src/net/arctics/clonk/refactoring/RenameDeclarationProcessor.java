@@ -5,12 +5,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
@@ -40,7 +40,7 @@ import org.eclipse.text.edits.ReplaceEdit;
 public class RenameDeclarationProcessor extends RenameProcessor {
 	
 	/**
-	 * Option: The processor won't attempt to change the id value inside DefCore.txt if the declaration being rename is a {@link ProjectDefinition}
+	 * Option: The processor won't attempt to change the id value inside DefCore.txt if the declaration being rename is a {@link Definition}
 	 */
 	public static final int CONSIDER_DEFCORE_ID_ALREADY_CHANGED = 1;
 	
@@ -85,14 +85,14 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			}
 		}
 		CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
-		// now that references by the old name have been detected, rename the declaration (in case of ProjectDefinition.ProxyVar, this will change the id of the definition being proxied)
+		// now that references by the old name have been detected, rename the declaration (in case of Definition.ProxyVar, this will change the id of the definition being proxied)
 		//composite.add(new SetNameChange("Setting the declaration's name", decl, newName));
 		for (Object element : elements) {
 			IFile file;
 			if (element instanceof IFile)
 				file = (IFile)element;
-			else if (element instanceof ScriptBase)
-				file = (IFile) ((ScriptBase)element).getScriptStorage();
+			else if (element instanceof Script)
+				file = (IFile) ((Script)element).getScriptStorage();
 			else if (element instanceof Function)
 				file = (IFile) ((Function)element).getScript().getScriptStorage();
 			else if (element instanceof IniUnit)
@@ -104,9 +104,9 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
 				if (file.equals(declaringFile)) {
-					if (decl instanceof ProjectDefinition.ProxyVar) {
+					if (decl instanceof Definition.ProxyVar) {
 						if ((options & CONSIDER_DEFCORE_ID_ALREADY_CHANGED) == 0) {
-							ProjectDefinition def = ((ProjectDefinition.ProxyVar)decl).definition();
+							Definition def = ((Definition.ProxyVar)decl).definition();
 							DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
 							if (unit != null) {
 								try {

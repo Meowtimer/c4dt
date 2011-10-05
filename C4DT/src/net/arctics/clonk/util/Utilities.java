@@ -4,10 +4,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.resources.IContainer;
@@ -100,16 +100,16 @@ public abstract class Utilities {
 			return null;
 	}
 	
-	public static ScriptBase getScriptForResource(IResource resource) throws CoreException {
+	public static Script getScriptForResource(IResource resource) throws CoreException {
 		if (resource instanceof IContainer)
-			return ProjectDefinition.definitionCorrespondingToFolder((IContainer) resource);
+			return Definition.definitionCorrespondingToFolder((IContainer) resource);
 		else if (resource instanceof IFile)
-			return ScriptBase.get(resource, true);
+			return Script.get(resource, true);
 		else
 			return null;
 	}
 
-	public static ScriptBase getScriptForEditor(IEditorPart editor) {
+	public static Script getScriptForEditor(IEditorPart editor) {
 		if (editor instanceof C4ScriptEditor)
 			return ((C4ScriptEditor) editor).scriptBeingEdited();
 		else

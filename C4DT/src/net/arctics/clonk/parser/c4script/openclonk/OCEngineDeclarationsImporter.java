@@ -15,7 +15,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -28,7 +28,7 @@ import org.xml.sax.SAXException;
 
 public class OCEngineDeclarationsImporter {
 
-	public void importFromRepository(ScriptBase importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
+	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
 		XMLDocImporter importer = importsContainer.getEngine().repositoryDocImporter();
 		importer.setRepositoryPath(repository);
 		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
@@ -69,7 +69,7 @@ public class OCEngineDeclarationsImporter {
 			monitor.done();
 	}
 
-	private void readMissingFuncsFromSource(ScriptBase importsContainer, String repository) throws FileNotFoundException, IOException {
+	private void readMissingFuncsFromSource(Script importsContainer, String repository) throws FileNotFoundException, IOException {
 
 		final int SECTION_None = 0;
 		final int SECTION_InitFunctionMap = 1;

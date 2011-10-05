@@ -12,7 +12,7 @@ import org.eclipse.ui.part.FileEditorInput;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
@@ -53,8 +53,8 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		Object storage = getScript() != null ? getScript().getScriptStorage() : getResource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
-		if (storage instanceof IStorage && this instanceof ScriptBase)
-			return new ScriptWithStorageEditorInput((ScriptBase) this);
+		if (storage instanceof IStorage && this instanceof Script)
+			return new ScriptWithStorageEditorInput((Script) this);
 		return null;
 	}
 	
@@ -115,7 +115,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	
 	/**
 	 * Mark the Structure as being out of sync with the file it's defined in.
-	 * No guarantees given as to whether the return value of {@link #dirty()} and calling this method will be consistent (a.k.a: Those methods are declared empty in Structure and only {@link ScriptBase} overrides them).m
+	 * No guarantees given as to whether the return value of {@link #dirty()} and calling this method will be consistent (a.k.a: Those methods are declared empty in Structure and only {@link Script} overrides them).m
 	 * @param dirty Dirty flag
 	 */
 	public void markAsDirty() {}
@@ -166,7 +166,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param script the script to commit to
 	 * @param builder Builders gonna build
 	 */
-	public void commitTo(ScriptBase script, ClonkBuilder builder) {
+	public void commitTo(Script script, ClonkBuilder builder) {
 		// placeholder
 	}
 	

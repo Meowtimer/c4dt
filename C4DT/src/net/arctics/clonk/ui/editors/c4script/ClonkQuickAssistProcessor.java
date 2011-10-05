@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.MutableRegion;
@@ -424,8 +424,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		if (expressionRegion.getOffset() == -1)
 			return;
 		C4ScriptEditor editor = editorOrScript instanceof C4ScriptEditor ? (C4ScriptEditor)editorOrScript : null;
-		ScriptBase script = editorOrScript instanceof ScriptBase
-			? (ScriptBase)editorOrScript
+		Script script = editorOrScript instanceof Script
+			? (Script)editorOrScript
 			: editor != null ? editor.scriptBeingEdited() : null;
 		Object needToDisconnect = null;
 		if (document == null) {

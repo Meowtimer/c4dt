@@ -121,7 +121,7 @@ public class C4ScriptToCPPConverter {
 		this.printExprElement(body, output, 1);
 	}
 	
-	public void printScript(ScriptBase script, Writer output) throws IOException {
+	public void printScript(Script script, Writer output) throws IOException {
 		
 		printHeader(output);
 		

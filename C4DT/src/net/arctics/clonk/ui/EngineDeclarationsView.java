@@ -8,7 +8,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -493,7 +493,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
+								final Script engine = ClonkCore.getDefault().getActiveEngine();
 								//engine.clearDeclarations();
 								OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.search.FindDuplicatesQuery;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -26,11 +26,11 @@ public class FindDuplicatesHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection ssel = (IStructuredSelection) selection;
 			Iterator<?> it = ssel.iterator();
-			final Set<ScriptBase> scripts = new HashSet<ScriptBase>();
+			final Set<Script> scripts = new HashSet<Script>();
 			IResourceVisitor visitor = new IResourceVisitor() {
 				@Override
 				public boolean visit(IResource resource) throws CoreException {
-					ScriptBase script = ScriptBase.get(resource, false);
+					Script script = Script.get(resource, false);
 					if (script != null)
 						scripts.add(script);
 					return true;

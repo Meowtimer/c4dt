@@ -6,7 +6,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -86,14 +86,14 @@ public class ProjectIndex extends Index {
 	@Override
 	public void postLoad() throws CoreException {
 		if (project != null) {
-			List<ScriptBase> stuffToBeRemoved = new LinkedList<ScriptBase>();
+			List<Script> stuffToBeRemoved = new LinkedList<Script>();
 			for (Definition object : this)
-				if ((object instanceof ProjectDefinition) && !((ProjectDefinition)object).refreshFolderReference(project))
+				if ((object instanceof Definition) && !((Definition)object).refreshFolderReference(project))
 					stuffToBeRemoved.add(object);
 			for (Scenario scenario : indexedScenarios())
 				if (!scenario.refreshFolderReference(project))
 					stuffToBeRemoved.add(scenario);
-			for (ScriptBase script : indexedScripts())
+			for (Script script : indexedScripts())
 				if (script instanceof SystemScript) {
 					SystemScript standalone = (SystemScript) script;
 					if (!standalone.refreshFileReference(project)) {
@@ -101,7 +101,7 @@ public class ProjectIndex extends Index {
 					}
 				}
 			// purge objects that seem to be non-existent
-			for (ScriptBase s : stuffToBeRemoved)
+			for (Script s : stuffToBeRemoved)
 				this.removeScript(s);
 		}
 		super.postLoad();
@@ -116,10 +116,10 @@ public class ProjectIndex extends Index {
 	 * Find a script belonging to the project resource denoted by the given path. 
 	 */
 	@Override
-	public ScriptBase findScriptByPath(String path) {
+	public Script findScriptByPath(String path) {
 		IResource res = getProject().findMember(new Path(path));
 		if (res != null) {
-			ScriptBase result;
+			Script result;
 			try {
 				result = Utilities.getScriptForResource(res);
 				if (result != null)

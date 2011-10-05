@@ -11,10 +11,10 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
-public class ExecutableScript extends ScriptBase {
+public class ExecutableScript extends Script {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 

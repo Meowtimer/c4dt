@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.inireader;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {
@@ -33,7 +33,7 @@ public class DefCoreUnit extends IniUnit {
 	}
 	
 	@Override
-	public void commitTo(ScriptBase script, ClonkBuilder builder) {
+	public void commitTo(Script script, ClonkBuilder builder) {
 		if (script instanceof Definition) {
 			Definition def = (Definition) script;
 			ID oldID = def.id();

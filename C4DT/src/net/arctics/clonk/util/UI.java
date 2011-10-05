@@ -8,7 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
 import net.arctics.clonk.parser.mapcreator.MapOverlay;
@@ -104,7 +104,7 @@ public abstract class UI {
 			return MAP_ICON;
 		else if (element instanceof MapOverlay)
 			return MAPOVERLAY_ICON;
-		else if (element instanceof ScriptBase)
+		else if (element instanceof Script)
 			return SCRIPT_ICON;
 		else if (element instanceof ProplistDeclaration)
 			return PROPLIST_ICON;

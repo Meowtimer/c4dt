@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.ParserErrorCode;
 
 import org.eclipse.core.resources.IFile;
@@ -17,7 +16,7 @@ public class FuncRefEntry extends NamedReference implements IComplainingIniEntry
 		IniUnit iniUnit = context.getIniUnit();
 		IFile f = iniUnit.getIniFile();
 		if (f != null) {
-			Definition obj = ProjectDefinition.definitionCorrespondingToFolder(f.getParent());
+			Definition obj = Definition.definitionCorrespondingToFolder(f.getParent());
 			if (obj != null && obj.findFunction(this.toString()) == null)
 				iniUnit.markerAtValue(ClonkCore.MARKER_C4SCRIPT_ERROR, ParserErrorCode.UndeclaredIdentifier, context, IMarker.SEVERITY_ERROR, toString());
 		}

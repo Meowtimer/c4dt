@@ -48,7 +48,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	 * Return the {@link #constraint()} cast to {@link Definition}.
 	 * @return The cast {@link #constraint()} or null if the constraint is not a {@link Definition}
 	 */
-	public ScriptBase constraintDefinition() {
+	public Script constraintDefinition() {
 		return Utilities.as(constraint, Definition.class);
 	}
 	
@@ -96,7 +96,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 			other == PrimitiveType.PROPLIST ||
 			other.canBeAssignedFrom(PrimitiveType.PROPLIST) ||
 			(isType && other == PrimitiveType.ID) ||
-			other instanceof ScriptBase ||
+			other instanceof Script ||
 			other instanceof ConstrainedProplist;
 	}
 
@@ -121,7 +121,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(false) : constraint.toString());
 	}
 	
-	public static ConstrainedProplist get(ScriptBase script, ConstraintKind kind) {
+	public static ConstrainedProplist get(Script script, ConstraintKind kind) {
 			return (kind == ConstraintKind.Exact) && script instanceof Definition
 				? ((Definition)script).getObjectType()
 				: new ConstrainedProplist(script, kind);
@@ -151,8 +151,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 			return true;
 		if (isType && type == PrimitiveType.ID)
 			return true;
-		if (type instanceof ScriptBase)
-			return ((ScriptBase)type).includes(constraint);
+		if (type instanceof Script)
+			return ((Script)type).includes(constraint);
 		if (type instanceof ConstrainedProplist)
 			return ((ConstrainedProplist)type).constraint().includes(constraint);
 		return false;

@@ -10,7 +10,7 @@ import org.eclipse.core.resources.IFile;
 
 public class DefinitionParser {
 	
-	private ProjectDefinition object;
+	private Definition object;
 	private IContainer objectFolder;
 	private IFile defCore;
 	private IFile scenario;
@@ -47,13 +47,13 @@ public class DefinitionParser {
 		return new DefinitionParser(group);
 	}
 	
-	public ProjectDefinition createObject() {
+	public Definition createObject() {
 		try {
-			object = ProjectDefinition.definitionCorrespondingToFolder(objectFolder);
+			object = Definition.definitionCorrespondingToFolder(objectFolder);
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (object == null)
-					object = new ProjectDefinition(index, defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
+					object = new Definition(index, defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
 				else {
 					object.setId(defCoreWrapper.definitionID());
 					object.setName(defCoreWrapper.getName(), false);
@@ -67,7 +67,7 @@ public class DefinitionParser {
 		}
 	}
 
-	public ProjectDefinition getObject() {
+	public Definition getObject() {
 		return object;
 	}
 

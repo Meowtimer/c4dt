@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
@@ -92,7 +92,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			if (element instanceof Scenario) {
 				return engine.image(GroupType.ScenarioGroup);
 			}
-			if (element instanceof ProjectDefinition) {
+			if (element instanceof Definition) {
 				return engine.image(GroupType.DefinitionGroup);
 			}
 			if (element instanceof SystemScript) {

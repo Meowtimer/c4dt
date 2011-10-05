@@ -5,7 +5,6 @@ import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -13,7 +12,7 @@ import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ITypeable;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -76,7 +75,7 @@ public class AccessVar extends AccessDeclaration {
 		if (sequencePredecessor != null)
 			type = sequencePredecessor.getType(context);
 		if (type != null) for (IType t : type) {
-			ScriptBase scriptToLookIn;
+			Script scriptToLookIn;
 			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 				// find pseudo-variable from proplist expression
 				if (t instanceof ProplistDeclaration) {
@@ -191,8 +190,8 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	private static Definition definitionProxiedBy(Variable var) {
-		if (var instanceof ProjectDefinition.ProxyVar)
-			return ((ProjectDefinition.ProxyVar)var).definition();
+		if (var instanceof Definition.ProxyVar)
+			return ((Definition.ProxyVar)var).definition();
 		else
 			return null;
 	}

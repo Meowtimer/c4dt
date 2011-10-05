@@ -79,7 +79,7 @@ public class EffectFunction extends Function {
 	}
 	
 	public void findStartCallback()	{
-		ScriptBase script = getScript();
+		Script script = getScript();
 		for (EffectFunction f : script.functions(EffectFunction.class)) {
 			if (f.getHardcodedCallbackType() != HardcodedCallbackType.Start)
 				continue;

@@ -24,3 +24,4 @@ glob:net.arctics.clonk
 C4DT/doc/*
 snippets/*
 glob:*.settings/*
+C4DTBuild

@@ -104,7 +104,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		localVars = new ArrayList<Variable>();
 	}
 	
-	public Function(String name, ScriptBase parent, FunctionScope scope) {
+	public Function(String name, Script parent, FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
 		parameter = new ArrayList<Variable>();

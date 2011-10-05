@@ -21,7 +21,6 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
@@ -373,7 +372,7 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
-			ScriptBase script = null;
+			Script script = null;
 			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.getParams().length > 0) {
@@ -388,7 +387,7 @@ public class SpecialScriptRules {
 			if (t instanceof ConstrainedProplist) {
 				ConstrainedProplist cobj = (ConstrainedProplist)t;
 				constraintKind = cobj.constraintKind();
-				script = Utilities.as(cobj.constraint(), ScriptBase.class);
+				script = Utilities.as(cobj.constraint(), Script.class);
 			}
 			
 			return script != null ? ConstrainedProplist.get(script, constraintKind) : PrimitiveType.ID;
@@ -472,7 +471,7 @@ public class SpecialScriptRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].getType(parser) : parser.getContainerAsDefinition();
-			ScriptBase script = objType != null ? TypeSet.objectIngredient(objType) : null;
+			Script script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.getContainer(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
@@ -528,7 +527,7 @@ public class SpecialScriptRules {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.getParams()[0].getType(parser);
-				ScriptBase scriptToLookIn = t instanceof ScriptBase ? (ScriptBase)t : parser.getContainer();
+				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.getContainer();
 				Function func = scriptToLookIn.findFunction(lit.getLiteral());
 				if (func != null) {
 					return new DeclarationRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
@@ -724,8 +723,8 @@ public class SpecialScriptRules {
 			Object parmEv;
 			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
-				if (definition instanceof ProjectDefinition) {
-					ProjectDefinition projDef = (ProjectDefinition)definition;
+				if (definition instanceof Definition) {
+					Definition projDef = (Definition)definition;
 					IResource res = Utilities.findMemberCaseInsensitively(projDef.definitionFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
 						IniUnit unit;

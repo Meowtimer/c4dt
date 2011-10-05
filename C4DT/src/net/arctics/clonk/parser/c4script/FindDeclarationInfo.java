@@ -11,13 +11,13 @@ public class FindDeclarationInfo {
 	public int recursion;
 	public Class<? extends Declaration> declarationClass;
 	private Function contextFunction;
-	private Set<ScriptBase> alreadySearched;
-	private ScriptBase searchOrigin;
+	private Set<Script> alreadySearched;
+	private Script searchOrigin;
 	
 	public FindDeclarationInfo(Index clonkIndex) {
 		super();
 		index = clonkIndex;
-		alreadySearched = new HashSet<ScriptBase>();
+		alreadySearched = new HashSet<Script>();
 	}
 	public FindDeclarationInfo(Index clonkIndex, Function ctx) {
 		this(clonkIndex);
@@ -35,13 +35,13 @@ public class FindDeclarationInfo {
 	public Function getContextFunction() {
 		return contextFunction;
 	}
-	public Set<ScriptBase> getAlreadySearched() {
+	public Set<Script> getAlreadySearched() {
 		return alreadySearched;
 	}
-	public ScriptBase getSearchOrigin() {
+	public Script getSearchOrigin() {
 		return searchOrigin;
 	}
-	public void setSearchOrigin(ScriptBase searchOrigin) {
+	public void setSearchOrigin(Script searchOrigin) {
 		this.searchOrigin = searchOrigin;
 	}
 	public void resetState() {

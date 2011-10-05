@@ -29,7 +29,7 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -53,11 +53,11 @@ import org.eclipse.core.runtime.CoreException;
  * <p>An index managing lists of various objects created from parsing the folder structure of a Clonk project. Managed objects are
  * <ul>
  * <li>{@link Definition}s</li>
- * <li>{@link ScriptBase}s</li>
+ * <li>{@link Script}s</li>
  * <li>{@link Scenario}s</li>
  * </ul></p> 
  * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
- * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link ScriptBase} objects requires calling {@link #allScripts()},
+ * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link Script} objects requires calling {@link #allScripts()},
  * which yields an {@link Iterable} to iterate over both {@link SystemScript}s and {@link Scenario}s.</p>
  * <p>For indexes specific to Eclipse projects (as pretty much all actual ClonkIndex instances are), see {@link ProjectIndex}.</p>
  * @author madeen
@@ -76,7 +76,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	private Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
 	private Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
-	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>();
+	private List<Script> indexedScripts = new LinkedList<Script>();
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
 	private List<Declaration> globalsContainers = new LinkedList<Declaration>();
@@ -86,7 +86,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
 	protected transient Map<String, List<Declaration>> declarationMap = new Hashtable<String, List<Declaration>>();
-	protected transient Map<ID, List<ScriptBase>> appendages = new HashMap<ID, List<ScriptBase>>();
+	protected transient Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 	
 	public Index(File folder) {
 		this.folder = folder;
@@ -140,12 +140,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Return an {@link Iterable} to iterate over all {@link ScriptBase} objects managed by this index.
+	 * Return an {@link Iterable} to iterate over all {@link Script} objects managed by this index.
 	 * @return The iterable.
 	 */
 	@SuppressWarnings("unchecked")
-	public Iterable<ScriptBase> allScripts() {
-		return new CompoundIterable<ScriptBase>(this, indexedScripts, indexedScenarios);
+	public Iterable<Script> allScripts() {
+		return new CompoundIterable<Script>(this, indexedScripts, indexedScenarios);
 	}
 	
 	/**
@@ -153,19 +153,19 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param folder The folder to get the object for
 	 * @return The object or null if the folder is not linked to any object
 	 */
-	public ProjectDefinition getDefinition(IContainer folder) {
+	public Definition getDefinition(IContainer folder) {
 		try {
 			// fetch from session cache
 			if (folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != null)
-				return (ProjectDefinition) folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID);
+				return (Definition) folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID);
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
 			List<Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for (Definition obj : objects) {
-					if ((obj instanceof ProjectDefinition)) {
-						ProjectDefinition projDef = (ProjectDefinition)obj;
+					if ((obj instanceof Definition)) {
+						Definition projDef = (Definition)obj;
 						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
 							projDef.setObjectFolder(folder);
 							return projDef;
@@ -178,8 +178,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			// likely due to getSessionProperty being called on non-existent resources
 			for (List<Definition> list : indexedDefinitions.values()) {
 				for (Definition obj : list) {
-					if (obj instanceof ProjectDefinition) {
-						ProjectDefinition intern = (ProjectDefinition)obj;
+					if (obj instanceof Definition) {
+						Definition intern = (Definition)obj;
 						if (intern.definitionFolder() != null && intern.definitionFolder().equals(folder))
 							return intern;
 					}
@@ -194,10 +194,10 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	public ScriptBase getScript(IFile file) {
-		ScriptBase result = ScriptBase.get(file, true);
+	public Script getScript(IFile file) {
+		Script result = Script.get(file, true);
 		if (result == null) {
-			for (ScriptBase s : this.indexedScripts)
+			for (Script s : this.indexedScripts)
 				if (s.getResource() != null && s.getResource().equals(file))
 					return s;
 		}
@@ -219,19 +219,19 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			addToDeclarationMap(v);
 	}
 	
-	private void detectAppendages(ScriptBase script) {
+	private void detectAppendages(Script script) {
 		for (Directive d : script.directives())
 			if (d.getType() == DirectiveType.APPENDTO) {
-				List<ScriptBase> appendtoList = appendages.get(d.contentAsID());
+				List<Script> appendtoList = appendages.get(d.contentAsID());
 				if (appendtoList == null) {
-					appendtoList = new LinkedList<ScriptBase>();
+					appendtoList = new LinkedList<Script>();
 					appendages.put(d.contentAsID(), appendtoList);
 				}
 				appendtoList.add(script);
 			}
 	}
 	
-	protected <T extends ScriptBase> void addGlobalsFromScript(T script) {
+	protected <T extends Script> void addGlobalsFromScript(T script) {
 		for (Function func : script.functions()) {
 			if (func.getVisibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
@@ -247,8 +247,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 		detectAppendages(script);
 		for (IHasIncludes s : script.getIncludes(this, false))
-			if (s instanceof ScriptBase)
-				((ScriptBase) s).addDependentScript(script);
+			if (s instanceof Script)
+				((Script) s).addDependentScript(script);
 	}
 	
 	/**
@@ -264,20 +264,20 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		if (declarationMap == null)
 			declarationMap = new Hashtable<String, List<Declaration>>();
 		if (appendages == null)
-			appendages = new HashMap<ID, List<ScriptBase>>();
+			appendages = new HashMap<ID, List<Script>>();
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
 		appendages.clear();
 		
-		for (ScriptBase s : allScripts())
+		for (Script s : allScripts())
 			s.clearDependentScripts();
 		
-		for (ScriptBase s : allScripts())
+		for (Script s : allScripts())
 			if (!s.notFullyLoaded)
 				addGlobalsFromScript(s);
 		
-		for (ScriptBase s : allScripts())
+		for (Script s : allScripts())
 			if (!s.notFullyLoaded)
 				s.postLoad(this, this);
 	}
@@ -303,9 +303,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	/**
 	 * Remove the script from the index.
-	 * @param script Some script. Can be a {@link Definition}, a {@link Scenario} or some other {@link ScriptBase} object managed by this index.
+	 * @param script Some script. Can be a {@link Definition}, a {@link Scenario} or some other {@link Script} object managed by this index.
 	 */
-	public void removeScript(ScriptBase script) {
+	public void removeScript(Script script) {
 		if (script instanceof Definition)
 			removeDefinition((Definition)script);
 		else
@@ -349,18 +349,18 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private void scriptRemoved(ScriptBase script) {
+	private void scriptRemoved(Script script) {
 		entities.remove(script.entityId());
-		for (ScriptBase s : allScripts())
+		for (Script s : allScripts())
 			if (!s.notFullyLoaded)
 				s.scriptRemovedFromIndex(script);
 	}
 	
 	/**
-	 * Add some {@link ScriptBase} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
+	 * Add some {@link Script} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
 	 * @param script The script to add to the index
 	 */
-	public void addScript(ScriptBase script) {
+	public void addScript(Script script) {
 		if (script instanceof Scenario) {
 			if (!indexedScenarios.contains(script))
 				indexedScenarios.add((Scenario) script);
@@ -386,7 +386,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		return Collections.unmodifiableList(indexedScenarios);
 	}
 	
-	public List<ScriptBase> indexedScripts() {
+	public List<Script> indexedScripts() {
 		return Collections.unmodifiableList(indexedScripts);
 	}
 	
@@ -609,10 +609,10 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param definition The definition to return 'appendages' of
 	 * @return The appendages
 	 */
-	public List<ScriptBase> appendagesOf(Definition definition) {
+	public List<Script> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		List<ScriptBase> list = appendages.get(definition.id());
+		List<Script> list = appendages.get(definition.id());
 		if (list != null) {
 			return Collections.unmodifiableList(list); 
 		}
@@ -669,7 +669,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param path the path
 	 * @return the script or null if not found
 	 */
-	public ScriptBase findScriptByPath(String path) {
+	public Script findScriptByPath(String path) {
 		return null;
 	}
 	
@@ -715,7 +715,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	@Override
 	public <T extends Declaration> T getLatestVersion(T from) {
 		try {
-			if (from instanceof ScriptBase)
+			if (from instanceof Script)
 				return (T) Utilities.getScriptForResource(from.getResource());
 			else if (from instanceof Structure && from.getResource() instanceof IFile)
 				return (T) Structure.pinned(from.getResource(), false, false);
@@ -735,8 +735,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				inputStream.close();
 			}
 			entity.postLoad(this, this);
-			if (entity instanceof ScriptBase)
-				addGlobalsFromScript((ScriptBase)entity);
+			if (entity instanceof Script)
+				addGlobalsFromScript((Script)entity);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -973,7 +973,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	public void loadScriptsContainingDeclarationsNamed(String name) {
-		for (ScriptBase s : allScripts()) {
+		for (Script s : allScripts()) {
 			if (s.dictionary() != null && s.dictionary().contains(name))
 				s.requireLoaded();
 		}

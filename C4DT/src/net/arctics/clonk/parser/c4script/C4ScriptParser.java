@@ -158,7 +158,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Script container, the parsed declarations are put into
 	 */
-	protected ScriptBase container;
+	protected Script container;
 	
 	/**
 	 * Cached strict level from #strict directive.
@@ -436,7 +436,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return
 	 */
 	@Override
-	public final ScriptBase getContainer() {
+	public final Script getContainer() {
 		return container;
 	}
 	
@@ -454,7 +454,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
-	public C4ScriptParser(ScriptBase script) {
+	public C4ScriptParser(Script script) {
 		this((IFile) script.getScriptStorage(), script);
 		initialize();
 	}
@@ -489,7 +489,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param scriptFile
 	 * @param obj
 	 */
-	public C4ScriptParser(IFile scriptFile, ScriptBase script) {
+	public C4ScriptParser(IFile scriptFile, Script script) {
 		super(scriptFile);
 		this.scriptFile = scriptFile;
 		container = script;
@@ -503,7 +503,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param size
 	 * @param object
 	 */
-	public C4ScriptParser(InputStream stream, ScriptBase script) {
+	public C4ScriptParser(InputStream stream, Script script) {
 		super(stream);
 		scriptFile = null;
 		container = script;
@@ -515,7 +515,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param withString
 	 * @param script
 	 */
-	public C4ScriptParser(String withString, ScriptBase script, IFile scriptFile) {
+	public C4ScriptParser(String withString, Script script, IFile scriptFile) {
 		super(withString);
 		this.scriptFile = scriptFile;
 		container = script;
@@ -1363,7 +1363,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 
-	private static final class TempScript extends ScriptBase {
+	private static final class TempScript extends Script {
 		private final String expression;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -1589,7 +1589,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		private int offset;
 		private ExprElm reporter;
 		private IFile scriptFile;
-		private ScriptBase container;
+		private Script container;
 		
 		public MarkerInfo(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
 			super();
@@ -3368,7 +3368,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		 * @param script Script object representing the script to be parsed
 		 * @param markerListener the marker listener
 		 */
-		public ScriptParserWithMarkerListener(String withString, ScriptBase script, IMarkerListener markerListener) {
+		public ScriptParserWithMarkerListener(String withString, Script script, IMarkerListener markerListener) {
 			super(withString, script, null);
 			this.markerListener = markerListener;
 		}
@@ -3407,7 +3407,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public static C4ScriptParser reportExpressionsAndStatements(
 		IDocument doc,
-		ScriptBase context, IRegion funcOrRegion,
+		Script context, IRegion funcOrRegion,
 		IScriptParserListener listener, final IMarkerListener markerListener,
 		ExpressionsAndStatementsReportingFlavour flavour,
 		boolean reportErrors
@@ -3452,7 +3452,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public static Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
-			ScriptBase tempScript = new TempScript(statementText);
+			Script tempScript = new TempScript(statementText);
 			context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 			context.setBody(new SourceLocation(0, statementText.length()));
@@ -3510,7 +3510,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	@Override
-	public ScriptBase getScript() {
+	public Script getScript() {
 		return getContainer();
 	}
 

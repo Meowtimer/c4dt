@@ -6,7 +6,7 @@ import java.util.Collection;
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -51,7 +51,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		// add additional virtual nodes to the project
 		if (element instanceof IFile && showStructureOutlines) {
 			// list contents of ini and script files
-			ScriptBase script = ScriptBase.get((IFile) element, true);
+			Script script = Script.get((IFile) element, true);
 			if (script != null)
 				return ArrayUtil.concat(baseResources, super.getChildren(script));
 			try {
@@ -129,7 +129,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			return true;
 		}
 		else if (element instanceof IFile && s) {
-			ScriptBase script = ScriptBase.get((IFile) element, true);
+			Script script = Script.get((IFile) element, true);
 			if (script != null)
 				return super.hasChildren(script);
 			try {

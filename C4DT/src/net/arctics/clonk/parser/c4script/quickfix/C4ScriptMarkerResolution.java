@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.quickfix;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -37,7 +37,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	}
 
 	public void run(IMarker marker) {
-		ScriptBase script = ScriptBase.get((IFile) marker.getResource(), true);
+		Script script = Script.get((IFile) marker.getResource(), true);
 		Function func = script.funcAt(region.getOffset()); 
 		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();

@@ -19,7 +19,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
@@ -30,12 +30,12 @@ import net.arctics.clonk.util.ArrayUtil;
  *
  */
 public class Command {
-	public static final ScriptBase COMMAND_BASESCRIPT;
+	public static final Script COMMAND_BASESCRIPT;
 	public static final Index COMMANDS_INDEX = new Index();
 	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 
 	static {
-		COMMAND_BASESCRIPT = new ScriptBase(COMMANDS_INDEX) {
+		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
 			public IStorage getScriptStorage() {
@@ -86,7 +86,7 @@ public class Command {
 			}
 		}
 
-		public NativeCommandFunction(ScriptBase parent, Method method) {
+		public NativeCommandFunction(Script parent, Method method) {
 			super(method.getName(), parent, FunctionScope.PUBLIC);
 			this.method = method;
 		}
@@ -196,7 +196,7 @@ public class Command {
 				System.out.println(obj.toString());
 			}
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (ScriptBase script : index.indexedScripts()) {
+			for (Script script : index.indexedScripts()) {
 				System.out.println(script.toString());
 			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$

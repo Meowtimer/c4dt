@@ -12,7 +12,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
@@ -162,7 +162,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 				@Override
 				public void run(Index index) {
 					int declarationsBatchSize = 0;
-					MainLoop: for (ScriptBase s : index.allScripts())
+					MainLoop: for (Script s : index.allScripts())
 						if (s.dictionary() != null)
 							for (String str : s.dictionary())
 								for (Pattern ps : patternStrings) {

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -38,7 +37,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					def.getName().toLowerCase().contains(prefix) ||
 					def.id().stringValue().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(def instanceof ProjectDefinition && ((ProjectDefinition)def).definitionFolder() != null && ((ProjectDefinition)def).definitionFolder().getName().contains(prefix))
+					(def instanceof Definition && ((Definition)def).definitionFolder() != null && ((Definition)def).definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}

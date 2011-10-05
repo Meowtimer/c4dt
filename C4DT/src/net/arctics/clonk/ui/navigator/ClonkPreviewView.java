@@ -16,7 +16,7 @@ import javax.swing.text.rtf.RTFEditorKit;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -308,7 +308,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				IContainer container = (IContainer) sel;
 				
-				ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(container);
+				Definition obj = Definition.definitionCorrespondingToFolder(container);
 				if (obj != null)
 					newDefText = obj.idWithName();
 

@@ -22,7 +22,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -213,11 +213,11 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		public ExprElm topLevelExpression;
 		public IFile tracedFile;
 		public IRegion tracedLocation;
-		public ScriptBase script;
+		public Script script;
 		public Function function;
 		public Object[] arguments;
 		public Object evaluation;
-		public EvaluationTracer(ExprElm topLevelExpression, Object[] arguments, Function function, ScriptBase script) {
+		public EvaluationTracer(ExprElm topLevelExpression, Object[] arguments, Function function, Script script) {
 			this.topLevelExpression = topLevelExpression;
 			this.arguments = arguments;
 			this.function = function;
@@ -228,7 +228,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return arguments;
 		}
 		@Override
-		public ScriptBase getScript() {
+		public Script getScript() {
 			return script;
 		}
 		@Override
@@ -250,7 +250,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				tracedFile = file;
 			}
 		}
-		public static EvaluationTracer evaluate(ExprElm expression, Object[] arguments, ScriptBase script, Function function) {
+		public static EvaluationTracer evaluate(ExprElm expression, Object[] arguments, Script script, Function function) {
 			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
 			tracer.evaluation = expression.evaluateAtParseTime(tracer);
 			return tracer;

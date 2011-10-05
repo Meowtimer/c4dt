@@ -2,14 +2,13 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -106,7 +105,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 					result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
 				}
 			}
-			else if (expression instanceof IDLiteral && declaration instanceof ScriptBase) {
+			else if (expression instanceof IDLiteral && declaration instanceof Script) {
 				if (expression.guessObjectType(parser) == declaration)
 					result.addMatch(expression, parser, false, false);
 			}
@@ -121,7 +120,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
-				ScriptBase script = ScriptBase.get((IFile) resource, true);
+				Script script = Script.get((IFile) resource, true);
 				if (script != null) {
 					searchScript(resource, script);
 				}
@@ -129,7 +128,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 			return true;
 		}
 		
-		public void searchScript(IResource resource, ScriptBase script) {
+		public void searchScript(IResource resource, Script script) {
 			C4ScriptParser parser = new C4ScriptParser(script);
 			if (declaration instanceof Definition) {
 				Directive include = script.getIncludeDirectiveFor((Definition) declaration);
@@ -160,8 +159,8 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 				if (scope instanceof IContainer) {
 					((IContainer)scope).accept(listener);
 				}
-				else if (scope instanceof ScriptBase) {
-					ScriptBase script = (ScriptBase) scope;
+				else if (scope instanceof Script) {
+					Script script = (Script) scope;
 					listener.searchScript((IResource) script.getScriptStorage(), script);
 				}
 				else if (scope instanceof Function) {
@@ -178,9 +177,9 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 
-	private void searchScriptRelatedFiles(ScriptBase script) throws CoreException {
-		if (script instanceof ProjectDefinition) {
-			IContainer objectFolder = ((ProjectDefinition)script).getScriptStorage().getParent();
+	private void searchScriptRelatedFiles(Script script) throws CoreException {
+		if (script instanceof Definition) {
+			IContainer objectFolder = ((Definition)script).getScriptStorage().getParent();
 			for (IResource res : objectFolder.members()) {
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;
@@ -194,7 +193,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 									if (complex.getEntryConfig() != null) {
 										Class<?> entryClass = complex.getEntryConfig().getEntryClass();
 										if (entryClass == FuncRefEntry.class) {
-											ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(objectFolder);
+											Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {
 												Declaration declaration = obj.findFunction(complex.getValue());
 												if (declaration == this.declaration)
@@ -228,7 +227,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			ScriptBase script = Utilities.getScriptForEditor((ITextEditor) editor);
+			Script script = Utilities.getScriptForEditor((ITextEditor) editor);
 			if (script != null)
 				return result.getMatches(script);
 		}
@@ -238,7 +237,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			ScriptBase script = Utilities.getScriptForEditor((ITextEditor)editor);
+			Script script = Utilities.getScriptForEditor((ITextEditor)editor);
 			if (script != null && match.getElement().equals(script.getScriptStorage()))
 				return true;
 		}
@@ -247,7 +246,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
-		ScriptBase script = ScriptBase.get(file, true);
+		Script script = Script.get(file, true);
 		if (script != null)
 			return result.getMatches(script);
 		return NO_MATCHES;

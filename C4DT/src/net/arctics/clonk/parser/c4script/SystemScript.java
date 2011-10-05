@@ -19,7 +19,7 @@ import org.eclipse.core.runtime.Path;
 /**
  * Standalone-script inside a project.
  */
-public class SystemScript extends ScriptBase implements Serializable {
+public class SystemScript extends Script implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -93,7 +93,7 @@ public class SystemScript extends ScriptBase implements Serializable {
 	}
 	
 	public static SystemScript scriptCorrespondingTo(IFile file) {
-		ScriptBase script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
+		Script script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
 		return script instanceof SystemScript ? (SystemScript)script : null;
 	}
 	

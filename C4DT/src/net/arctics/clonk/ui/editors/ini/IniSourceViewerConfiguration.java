@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
@@ -116,7 +116,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									declaration = index.getDefinitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
-									ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent());
+									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);
 									}
@@ -145,7 +145,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent()).getIndex();
+									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent()).getIndex();
 									List<Index> indexes = projIndex.relevantIndexes();
 									for (Index index : indexes) {
 										if (index instanceof ProjectIndex) {

@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
@@ -254,7 +254,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, Index index,
 			final Function activeFunc) {
 
-		ScriptBase editorScript = Utilities.getScriptForEditor(editor);
+		Script editorScript = Utilities.getScriptForEditor(editor);
 		contextExpression = null;
 		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
 				index, activeFunc, editorScript, null);
@@ -272,12 +272,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	// this is all messed up and hacky
-	private ScriptBase _currentEditorScript;
+	private Script _currentEditorScript;
 
 	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
 			IDocument doc, String prefix, List<ICompletionProposal> proposals,
 			Index index, final Function activeFunc,
-			ScriptBase editorScript,
+			Script editorScript,
 			C4ScriptParser parser) {
 
 		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
@@ -325,7 +325,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (t instanceof IHasSubDeclarations)
 						structure = (IHasSubDeclarations) t;
 					else
-						structure = ScriptBase.scriptFrom(t);
+						structure = Script.scriptFrom(t);
 					if (structure != null) {
 						if (!contextStructuresChanged) {
 							contextStructures.clear();
@@ -571,7 +571,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		for (Declaration dec : structure.allSubDeclarations(mask)) {
 			Function func;
 			Variable var;
-			ScriptBase include;
+			Script include;
 			if ((func = Utilities.as(dec, Function.class)) != null) {
 				if (func.getVisibility() != FunctionScope.GLOBAL)
 					if (!noPrivateFuncs  || func.getVisibility() == FunctionScope.PUBLIC)
@@ -581,14 +581,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (var.getScope() != Scope.STATIC && var.getScope() != Scope.CONST)
 					proposalForVar(var, prefix, wordOffset, proposals);
 			}
-			else if ((include = Utilities.as(dec, ScriptBase.class)) != null) {
+			else if ((include = Utilities.as(dec, Script.class)) != null) {
 				proposalsForStructure(include, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
 			}
 		}
 	}
 
 	protected Function getActiveFunc(IDocument document, int offset) {
-		ScriptBase thisScript = Utilities.getScriptForEditor(editor);
+		Script thisScript = Utilities.getScriptForEditor(editor);
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}
 

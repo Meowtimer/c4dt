@@ -33,7 +33,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -68,7 +67,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
-public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
+public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -77,9 +76,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	protected transient List<Directive> definedDirectives;
 	
 	// set of scripts this script is using functions and/or static variables from
-	private Set<ScriptBase> usedScripts;
+	private Set<Script> usedScripts;
 	// scripts dependent on this one inside the same index
-	private transient Set<ScriptBase> dependentScripts;
+	private transient Set<Script> dependentScripts;
 	
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
@@ -90,7 +89,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return dictionary;
 	}
 	
-	public Set<ScriptBase> usedScripts() {
+	public Set<Script> usedScripts() {
 		return usedScripts;
 	}
 	
@@ -99,7 +98,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 */
 	public boolean containsGlobals;
 	
-	protected ScriptBase(Index index) {
+	protected Script(Index index) {
 		super(index);
 	}
 	
@@ -110,12 +109,12 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		definedFunctions = (List<Function>) stream.readObject();
 		definedVariables = (List<Variable>) stream.readObject();
 		definedDirectives = (List<Directive>) stream.readObject();
-		usedScripts = (Set<ScriptBase>) stream.readObject();
+		usedScripts = (Set<Script>) stream.readObject();
 		purgeNullEntries(definedFunctions, definedVariables, definedDirectives, usedScripts);
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
 			if (usedScripts != null)
-				for (ScriptBase s : usedScripts)
+				for (Script s : usedScripts)
 					if (s != null)
 						s.requireLoaded();
 		} catch (Exception e) {
@@ -277,7 +276,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return getIncludes(index, recursive);
 	}
 	
-	public Iterable<ScriptBase> dependentScripts() {
+	public Iterable<Script> dependentScripts() {
 		requireLoaded();
 		if (dependentScripts == null)
 			return arrayIterable();
@@ -289,10 +288,10 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		dependentScripts = null;
 	}
 	
-	public void addDependentScript(ScriptBase s) {
+	public void addDependentScript(Script s) {
 		requireLoaded();
 		if (dependentScripts == null)
-			dependentScripts = new HashSet<ScriptBase>();
+			dependentScripts = new HashSet<Script>();
 		dependentScripts.add(s);
 	}
 
@@ -447,7 +446,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			// prefer declarations from scripts that were previously determined to be the providers of global declarations
 			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
 			if (usedScripts != null)
-				for (ScriptBase s : usedScripts) {
+				for (Script s : usedScripts) {
 					f = s.findDeclaration(name, info);
 					if (f != null && f.isGlobal())
 						return f;
@@ -455,8 +454,8 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
 				f = info.index.getDefinitionNearestTo(getResource(), ID.get(name));
-				if (f != null && info.declarationClass == Variable.class && f instanceof ProjectDefinition) {
-					f = ((ProjectDefinition)f).proxyVar();
+				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
+					f = ((Definition)f).proxyVar();
 				}
 			}
 			// global stuff defined in project
@@ -534,7 +533,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	@Override
-	public ScriptBase getScript() {
+	public Script getScript() {
 		return this;
 	}
 
@@ -628,14 +627,14 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	public Variable findLocalVariable(String name, boolean includeIncludes) {
-		return findLocalVariable(name, includeIncludes, new HashSet<ScriptBase>());
+		return findLocalVariable(name, includeIncludes, new HashSet<Script>());
 	}
 
 	public Function findLocalFunction(String name, boolean includeIncludes) {
-		return findLocalFunction(name, includeIncludes, new HashSet<ScriptBase>());
+		return findLocalFunction(name, includeIncludes, new HashSet<Script>());
 	}
 
-	public Function findLocalFunction(String name, boolean includeIncludes, HashSet<ScriptBase> alreadySearched) {
+	public Function findLocalFunction(String name, boolean includeIncludes, HashSet<Script> alreadySearched) {
 		requireLoaded();
 		if (alreadySearched.contains(this))
 			return null;
@@ -645,7 +644,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				return func;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : filteredIterable(getIncludes(false), ScriptBase.class)) {
+			for (Script script : filteredIterable(getIncludes(false), Script.class)) {
 				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
 				if (func != null)
 					return func;
@@ -654,7 +653,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return null;
 	}
 
-	public Variable findLocalVariable(String name, boolean includeIncludes, HashSet<ScriptBase> alreadySearched) {
+	public Variable findLocalVariable(String name, boolean includeIncludes, HashSet<Script> alreadySearched) {
 		requireLoaded();
 		if (alreadySearched.contains(this))
 			return null;
@@ -664,7 +663,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				return var;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : filteredIterable(getIncludes(false), ScriptBase.class)) {
+			for (Script script : filteredIterable(getIncludes(false), Script.class)) {
 				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
 				if (var != null)
 					return var;
@@ -872,7 +871,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			addDeclaration((Declaration)node);
 	}
 	
-	public void addUsedScript(ScriptBase script) {
+	public void addUsedScript(Script script) {
 		if (script == null) {
 			// this does happen, for example when adding the script of some variable read from PlayerControls.txt
 			// which is null
@@ -882,14 +881,14 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			return;
 		requireLoaded();
 		if (usedScripts == null)
-			usedScripts = new HashSet<ScriptBase>();
+			usedScripts = new HashSet<Script>();
 		usedScripts.add(script);
 	}
 	
 	/**
 	 * notification sent by the index when a script is removed
 	 */
-	public void scriptRemovedFromIndex(ScriptBase script) {
+	public void scriptRemovedFromIndex(Script script) {
 		if (usedScripts != null)
 			usedScripts.remove(script);
 		if (dependentScripts != null)
@@ -902,8 +901,8 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return index != null ? index.getEngine() : null;
 	}
 	
-	public static ScriptBase get(IResource resource, boolean onlyForScriptFile) {
-		ScriptBase script;
+	public static Script get(IResource resource, boolean onlyForScriptFile) {
+		Script script;
 		if (resource == null)
 			return null;
 		try {
@@ -912,7 +911,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			script = null;
 		}
 		if (script == null)
-			script = ProjectDefinition.definitionCorrespondingToFolder(resource.getParent());
+			script = Definition.definitionCorrespondingToFolder(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
 		if (onlyForScriptFile && (script == null || script.getScriptStorage() == null || !script.getScriptStorage().equals(resource)))
 			return null;
@@ -920,7 +919,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 	
 	@Override
-	public ScriptBase constraint() {
+	public Script constraint() {
 		return this;
 	}
 	
@@ -934,9 +933,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 * @param type Type to return a script from
 	 * @return Associated script or null, if type is some primitive type or what have you
 	 */
-	public static ScriptBase scriptFrom(IType type) {
+	public static Script scriptFrom(IType type) {
 		if (type instanceof IHasConstraint)
-			return Utilities.as(((IHasConstraint)type).constraint(), ScriptBase.class);
+			return Utilities.as(((IHasConstraint)type).constraint(), Script.class);
 		else
 			return null;
 	}
@@ -1028,14 +1027,14 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		return this;
 	}
 	
-	private void _generateFindDeclarationCache(Set<ScriptBase> scriptsAlreadyVisited, ScriptBase script) {
+	private void _generateFindDeclarationCache(Set<Script> scriptsAlreadyVisited, Script script) {
 		if (scriptsAlreadyVisited.contains(script))
 			return;
 		else
 			scriptsAlreadyVisited.add(script);
 		for (IHasIncludes i : script.getIncludes(false))
-			if (i instanceof ScriptBase)
-				_generateFindDeclarationCache(scriptsAlreadyVisited, (ScriptBase)i);
+			if (i instanceof Script)
+				_generateFindDeclarationCache(scriptsAlreadyVisited, (Script)i);
 		for (Function f : script.functions())
 			cachedFunctionMap.put(f.getName(), f);
 		for (Variable v : script.variables())
@@ -1047,7 +1046,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		cachedVariableMap = new HashMap<String, Variable>();
 		includes = null;
 		includes = getIncludes(false);
-		Set<ScriptBase> scripts = new HashSet<ScriptBase>();
+		Set<Script> scripts = new HashSet<Script>();
 		_generateFindDeclarationCache(scripts, this);
 	}
 	

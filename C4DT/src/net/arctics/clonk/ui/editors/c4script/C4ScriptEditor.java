@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
@@ -91,7 +91,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @author madeen
 	 *
 	 */
-	private static final class ScratchScript extends ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
+	private static final class ScratchScript extends Script implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor editor;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -123,7 +123,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @author madeen
 	 *
 	 */
-	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, ScriptBase> {
+	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
 		
 		/**
 		 * Parser responsible for parsing the edited statement that will then be inserted into
@@ -133,7 +133,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		 *
 		 */
 		private static class PatchParser extends C4ScriptParser {
-			public PatchParser(ScriptBase script) {
+			public PatchParser(Script script) {
 				super(script);
 			}
 			@Override
@@ -151,13 +151,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		private static final int REPARSE_DELAY = 700;
 
-		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, ScriptBase>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,ScriptBase>>();
+		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,Script>>();
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
 		private PatchParser patchParser;
 		
-		public static TextChangeListener addTo(IDocument document, ScriptBase script, C4ScriptEditor client)  {
+		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
 			try {
 				return addTo(listeners, TextChangeListener.class, document, script, client);
 			} catch (Exception e) {
@@ -271,7 +271,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, REPARSE_DELAY);
 		}
 		
-		public static void removeMarkers(Function func, ScriptBase script) {
+		public static void removeMarkers(Function func, Script script) {
 			if (script != null && script.getResource() != null) {
 				try {
 					// delete all "while typing" errors
@@ -468,7 +468,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		ScriptBase script = scriptBeingEdited();
+		Script script = scriptBeingEdited();
 		if (script != null && script.isEditable()) {
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		}
@@ -563,10 +563,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *  Created if there is no suitable script to get from somewhere else
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
-	private ScriptBase scratchScript;
+	private Script scratchScript;
 	
-	public ScriptBase scriptBeingEdited() {
-		ScriptBase result = null;
+	public Script scriptBeingEdited() {
+		Script result = null;
 		
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).getScript();
@@ -575,7 +575,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (result == null) {
 			IFile f;
 			if ((f = Utilities.getFileBeingEditedBy(this)) != null) {
-				ScriptBase script = ScriptBase.get(f, true);
+				Script script = Script.get(f, true);
 				if (script != null)
 					result = script;
 			}
@@ -597,7 +597,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public Function getFuncAt(int offset) {
-		ScriptBase script = scriptBeingEdited();
+		Script script = scriptBeingEdited();
 		if (script != null) {
 			Function f = script.funcAt(offset);
 			return f;
@@ -624,7 +624,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static C4ScriptParser reparseWithDocumentContents(
 			IScriptParserListener exprListener,
 			boolean onlyDeclarations, Object document,
-			final ScriptBase script,
+			final Script script,
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
 		C4ScriptParser parser = null;
@@ -672,7 +672,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public ScriptBase topLevelDeclaration() {
+	public Script topLevelDeclaration() {
 		return scriptBeingEdited();
 	}
 	

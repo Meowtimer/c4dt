@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 import org.eclipse.core.resources.IFile;
@@ -31,7 +31,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public ScriptBase getScript() {
+	public Script getScript() {
 		return base.getScript();
 	}
 

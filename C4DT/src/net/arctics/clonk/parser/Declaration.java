@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -143,7 +143,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Set the script of this declaration.
 	 * @param script the object to set
 	 */
-	public void setScript(ScriptBase script) {
+	public void setScript(Script script) {
 		setParentDeclaration(script);
 	}
 	
@@ -177,8 +177,8 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns the script this declaration is declared in.
 	 * @return the script
 	 */
-	public ScriptBase getScript() {
-		return getTopLevelParentDeclarationOfType(ScriptBase.class);
+	public Script getScript() {
+		return getTopLevelParentDeclarationOfType(Script.class);
 	}
 	
 	public Scenario getScenario() {
@@ -261,7 +261,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		final ScriptBase script = getScript();
+		final Script script = getScript();
 		if (isGlobal())
 			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 		final Set<Object> scope = new HashSet<Object>();
@@ -270,7 +270,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		nat.getIndex().forAllRelevantIndexes(new r() {
 			@Override
 			public void run(Index index) {
-				for (ScriptBase s : index.allScripts())
+				for (Script s : index.allScripts())
 					if (s.usedScripts() != null && s.usedScripts().contains(script))
 						scope.add(s);
 			}
@@ -475,7 +475,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public ScriptBase getContainer() {
+			public Script getContainer() {
 				return getScript();
 			}
 
@@ -506,7 +506,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public ScriptBase getScript() {
+			public Script getScript() {
 				return Declaration.this.getScript();
 			}
 

@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -70,7 +70,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		}
 	}
 	
-	public boolean initializeRegionDescription(RegionDescription d, ScriptBase script, IRegion region) {
+	public boolean initializeRegionDescription(RegionDescription d, Script script, IRegion region) {
 		d.func = script.funcAt(region);
 		if (d.func == null) {
 			Variable var = script.variableWithInitializationAt(region);
@@ -85,7 +85,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
-		final ScriptBase script = Utilities.getScriptForEditor(getEditor());
+		final Script script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)
 			return;
 		RegionDescription d = new RegionDescription();
@@ -105,7 +105,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			simpleFindDeclaration(doc, region, script, d.func);
 	}
 
-	public void initializeProposedDeclarations(final ScriptBase script, RegionDescription regionDescription, DeclarationRegion declRegion, ExprElm exprAtRegion) {
+	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, DeclarationRegion declRegion, ExprElm exprAtRegion) {
 		boolean setRegion;
 		if (declRegion != null && declRegion.getPotentialDeclarations() != null && declRegion.getPotentialDeclarations().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
@@ -171,7 +171,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			this.exprRegion = new Region(regionDescription.bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
 	}
 
-	private void simpleFindDeclaration(IDocument doc, IRegion region, ScriptBase script, Function func) throws BadLocationException {
+	private void simpleFindDeclaration(IDocument doc, IRegion region, Script script, Function func) throws BadLocationException {
 		IRegion lineInfo;
 		String line;
 		try {

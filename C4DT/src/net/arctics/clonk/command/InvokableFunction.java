@@ -5,7 +5,7 @@ import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
@@ -42,7 +42,7 @@ public class InvokableFunction extends Function {
 			}
 
 			@Override
-			public ScriptBase getScript() {
+			public Script getScript() {
 				return InvokableFunction.this.getScript();
 			}
 

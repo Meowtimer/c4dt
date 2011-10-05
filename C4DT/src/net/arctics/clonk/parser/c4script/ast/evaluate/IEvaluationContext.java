@@ -4,7 +4,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 /**
@@ -27,7 +27,7 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * The script that acts as the general context for this evaluation. <i>May not be null</i>.
 	 * @return
 	 */
-	ScriptBase getScript();
+	Script getScript();
 	/**
 	 * Offset in characters of the code fragment that is being evaluated.
 	 * @return The offset

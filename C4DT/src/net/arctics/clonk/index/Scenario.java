@@ -10,14 +10,14 @@ import org.eclipse.core.resources.IContainer;
  * @author madeen
  *
  */
-public class Scenario extends ProjectDefinition {
+public class Scenario extends Definition {
 
 	public Scenario(Index index, String name, IContainer container) {
 		super(index, ID.NULL, name, container);
 	}
 	
 	public static Scenario get(IContainer folder) {
-		ProjectDefinition obj = definitionCorrespondingToFolder(folder);
+		Definition obj = definitionCorrespondingToFolder(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 

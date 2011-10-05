@@ -11,7 +11,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IPostLoadable;
-import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -294,8 +293,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parentDeclaration instanceof Function)
 			return new Object[] {parentDeclaration};
-		if (!isGloballyAccessible() && parentDeclaration instanceof ProjectDefinition) {
-			ProjectDefinition obj = (ProjectDefinition) parentDeclaration;
+		if (!isGloballyAccessible() && parentDeclaration instanceof Definition) {
+			Definition obj = (Definition) parentDeclaration;
 			Index index = obj.getIndex();
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);
@@ -304,7 +303,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 					result.add(o);
 				}
 			}
-			for (ScriptBase script : index.indexedScripts()) {
+			for (Script script : index.indexedScripts()) {
 				if (script.includes(obj)) {
 					result.add(script);
 				}

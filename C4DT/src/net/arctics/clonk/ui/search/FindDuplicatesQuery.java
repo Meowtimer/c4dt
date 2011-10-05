@@ -20,7 +20,7 @@ import org.eclipse.ui.IEditorPart;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
@@ -71,10 +71,10 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 	 * @param scripts The script list
 	 * @return The new query
 	 */
-	public static FindDuplicatesQuery queryWithScripts(Iterable<ScriptBase> scripts) {
+	public static FindDuplicatesQuery queryWithScripts(Iterable<Script> scripts) {
 		FindDuplicatesQuery result = new FindDuplicatesQuery();
 		List<Function> fns = new LinkedList<Function>();
-		for (ScriptBase script : scripts) {
+		for (Script script : scripts) {
 			fns.addAll(script.functions());
 			result.indexes.add(script.getIndex());
 		}

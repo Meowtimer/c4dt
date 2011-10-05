@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
-import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.Boolean;
@@ -214,10 +214,10 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(editor).getParent());
+		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(editor).getParent());
 		if (obj != null) {
 			for (IHasIncludes include : obj.conglomerate()) {
-				ScriptBase script = Utilities.as(include, ScriptBase.class);
+				Script script = Utilities.as(include, Script.class);
 				if (script == null)
 					continue;
 				for (Function f : script.functions()) {

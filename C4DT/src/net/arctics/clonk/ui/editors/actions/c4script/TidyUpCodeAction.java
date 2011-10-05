@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.MutableRegion;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
@@ -84,7 +84,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 	}
 	
 	public static void runOnDocument(
-		ScriptBase script,
+		Script script,
 		ITextSelection selection,
 		C4ScriptParser parser,
 		final IDocument document
