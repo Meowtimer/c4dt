@@ -37,7 +37,7 @@ public final class NumberLiteral extends Literal<Long> {
 		
 		@Override
 		public Iterator<IType> iterator() {
-			return ArrayUtil.arrayIterable(this, PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ID).iterator();
+			return ArrayUtil.arrayIterable(this, PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ID, PrimitiveType.ARRAY).iterator();
 		}
 	}
 	
