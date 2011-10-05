@@ -226,8 +226,12 @@ public class Engine extends ScriptBase {
 		if (
 			!Utilities.objectsEqual(oldSettings.repositoryPath, currentSettings.repositoryPath) ||
 			oldSettings.readDocumentationFromRepository != currentSettings.readDocumentationFromRepository
-		)
-			reinitializeDocImporter();
+		) {
+			if (currentSettings.readDocumentationFromRepository)
+				reinitializeDocImporter();
+			else
+				parseEngineScript();
+		}
 	}
 
 	public EngineSettings getCurrentSettings() {
@@ -474,14 +478,20 @@ public class Engine extends ScriptBase {
 		return false;
 	}
 	
-	public void loadDeclarationsConfiguration() throws NoSuchFieldException, IllegalAccessException, IOException {
+	public void loadDeclarationsConfiguration() {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
 			URL url = loc.getURL("declarations.ini", false);
 			if (url != null) {
-				InputStream stream = url.openStream();
+				InputStream stream;
+				try {
+					stream = url.openStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+					continue;
+				}
 				try {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					unit.getParser().parse(false);
@@ -492,40 +502,63 @@ public class Engine extends ScriptBase {
 						}
 					}
 				} finally {
-					stream.close();
+					try {
+						stream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
 	}
 	
-	public void parseEngineScript(final URL url) throws IOException, ParsingException {
-		InputStream stream = url.openStream();
-		try {
-			String scriptFromStream = StreamUtil.stringFromInputStream(stream);
-			final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
-			C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
-				private boolean firstMessage = true;
-				@Override
-				public void markerWithCode(ParserErrorCode code,
-						int errorStart, int errorEnd, int flags,
-						int severity, Object... args) throws ParsingException {
-					if (firstMessage) {
-						firstMessage = false;
-						System.out.println("Messages while parsing " + url.toString());
-					}
-					System.out.println(String.format(
-						"%s @(%d, %d)",
-						code.getErrorString(args),
-						lno.obtainLineNumber(errorStart),
-						lno.obtainCharNumberInObtainedLine()
-					));
-					super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
+	public void parseEngineScript() {
+		for (IStorageLocation loc : storageLocations) {
+			final URL url = loc.getURL(getName()+".c", false);
+			if (url != null) {
+				InputStream stream;
+				try {
+					stream = url.openStream();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+					continue;
 				}
-			};
-			parser.parse();
-			postLoad(null, null);
-		} finally {
-			stream.close();
+				try {
+					String scriptFromStream = StreamUtil.stringFromInputStream(stream);
+					final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
+					C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
+						private boolean firstMessage = true;
+						@Override
+						public void markerWithCode(ParserErrorCode code,
+								int errorStart, int errorEnd, int flags,
+								int severity, Object... args) throws ParsingException {
+							if (firstMessage) {
+								firstMessage = false;
+								System.out.println("Messages while parsing " + url.toString());
+							}
+							System.out.println(String.format(
+									"%s @(%d, %d)",
+									code.getErrorString(args),
+									lno.obtainLineNumber(errorStart),
+									lno.obtainCharNumberInObtainedLine()
+									));
+							super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
+						}
+					};
+					try {
+						parser.parse();
+					} catch (ParsingException e) {
+						e.printStackTrace();
+					}
+					postLoad(null, null);
+				} finally {
+					try {
+						stream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 	
@@ -548,10 +581,11 @@ public class Engine extends ScriptBase {
 		Engine result = null;
 		try {
 			for (IStorageLocation location : providers) {
-				URL url = location.getURL(location.getName()+".c", false); //$NON-NLS-1$
+				// only consider valid engine folder if configuration.ini is present
+				URL url = location.getURL(CONFIGURATION_INI_NAME, false); //$NON-NLS-1$
 				if (url != null) {
 					result = new Engine(location.getName());
-					result.load(url, providers);
+					result.load(providers);
 					break;
 				}
 			}
@@ -561,13 +595,17 @@ public class Engine extends ScriptBase {
 		return result;
 	}
 
-	private void load(URL url, final IStorageLocation... providers) throws IOException, ParsingException, NoSuchFieldException, IllegalAccessException {
+	private void load(final IStorageLocation... providers) {
 		this.storageLocations = providers;
-		loadSettings();
+		try {
+			loadSettings();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		loadIniConfigurations();
 		createSpecialRules();
 		if (!getCurrentSettings().readDocumentationFromRepository)
-			parseEngineScript(url);
+			parseEngineScript();
 		loadDeclarationsConfiguration();
 		reinitializeDocImporter();
 	}
