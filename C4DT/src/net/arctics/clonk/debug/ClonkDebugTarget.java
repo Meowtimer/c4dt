@@ -152,7 +152,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 	
 	/**
-	 * Remove a line received listener fomr the internal list.
+	 * Remove a line received listener from the internal list.
 	 * @param listener The listener to remove
 	 */
 	public void removeLineReceiveListener(ILineReceivedListener listener) {
