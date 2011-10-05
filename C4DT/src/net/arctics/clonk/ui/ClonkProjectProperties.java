@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkProjectNature.ProjectSettings;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
@@ -20,15 +21,22 @@ import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ICheckStateProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
@@ -40,6 +48,137 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		super(GRID);
 	}
 	
+	private final class DisabledErrorsFieldEditor extends FieldEditor implements ICheckStateListener, ICheckStateProvider {
+		HashSet<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
+		private CheckboxTableViewer tableViewer;
+		private Table table;
+		private Text filterBox;
+
+		private DisabledErrorsFieldEditor(String name, String labelText,
+			Composite parent) {
+			super(name, labelText, parent);
+		}
+
+		@Override
+		public int getNumberOfControls() {
+			return 3;
+		}
+
+		@Override
+		protected void doStore() {
+			ClonkProjectNature.get(getProject()).getSettings().setDisabledErrorsSet(disabledErrorCodes);
+		}
+
+		@Override
+		protected void doLoadDefault() {
+			doLoad();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected void doLoad() {
+			disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).getSettings().getDisabledErrorsSet().clone();
+			if (tableViewer != null)
+			for (ParserErrorCode c : ParserErrorCode.values())
+				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
+		}
+
+		private Table getTable(Composite parent) {
+			if (table == null) {
+				filterBox = new Text(parent, SWT.SEARCH | SWT.CANCEL);
+				filterBox.addModifyListener(new ModifyListener() {
+					@Override
+					public void modifyText(ModifyEvent e) {
+						tableViewer.refresh();
+					}
+				});
+				ViewerFilter filter = new ViewerFilter() {
+					@Override
+					public boolean select(Viewer viewer, Object parentElement, Object element) {
+						String text = ((LabelProvider)tableViewer.getLabelProvider()).getText(element);
+						return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(text).find();
+					}
+				};
+				table = new Table(parent, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+				tableViewer = new CheckboxTableViewer(table);
+				tableViewer.addFilter(filter);
+				tableViewer.setContentProvider(new IStructuredContentProvider() {
+					@Override
+					public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
+					@Override
+					public void dispose() {}
+					@Override
+					public Object[] getElements(Object inputElement) {
+						if (inputElement == ParserErrorCode.class) {
+							ParserErrorCode[] elms = ParserErrorCode.values().clone();
+							Arrays.sort(elms, new Comparator<ParserErrorCode>() {
+								@Override
+								public int compare(ParserErrorCode o1, ParserErrorCode o2) {
+									return o1.getMessageWithFormatArgumentDescriptions().compareTo(o2.getMessageWithFormatArgumentDescriptions());
+								}
+							});
+							return elms;
+						}
+						return null;
+					}
+				});
+				tableViewer.setLabelProvider(new LabelProvider() {
+					@Override
+					public String getText(Object element) {
+						return ((ParserErrorCode)element).getMessageWithFormatArgumentDescriptions();
+					}
+				});
+				tableViewer.addCheckStateListener(this);
+				tableViewer.setCheckStateProvider(this);
+				tableViewer.setInput(ParserErrorCode.class);
+			}
+			return table;
+		}
+
+		@Override
+		protected void doFillIntoGrid(Composite parent, int numColumns) {
+			Label label = getLabelControl(parent);
+			label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+			Table table = getTable(parent);
+			GridData gd = new GridData();
+			gd.heightHint = 0;
+			gd.widthHint = SWT.DEFAULT;
+			gd.horizontalSpan = numColumns - 1;
+			gd.grabExcessHorizontalSpace = true;
+			gd.horizontalAlignment = SWT.FILL;
+			gd.verticalAlignment = SWT.FILL;
+			gd.grabExcessVerticalSpace = true;
+		    table.setLayoutData(gd);
+		    gd = new GridData();
+		    gd.widthHint = SWT.DEFAULT;
+		    gd.grabExcessHorizontalSpace = true;
+		    gd.horizontalAlignment = SWT.FILL;
+		    filterBox.setLayoutData(gd);
+		}
+
+		@Override
+		protected void adjustForNumColumns(int numColumns) {
+			// yup
+		}
+
+		@Override
+		public boolean isGrayed(Object element) {
+			return false;
+		}
+		@Override
+		public boolean isChecked(Object element) {
+			return disabledErrorCodes != null && !disabledErrorCodes.contains(element);
+		}
+
+		@Override
+		public void checkStateChanged(CheckStateChangedEvent event) {
+			if (event.getChecked())
+				disabledErrorCodes.remove(event.getElement());
+			else
+				disabledErrorCodes.add((ParserErrorCode) event.getElement());
+		}
+	}
+
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
 
@@ -104,98 +243,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	@Override
 	protected void createFieldEditors() {
 		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
-		addField(new FieldEditor(DISABLED_ERRORS_PROPERTY, Messages.EnabledErrors, getFieldEditorParent()) {
-			
-			HashSet<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
-			
-			@Override
-			public int getNumberOfControls() {
-				return 2;
-			}
-			
-			@Override
-			protected void doStore() {
-				disabledErrorCodes.clear();
-				disabledErrorCodes.addAll(Arrays.asList(ParserErrorCode.values()));
-				for (Object obj : tableViewer.getCheckedElements()) {
-					if (obj instanceof ParserErrorCode)
-						disabledErrorCodes.remove((ParserErrorCode) obj);
-				}
-				ClonkProjectNature.get(getProject()).getSettings().setDisabledErrorsSet(disabledErrorCodes);
-			}
-			
-			@Override
-			protected void doLoadDefault() {
-				doLoad();
-			}
-			
-			@SuppressWarnings("unchecked")
-			@Override
-			protected void doLoad() {
-				disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).getSettings().getDisabledErrorsSet().clone();
-				if (tableViewer != null)
-					for (ParserErrorCode c : ParserErrorCode.values())
-						tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
-			}
-			
-			private CheckboxTableViewer tableViewer;
-			private Table table;
-			private Table getTable(Composite parent) {
-				if (table == null) {
-					table = new Table(parent, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
-					tableViewer = new CheckboxTableViewer(table);
-					tableViewer.setContentProvider(new IStructuredContentProvider() {
-						@Override
-						public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
-						@Override
-						public void dispose() {}
-						@Override
-						public Object[] getElements(Object inputElement) {
-							if (inputElement == ParserErrorCode.class) {
-								ParserErrorCode[] elms = ParserErrorCode.values().clone();
-								Arrays.sort(elms, new Comparator<ParserErrorCode>() {
-									@Override
-									public int compare(ParserErrorCode o1, ParserErrorCode o2) {
-										return o1.getMessageWithFormatArgumentDescriptions().compareTo(o2.getMessageWithFormatArgumentDescriptions());
-									}
-								});
-								return elms;
-							}
-							return null;
-						}
-					});
-					tableViewer.setLabelProvider(new LabelProvider() {
-						@Override
-						public String getText(Object element) {
-							return ((ParserErrorCode)element).getMessageWithFormatArgumentDescriptions();
-						}
-					});
-					tableViewer.setInput(ParserErrorCode.class);
-				}
-				return table;
-			}
-			
-			@Override
-			protected void doFillIntoGrid(Composite parent, int numColumns) {
-				Label label = getLabelControl(parent);
-				label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-				Table table = getTable(parent);
-				GridData gd = new GridData();
-				gd.heightHint = 0;
-				gd.widthHint = SWT.DEFAULT;
-				gd.horizontalSpan = numColumns - 1;
-				gd.grabExcessHorizontalSpace = true;
-				gd.horizontalAlignment = SWT.FILL;
-				gd.verticalAlignment = SWT.FILL;
-				gd.grabExcessVerticalSpace = true;
-		        table.setLayoutData(gd);
-			}
-			
-			@Override
-			protected void adjustForNumColumns(int numColumns) {
-				// yup
-			}
-		});
+		addField(new DisabledErrorsFieldEditor(DISABLED_ERRORS_PROPERTY, Messages.EnabledErrors, getFieldEditorParent()));
 	}
 
 	public IAdaptable getElement() {
