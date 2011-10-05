@@ -492,7 +492,7 @@ global func int GetController();
 global func object GetCrew(int player, int iIndex);
 global func int GetCrewCount(int player);
 global func bool GetCrewEnabled();
-global func any GetCrewExtraData(object pCrew, string strDataName);
+global func any GetCrewExtraData(string strDataName);
 global func object GetCursor(int player, int iIndex);
 global func int GetDamage();
 global func int GetDefBottom();
