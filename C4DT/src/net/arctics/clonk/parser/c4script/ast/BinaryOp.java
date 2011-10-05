@@ -28,6 +28,8 @@ public class BinaryOp extends OperatorExpression {
 				return leftSideType;
 			else
 				return PrimitiveType.ANY;
+		case Assign:
+			return getRightSide().getType(context);
 		default:
 			return super.obtainType(context);
 		}
