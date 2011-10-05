@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -111,7 +113,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 			});
 			for (Declaration d : decs) {
 				try {
-					Function func = d instanceof Function ? (Function)d : null;
+					Function func = as(d, Function.class);
 					// variable declared inside function -> ignore
 					/*if (var != null && parser.getContainer().funcAt(var.getLocation().getOffset()) != null)
 						continue;*/
@@ -157,7 +159,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							System.out.println("Adding edit for " + func.getName() + " failed");
 						}
 					}
-					else if (!noSelection) {
+					else if (noSelection) {
 						region.setStartAndEnd(
 							selection.getOffset()-(func != null ? func.getBody().getOffset() : 0),
 							selection.getOffset()-(func != null ? func.getBody().getOffset() : 0)+selection.getLength()
