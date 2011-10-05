@@ -250,7 +250,7 @@
 		</filter>
 	</extension>
 
-	<extension id="builder" name="C4 Builder" point="org.eclipse.core.resources.builders">
+	<extension id="builder" name="C4DT Builder" point="org.eclipse.core.resources.builders">
 		<builder hasNature="true">
 			<run class="net.arctics.clonk.resource.ClonkBuilder" />
 		</builder>
