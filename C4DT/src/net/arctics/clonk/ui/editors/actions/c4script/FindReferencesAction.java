@@ -4,17 +4,16 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class FindReferencesAction extends OpenDeclarationAction {
+public class FindReferencesAction extends C4ScriptEditorAction {
 
 	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
-		super(bundle, prefix, editor);
-		this.setActionDefinitionId(IClonkCommandIds.FIND_REFERENCES);
+		super(bundle, prefix, editor, ClonkCommandIds.FIND_REFERENCES);
 	}
 	
 	@Override

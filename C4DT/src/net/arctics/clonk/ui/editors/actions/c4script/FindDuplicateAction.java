@@ -6,17 +6,16 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.search.FindDuplicatesQuery;
 
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class FindDuplicateAction extends OpenDeclarationAction {
+public class FindDuplicateAction extends C4ScriptEditorAction {
 	public FindDuplicateAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
-		super(bundle, prefix, editor);
-		this.setActionDefinitionId(IClonkCommandIds.FIND_DUPLICATES);
+		super(bundle, prefix, editor, ClonkCommandIds.FIND_DUPLICATES);
 	}
 	@Override
 	public void run() {

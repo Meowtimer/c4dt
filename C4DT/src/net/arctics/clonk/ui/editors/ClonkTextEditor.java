@@ -248,7 +248,7 @@ public class ClonkTextEditor extends TextEditor {
 		
 		IAction action;
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
-		setAction(IClonkCommandIds.OPEN_DECLARATION, action);
+		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
 		
 		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
 			action = new ContentAssistAction(messagesBundle, "ContentAssist.", this); //$NON-NLS-1$
@@ -261,8 +261,8 @@ public class ClonkTextEditor extends TextEditor {
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (topLevelDeclaration() != null) {
-			menu.add(new Separator(IClonkCommandIds.GROUP_CLONK));
-			addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
+			menu.add(new Separator(ClonkCommandIds.GROUP_CLONK));
+			addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
 		}
 	}
 	

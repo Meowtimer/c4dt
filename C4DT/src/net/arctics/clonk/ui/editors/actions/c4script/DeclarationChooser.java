@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.setFromIterable;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -11,23 +13,22 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
-import static net.arctics.clonk.util.ArrayUtil.*;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -86,7 +87,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
-	private Set<DeclarationLocation> declarations;
+	private final Set<DeclarationLocation> declarations;
 	private Index index;
 
 	public DeclarationChooser(Shell shell, Set<DeclarationLocation> proposedDeclarations) {

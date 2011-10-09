@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
-import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -17,12 +17,10 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class RenameDeclarationAction extends OpenDeclarationAction {
+public class RenameDeclarationAction extends C4ScriptEditorAction {
 
-	public RenameDeclarationAction(ResourceBundle bundle, String prefix,
-			ITextEditor editor) {
-		super(bundle, prefix, editor);
-		this.setActionDefinitionId(IClonkCommandIds.RENAME_DECLARATION);
+	public RenameDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+		super(bundle, prefix, editor, ClonkCommandIds.RENAME_DECLARATION);
 	}
 	
 	@Override

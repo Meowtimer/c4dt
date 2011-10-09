@@ -38,11 +38,12 @@ import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
-import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
 import net.arctics.clonk.ui.editors.TextChangeListenerBase;
+import net.arctics.clonk.ui.editors.actions.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
@@ -493,16 +494,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		IAction action;
 		
 		action = new TidyUpCodeAction(messagesBundle,"TidyUpCode.",this); //$NON-NLS-1$
-		setAction(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
+		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
-		setAction(IClonkCommandIds.FIND_REFERENCES, action);
+		setAction(ClonkCommandIds.FIND_REFERENCES, action);
 		
 		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this); //$NON-NLS-1$
-		setAction(IClonkCommandIds.RENAME_DECLARATION, action);
+		setAction(ClonkCommandIds.RENAME_DECLARATION, action);
 		
 		action = new FindDuplicateAction(messagesBundle, "FindDuplicates.", this);
-		setAction(IClonkCommandIds.FIND_DUPLICATES, action);
+		setAction(ClonkCommandIds.FIND_DUPLICATES, action);
+		
+		action = new ToggleCommentAction(messagesBundle, "ToggleComment.", this);
+		setAction(ClonkCommandIds.TOGGLE_COMMENT, action);
 		
 	}
 
@@ -514,11 +518,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.editorContextMenuAboutToShow(menu);
 		if (scriptBeingEdited() != null) {
 			if (scriptBeingEdited().isEditable()) {
-				addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-				addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
+				addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+				addAction(menu, ClonkCommandIds.RENAME_DECLARATION);
+				addAction(menu, ClonkCommandIds.TOGGLE_COMMENT);
 			}
-			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
-			addAction(menu, IClonkCommandIds.FIND_DUPLICATES);
+			addAction(menu, ClonkCommandIds.FIND_REFERENCES);
+			addAction(menu, ClonkCommandIds.FIND_DUPLICATES);
 		}
 	}
 	

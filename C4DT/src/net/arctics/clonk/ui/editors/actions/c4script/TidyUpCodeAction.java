@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -55,7 +55,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 
 	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.setId(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
 
 	/* (non-Javadoc)

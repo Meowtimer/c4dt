@@ -116,7 +116,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
 							callFunc.getPredecessorInSequence(),
-							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
+							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()),
 							context, null
 					);
 					if (d instanceof EffectFunction) {

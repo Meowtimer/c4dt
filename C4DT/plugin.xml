@@ -442,10 +442,10 @@
 			name="%TidyUpCode_Name" />
 		
 		<command categoryId="net.arctics.clonk.commands"
-			description="%TidyUpCode_Desc"
+			description="%TidyUpCodeInBulk_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk"
 			defaultHandler="net.arctics.clonk.ui.navigator.TidyUpCodeInBulkHandler"
-			name="%TidyUpCode_Name" />
+			name="%TidyUpCodeInBulk_Name" />
 		
 		<command categoryId="net.arctics.clonk.commands"
             description="%FindDuplicates_Desc"
@@ -480,6 +480,11 @@
 			description="%DeclarationFilter_Desc"
 			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
 			name="%DeclarationFilter_Name" />
+		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%ToggleComment_Desc"
+			id="net.arctics.clonk.ui.editors.actions.ToggleComment"
+			name="%ToggleComment_Name" />
 
 	</extension>
 

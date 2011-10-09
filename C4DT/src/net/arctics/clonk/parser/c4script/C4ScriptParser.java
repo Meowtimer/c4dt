@@ -1612,7 +1612,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			IRegion exprLocation = reporter;
 			if (exprLocation != null)
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
-			result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
+			//result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
 			return result;
 		}
 	}
@@ -1626,8 +1626,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			@Override
 			public void run() {
 				synchronized (markers) {
-					for (MarkerInfo m : markersToDeploy)
+					for (MarkerInfo m : markersToDeploy) {
+						long start = System.currentTimeMillis();
 						m.deploy();
+						System.out.println("Time it took: " + (System.currentTimeMillis()-start));
+					}
 				}
 			}
 		});

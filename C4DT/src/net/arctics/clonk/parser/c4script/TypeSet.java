@@ -210,6 +210,8 @@ public class TypeSet implements IType, IResolvable {
 		
 		if (typeNames.size() == 1 && containsAny)
 			return typeNames.iterator().next() + "?";
+		else if (typeNames.size() == 1)
+			return typeNames.iterator().next();
 		boolean started = true;
 		for (String tn : typeNames) {
 			if (started)
