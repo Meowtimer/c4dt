@@ -55,7 +55,16 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			new ViewerFilter() {
 				@Override
 				public boolean select(Viewer viewer, Object parentElement, Object element) {
-					return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(element.toString()).find();
+					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(element.toString()).find())
+						return true;
+					if (element instanceof Declaration) {
+						if (((Declaration)element).hasSubDeclarationsInOutline()) {
+							for (Object sd : ((Declaration)element).getSubDeclarationsForOutline())
+								if (select(viewer, element, sd))
+									return true;
+						}
+					}
+					return false;
 				}
 			}
 		});
