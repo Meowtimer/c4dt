@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-	id="net.arctics.clonk.c4dtFeature"
-	label="Clonk Development Tools"
-	version="1.6.0.qualifier">
+      id="net.arctics.clonk.c4dtFeature"
+      label="Clonk Development Tools"
+      version="1.6.1.qualifier">
 
-	<description url="http://www.example.com/description">
-		Clonk Development Tools for Eclipse.
-		Changelog can be found at http://bitbucket.org/mortimer/c4dt/raw/tip/C4DT/changelog.txt
-	</description>
+   <description url="http://www.example.com/description">
+      Clonk Development Tools for Eclipse.
+  Changelog can be found at http://bitbucket.org/mortimer/c4dt/raw/tip/C4DT/changelog.txt
+   </description>
 
-	<copyright url="http://www.example.com/copyright">
-		It is copyrighted I guess.
-	</copyright>
+   <copyright url="http://www.example.com/copyright">
+      It is copyrighted I guess.
+   </copyright>
 
    <license url="http://www.example.com/license">
-   Permission to use, copy, modify, and/or distribute this software for any
+      Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
 copyright notice and this permission notice appear in all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
 ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
