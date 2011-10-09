@@ -1,5 +1,7 @@
 package net.arctics.clonk.resource;
 
+import static net.arctics.clonk.util.ArrayUtil.listFromIterable;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -14,15 +16,15 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.DefinitionParser;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SystemScript;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SystemScript;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -30,6 +32,7 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
@@ -68,13 +71,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private static final class UIRefresher implements Runnable {
 		
-		private Iterable<Script> resourcesToBeRefreshed;
+		private final List<Script> resourcesToBeRefreshed;
 		
-		public UIRefresher(Iterable<Script> resourcesToBeRefreshed) {
+		public UIRefresher(List<Script> resourcesToBeRefreshed) {
 			super();
 			this.resourcesToBeRefreshed = resourcesToBeRefreshed;
 		}
 
+		@Override
 		public void run() {
 			IWorkbench w = PlatformUI.getWorkbench();
 			for (IWorkbenchWindow window : w.getWorkbenchWindows()) {
@@ -123,7 +127,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		public static final int OPEN = 0;
 		public static final int CLOSE = 1;
 		
-		private int operation;
+		private final int operation;
 		
 		public C4GroupStreamHandler(int operation) {
 			this.operation = operation;
@@ -166,6 +170,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 	
 	public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
+		@Override
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			if (delta == null) 
 				return false;
@@ -238,6 +243,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			monitor.worked(1);
 			return success;
 		}
+		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (monitor.isCanceled())
 				return false;
@@ -308,18 +314,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	/**
 	 *  Gathered list of scripts to be parsed
 	 */
-	private Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
+	private final Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
 
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
 	 */
-	private Set<Structure> gatheredStructures = new HashSet<Structure>();
+	private final Set<Structure> gatheredStructures = new HashSet<Structure>();
 	
 	/**
 	 * Set of {@link Definition}s whose ids have been changed by reparsing of their DefCore.txt files
 	 */
-	private Set<Pair<Definition, ID>> renamedDefinitions = new HashSet<Pair<Definition, ID>>();
+	private final Set<Pair<Definition, ID>> renamedDefinitions = new HashSet<Pair<Definition, ID>>();
 
 	private Index getIndex() {
 		return ClonkProjectNature.get(getProject()).getIndex();
@@ -346,6 +352,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	
 	private int buildKind;
 
+	@Override
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		this.buildKind = kind;
@@ -420,8 +427,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 	
 	private static class SaveScriptsJob extends Job {
-		private Script[] scriptsToSave;
-		private IProject project;
+		private final Script[] scriptsToSave;
+		private final IProject project;
 		public SaveScriptsJob(IProject project, Script... scriptsToSave) {
 			super(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts);
 			this.scriptsToSave = scriptsToSave;
@@ -490,7 +497,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					performBuildPhaseOne(script);
 					monitor.worked(1);
 				}
-				Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet()));
+				Display.getDefault().asyncExec(new UIRefresher(listFromIterable(newlyEnqueuedParsers.keySet())));
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 				// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 				// if the function being referenced is defined in an #appendto from this index
@@ -574,7 +581,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Definition def = (Definition) script;
 			for (IResource r : def.definitionFolder().members()) {
 				if (r instanceof IFile) {
-					Structure pinned = Structure.pinned((IFile) r, false, true);
+					Structure pinned = Structure.pinned(r, false, true);
 					if (pinned != null)
 						pinned.validate();
 				}

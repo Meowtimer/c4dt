@@ -118,9 +118,11 @@ public class ArrayUtil {
 
 	public static <T> Iterable<T> arrayIterable(final T... items) {
 		return new Iterable<T>() {
+			@Override
 			public Iterator<T> iterator() {
 				return new Iterator<T>() {
 					private int index = -1;
+					@Override
 					public boolean hasNext() {
 						for (int i = index+1; i < items.length; i++) {
 							if (items[i] != null) {
@@ -130,6 +132,7 @@ public class ArrayUtil {
 						return false;
 					}
 
+					@Override
 					public T next() {
 						for (index++; index < items.length; index++) {
 							if (items[index] != null) {
@@ -139,6 +142,7 @@ public class ArrayUtil {
 						return null;
 					}
 
+					@Override
 					public void remove() {
 					}
 				};
@@ -253,6 +257,13 @@ public class ArrayUtil {
 	  List<T> list = new ArrayList<T>(c);
 	  Collections.sort(list);
 	  return list;
+	}
+	
+	public static <T> List<T> listFromIterable(Iterable<T> iterable) {
+		LinkedList<T> result = new LinkedList<T>();
+		for (T t : iterable)
+			result.add(t);
+		return result;
 	}
 
 }
