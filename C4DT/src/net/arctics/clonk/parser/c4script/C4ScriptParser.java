@@ -2572,7 +2572,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			int garbageStart, int potentialGarbageEnd) throws ParsingException {
 		String garbageString = buffer.substring(garbageStart, Math.min(potentialGarbageEnd, buffer.length()));
 		garbageString = modifyGarbage(garbageString);
-		if (garbageString != null) {
+		if (garbageString != null && garbageString.length() > 0) {
 			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-bodyOffset());
 			garbageStart = -1;
 			statements.add(garbage);

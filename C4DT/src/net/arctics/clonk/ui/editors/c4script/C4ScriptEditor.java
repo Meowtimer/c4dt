@@ -16,14 +16,15 @@ import net.arctics.clonk.ClonkCore.IDocumentAction;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.Block;
@@ -32,22 +33,21 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
-import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
 import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.ui.editors.actions.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
-import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -154,7 +154,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,Script>>();
 		
-		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
+		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
 		private PatchParser patchParser;
 		
@@ -233,6 +233,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		@Override
 		protected void adjustDec(Declaration declaration, int offset, int add) {
+			System.out.println(String.format("Adjusting %d, %d", offset, add));
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function) {
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).getBody(), offset, add);
@@ -315,6 +316,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.getScriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
+						System.out.println("Reparsing");
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
@@ -366,11 +368,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	private ColorManager colorManager;
+	private final ColorManager colorManager;
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting"); //$NON-NLS-1$
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor"); //$NON-NLS-1$
 	
-	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
+	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
 	
 	public C4ScriptEditor() {
@@ -477,6 +479,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
 	}
 
+	@Override
 	public void dispose() {
 		if (textChangeListener != null) {
 			textChangeListener.removeClient(this);
@@ -488,6 +491,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
 	
+	@Override
 	protected void createActions() {
 		super.createActions();
 
@@ -619,6 +623,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, scriptBeingEdited(), new Runnable() {
+			@Override
 			public void run() {
 				refreshOutline();
 				handleCursorPositionChanged();
