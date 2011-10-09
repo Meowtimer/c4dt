@@ -3,30 +3,69 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.util.StringUtil;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class ClonkContentOutlinePage extends ContentOutlinePage {
 
+	private Composite composite;
 	private ClonkTextEditor editor;
+	private Text filterBox;
 	
+	@Override
+	public Control getControl() {
+		return composite;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.views.contentoutline.ContentOutlinePage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
 	public void createControl(Composite parent) {
-		super.createControl(parent);
+		composite = new Composite(parent, SWT.DEFAULT | SWT.NO_SCROLL);
+		GridLayout layout = new GridLayout(1, false);
+		composite.setLayout(layout);
+		filterBox = new Text(composite, SWT.SEARCH | SWT.CANCEL);
+		filterBox.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		filterBox.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				getTreeViewer().refresh();
+			}
+		});
+		super.createControl(composite);
+		getTreeViewer().getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		getTreeViewer().setFilters(new ViewerFilter[] {
+			new ViewerFilter() {
+				@Override
+				public boolean select(Viewer viewer, Object parentElement, Object element) {
+					return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(element.toString()).find();
+				}
+			}
+		});
 		if (editor != null) {
 			Declaration topLevelDeclaration = getEditor().topLevelDeclaration();
 			if (topLevelDeclaration != null) {
 				setTreeViewerInput(topLevelDeclaration);
 			}
 		}
+		parent.layout();
 	}
 
 	private static final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {

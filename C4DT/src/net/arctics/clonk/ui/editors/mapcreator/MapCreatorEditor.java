@@ -1,14 +1,5 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.CommonTokenStream;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocumentListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Composite;
-
 import net.arctics.clonk.parser.mapcreator.MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
 import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
@@ -18,6 +9,15 @@ import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 import net.arctics.clonk.ui.navigator.ClonkPreviewView;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
+
+import org.antlr.runtime.ANTLRStringStream;
+import org.antlr.runtime.CharStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Composite;
 
 
 public class MapCreatorEditor extends ClonkTextEditor {
@@ -96,7 +96,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	@Override
 	public ClonkContentOutlinePage getOutlinePage() {
 		if (outlinePage == null) {
-			outlinePage = new MapCreatorOutlinePage();
+			outlinePage = new ClonkContentOutlinePage();
 			outlinePage.setEditor(this);
 		}
 		return super.getOutlinePage();
@@ -107,9 +107,11 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		super.createPartControl(parent);
 		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
 
+			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
 			}
 
+			@Override
 			public void documentChanged(DocumentEvent event) {
 				parsed = false;
 			}

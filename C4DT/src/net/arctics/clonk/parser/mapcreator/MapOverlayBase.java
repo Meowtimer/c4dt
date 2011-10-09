@@ -7,17 +7,17 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IPath;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
+
+import org.eclipse.core.runtime.IPath;
 
 public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
 
@@ -41,7 +41,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		And('&'),
 		XOr('^');
 		
-		private char c;
+		private final char c;
 		
 		Operator(char c) {
 			this.c = c;
@@ -129,7 +129,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		
-		private NumVal lo, hi;
+		private final NumVal lo, hi;
 
 		public Range(NumVal lo, NumVal hi) {
 			super();
@@ -306,4 +306,9 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		return builder.toString();
 	}
 	
+	@Override
+	public String toString() {
+		return getTypeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
 }

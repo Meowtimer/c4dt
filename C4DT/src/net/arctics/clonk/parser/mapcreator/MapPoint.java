@@ -8,4 +8,9 @@ public class MapPoint extends MapOverlayBase {
 	
 	public Range x, y;
 
+	@Override
+	public String toString() {
+		return toString(0).replaceAll("\n", " ");
+	}
+
 }

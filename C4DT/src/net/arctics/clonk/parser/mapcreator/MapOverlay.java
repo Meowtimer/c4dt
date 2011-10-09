@@ -151,11 +151,6 @@ public class MapOverlay extends MapOverlayBase {
 			return super.getTypeName();
 	}
 	
-	@Override
-	public String toString() {
-		return getTypeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-	
 	public void clear() {
 		beAutonomousClone();
 	}
@@ -186,6 +181,7 @@ public class MapOverlay extends MapOverlayBase {
 		return ov;
 	}
 
+	@Override
 	public Collection<? extends MapOverlayBase> getChildCollection() {
 		return this.subOverlays;
 	}
