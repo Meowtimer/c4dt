@@ -5,6 +5,7 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -55,7 +56,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			new ViewerFilter() {
 				@Override
 				public boolean select(Viewer viewer, Object parentElement, Object element) {
-					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(element.toString()).find())
+					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
 						return true;
 					if (element instanceof Declaration) {
 						if (((Declaration)element).hasSubDeclarationsInOutline()) {
