@@ -1585,11 +1585,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public int severity;
 		public Object[] args;
 		
-		private Declaration cf;
-		private int offset;
-		private ExprElm reporter;
-		private IFile scriptFile;
-		private Script container;
+		private final Declaration cf;
+		private final int offset;
+		private final ExprElm reporter;
+		private final IFile scriptFile;
+		private final Script container;
 		
 		public MarkerInfo(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
 			super();
@@ -1627,9 +1627,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			public void run() {
 				synchronized (markers) {
 					for (MarkerInfo m : markersToDeploy) {
-						long start = System.currentTimeMillis();
 						m.deploy();
-						System.out.println("Time it took: " + (System.currentTimeMillis()-start));
 					}
 				}
 			}
