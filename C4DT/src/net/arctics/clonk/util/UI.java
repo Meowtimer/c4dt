@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
@@ -15,6 +16,7 @@ import net.arctics.clonk.parser.mapcreator.MapOverlay;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
@@ -66,6 +68,7 @@ public abstract class UI {
 	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image DUPE_ICON = imageForPath("icons/dupe.png");
 	public static final Image PROPLIST_ICON = imageForPath("icons/proplist.png");
+	public static final Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
 	
 	/**
 	 * Return a function icon signifying the function's protection level.
@@ -108,6 +111,8 @@ public abstract class UI {
 			return SCRIPT_ICON;
 		else if (element instanceof ProplistDeclaration)
 			return PROPLIST_ICON;
+		else if (element instanceof Directive)
+			return DIRECTIVE_ICON;
 		return null;
 	}
 

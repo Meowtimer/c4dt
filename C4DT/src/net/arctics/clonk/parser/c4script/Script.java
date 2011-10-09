@@ -716,7 +716,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	/**
 	 * Returns an iterator to iterate over all directives defined in this script
 	 */
-	public Iterable<Directive> directives() {
+	public List<Directive> directives() {
 		requireLoaded();
 		return definedDirectives != null ? Collections.unmodifiableList(definedDirectives) : NO_DIRECTIVES;
 	}
@@ -745,13 +745,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		List<Object> all = new LinkedList<Object>();
 		all.addAll(functions());
 		all.addAll(variables());
+		all.addAll(directives());
 		return all.toArray(new INode[all.size()]);
 	}
 
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
 		requireLoaded();
-		return functions().size() > 0 || variables().size() > 0;
+		return functions().size() > 0 || variables().size() > 0 || directives().size() > 0;
 	}
 
 	public void exportAsXML(Writer writer) throws IOException {
