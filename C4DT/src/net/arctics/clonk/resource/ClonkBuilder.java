@@ -319,7 +319,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	/**
 	 *  Gathered list of scripts to be parsed
 	 */
-	private final Map<Script, C4ScriptParser> parserMap = Collections.synchronizedMap(new HashMap<Script, C4ScriptParser>());
+	private final Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
 
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
@@ -674,7 +674,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 	
 	private void performBuildPhaseOne(Script script) {
-		C4ScriptParser parser = parserMap.get(script);
+		C4ScriptParser parser;
+		synchronized (parserMap) {
+			parser = parserMap.get(script);
+		}
 		nature.getIndex().addScript(script);
 		if (parser != null) {
 			parser.clean();
@@ -688,23 +691,24 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 * @param script The script to parse
 	 */
 	private void performBuildPhaseTwo(Script script) {
-		if (parserMap.containsKey(script)) {
-			C4ScriptParser parser = parserMap.remove(script);
-			if (parser != null) {
-				try {
-					// parse #included scripts before this one
-					for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {
-						if (include instanceof Script)
-							performBuildPhaseTwo((Script) include);
-					}
-					//System.out.print("-");
-					//long s = System.currentTimeMillis();
-					parser.parseCodeOfFunctionsAndValidate();
-					/*System.out.print(System.currentTimeMillis()-s);
-					System.out.print("-");*/
-				} catch (ParsingException e) {
-					e.printStackTrace();
+		C4ScriptParser parser;
+		synchronized (parserMap) {
+			parser = parserMap.containsKey(script) ? parserMap.remove(script) : null;
+		}
+		if (parser != null) {
+			try {
+				// parse #included scripts before this one
+				for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {
+					if (include instanceof Script)
+						performBuildPhaseTwo((Script) include);
 				}
+				//System.out.print("-");
+				//long s = System.currentTimeMillis();
+				parser.parseCodeOfFunctionsAndValidate();
+				/*System.out.print(System.currentTimeMillis()-s);
+					System.out.print("-");*/
+			} catch (ParsingException e) {
+				e.printStackTrace();
 			}
 		}
 		//nature.getIndex().refreshIndex();
