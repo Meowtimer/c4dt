@@ -1081,7 +1081,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	@Override
 	public String getQualifiedName() {
-		return getResource().getProjectRelativePath().toOSString();
+		if (getResource() == null) {
+			System.out.println("No qualified name: " + this.toString());
+			return this.toString();
+		}
+		else
+			return getResource().getProjectRelativePath().toOSString();
 	}
 
 }

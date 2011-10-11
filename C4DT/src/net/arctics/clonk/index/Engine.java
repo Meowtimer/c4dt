@@ -812,5 +812,10 @@ public class Engine extends Script {
 	public IStorageLocation[] storageLocations() {
 		return storageLocations;
 	}
+	
+	@Override
+	public String getQualifiedName() {
+		return getName();
+	}
 
 }

@@ -1,9 +1,11 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
+
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupImporter;
 import net.arctics.clonk.util.ArrayUtil;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandlerListener;
@@ -28,11 +30,10 @@ public class QuickImportHandler extends ClonkResourceHandler {
 		fileDialog.setFilterPath(ClonkProjectNature.getEngine(container).getCurrentSettings().gamePath);
 		fileDialog.setText(String.format(title, container.getName()));
 		fileDialog.setFilterExtensions(new String[] {ClonkProjectNature.getEngine(container).getCurrentSettings().getFileDialogFilterForGroupFiles(), "*.*"}); //$NON-NLS-1$
-		if (fileDialog.open() != null) {
+		if (fileDialog.open() != null)
 			return ArrayUtil.map(fileDialog.getFileNames(), File.class, new FullPathConverter(fileDialog));
-		} else {
-			return null;
-		}
+		else
+			return new File[0];
 	}
 
 	@Override

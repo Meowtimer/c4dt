@@ -233,7 +233,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		@Override
 		protected void adjustDec(Declaration declaration, int offset, int add) {
-			System.out.println(String.format("Adjusting %d, %d", offset, add));
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function) {
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).getBody(), offset, add);

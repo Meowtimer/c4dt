@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.parser.Declaration;
+
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IInformationControl;
@@ -24,16 +25,19 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 			configuration = clonkSourceViewerConfiguration;
 		}
 		
+		@Override
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
 			if (hyperlink instanceof ClonkHyperlink) {
 				ClonkHyperlink clonkHyperlink = (ClonkHyperlink) hyperlink;
 				Declaration dec = clonkHyperlink.getTarget();
 				hyperlink = null;
-				return dec.getInfoText();
+				if (dec != null)
+					return dec.getInfoText();
 			}
 			return null;
 		}
 
+		@Override
 		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
 			hyperlink = configuration.getEditor().hyperlinkAtOffset(offset);
 			if (hyperlink != null)
@@ -41,8 +45,10 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 			return null;
 		}
 
+		@Override
 		public IInformationControlCreator getHoverControlCreator() {
 			return new IInformationControlCreator() {
+				@Override
 				public IInformationControl createInformationControl(Shell parent) {
 					return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
 				}
