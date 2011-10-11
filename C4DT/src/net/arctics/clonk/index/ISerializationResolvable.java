@@ -1,6 +1,6 @@
 package net.arctics.clonk.index;
 
 
-public interface IResolvable {
+public interface ISerializationResolvable {
 	Object resolve(Index index);
 }

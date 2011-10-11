@@ -786,7 +786,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private static class EntityId implements Serializable, IResolvable {
+	private static class EntityId implements Serializable, ISerializationResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected long referencedEntityId;
 		protected Object referencedEntityToken;
@@ -848,7 +848,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private static class EntityDeclaration implements Serializable, IResolvable {
+	private static class EntityDeclaration implements Serializable, ISerializationResolvable {
 		private IndexEntity containingEntity;
 		private String declarationPath;
 		public EntityDeclaration(Declaration declaration) {
@@ -865,7 +865,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private static class EngineRef implements Serializable, IResolvable {
+	private static class EngineRef implements Serializable, ISerializationResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private String engineName;
 		public EngineRef(Engine engine) {
@@ -886,7 +886,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param entity
 	 * @return
 	 */
-	public IResolvable getSaveReplacementForEntity(IndexEntity entity) {
+	public ISerializationResolvable getSaveReplacementForEntity(IndexEntity entity) {
 		if (entity == null)
 			return null;
 		if (entity instanceof Engine)

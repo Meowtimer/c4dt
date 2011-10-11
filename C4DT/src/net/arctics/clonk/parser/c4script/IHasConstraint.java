@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.parser.IHasIncludes;
 
-public interface IHasConstraint {
+public interface IHasConstraint extends IResolvableType {
 	public enum ConstraintKind {
 		Exact,
 		Includes,
@@ -10,5 +10,4 @@ public interface IHasConstraint {
 	}
 	IHasIncludes constraint();
 	ConstraintKind constraintKind();
-	IType resolve(DeclarationObtainmentContext context, IType callerType);
 }

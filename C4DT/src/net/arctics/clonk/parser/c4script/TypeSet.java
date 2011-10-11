@@ -11,7 +11,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.IResolvable;
+import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 
 /**
@@ -19,7 +19,7 @@ import net.arctics.clonk.index.Index;
  * @author madeen
  *
  */
-public class TypeSet implements IType, IResolvable {
+public class TypeSet implements IType, ISerializationResolvable, IResolvableType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -283,6 +283,20 @@ public class TypeSet implements IType, IResolvable {
 				return (Definition) t; // return the first one found
 		}
 		return null;
+	}
+
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		IType[] resolvedTypes = new IType[this.size()];
+		boolean didResolveSomething = false;
+		int i = 0;
+		for (IType t : this) {
+			IType resolved = IResolvableType._.resolve(t, context, callerType);
+			if (resolved != t)
+				didResolveSomething = true;
+			resolvedTypes[i++] = resolved;
+		}
+		return didResolveSomething ? create(resolvedTypes) : this;
 	}
 
 }

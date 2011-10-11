@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IHasConstraint;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -232,21 +232,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type of the expression
 	 */
 	public final IType getType(DeclarationObtainmentContext context) {
-		IType type = obtainType(context);
-		if (type instanceof TypeSet) {
-			TypeSet typeSet = (TypeSet) type;
-			IType[] resolvedTypes = new IType[typeSet.size()];
-			boolean didResolveSomething = false;
-			int i = 0;
-			for (IType t : typeSet) {
-				IType resolved = resolveConstraint(context, t);
-				if (resolved != t)
-					didResolveSomething = true;
-				resolvedTypes[i++] = resolved;
-			}
-			return didResolveSomething ? TypeSet.create(resolvedTypes) : typeSet;
-		} else
-			return resolveConstraint(context, type);
+		return IResolvableType._.resolve(obtainType(context), context, callerType(context));
 	}
 
 	/**
@@ -256,13 +242,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
 		return context.getContainer();
-	}
-	
-	private final IType resolveConstraint(DeclarationObtainmentContext context, IType type) {
-		if (type instanceof IHasConstraint)
-			return ((IHasConstraint)type).resolve(context, callerType(context));
-		else
-			return type;
 	}
 	
 	/**

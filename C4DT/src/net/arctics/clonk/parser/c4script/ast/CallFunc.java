@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -421,7 +422,7 @@ public class CallFunc extends AccessDeclaration {
 			if (!(t instanceof IHasConstraint))
 				return false;
 			else {
-				IHasConstraint hasConstraint = (IHasConstraint) t;
+				IResolvableType hasConstraint = (IResolvableType) t;
 				anythingNonPrimitive = true;
 				// something resolved to something less specific than a ScriptBase? drop
 				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof Script))
