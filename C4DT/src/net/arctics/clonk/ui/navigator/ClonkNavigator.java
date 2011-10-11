@@ -38,6 +38,8 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	
 	@Override
 	public Object[] getChildren(Object element) {
+		if (element instanceof IResource && !((IResource)element).getProject().isOpen())
+			return NO_CHILDREN;
 		boolean showStructureOutlines = showStructureOutlines();
 		Object[] baseResources = NO_CHILDREN;
 		if (element instanceof IContainer) {

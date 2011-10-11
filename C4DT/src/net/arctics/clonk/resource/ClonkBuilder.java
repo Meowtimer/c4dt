@@ -35,7 +35,6 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
-import net.arctics.clonk.util.SynchronizedCounter;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.filesystem.EFS;
@@ -439,16 +438,29 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			this.project = project;
 		}
 		@Override
-		protected IStatus run(IProgressMonitor monitor) {
+		protected IStatus run(final IProgressMonitor monitor) {
 			monitor.beginTask(Messages.ClonkBuilder_SavingScriptIndexFiles, scriptsToSave.length+3);
 			try {
-				for (Script s : scriptsToSave)
-					try {
-						s.save();
-						monitor.worked(1);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+				for (final Script s : scriptsToSave) {
+					executor.execute(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								s.save();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							monitor.worked(1);
+						}
+					});
+				}
+				executor.shutdown();
+				try {
+					executor.awaitTermination(20, TimeUnit.MINUTES);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				ClonkProjectNature.get(project).getIndex().saveShallow();
 				monitor.worked(3);
 				return Status.OK_STATUS;
@@ -495,28 +507,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			newlyEnqueuedParsers.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
-				final SynchronizedCounter poolJobsCountdown = new SynchronizedCounter(newlyEnqueuedParsers.keySet().size());
 				final ExecutorService phaseOnePool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 				for (final Script script : newlyEnqueuedParsers.keySet()) {
-					if (monitor.isCanceled()) {
-						phaseOnePool.shutdown();
-						return;
-					}
+					if (monitor.isCanceled())
+						break;
 					phaseOnePool.execute(new Runnable() {
 						@Override
 						public void run() {
 							performBuildPhaseOne(script);
 							monitor.worked(1);
-							if (poolJobsCountdown.decrement() == 0) {
-								System.out.println("Done!");
-								phaseOnePool.shutdown();
-							}
 						}
 					});
 				}
+				phaseOnePool.shutdown();
 				try {
-					while (poolJobsCountdown.value() > 0 && !monitor.isCanceled())
-						phaseOnePool.awaitTermination(10, TimeUnit.SECONDS);
+					phaseOnePool.awaitTermination(20, TimeUnit.MINUTES);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -544,25 +549,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			for (Script s : scripts)
 				s.generateFindDeclarationCache();
 			final ExecutorService phaseTwoPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-			final SynchronizedCounter poolJobsCountdown = new SynchronizedCounter(scripts.length);
 			for (final Script script : scripts) {
 				if (monitor.isCanceled())
-					return;
+					break;
 				phaseTwoPool.execute(new Runnable() {
 					@Override
 					public void run() {
 						performBuildPhaseTwo(script);
 						monitor.worked(1);
-						if (poolJobsCountdown.decrement() == 0) {
-							System.out.println("Done!");
-							phaseTwoPool.shutdown();
-						}
 					}
 				});
 			}
+			phaseTwoPool.shutdown();
 			try {
-				while (poolJobsCountdown.value() > 0 && !monitor.isCanceled())
-					phaseTwoPool.awaitTermination(10, TimeUnit.SECONDS);
+				phaseTwoPool.awaitTermination(20, TimeUnit.MINUTES);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

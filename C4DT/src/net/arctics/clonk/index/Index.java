@@ -451,15 +451,18 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private transient List<Index> relevantIndexes;
+	private static final Object relevantIndexesSynchronizer = new Object();
+	private transient List<Index> relevantIndexes = null;
 	
 	public List<Index> relevantIndexes() {
-		if (relevantIndexes == null) {
-			relevantIndexes = new ArrayList<Index>(10);
-			relevantIndexes.add(this);
-			addIndexesFromReferencedProjects(relevantIndexes, this);
+		synchronized (relevantIndexesSynchronizer) {
+			if (relevantIndexes == null) {
+				relevantIndexes = new ArrayList<Index>(10);
+				relevantIndexes.add(this);
+				addIndexesFromReferencedProjects(relevantIndexes, this);
+			}
+			return relevantIndexes;
 		}
-		return relevantIndexes;
 	}
 
 	/**

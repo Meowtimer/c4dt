@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -74,7 +75,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		getParentGroup().releaseStream();
 	}
 	
-	private String entryName;
+	private final String entryName;
 	private List<C4GroupItem> childEntries;
 	private boolean completed;
 	private boolean hasChildren;
@@ -193,6 +194,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
         }
     }
 
+	@Override
 	public boolean hasChildren() {
 		return hasChildren;
 	}
@@ -205,10 +207,13 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
      * @throws IOException 
      * @throws CoreException
      */
+	@Override
 	public void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
 
 		if (stream == null)
 			stream = getStream();
+		
+		String[] files;
 		
 		// compressed
 		if (stream != null) {
@@ -281,8 +286,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		}
 		
 		// not compressed
-		else if (origin != null) {
-			String[] files = origin.list();
+		else if (origin != null && (files = origin.list()) != null) {
 			childEntries = new ArrayList<C4GroupItem>(files.length);
 			for (String childFileName : files) {
 				File child = new File(origin, childFileName);
@@ -331,6 +335,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * Extracts the group to the specified location in the project 
 	 */	
+	@Override
 	public void extractToFileSystem(IContainer parent) throws CoreException {
 		extractToFileSystem(parent, null);
 	}
@@ -338,6 +343,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * Extracts the group to the specified location in the project using a progress monitor
 	 */	
+	@Override
 	public void extractToFileSystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
 		IFolder me = null;
 		if (parent instanceof IFolder) {
@@ -357,6 +363,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
     	for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
@@ -369,6 +376,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * Returns the file name of the item
 	 */
+	@Override
 	public String getName() {
 		return entryName;
 	}
@@ -424,6 +432,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		return header;
 	}
 
+	@Override
 	public C4Group getParentGroup() {
 		return parentGroup;
 	}
@@ -462,6 +471,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		releaseStream();
 	}
 
+	@Override
 	public int computeSize() {
 		if (entryHeader == null) {
 			int size = 0;
@@ -473,10 +483,12 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		else return entryHeader.getSize();
 	}
 
+	@Override
 	public C4GroupEntryHeader getEntryHeader() {
 		return entryHeader;
 	}
 
+	@Override
 	public void writeTo(OutputStream stream) throws FileNotFoundException {
 		try {
 			header.writeTo(stream); // group header
@@ -491,6 +503,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		}		
 	}
 	
+	@Override
 	public void releaseData() {
 	}
 
