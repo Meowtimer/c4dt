@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -27,13 +30,13 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
@@ -74,12 +77,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	};
 
-	private Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
-	private Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
-	private List<Script> indexedScripts = new LinkedList<Script>();
-	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
-	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
-	private List<Declaration> globalsContainers = new LinkedList<Declaration>();
+	private final Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
+	private final Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
+	private final List<Script> indexedScripts = new LinkedList<Script>();
+	private final List<Scenario> indexedScenarios = new LinkedList<Scenario>();
+	private final List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
+	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	
 	protected File folder;
 	
@@ -124,11 +127,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param id The id
 	 * @return The list
 	 */
-	public List<Definition> getDefinitionsWithID(ID id) {
+	public Iterable<? extends Definition> getDefinitionsWithID(ID id) {
 		if (indexedDefinitions == null)
 			return null;
-		List<Definition> l = indexedDefinitions.get(id);
-		return l == null ? null : Collections.unmodifiableList(l);
+		synchronized (indexedDefinitions) {
+			List<Definition> l = indexedDefinitions.get(id);
+			return copyListOrReturnDefaultList(l, null);
+		}
 	}
 	
 	public void postLoad() throws CoreException {
@@ -161,11 +166,11 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			List<Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			Iterable<? extends Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for (Definition obj : objects) {
 					if ((obj instanceof Definition)) {
-						Definition projDef = (Definition)obj;
+						Definition projDef = obj;
 						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
 							projDef.setObjectFolder(folder);
 							return projDef;
@@ -179,7 +184,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			for (List<Definition> list : indexedDefinitions.values()) {
 				for (Definition obj : list) {
 					if (obj instanceof Definition) {
-						Definition intern = (Definition)obj;
+						Definition intern = obj;
 						if (intern.definitionFolder() != null && intern.definitionFolder().equals(folder))
 							return intern;
 					}
@@ -290,15 +295,17 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public void addDefinition(Definition definition) {
 		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
-		if (alreadyDefinedObjects == null) {
-			alreadyDefinedObjects = new LinkedList<Definition>();
-			indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
-		} else {
-			if (alreadyDefinedObjects.contains(definition))
-				return;
+		synchronized (indexedDefinitions) {
+			List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+			if (alreadyDefinedObjects == null) {
+				alreadyDefinedObjects = new LinkedList<Definition>();
+				indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
+			} else {
+				if (alreadyDefinedObjects.contains(definition))
+					return;
+			}
+			alreadyDefinedObjects.add(definition);
 		}
-		alreadyDefinedObjects.add(definition);
 	}
 	
 	/**
@@ -361,14 +368,17 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param script The script to add to the index
 	 */
 	public void addScript(Script script) {
+		if (script == null)
+			return;
 		if (script instanceof Scenario) {
-			if (!indexedScenarios.contains(script))
-				indexedScenarios.add((Scenario) script);
+			synchronized (indexedScenarios) {
+				if (!indexedScenarios.contains(script))
+					indexedScenarios.add((Scenario) script);
+			}
 		}
-		else if (script instanceof Definition) {
+		else if (script instanceof Definition)
 			addDefinition((Definition)script);
-		}
-		else {
+		else synchronized (indexedScripts) {
 			if (!indexedScripts.contains(script))
 				indexedScripts.add(script);
 		}
@@ -412,14 +422,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @return The 'last' {@link Definition} with that id
 	 */
 	public Definition lastDefinitionWithId(ID id) {
-		List<Definition> objs = getDefinitionsWithID(id);
+		Iterable<? extends Definition> objs = getDefinitionsWithID(id);
 		if (objs != null) {
-			if (objs instanceof LinkedList<?>) { // due to performance
-				return ((LinkedList<Definition>)objs).getLast();
-			}
-			else {
-				return objs.get(objs.size()-1);
-			}
+			Definition result = null;
+			for (Definition def : objs)
+				result = def;
+			return result;
 		}
 		return null;
 	}
@@ -464,7 +472,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		Definition best = null;
 		for (Index index : relevantIndexes()) {
 			if (resource != null) {
-				List<Definition> objs = index.getDefinitionsWithID(id);
+				Iterable<? extends Definition> objs = index.getDefinitionsWithID(id);
 				best = Utilities.pickNearest(objs, resource, null);
 			}
 			else
@@ -556,19 +564,21 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		private Iterator<Definition> listIterator;
 		
 		public ObjectIterator() {
-			synchronized (Index.this) {
+			synchronized (indexedDefinitions) {
 				valuesIterator = indexedDefinitions.values().iterator();
 			}
 		}
 		
+		@Override
 		public boolean hasNext() {
-			synchronized (Index.this) {
+			synchronized (indexedDefinitions) {
 				return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
 			}
 		}
 
+		@Override
 		public Definition next() {
-			synchronized (Index.this) {
+			synchronized (indexedDefinitions) {
 				while (listIterator == null || !listIterator.hasNext()) {
 					listIterator = null;
 					if (!valuesIterator.hasNext())
@@ -579,6 +589,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			}
 		}
 
+		@Override
 		public void remove() {
 			// pff
 		}
@@ -743,7 +754,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	};
 	
 	public void saveEntity(IndexEntity entity) throws IOException {
-		System.out.println("Save entity " + entity.toString());
+//		System.out.println("Save entity " + entity.toString());
 		ObjectOutputStream s = getEntityOutputStream(entity);
 		try {
 			entity.save(s);
@@ -849,8 +860,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private static class EntityDeclaration implements Serializable, ISerializationResolvable {
-		private IndexEntity containingEntity;
-		private String declarationPath;
+		private final IndexEntity containingEntity;
+		private final String declarationPath;
 		public EntityDeclaration(Declaration declaration) {
 			this.containingEntity = declaration.getParentDeclarationOfType(IndexEntity.class);
 			this.declarationPath = declaration.pathRelativeToIndexEntity();
@@ -867,7 +878,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	private static class EngineRef implements Serializable, ISerializationResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		private String engineName;
+		private final String engineName;
 		public EngineRef(Engine engine) {
 			this.engineName = engine.getName();
 		}

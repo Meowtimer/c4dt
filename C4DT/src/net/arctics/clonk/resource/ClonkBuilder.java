@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.DefinitionParser;
@@ -59,10 +62,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An incremental builder for all project data.<br>
@@ -499,21 +498,25 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				final SynchronizedCounter poolJobsCountdown = new SynchronizedCounter(newlyEnqueuedParsers.keySet().size());
 				final ExecutorService phaseOnePool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 				for (final Script script : newlyEnqueuedParsers.keySet()) {
-					if (monitor.isCanceled())
+					if (monitor.isCanceled()) {
+						phaseOnePool.shutdown();
 						return;
+					}
 					phaseOnePool.execute(new Runnable() {
 						@Override
 						public void run() {
 							performBuildPhaseOne(script);
-							System.out.println("Worked!");
 							monitor.worked(1);
-							if (poolJobsCountdown.decrement() == 0)
+							if (poolJobsCountdown.decrement() == 0) {
+								System.out.println("Done!");
 								phaseOnePool.shutdown();
+							}
 						}
 					});
 				}
 				try {
-					phaseOnePool.awaitTermination(100, TimeUnit.HOURS);
+					while (poolJobsCountdown.value() > 0 && !monitor.isCanceled())
+						phaseOnePool.awaitTermination(10, TimeUnit.SECONDS);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -550,13 +553,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					public void run() {
 						performBuildPhaseTwo(script);
 						monitor.worked(1);
-						if (poolJobsCountdown.decrement() == 0)
+						if (poolJobsCountdown.decrement() == 0) {
+							System.out.println("Done!");
 							phaseTwoPool.shutdown();
+						}
 					}
 				});
 			}
 			try {
-				phaseTwoPool.awaitTermination(100, TimeUnit.HOURS);
+				while (poolJobsCountdown.value() > 0 && !monitor.isCanceled())
+					phaseTwoPool.awaitTermination(10, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

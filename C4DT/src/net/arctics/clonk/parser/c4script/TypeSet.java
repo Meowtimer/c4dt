@@ -30,7 +30,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	public static final IType REFERENCE_OR_ANY_OR_UNKNOWN = create(PrimitiveType.REFERENCE, PrimitiveType.ANY, PrimitiveType.UNKNOWN);
 	public static final IType OBJECT_OR_ID = create(PrimitiveType.OBJECT, PrimitiveType.ID);
 	
-	private Set<IType> types;
+	private final Set<IType> types;
 	private boolean internalized;
 	private String description;
 	
@@ -161,16 +161,18 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			return set.iterator().next();
 		/*if (set.contains(C4Type.ANY))
 			return C4Type.ANY; */
-		for (TypeSet r : typeSets) {
-			if (r.types.equals(set))
-				return r;
+		synchronized (typeSets) {
+			for (TypeSet r : typeSets) {
+				if (r.types.equals(set))
+					return r;
+			}
+			TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
+				? (TypeSet)ingredients[0]
+					: new TypeSet(set);
+				n.internalized = true;
+				typeSets.add(n);
+				return n;
 		}
-		TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
-			? (TypeSet)ingredients[0]
-			: new TypeSet(set);
-		n.internalized = true;
-		typeSets.add(n);
-		return n;
 	}
 	
 	@Override

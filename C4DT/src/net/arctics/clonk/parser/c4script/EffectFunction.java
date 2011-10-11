@@ -37,7 +37,7 @@ public class EffectFunction extends Function {
 	}
 
 	private EffectFunction startFunction;
-	private HardcodedCallbackType hardcodedCallbackType;
+	private final HardcodedCallbackType hardcodedCallbackType;
 	private Pattern additionalCallbacksPattern;
 	private String effectName;
 	
@@ -104,7 +104,9 @@ public class EffectFunction extends Function {
 	}
 	
 	public IType getEffectType() {
-		return getParameters().size() >= 2 ? getParameters().get(1).getType() : PrimitiveType.PROPLIST;
+		synchronized (parameters) {
+			return parameters.size() >= 2 ? parameters.get(1).getType() : PrimitiveType.PROPLIST;
+		}
 	}
 
 }

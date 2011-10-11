@@ -550,7 +550,7 @@ public class SpecialScriptRules {
 				Object command = arguments[1].evaluateAtParseTime(parser.getCurrentFunc());
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
-					for (Variable parm : f.getParameters()) {
+					for (Variable parm : f.parameters()) {
 						if (givenParam >= arguments.length)
 							break;
 						ExprElm given = arguments[givenParam++];

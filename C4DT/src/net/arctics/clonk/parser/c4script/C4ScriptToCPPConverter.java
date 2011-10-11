@@ -110,7 +110,7 @@ public class C4ScriptToCPPConverter {
 		output.append(" ");
 		output.append(function.getName());
 		output.append("(C4AulContext *cthr");
-		for (Variable parm : function.getParameters()) {
+		for (Variable parm : function.parameters()) {
 			output.append(", ");
 			output.append(PrimitiveType.cppTypeFromType(parm.getType()));
 			output.append(" ");

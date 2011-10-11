@@ -8,52 +8,64 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.UI;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.DrillDownAdapter;
+import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.*;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.SWT;
 
 public class EngineDeclarationsView extends ViewPart implements IPropertyChangeListener {
 	
 	protected class EditDeclarationInputDialog extends Dialog {
 		
 		private class ParameterCombination {
-			private Combo type;
-			private Text name;
+			private final Combo type;
+			private final Text name;
 			
 			public ParameterCombination(Combo type, Text name) {
 				this.type = type;
@@ -81,7 +93,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		private Text descriptionField;
 		private Combo returnTypeBox;
 		private Combo scopeBox;
-		private List<ParameterCombination> parameters = new ArrayList<ParameterCombination>();
+		private final List<ParameterCombination> parameters = new ArrayList<ParameterCombination>();
 		
 		/**
 		 * Edits the currently selected identifer
@@ -136,6 +148,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			newParameter = new Button(parent, SWT.PUSH);
 			newParameter.setText(Messages.Engine_NewParameter);
 			newParameter.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					newParameter.dispose();
 					newParameter = null;
@@ -160,11 +173,11 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				func.setVisibility(FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
 				
-				func.getParameters().clear();
+				func.clearParameters();
 				for(ParameterCombination par : parameters) {
 					Variable var = new Variable(par.getName().getText(),Scope.LOCAL);
 					var.forceType(getSelectedType(par.getType()));
-					func.getParameters().add(var);
+					func.addParameter(var);
 				}
 			}
 			else if (declaration instanceof Variable) {
@@ -229,8 +242,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			
 			new Label(parent, SWT.NONE).setText(" "); // placeholder //$NON-NLS-1$
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
-			if (func.getParameters() != null) {
-				for(Variable par : func.getParameters()) {
+			if (func.parameters() != null) {
+				for(Variable par : func.parameters()) {
 					createParameterControls(parent, par.getType(), par.getName());
 				}
 			}
@@ -317,6 +330,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@Override
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		drillDownAdapter = new DrillDownAdapter(viewer);
@@ -325,6 +339,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		viewer.setContentProvider(provider);
 		viewer.setLabelProvider(provider);
 		viewer.setSorter(new ViewerSorter() {
+			@Override
 			public int category(Object element) {
 				return ((Declaration)element).sortCategory();
 			}
@@ -349,6 +364,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
+			@Override
 			public void menuAboutToShow(IMenuManager manager) {
 				EngineDeclarationsView.this.fillContextMenu(manager);
 			}
@@ -396,6 +412,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 
 	private void makeActions() {
 		addFunctionAction = new Action() {
+			@Override
 			public void run() {
 				Function func = new Function();
 				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),func);
@@ -412,6 +429,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		addFunctionAction.setToolTipText(Messages.Engine_AddFunctionDesc);
 		
 		addVariableAction = new Action() {
+			@Override
 			public void run() {
 				Variable var = new Variable();
 				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),var);
@@ -428,6 +446,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		addVariableAction.setToolTipText(Messages.Engine_AddVariableDesc);
 		
 		editAction = new Action() {
+			@Override
 			public void run() {
 //				Tree tree = viewer.getTree();
 //				TreeItem item = tree.getSelection()[0];
@@ -448,6 +467,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		
 		deleteAction = new Action() {
+			@Override
 			public void run() {
 				if (UI.confirm(viewer.getControl().getShell(), Messages.Engine_ConfirmDeletion, null)) {
 					TreeItem[] selection = viewer.getTree().getSelection();
@@ -466,6 +486,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
 		
 		saveAction = new Action() {
+			@Override
 			public void run() {
 				try {
 					ClonkCore.getDefault().getActiveEngine().writeEngineScript();
@@ -491,6 +512,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
 					}
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
+						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
 								final Script engine = ClonkCore.getDefault().getActiveEngine();
@@ -548,6 +570,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 
 	private void hookDoubleClickAction() {
 		viewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
 			public void doubleClick(DoubleClickEvent event) {
 				doubleClickAction.run();
 			}
@@ -563,6 +586,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	/**
 	 * Passing the focus request to the viewer's control.
 	 */
+	@Override
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}

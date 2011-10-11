@@ -405,9 +405,9 @@ public class Engine extends Script {
 						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 						private boolean fleshedOut;
 						@Override
-						public List<Variable> getParameters() {
+						public Iterable<? extends Variable> parameters() {
 							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-							return super.getParameters();
+							return super.parameters();
 						}
 						@Override
 						public IType getReturnType() {
@@ -803,8 +803,10 @@ public class Engine extends Script {
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
-		xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
-		return xmlDocImporter.initialize();
+		synchronized (xmlDocImporter) {
+			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+			return xmlDocImporter.initialize();
+		}
 	}
 
 	public IStorageLocation[] storageLocations() {

@@ -4,12 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -69,6 +71,7 @@ public abstract class Utilities {
 
 	public static void displayClonkConsole() {
 		Display.getDefault().asyncExec(new Runnable() {
+			@Override
 			public void run() {
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				String id = IConsoleConstants.ID_CONSOLE_VIEW;
@@ -164,7 +167,7 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(Collection<T> fromList, IResource resource, IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(Iterable<T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = 1000;
 		T best = null;
 		if (fromList != null) {

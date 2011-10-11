@@ -7,11 +7,11 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 	public SpecialScriptRules_ClonkRage() {
@@ -36,12 +36,13 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 		}, "ObjectSetAction");
 	}
 	
-	private static final Matcher ID_MATCHER = Pattern.compile("[A-Z_0-9]{4}").matcher("");
+	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");
 	
 	@Override
 	public ID parseId(BufferedScanner scanner) {
-		if (ID_MATCHER.reset(scanner.getBuffer().substring(scanner.getPosition())).lookingAt()) {
-			String idString = ID_MATCHER.group();
+		Matcher idMatcher = ID_PATTERN.matcher(scanner.getBuffer().substring(scanner.getPosition()));
+		if (idMatcher.lookingAt()) {
+			String idString = idMatcher.group();
 			scanner.advance(idString.length());
 			if (BufferedScanner.isWordPart(scanner.peek()) || C4ScriptParser.NUMERAL_PATTERN.matcher(idString).matches()) {
 				scanner.advance(-idString.length());

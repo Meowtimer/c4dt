@@ -79,7 +79,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		int cursorPosition = func.getName().length();
 		if (brackets) {
-			if (func.getParameters().size() == 0)
+			if (func.numParameters() == 0)
 				cursorPosition += 2;
 			else
 				cursorPosition++;

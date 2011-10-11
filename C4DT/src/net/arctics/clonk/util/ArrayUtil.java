@@ -265,5 +265,13 @@ public class ArrayUtil {
 			result.add(t);
 		return result;
 	}
+	
+	public static <T> List<? extends T> copyListOrReturnDefaultList(Collection<? extends T> list, List<? extends T> defaultResult) {
+		if (list == null)
+			return defaultResult;
+		else synchronized(list) {
+			return new ArrayList<T>(list);
+		}
+	}
 
 }

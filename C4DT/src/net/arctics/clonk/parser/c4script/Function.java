@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,15 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
-
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
@@ -28,6 +27,9 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.Utilities;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * A function in a script.
@@ -39,7 +41,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private static final long serialVersionUID = 3848213897251037684L;
 	private FunctionScope visibility; 
 	private List<Variable> localVars;
-	private List<Variable> parameter;
+	protected List<Variable> parameters;
 	/**
 	 * Various other declarations (like proplists) that aren't variables/parameters
 	 */
@@ -75,9 +77,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function(String name, IType returnType, Variable... pars) {
 		this.name = name;
 		this.returnType = returnType;
-		parameter = new ArrayList<Variable>(pars.length);
+		parameters = new ArrayList<Variable>(pars.length);
 		for (Variable var : pars) {
-			parameter.add(var);
+			parameters.add(var);
 			var.setParentDeclaration(this);
 		}
 		visibility = FunctionScope.GLOBAL;
@@ -100,14 +102,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function() {
 		visibility = FunctionScope.GLOBAL;
 		name = ""; //$NON-NLS-1$
-		parameter = new ArrayList<Variable>();
+		clearParameters();
 		localVars = new ArrayList<Variable>();
 	}
 	
 	public Function(String name, Script parent, FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
-		parameter = new ArrayList<Variable>();
+		clearParameters();
 		localVars = new ArrayList<Variable>();
 		setScript(parent);
 	}
@@ -137,15 +139,37 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the parameter
 	 */
-	public List<Variable> getParameters() {
-		return parameter;
+	public Iterable<? extends Variable> parameters() {
+		return copyListOrReturnDefaultList(parameters, null);
+	}
+	
+	public void addParameter(Variable parameter) {
+		synchronized (parameters) {
+			parameters.add(parameter);
+		}
+	}
+	
+	public void clearParameters() {
+		parameters = new ArrayList<Variable>();
+	}
+	
+	public Variable parameter(int index) {
+		synchronized (parameters) {
+			return index >= 0 && index < parameters.size() ? parameters.get(index) : null;
+		}
+	}
+	
+	public int numParameters() {
+		synchronized (parameters) {
+			return parameters.size();
+		}
 	}
 
 	/**
-	 * @param parameter the parameter to set
+	 * @param parameters the parameter to set
 	 */
-	public void setParameters(List<Variable> parameter) {
-		this.parameter = parameter;
+	public void setParameters(List<Variable> parameters) {
+		this.parameters = parameters;
 	}
 
 	/**
@@ -256,8 +280,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
-		if (getParameters().size() > 0) {
-			for(Variable par : getParameters()) {
+		if (numParameters() > 0) {
+			for(Variable par : parameters()) {
 				IType staticType = engineCompatible ? par.getType().staticType() : par.getType();
 				if (engineCompatible && !par.isActualParm())
 					continue;
@@ -312,6 +336,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return body;
 	}
 	
+	@Override
 	public int sortCategory() {
 		return Variable.Scope.values().length + visibility.ordinal();
 	}
@@ -339,6 +364,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
+	@Override
 	public Variable findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(Variable.class)) {
 			if (declarationName.equals(Variable.THIS.getName()))
@@ -347,7 +373,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				if (v.getName().equals(declarationName))
 					return v;
 			}
-			for (Variable p : parameter) {
+			for (Variable p : parameters) {
 				if (p.getName().equals(declarationName))
 					return p;
 			}
@@ -446,8 +472,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param num Number of parameters to create
 	 */
 	public void createParameters(int num) {
-		for (int i = parameter.size(); i < num; i++) {
-			parameter.add(new Variable("par"+i, Scope.VAR)); //$NON-NLS-1$
+		for (int i = parameters.size(); i < num; i++) {
+			parameters.add(new Variable("par"+i, Scope.VAR)); //$NON-NLS-1$
 		}
 	}
 
@@ -581,7 +607,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		List<Iterable<? extends Declaration>> l = new ArrayList<Iterable<? extends Declaration>>(3);
 		if ((mask & VARIABLES) != 0) {
 			l.add(localVars);
-			l.add(parameter);
+			l.add(parameters);
 		}
 		if ((mask & OTHER) != 0)
 			l.add(otherDeclarations);
@@ -599,9 +625,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return See above
 	 */
 	public boolean tooManyParameters(int num) {
-		return
-			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
-			num > getParameters().size();
+		synchronized (parameters) {
+			return
+				(parameters.size() == 0 || parameters.get(parameters.size()-1).isActualParm()) &&
+				num > parameters.size();
+		}
 	}
 	
 	/**
@@ -617,10 +645,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void absorb(Declaration declaration) {
 		if (declaration instanceof Function) {
 			Function f = (Function) declaration;
-			if (f.parameter.size() >= this.parameter.size())
-				this.parameter = f.parameter;
+			if (f.parameters.size() >= this.parameters.size())
+				this.parameters = f.parameters;
 			this.setReturnType(f.returnType);
-			f.parameter = null;
+			f.parameters = null;
 		}
 		super.absorb(declaration);
 	}
@@ -763,10 +791,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param types The types to assign to the parameters
 	 */
 	public void assignParameterTypes(IType... types) {
-		for (int i = 0; i < types.length; i++) {
-			if (i >= getParameters().size())
-				break;
-			getParameters().get(i).forceType(types[i], true);
+		synchronized (parameters) {
+			for (int i = 0; i < types.length; i++) {
+				if (i >= parameters.size())
+					break;
+				parameters.get(i).forceType(types[i], true);
+			}
 		}
 	}
 
@@ -782,7 +812,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Object[] getArguments() {
-		return getParameters().toArray();
+		synchronized (parameters) {
+			return parameters.toArray();
+		}
 	}
 
 	@Override

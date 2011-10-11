@@ -43,7 +43,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		if (function instanceof Function) {
 			Function f = (Function) function;
 			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
-			for (Variable parm : f.getParameters()) {
+			for (Variable parm : f.parameters()) {
 				if (parm.isActualParm())
 					l.add(new ClonkDebugVariable(this, parm));
 			}

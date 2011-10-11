@@ -486,7 +486,7 @@ public class CallFunc extends AccessDeclaration {
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
 					int givenParam = 0;
-					for (Variable parm : f.getParameters()) {
+					for (Variable parm : f.parameters()) {
 						if (givenParam >= params.length)
 							break;
 						ExprElm given = params[givenParam++];
@@ -502,7 +502,7 @@ public class CallFunc extends AccessDeclaration {
 				// warn about too many parameters
 				// try again, but only for engine functions
 				if (f.isEngineDeclaration() && !declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
-					context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum(), f.getName());
+					context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.numParameters(), actualParmsNum(), f.getName());
 				}
 				
 			}
@@ -613,8 +613,8 @@ public class CallFunc extends AccessDeclaration {
 			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 			Function activeFunc = parser.getCurrentFunc();
 			if (activeFunc != null) {
-				if (number.intValue() >= 0 && number.intValue() < activeFunc.getParameters().size() && activeFunc.getParameters().get(number.intValue()).isActualParm())
-					return new AccessVar(parser.getCurrentFunc().getParameters().get(number.intValue()).getName());
+				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
+					return new AccessVar(parser.getCurrentFunc().parameter(number.intValue()).getName());
 			}
 		}
 		
@@ -692,7 +692,7 @@ public class CallFunc extends AccessDeclaration {
 		if (declaration instanceof Function) {
 			Function f = (Function) declaration;
 			int i = indexOfParm(parm);
-			return i >= 0 && i < f.getParameters().size() ? f.getParameters().get(i) : null;
+			return i >= 0 && i < f.numParameters() ? f.parameter(i) : null;
 		} else
 			return null;
 	}

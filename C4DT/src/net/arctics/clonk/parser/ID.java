@@ -17,21 +17,25 @@ public final class ID implements Serializable, ISerializationResolvable {
 	private static final long serialVersionUID = 833007356188766488L;
 	public static final ID NULL = get("NULL"); //$NON-NLS-1$
 	
-	private String name;
+	private final String name;
 	
 	private ID(String id) {
-		name = id;
-		idPool.put(id, this);
+		synchronized (ID.class) {
+			name = id;
+			idPool.put(id, this);
+		}
 	}
 	
 	@Override
 	public ID resolve(Index index) {
-		ID special = idPool.get(name);
-		if (special == null) {
-			idPool.put(name, this);
-			return this;
+		synchronized (ID.class) {
+			ID special = idPool.get(name);
+			if (special == null) {
+				idPool.put(name, this);
+				return this;
+			}
+			return special;
 		}
-		return special;
 	}
 	
 	/**
@@ -39,13 +43,11 @@ public final class ID implements Serializable, ISerializationResolvable {
 	 * @param stringValue The string value
 	 * @return A newly created {@link ID} added to the global pool or an already existing one.
 	 */
-	public static ID get(String stringValue) {
-		if (idPool.containsKey(stringValue)) {
+	public synchronized static ID get(String stringValue) {
+		if (idPool.containsKey(stringValue))
 			return idPool.get(stringValue);
-		}
-		else {
+		else
 			return new ID(stringValue);
-		}
 	}
 	
 	/* (non-Javadoc)

@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.wizards;
 
-import java.util.List;
-
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -60,8 +58,8 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}
-			List<Definition> objects = nature.getIndex().getDefinitionsWithID(ID.get(c4idText.getText()));
-			if (objects != null && !objects.isEmpty()) {
+			Iterable<? extends Definition> objects = nature.getIndex().getDefinitionsWithID(ID.get(c4idText.getText()));
+			if (objects != null) {
 				updateStatus(Messages.NewC4ObjectPage_IDAlreadyInUse);
 				return;
 			}

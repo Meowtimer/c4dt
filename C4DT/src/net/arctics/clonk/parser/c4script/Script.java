@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 
@@ -89,8 +90,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return dictionary;
 	}
 	
-	public Set<Script> usedScripts() {
-		return usedScripts;
+	public Collection<? extends Script> usedScripts() {
+		return copyListOrReturnDefaultList(usedScripts, NO_SCRIPTS);
 	}
 	
 	/**
@@ -234,17 +235,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return false;
 		else
 			set.add(this);
-		for (Directive d : directives()) {
-			ID id = d.contentAsID();
-			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
-				for (Index in : index.relevantIndexes()) {
-					List<Definition> defs = in.getDefinitionsWithID(id);
-					if (defs != null)
-						for (Definition def : defs)
-							if (!recursive)
-								set.add(def);
-							else
-								def.gatherIncludes(set, true);
+		if (definedDirectives != null) synchronized(definedDirectives) {
+			for (Directive d : definedDirectives) {
+				ID id = d.contentAsID();
+				if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
+					for (Index in : index.relevantIndexes()) {
+						Iterable<? extends Definition> defs = in.getDefinitionsWithID(id);
+						if (defs != null)
+							for (Definition def : defs)
+								if (!recursive)
+									set.add(def);
+								else
+									def.gatherIncludes(set, true);
+					}
 				}
 			}
 		}
@@ -445,12 +448,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			Declaration f = null;
 			// prefer declarations from scripts that were previously determined to be the providers of global declarations
 			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
-			if (usedScripts != null)
-				for (Script s : usedScripts) {
+			if (usedScripts != null) {
+				for (Script s : usedScripts()) {
 					f = s.findDeclaration(name, info);
 					if (f != null && f.isGlobal())
 						return f;
 				}
+			}
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
 				f = info.index.getDefinitionNearestTo(getResource(), ID.get(name));
@@ -482,17 +486,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (declaration instanceof Function) {
 			if (definedFunctions == null)
 				definedFunctions = new ArrayList<Function>(5);
-			definedFunctions.add((Function)declaration);
+			synchronized (definedFunctions) {
+				definedFunctions.add((Function)declaration);
+			}
 		}
 		else if (declaration instanceof Variable) {
 			if (definedVariables == null)
 				definedVariables = new ArrayList<Variable>(5);
-			definedVariables.add((Variable)declaration);
+			synchronized (definedVariables) {
+				definedVariables.add((Variable)declaration);
+			}
 		}
 		else if (declaration instanceof Directive) {
 			if (definedDirectives == null)
 				definedDirectives = new ArrayList<Directive>(5);
-			definedDirectives.add((Directive)declaration);
+			synchronized (definedDirectives) {
+				definedDirectives.add((Directive)declaration);
+			}
 		}
 	}
 
@@ -501,12 +511,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (declaration.getScript() != this)
 			declaration.setScript(this);
 		if (declaration instanceof Function) {
-			if (definedFunctions != null)
+			if (definedFunctions != null) synchronized (definedFunctions) {
 				definedFunctions.remove(declaration);
+			}
 		}
 		else if (declaration instanceof Variable) {
-			if (definedVariables != null)
+			if (definedVariables != null) synchronized (definedFunctions) {
 				definedVariables.remove(declaration);
+			}
+		}
+		else if (declaration instanceof Directive) {
+			if (definedDirectives != null) synchronized (definedDirectives) {
+				definedDirectives.remove(declaration);
+			}
 		}
 	}
 
@@ -691,13 +708,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	private static final List<Directive> NO_DIRECTIVES = Collections.unmodifiableList(new ArrayList<Directive>());
 	private static final List<Function> NO_FUNCTIONS = Collections.unmodifiableList(new ArrayList<Function>());
 	private static final List<Variable> NO_VARIABLES = Collections.unmodifiableList(new ArrayList<Variable>());
+	private static final List<Script> NO_SCRIPTS = Collections.unmodifiableList(new ArrayList<Script>());
 
 	/**
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
-	public Collection<Function> functions() {
+	public List<? extends Function> functions() {
 		requireLoaded();
-		return definedFunctions != null ? Collections.unmodifiableList(definedFunctions) : NO_FUNCTIONS;
+		return copyListOrReturnDefaultList(definedFunctions, NO_FUNCTIONS);
 	}
 	
 	public <T extends Function> Iterable<T> functions(Class<T> cls) {
@@ -708,17 +726,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	/**
 	 * Returns an iterator to iterate over all variables defined in this script
 	 */
-	public Collection<Variable> variables() {
+	public List<? extends Variable> variables() {
 		requireLoaded();
-		return definedVariables != null ? Collections.unmodifiableList(definedVariables) : NO_VARIABLES;
+		return copyListOrReturnDefaultList(definedVariables, NO_VARIABLES);
 	}
 
 	/**
 	 * Returns an iterator to iterate over all directives defined in this script
 	 */
-	public List<Directive> directives() {
+	public List<? extends Directive> directives() {
 		requireLoaded();
-		return definedDirectives != null ? Collections.unmodifiableList(definedDirectives) : NO_DIRECTIVES;
+		return copyListOrReturnDefaultList(definedDirectives, NO_DIRECTIVES);
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
@@ -762,7 +780,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		for (Function f : functions()) {
 			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
-			for (Variable p : f.getParameters()) {
+			for (Variable p : f.parameters()) {
 				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().typeName(true))); //$NON-NLS-1$
 			}
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
@@ -883,7 +901,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		if (usedScripts == null)
 			usedScripts = new HashSet<Script>();
-		usedScripts.add(script);
+		synchronized (usedScripts) {
+			usedScripts.add(script);
+		}
 	}
 	
 	/**
@@ -891,7 +911,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	public void scriptRemovedFromIndex(Script script) {
 		if (usedScripts != null)
-			usedScripts.remove(script);
+			synchronized (usedScripts) {
+				usedScripts.remove(script);
+			}
 		if (dependentScripts != null)
 			dependentScripts.remove(script);
 	}

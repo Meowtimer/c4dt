@@ -403,7 +403,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public int parameterIndex() {
 		if (parentDeclaration instanceof Function) {
 			int i = 0;
-			for (Variable v : ((Function)parentDeclaration).getParameters())
+			for (Variable v : ((Function)parentDeclaration).parameters())
 				if (v == this)
 					return i;
 				else

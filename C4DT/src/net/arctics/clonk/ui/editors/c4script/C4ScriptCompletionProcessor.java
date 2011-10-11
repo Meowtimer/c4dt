@@ -355,7 +355,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
-			for (Variable v : activeFunc.getParameters()) {
+			for (Variable v : activeFunc.parameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
 			for (Variable v : activeFunc.getLocalVars()) {
@@ -624,7 +624,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					info = new ClonkContextInformation(
 							dec.getName() + "()", null, //$NON-NLS-1$
 							parmString,
-							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)dec).getParameters().size()
+							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)dec).numParameters()
 					);
 				}
 			}

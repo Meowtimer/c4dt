@@ -78,10 +78,10 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					effectProplistType = startFunction.getEffectType();
 				} else {
 					// this is the start function - create type if parameter present
-					if (fun.getParameters().size() < 2)
+					if (fun.numParameters() < 2)
 						effectProplistType = PrimitiveType.PROPLIST;
 					else
-						effectProplistType = createAdHocProplistDeclaration(fun, fun.getParameters().get(1));
+						effectProplistType = createAdHocProplistDeclaration(fun, fun.parameter(1));
 				}
 				function.assignParameterTypes(PrimitiveType.OBJECT, effectProplistType);
 				return true;

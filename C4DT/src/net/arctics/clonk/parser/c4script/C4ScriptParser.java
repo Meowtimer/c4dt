@@ -698,7 +698,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				function.createParameters(currentFunctionContext.numUnnamedParameters);
 			}
-			else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.getParameters().size() == 0 || function.getParameters().get(function.getParameters().size()-1).isActualParm())) {
+			else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters()-1).isActualParm())) {
 				addVarParmsParm(function);
 			}
 		}
@@ -769,7 +769,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParentDeclaration(func);
 		v.setScope(Variable.Scope.VAR);
-		func.getParameters().add(v);
+		func.addParameter(v);
 	}
 
 	/**
@@ -3130,7 +3130,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		var.setLocation(new SourceLocation(s, e));
 		var.setParentDeclaration(function);
-		function.getParameters().add(var);
+		function.addParameter(var);
 		return true;
 	}
 	
