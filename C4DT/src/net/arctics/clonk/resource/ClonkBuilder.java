@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.ArrayUtil.listFromIterable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -31,6 +32,7 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.SynchronizedCounter;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.filesystem.EFS;
@@ -57,6 +59,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An incremental builder for all project data.<br>
@@ -308,24 +314,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private IProgressMonitor monitor;
-	
 	private ClonkProjectNature nature;
 
 	/**
 	 *  Gathered list of scripts to be parsed
 	 */
-	private final Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
+	private final Map<Script, C4ScriptParser> parserMap = Collections.synchronizedMap(new HashMap<Script, C4ScriptParser>());
 
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
 	 */
-	private final Set<Structure> gatheredStructures = new HashSet<Structure>();
+	private final Set<Structure> gatheredStructures = Collections.synchronizedSet(new HashSet<Structure>());
 	
 	/**
 	 * Set of {@link Definition}s whose ids have been changed by reparsing of their DefCore.txt files
 	 */
-	private final Set<Pair<Definition, ID>> renamedDefinitions = new HashSet<Pair<Definition, ID>>();
+	private final Set<Pair<Definition, ID>> renamedDefinitions = Collections.synchronizedSet(new HashSet<Pair<Definition, ID>>());
 
 	private Index getIndex() {
 		return ClonkProjectNature.get(getProject()).getIndex();
@@ -459,7 +464,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		IProject proj,
 		IResourceDelta delta
 	) throws CoreException {
-
+		
 		nature = ClonkProjectNature.get(proj); 
 		Index index = nature.getIndex();
 		
@@ -468,8 +473,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		try {
 
 			// count num of resources to build
-			ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
-			visitDeltaOrWholeProject(delta, proj, counter);
+			ResourceCounter resourceCounter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+			visitDeltaOrWholeProject(delta, proj, resourceCounter);
 
 			// initialize progress monitor
 			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? parserMap.size()*2 : IProgressMonitor.UNKNOWN);
@@ -491,11 +496,26 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			newlyEnqueuedParsers.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
-				for (Script script : newlyEnqueuedParsers.keySet()) {
+				final SynchronizedCounter poolJobsCountdown = new SynchronizedCounter(newlyEnqueuedParsers.keySet().size());
+				final ExecutorService phaseOnePool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+				for (final Script script : newlyEnqueuedParsers.keySet()) {
 					if (monitor.isCanceled())
 						return;
-					performBuildPhaseOne(script);
-					monitor.worked(1);
+					phaseOnePool.execute(new Runnable() {
+						@Override
+						public void run() {
+							performBuildPhaseOne(script);
+							System.out.println("Worked!");
+							monitor.worked(1);
+							if (poolJobsCountdown.decrement() == 0)
+								phaseOnePool.shutdown();
+						}
+					});
+				}
+				try {
+					phaseOnePool.awaitTermination(100, TimeUnit.HOURS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 				Display.getDefault().asyncExec(new UIRefresher(listFromIterable(newlyEnqueuedParsers.keySet())));
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
@@ -520,11 +540,25 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			for (Script s : scripts)
 				s.generateFindDeclarationCache();
-			for (Script s : scripts) {
+			final ExecutorService phaseTwoPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+			final SynchronizedCounter poolJobsCountdown = new SynchronizedCounter(scripts.length);
+			for (final Script script : scripts) {
 				if (monitor.isCanceled())
 					return;
-				performBuildPhaseTwo(s);
-				monitor.worked(1);
+				phaseTwoPool.execute(new Runnable() {
+					@Override
+					public void run() {
+						performBuildPhaseTwo(script);
+						monitor.worked(1);
+						if (poolJobsCountdown.decrement() == 0)
+							phaseTwoPool.shutdown();
+					}
+				});
+			}
+			try {
+				phaseTwoPool.awaitTermination(100, TimeUnit.HOURS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 			Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
 			new SaveScriptsJob(proj, scripts).schedule();
