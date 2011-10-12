@@ -35,15 +35,15 @@ public class Parenthesized extends Value {
 		return innerExpr.getType(context);
 	}
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
-		return innerExpr.modifiable(context);
+	public boolean isModifiable(C4ScriptParser context) {
+		return innerExpr.isModifiable(context);
 	}
 	@Override
 	public boolean hasSideEffects() {
 		return innerExpr.hasSideEffects();
 	}
 
-	public ExprElm getInnerExpr() {
+	public ExprElm innerExpression() {
 		return innerExpr;
 	}
 

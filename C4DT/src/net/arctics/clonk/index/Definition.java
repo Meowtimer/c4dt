@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,25 +9,20 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.swt.graphics.Image;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.preferences.ClonkPreferences;
-
-import java.security.InvalidParameterException;
-
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StreamUtil;
@@ -39,6 +35,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.swt.graphics.Image;
 
 /**
  * A Clonk object definition.
@@ -301,7 +298,7 @@ public class Definition extends Script {
 	public Definition(Index index, ID id, String name, IContainer container) {
 		this(index, id, name);
 		try {
-			setObjectFolder(container);
+			setDefinitionFolder(container);
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
@@ -343,6 +340,7 @@ public class Definition extends Script {
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
+	@Override
 	public IFile getScriptStorage() {
 		if (this.definitionFolder == null)
 			return null;
@@ -381,11 +379,11 @@ public class Definition extends Script {
 	}
 
 	/**
-	 * Set the object folder the Definition was read from. This will take care of setting session properties on the folder.
+	 * Set the folder the Definition was read from. This will take care of setting session properties on the folder.
 	 * @param folder The folder
 	 * @throws CoreException
 	 */
-	public void setObjectFolder(IContainer folder) throws CoreException {
+	public void setDefinitionFolder(IContainer folder) throws CoreException {
 		if (Utilities.objectsEqual(folder, definitionFolder))
 			return;
 		if (definitionFolder != null && definitionFolder.exists())
@@ -411,14 +409,6 @@ public class Definition extends Script {
 	public IContainer definitionFolder() {
 		return definitionFolder;
 	}
-	
-	/**
-	 * Return the object folder reference still stored in this Definition, ignoring the possibility that this Definition might not represent the latest version anymore.
-	 * @return The object folder if it has been assigned at all or null.
-	 */
-	public IContainer getObjectFolderIgnoringOutOfDateness() {
-		return definitionFolder;
-	}
 
 	/**
 	 * Return the definition that is declared at the given folder.
@@ -439,12 +429,12 @@ public class Definition extends Script {
 	 * @return Whether refreshing the folder reference was successful
 	 * @throws CoreException
 	 */
-	public boolean refreshFolderReference(IProject project) throws CoreException {
+	public boolean refreshDefinitionFolderReference(IProject project) throws CoreException {
 		Path path = new Path(this.relativePath);
 		IPath projectPath = path.removeFirstSegments(1);
 		IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
-			this.setObjectFolder((IContainer)res);
+			this.setDefinitionFolder((IContainer)res);
 			return true;
 		}
 		else
@@ -474,7 +464,7 @@ public class Definition extends Script {
 	 * @throws IOException
 	 * @throws CoreException
 	 */
-	public void processFile(IFile file) throws IOException, CoreException {
+	public void processDefinitionFolderFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
 			readNames(StreamUtil.stringFromFileDocument(file));
 		}

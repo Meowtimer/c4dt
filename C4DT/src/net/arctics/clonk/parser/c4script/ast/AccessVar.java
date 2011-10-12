@@ -35,7 +35,7 @@ public class AccessVar extends AccessDeclaration {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
+	public boolean isModifiable(C4ScriptParser context) {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred == null) {
 			return declaration == null || ((Variable)declaration).getScope() != Scope.CONST;

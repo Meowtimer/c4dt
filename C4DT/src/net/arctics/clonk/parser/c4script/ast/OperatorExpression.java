@@ -22,18 +22,18 @@ public class OperatorExpression extends Value {
 		this.operator = operator;
 	}
 
-	public Operator getOperator() {
+	public Operator operator() {
 		return operator;
 	}
 
 	@Override
 	public boolean hasSideEffects() {
-		return getOperator().modifiesArgument() || super.hasSideEffects();
+		return operator().modifiesArgument() || super.hasSideEffects();
 	}
 
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
-		return getOperator().returnsRef();
+	public boolean isModifiable(C4ScriptParser context) {
+		return operator().returnsRef();
 	}
 	
 	@Override

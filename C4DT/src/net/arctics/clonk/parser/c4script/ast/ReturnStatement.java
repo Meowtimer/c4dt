@@ -71,7 +71,7 @@ public class ReturnStatement extends KeywordStatement {
 	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 		// return (0); -> return 0;
 		if (returnExpr instanceof Parenthesized)
-			return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().optimize(parser));
+			return new ReturnStatement(((Parenthesized)returnExpr).innerExpression().optimize(parser));
 		// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 		// FIXME: should declare temporary variable so that order of expression execution isn't changed
 		/*

@@ -486,10 +486,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					if (offendingExpression instanceof AccessVar && offendingExpression.getParent() instanceof BinaryOp) {
 						AccessVar var = (AccessVar) offendingExpression;
 						BinaryOp op = (BinaryOp) offendingExpression.getParent();
-						if (topLevel == op.getParent() && op.getOperator() == Operator.Assign && op.getLeftSide() == offendingExpression) {
+						if (topLevel == op.getParent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+									new VarDeclarationStatement(var.getDeclarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
 						}
 					}
@@ -624,10 +624,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 						if (statement.getExpression() instanceof BinaryOp) {
 							BinaryOp binaryOp = (BinaryOp) statement.getExpression();
-							if (binaryOp.getOperator() == Operator.Equal && binaryOp.getLeftSide().modifiable(parser)) {
+							if (binaryOp.operator() == Operator.Equal && binaryOp.leftSide().isModifiable(parser)) {
 								replacements.add(
 										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-										new BinaryOp(Operator.Assign, binaryOp.getLeftSide(), binaryOp.getRightSide())
+										new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
 								);
 							}
 						}

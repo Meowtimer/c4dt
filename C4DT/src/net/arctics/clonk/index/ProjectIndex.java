@@ -88,10 +88,10 @@ public class ProjectIndex extends Index {
 		if (project != null) {
 			List<Script> stuffToBeRemoved = new LinkedList<Script>();
 			for (Definition object : this)
-				if ((object instanceof Definition) && !((Definition)object).refreshFolderReference(project))
+				if ((object instanceof Definition) && !((Definition)object).refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(object);
 			for (Scenario scenario : indexedScenarios())
-				if (!scenario.refreshFolderReference(project))
+				if (!scenario.refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(scenario);
 			for (Script script : indexedScripts())
 				if (script instanceof SystemScript) {

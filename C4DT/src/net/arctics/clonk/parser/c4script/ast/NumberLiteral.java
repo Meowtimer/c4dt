@@ -102,7 +102,7 @@ public final class NumberLiteral extends Literal<Long> {
 		super.reportErrors(parser);
 		long val = longValue();
 		//ExprElm region;
-		if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).getOperator() == Operator.Subtract) {
+		if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).operator() == Operator.Subtract) {
 			val = -val;
 			//region = getParent();
 		}

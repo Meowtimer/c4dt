@@ -226,7 +226,7 @@ public class CallFunc extends AccessDeclaration {
 		output.append(")"); //$NON-NLS-1$
 	}
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
+	public boolean isModifiable(C4ScriptParser context) {
 		IType t = getType(context);
 		return t.canBeAssignedFrom(TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
 	}
@@ -542,7 +542,7 @@ public class CallFunc extends AccessDeclaration {
 		for (int i = 0; i < parms.length; i++) {
 			ExprElm one = parms[i].optimize(parser);
 			ExprElm two = i+1 < parms.length ? parms[i+1] : null;
-			if (op.getLeftSide() == null)
+			if (op.leftSide() == null)
 				op.setLeftSide(one);
 			else if (two == null) {
 				op.setRightSide(one);

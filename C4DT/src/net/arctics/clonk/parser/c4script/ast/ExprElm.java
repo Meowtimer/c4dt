@@ -260,7 +260,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return Utilities.as(Definition.scriptFrom(getType(context)), Definition.class);
 	}
 
-	public boolean modifiable(C4ScriptParser context) {
+	public boolean isModifiable(C4ScriptParser context) {
 		return true;
 	}
 

@@ -19,17 +19,17 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		switch (getOperator()) {
+		switch (operator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or:
-			IType leftSideType = getLeftSide().getType(context);
-			IType rightSideType = getRightSide().getType(context);
+			IType leftSideType = leftSide().getType(context);
+			IType rightSideType = rightSide().getType(context);
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
 				return PrimitiveType.ANY;
 		case Assign:
-			return getRightSide().getType(context);
+			return rightSide().getType(context);
 		default:
 			return super.obtainType(context);
 		}
@@ -39,18 +39,18 @@ public class BinaryOp extends OperatorExpression {
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
 		if (context.getStrictLevel() >= 2) {
-			Operator op = getOperator();
+			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;
 			else if (op == Operator.ne)
 				op = Operator.NotEqual;
-			if (op != getOperator()) {
-				return new BinaryOp(op, getLeftSide().optimize(context), getRightSide().optimize(context));
+			if (op != operator()) {
+				return new BinaryOp(op, leftSide().optimize(context), rightSide().optimize(context));
 			}
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-		if ((getOperator() == Operator.And || getOperator() == Operator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
+		if ((operator() == Operator.And || operator() == Operator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
 			ExprElm block = convertOperatorHackToBlock(context);
 			if (block != null)
 				return block;
@@ -63,19 +63,19 @@ public class BinaryOp extends OperatorExpression {
 		LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 		ExprElm r;
 		boolean works = true;
-		Operator hackOp = this.getOperator();
+		Operator hackOp = this.operator();
 		// gather left sides (must not be operators)
-		for (r = getLeftSide(); r instanceof BinaryOp; r = ((BinaryOp)r).getLeftSide()) {
+		for (r = leftSide(); r instanceof BinaryOp; r = ((BinaryOp)r).leftSide()) {
 			BinaryOp op = (BinaryOp)r;
-			if (op.getOperator() != hackOp) {
+			if (op.operator() != hackOp) {
 				works = false;
 				break;
 			}
-			if (op.getRightSide() instanceof BinaryOp) {
+			if (op.rightSide() instanceof BinaryOp) {
 				works = false;
 				break;
 			}
-			leftSideArguments.addLast(op.getRightSide());
+			leftSideArguments.addLast(op.rightSide());
 		}
 		// return at the right end signals this should rather be a block
 		if (works) {
@@ -86,10 +86,10 @@ public class BinaryOp extends OperatorExpression {
 				statements.add(new SimpleStatement(ex.optimize(context)));
 			}
 			// convert func call to proper return statement
-			if (getRightSide().getControlFlow() == ControlFlow.Return)
-				statements.add(new ReturnStatement(((CallFunc)getRightSide()).getReturnArg().optimize(context)));
+			if (rightSide().getControlFlow() == ControlFlow.Return)
+				statements.add(new ReturnStatement(((CallFunc)rightSide()).getReturnArg().optimize(context)));
 			else
-				statements.add(new SimpleStatement(getRightSide().optimize(context)));
+				statements.add(new SimpleStatement(rightSide().optimize(context)));
 			return new Block(statements);
 		}
 		return null;
@@ -115,7 +115,7 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
-		if (!getOperator().modifiesArgument())
+		if (!operator().modifiesArgument())
 			parser.warningWithCode(ParserErrorCode.NoAssignment, this);
 	}
 
@@ -123,11 +123,11 @@ public class BinaryOp extends OperatorExpression {
 		super(op);
 	}
 
-	public ExprElm getLeftSide() {
+	public ExprElm leftSide() {
 		return leftSide;
 	}
 
-	public ExprElm getRightSide() {
+	public ExprElm rightSide() {
 		return rightSide;
 	}
 
@@ -145,7 +145,7 @@ public class BinaryOp extends OperatorExpression {
 	public void doPrint(ExprWriter output, int depth) {
 
 		// put brackets around operands in case some transformation messed up prioritization
-		boolean needsBrackets = leftSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)leftSide).getOperator().getPriority();
+		boolean needsBrackets = leftSide instanceof BinaryOp && operator().getPriority() > ((BinaryOp)leftSide).operator().getPriority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
 		leftSide.print(output, depth+1);
@@ -153,10 +153,10 @@ public class BinaryOp extends OperatorExpression {
 			output.append(")"); //$NON-NLS-1$
 
 		output.append(" "); //$NON-NLS-1$
-		output.append(getOperator().getOperatorName());
+		output.append(operator().getOperatorName());
 		output.append(" "); //$NON-NLS-1$
 
-		needsBrackets = rightSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)rightSide).getOperator().getPriority();
+		needsBrackets = rightSide instanceof BinaryOp && operator().getPriority() > ((BinaryOp)rightSide).operator().getPriority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
 		rightSide.print(output, depth+1);
@@ -166,59 +166,59 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	public void reportErrors(C4ScriptParser context) throws ParsingException {
-		getLeftSide().reportErrors(context);
-		getRightSide().reportErrors(context);
+		leftSide().reportErrors(context);
+		rightSide().reportErrors(context);
 		// sanity
-		setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
+		setExprRegion(leftSide().getExprStart(), rightSide().getExprEnd());
 		// i'm an assignment operator and i can't modify my left side :C
-		if (getOperator().modifiesArgument() && !getLeftSide().modifiable(context)) {
-			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getLeftSide(), C4ScriptParser.NO_THROW);
+		if (operator().modifiesArgument() && !leftSide().isModifiable(context)) {
+			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
 		}
 		// obsolete operators in #strict 2
-		if ((getOperator() == Operator.StringEqual || getOperator() == Operator.ne) && (context.getStrictLevel() >= 2)) {
-			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
+		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.getStrictLevel() >= 2)) {
+			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().getOperatorName());
 		}
 		// wrong parameter types
-		if (!getLeftSide().validForType(getOperator().getFirstArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType(context));
-		if (!getRightSide().validForType(getOperator().getSecondArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType(context));
+		if (!leftSide().validForType(operator().getFirstArgType(), context))
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().getFirstArgType(), leftSide().getType(context));
+		if (!rightSide().validForType(operator().getSecondArgType(), context))
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().getSecondArgType(), rightSide().getType(context));
 
 		IType expectedLeft, expectedRight;
-		switch (getOperator()) {
+		switch (operator()) {
 		case Assign: case Equal:
 			expectedLeft = expectedRight = null;
 			break;
 		default:
-			expectedLeft = getOperator().getFirstArgType();
-			expectedRight = getOperator().getSecondArgType();
+			expectedLeft = operator().getFirstArgType();
+			expectedRight = operator().getSecondArgType();
 		}
 		
 		if (expectedLeft != null)
-			getLeftSide().expectedToBeOfType(expectedLeft, context);
+			leftSide().expectedToBeOfType(expectedLeft, context);
 		if (expectedRight != null)
-			getRightSide().expectedToBeOfType(expectedRight, context);
+			rightSide().expectedToBeOfType(expectedRight, context);
 
-		if (getOperator() == Operator.Assign) {
-			getLeftSide().inferTypeFromAssignment(getRightSide(), context);
+		if (operator() == Operator.Assign) {
+			leftSide().inferTypeFromAssignment(rightSide(), context);
 		}
 	}
 	
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
-		if (getOperator() == Operator.Assign) {
-			getLeftSide().inferTypeFromAssignment(getRightSide(), root);
+		if (operator() == Operator.Assign) {
+			leftSide().inferTypeFromAssignment(rightSide(), root);
 		}
 	}
 
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		try {
-			Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
-			Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));
+			Object leftSide  = operator().getFirstArgType().convert(this.leftSide().evaluateAtParseTime(context));
+			Object rightSide = operator().getSecondArgType().convert(this.rightSide().evaluateAtParseTime(context));
 			if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
-				switch (getOperator()) {
+				switch (operator()) {
 				case And:
 					// false && <anything> => false
 					if (leftSide.equals(false))
@@ -239,7 +239,7 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	private Object evaluateOn(Object leftSide, Object rightSide) {
-        switch (getOperator()) {
+        switch (operator()) {
         case Add:
         	return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
         case Subtract:
@@ -267,8 +267,8 @@ public class BinaryOp extends OperatorExpression {
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-	    Object left = getLeftSide().evaluate(context);
-	    Object right = getRightSide().evaluate(context);
+	    Object left = leftSide().evaluate(context);
+	    Object right = rightSide().evaluate(context);
 	    if (left != null && right != null)
 	    	return evaluateOn(left, right);
 	    else
@@ -278,9 +278,9 @@ public class BinaryOp extends OperatorExpression {
 	@Override
 	public boolean isConstant() {
 		// CNAT_Left | CNAT_Right are considered constant for example
-		switch (getOperator()) {
+		switch (operator()) {
 		case BitOr: case BitAnd:
-			return getLeftSide().isConstant() && getRightSide().isConstant();
+			return leftSide().isConstant() && rightSide().isConstant();
 		default:
 			return false;
 		}

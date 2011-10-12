@@ -3,8 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class UnaryOp extends OperatorExpression {
@@ -38,9 +38,10 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	private boolean needsSpace(UnaryOp other) {
-		return this.getOperator().spaceNeededBetweenMeAnd(other.getOperator());
+		return this.operator().spaceNeededBetweenMeAnd(other.operator());
 	}
 
+	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		UnaryOp unop = (argument instanceof UnaryOp) ? (UnaryOp)argument : null;
 		if (unop != null && unop.placement != this.placement)
@@ -49,54 +50,59 @@ public class UnaryOp extends OperatorExpression {
 			argument.print(output, depth+1);
 			if (unop != null && needsSpace(unop))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
-			output.append(getOperator().getOperatorName());
+			output.append(operator().getOperatorName());
 		} else {
-			output.append(getOperator().getOperatorName());
+			output.append(operator().getOperatorName());
 			if (unop != null && needsSpace(unop))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
 			argument.print(output, depth+1);
 		}
 	}
 
-	public ExprElm getArgument() {
+	public ExprElm argument() {
 		return argument;
 	}
 
 	@Override
 	public void reportErrors(C4ScriptParser context) throws ParsingException {
-		getArgument().reportErrors(context);
-		if (getOperator().modifiesArgument() && !getArgument().modifiable(context)) {
+		argument().reportErrors(context);
+		if (operator().modifiesArgument() && !argument().isModifiable(context)) {
 			//				System.out.println(getArgument().toString() + " does not behave");
-			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getArgument(), C4ScriptParser.NO_THROW);
+			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
 		}
-		if (!getArgument().validForType(getOperator().getFirstArgType(), context)) {
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType(context).toString());
+		if (!argument().validForType(operator().getFirstArgType(), context)) {
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, argument(), operator().getFirstArgType().toString(), argument().getType(context).toString());
 		}
-		getArgument().expectedToBeOfType(getOperator().getFirstArgType(), context);
+		argument().expectedToBeOfType(operator().getFirstArgType(), context);
 	}
 
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
-		ExprElm arg = getArgument().optimize(context);
+		ExprElm arg = argument().optimize(context);
 		if (arg instanceof BinaryOp)
-			return new UnaryOp(getOperator(), placement, new Parenthesized(arg));
-		if (getOperator() == Operator.Not && arg instanceof Parenthesized) {
+			return new UnaryOp(operator(), placement, new Parenthesized(arg));
+		if (operator() == Operator.Not && arg instanceof Parenthesized) {
 			Parenthesized brackets = (Parenthesized)arg;
-			if (brackets.getInnerExpr() instanceof BinaryOp) {
-				BinaryOp op = (BinaryOp) brackets.getInnerExpr();
-				if (op.getOperator() == Operator.Equal) {
-					return new BinaryOp(Operator.NotEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
+			if (brackets.innerExpression() instanceof BinaryOp) {
+				BinaryOp op = (BinaryOp) brackets.innerExpression();
+				Operator oppo = null;
+				switch (op.operator()) {
+				case Equal:
+					oppo = Operator.NotEqual;
+					break;
+				case NotEqual:
+					oppo = Operator.Equal;
+					break;
+				case StringEqual:
+					oppo = Operator.ne;
+					break;
+				case ne:
+					oppo = Operator.StringEqual;
+					break;
 				}
-				else if (op.getOperator() == Operator.NotEqual) {
-					return new BinaryOp(Operator.Equal, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
-				}
-				else if (op.getOperator() == Operator.StringEqual) {
-					return new BinaryOp(Operator.ne, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
-				}
-				else if (op.getOperator() == Operator.ne) {
-					return new BinaryOp(Operator.StringEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
-				}
+				if (oppo != null)
+					return new BinaryOp(oppo, op.leftSide().optimize(context), op.rightSide().optimize(context));
 			}
 		}
 		return super.optimize(context);
@@ -108,16 +114,16 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
-		return placement == Placement.Prefix && getOperator().returnsRef();
+	public boolean isModifiable(C4ScriptParser context) {
+		return placement == Placement.Prefix && operator().returnsRef();
 	}
 
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		try {
 			Object ev = argument.evaluateAtParseTime(context);
-			Object conv = getOperator().getFirstArgType().convert(ev);
-			switch (getOperator()) {
+			Object conv = operator().getFirstArgType().convert(ev);
+			switch (operator()) {
 			case Not:
 				return !(Boolean)conv;
 			case Subtract:
@@ -129,12 +135,6 @@ public class UnaryOp extends OperatorExpression {
 		catch (ClassCastException e) {}
 		catch (NullPointerException e) {}
 		return super.evaluateAtParseTime(context);
-	}
-	
-	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		// TODO Auto-generated method stub
-		return super.evaluate(context);
 	}
 
 }

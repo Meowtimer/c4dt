@@ -54,7 +54,7 @@ public class ArraySliceExpression extends ArrayElementExpression {
 	}
 	
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
+	public boolean isModifiable(C4ScriptParser context) {
 		return false;
 	}
 	

@@ -2137,13 +2137,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								BinaryOp theOp = null;
 								for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
 									BinaryOp oneOp = (BinaryOp) opFromBottom;
-									if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.isRightAssociative())) {
+									if (priorOfNewOp > oneOp.operator().getPriority() || (priorOfNewOp == oneOp.operator().getPriority() && op.isRightAssociative())) {
 										theOp = oneOp;
 										break;
 									}
 								}
 								if (theOp != null) {
-									newLeftSide = theOp.getRightSide();
+									newLeftSide = theOp.rightSide();
 									current = lastOp = new BinaryOp(op);
 									theOp.setRightSide(current);
 								} else {

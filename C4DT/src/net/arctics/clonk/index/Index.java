@@ -60,8 +60,8 @@ import org.eclipse.core.runtime.CoreException;
  * <li>{@link Scenario}s</li>
  * </ul></p> 
  * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
- * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link Script} objects requires calling {@link #allScripts()},
- * which yields an {@link Iterable} to iterate over both {@link SystemScript}s and {@link Scenario}s.</p>
+ * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link Script} objects requires calling {@link #allScripts()}
+ * which yields an {@link Iterable} to iterate over {@link Definition}s, {@link SystemScript}s and {@link Scenario}s.</p>
  * <p>For indexes specific to Eclipse projects (as pretty much all actual ClonkIndex instances are), see {@link ProjectIndex}.</p>
  * @author madeen
  *
@@ -172,7 +172,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 					if ((obj instanceof Definition)) {
 						Definition projDef = obj;
 						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
-							projDef.setObjectFolder(folder);
+							projDef.setDefinitionFolder(folder);
 							return projDef;
 						}
 					}

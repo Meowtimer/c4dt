@@ -111,7 +111,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (resource instanceof IContainer) {
 				Definition obj = Definition.definitionCorrespondingToFolder((IContainer) resource);
 				if (obj != null)
-					obj.setObjectFolder(null);
+					obj.setDefinitionFolder(null);
 			}
 			else if (resource instanceof IFile) {
 				Structure.unPinFrom((IFile) resource);
@@ -233,7 +233,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				case IResourceDelta.ADDED:
 					object = Definition.definitionCorrespondingToFolder((IContainer)delta.getResource());
 					if (object != null)
-						object.setObjectFolder((IContainer) delta.getResource());
+						object.setDefinitionFolder((IContainer) delta.getResource());
 					break;
 				case IResourceDelta.REMOVED:
 					// remove object when folder is removed
@@ -300,7 +300,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			else if (script instanceof Definition) {
 				Definition def = (Definition)script;
 				try {
-					def.processFile(file);
+					def.processDefinitionFolderFile(file);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

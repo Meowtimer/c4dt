@@ -37,8 +37,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].getType(context);
 	}
 	@Override
-	public boolean modifiable(C4ScriptParser context) {
-		return elements != null && elements.length > 0 && elements[elements.length-1].modifiable(context);
+	public boolean isModifiable(C4ScriptParser context) {
+		return elements != null && elements.length > 0 && elements[elements.length-1].isModifiable(context);
 	}
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {

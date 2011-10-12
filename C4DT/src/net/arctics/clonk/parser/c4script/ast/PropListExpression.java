@@ -58,7 +58,7 @@ public class PropListExpression extends Value {
 		return definedDeclaration;
 	}
 	@Override
-	public boolean modifiable(C4ScriptParser parser) {
+	public boolean isModifiable(C4ScriptParser parser) {
 		return false;
 	}
 	@Override

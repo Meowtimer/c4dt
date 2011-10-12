@@ -166,9 +166,9 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 			
 			// treat parenthesized expressions as equivalent to non-parenthesized ones
 			if (a instanceof Parenthesized)
-				return ((Parenthesized)a).getInnerExpr().compare(b, this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
+				return ((Parenthesized)a).innerExpression().compare(b, this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
 			if (b instanceof Parenthesized)
-				return a.compare(((Parenthesized)b).getInnerExpr(), this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
+				return a.compare(((Parenthesized)b).innerExpression(), this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
 			
 			// ignore differing variable names if both variables are parameters at the same index in their respective functions
 			if (a instanceof AccessVar && b instanceof AccessVar) {
@@ -186,13 +186,13 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 			if (a.getParent() instanceof BinaryOp && b.getParent() instanceof BinaryOp) {
 				BinaryOp opA = (BinaryOp) a.getParent();
 				BinaryOp opB = (BinaryOp) b.getParent();
-				if (opA.getOperator() == opB.getOperator() && opA.getOperator().isAssociative()) {
+				if (opA.operator() == opB.operator() && opA.operator().isAssociative()) {
 					if (
-						b == opB.getLeftSide() || b == opB.getRightSide() &&
-						a == opA.getLeftSide() || a == opA.getRightSide()
+						b == opB.leftSide() || b == opB.rightSide() &&
+						a == opA.leftSide() || a == opA.rightSide()
 					) {
-						final ExprElm bCounterpart = opB.getLeftSide() == b ? opB.getRightSide() : opB.getLeftSide();
-						final ExprElm aCounterpart = opA.getLeftSide() == a ? opA.getRightSide() : opA.getLeftSide();
+						final ExprElm bCounterpart = opB.leftSide() == b ? opB.rightSide() : opB.leftSide();
+						final ExprElm aCounterpart = opA.leftSide() == a ? opA.rightSide() : opA.leftSide();
 						IASTComparisonDelegate proxy = new IASTComparisonDelegate() {
 							@Override
 							public DifferenceHandling differs(ExprElm _a, ExprElm _b, Object what) {
