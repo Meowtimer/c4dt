@@ -2278,23 +2278,31 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			unread();
 			return null;
 		}
-		StringBuilder builder = new StringBuilder();
-		boolean reachedEnd = false;
-		do {
-			// append the escaped character
-			if (builder.length() > 0)
-				builder.append((char)this.read());
-			// 
-			builder.append(this.readStringUntil(QUOTES_AND_NEWLINE_CHARS));
-			if (BufferedScanner.isLineDelimiterChar((char) peek())) {
-				errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, NO_THROW|ABSOLUTE_MARKER_LOCATION);
-				reachedEnd = true;
+		int start = offset;
+		boolean escaped = false;
+		boolean properEnd = false;
+		Loop: do {
+			int c = read();
+			switch (c) {
+			case -1:
+				errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
+				break Loop;
+			case '"':
+				if (!escaped) {
+					properEnd = true;
+					break Loop;
+				}
 				break;
+			case '\n': case '\r':
+				errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+				break Loop;
+			case '\\':
+				escaped = !escaped;
+				continue Loop;
 			}
-		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
-		if (!reachedEnd && read() != '"')
-			errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
-		return builder.toString();
+			escaped = false;
+		} while (true);
+		return readStringAt(start, offset - (properEnd?1:0));  
 	}
 	
 	/**
