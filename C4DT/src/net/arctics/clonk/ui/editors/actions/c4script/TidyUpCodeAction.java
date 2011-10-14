@@ -100,8 +100,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 			for (Declaration d : script.allSubDeclarations(IHasSubDeclarations.VARIABLES|+IHasSubDeclarations.FUNCTIONS)) {
 				if (!(d instanceof Variable && d.getParentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
-				else
-					System.out.println("Forrrever: " + d.getName());
 			}
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
