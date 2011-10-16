@@ -39,7 +39,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	 */
 	@Override
 	public void createControl(Composite parent) {
-		composite = new Composite(parent, SWT.DEFAULT | SWT.NO_SCROLL);
+		composite = new Composite(parent, SWT.NO_SCROLL);
 		GridLayout layout = new GridLayout(1, false);
 		composite.setLayout(layout);
 		filterBox = new Text(composite, SWT.SEARCH | SWT.CANCEL);
