@@ -17,7 +17,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private List<Variable> controlVariables = new LinkedList<Variable>();
+	private final List<Variable> controlVariables = new LinkedList<Variable>();
 	
 	@Override
 	protected String configurationName() {
@@ -65,7 +65,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	
 	@Override
 	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
-		if (section.parentSection() != null) {
+		if (section != null && section.parentSection() != null) {
 			IniSection psec = section.parentSection();
 			if (psec.name().equals("ControlDefs"))
 				return "Identifier";
