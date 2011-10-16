@@ -196,7 +196,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
-			if (function.getName().equals("Definition")) //$NON-NLS-1$
+			if (function.name().equals("Definition")) //$NON-NLS-1$
 				return;
 			Function definitionFunc = function.getScript().findLocalFunction("Definition", false); //$NON-NLS-1$
 			if (definitionFunc != null) {
@@ -391,10 +391,10 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 								if (a instanceof ProplistDeclaration) {
 									ProplistDeclaration proplDecl = (ProplistDeclaration) a;
 									for (Variable comp : proplDecl.getComponents()) {
-										if (prefix != null && !comp.getName().toLowerCase().contains(prefix))
+										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
-										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.getName()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.getName().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.getName()), null, comp.getInfoText(), "", processor.getEditor())); //$NON-NLS-2$
+										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.getInfoText(), "", processor.getEditor())); //$NON-NLS-2$
 									}
 								}
 							}

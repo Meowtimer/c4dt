@@ -66,7 +66,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallFunc && expression.getPredecessorInSequence() instanceof MemberOperator) {
 				CallFunc callFunc = (CallFunc) expression;
-				return callFunc.getDeclarationName().equals(declaration.getName());
+				return callFunc.getDeclarationName().equals(declaration.name());
 			}
 			return false;
 		}

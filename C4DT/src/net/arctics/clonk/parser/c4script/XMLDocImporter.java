@@ -333,7 +333,7 @@ public class XMLDocImporter {
 	
 	public <T extends ITypeable & IHasSubDeclarations> boolean fleshOutPlaceholder(T placeholder, boolean placeholdersFleshedOutFlag) {
 		if (!placeholdersFleshedOutFlag) {
-			ExtractedDeclarationDocumentation d = extractDeclarationInformationFromFunctionXml(placeholder.getName(), ClonkPreferences.getLanguagePref(), XMLDocImporter.SIGNATURE);
+			ExtractedDeclarationDocumentation d = extractDeclarationInformationFromFunctionXml(placeholder.name(), ClonkPreferences.getLanguagePref(), XMLDocImporter.SIGNATURE);
 			if (d != null) {
 				if (placeholder instanceof Function) {
 					Function f = (Function)placeholder;

@@ -60,7 +60,7 @@ public class IniDescriptionsLoader {
 		Map<String, String> descs;
 		try {
 			descs = loadDescriptions(ClonkPreferences.getLanguagePref());
-			return descs != null ? descs.get(declaration.getName()) : null;
+			return descs != null ? descs.get(declaration.name()) : null;
 		} catch (IOException e) {
 			return null;
 		}

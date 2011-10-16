@@ -34,14 +34,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			if (prefix != null) {
 				if (!(
-					def.getName().toLowerCase().contains(prefix) ||
+					def.name().toLowerCase().contains(prefix) ||
 					def.id().stringValue().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
 					(def instanceof Definition && ((Definition)def).definitionFolder() != null && ((Definition)def).definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}
-			String displayString = def.getName();
+			String displayString = def.name();
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
@@ -66,7 +66,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	
 	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
 		if (prefix != null) {
-			if (!func.getName().toLowerCase().startsWith(prefix))
+			if (!func.name().toLowerCase().startsWith(prefix))
 				return;
 		}
 		String displayString = func.getLongParameterString(true);
@@ -76,8 +76,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		/*String contextInfoString = func.getLongParameterString(false);
 		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
 
-		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		int cursorPosition = func.getName().length();
+		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+		int cursorPosition = func.name().length();
 		if (brackets) {
 			if (func.numParameters() == 0)
 				cursorPosition += 2;
@@ -91,15 +91,15 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 	
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
-		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
+		if (prefix != null && !var.name().toLowerCase().contains(prefix))
 			return null;
-		String displayString = var.getName();
+		String displayString = var.name();
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
-			var.getName(), offset, replacementLength, var.getName().length(), UI.variableIcon(var), displayString, 
-			null, var.getInfoText(), " - " + (var.getScript() != null ? var.getScript().getName() : "<adhoc>"), //$NON-NLS-1$
+			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
+			null, var.getInfoText(), " - " + (var.getScript() != null ? var.getScript().name() : "<adhoc>"), //$NON-NLS-1$
 			getEditor()
 		);
 		prop.setCategory(Category.Variables);

@@ -38,7 +38,7 @@ public class OpenObjectDialog extends DeclarationChooser {
 				return new StyledString(Messages.OpenObjectDialog_Empty);
 			if (!(element instanceof Definition)) return new StyledString(element.toString());
 			Definition obj = (Definition) element;
-			StyledString buf = new StyledString(obj.getName());
+			StyledString buf = new StyledString(obj.name());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 			buf.append(obj.id().stringValue(), StyledString.QUALIFIER_STYLER);
 			return buf;

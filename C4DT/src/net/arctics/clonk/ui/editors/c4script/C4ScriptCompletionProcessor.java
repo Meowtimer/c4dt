@@ -172,7 +172,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						Scenario s1 = func.getScenario();
 						if (s1 != null && s2 != null && s1 != s2)
 							continue;
-						proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
+						proposalForFunc(func, prefix, offset, proposals, func.getScript().name(), true);
 					}
 				if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
 					for (Variable var : index.staticVariables()) {
@@ -344,7 +344,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (proposalCycle == ProposalCycle.ALL) {
 			if (editorScript.getIndex().getEngine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
 				for (Function func : editorScript.getIndex().getEngine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().getName(), true);
+					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().name(), true);
 				}
 				if (contextSequence == null) {
 					for (Variable var : editorScript.getIndex().getEngine().variables()) {
@@ -575,7 +575,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if ((func = Utilities.as(dec, Function.class)) != null) {
 				if (func.getVisibility() != FunctionScope.GLOBAL)
 					if (!noPrivateFuncs  || func.getVisibility() == FunctionScope.PUBLIC)
-						proposalForFunc(func, prefix, offset, proposals, structure.getName(), true);
+						proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
 			}
 			else if ((var = Utilities.as(dec, Variable.class)) != null) {
 				if (var.getScope() != Scope.STATIC && var.getScope() != Scope.CONST)
@@ -622,7 +622,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 					info = new ClonkContextInformation(
-							dec.getName() + "()", null, //$NON-NLS-1$
+							dec.name() + "()", null, //$NON-NLS-1$
 							parmString,
 							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)dec).numParameters()
 					);

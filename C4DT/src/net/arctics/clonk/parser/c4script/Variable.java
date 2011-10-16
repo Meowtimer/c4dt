@@ -246,7 +246,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
 			Utilities.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
-			getName(),
+			name(),
 			initializationExpression != null
 				? String.format(valueFormat, Utilities.htmlerize(initializationExpression.toString()))
 				: "", //$NON-NLS-1$
@@ -363,14 +363,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return look above and feel relieved that redundancy is lifted from you
 	 */
 	public boolean isActualParm() {
-		return !getName().equals("..."); //$NON-NLS-1$
+		return !name().equals("..."); //$NON-NLS-1$
 	}
 	
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(getScope().toKeyword());
 		builder.append(" "); //$NON-NLS-1$
-		builder.append(getName());
+		builder.append(name());
 		builder.append(";"); //$NON-NLS-1$
 	}
 	

@@ -71,7 +71,7 @@ public class MapOverlay extends MapOverlayBase {
 			Class<? extends Declaration> declarationClass) {
 		if (MapOverlay.class.isAssignableFrom(declarationClass)) {
 			for (MapOverlayBase o : subOverlays)
-				if (o.getName() != null && o.getName().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
+				if (o.name() != null && o.name().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
 		}
 		return null;

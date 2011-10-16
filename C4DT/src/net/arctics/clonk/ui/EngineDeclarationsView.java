@@ -197,12 +197,12 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		private void createVariableEditDialog(Composite parent,
 				Variable var) {
 			// set title
-			parent.getShell().setText(String.format(Messages.Engine_EditVariable, var.getName()));
+			parent.getShell().setText(String.format(Messages.Engine_EditVariable, var.name()));
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
-			declarationNameField.setText(var.getName());
+			declarationNameField.setText(var.name());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_TypeTitle);
 			returnTypeBox = createComboBoxForType(parent, var.getType());
@@ -214,12 +214,12 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		private void createFunctionEditDialog(Composite parent, Function func) {
 			
 			// set title
-			parent.getShell().setText(String.format(Messages.Engine_EditFunction, func.getName()));
+			parent.getShell().setText(String.format(Messages.Engine_EditFunction, func.name()));
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
-			declarationNameField.setText(func.getName());
+			declarationNameField.setText(func.name());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ReturnTypeTitle);
 			returnTypeBox = createComboBoxForType(parent, func.getReturnType());
@@ -244,7 +244,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
 			if (func.parameters() != null) {
 				for(Variable par : func.parameters()) {
-					createParameterControls(parent, par.getType(), par.getName());
+					createParameterControls(parent, par.getType(), par.name());
 				}
 			}
 			
@@ -553,7 +553,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				InputDialog dialog = new InputDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 						Messages.SpecifyEngineName, Messages.SpecifyEngineNameDesc,
-						ClonkCore.getDefault().getActiveEngine().getName(),
+						ClonkCore.getDefault().getActiveEngine().name(),
 						null
 				);
 				switch (dialog.open()) {				

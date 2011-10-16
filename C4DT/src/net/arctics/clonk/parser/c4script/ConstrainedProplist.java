@@ -221,7 +221,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public String getName() {
+	public String name() {
 		return typeName(true);
 	}
 

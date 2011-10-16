@@ -74,7 +74,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * @return Return either the passed variable or an already existing one with that name
 	 */
 	public Variable addComponent(Variable variable) {
-		Variable found = findComponent(variable.getName());
+		Variable found = findComponent(variable.name());
 		if (found != null) {
 			return found;
 		} else {
@@ -91,7 +91,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 */
 	public Variable findComponent(String declarationName) {
 		for (Variable v : components)
-			if (v.getName().equals(declarationName))
+			if (v.name().equals(declarationName))
 				return v;
 		return null;
 	}
@@ -99,7 +99,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		for (Variable v : getComponents()) {
-			if (v.getName().equals(declarationName)) {
+			if (v.name().equals(declarationName)) {
 				return v;
 			}
 		}
@@ -127,7 +127,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public <T extends Declaration> T getLatestVersion(T from) {
 		if (Variable.class.isAssignableFrom(from.getClass())) {
-			return (T) findComponent(from.getName());
+			return (T) findComponent(from.name());
 		} else {
 			return super.getLatestVersion(from);
 		}
@@ -174,7 +174,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 	
 	@Override
-	public String getName() {
+	public String name() {
 		return "Proplist Expression 0009247331";
 	}
 	
@@ -187,7 +187,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 */
 	public IHasIncludes prototype() {
 		for (Variable v : components)
-			if (v.getName().equals(PROTOTYPE_KEY)) {
+			if (v.name().equals(PROTOTYPE_KEY)) {
 				IType t = v.getType();
 				for (IType ty : t)
 					if (ty instanceof IHasIncludes)

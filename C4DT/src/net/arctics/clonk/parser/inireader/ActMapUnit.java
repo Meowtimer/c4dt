@@ -10,7 +10,7 @@ public class ActMapUnit extends IniUnitWithNamedSections {
 	public static final String FILE_NAME = "ActMap.txt"; //$NON-NLS-1$
 	
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return FILE_NAME;
 	}
 	

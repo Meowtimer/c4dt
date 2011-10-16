@@ -77,7 +77,7 @@ public class Definition extends Script {
 	}
 
 	public String idWithName() {
-		return id() != null ? String.format(Messages.C4Object_IDWithName, getName(), id().toString()) : getName();
+		return id() != null ? String.format(Messages.C4Object_IDWithName, name(), id().toString()) : name();
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class Definition extends Script {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		@Override
-		public String getName() {
+		public String name() {
 			return id().stringValue();
 		}
 		
@@ -443,7 +443,7 @@ public class Definition extends Script {
 	
 	@Override
 	public String toString() {
-		return (getName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return (name() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
@@ -453,7 +453,7 @@ public class Definition extends Script {
 
 	@Override
 	public String getInfoText() {
-		return String.format(INFO_TEXT_TEMPLATE, getName(), super.getInfoText(), definitionFolder().getFullPath().toOSString());
+		return String.format(INFO_TEXT_TEMPLATE, name(), super.getInfoText(), definitionFolder().getFullPath().toOSString());
 		//return getName() + ": " + super.getInfoText();
 	}
 

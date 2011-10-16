@@ -36,8 +36,8 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 				IRegion region, boolean canShowMultipleHyperlinks) {
 			MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
-			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < ((MapOverlay) overlay).getTemplate().getName().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), ((MapOverlay) overlay).getTemplate().getName().length()), ((MapOverlay) overlay).getTemplate())};
+			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < ((MapOverlay) overlay).getTemplate().name().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), ((MapOverlay) overlay).getTemplate().name().length()), ((MapOverlay) overlay).getTemplate())};
 			return null;
 		}
 

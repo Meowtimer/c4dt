@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 public class FolderMapUnit extends IniUnit {
 
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return "FolderMap.txt";
 	}
 	

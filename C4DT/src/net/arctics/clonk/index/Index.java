@@ -210,10 +210,10 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 
 	protected void addToDeclarationMap(Declaration field) {
-		List<Declaration> list = declarationMap.get(field.getName());
+		List<Declaration> list = declarationMap.get(field.name());
 		if (list == null) {
 			list = new LinkedList<Declaration>();
-			declarationMap.put(field.getName(), list);
+			declarationMap.put(field.name(), list);
 		}
 		list.add(field);
 	}
@@ -846,7 +846,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		public EntityReference(IndexEntity referencedEntity) {
 			super(referencedEntity);
 			if (referencedEntity != null && referencedEntity.getIndex() != null)
-				referencedProjectName = referencedEntity.getIndex().getName();
+				referencedProjectName = referencedEntity.getIndex().name();
 		}
 		@Override
 		protected Index getIndex(Index context) {
@@ -883,7 +883,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private final String engineName;
 		public EngineRef(Engine engine) {
-			this.engineName = engine.getName();
+			this.engineName = engine.name();
 		}
 		@Override
 		public Object resolve(Index index) {

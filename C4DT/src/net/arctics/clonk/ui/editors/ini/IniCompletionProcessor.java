@@ -100,9 +100,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				if (d != null) {
 					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
-				if (section.getParentSection() != null && section.getParentSection().getSectionData() != null) {
+				if (section.parentSection() != null && section.parentSection().getSectionData() != null) {
 					// also propose new sections
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.getParentSection().getSectionData().getEntries().values());
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().getSectionData().getEntries().values());
 				} else if (section.getParentDeclaration() instanceof IniUnit) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).getConfiguration().getSections().values());
 				}
@@ -221,7 +221,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				if (script == null)
 					continue;
 				for (Function f : script.functions()) {
-					proposalForFunc(f, prefix, wordOffset, proposals, script.getName(), false);
+					proposalForFunc(f, prefix, wordOffset, proposals, script.name(), false);
 				}
 			}
 		}

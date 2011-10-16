@@ -743,8 +743,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		for (Variable v : func.getLocalVars()) {
 			if (!v.isUsed())
-				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.getName());
-			Variable shadowed = getContainer().findVariable(v.getName());
+				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());
+			Variable shadowed = getContainer().findVariable(v.name());
 			if (shadowed != null)
 				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.getQualifiedName(), shadowed.getQualifiedName());
 		}
@@ -1092,7 +1092,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String str;
 		if (peek() == '&') {
 			if (!container.getEngine().getCurrentSettings().supportsRefs) {
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.getEngine().getName());
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.getEngine().name());
 			}
 			read();
 			return PrimitiveType.REFERENCE;
@@ -3106,7 +3106,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
 		if (type == PrimitiveType.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
-			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.getEngine().getName());
+			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.getEngine().name());
 		}
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);

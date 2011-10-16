@@ -53,10 +53,10 @@ public class DefinitionParser {
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (object == null)
-					object = new Definition(index, defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
+					object = new Definition(index, defCoreWrapper.definitionID(), defCoreWrapper.name(), objectFolder);
 				else {
 					object.setId(defCoreWrapper.definitionID());
-					object.setName(defCoreWrapper.getName(), false);
+					object.setName(defCoreWrapper.name(), false);
 				}
 			} else if (scenario != null && object == null)
 				object = new Scenario(index, objectFolder.getName(), objectFolder);

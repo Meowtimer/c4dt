@@ -11,7 +11,7 @@ public class DefCoreUnit extends IniUnit {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return "DefCore.txt"; //$NON-NLS-1$
 	}
 
@@ -27,7 +27,7 @@ public class DefCoreUnit extends IniUnit {
 			return ID.NULL;
 	}
 	
-	public String getName() {
+	public String name() {
 		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;
 	}

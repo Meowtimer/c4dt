@@ -93,7 +93,7 @@ public class C4ScriptToCPPConverter {
 						Function f = (Function) callFunc.getDeclaration();
 						if (f.getParentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
-							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.getName()));
+							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.name()));
 							callFunc.printParmString(this, 0);
 							return true;
 						}
@@ -108,13 +108,13 @@ public class C4ScriptToCPPConverter {
 		output.append("static ");
 		output.append(PrimitiveType.cppTypeFromType(function.getReturnType()));
 		output.append(" ");
-		output.append(function.getName());
+		output.append(function.name());
 		output.append("(C4AulContext *cthr");
 		for (Variable parm : function.parameters()) {
 			output.append(", ");
 			output.append(PrimitiveType.cppTypeFromType(parm.getType()));
 			output.append(" ");
-			output.append(parm.getName());
+			output.append(parm.name());
 		}
 		output.append(")");
 		output.append("\n");
@@ -155,14 +155,14 @@ public class C4ScriptToCPPConverter {
 	
 	private void printFunctionTable(Writer output) throws IOException {
 		for (Function f : globalFunctionsUsed) {
-			output.append(String.format("C4AulFunc *engine%s;\n", f.getName()));
+			output.append(String.format("C4AulFunc *engine%s;\n", f.name()));
 		}
 		output.append("bool engineFunctionsFound = false;\n");
 		output.append("void FindEngineFunctions()\n{\n");
 		output.append("\tif(engineFunctionsFound)\n\t\t\treturn;\n");
 		output.append("\tengineFunctionsFound = true;\n");
 		for (Function f : globalFunctionsUsed) {
-			output.append(String.format("\tengine%1$s = ::ScriptEngine.GetFuncRecursive(\"%1$s\");\n", f.getName()));
+			output.append(String.format("\tengine%1$s = ::ScriptEngine.GetFuncRecursive(\"%1$s\");\n", f.name()));
 		}
 		output.append("}\n");
 		output.append("}\n");

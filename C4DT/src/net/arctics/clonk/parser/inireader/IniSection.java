@@ -54,7 +54,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		return getLocation().getStart();
 	}
 
-	public String getName() {
+	public String name() {
 		return name;
 	}
 
@@ -76,7 +76,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	}
 
 	public String getKey() {
-		return getName();
+		return name();
 	}
 
 	public String getValue() {
@@ -104,7 +104,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	}
 
 	public String getNodeName() {
-		return getName();
+		return name();
 	}
 
 	public ITreeNode getParentNode() {
@@ -122,7 +122,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	@Override
 	public String toString() {
 		IniUnit unit = getIniUnit();
-		return unit != null ? unit.sectionToString(this) : getName();
+		return unit != null ? unit.sectionToString(this) : name();
 	}
 	
 	@Override
@@ -140,7 +140,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	}
 	
 	public void putEntry(IniEntry entry) {
-		itemMap.put(entry.getName(), entry);
+		itemMap.put(entry.name(), entry);
 		itemList.add(entry);
 		entry.setParentDeclaration(this);
 	}
@@ -148,7 +148,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	@Override
 	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
 		writer.append('[');
-		writer.append(getName());
+		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
 		
@@ -189,7 +189,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		return sections;
 	}
 	
-	public IniSection getParentSection() {
+	public IniSection parentSection() {
 		return getParentDeclaration() instanceof IniSection ? (IniSection)getParentDeclaration() : null;
 	}
 	

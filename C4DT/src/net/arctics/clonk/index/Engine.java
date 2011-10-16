@@ -433,7 +433,7 @@ public class Engine extends Script {
 		if (getCurrentSettings().readDocumentationFromRepository) {
 			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
-			new Job("Initialize doc importer for " + this.getName()) {
+			new Job("Initialize doc importer for " + this.name()) {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
 					xmlDocImporter.initialize();
@@ -445,18 +445,18 @@ public class Engine extends Script {
 	}
 	
 	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
-		if (declaration.getCurrentlySetUserDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.getName()))
+		if (declaration.getCurrentlySetUserDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.name()))
 			return declaration.getCurrentlySetUserDescription();
 		applyDocumentationAndSignatureFromRepository(declaration);
 		return declaration.getCurrentlySetUserDescription();
 	}
 	
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
-		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.getName());
+		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
 		if (getCurrentSettings().readDocumentationFromRepository) {
 			XMLDocImporter importer = repositoryDocImporter().initialize();
-			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.getName(), ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION);
+			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
 				declaration.setUserDescription(d.description);
 				if (declaration instanceof Function) {
@@ -496,7 +496,7 @@ public class Engine extends Script {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					unit.getParser().parse(false);
 					for (IniSection section : unit.getSections()) {
-						Declaration declaration = findDeclaration(section.getName());
+						Declaration declaration = findDeclaration(section.name());
 						if (declaration != null) {
 							unit.commitSection(declaration, section, false);
 						}
@@ -514,7 +514,7 @@ public class Engine extends Script {
 	
 	public void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
-			final URL url = loc.getURL(getName()+".c", false);
+			final URL url = loc.getURL(name()+".c", false);
 			if (url != null) {
 				InputStream stream;
 				try {
@@ -566,7 +566,7 @@ public class Engine extends Script {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, getName()));
+				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, name()));
 			specialScriptRules = rulesClass.newInstance();
 			specialScriptRules.initialize();
 		} catch (ClassNotFoundException e) {
@@ -612,7 +612,7 @@ public class Engine extends Script {
 
 	public void writeEngineScript(Writer writer) throws IOException {
 		for (Variable v : variables()) {
-			String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName()); //$NON-NLS-1$
+			String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.name()); //$NON-NLS-1$
 			writer.append(text);
 		}
 		writer.append("\n"); //$NON-NLS-1$
@@ -713,7 +713,7 @@ public class Engine extends Script {
 		}
 		List<Variable> result = new LinkedList<Variable>();
 		for (Variable v : variables()) {
-			if (v.getScope() == Scope.CONST && v.getName().startsWith(prefix)) {
+			if (v.getScope() == Scope.CONST && v.name().startsWith(prefix)) {
 				result.add(v);
 			}
 		}
@@ -815,7 +815,7 @@ public class Engine extends Script {
 	
 	@Override
 	public String getQualifiedName() {
-		return getName();
+		return name();
 	}
 
 }

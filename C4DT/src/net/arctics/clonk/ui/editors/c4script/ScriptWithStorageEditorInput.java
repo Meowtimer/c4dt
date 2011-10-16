@@ -40,7 +40,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public String getName() {
-		return "[" + getScript().getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return "[" + getScript().name() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public IPersistableElement getPersistable() {

@@ -139,7 +139,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		else
 			dictionary = new HashSet<String>();
 		for (Declaration d : allSubDeclarations(DIRECT_SUBDECLARATIONS))
-			dictionary.add(d.getName());
+			dictionary.add(d.name());
 	}
 	
 	public String getScriptText() {
@@ -333,13 +333,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		if (Variable.class.isAssignableFrom(declarationClass)) {
 			for (Variable v : variables()) {
-				if (v.getName().equals(declarationName))
+				if (v.name().equals(declarationName))
 					return v;
 			}
 		}
 		if (Function.class.isAssignableFrom(declarationClass)) {
 			for (Function f : functions()) {
-				if (f.getName().equals(declarationName))
+				if (f.name().equals(declarationName))
 					return f;
 			}
 		}
@@ -426,12 +426,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			// a function defined in this object
 			if (decClass == null || decClass == Function.class)
 				for (Function f : functions())
-					if (f.getName().equals(name))
+					if (f.name().equals(name))
 						return f;
 			// a variable
 			if (decClass == null || decClass == Variable.class)
 				for (Variable v : variables())
-					if (v.getName().equals(name))
+					if (v.name().equals(name))
 						return v;
 
 			info.recursion++;
@@ -657,7 +657,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return null;
 		alreadySearched.add(this);
 		for (Function func: functions()) {
-			if (func.getName().equals(name))
+			if (func.name().equals(name))
 				return func;
 		}
 		if (includeIncludes) {
@@ -676,7 +676,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return null;
 		alreadySearched.add(this);
 		for (Variable var : variables()) {
-			if (var.getName().equals(name))
+			if (var.name().equals(name))
 				return var;
 		}
 		if (includeIncludes) {
@@ -694,11 +694,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		Map<String, Variable> variableMap = new HashMap<String, Variable>();
 		Collection<Variable> toBeRemoved = new LinkedList<Variable>();
 		for (Variable v : variables()) {
-			Variable inHash = variableMap.get(v.getName());
+			Variable inHash = variableMap.get(v.name());
 			if (inHash != null)
 				toBeRemoved.add(v);
 			else
-				variableMap.put(v.getName(), v);
+				variableMap.put(v.name(), v);
 		}
 		for (Variable v : toBeRemoved)
 			definedVariables.remove(v);
@@ -778,10 +778,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().typeName(true))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.getReturnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (Variable p : f.parameters()) {
-				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().typeName(true))); //$NON-NLS-1$
+				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.getType().typeName(true))); //$NON-NLS-1$
 			}
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
 			if (f.obtainUserDescription() != null) {
@@ -794,7 +794,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
 			if (v.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.obtainUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -990,7 +990,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public String typeName(boolean special) {
-		return getName();
+		return name();
 	}
 
 	@Override
@@ -1059,9 +1059,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			if (i instanceof Script)
 				_generateFindDeclarationCache(scriptsAlreadyVisited, (Script)i);
 		for (Function f : script.functions())
-			cachedFunctionMap.put(f.getName(), f);
+			cachedFunctionMap.put(f.name(), f);
 		for (Variable v : script.variables())
-			cachedVariableMap.put(v.getName(), v);
+			cachedVariableMap.put(v.name(), v);
 	}
 	
 	public void generateFindDeclarationCache() {

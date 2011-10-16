@@ -185,7 +185,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T getLatestVersion(T from) {
-		return (T) findLocalDeclaration(from.getName(), from.getClass());
+		return (T) findLocalDeclaration(from.name(), from.getClass());
 	}
 	
 	/**

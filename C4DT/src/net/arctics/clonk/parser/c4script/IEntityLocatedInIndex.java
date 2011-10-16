@@ -12,7 +12,7 @@ public interface IEntityLocatedInIndex {
 	 * Get the name. This may also be some vague description-
 	 * @return The name or description
 	 */
-	String getName();
+	String name();
 	/**
 	 * Return the index the entity is contained in.
 	 * @return The {@link Index}

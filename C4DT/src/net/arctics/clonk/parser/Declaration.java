@@ -71,7 +71,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		}
 		@Override
 		public String toString() {
-			return declaration.getName();
+			return declaration.name();
 		}
 	}
 	
@@ -100,7 +100,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	/**
 	 * @return the name
 	 */
-	public String getName() {
+	public String name() {
 		return name;
 	}
 	
@@ -208,7 +208,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return The short info string.
 	 */
 	public String getInfoText() {
-		return getName();
+		return name();
 	}
 	
 	/**
@@ -364,12 +364,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return whether this declaration should be filtered out (false) or not (true)
 	 */
 	public boolean nameMatches(Matcher matcher) {
-		return getName() != null && matcher.reset(getName()).lookingAt();
+		return name() != null && matcher.reset(name()).lookingAt();
 	}
 	
 	@Override
 	public String getNodeName() {
-		return getName();
+		return name();
 	}
 	
 	/**
@@ -543,13 +543,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 				ownIndex = othersWithSameName++;
 				continue;
 			}
-			else if (d.getName().equals(this.getName()))
+			else if (d.name().equals(this.name()))
 				othersWithSameName++;
 		}
 		if (othersWithSameName == 1)
-			return getName();
+			return name();
 		else
-			return getName() + ownIndex;
+			return name() + ownIndex;
 	}
 	
 	/**
@@ -565,7 +565,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			else {
 				if (builder.length() > 0)
 					builder.insert(0, '.');
-				builder.insert(0, d.getName());
+				builder.insert(0, d.name());
 			}
 		}
 		return builder.toString();
@@ -577,9 +577,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public String getQualifiedName() {
 		if (getParentDeclaration() != null)
-			return String.format("%s::%s", getParentDeclaration().getQualifiedName(), this.getName());
+			return String.format("%s::%s", getParentDeclaration().getQualifiedName(), this.name());
 		else
-			return getName();
+			return name();
 	}
 	
 }

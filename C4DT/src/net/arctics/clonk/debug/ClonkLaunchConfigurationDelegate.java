@@ -80,7 +80,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					Scenario scenarioObj = Scenario.get(scenario);
 					if (scenarioObj != null && !scenarioObj.getEngine().getCurrentSettings().supportsDebugging)
-						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().getName()));
+						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().name()));
 				}
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				Map<String, Object> processAttributes = new HashMap<String, Object>();

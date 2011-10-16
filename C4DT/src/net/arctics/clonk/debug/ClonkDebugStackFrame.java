@@ -87,7 +87,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	@Override
 	public String getName() throws DebugException {
 		if (function instanceof Function)
-			return String.format(NAME_FORMAT, ((Function)function).getScript().getName(), ((Function) function).getLongParameterString(true), line);
+			return String.format(NAME_FORMAT, ((Function)function).getScript().name(), ((Function) function).getLongParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else

@@ -29,7 +29,7 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	@Override
 	public String getName() throws DebugException {
-		return variable.getName();
+		return variable.name();
 	}
 
 	@Override

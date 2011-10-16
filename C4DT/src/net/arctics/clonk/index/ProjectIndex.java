@@ -58,12 +58,12 @@ public class ProjectIndex extends Index {
 	}
 	
 	/**
-	 * Overriding {@link Declaration#getName()} ensures that the project's name and the name of the index will be in sync.
+	 * Overriding {@link Declaration#name()} ensures that the project's name and the name of the index will be in sync.
 	 */
 	@Override
-	public String getName() {
+	public String name() {
 		setName(project.getName());
-		return super.getName();
+		return super.name();
 	}
 	
 	/**
@@ -158,8 +158,8 @@ public class ProjectIndex extends Index {
 					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
 						PlayerControlsUnit unit = (PlayerControlsUnit) IniUnit.pinned(resource, true, true);
 						if (unit != null) {
-							staticVariables.addAll(unit.getControlVariables());
-							for (Variable v : unit.getControlVariables())
+							staticVariables.addAll(unit.controlVariables());
+							for (Variable v : unit.controlVariables())
 								addToDeclarationMap(v);
 						}
 						return true;
@@ -181,7 +181,7 @@ public class ProjectIndex extends Index {
 				if (!resource.getName().equals(fileName))
 					return true;
 				Structure s = Structure.pinned(resource, create, false);
-				if (s != null && cls.isAssignableFrom(s.getClass()) && s.getName().equals(name)) {
+				if (s != null && cls.isAssignableFrom(s.getClass()) && s.name().equals(name)) {
 					result = (T) s;
 					return false;
 				}

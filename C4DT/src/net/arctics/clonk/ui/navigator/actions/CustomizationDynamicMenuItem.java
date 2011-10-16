@@ -68,7 +68,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 		private IPath engineSpecificPathForURL(URL url) {
 			IPath path = new Path(url.getPath());
 			for (int i = 0; i < path.segmentCount(); i++)
-				if (path.segment(i).equals(engine.getName())) {
+				if (path.segment(i).equals(engine.name())) {
 					path = path.removeFirstSegments(i);
 					break;
 				}

@@ -108,7 +108,7 @@ public abstract class AccessDeclaration extends Value {
 	 * @return Whether or not.
 	 */
 	public boolean indirectAccess() {
-		return declaration == null || !declaration.getName().equals(declarationName);
+		return declaration == null || !declaration.name().equals(declarationName);
 	}
 	
 	@Override

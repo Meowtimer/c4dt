@@ -34,7 +34,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 			if (!declLocator.getDeclaration().isEngineDeclaration()) {
 				Engine engine = ClonkProjectNature.getEngine(scriptFile);
 				if (engine != null) {
-					Declaration engineDeclaration = engine.findDeclaration(declLocator.getDeclaration().getName());
+					Declaration engineDeclaration = engine.findDeclaration(declLocator.getDeclaration().name());
 					if (engineDeclaration != null) {
 						messageBuilder.append("<br/><br/><b>"+"Engine:"+"</b><br/>");
 						messageBuilder.append(engineDeclaration.getInfoText());

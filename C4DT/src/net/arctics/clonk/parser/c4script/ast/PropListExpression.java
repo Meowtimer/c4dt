@@ -42,7 +42,7 @@ public class PropListExpression extends Value {
 			Variable component = components.get(i);
 			output.append('\n');
 			Conf.printIndent(output, depth-1);
-			output.append(component.getName());
+			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
 			component.getInitializationExpression().print(output, depth+1);
 			if (i < components.size()-1) {
@@ -99,14 +99,14 @@ public class PropListExpression extends Value {
 		List<Variable> components = getComponents();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components) {
-			map.put(component.getName(), component.getInitializationExpression().evaluateAtParseTime(context));
+			map.put(component.name(), component.getInitializationExpression().evaluateAtParseTime(context));
 		}
 		return map;
 	}
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.getCurrentVariable() != null) {
-			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getCurrentVariable().getName()+".txt"); //$NON-NLS-1$
+			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}

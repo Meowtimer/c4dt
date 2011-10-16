@@ -101,7 +101,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		if (engine != null) {
 			for (Variable var : engine.variables()) {
 				if (var.getScope() == Scope.CONST)
-					wordRule.addWord(var.getName(), constant);
+					wordRule.addWord(var.name(), constant);
 			}
 		}
 		

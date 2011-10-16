@@ -41,7 +41,7 @@ public class RenameDeclarationAction extends C4ScriptEditorAction {
 	public static void performRenameRefactoring(Declaration declarationToRename, String fixedNewName, int renameProcessorOptions) {
 		if (declarationToRename != null) {
 			saveModifiedFiles();
-			String newName = fixedNewName != null ? fixedNewName : declarationToRename.getName();
+			String newName = fixedNewName != null ? fixedNewName : declarationToRename.name();
 			RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName, renameProcessorOptions));
 			ClonkRenameRefactoringWizard wizard = new ClonkRenameRefactoringWizard(refactoring, fixedNewName == null);
 			RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);

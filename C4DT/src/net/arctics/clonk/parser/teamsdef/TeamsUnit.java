@@ -10,7 +10,7 @@ public class TeamsUnit extends IniUnitWithNamedSections {
 	}
 	
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return "Teams.txt";
 	}
 

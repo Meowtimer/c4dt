@@ -52,7 +52,7 @@ public class OCEngineDeclarationsImporter {
 				declaration = null;
 			}
 			if (declaration != null) {
-				Declaration existing = importsContainer.findDeclaration(declaration.getName(), declaration.getClass());
+				Declaration existing = importsContainer.findDeclaration(declaration.name(), declaration.getClass());
 				if (existing != null) {
 					existing.absorb(declaration);
 				} else {

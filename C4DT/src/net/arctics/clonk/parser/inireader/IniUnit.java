@@ -205,7 +205,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
 		if (parentSection != null) {
 			if (parentSection.getSectionData() != null) {
-				IniDataBase dataItem = parentSection.getSectionData().getEntry(section.getName());
+				IniDataBase dataItem = parentSection.getSectionData().getEntry(section.name());
 				return dataItem instanceof IniDataSection ? (IniDataSection)dataItem : null;
 			}
 			else
@@ -213,7 +213,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 		else {
 			return getConfiguration() != null
-			? getConfiguration().getSections().get(section.getName())
+			? getConfiguration().getSections().get(section.name())
 					: null;
 		}
 	}
@@ -342,7 +342,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				seek(0);
 				IniSection section;
 				while ((section = parseSection(modifyMarkers, null)) != null) {
-					sectionsMap.put(section.getName(), section);
+					sectionsMap.put(section.name(), section);
 					sectionsList.add(section);
 				}
 			} finally {
@@ -419,12 +419,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		marker(markerType, error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
 	}
 	
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return null;
 	}
 	
 	public IniConfiguration getConfiguration() {
-		String confName = getConfigurationName();
+		String confName = configurationName();
 		if (confName != null && getEngine() != null && getEngine().getIniConfigurations() != null)
 			return getEngine().getIniConfigurations().getConfigurationFor(confName);
 		else
@@ -505,7 +505,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	public String sectionToString(IniSection section) {
-		return "["+section.getName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
@@ -662,12 +662,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public String getKey() {
-		return getName();
+		return name();
 	}
 	
 	@Override
-	public String getName() {
-		String n = super.getName();
+	public String name() {
+		String n = super.name();
 		if (n == null) {
 			if (iniFile != null)
 				n = iniFile.getName();

@@ -20,11 +20,11 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	private List<Variable> controlVariables = new LinkedList<Variable>();
 	
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return "PlayerControls.txt"; //$NON-NLS-1$
 	}
 	
-	public List<Variable> getControlVariables() {
+	public List<Variable> controlVariables() {
 		return controlVariables;
 	}
 
@@ -45,7 +45,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 			for (IniItem item : controlsDefsSection.getSubItemList()) {
 				if (item instanceof IniSection) {
 					IniSection section = (IniSection) item;
-					if (section.getName().equals("ControlDef")) { //$NON-NLS-1$
+					if (section.name().equals("ControlDef")) { //$NON-NLS-1$
 						IniItem identifierEntry = section.getSubItem("Identifier"); //$NON-NLS-1$
 						if (identifierEntry instanceof IniEntry) {
 							IniEntry e = (IniEntry) identifierEntry;
@@ -64,24 +64,24 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	}
 	
 	@Override
-	public String sectionNameEntryName(IniSection section) {
-		if (section.getParentSection() != null) {
-			IniSection psec = section.getParentSection();
-			if (psec.getName().equals("ControlDefs"))
+	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
+		if (section.parentSection() != null) {
+			IniSection psec = section.parentSection();
+			if (psec.name().equals("ControlDefs"))
 				return "Identifier";
-			else if (psec.getName().equals("ControlSets"))
+			else if (psec.name().equals("ControlSets"))
 				return "Name";
-			else if (psec.getName().equals("ControlSet"))
+			else if (psec.name().equals("ControlSet"))
 				return "Control";
 		}
-		return super.sectionNameEntryName(section);
+		return super.nameOfEntryToTakeSectionNameFrom(section);
 	}
 	
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass == Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
-			for (Variable var : getControlVariables())
-				if (var.getName().equals(declarationName))
+			for (Variable var : controlVariables())
+				if (var.name().equals(declarationName))
 					return var;
 		}
 		return super.findLocalDeclaration(declarationName, declarationClass);
@@ -95,7 +95,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 			return r;
 		if (from instanceof Variable)
 			for (Variable c : controlVariables)
-				if (from.getName().equals(c.getName()))
+				if (from.name().equals(c.name()))
 					return (T) c;
 		return null;
 	};

@@ -52,7 +52,7 @@ public class CategoriesValue {
 	private static final IConverter<Variable, String> NAME_MAPPER = new IConverter<Variable, String>() {
 		@Override
 		public String convert(Variable from) {
-			return from.getName();
+			return from.name();
 		}
 	};
 	
@@ -74,7 +74,7 @@ public class CategoriesValue {
 			if (var == null) {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 			}
-			constants.add(var.getName());
+			constants.add(var.name());
 		}
 	}
 	

@@ -546,12 +546,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								Declaration dec = clonkProposal.getDeclaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
-								int similarity = Utilities.getSimilarity(dec.getName(), accessDec.getDeclarationName());
+								int similarity = Utilities.getSimilarity(dec.name(), accessDec.getDeclarationName());
 								if (similarity > 0) {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
-									ExprElm repl = identifierReplacement(accessDec, dec.getName());
-									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.getName()), repl, false);
+									ExprElm repl = identifierReplacement(accessDec, dec.name());
+									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false);
 								}
 							}
 						}

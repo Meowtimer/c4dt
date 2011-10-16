@@ -8,7 +8,7 @@ public class ScenarioUnit extends IniUnit {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	@Override
-	protected String getConfigurationName() {
+	protected String configurationName() {
 		return "Scenario.txt"; //$NON-NLS-1$
 	}
 	
@@ -18,7 +18,7 @@ public class ScenarioUnit extends IniUnit {
 	
 	@Override
 	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
-		if (section.getName().startsWith("Player")) //$NON-NLS-1$
+		if (section.name().startsWith("Player")) //$NON-NLS-1$
 			return getConfiguration().getSections().get("Player"); //$NON-NLS-1$
 		return super.getSectionDataFor(section, parentSection);
 	}

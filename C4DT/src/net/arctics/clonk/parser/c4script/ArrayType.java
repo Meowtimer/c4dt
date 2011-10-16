@@ -203,7 +203,7 @@ public class ArrayType implements IType {
 		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
 		return new ITypeable() {
 			@Override
-			public String getName() {
+			public String name() {
 				return String.format("Element %s of %s", evaluatedIndexExpression, ArrayType.this);
 			}
 

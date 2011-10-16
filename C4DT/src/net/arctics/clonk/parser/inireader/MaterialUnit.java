@@ -7,7 +7,7 @@ public class MaterialUnit extends IniUnit {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	@Override
-	public String getConfigurationName() {
+	public String configurationName() {
 		return "Material.txt"; //$NON-NLS-1$
 	}
 	

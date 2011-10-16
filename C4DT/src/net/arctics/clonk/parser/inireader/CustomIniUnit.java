@@ -113,14 +113,14 @@ public class CustomIniUnit extends IniUnit {
 				IniEntry entry = (IniEntry) item;
 				Field f;
 				try {
-					f = object.getClass().getField(entry.getName());
+					f = object.getClass().getField(entry.name());
 				} catch (Exception e) {
 					// don't panic - probably unknown field
 					//e.printStackTrace();
 					continue;
 				}
 				IniField annot;
-				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.getName()))) {
+				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.name()))) {
 					Object val = entry.getValueObject();
 					if (val instanceof IConvertibleToPrimitive)
 						val = ((IConvertibleToPrimitive)val).convertToPrimitive();

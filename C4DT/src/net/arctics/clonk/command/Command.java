@@ -46,12 +46,12 @@ public class Command {
 				}
 			}
 			@Override
-			public String getName() {
+			public String name() {
 				return "CommandBaseScript"; //$NON-NLS-1$
 			};
 			@Override
 			public String getNodeName() {
-				return getName();
+				return name();
 			};
 		};
 
@@ -154,7 +154,7 @@ public class Command {
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
 			for (Function f : engine.functions()) {
 				String escaped = f.obtainUserDescription() != null ? f.obtainUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				writer.append(String.format("%s=%s\n", f.getName(), escaped)); //$NON-NLS-1$
+				writer.append(String.format("%s=%s\n", f.name(), escaped)); //$NON-NLS-1$
 			}
 			writer.close();
 		}

@@ -70,7 +70,7 @@ public class Directive extends Declaration implements Serializable {
 	}
 	
 	@Override
-	public String getName() {
+	public String name() {
 		return type.toString();
 	}
 

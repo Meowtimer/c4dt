@@ -267,7 +267,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public String getLongParameterString(boolean withFuncName, boolean engineCompatible) {
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
-			string.append(getName());
+			string.append(name());
 			string.append("("); //$NON-NLS-1$
 		}
 		printParameterString(string, engineCompatible);
@@ -290,12 +290,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 						output.append(staticType.typeName(false));
 						output.append(' ');
 					}
-					output.append(par.getName());
+					output.append(par.name());
 					output.append(',');
 					output.append(' ');
 				}
 				else {
-					output.append(par.getName());
+					output.append(par.name());
 					output.append(',');
 					output.append(' ');
 				}
@@ -350,7 +350,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The documentation URl
 	 */
 	public String getDocumentationURL() {
-		return getDocumentationURL(getName(), getScript().getEngine());
+		return getDocumentationURL(name(), getScript().getEngine());
 	}
 
 	@Override
@@ -367,14 +367,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public Variable findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(Variable.class)) {
-			if (declarationName.equals(Variable.THIS.getName()))
+			if (declarationName.equals(Variable.THIS.name()))
 				return Variable.THIS;
 			for (Variable v : localVars) {
-				if (v.getName().equals(declarationName))
+				if (v.name().equals(declarationName))
 					return v;
 			}
 			for (Variable p : parameters) {
-				if (p.getName().equals(declarationName))
+				if (p.name().equals(declarationName))
 					return p;
 			}
 		}
@@ -403,13 +403,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Collection<? extends IHasIncludes> includesCollection = getScript().getIncludes(false);
 		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
-			Function fun = includes[i].findFunction(getName());
+			Function fun = includes[i].findFunction(name());
 			if (fun != null && fun != this)
 				return fun;
 		}
 		
 		// search in index
-		List<Declaration> decsWithSameName = getIndex().declarationMap().get(this.getName());
+		List<Declaration> decsWithSameName = getIndex().declarationMap().get(this.name());
 		if (decsWithSameName != null) {
 			Function f = null;
 			int rating = -1;
@@ -432,7 +432,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		
 		// search in engine
-		Function f = getIndex().getEngine().findFunction(getName());
+		Function f = getIndex().getEngine().findFunction(name());
 		if (f != null)
 			return f;
 		
@@ -513,7 +513,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			output.append(Keywords.Func);
 		}
 		output.append(" "); //$NON-NLS-1$
-		output.append(getName());
+		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
 			printParameterString(output, true);

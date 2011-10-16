@@ -13,13 +13,13 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		super(input);
 	}
 	
-	public String sectionNameEntryName(IniSection section) {
+	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
 		return "Name"; //$NON-NLS-1$
 	}
 
 	@Override
 	public String sectionToString(IniSection section) {
-		IniItem nameEntry = section.getSubItem(sectionNameEntryName(section));
+		IniItem nameEntry = section.getSubItem(nameOfEntryToTakeSectionNameFrom(section));
 		if (nameEntry instanceof IniEntry) {
 			String val = ((IniEntry) nameEntry).getValue();
 			val = StringTbl.evaluateEntries(this, val, true).evaluated;
@@ -32,7 +32,7 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		return new IPredicate<IniSection>() {
 			@Override
 			public boolean test(IniSection section) {
-				IniItem entry = section.getSubItem(sectionNameEntryName(section)); //$NON-NLS-1$
+				IniItem entry = section.getSubItem(nameOfEntryToTakeSectionNameFrom(section)); //$NON-NLS-1$
 				return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
 			}
 		};
@@ -43,7 +43,7 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 	public <T extends Declaration> T getLatestVersion(T from) {
 		if (from instanceof IniSection) {
 			IniSection section = (IniSection) from;
-			IniEntry entry = (IniEntry) section.getSubItem(sectionNameEntryName(section.getParentSection()));
+			IniEntry entry = (IniEntry) section.getSubItem(nameOfEntryToTakeSectionNameFrom(section.parentSection()));
 			if (entry != null)
 				return (T) sectionMatching(nameMatcherPredicate(entry.getValue()));
 			else

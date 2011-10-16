@@ -58,7 +58,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	 */
 	public RenameDeclarationProcessor(Declaration declarationToRename, String newName, int options) {
 		this.newName = newName;
-		this.oldName = declarationToRename.getName();
+		this.oldName = declarationToRename.name();
 		this.decl = declarationToRename;
 		this.options = options;
 	}
@@ -79,7 +79,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
-			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.getName(), Function.class)) {
+			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.name(), Function.class)) {
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
@@ -153,7 +153,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// renaming fields that originate from outside the project is not allowed
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
 		if (!(baseDecl.getIndex() instanceof ProjectIndex)) {
-			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.getName()));
+			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
 		}
 		
 		Declaration existingDec;

@@ -49,7 +49,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	public AccessVar(Declaration declaration) {
-		this(declaration.getName());
+		this(declaration.name());
 		this.declaration = declaration;
 	}
 
@@ -126,7 +126,7 @@ public class AccessVar extends AccessDeclaration {
 					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.getFunction() == parser.getCurrentFunc()) {
 						int locationUsed = parser.getCurrentFunc().getBody().getOffset()+this.getExprStart();
 						if (locationUsed < var.getLocation().getOffset())
-							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.getName());
+							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
 					}
 					break;
 			}

@@ -116,7 +116,7 @@ public class ClonkHierarchyView extends ViewPart {
 		
 		@Override
 		public String getText(Object element) {
-			return ((Script)element).getName();
+			return ((Script)element).name();
 		}
 		
 		@Override

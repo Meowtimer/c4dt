@@ -450,7 +450,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	public void saveActiveEngineInWorkspace() {
-		saveEngineInWorkspace(getActiveEngine().getName());
+		saveEngineInWorkspace(getActiveEngine().name());
 	}
 
 	/*

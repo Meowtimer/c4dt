@@ -137,7 +137,7 @@ public class CallFunc extends AccessDeclaration {
 		
 		@Override
 		public String toString() {
-			return String.format("%s(%d)", varFunction.getName(), varIndex); //$NON-NLS-1$
+			return String.format("%s(%d)", varFunction.name(), varIndex); //$NON-NLS-1$
 		}
 		
 	}
@@ -197,7 +197,7 @@ public class CallFunc extends AccessDeclaration {
 	 * @param parms Parameter expressions
 	 */
 	public CallFunc(Function function, ExprElm... parms) {
-		this(function.getName());
+		this(function.name());
 		this.declaration = function;
 		assignParentToSubElements();
 	}
@@ -467,9 +467,9 @@ public class CallFunc extends AccessDeclaration {
 				if (params.length == 0) {
 					// no warning when in #strict mode
 					if (context.getStrictLevel() >= 2)
-						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.getName());
+						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name());
 				} else {
-					context.errorWithCode(ParserErrorCode.VariableCalled, this, C4ScriptParser.NO_THROW, declaration.getName());
+					context.errorWithCode(ParserErrorCode.VariableCalled, this, C4ScriptParser.NO_THROW, declaration.name());
 				}
 			}
 			else if (declaration instanceof Function) {
@@ -502,7 +502,7 @@ public class CallFunc extends AccessDeclaration {
 				// warn about too many parameters
 				// try again, but only for engine functions
 				if (f.isEngineDeclaration() && !declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
-					context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.numParameters(), actualParmsNum(), f.getName());
+					context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.numParameters(), actualParmsNum(), f.name());
 				}
 				
 			}
@@ -511,7 +511,7 @@ public class CallFunc extends AccessDeclaration {
 					if (declarationName.equals(Keywords.Inherited)) {
 						Function activeFunc = context.getCurrentFunc();
 						if (activeFunc != null)
-							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().getName(), true);
+							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().name(), true);
 						else
 							context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					}
@@ -614,7 +614,7 @@ public class CallFunc extends AccessDeclaration {
 			Function activeFunc = parser.getCurrentFunc();
 			if (activeFunc != null) {
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
-					return new AccessVar(parser.getCurrentFunc().parameter(number.intValue()).getName());
+					return new AccessVar(parser.getCurrentFunc().parameter(number.intValue()).name());
 			}
 		}
 		
@@ -626,7 +626,7 @@ public class CallFunc extends AccessDeclaration {
 		// DecVar(0) -> Var(0)--
 		if (params.length <= 1 && declaration != null && (declaration == getCachedFuncs(parser).DecVar || declaration == getCachedFuncs(parser).IncVar)) {
 			return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallFunc(getCachedFuncs(parser).Var.getName(), new ExprElm[] {
+					new CallFunc(getCachedFuncs(parser).Var.name(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
 					})
 			);

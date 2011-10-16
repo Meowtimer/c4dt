@@ -128,7 +128,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	public void create() { 
 		super.create();
 		if (declarations != null && getInitialPattern() == null)
-			((Text)this.getPatternControl()).setText(declarations.iterator().next().getDeclaration().getName());
+			((Text)this.getPatternControl()).setText(declarations.iterator().next().getDeclaration().name());
 	}
 
 	@Override

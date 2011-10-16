@@ -29,7 +29,7 @@ public class ExecutableScript extends Script {
 	@Override
 	public IStorage getScriptStorage() {
 		try {
-			return new SimpleScriptStorage(getName(), script);
+			return new SimpleScriptStorage(name(), script);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return null;
@@ -49,7 +49,7 @@ public class ExecutableScript extends Script {
 			public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
 				if (!(function instanceof InvokableFunction))
 					return;
-				if (function.getName().equals("Main")) { //$NON-NLS-1$
+				if (function.name().equals("Main")) { //$NON-NLS-1$
 					main = (InvokableFunction)function;
 				}
 				super.parseCodeOfFunction(function, withNewContext);

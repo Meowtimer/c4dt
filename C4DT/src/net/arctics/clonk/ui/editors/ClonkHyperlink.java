@@ -42,7 +42,7 @@ public class ClonkHyperlink implements IHyperlink {
 	}
 
 	public String getHyperlinkText() {
-		return target.getName();
+		return target.name();
 	}
 
 	public String getTypeLabel() {
@@ -59,7 +59,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					openDocumentationForFunction(target.getName(), target.getEngine());
+					openDocumentationForFunction(target.name(), target.getEngine());
 				}
 			}
 		} catch (Exception e) {

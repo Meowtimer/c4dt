@@ -154,7 +154,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							String newHeader = func.getHeaderString(false);
 							textChange.addEdit(new ReplaceEdit(func.getHeader().getStart(), func.getHeader().getLength(), newHeader));
 						} catch (MalformedTreeException mt) {
-							System.out.println("Adding edit for " + func.getName() + " failed");
+							System.out.println("Adding edit for " + func.name() + " failed");
 						}
 					}
 					else if (noSelection) {
