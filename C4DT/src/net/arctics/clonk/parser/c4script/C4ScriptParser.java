@@ -80,6 +80,7 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitiali
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
@@ -194,6 +195,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
 	
+	private ClonkBuilder builder;
+	
 	public SpecialScriptRules getSpecialScriptRules() {
 		return specialScriptRules;
 	}
@@ -205,6 +208,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void setAllowInterleavedFunctionParsing(boolean allowInterleavedFunctionParsing) {
 		this.allowInterleavedFunctionParsing = allowInterleavedFunctionParsing;
 	}
+	
+	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
+	public ClonkBuilder builder() {return builder;}
 	
 	/**
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
@@ -585,12 +591,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		synchronized (container) {
-			strictLevel = container.getStrictLevel();
-			scriptLevelTypeInformationMerger = new TypeInformationMerger();
-			parsedFunctions = new HashSet<Function>();
+			prepareForFunctionParsing();
 			for (Function function : container.functions())
 				parseCodeOfFunction(function, false);
-			parsedFunctions = null;
+			synchronized (parsedFunctions) {
+				parsedFunctions = null;
+			}
 			applyStoredTypeInformationList(scriptLevelTypeInformationMerger.getResult(), false);
 			scriptLevelTypeInformationMerger = null;
 			currentFunctionContext.currentDeclaration = null;
@@ -614,6 +620,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			distillAdditionalInformation();
 		}
 		deployMarkers();
+	}
+
+	public void prepareForFunctionParsing() {
+		if (parsedFunctions == null) {
+			strictLevel = container.getStrictLevel();
+			scriptLevelTypeInformationMerger = new TypeInformationMerger();
+			parsedFunctions = new HashSet<Function>();
+		}
 	}
 
 	/**
@@ -646,82 +660,91 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// parser not yet ready to parse functions - deny
 		if (parsedFunctions == null)
 			return;
-		// only allow interleaved function parsing when invoked by ClonkBuilder
-		if (!allowInterleavedFunctionParsing && withNewContext)
-			return;
-		// function is weird or does not belong here - ignore
-		if (function.getBody() == null || function.getScript() != container)
-			return;
-		// already parsed? don't do that again
-		if (parsedFunctions.contains(function))
-			return;
-		else
-			parsedFunctions.add(function);
-		
-		function.forceType(PrimitiveType.UNKNOWN);
-		
-		if (specialScriptRules != null)
-			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
-				eventListener.functionAboutToBeParsed(function, this);
-		
-		int oldOffset = this.offset;
-		FunctionContext oldFunctionContext;
-		if (withNewContext) {
-			oldFunctionContext = currentFunctionContext;
-			currentFunctionContext = new FunctionContext();
-			currentFunctionContext.initialize();
-		} else
-			oldFunctionContext = null;
-		Declaration oldDec = currentFunctionContext.currentDeclaration;
-		try {
-			setCurrentFunc(function);
-			assignDefaultParmTypesToFunction(function);
-			// reset local vars
-			function.resetLocalVarTypes();
-			beginTypeInferenceBlock();
-			this.seek(function.getBody().getStart());
-			// parse code block
-			int endOfFunc = function.getBody().getEnd();
-			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			List<Statement> statements = new LinkedList<Statement>();
-			parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
-			BunchOfStatements bunch = new BunchOfStatements(statements);
-			if (function.isOldStyle() && statements.size() > 0)
-				function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
-			warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
-			function.storeBlock(bunch, functionSource(function));
-			applyStoredTypeInformationList(false); // apply short-term inference information
-			List<IStoredTypeInformation> block = endTypeInferenceBlock();
-			if (scriptLevelTypeInformationMerger != null) {
-				scriptLevelTypeInformationMerger.inject(block); // collect information from all functions and apply that after having parsed them all
+		synchronized (parsedFunctions) {
+			if (parsedFunctions == null)
+				return; // >:o
+			// only allow interleaved function parsing when invoked by ClonkBuilder
+			if (!allowInterleavedFunctionParsing && withNewContext)
+				return;
+			// function is weird or does not belong here - ignore
+			if (function.getBody() == null)
+				return;
+			if (function.getScript() != container) {
+				if (builder != null) {
+					builder.parseFunction(function);
+				}
+				return;
 			}
-			if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
-				function.createParameters(currentFunctionContext.numUnnamedParameters);
+			// already parsed? don't do that again
+			if (parsedFunctions.contains(function))
+				return;
+			else
+				parsedFunctions.add(function);
+
+			function.forceType(PrimitiveType.UNKNOWN);
+
+			if (specialScriptRules != null)
+				for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
+					eventListener.functionAboutToBeParsed(function, this);
+
+			int oldOffset = this.offset;
+			FunctionContext oldFunctionContext;
+			if (withNewContext) {
+				oldFunctionContext = currentFunctionContext;
+				currentFunctionContext = new FunctionContext();
+				currentFunctionContext.initialize();
+			} else
+				oldFunctionContext = null;
+			Declaration oldDec = currentFunctionContext.currentDeclaration;
+			try {
+				setCurrentFunc(function);
+				assignDefaultParmTypesToFunction(function);
+				// reset local vars
+				function.resetLocalVarTypes();
+				beginTypeInferenceBlock();
+				this.seek(function.getBody().getStart());
+				// parse code block
+				int endOfFunc = function.getBody().getEnd();
+				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+				List<Statement> statements = new LinkedList<Statement>();
+				parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+				BunchOfStatements bunch = new BunchOfStatements(statements);
+				if (function.isOldStyle() && statements.size() > 0)
+					function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
+				warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
+				function.storeBlock(bunch, functionSource(function));
+				applyStoredTypeInformationList(false); // apply short-term inference information
+				List<IStoredTypeInformation> block = endTypeInferenceBlock();
+				if (scriptLevelTypeInformationMerger != null) {
+					scriptLevelTypeInformationMerger.inject(block); // collect information from all functions and apply that after having parsed them all
+				}
+				if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
+					function.createParameters(currentFunctionContext.numUnnamedParameters);
+				}
+				else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters()-1).isActualParm())) {
+					addVarParmsParm(function);
+				}
 			}
-			else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters()-1).isActualParm())) {
-				addVarParmsParm(function);
+			catch (SilentParsingException e) {
+				// not really an error
+			}
+			catch (ParsingException e) {
+				//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
+				//e.printStackTrace();
+				// not very exceptional
+			}
+			catch (Exception e) {
+				// errorWithCode throws ^^;
+				e.printStackTrace();
+				errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, NO_THROW, e.getMessage());
+			}
+			finally {
+				currentFunctionContext.currentDeclaration = oldDec;
+				if (oldFunctionContext != null)
+					currentFunctionContext = oldFunctionContext;
+				seek(oldOffset);
 			}
 		}
-		catch (SilentParsingException e) {
-			// not really an error
-		}
-		catch (ParsingException e) {
-			//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-			//e.printStackTrace();
-			// not very exceptional
-		}
-		catch (Exception e) {
-			// errorWithCode throws ^^;
-			e.printStackTrace();
-			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, NO_THROW, e.getMessage());
-		}
-		finally {
-			currentFunctionContext.currentDeclaration = oldDec;
-			if (oldFunctionContext != null)
-				currentFunctionContext = oldFunctionContext;
-			seek(oldOffset);
-		}
-		
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {

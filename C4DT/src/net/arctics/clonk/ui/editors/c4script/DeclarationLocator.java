@@ -82,27 +82,29 @@ public class DeclarationLocator extends ExpressionLocator {
 			d.initialize(d.func.getBody(), d.func.getEngine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 		return true;
 	}
-	
+
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
 		final Script script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)
 			return;
-		RegionDescription d = new RegionDescription();
-		if (!initializeRegionDescription(d, script, region)) {
-			simpleFindDeclaration(doc, region, script, null);
-			return;
-		}
-		if (region.getOffset() >= d.bodyStart) {
-			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
-			parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
-			if (exprAtRegion != null) {
-				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
+		synchronized (script) {
+			RegionDescription d = new RegionDescription();
+			if (!initializeRegionDescription(d, script, region)) {
+				simpleFindDeclaration(doc, region, script, null);
+				return;
 			}
+			if (region.getOffset() >= d.bodyStart) {
+				exprRegion = new Region(region.getOffset()-d.bodyStart,0);
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
+				if (exprAtRegion != null) {
+					DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+					initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
+				}
+			}
+			else
+				simpleFindDeclaration(doc, region, script, d.func);
 		}
-		else
-			simpleFindDeclaration(doc, region, script, d.func);
 	}
 
 	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, DeclarationRegion declRegion, ExprElm exprAtRegion) {

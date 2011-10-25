@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -543,6 +544,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
 			
+			for (C4ScriptParser parser : parserMap.values()) {
+				if (parser != null)
+					parser.prepareForFunctionParsing();
+			}
+			
 			// parse function code
 			monitor.subTask(Messages.ClonkBuilder_ParseFunctionCode);
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
@@ -671,6 +677,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (storage != null) {
 				result = new C4ScriptParser(script);
 				result.setAllowInterleavedFunctionParsing(true);
+				result.setBuilder(this);
 			} else
 				result = null;
 			parserMap.put(script, result);
@@ -688,6 +695,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parser != null) {
 			parser.clean();
 			parser.parseDeclarations();
+		}
+	}
+	
+	public void parseFunction(Function function) {
+		C4ScriptParser parser;
+		synchronized (parserMap) {
+			parser = parserMap.get(function.getScript());
+		}
+		if (parser != null) {
+			try {
+				parser.parseCodeOfFunction(function, true);
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
