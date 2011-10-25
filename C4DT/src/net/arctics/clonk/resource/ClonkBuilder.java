@@ -489,10 +489,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, resourceCounter);
 
 			// initialize progress monitor
-			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? parserMap.size()*2 : IProgressMonitor.UNKNOWN);
+			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? 3000 : IProgressMonitor.UNKNOWN);
 			
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
+			monitor.subTask("Gathering scripts");
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
 			// delete old declarations
