@@ -581,6 +581,8 @@ public class Engine extends Script {
 		Engine result = null;
 		try {
 			for (IStorageLocation location : providers) {
+				if (location == null)
+					continue;
 				// only consider valid engine folder if configuration.ini is present
 				URL url = location.getURL(CONFIGURATION_INI_NAME, false); //$NON-NLS-1$
 				if (url != null) {

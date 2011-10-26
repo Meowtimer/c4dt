@@ -269,74 +269,78 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		Engine result = loadedEngines.get(engineName);
 		if (result != null)
 			return result;
-		IStorageLocation[] locations = new IStorageLocation[2];
+		IStorageLocation[] locations;
 		if (getBundle() != null) {
 			// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
-			getIDEStorageLocations(engineName, locations);
+			locations = IDEStorageLocations(engineName);
 		} else {
 			// no bundle? seems to run headlessly
-			getHeadlessStorageLocations(engineName, locations);
+			locations = headlessStorageLocations(engineName);
 		}
 		result = Engine.loadFromStorageLocations(locations);
 		if (result != null)
 			loadedEngines.put(engineName, result);
 		return result;
 	}
-	
-	private void getIDEStorageLocations(final String engineName, IStorageLocation[] locations) {
-		locations[0] = new FolderStorageLocation(engineName) {
-			@Override
-			protected IPath getStorageLocationForEngine(String engineName) {
-				return getWorkspaceStorageLocationForEngine(engineName);
-			}
-			@Override
-			public File toFolder() {
-				return new File(getWorkspaceStorageLocationForActiveEngine().toOSString());
-			};
-		};
-		
-		locations[1] = new IStorageLocation() {
-			@Override
-			public URL getURL(String entryName, boolean create) {
-				return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
-			}
-			@Override
-			public String getName() {
-				return engineName;
-			}
-			@Override
-			public OutputStream getOutputStream(URL storageURL) {
-				return null;
-			}
-			@Override
-			public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-				Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
-				containerPath = getName() + "/" + containerPath;
-				if (urls != null) {
-					while (urls.hasMoreElements()) {
-						URL url = urls.nextElement();
-						PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
-					}
+
+	private IStorageLocation[] IDEStorageLocations(final String engineName) {
+		return new IStorageLocation[] {
+			new FolderStorageLocation(engineName) {
+				@Override
+				protected IPath getStorageLocationForEngine(String engineName) {
+					return getWorkspaceStorageLocationForEngine(engineName);
 				}
-			};
-			@Override
-			public File toFolder() {
-				return null;
-			};
+				@Override
+				public File toFolder() {
+					return new File(getWorkspaceStorageLocationForActiveEngine().toOSString());
+				};
+			},
+
+			new IStorageLocation() {
+				@Override
+				public URL getURL(String entryName, boolean create) {
+					return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
+				}
+				@Override
+				public String getName() {
+					return engineName;
+				}
+				@Override
+				public OutputStream getOutputStream(URL storageURL) {
+					return null;
+				}
+				@Override
+				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+					Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
+					containerPath = getName() + "/" + containerPath;
+					if (urls != null) {
+						while (urls.hasMoreElements()) {
+							URL url = urls.nextElement();
+							PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
+						}
+					}
+				};
+				@Override
+				public File toFolder() {
+					return null;
+				};
+			}
 		};
 	}
-	
-	private void getHeadlessStorageLocations(String engineName, IStorageLocation[] locations) {
-		locations[0] = new FolderStorageLocation(engineName) {
-			private final IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
-			@Override
-			protected IPath getStorageLocationForEngine(String engineName) {
-				return storageLocationPath;
+
+	private IStorageLocation[] headlessStorageLocations(String engineName) {
+		return new IStorageLocation[] {
+			new FolderStorageLocation(engineName) {
+				private final IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
+				@Override
+				protected IPath getStorageLocationForEngine(String engineName) {
+					return storageLocationPath;
+				}
+				@Override
+				public File toFolder() {
+					return new File(storageLocationPath.toOSString());
+				};
 			}
-			@Override
-			public File toFolder() {
-				return new File(storageLocationPath.toOSString());
-			};
 		};
 	}
 

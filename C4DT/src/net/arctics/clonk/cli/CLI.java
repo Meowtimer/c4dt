@@ -6,7 +6,10 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 
-public class CLI {
+import org.eclipse.equinox.app.IApplication;
+import org.eclipse.equinox.app.IApplicationContext;
+
+public class CLI implements IApplication {
 
 	/**
 	 * @param args
@@ -16,16 +19,35 @@ public class CLI {
 		System.out.println("c4dt commandline interface");
 		boolean done = false;
 		Scanner scanner = new Scanner(System.in);
-		ClonkCore.headlessInitialize(args[0], "OpenClonk");
+		String engineConfigurationFolder;
+		if (args.length > 1) 
+			engineConfigurationFolder = args[0];
+		else
+			engineConfigurationFolder = System.getenv().get("C4DTENGINECONFIGURATIONCLI");
+		ClonkCore.headlessInitialize(engineConfigurationFolder, "OpenClonk");
 		while (!done) {
 			String command = scanner.nextLine();
 			ExecutableScript script = Command.executableScriptFromCommand(command);
-			if (script != null) {
+			if (script != null) try {
 				Object result = script.getMain().invoke();
 				if (result != null)
 					System.out.println(result.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public Object start(IApplicationContext context) throws Exception {
+		main(new String[0]);
+		return null;
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
