@@ -196,28 +196,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		StringTbl.register();
 		MapCreator.register();
 	}
-
-	//	private void loadOld(String path) throws IOException, ClassNotFoundException {
-	//		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(path))));
-	//		//		java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
-	//		try {
-	//			while (true) {
-	//				Object obj = decoder.readObject();
-	//				if (obj instanceof C4Field) {
-	//					C4Field field = (C4Field)obj;
-	//					field.setScript(ENGINE_OBJECT);
-	//					ENGINE_OBJECT.addField(field);
-	//					//					ENGINE_FUNCTIONS.add((C4Function)obj);
-	//				}
-	//				else {
-	//					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
-	//				}
-	//			}
-	//		}
-	//		catch(EOFException e) {
-	//			// finished
-	//		}
-	//	}
 	
 	public Map<String, Engine> getLoadedEngines() {
 		return Collections.unmodifiableMap(loadedEngines);
@@ -230,7 +208,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
 	
-	public List<String> getNamesOfAvailableEngines() {
+	public List<String> namesOfAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
 		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
@@ -350,34 +328,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
-	//	private int nooper;
-	//	
-	//	private void addFunction(String name, C4Type retType, C4Type... parmTypes) {
-	//		C4Variable[] parms = new C4Variable[parmTypes.length];
-	//		for (int i = 0; i < parms.length; i++)
-	//			parms[i] = new C4Variable("par"+i, parmTypes[i], "", C4VariableScope.VAR_VAR);
-	//		C4Function f = new C4Function(name, retType, parms);
-	//		ENGINE_OBJECT.addField(f);
-	//	}
-	//	
-	//	private void removeSystemDuplicates() {
-	//		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
-	//		for (C4Function f : ENGINE_OBJECT.functions()) {
-	//			C4Function dup = EXTERN_INDEX.findGlobalFunction(f.getName());
-	//			if (dup != null && dup.getScript() instanceof C4ScriptExtern)
-	//				toBeRemoved.add(f);
-	//		}
-	//		if (toBeRemoved.size() != 0) {
-	//			for (C4Function r : toBeRemoved)
-	//				ENGINE_OBJECT.removeField(r);
-	//			saveEngineObject();
-	//		}
-	//	}
-
-	//	private void chanceToAddMissingThingsToEngine() {
-	//	//	removeSystemDuplicates();
-	//	}
-
 	public IPath getWorkspaceStorageLocationForActiveEngine() {
 		return getWorkspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
@@ -404,11 +354,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public File requestFolderInStateLocation(String name) {
 		File result = new File(new File(getStateLocation().toOSString()), name);
 		return result.mkdirs() ? result : null;
-	}
-
-	public static IPath getExternLibCacheFile() {
-		IPath path = ClonkCore.getDefault().getStateLocation();
-		return path.append("externlib"); //$NON-NLS-1$
 	}
 
 	public void exportEngineToXMLInWorkspace(String engineName) {
