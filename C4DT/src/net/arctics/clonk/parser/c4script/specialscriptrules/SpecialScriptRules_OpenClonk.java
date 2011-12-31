@@ -61,9 +61,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			if (function instanceof EffectFunction) {
 				EffectFunction fun = (EffectFunction) function;
 				fun.findStartCallback();
-				EffectFunction startFunction = fun.getHardcodedCallbackType() == EffectFunction.HardcodedCallbackType.Start
+				EffectFunction startFunction = fun.hardcodedCallbackType() == EffectFunction.HardcodedCallbackType.Start
 					? null
-					: fun.getStartFunction();
+					: fun.startFunction();
 				// parse *Start function first. Will define ad-hoc proplist type
 				if (startFunction != null) {
 					try {
@@ -75,7 +75,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				IType effectProplistType;
 				if (startFunction != null) {
 					// not the start function - get effect parameter type from start function
-					effectProplistType = startFunction.getEffectType();
+					effectProplistType = startFunction.effectType();
 				} else {
 					// this is the start function - create type if parameter present
 					if (fun.numParameters() < 2)
@@ -89,7 +89,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return false;
 		}
 		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
-			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getIndex(), startFunction.getEffectName(), null);
+			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getIndex(), startFunction.effectName(), null);
 			result.setLocation(effectParameter.getLocation());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);
@@ -123,14 +123,14 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						EffectFunction effFun = (EffectFunction)d;
 						// parse Start function of effect so ad-hoc variables are known
 						if (!(context.getCurrentFunc() instanceof EffectFunction)) {
-							EffectFunction f = effFun.getStartFunction() != null ? effFun.getStartFunction() : effFun;
+							EffectFunction f = effFun.startFunction() != null ? effFun.startFunction() : effFun;
 							try {
 								context.parseCodeOfFunction(f, false);
 							} catch (ParsingException e) {
 								// e.printStackTrace();
 							}
 						}
-						return effFun.getEffectType();
+						return effFun.effectType();
 					}
 				}
 			}

@@ -51,15 +51,15 @@ public class EffectFunction extends Function {
 		}
 	}
 	
-	public Pattern getAdditionalCallbacksPattern() {
+	public Pattern additionalCallbacksPattern() {
 		return additionalCallbacksPattern;
 	}
 
-	public HardcodedCallbackType getHardcodedCallbackType() {
+	public HardcodedCallbackType hardcodedCallbackType() {
 		return hardcodedCallbackType;
 	}
 	
-	public String getEffectName() {
+	public String effectName() {
 		return effectName;
 	}
 	
@@ -74,14 +74,14 @@ public class EffectFunction extends Function {
 		}
 	}
 	
-	public EffectFunction getStartFunction() {
+	public EffectFunction startFunction() {
 		return startFunction;
 	}
 	
 	public void findStartCallback()	{
 		Script script = getScript();
 		for (EffectFunction f : script.functions(EffectFunction.class)) {
-			if (f.getHardcodedCallbackType() != HardcodedCallbackType.Start)
+			if (f.hardcodedCallbackType() != HardcodedCallbackType.Start)
 				continue;
 			if (this.hardcodedCallbackType != null) {
 				// compare by known effect name
@@ -91,9 +91,9 @@ public class EffectFunction extends Function {
 				}
 			}
 			else {
-				if (f.getHardcodedCallbackType() == HardcodedCallbackType.Start) {
+				if (f.hardcodedCallbackType() == HardcodedCallbackType.Start) {
 					// look if this name matches Fx<EffectName>(.*)
-					Matcher m = f.getAdditionalCallbacksPattern().matcher(name);
+					Matcher m = f.additionalCallbacksPattern().matcher(name);
 					if (m.matches()) {
 						this.setStartFunction(f);
 						break;
@@ -103,7 +103,7 @@ public class EffectFunction extends Function {
 		}
 	}
 	
-	public IType getEffectType() {
+	public IType effectType() {
 		synchronized (parameters) {
 			return parameters.size() >= 2 ? parameters.get(1).getType() : PrimitiveType.PROPLIST;
 		}
