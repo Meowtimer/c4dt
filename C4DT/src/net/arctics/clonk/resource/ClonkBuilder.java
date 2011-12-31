@@ -493,7 +493,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
-			monitor.subTask("Gathering scripts");
+			monitor.subTask(Messages.ClonkBuilder_GatheringScripts);
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
 			// delete old declarations

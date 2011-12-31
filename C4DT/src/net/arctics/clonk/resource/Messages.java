@@ -6,6 +6,7 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.resource.messages"; //$NON-NLS-1$
 	public static String CleaningUp;
 	public static String ClonkBuilder_CleaningProject;
+	public static String ClonkBuilder_GatheringScripts;
 	public static String ClonkBuilder_ParseCodeTask;
 	public static String ClonkBuilder_ParseDeclarations;
 	public static String ClonkBuilder_ParseDeclarationsTask;
