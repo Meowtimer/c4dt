@@ -684,6 +684,7 @@
 				<entry name="RepeatDelay" class="UnsignedInteger" />
 				<entry name="SendCursorPos" class="UnsignedInteger" />
 				<entry name="RepeatDelay" class="UnsignedInteger" />
+				<entry name="CoordinateSpace" class="java.lang.String" />
 			</section>
 		</section>
 		<section name="ControlSets">
