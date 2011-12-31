@@ -73,7 +73,7 @@ public class UnaryOp extends OperatorExpression {
 		if (!argument().validForType(operator().getFirstArgType(), context)) {
 			context.warningWithCode(ParserErrorCode.IncompatibleTypes, argument(), operator().getFirstArgType().toString(), argument().getType(context).toString());
 		}
-		argument().expectedToBeOfType(operator().getFirstArgType(), context);
+		argument().expectedToBeOfType(operator().getFirstArgType(), context, TypeExpectancyMode.Force, ParserErrorCode.InternalError);
 	}
 
 	@Override
