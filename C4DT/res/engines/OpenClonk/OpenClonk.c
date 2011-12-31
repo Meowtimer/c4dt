@@ -61,6 +61,10 @@ static const int COMD_Up;
 static const int COMD_UpLeft;
 static const int COMD_UpRight;
 
+static const int MD_NoClick;
+static const int MD_DropTarget;
+static const int MD_DragSource;
+
 static const int DIR_Left;
 static const int DIR_Right;
 
@@ -517,6 +521,7 @@ global func int GetMaterial(int x, int y);
 global func int GetMaterialCount(int iMaterial);
 global func any GetMaterialVal(string strEntry, string strSection, int iMaterial, int iEntryNr);
 global func any GetMenu();
+global func any SetMenu(object menu_controller);
 global func any GetMenuSelection();
 global func bool GetMissionAccess(string strMissionAccess);
 global func string GetName();
