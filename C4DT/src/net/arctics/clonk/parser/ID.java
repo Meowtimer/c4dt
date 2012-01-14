@@ -20,7 +20,7 @@ public final class ID implements Serializable, ISerializationResolvable {
 	private final String name;
 	
 	private ID(String id) {
-		synchronized (ID.class) {
+		synchronized (idPool) {
 			name = id;
 			idPool.put(id, this);
 		}
@@ -28,7 +28,7 @@ public final class ID implements Serializable, ISerializationResolvable {
 	
 	@Override
 	public ID resolve(Index index) {
-		synchronized (ID.class) {
+		synchronized (idPool) {
 			ID special = idPool.get(name);
 			if (special == null) {
 				idPool.put(name, this);
@@ -43,11 +43,13 @@ public final class ID implements Serializable, ISerializationResolvable {
 	 * @param stringValue The string value
 	 * @return A newly created {@link ID} added to the global pool or an already existing one.
 	 */
-	public synchronized static ID get(String stringValue) {
-		if (idPool.containsKey(stringValue))
-			return idPool.get(stringValue);
-		else
-			return new ID(stringValue);
+	public static ID get(String stringValue) {
+		synchronized (idPool) {
+			if (idPool.containsKey(stringValue))
+				return idPool.get(stringValue);
+			else
+				return new ID(stringValue);
+		}
 	}
 	
 	/* (non-Javadoc)
