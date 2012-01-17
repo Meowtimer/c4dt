@@ -19,6 +19,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -768,7 +769,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (!v.isUsed())
 				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());
 			Variable shadowed = getContainer().findVariable(v.name());
-			if (shadowed != null)
+			// ignore those pesky static variables from scenario scripts
+			if (shadowed != null && !(shadowed.getParentDeclaration() instanceof Scenario)) 
 				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.getQualifiedName(), shadowed.getQualifiedName());
 		}
 	}

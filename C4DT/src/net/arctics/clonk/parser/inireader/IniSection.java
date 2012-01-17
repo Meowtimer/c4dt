@@ -19,24 +19,26 @@ import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 
-public class IniSection extends Declaration implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem {
-	
+public class IniSection extends Declaration implements
+		IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>,
+		IniItem {
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	
+
 	private Map<String, IniItem> itemMap;
 	private List<IniItem> itemList;
 	private IniDataSection sectionData;
 	private int indentation;
 	private int sectionEnd;
-	
+
 	public int getSectionEnd() {
 		return sectionEnd;
 	}
-	
+
 	public void setSectionEnd(int sectionEnd) {
 		this.sectionEnd = sectionEnd;
 	}
-	
+
 	public IniDataSection getSectionData() {
 		return sectionData;
 	}
@@ -54,10 +56,6 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		return getLocation().getStart();
 	}
 
-	public String name() {
-		return name;
-	}
-
 	public Map<String, IniItem> subItemMap() {
 		return itemMap;
 	}
@@ -70,23 +68,27 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	public IniItem getSubItem(String key) {
 		return itemMap.get(key);
 	}
-	
+
 	public List<IniItem> getSubItemList() {
 		return itemList;
 	}
 
+	@Override
 	public String getKey() {
 		return name();
 	}
 
+	@Override
 	public String getValue() {
 		return ""; //$NON-NLS-1$
 	}
 
+	@Override
 	public Object[] getChildren() {
 		return getSubItemList().toArray(new Object[getSubItemList().size()]);
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return !itemMap.isEmpty();
 	}
@@ -96,49 +98,56 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		// FIXME?
 	}
 
-	public void addChild(ITreeNode node) {		
+	@Override
+	public void addChild(ITreeNode node) {
 	}
 
+	@Override
 	public Collection<? extends IniItem> getChildCollection() {
 		return itemList;
 	}
 
+	@Override
 	public String getNodeName() {
 		return name();
 	}
 
+	@Override
 	public ITreeNode getParentNode() {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
-	
+
 	@Override
 	public String toString() {
 		IniUnit unit = getIniUnit();
 		return unit != null ? unit.sectionToString(this) : name();
 	}
-	
+
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
 		return this.getChildren();
 	}
-	
+
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
 		return hasChildren();
 	}
 
+	@Override
 	public Iterator<IniItem> iterator() {
 		return new ReadOnlyIterator<IniItem>(this.itemMap.values().iterator());
 	}
-	
+
 	public void putEntry(IniEntry entry) {
 		itemMap.put(entry.name(), entry);
 		itemList.add(entry);
@@ -146,14 +155,15 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	}
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+	public void writeTextRepresentation(Writer writer, int indentation)
+			throws IOException {
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
-		
+
 		for (IniItem entry : subItemMap().values()) {
-			entry.writeTextRepresentation(writer, indentation+1);
+			entry.writeTextRepresentation(writer, indentation + 1);
 			writer.append('\n');
 		}
 	}
@@ -164,7 +174,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 			e.validate();
 		}
 	}
-	
+
 	public int getIndentation() {
 		return indentation;
 	}
@@ -172,29 +182,35 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 	public void setIndentation(int indentation) {
 		this.indentation = indentation;
 	}
-	
+
 	@Override
 	public int sortCategory() {
 		return 1;
 	}
-	
+
 	public Iterable<IniSection> getSections() {
 		// unable to make this work generically ;c
 		List<IniSection> sections = new LinkedList<IniSection>();
 		for (ITreeNode node : getChildCollection()) {
 			if (node instanceof IniSection) {
-				sections.add((IniSection)node);
+				sections.add((IniSection) node);
 			}
 		}
 		return sections;
 	}
-	
+
 	public IniSection parentSection() {
-		return getParentDeclaration() instanceof IniSection ? (IniSection)getParentDeclaration() : null;
+		return getParentDeclaration() instanceof IniSection ? (IniSection) getParentDeclaration()
+				: null;
 	}
-	
+
 	public IniUnit getIniUnit() {
 		return getParentDeclarationOfType(IniUnit.class);
 	}
 
+	@Override
+	public String getInfoText() {
+		IniUnit unit = getIniUnit();
+		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.getInfoText());
+	}
 }

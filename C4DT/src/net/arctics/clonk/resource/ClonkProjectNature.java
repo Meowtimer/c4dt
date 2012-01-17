@@ -40,6 +40,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -263,20 +264,12 @@ public class ClonkProjectNature implements IProjectNature {
 	/**
 	 * Load the index from disk. Exceptions thrown while loading cause a new empty index to be created and returned.
 	 */
-	private synchronized void loadIndex() {
+	private void loadIndex() {
 		getSettings();
 		if (ClonkCore.getDefault().updateTookPlace()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
 			index = new ProjectIndex(getProject(), getIndexFolder());
-			IProgressMonitor monitor = new NullProgressMonitor();
-			try {
-				project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-			if (ClonkCore.getDefault().getVersionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
-				getSettings().guessValues(this);
-			}
+			performBuildOnOutdatedProject();
 		} else {
 			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, getIndexFolder(), null);
 			if (loadedIndex != null) {
@@ -291,6 +284,23 @@ public class ClonkProjectNature implements IProjectNature {
 			}
 			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), getIndexFolder());
 		}
+	}
+
+	private void performBuildOnOutdatedProject() {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				IProgressMonitor monitor = new NullProgressMonitor();
+				try {
+					project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+				if (ClonkCore.getDefault().getVersionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
+					getSettings().guessValues(ClonkProjectNature.this);
+				}
+			}
+		});
 	}
 
 	private File getIndexFolder() {

@@ -1,13 +1,16 @@
 package net.arctics.clonk.resource;
 
+import java.net.URI;
+
 import net.arctics.clonk.ClonkCore;
+
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 
 public class CustomizationNature implements IProjectNature {
 
@@ -66,9 +69,9 @@ public class CustomizationNature implements IProjectNature {
 			return null;
 		}
 		for (String engineName : ClonkCore.getDefault().namesOfAvailableEngines()) {
-			IPath workspaceStoragePath = ClonkCore.getDefault().getWorkspaceStorageLocationForEngine(engineName);
+			URI workspaceStorageURI = URIUtil.toURI(ClonkCore.getDefault().getWorkspaceStorageLocationForEngine(engineName));			
 			try {
-				newProject.getFolder(engineName).createLink(workspaceStoragePath, 0, null);
+				newProject.getFolder(engineName).createLink(workspaceStorageURI, 0, null);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

@@ -49,6 +49,7 @@ import org.eclipse.core.runtime.content.IContentType;
 public class IniUnit extends Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final String INFO_FORMAT = "%s - %s";
 	
 	/**
 	 * The configuration file
@@ -676,6 +677,14 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			setName(n);
 		}
 		return n;
+	}
+	
+	@Override
+	public String getInfoText() {
+		return String.format(
+			INFO_FORMAT,
+			this.defaultName, this.getIniFile().getProjectRelativePath().toOSString()
+		);
 	}
 
 }
