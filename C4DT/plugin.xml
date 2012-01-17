@@ -209,7 +209,7 @@
 
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
-		<category id="net.arctics.clonk.c4dtCustomization" name="C4DT Customization" />
+		<category id="net.arctics.clonk.c4dtCustomization" name="%C4DTCustomization" />
 
 		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="%ClonkProject_Name"
 			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
@@ -585,7 +585,7 @@
 						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.c4dt_customization" /> 
 					</iterate> 
 				</visibleWhen>
-				<menu label="Customize File">
+				<menu label="%CustomizeFile_Title">
 					<dynamic class="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" id="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" />
 				</menu>
 			</menu>
