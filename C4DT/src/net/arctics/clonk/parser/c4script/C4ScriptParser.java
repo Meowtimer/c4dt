@@ -1638,6 +1638,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			//result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
 			return result;
 		}
+		@Override
+		public String toString() {
+			return String.format("%s @(%d, %s)", code.toString(), offset, reporter.toString());
+		}
 	}
 	
 	private LinkedList<MarkerInfo> markers = new LinkedList<MarkerInfo>();
