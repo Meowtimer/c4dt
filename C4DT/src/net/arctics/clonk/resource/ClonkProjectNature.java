@@ -209,6 +209,14 @@ public class ClonkProjectNature implements IProjectNature {
 			indexFolder.delete();
 		return index = new ProjectIndex(project, indexFolder);
 	}
+	
+	public ProjectIndex getIndexCreatingEmptyOneIfNotPresent() {
+		if (index == null) {
+			loadSettings();
+			index = new ProjectIndex(project, getIndexFolder()); 
+		}
+		return index;
+	}
 
 	public IPath getSettingsFileLocation() {
 		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+".ini");
