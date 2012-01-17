@@ -29,6 +29,14 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 
 		if (pos < 0)
 			return;
+		
+		try {
+			if (Character.isLetterOrDigit(configuration.getEditor().getDocumentProvider().getDocument(configuration.getEditor().getEditorInput()).getChar(pos))) {
+				super.doubleClicked(viewer);
+				return;
+			}
+		} catch (Exception e) {
+		}
 
 		Script script = Utilities.getScriptForEditor(configuration.getEditor());
 		Function func = script.funcAt(pos);
