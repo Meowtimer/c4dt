@@ -66,6 +66,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * The entry name
 	 * @return
 	 */
+	@Override
 	public abstract String getName();
 	
 	/**

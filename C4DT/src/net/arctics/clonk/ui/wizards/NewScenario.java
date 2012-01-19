@@ -23,7 +23,7 @@ public class NewScenario extends NewClonkFolderWizard<NewScenarioPage> {
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$$Title$$", ((NewScenarioPage)page).getTitle()); //$NON-NLS-1$
+		result.put("$$Title$$", page.getTitle()); //$NON-NLS-1$
 		return result;
 	}
 }

@@ -8,6 +8,7 @@ import org.eclipse.debug.ui.ILaunchConfigurationTab;
 /** Represents a group of tabs that describe properties of a launch */
 public class ClonkLaunchTabGroup extends AbstractLaunchConfigurationTabGroup {
 
+	@Override
 	public void createTabs(ILaunchConfigurationDialog arg0, String arg1) {
 		
 		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] {

@@ -37,18 +37,22 @@ public class ClonkHyperlink implements IHyperlink {
 		this.target = target;
 	}
 
+	@Override
 	public IRegion getHyperlinkRegion() {
 		return region;
 	}
 
+	@Override
 	public String getHyperlinkText() {
 		return target.name();
 	}
 
+	@Override
 	public String getTypeLabel() {
 		return Messages.ClonkHyperlink_Label;
 	}
 
+	@Override
 	public void open() {
 		try {
 			DeclarationLocation[] locations = target.getDeclarationLocations();
@@ -59,7 +63,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					openDocumentationForFunction(target.name(), target.getEngine());
+					openDocumentationForFunction(target.name(), target.engine());
 				}
 			}
 		} catch (Exception e) {

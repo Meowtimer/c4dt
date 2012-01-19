@@ -246,7 +246,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Must be a valid scenario file name
 		String scenName = fScenText.getText();
-		if (getEngine().getGroupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
+		if (getEngine().groupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
@@ -288,7 +288,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	public Engine getEngine() {
 		ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
-		return nat != null ? nat.getIndex().getEngine() : null;
+		return nat != null ? nat.getIndex().engine() : null;
 	}
 	
 	public void chooseScenario() {
@@ -305,7 +305,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 				if(res instanceof IProject)
 					return true;
 				// Type lookup
-				C4Group.GroupType type = getEngine().getGroupTypeForExtension(res.getFileExtension());
+				C4Group.GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
 				if(type == C4Group.GroupType.ScenarioGroup)
 					scenarios.add(res);
 				// Only recurse into scenario folders

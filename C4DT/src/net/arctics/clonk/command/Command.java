@@ -169,14 +169,14 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(ClonkCore.getDefault().getActiveEngine().getCurrentSettings(), name, value);
+			setFieldValue(ClonkCore.getDefault().getActiveEngine().currentSettings(), name, value);
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			Engine engine = ClonkCore.getDefault().getActiveEngine();
 			setFieldValue(
-					engine.getIntrinsicSettings(), name,
-					engine.getCurrentSettings().getClass().getField(name).get(engine.getCurrentSettings())
+					engine.intrinsicSettings(), name,
+					engine.currentSettings().getClass().getField(name).get(engine.currentSettings())
 			);
 		}
 	}

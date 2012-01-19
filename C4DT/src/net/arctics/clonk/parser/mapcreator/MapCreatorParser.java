@@ -56,8 +56,10 @@ public class MapCreatorParser extends Parser {
         }
         
 
-    public String[] getTokenNames() { return MapCreatorParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
+    @Override
+	public String[] getTokenNames() { return MapCreatorParser.tokenNames; }
+    @Override
+	public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
 
     MapCreator mapCreator;
@@ -70,7 +72,7 @@ public class MapCreatorParser extends Parser {
     public MapCreatorParser(MapCreator mapCreator, TokenStream input) {
     	this(input);
     	this.mapCreator = mapCreator;
-    	createMarkers = mapCreator.getResource() == null || C4GroupItem.getGroupItemBackingResource(mapCreator.getResource()) == null;
+    	createMarkers = mapCreator.resource() == null || C4GroupItem.getGroupItemBackingResource(mapCreator.resource()) == null;
     	this.current = mapCreator;
     }
 
@@ -81,7 +83,7 @@ public class MapCreatorParser extends Parser {
     private static TokenStream getTokenStream(MapCreator mapCreator) {
     	CharStream charStream;
     	try {
-    		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)mapCreator.getResource()).getContents()));
+    		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)mapCreator.resource()).getContents()));
     		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
     		CommonTokenStream tokenStream = new CommonTokenStream();
     		tokenStream.setTokenSource(lexer);
@@ -152,9 +154,9 @@ public class MapCreatorParser extends Parser {
     }
 
     private IMarker createMarker(int start, int end, String message, int severity) {
-    	if (!createMarkers || mapCreator.getResource() == null) return null;
+    	if (!createMarkers || mapCreator.resource() == null) return null;
     	try {
-    		IMarker marker = mapCreator.getResource().createMarker(IMarker.PROBLEM);
+    		IMarker marker = mapCreator.resource().createMarker(IMarker.PROBLEM);
     		marker.setAttribute(IMarker.SEVERITY, severity);
     		marker.setAttribute(IMarker.TRANSIENT, false);
     		marker.setAttribute(IMarker.MESSAGE, message);
@@ -184,8 +186,8 @@ public class MapCreatorParser extends Parser {
 
     private void deleteMarkers() {
     	try {
-    		if (mapCreator.getResource() != null)
-    			mapCreator.getResource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+    		if (mapCreator.resource() != null)
+    			mapCreator.resource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
     	} catch (CoreException e) {
     		e.printStackTrace();
     	}

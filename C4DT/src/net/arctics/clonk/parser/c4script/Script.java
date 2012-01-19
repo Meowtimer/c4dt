@@ -193,7 +193,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	public int getStrictLevel() {
 		requireLoaded();
-		long level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
+		long level = engine() != null ? engine().currentSettings().strictDefaultLevel : -1;
 		for (Directive d : this.directives()) {
 			if (d.getType() == DirectiveType.STRICT) {
 				try {
@@ -352,7 +352,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @param info Additional info
 	 * @return the declaration or null if there is no match
 	 */
-	protected Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
 		return null;
 	}
 
@@ -417,7 +417,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 
 		// this object?
-		Declaration thisDec = getThisDeclaration(name, info);
+		Declaration thisDec = representingDeclaration(name, info);
 		if (thisDec != null)
 			return thisDec;
 
@@ -456,8 +456,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				}
 			}
 			// definition from extern index
-			if (getEngine().acceptsId(name)) {
-				f = info.index.getDefinitionNearestTo(getResource(), ID.get(name));
+			if (engine().acceptsId(name)) {
+				f = info.index.getDefinitionNearestTo(resource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
 					f = ((Definition)f).proxyVar();
 				}
@@ -465,14 +465,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			// global stuff defined in project
 			if (f == null) {
 				for (Index index : info.index.relevantIndexes()) {
-					f = index.findGlobalDeclaration(name, getResource());
+					f = index.findGlobalDeclaration(name, resource());
 					if (f != null)
 						break;
 				}
 			}
 			// engine function
 			if (f == null)
-				f = getIndex().getEngine().findDeclaration(name, info);
+				f = getIndex().engine().findDeclaration(name, info);
 
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
@@ -560,7 +560,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return null;
 	}
 
@@ -742,7 +742,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Definition nearestDefinitionWithId(ID id) {
 		Index index = getIndex();
 		if (index != null)
-			return index.getDefinitionNearestTo(getResource(), id);
+			return index.getDefinitionNearestTo(resource(), id);
 		return null;
 	}
 
@@ -845,7 +845,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public String getInfoText() {
+	public String infoText() {
 		//requireLoaded();
 		Object f = scriptStorage();
 		if (f instanceof IFile) {
@@ -855,11 +855,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					return StreamUtil.stringFromFileDocument((IFile) infoFile);
 				} catch (Exception e) {
 					e.printStackTrace();
-					return super.getInfoText();
+					return super.infoText();
 				}
 			}
 		}
-		return super.getInfoText();
+		return super.infoText();
 	}
 
 	@Override
@@ -919,9 +919,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public Engine getEngine() {
+	public Engine engine() {
 		Index index = getIndex();
-		return index != null ? index.getEngine() : null;
+		return index != null ? index.engine() : null;
 	}
 	
 	public static Script get(IResource resource, boolean onlyForScriptFile) {
@@ -1080,13 +1080,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public String getQualifiedName() {
-		if (getResource() == null) {
+	public String qualifiedName() {
+		if (resource() == null) {
 			System.out.println("No qualified name: " + this.toString());
 			return this.toString();
 		}
 		else
-			return getResource().getProjectRelativePath().toOSString();
+			return resource().getProjectRelativePath().toOSString();
 	}
 
 }

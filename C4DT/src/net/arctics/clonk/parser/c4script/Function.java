@@ -194,7 +194,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String obtainUserDescription() {
 		if (isEngineDeclaration())
-			return getEngine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+			return engine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
 		else
 			return description;
 	}
@@ -342,7 +342,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public static String getDocumentationURL(String functionName, Engine engine) {
-		return engine.getCurrentSettings().getDocumentationURLForFunction(functionName);
+		return engine.currentSettings().getDocumentationURLForFunction(functionName);
 	}
 	
 	/**
@@ -350,11 +350,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The documentation URl
 	 */
 	public String getDocumentationURL() {
-		return getDocumentationURL(name(), getScript().getEngine());
+		return getDocumentationURL(name(), getScript().engine());
 	}
 
 	@Override
-	public String getInfoText() {
+	public String infoText() {
 		String description = obtainUserDescription();
 		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? Utilities.htmlerize(getReturnType().typeName(true)) : "", Utilities.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
@@ -432,7 +432,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		
 		// search in engine
-		Function f = getIndex().getEngine().findFunction(name());
+		Function f = getIndex().engine().findFunction(name());
 		if (f != null)
 			return f;
 		
@@ -448,7 +448,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Set<Function> alreadyVisited = new HashSet<Function>();
 		for (Function f = this; f != null; f = f.getInherited()) {
 			if (alreadyVisited.contains(f)) {
-				System.out.println(String.format("%s causes inherited loop", f.getQualifiedName()));
+				System.out.println(String.format("%s causes inherited loop", f.qualifiedName()));
 				break;
 			}
 			result = f;

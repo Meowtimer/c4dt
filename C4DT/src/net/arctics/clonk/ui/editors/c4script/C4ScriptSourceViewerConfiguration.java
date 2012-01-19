@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Shell;
 public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<C4ScriptEditor> {
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
+		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
 				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
@@ -61,10 +62,12 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		super(store, colorManager, textEditor);
 	}
 	
+	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
 		return ClonkPartitionScanner.C4S_PARTITIONS;
 	}
 	
+	@Override
 	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
 		if (doubleClickStrategy == null)
 			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
@@ -73,7 +76,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 
 	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new C4ScriptCodeScanner(getColorManager(), getEditor().scriptBeingEdited().getEngine());
+			scanner = new C4ScriptCodeScanner(getColorManager(), getEditor().scriptBeingEdited().engine());
 			scanner.setDefaultReturnToken(
 					new Token(
 							new TextAttribute(
@@ -95,6 +98,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 
 	private ClonkContentAssistant assistant;
 	
+	@Override
 	public ClonkContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		if (assistant != null)
 			return assistant;
@@ -122,6 +126,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		assistant.enableColoredLabels(true);
 		
 		assistant.setInformationControlCreator(new IInformationControlCreator() {
+			@Override
 			public IInformationControl createInformationControl(Shell parent) {
 //				BrowserInformationControl control = new BrowserInformationControl(parent, "Arial", "Press 'Tab' from proposal table or click for focus");
 				DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
@@ -134,12 +139,13 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	}
 	
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnütz
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnï¿½tz
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
 		return assistant;
 	}
 	
+	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
@@ -203,7 +209,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public void refreshSyntaxColoring() {
-		getClonkScanner().commitRules(getColorManager(), getEditor().scriptBeingEdited().getEngine());
+		getClonkScanner().commitRules(getColorManager(), getEditor().scriptBeingEdited().engine());
 	}
 
 }

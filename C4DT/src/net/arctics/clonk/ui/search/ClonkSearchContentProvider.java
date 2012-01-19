@@ -79,7 +79,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	@Override
 	public String getText(Object element) {
 		if (element instanceof Function)
-			return ((Function)element).getQualifiedName();
+			return ((Function)element).qualifiedName();
 		else if (element instanceof IHasLabelAndImage)
 			return ((IHasLabelAndImage)element).getLabel();
 		else
@@ -87,7 +87,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	}
 	@Override
 	public Image getImage(Object element) {
-		Engine engine = element instanceof Declaration ? ((Declaration)element).getEngine() : null;
+		Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
 		if (engine != null) {
 			if (element instanceof Scenario) {
 				return engine.image(GroupType.ScenarioGroup);
@@ -118,13 +118,13 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			result.append(matchStr, StyledString.DECORATIONS_STYLER);
 			result.append(secondHalf);
 			result.append(" - ");
-			result.append(match.getStructure().getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+			result.append(match.getStructure().resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			return result;
 		} catch (Exception e) {
 			return new StyledString(((ClonkSearchMatch)element).getLine());
 		}
 		else if (element instanceof Function) {
-			return new StyledString(((Function)element).getQualifiedName());
+			return new StyledString(((Function)element).qualifiedName());
 		}
 		else if (element instanceof IHasLabelAndImage) {
 			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;

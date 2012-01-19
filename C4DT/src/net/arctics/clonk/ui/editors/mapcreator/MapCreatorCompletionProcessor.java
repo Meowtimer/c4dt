@@ -31,6 +31,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		super(editor);
 	}
 
+	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		
 		try {
@@ -108,19 +109,23 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		return sortProposals(proposals);
 	}
 
+	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
 		return null;
 	}
 
+	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		return null;
 	}

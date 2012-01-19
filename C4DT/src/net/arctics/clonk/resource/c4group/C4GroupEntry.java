@@ -159,6 +159,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return new ByteArrayInputStream(contents);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
@@ -339,6 +340,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return true;
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class cls) {
 		if (cls == C4GroupEntry.class)

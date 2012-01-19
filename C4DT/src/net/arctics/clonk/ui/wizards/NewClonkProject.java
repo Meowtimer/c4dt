@@ -22,6 +22,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 	
 	protected WizardNewClonkProjectCreationPage page;
 	
+	@Override
 	public boolean performFinish() {
 		try {
 			IProject proj = page.getProjectHandle();
@@ -56,6 +57,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 		return false;
 	}
 
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		page = new WizardNewClonkProjectCreationPage("newProject"); //$NON-NLS-1$
 		page.setTitle(Messages.NewClonkProject_PageTitle);

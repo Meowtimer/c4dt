@@ -59,6 +59,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		super(editor);
 	}
 
+	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		Collection<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 
@@ -155,7 +156,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
-			for (Variable v : getEditor().getIniUnit().getEngine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
+			for (Variable v : getEditor().getIniUnit().engine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
 				if (v.getScope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
@@ -173,13 +174,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.topLevelDeclaration().getResource().getProject());
+		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.topLevelDeclaration().resource().getProject());
 		List<Index> indexes = nature.getIndex().relevantIndexes();
 		for (Index index : indexes) {
 			if (index instanceof ProjectIndex) {
 				try {
 					for (IResource res : ((ProjectIndex)index).getProject().members()) {
-						if (res instanceof IContainer && nature.getIndex().getEngine().getGroupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
+						if (res instanceof IContainer && nature.getIndex().engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(prefix))
 								proposals.add(new CompletionProposal(res.getName(), wordOffset, prefix.length(), res.getName().length()));
 					}
@@ -249,26 +250,32 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		//			proposals.add(new CompletionProposal(awesomeProposal, wordOffset, prefix.length(), awesomeProposal.length()));
 	}
 
+	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		return null;
 	}
 
+	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return new char[] {'='};
 	}
 
+	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		return null;
 	}
 
+	@Override
 	public void assistSessionEnded(ContentAssistEvent event) {
 		getEditor().unlockUnit();
 	}
 
+	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
 			getEditor().forgetUnitParsed();
@@ -278,6 +285,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
+	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 	}
 

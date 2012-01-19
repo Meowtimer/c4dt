@@ -37,7 +37,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					def.name().toLowerCase().contains(prefix) ||
 					def.id().stringValue().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(def instanceof Definition && ((Definition)def).definitionFolder() != null && ((Definition)def).definitionFolder().getName().contains(prefix))
+					(def instanceof Definition && def.definitionFolder() != null && def.definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}
@@ -99,7 +99,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
-			null, var.getInfoText(), " - " + (var.getScript() != null ? var.getScript().name() : "<adhoc>"), //$NON-NLS-1$
+			null, var.infoText(), " - " + (var.getScript() != null ? var.getScript().name() : "<adhoc>"), //$NON-NLS-1$
 			getEditor()
 		);
 		prop.setCategory(Category.Variables);
@@ -110,6 +110,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
 		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
+			@Override
 			public int compare(ICompletionProposal a, ICompletionProposal b) {
 				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal) {
 					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
@@ -120,6 +121,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return arr;
 	}
 	
+	@Override
 	public String getErrorMessage() {
 		return null;
 	}

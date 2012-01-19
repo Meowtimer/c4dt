@@ -31,31 +31,38 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 		this.script = new WeakReference<Script>(script);
 	}
 
+	@Override
 	public boolean exists() {
 		return script != null && script.get() != null;
 	}
 
+	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return ClonkCore.getDefault().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
 	}
 
+	@Override
 	public String getName() {
 		return "[" + getScript().name() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
+	@Override
 	public IPersistableElement getPersistable() {
 		return this;
 	}
 
+	@Override
 	public String getToolTipText() {
 		return ((ITreeNode)getScript()).getPath().toOSString();
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class cls) {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		try {
 			if (script instanceof ITreeNode)
@@ -72,18 +79,21 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).getScript() == getScript());
 	}
 
+	@Override
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)getScript().scriptStorage();
+		return getScript().scriptStorage();
 	}
 
 	public Script getScript() {
 		return script.get();
 	}
 
+	@Override
 	public String getFactoryId() {
 		return FACTORY_ID;
 	}
 
+	@Override
 	public void saveState(IMemento memento) {
 		memento.putString("path", getPath().toPortableString()); //$NON-NLS-1$
 	}

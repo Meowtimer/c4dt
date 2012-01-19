@@ -40,7 +40,7 @@ public class SystemScript extends Script implements Serializable {
 	@Override
 	public String scriptText() {
 		try {
-			return scriptFile instanceof IFile ? StreamUtil.stringFromFileDocument((IFile)scriptFile) : null;
+			return scriptFile instanceof IFile ? StreamUtil.stringFromFileDocument(scriptFile) : null;
 		} catch (Exception e) {
 			return null;
 		}
@@ -70,7 +70,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 	
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return scriptStorage();
 	}
 	

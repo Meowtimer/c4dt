@@ -11,12 +11,14 @@ public class CategoriesArray extends IniEntryValueBase {
 	public CategoriesArray() {
 	}
 	
+	@Override
 	public String toString() {
 		return value != null ? value.toString() : "<Empty>";
 	}
 
+	@Override
 	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
-		value = new CategoriesValue(input, context.getEngine(), entryData.getConstantsPrefix());
+		value = new CategoriesValue(input, context.engine(), entryData.getConstantsPrefix());
 	}
 
 }

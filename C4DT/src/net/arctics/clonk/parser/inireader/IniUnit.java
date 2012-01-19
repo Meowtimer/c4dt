@@ -154,7 +154,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.getKey())) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.getKey()), entry.getStartPos(), entry.getKey().length() + entry.getStartPos()); //$NON-NLS-2$
+			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.getKey()), entry.getStartPos(), entry.getKey().length() + entry.getStartPos()); 
 		}
 		IniDataBase dataItem = sectionConfig.getEntry(entry.getKey());
 		if (dataItem instanceof IniDataEntry) {
@@ -426,8 +426,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	public IniConfiguration getConfiguration() {
 		String confName = configurationName();
-		if (confName != null && getEngine() != null && getEngine().getIniConfigurations() != null)
-			return getEngine().getIniConfigurations().getConfigurationFor(confName);
+		if (confName != null && engine() != null && engine().iniConfigurations() != null)
+			return engine().iniConfigurations().getConfigurationFor(confName);
 		else
 			return null;
 	}
@@ -501,7 +501,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return iniFile;
 	}
 	
@@ -631,21 +631,21 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public Engine getEngine() {
-		ClonkProjectNature nature = ClonkProjectNature.get(getResource());
+	public Engine engine() {
+		ClonkProjectNature nature = ClonkProjectNature.get(resource());
 		if (nature != null) {
-			return nature.getIndex().getEngine();
+			return nature.getIndex().engine();
 		} else {
-			CustomizationNature customizationNature = CustomizationNature.get(getResource().getProject());
+			CustomizationNature customizationNature = CustomizationNature.get(resource().getProject());
 			if (customizationNature != null) {
-				for (IResource r = getResource(); r != customizationNature.getProject(); r = r.getParent()) {
+				for (IResource r = resource(); r != customizationNature.getProject(); r = r.getParent()) {
 					if (r.getParent() == customizationNature.getProject()) {
 						return ClonkCore.getDefault().loadEngine(r.getName());
 					}
 				}
 			}
 		}
-		return super.getEngine();
+		return super.engine();
 	}
 	
 	@Override
@@ -680,7 +680,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public String getInfoText() {
+	public String infoText() {
 		return String.format(
 			INFO_FORMAT,
 			this.defaultName, this.getIniFile().getProjectRelativePath().toOSString()

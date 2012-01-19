@@ -88,6 +88,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	
 	private class IniSourceHyperlinkDetector implements IHyperlinkDetector {
 		
+		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			if (!getEditor().ensureIniUnitUpToDate())
 				return null;
@@ -126,7 +127,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									IResource r = Utilities.getFileBeingEditedBy(getEditor());
 									Index index = Utilities.getIndex(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
-									if (index.getEngine() != null && index.getEngine().acceptsId(id)) {
+									if (index.engine() != null && index.engine().acceptsId(id)) {
 										declaration = index.getDefinitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
@@ -139,7 +140,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
-										declaration = getEditor().getIniUnit().getEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										declaration = getEditor().getIniUnit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -152,7 +153,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 											ProjectIndex pi = (ProjectIndex) index;
 											try {
 												for (IResource res : pi.getProject().members()) {
-													if (res instanceof IContainer && projIndex.getEngine().getGroupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
+													if (res instanceof IContainer && projIndex.engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
 														if (res.getName().equals(value)) {
 															return new IHyperlink[] {
 																new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
@@ -229,7 +230,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().getIniUnit().getEngine()));
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().getIniUnit().engine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
@@ -249,6 +250,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	
 	private ContentAssistant assistant;
 	
+	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		if (assistant != null)
 			return assistant;

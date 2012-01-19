@@ -22,7 +22,7 @@ public class ClonkSorter extends ViewerSorter {
 	private transient Engine cachedEngine;
 	private transient Map<String, Integer> colorTagToCategory = new HashMap<String, Integer>();
 	
-	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$
+	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
 	final static private C4Group.GroupType[] groupSortOrder = new C4Group.GroupType[] {
 		GroupType.FolderGroup, GroupType.ScenarioGroup, GroupType.DefinitionGroup, GroupType.ResourceGroup
 	};
@@ -41,7 +41,7 @@ public class ClonkSorter extends ViewerSorter {
 			cachedEngine = ClonkProjectNature.getEngine(resource);
 		}
 		GroupType gt;
-		if (cachedEngine != null && (gt = cachedEngine.getGroupTypeForFileName(resource.getName())) != GroupType.OtherGroup) {
+		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != GroupType.OtherGroup) {
 			for (int i = 0; i < groupSortOrder.length; i++) {
 				if (groupSortOrder[i] == gt)
 					return i;

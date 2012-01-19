@@ -333,7 +333,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	public IPath getWorkspaceStorageLocationForEngine(String engineName) {
-		IPath path = getWorkspaceStorageLocationForEngines(); //$NON-NLS-1$
+		IPath path = getWorkspaceStorageLocationForEngines(); 
 		path = path.append(String.format("%s", engineName));
 		File dir = path.toFile();
 		if (!dir.exists())

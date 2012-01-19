@@ -273,15 +273,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		public static void removeMarkers(Function func, Script script) {
-			if (script != null && script.getResource() != null) {
+			if (script != null && script.resource() != null) {
 				try {
 					// delete all "while typing" errors
-					IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
+					IMarker[] markers = script.resource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
 					for (IMarker m : markers) {
 						m.delete();
 					}
 					// delete regular markers that are in the region of interest
-					markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
+					markers = script.resource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.getBody() : null;
 					for (IMarker m : markers) {
 						

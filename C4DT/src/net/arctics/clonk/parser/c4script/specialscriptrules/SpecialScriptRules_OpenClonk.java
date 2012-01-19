@@ -394,7 +394,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.getInfoText(), "", processor.getEditor())); //$NON-NLS-2$
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(), "", processor.getEditor())); 
 									}
 								}
 							}
@@ -423,7 +423,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		if (idMatcher.lookingAt()) {
 			String idString = idMatcher.group();
 			scanner.advance(idString.length());
-			if (BufferedScanner.isWordPart(scanner.peek()) || C4ScriptParser.NUMERAL_PATTERN.matcher(idString).matches()) {
+			if (BufferedScanner.isWordPart(scanner.peek()) || BufferedScanner.NUMERAL_PATTERN.matcher(idString).matches()) {
 				scanner.advance(-idString.length());
 				return null;
 			}

@@ -211,11 +211,11 @@ public class Engine extends Script {
 	
 	private transient SpecialScriptRules specialScriptRules;
 	
-	public SpecialScriptRules getSpecialScriptRules() {
+	public SpecialScriptRules specialScriptRules() {
 		return specialScriptRules;
 	}
 
-	public EngineSettings getIntrinsicSettings() {
+	public EngineSettings intrinsicSettings() {
 		return intrinsicSettings;
 	}
 
@@ -234,15 +234,15 @@ public class Engine extends Script {
 		}
 	}
 
-	public EngineSettings getCurrentSettings() {
+	public EngineSettings currentSettings() {
 		return currentSettings;
 	}
 
-	public final CachedEngineDeclarations getCachedFuncs() {
+	public final CachedEngineDeclarations cachedFuncs() {
 		return cachedFuncs;
 	}
 	
-	public IniData getIniConfigurations() {
+	public IniData iniConfigurations() {
 		return iniConfigurations;
 	}
 
@@ -278,14 +278,14 @@ public class Engine extends Script {
 			return new String[] {
 				"clonk.app/Contents/MacOS/clonk",
 				"Clonk.app/Contents/MacOS/Clonk"
-			}; //$NON-NLS-1$
+			}; 
 		}
 		// assume some UNIX -.-
 		return new String[] { "clonk" }; //$NON-NLS-1$
 	}
 
 	public boolean acceptsId(String text) {
-		return getSpecialScriptRules().parseId(new BufferedScanner(text)) != null;
+		return specialScriptRules().parseId(new BufferedScanner(text)) != null;
 	}
 
 	public boolean hasCustomSettings() {
@@ -293,7 +293,7 @@ public class Engine extends Script {
 	}
 
 	@Override
-	public Engine getEngine() {
+	public Engine engine() {
 		return this;
 	}
 
@@ -368,7 +368,7 @@ public class Engine extends Script {
 	private void createPlaceholderDeclarationsToBeFleshedOutFromDocumentation() {
 		this.clearDeclarations();
 		try {
-			for (File xmlFile : new File(getCurrentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+			for (File xmlFile : new File(currentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
 				boolean isConst = false;
 				try {
 					FileReader r = new FileReader(xmlFile);
@@ -430,8 +430,8 @@ public class Engine extends Script {
 	 */
 	public void reinitializeDocImporter() {
 		xmlDocImporter.discardInitialization();
-		if (getCurrentSettings().readDocumentationFromRepository) {
-			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+		if (currentSettings().readDocumentationFromRepository) {
+			xmlDocImporter.setRepositoryPath(currentSettings().repositoryPath);
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 			new Job("Initialize doc importer for " + this.name()) {
 				@Override
@@ -454,7 +454,7 @@ public class Engine extends Script {
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
-		if (getCurrentSettings().readDocumentationFromRepository) {
+		if (currentSettings().readDocumentationFromRepository) {
 			XMLDocImporter importer = repositoryDocImporter().initialize();
 			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
@@ -584,7 +584,7 @@ public class Engine extends Script {
 				if (location == null)
 					continue;
 				// only consider valid engine folder if configuration.ini is present
-				URL url = location.getURL(CONFIGURATION_INI_NAME, false); //$NON-NLS-1$
+				URL url = location.getURL(CONFIGURATION_INI_NAME, false); 
 				if (url != null) {
 					result = new Engine(location.name());
 					result.load(providers);
@@ -606,7 +606,7 @@ public class Engine extends Script {
 		}
 		loadIniConfigurations();
 		createSpecialRules();
-		if (!getCurrentSettings().readDocumentationFromRepository)
+		if (!currentSettings().readDocumentationFromRepository)
 			parseEngineScript();
 		loadDeclarationsConfiguration();
 		reinitializeDocImporter();
@@ -727,9 +727,9 @@ public class Engine extends Script {
 	}
 	
 	public Process executeEmbeddedUtility(String name, String... args) {
-		if (!getCurrentSettings().supportsEmbeddedUtilities)
+		if (!currentSettings().supportsEmbeddedUtilities)
 			return null;
-		String path = getCurrentSettings().engineExecutablePath;
+		String path = currentSettings().engineExecutablePath;
 		if (path != null) {
 			String[] completeArgs = new String[2+args.length];
 			completeArgs[0] = path;
@@ -761,7 +761,7 @@ public class Engine extends Script {
 			return null;
 	}
 	
-	public C4Group.GroupType getGroupTypeForExtension(String ext) {
+	public C4Group.GroupType groupTypeForExtension(String ext) {
 		C4Group.GroupType gt = currentSettings.getFileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
 			return gt;
@@ -769,8 +769,8 @@ public class Engine extends Script {
 			return C4Group.GroupType.OtherGroup;
 	}
 	
-	public C4Group.GroupType getGroupTypeForFileName(String fileName) {
-		return getGroupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
+	public C4Group.GroupType groupTypeForFileName(String fileName) {
+		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 	
 	public Object image(String name, boolean returnDescriptor) {
@@ -794,19 +794,19 @@ public class Engine extends Script {
 	 * @return Group name with correct extension.
 	 */
 	public String groupName(String name, GroupType groupType) {
-		return name + "." + getCurrentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
+		return name + "." + currentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
 	}
 	
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
 	private IniDescriptionsLoader iniDescriptionsLoader;
 	
 	/**
-	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #getCurrentSettings()}.
+	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #currentSettings()}.
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
 		synchronized (xmlDocImporter) {
-			xmlDocImporter.setRepositoryPath(getCurrentSettings().repositoryPath);
+			xmlDocImporter.setRepositoryPath(currentSettings().repositoryPath);
 			return xmlDocImporter.initialize();
 		}
 	}
@@ -816,7 +816,7 @@ public class Engine extends Script {
 	}
 	
 	@Override
-	public String getQualifiedName() {
+	public String qualifiedName() {
 		return name();
 	}
 

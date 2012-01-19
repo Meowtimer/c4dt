@@ -72,7 +72,7 @@ public final class StringLiteral extends Literal<String> {
 		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), StringUtil.evaluateEscapes(getLiteral()), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
-			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().getResource());
+			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().resource());
 		else if (!r.anySubstitutionsApplied)
 			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.getScript().getScriptFile());
 		return r.evaluated;
@@ -82,7 +82,7 @@ public final class StringLiteral extends Literal<String> {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		
 		// warn about overly long strings
-		long max = parser.getContainer().getIndex().getEngine().getCurrentSettings().maxStringLen;
+		long max = parser.getContainer().getIndex().engine().currentSettings().maxStringLen;
 		if (max != 0 && getLiteral().length() > max) {
 			parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
 		}
@@ -90,7 +90,7 @@ public final class StringLiteral extends Literal<String> {
 		// stringtbl entries
 		// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 		// and checking for the existence of the table entries there is overkill
-		if (parser.hasAppendTo() || parser.getContainer().getResource() == null)
+		if (parser.hasAppendTo() || parser.getContainer().resource() == null)
 			return;
 		String value = getLiteral();
 		int valueLen = value.length();

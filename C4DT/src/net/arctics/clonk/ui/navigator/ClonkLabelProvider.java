@@ -49,7 +49,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			IFolder folder = (IFolder)element;
 			Engine engine = ClonkProjectNature.getEngine(folder);
 			if (engine != null) {
-				return engine.image(engine.getGroupTypeForFileName(folder.getName()));
+				return engine.image(engine.groupTypeForFileName(folder.getName()));
 			}
 		}
 		return UI.iconFor(element);
@@ -74,7 +74,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			GroupType groupType = ClonkProjectNature.getEngine(folder).getGroupTypeForFileName(folder.getName());
+			GroupType groupType = ClonkProjectNature.getEngine(folder).groupTypeForFileName(folder.getName());
 			if (groupType == GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {

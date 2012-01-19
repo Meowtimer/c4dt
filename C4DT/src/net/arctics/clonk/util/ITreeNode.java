@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 public interface ITreeNode extends INodeWithPath {
+	@Override
 	ITreeNode getParentNode();
 	Collection<? extends INode> getChildCollection();
 	boolean subNodeOf(ITreeNode node);

@@ -91,6 +91,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		singleton = this;
 	}
 
+	@Override
 	public boolean canAssist(IQuickAssistInvocationContext invocationContext) {
 		return true;
 	}
@@ -111,6 +112,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		ParserErrorCode.KeywordInWrongPlace
 	);
  	
+	@Override
 	public boolean canFix(Annotation annotation) {
 		if (annotation instanceof MarkerAnnotation) {
 			MarkerAnnotation ma = (MarkerAnnotation)annotation;
@@ -132,6 +134,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		return (pos != null) && (offset >= pos.getOffset() && offset <= (pos.getOffset() +  pos.getLength()));
 	}
 	
+	@Override
 	public ICompletionProposal[] computeQuickAssistProposals(IQuickAssistInvocationContext context) {
 		int offset = context.getOffset();
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
@@ -742,6 +745,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		return result;
 	}
 
+	@Override
 	public String getErrorMessage() {
 		return Messages.ClonkQuickAssistProcessor_FailedToFix;
 	}

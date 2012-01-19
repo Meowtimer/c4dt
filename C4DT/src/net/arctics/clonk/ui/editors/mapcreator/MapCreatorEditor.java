@@ -48,7 +48,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 					IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
 					IFile file = Utilities.getFileBeingEditedBy(this);
 					if (
-							mapCreator != null && mapCreator.getEngine() != null && mapCreator.getEngine().getCurrentSettings().supportsEmbeddedUtilities &&
+							mapCreator != null && mapCreator.engine() != null && mapCreator.engine().currentSettings().supportsEmbeddedUtilities &&
 							sel != null && sel.getFirstElement().equals(file)
 					) {
 						view.schedulePreviewUpdaterJob();

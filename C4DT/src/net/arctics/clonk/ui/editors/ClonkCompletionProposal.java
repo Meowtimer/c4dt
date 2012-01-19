@@ -130,6 +130,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#apply(IDocument)
 	 */
+	@Override
 	public void apply(IDocument document) {
 		try {
 			if (replacementString != null)
@@ -144,6 +145,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#getSelection(IDocument)
 	 */
+	@Override
 	public Point getSelection(IDocument document) {
 		return new Point(replacementOffset + cursorPosition, 0);
 	}
@@ -151,6 +153,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#getContextInformation()
 	 */
+	@Override
 	public IContextInformation getContextInformation() {
 		return contextInformation;
 	}
@@ -158,6 +161,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#getImage()
 	 */
+	@Override
 	public Image getImage() {
 		return image;
 	}
@@ -165,6 +169,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#getDisplayString()
 	 */
+	@Override
 	public String getDisplayString() {
 		if (displayString != null)
 			return displayString;
@@ -174,13 +179,15 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/*
 	 * @see ICompletionProposal#getAdditionalProposalInfo()
 	 */
+	@Override
 	public String getAdditionalProposalInfo() {
 		if (additionalProposalInfo == null && declaration != null) {
-			additionalProposalInfo = declaration.getInfoText();
+			additionalProposalInfo = declaration.infoText();
 		}
 		return additionalProposalInfo;
 	}
 
+	@Override
 	public StyledString getStyledDisplayString() {
 		if (displayString == null)
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$

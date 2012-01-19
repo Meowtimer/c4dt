@@ -10,6 +10,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 	private Iterator<? extends T> curIterator;
 	private int iterIndex;
 	
+	@Override
 	public Iterator<T> iterator() {
 		return this; 
 	}
@@ -25,6 +26,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 		this(Arrays.asList(subIterables));
 	}
 
+	@Override
 	public boolean hasNext() {
 		while (curIterator != null) {
 			// current iterator still has more?
@@ -43,6 +45,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 		return false;
 	}
  
+	@Override
 	public T next() {
 		T next = curIterator.next();
 		if (next == null)
@@ -50,6 +53,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 		return next;
 	}
 
+	@Override
 	public void remove() {	
 	}
 

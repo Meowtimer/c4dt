@@ -50,7 +50,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the editor input
 	 */
 	public IEditorInput getEditorInput() {
-		Object storage = getScript() != null ? getScript().scriptStorage() : getResource();
+		Object storage = getScript() != null ? getScript().scriptStorage() : resource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
 		if (storage instanceof IStorage && this instanceof Script)
@@ -183,6 +183,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 */
 	public void validate() {}
 	
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T getLatestVersion(T from) {
 		return (T) findLocalDeclaration(from.name(), from.getClass());

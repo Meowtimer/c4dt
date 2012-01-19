@@ -55,6 +55,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		/*
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 
 			char character = (char) scanner.read();
@@ -68,10 +69,10 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 				else
 					scanner.unread();
 			}
-			if (isOperator((char) character)) {
+			if (isOperator(character)) {
 				do {
 					character = (char) scanner.read();
-				} while (isOperator((char) character));
+				} while (isOperator(character));
 				scanner.unread();
 				return fToken;
 			} else {
@@ -164,7 +165,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		
 		rules.add(new NumberRule(number));
 		
-		currentRules = (IRule[])rules.toArray(new IRule[rules.size()]);
+		currentRules = rules.toArray(new IRule[rules.size()]);
 		setRules(currentRules);
 	}
 

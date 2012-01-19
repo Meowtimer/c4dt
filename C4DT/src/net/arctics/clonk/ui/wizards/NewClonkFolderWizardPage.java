@@ -13,6 +13,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -76,6 +77,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		result.setLayoutData(gd);
 		result.addModifyListener(new ModifyListener() {
+			@Override
 			public void modifyText(ModifyEvent event) {
 				if (context != null && property != null) {
 					try {
@@ -113,10 +115,12 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		layout.verticalSpacing = 9;
 		
 		containerText = addTextField(Messages.NewClonkFolderWizardPage_ContainerText, new IAdditionToTextField() {
+			@Override
 			public void fill(Composite container, Text textField) {
 				Button button = new Button(container, SWT.PUSH);
 				button.setText(Messages.NewClonkFolderWizardPage_BrowseContainer);
 				button.addSelectionListener(new SelectionAdapter() {
+					@Override
 					public void widgetSelected(SelectionEvent e) {
 						handleBrowse();
 					}
@@ -170,7 +174,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
 				Messages.NewClonkFolderWizardPage_SelectContainerTitle);
-		if (dialog.open() == ContainerSelectionDialog.OK) {
+		if (dialog.open() == Window.OK) {
 			Object[] result = dialog.getResult();
 			if (result.length == 1) {
 				containerText.setText(((Path) result[0]).toString());

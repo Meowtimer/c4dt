@@ -15,6 +15,7 @@ import org.eclipse.ui.navigator.ILinkHelper;
 
 public class LinkHelper implements ILinkHelper {
 
+	@Override
 	public void activateEditor(IWorkbenchPage page, IStructuredSelection selection) {
 		try {
 			if (selection.getFirstElement() instanceof Declaration) {
@@ -29,6 +30,7 @@ public class LinkHelper implements ILinkHelper {
 		}
 	}
 
+	@Override
 	public IStructuredSelection findSelection(IEditorInput anInput) {
 		ScriptWithStorageEditorInput input = (ScriptWithStorageEditorInput) anInput;
 		StructuredSelection sel = new TreeSelection(getTreePath(input.getScript()));

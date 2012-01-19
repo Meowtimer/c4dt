@@ -86,6 +86,7 @@ public class CategoriesValue {
 		return constants;
 	}
 	
+	@Override
 	public String toString() {
 		if (summedValue != -1 || constants == null)
 			return String.valueOf(summedValue);

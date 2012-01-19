@@ -245,16 +245,16 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 		@Override
 		public LineReceivedResult lineReceived(String event, ClonkDebugTarget target) throws IOException {
-			if (event.startsWith(Commands.POSITION)) { //$NON-NLS-1$
+			if (event.startsWith(Commands.POSITION)) { 
 				String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
 				stackTrace.add(sourcePath);
 
-				send(Commands.SENDSTACKTRACE); //$NON-NLS-1$
+				send(Commands.SENDSTACKTRACE); 
 				while (!isTerminated() && event != null) {
 					event = receive();
 					if (event != null && event.length() > 0) {
-						if (event.equals(Commands.ENDSTACKTRACE)) { //$NON-NLS-1$
+						if (event.equals(Commands.ENDSTACKTRACE)) { 
 							break;
 						}
 						else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
@@ -263,7 +263,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 								break;
 							}
 							else {
-								stackTrace.add(event.substring(Commands.AT.length()+1)); //$NON-NLS-1$
+								stackTrace.add(event.substring(Commands.AT.length()+1)); 
 							}
 						}
 						else
@@ -286,8 +286,8 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 						//	System.out.println("missing " + vars.toString());
 							event = receive();
 							if (event != null && event.length() > 0) {
-								if (event.startsWith(Commands.VAR)) { //$NON-NLS-1$
-									event = event.substring(Commands.VAR.length()); //$NON-NLS-1$
+								if (event.startsWith(Commands.VAR)) { 
+									event = event.substring(Commands.VAR.length()); 
 									BufferedScanner scanner = new BufferedScanner(event);
 									scanner.read();
 									String varName = scanner.readIdent();
@@ -380,9 +380,9 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 		
 		send(""); //$NON-NLS-1$
-		send(Commands.STEP); // suspend in order to set breakpoints //$NON-NLS-1$
+		send(Commands.STEP); // suspend in order to set breakpoints 
 		setBreakpoints();
-		send(Commands.GO); // go! //$NON-NLS-1$
+		send(Commands.GO); // go! 
 		
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
 	}
@@ -591,7 +591,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		try {
 			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
 				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
-				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ //$NON-NLS-2$
+				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ 
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();

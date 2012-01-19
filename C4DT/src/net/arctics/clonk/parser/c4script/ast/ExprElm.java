@@ -135,7 +135,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				if (from == null) {
 					return null;
 				}
-				return (ExprElm) from.clone();
+				return from.clone();
 			}
 		});
 		clone.setSubElements(clonedElms);
@@ -214,6 +214,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 	}
 
+	@Override
 	public final void print(final StringBuilder builder, int depth) {
 		print(new AppendableBackedExprWriter(builder), depth);
 	}
@@ -275,10 +276,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return false;
 	}
 
+	@Override
 	public int getLength() {
 		return getExprEnd()-getExprStart();
 	}
 
+	@Override
 	public int getOffset() {
 		return getExprStart();
 	}
@@ -370,7 +373,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				differentSubElms = true;
 		}
 		if (differentSubElms) {
-			ExprElm replacement = (ExprElm)this.clone();
+			ExprElm replacement = this.clone();
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;
@@ -623,12 +626,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	/**
-	 * Shortcut for obtaining {@link Engine#getCachedFuncs()}
+	 * Shortcut for obtaining {@link Engine#cachedFuncs()}
 	 * @param context Context the {@link Engine} is lifted from
 	 * @return The {@link CachedEngineDeclarations}
 	 */
 	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
-		return context.getContainer().getIndex().getEngine().getCachedFuncs();
+		return context.getContainer().getIndex().engine().cachedFuncs();
 	}
 	
 	/**

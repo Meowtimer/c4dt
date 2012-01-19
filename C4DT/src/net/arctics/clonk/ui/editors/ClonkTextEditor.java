@@ -107,6 +107,7 @@ public class ClonkTextEditor extends TextEditor {
 	/**
 	 * Handle adaptering for {@link IContentOutlinePage} and {@link IShowInSource}
 	 */
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
@@ -184,7 +185,7 @@ public class ClonkTextEditor extends TextEditor {
 			IEditorPart ed = null;
 			if (location.getResource() instanceof IFile) {
 				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.getResource());
-				ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
+				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
 			}
 			else if (location.getResource() instanceof IContainer) {
 				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.getResource());

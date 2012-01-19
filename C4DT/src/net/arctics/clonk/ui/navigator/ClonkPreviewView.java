@@ -17,6 +17,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -230,14 +231,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private File tempLandscapeRenderFile = null;
 	
 	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
-		String materialFolderBaseName = "Material."+engine.getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+		String materialFolderBaseName = "Material."+engine.currentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null) {
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
 			}
 		}
-		return engine.getCurrentSettings().gamePath+"/"+materialFolderBaseName; 
+		return engine.currentSettings().gamePath+"/"+materialFolderBaseName; 
 	}
 
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
@@ -259,8 +260,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				else if (fileName.equalsIgnoreCase("Landscape.txt")) {
 					// render landscape.txt using utility embedded into OpenClonk
 					ClonkProjectNature nature = ClonkProjectNature.get(file);
-					Engine engine = nature != null ? nature.getIndex().getEngine() : null;
-					if (engine != null && engine.getCurrentSettings().supportsEmbeddedUtilities) try {
+					Engine engine = nature != null ? nature.getIndex().engine() : null;
+					if (engine != null && engine.currentSettings().supportsEmbeddedUtilities) try {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
 							tempLandscapeRenderFile.deleteOnExit();
@@ -323,8 +324,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					}
 				}
 
-				if (obj != null && obj.getCachedPicture() != null) {
-					newImage = obj.getCachedPicture();
+				if (obj != null && obj.cachedPicture() != null) {
+					newImage = obj.cachedPicture();
 					newDoNotDispose = true;
 				}
 				else {
@@ -347,7 +348,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 							try {
 								IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
 								if (defCoreFile instanceof IFile) {
-									DefCoreUnit defCore = (DefCoreUnit) DefCoreUnit.pinned((IFile) defCoreFile, true, false);
+									DefCoreUnit defCore = (DefCoreUnit) Structure.pinned(defCoreFile, true, false);
 									newImage = getPicture(defCore, fullGraphics);
 								}
 							} finally {

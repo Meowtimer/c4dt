@@ -2,8 +2,6 @@ package net.arctics.clonk.ui.actions;
 
 import java.text.DateFormat;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -23,7 +21,7 @@ public class AboutHandler extends AbstractHandler {
 			int day = Integer.parseInt(timestamp.substring(6, 8));
 			int hour = Integer.parseInt(timestamp.substring(8, 10));
 			int minute = Integer.parseInt(timestamp.substring(10));
-			Calendar c = GregorianCalendar.getInstance();
+			Calendar c = Calendar.getInstance();
 			c.set(year, month, day, hour, minute);
 			timestamp = DateFormat.getDateInstance().format(c.getTime());
 		} catch (NumberFormatException e) {

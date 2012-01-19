@@ -123,7 +123,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	
 	public static ConstrainedProplist get(Script script, ConstraintKind kind) {
 			return (kind == ConstraintKind.Exact) && script instanceof Definition
-				? ((Definition)script).getObjectType()
+				? ((Definition)script).objectType()
 				: new ConstrainedProplist(script, kind);
 	}
 	

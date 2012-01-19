@@ -419,7 +419,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
-				if (dialog.open() == Dialog.OK) {
+				if (dialog.open() == Window.OK) {
 					ClonkCore.getDefault().getActiveEngine().addDeclaration(func);
 				}
 				refresh();
@@ -436,7 +436,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
-				if (dialog.open() == Dialog.OK) {
+				if (dialog.open() == Window.OK) {
 					ClonkCore.getDefault().getActiveEngine().addDeclaration(var);
 				}
 				refresh();
@@ -506,7 +506,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = ClonkCore.getDefault().getActiveEngine().getCurrentSettings().repositoryPath;
+					final String repo = ClonkCore.getDefault().getActiveEngine().currentSettings().repositoryPath;
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);

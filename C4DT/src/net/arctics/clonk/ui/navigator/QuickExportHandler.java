@@ -21,8 +21,10 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public class QuickExportHandler extends ClonkResourceHandler {
 
+	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(new Runnable() {
+			@Override
 			@SuppressWarnings("rawtypes")
 			public void run() {
 				final ISelection selection = HandlerUtil.getCurrentSelection(event);

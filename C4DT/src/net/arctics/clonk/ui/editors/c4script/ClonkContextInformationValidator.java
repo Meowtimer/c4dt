@@ -23,6 +23,7 @@ public class ClonkContextInformationValidator implements
 	private int fCurrentParameter;
 	private int fOffset;
 	
+	@Override
 	public void install(IContextInformation info, ITextViewer viewer, int offset) {
 		fInformation = info;
 		fTextViewer = viewer;
@@ -30,6 +31,7 @@ public class ClonkContextInformationValidator implements
 		fCurrentParameter = -1;
 	}
 
+	@Override
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
 		int currentParameter = 0;
 		int restrictParmsIndex = Integer.MAX_VALUE;
@@ -81,6 +83,7 @@ public class ClonkContextInformationValidator implements
 		return true;
 	}
 
+	@Override
 	public boolean isContextInformationValid(int offset) {
 		try {
 			if (fInformation instanceof ClonkContextInformation && !((ClonkContextInformation) fInformation).valid(offset))
@@ -270,7 +273,7 @@ public class ClonkContextInformationValidator implements
 		
 		int[] fields= new int[positions.size()];
 		for (int i= 0; i < fields.length; i++)
-	        fields[i]= ((Integer) positions.get(i)).intValue();
+	        fields[i]= positions.get(i).intValue();
 	    return fields;
     }
 	

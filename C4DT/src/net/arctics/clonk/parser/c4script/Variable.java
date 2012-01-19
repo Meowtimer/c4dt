@@ -107,6 +107,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * @return the type
 	 */
+	@Override
 	public IType getType() {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
@@ -116,6 +117,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * @param type the type to set
 	 */
+	@Override
 	public void forceType(IType type) {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
@@ -163,7 +165,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public String obtainUserDescription() {
 		if (isEngineDeclaration())
-			return getEngine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+			return engine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
 		else
 			return description;
 	}
@@ -232,12 +234,13 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		}
 	}
 	
+	@Override
 	public int sortCategory() {
 		return (scope != null ? scope : Scope.VAR).ordinal();
 	}
 	
 	@Override
-	public String getInfoText() {
+	public String infoText() {
 		IType t = getType(); //getObjectType() != null ? getObjectType() : getType();
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == Scope.CONST
@@ -256,6 +259,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		);
 	}
 	
+	@Override
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof Engine))
@@ -268,7 +272,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	public IRegion getInitializationExpressionLocation() {
 		if (initializationExpression instanceof ExprElm) {
-			return ((ExprElm)initializationExpression);
+			return initializationExpression;
 		} else {
 			return null; // const value not sufficient
 		}
@@ -387,6 +391,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * Return the function this variable was declared in. This also applies for variables declared inside proplist expressions inside functions.
 	 * @return The function or null if there is no function in the parent chain.
 	 */
+	@Override
 	public Function function() {
 		return getTopLevelParentDeclarationOfType(Function.class);
 	}

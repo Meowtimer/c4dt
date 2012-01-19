@@ -47,7 +47,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 	
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return file;
 	}
 
@@ -55,6 +55,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return map;
 	}
 	
+	@Override
 	public void addTblEntry(String key, String value, int start, int end) {
 		NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
 		nv.setParentDeclaration(this);
@@ -109,7 +110,8 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
+			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ 
+			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
 					IFile file = (IFile) resource;
@@ -131,25 +133,31 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		});
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 	}
 
+	@Override
 	public Collection<? extends ITreeNode> getChildCollection() {
 		return map.values();
 	}
 
+	@Override
 	public String nodeName() {
 		return "StringTbl";  //$NON-NLS-1$
 	}
 
+	@Override
 	public ITreeNode getParentNode() {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
@@ -242,14 +250,14 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public static void reportMissingStringTblEntries(C4ScriptParser parser, DeclarationRegion region) {
 		StringBuilder listOfLangFilesItsMissingIn = null;
 		try {
-			for (IResource r : (parser.getContainer().getResource() instanceof IContainer ? (IContainer)parser.getContainer().getResource() : parser.getContainer().getResource().getParent()).members()) {
+			for (IResource r : (parser.getContainer().resource() instanceof IContainer ? (IContainer)parser.getContainer().resource() : parser.getContainer().resource().getParent()).members()) {
 				if (!(r instanceof IFile))
 					continue;
 				IFile f = (IFile) r;
 				Matcher m = StringTbl.PATTERN.matcher(r.getName());
 				if (m.matches()) {
 					String lang = m.group(1);
-					StringTbl tbl = (StringTbl)StringTbl.pinned(f, true, false);
+					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
 					if (tbl != null) {
 						if (tbl.getMap().get(region.getText()) == null) {
 							if (listOfLangFilesItsMissingIn == null)

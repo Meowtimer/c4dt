@@ -160,7 +160,7 @@ public abstract class Utilities {
 	}
 	
 	/**
-	 * From some list containing {@link IHasRelatedResource} thingies, pick the one with the least amount of hops between its related {@link IResource} ({@link IHasRelatedResource#getResource()}) and the specified {@link IResource}
+	 * From some list containing {@link IHasRelatedResource} thingies, pick the one with the least amount of hops between its related {@link IResource} ({@link IHasRelatedResource#resource()}) and the specified {@link IResource}
 	 * @param <T> The type of elements in the passed list, constrained to extend {@link IHasRelatedResource}
 	 * @param fromList The list to pick the result from
 	 * @param resource The pivot dictating the perspective of the call.
@@ -174,7 +174,7 @@ public abstract class Utilities {
 			for (T o : fromList) {
 				if (filter != null && !filter.test(o))
 					continue;
-				IResource res = o.getResource();
+				IResource res = o.resource();
 				int newDist = res != null
 					? distanceToCommonContainer(resource, res)
 					: 100;

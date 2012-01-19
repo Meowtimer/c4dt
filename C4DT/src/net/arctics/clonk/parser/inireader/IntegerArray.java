@@ -22,6 +22,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 		return toString();
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(values.length * 2);
 		for(int i = 0; i < values.length;i++) {
@@ -48,7 +49,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 						values[i] = new CategoriesValue(0);
 					else {
 						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1); //$NON-NLS-1$
-						values[i] = new CategoriesValue(parts[i].trim(), context.getEngine(), entryData.getConstantsPrefix());
+						values[i] = new CategoriesValue(parts[i].trim(), context.engine(), entryData.getConstantsPrefix());
 					}
 				}
 				this.values = values;
@@ -64,10 +65,12 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 		}
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return values.length > 0;
 	}
 
+	@Override
 	public IHasContext[] getChildren(Object context) {
 		IHasContext[] result = new IHasContext[values.length];
 		for (int i = 0; i < result.length; i++)
@@ -75,6 +78,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 		return result;
 	}
 
+	@Override
 	public Object getChildValue(int index) {
 		return values[index];
 	}
@@ -91,7 +95,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	@Override
 	public void setChildValue(int index, Object value) {
 		values[index] = value instanceof Integer
-			? new CategoriesValue((Integer)index)
+			? new CategoriesValue(index)
 			: new CategoriesValue(0);
 	}
 

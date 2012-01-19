@@ -65,7 +65,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 				IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
 				Object firstElm = selection.getFirstElement();
 				if (firstElm instanceof Match) {
-					return ((Structure)((Match)firstElm).getElement()).getResource();
+					return ((Structure)((Match)firstElm).getElement()).resource();
 				}
 				return selection.getFirstElement();
 			}

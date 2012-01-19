@@ -14,7 +14,7 @@ public class EffectFunction extends Function {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final String FUNCTION_NAME_PREFIX = "Fx"; //$NON-NLS-1$
-	public static final String FUNCTION_NAME_FORMAT = FUNCTION_NAME_PREFIX + "%s%s"; //$NON-NLS-0$
+	public static final String FUNCTION_NAME_FORMAT = FUNCTION_NAME_PREFIX + "%s%s"; 
 	
 	public enum HardcodedCallbackType {
 		Start,

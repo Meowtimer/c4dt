@@ -45,7 +45,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		for (IContainer c : packs) {
 			if (c == null)
 				continue;
-			Engine engine = ClonkProjectNature.get(c).getIndex().getEngine();
+			Engine engine = ClonkProjectNature.get(c).getIndex().engine();
 			List<Pair<IContainer, String>> list = packsDividedInEngines.get(engine);
 			if (list == null) {
 				list = new LinkedList<Pair<IContainer, String>>();
@@ -64,7 +64,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 	public synchronized boolean selectDestPaths() {
 		for (Entry<Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
 			List<Pair<IContainer, String>> packs = entry.getValue();
-			String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().getCurrentSettings().gamePath;
+			String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().currentSettings().gamePath;
 			FileDialog fileDialog = null;
 			for (Pair<IContainer, String> toExport : packs) {
 				String packPath;
@@ -95,7 +95,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		IPreferencesService service = Platform.getPreferencesService();
 		final boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		for (Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
-			final String c4groupPath = byEngine.getKey().getCurrentSettings().c4GroupPath;
+			final String c4groupPath = byEngine.getKey().currentSettings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
 				if (monitor != null)
 					monitor.subTask(toExport.first().getName());

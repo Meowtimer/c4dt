@@ -111,13 +111,13 @@ public class Definition extends Script {
 	}
 
 	@Override
-	protected Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
 		Class<?> cls = info.getDeclarationClass();
 		boolean variableRequired = false;
 		if (
 				cls == null ||
 				cls == Definition.class ||
-				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
+				(engine() != null && engine().currentSettings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
 			if (id != null && id.stringValue().equals(name))
 				return variableRequired ? this.proxyVar() : this;
@@ -147,7 +147,7 @@ public class Definition extends Script {
 		}
 	}
 
-	public Map<String, String> getLocalizedNames() {
+	public Map<String, String> localizedNames() {
 		return localizedNames;
 	}
 
@@ -190,7 +190,7 @@ public class Definition extends Script {
 		super.finalize();
 	}
 
-	public Image getCachedPicture() {
+	public Image cachedPicture() {
 		return cachedPicture;
 	}
 
@@ -198,7 +198,7 @@ public class Definition extends Script {
 		this.cachedPicture = cachedPicture;
 	}
 	
-	public ConstrainedProplist getObjectType() {
+	public ConstrainedProplist objectType() {
 		if (objectType == null)
 			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false);
 		return objectType;
@@ -238,8 +238,8 @@ public class Definition extends Script {
 		}
 
 		@Override
-		public String getInfoText() {
-			return Definition.this.getInfoText();
+		public String infoText() {
+			return Definition.this.infoText();
 		}
 
 		@Override
@@ -249,7 +249,7 @@ public class Definition extends Script {
 
 		@Override
 		public IType getType() {
-			return Definition.this.getObjectType();
+			return Definition.this.objectType();
 		}
 
 		@Override
@@ -288,7 +288,7 @@ public class Definition extends Script {
 	 * Helper variable used for long-id definitions.
 	 */
 	public ProxyVar proxyVar() {
-		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveProxyVariables)
+		if (engine() != null && !engine().currentSettings().definitionsHaveProxyVariables)
 			return proxyVar = null;
 		if (proxyVar == null)
 			proxyVar = new ProxyVar();
@@ -447,13 +447,13 @@ public class Definition extends Script {
 	}
 
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return definitionFolder();
 	}
 
 	@Override
-	public String getInfoText() {
-		return String.format(INFO_TEXT_TEMPLATE, name(), super.getInfoText(), definitionFolder().getFullPath().toOSString());
+	public String infoText() {
+		return String.format(INFO_TEXT_TEMPLATE, name(), super.infoText(), definitionFolder().getFullPath().toOSString());
 		//return getName() + ": " + super.getInfoText();
 	}
 

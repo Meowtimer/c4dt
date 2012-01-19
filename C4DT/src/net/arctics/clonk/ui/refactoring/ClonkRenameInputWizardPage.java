@@ -23,6 +23,7 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 		setDescription(Messages.ClonkRenameInputWizardPage_SupplyTheNameDesc);
 	}
 
+	@Override
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		setControl(container);

@@ -84,16 +84,20 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
+		@Override
 		public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 		}
 
+		@Override
 		public void assistSessionStarted(ContentAssistEvent event) {
 			proposalCycle = ProposalCycle.ALL;
 		}
 
+		@Override
 		public void assistSessionEnded(ContentAssistEvent event) {
 		}
 
+		@Override
 		public void assistSessionRestarted(ContentAssistEvent event) {
 			// needs to be reversed because it gets cycled after computing the proposals...
 			proposalCycle = proposalCycle.reverseCycle();
@@ -221,7 +225,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 
 		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
-			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null)
+			if (getEditor().scriptBeingEdited().getIndex().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
 		if (activeFunc == null)
@@ -342,12 +346,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		if (proposalCycle == ProposalCycle.ALL) {
-			if (editorScript.getIndex().getEngine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
-				for (Function func : editorScript.getIndex().getEngine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().name(), true);
+			if (editorScript.getIndex().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
+				for (Function func : editorScript.getIndex().engine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().engine().name(), true);
 				}
 				if (contextSequence == null) {
-					for (Variable var : editorScript.getIndex().getEngine().variables()) {
+					for (Variable var : editorScript.getIndex().engine().variables()) {
 						proposalForVar(var,prefix,offset,proposals);
 					}
 				}
@@ -552,7 +556,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
 		try {
-			return offset >= 5 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  //$NON-NLS-1$
+			return offset >= 5 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  
 		} catch (BadLocationException e) {
 			return false;
 		}
@@ -594,6 +598,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private IContextInformation prevInformation;
 
+	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
@@ -644,14 +649,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
+	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS;
 	}
 
+	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS;
 	}
 
+	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		return new ClonkContextInformationValidator();
 	}
@@ -664,6 +672,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return null;
 	}
 
+	@Override
 	public String getErrorMessage() {
 		return null;
 	}

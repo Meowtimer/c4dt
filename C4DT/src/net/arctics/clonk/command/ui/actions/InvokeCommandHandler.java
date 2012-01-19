@@ -48,7 +48,7 @@ public class InvokeCommandHandler extends AbstractHandler {
 		    		Messages.InvokeCommandAction_InvokeCommand, Messages.InvokeCommandAction_SpecifyCommand, "", null); //$NON-NLS-1$
 		    switch (inputDialog.open()) {
 		    case Window.OK:
-		    	ExecutableScript script = Command.executableScriptFromCommand(inputDialog.getValue()); //$NON-NLS-1$
+		    	ExecutableScript script = Command.executableScriptFromCommand(inputDialog.getValue()); 
 		    	script.invoke();
 		    }
 	    return null;

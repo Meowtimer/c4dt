@@ -169,17 +169,21 @@ public class ClonkProjectNature implements IProjectNature {
 	public ClonkProjectNature() {
 	}
 
+	@Override
 	public void configure() throws CoreException {
 		System.out.println("ClonkProjectNature.configure"); //$NON-NLS-1$
 	}
 
+	@Override
 	public void deconfigure() throws CoreException {
 	}
 
+	@Override
 	public IProject getProject() {
 		return project;
 	}
 
+	@Override
 	public void setProject(IProject project) {
 		this.project = project;
 	}

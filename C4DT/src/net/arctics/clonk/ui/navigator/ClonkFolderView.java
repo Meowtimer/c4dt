@@ -71,7 +71,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 							return false;
 						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
 							return false;
-						return (getCurrentEngine().getGroupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory()); //$NON-NLS-1$
+						return (getCurrentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory()); 
 					}
 				});
 			} catch (Exception e) {
@@ -103,7 +103,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		@Override
 		public Image getImage(Object element) {
 			Engine engine = getCurrentEngine();
-			GroupType gt = engine.getGroupTypeForFileName((((File) element).toString()));
+			GroupType gt = engine.groupTypeForFileName((((File) element).toString()));
 			return engine.image(gt);
 		}
 
@@ -254,7 +254,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void refreshTree(boolean onlyIfInputChanged) {
 		Engine engine = getCurrentEngine();
-		String clonkPath = engine != null ? engine.getCurrentSettings().gamePath : null;
+		String clonkPath = engine != null ? engine.currentSettings().gamePath : null;
 		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
 			? new File( clonkPath)
 			: new File("/"); //$NON-NLS-1$
@@ -269,7 +269,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		if (p != null && p.isOpen()) {
 			ClonkProjectNature nature = ClonkProjectNature.get(p);
 			if (nature != null)
-				engine = nature.getIndex().getEngine();
+				engine = nature.getIndex().engine();
 		}
 		if (engine == null)
 			engine = ClonkCore.getDefault().getActiveEngine();

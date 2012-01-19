@@ -82,7 +82,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								IResourceVisitor countingVisitor = new IResourceVisitor() {
 									@Override
 									public boolean visit(IResource resource) throws CoreException {
-										if (resource instanceof IFile && Script.get((IFile) resource, true) != null)
+										if (resource instanceof IFile && Script.get(resource, true) != null)
 											counter++;
 										return true;
 									}
@@ -101,6 +101,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
 									final List<IFile> failedSaves = new LinkedList<IFile>();
 									container.accept(new IResourceVisitor() {
+										@Override
 										public boolean visit(IResource resource) throws CoreException {
 											if (resource instanceof IFile) {
 												IFile file = (IFile) resource;

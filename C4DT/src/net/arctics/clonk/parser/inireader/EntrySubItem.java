@@ -23,6 +23,7 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	private Object context;
 	private int index;
 
+	@Override
 	public Object context() {
 		return context;
 	}
@@ -54,11 +55,13 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 		return null;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
 	public void setChildValue(int index, Object value) {
 		// TODO Auto-generated method stub
 		

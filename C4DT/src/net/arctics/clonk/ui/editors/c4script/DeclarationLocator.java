@@ -77,9 +77,9 @@ public class DeclarationLocator extends ExpressionLocator {
 			if (var == null)
 				return false;
 			else
-				d.initialize(var.getInitializationExpressionLocation(), var.getEngine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
+				d.initialize(var.getInitializationExpressionLocation(), var.engine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
 		} else
-			d.initialize(d.func.getBody(), d.func.getEngine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+			d.initialize(d.func.getBody(), d.func.engine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 		return true;
 	}
 

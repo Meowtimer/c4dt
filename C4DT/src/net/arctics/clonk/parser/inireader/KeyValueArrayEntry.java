@@ -30,6 +30,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		return components;
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(components.size() * 7); // MYID=1;
 		Iterator<KeyValuePair<KeyType, ValueType>> it = components.iterator();
@@ -57,6 +58,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		}
 	}
 
+	@Override
 	public IHasContext[] getChildren(Object context) {
 		IHasContext[] result = new IHasContext[components.size()];
 		for (int i = 0; i < components.size(); i++) {
@@ -65,14 +67,17 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		return result;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return components.size() > 0;
 	}
 
+	@Override
 	public Object getChildValue(int index) {
 		return components.get(index);
 	}
 
+	@Override
 	@SuppressWarnings({ "unchecked" })
 	public void setChildValue(int index, Object value) {
 		KeyValuePair<KeyType, ValueType> kv;
@@ -86,26 +91,32 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 			components.set(index, kv);
 	}
 	
+	@Override
 	public Collection<? extends ITreeNode> getChildCollection() {
 		return components;
 	}
 	
+	@Override
 	public String nodeName() {
 		return null;
 	}
 	
+	@Override
 	public void addChild(ITreeNode node) {
 		
 	}
 	
+	@Override
 	public ITreeNode getParentNode() {
 		return null;
 	}
 	
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 	
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}

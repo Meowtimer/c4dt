@@ -17,6 +17,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 			this.token = token;
 		}
 		
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 			int character = scanner.read();
 			boolean isNegative = false;
@@ -78,6 +79,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		/*
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 
 			int character= scanner.read();

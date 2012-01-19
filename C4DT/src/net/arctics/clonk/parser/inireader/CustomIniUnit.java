@@ -20,6 +20,7 @@ public class CustomIniUnit extends IniUnit {
 
 	private IniConfiguration configuration;
 	
+	@Override
 	public IniConfiguration getConfiguration() {
 		return configuration;
 	}

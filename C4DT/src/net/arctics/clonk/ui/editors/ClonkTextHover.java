@@ -32,7 +32,7 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 				Declaration dec = clonkHyperlink.getTarget();
 				hyperlink = null;
 				if (dec != null)
-					return dec.getInfoText();
+					return dec.infoText();
 			}
 			return null;
 		}

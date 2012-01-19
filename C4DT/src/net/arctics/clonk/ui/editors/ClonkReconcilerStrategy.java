@@ -23,6 +23,7 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 		super(sourceViewer, spellingService);
 	}
 	
+	@Override
 	@SuppressWarnings("unchecked")
 	public void reconcile(IRegion region) {
 

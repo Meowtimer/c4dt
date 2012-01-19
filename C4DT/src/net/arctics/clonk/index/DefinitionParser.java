@@ -43,11 +43,7 @@ public class DefinitionParser {
 		return null;
 	}
 	
-	public static DefinitionParser create(C4Group group) {
-		return new DefinitionParser(group);
-	}
-	
-	public Definition createObject() {
+	public Definition createDefinition() {
 		try {
 			object = Definition.definitionCorrespondingToFolder(objectFolder);
 			if (defCore != null) {
@@ -65,10 +61,6 @@ public class DefinitionParser {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	public Definition getObject() {
-		return object;
 	}
 
 }

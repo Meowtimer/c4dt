@@ -35,6 +35,7 @@ public class NewDefinition extends NewClonkFolderWizard<NewDefinitionPage> imple
 		addPage(page);
 	}
 
+	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
 		result.put("$$ID$$", page.getObjectID()); //$NON-NLS-1$

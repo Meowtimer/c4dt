@@ -32,6 +32,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 
 	public class MapCreatorHyperlinkDetector implements IHyperlinkDetector {
 
+		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
 				IRegion region, boolean canShowMultipleHyperlinks) {
 			MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
@@ -72,6 +73,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		return commentScanner;
 	}
 	
+	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
@@ -115,6 +117,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		}
 	}
 	
+	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));

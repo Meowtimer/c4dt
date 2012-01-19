@@ -9,7 +9,6 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ObjectFinderVisitor;
@@ -36,7 +35,7 @@ public class ProjectIndex extends Index {
 	private transient ClonkProjectNature nature;
 	
 	@Override
-	public Engine getEngine() {
+	public Engine engine() {
 		return nature.getSettings().getEngine();
 	}
 	
@@ -88,7 +87,7 @@ public class ProjectIndex extends Index {
 		if (project != null) {
 			List<Script> stuffToBeRemoved = new LinkedList<Script>();
 			for (Definition object : this)
-				if ((object instanceof Definition) && !((Definition)object).refreshDefinitionFolderReference(project))
+				if ((object instanceof Definition) && !object.refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(object);
 			for (Scenario scenario : indexedScenarios())
 				if (!scenario.refreshDefinitionFolderReference(project))
@@ -156,7 +155,7 @@ public class ProjectIndex extends Index {
 					if (resource instanceof IContainer) {
 						return true;
 					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
-						PlayerControlsUnit unit = (PlayerControlsUnit) IniUnit.pinned(resource, true, true);
+						PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
 						if (unit != null) {
 							staticVariables.addAll(unit.controlVariables());
 							for (Variable v : unit.controlVariables())

@@ -30,14 +30,14 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 		IFile scriptFile = Utilities.getFileBeingEditedBy(configuration.getEditor());
 		StringBuilder messageBuilder = new StringBuilder();
 		if (declLocator != null && declLocator.getDeclaration() != null) {
-			messageBuilder.append(declLocator.getDeclaration().getInfoText());
+			messageBuilder.append(declLocator.getDeclaration().infoText());
 			if (!declLocator.getDeclaration().isEngineDeclaration()) {
 				Engine engine = ClonkProjectNature.getEngine(scriptFile);
 				if (engine != null) {
 					Declaration engineDeclaration = engine.findDeclaration(declLocator.getDeclaration().name());
 					if (engineDeclaration != null) {
 						messageBuilder.append("<br/><br/><b>"+"Engine:"+"</b><br/>");
-						messageBuilder.append(engineDeclaration.getInfoText());
+						messageBuilder.append(engineDeclaration.infoText());
 					}
 				}
 			}
@@ -59,7 +59,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 				if (Utilities.regionContainsOtherRegion(markerRegion, region)) {
 					if (!foundSomeMarkers) {
 						if (messageBuilder.length() > 0)
-							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ 
 						foundSomeMarkers = true;
 					}
 					messageBuilder.append(m.getAttribute(IMarker.MESSAGE));

@@ -28,12 +28,13 @@ public class MapCreator extends MapCreatorMap {
 	}
 	
 	@Override
-	public IResource getResource() {
+	public IResource resource() {
 		return file;
 	}
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
+			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
 					MapCreator mapCreator = new MapCreator((IFile) resource);
@@ -47,9 +48,9 @@ public class MapCreator extends MapCreatorMap {
 	}
 	
 	@Override
-	public Engine getEngine() {
+	public Engine engine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(file);
-		return nature != null && nature.getIndex() != null ? nature.getIndex().getEngine() : super.getEngine();
+		return nature != null && nature.getIndex() != null ? nature.getIndex().engine() : super.engine();
 	}
 
 }

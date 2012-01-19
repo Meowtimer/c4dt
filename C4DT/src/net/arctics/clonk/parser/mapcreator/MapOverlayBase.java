@@ -31,9 +31,9 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	
 	public static final Map<String, Class<? extends MapOverlayBase>> DEFAULT_CLASS = ArrayUtil.map(
 		false,
-		Keywords.Point   , MapPoint.class, //$NON-NLS-1$
-		Keywords.Overlay , MapOverlay.class, //$NON-NLS-1$
-		Keywords.Map     , MapCreatorMap.class //$NON-NLS-1$
+		Keywords.Point   , MapPoint.class, 
+		Keywords.Overlay , MapOverlay.class, 
+		Keywords.Map     , MapCreatorMap.class 
 	);
 
 	public enum Operator {

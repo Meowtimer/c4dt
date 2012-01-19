@@ -203,6 +203,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			return Boolean.parseBoolean(values.get(name));
 		}
 
+		@Override
 		public String getString(String name) {
 			String v = values.get(name);
 			return v != null ? v : getDefaultString(name);
@@ -246,10 +247,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		addField(new DisabledErrorsFieldEditor(DISABLED_ERRORS_PROPERTY, Messages.EnabledErrors, getFieldEditorParent()));
 	}
 
+	@Override
 	public IAdaptable getElement() {
 		return element;
 	}
 
+	@Override
 	public void setElement(IAdaptable element) {
 		this.element = element;
 		try {

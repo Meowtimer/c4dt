@@ -56,6 +56,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 		/*
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 
 			int character= scanner.read();
@@ -113,7 +114,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
 
-		currentRules = (IRule[])rules.toArray(new IRule[0]);
+		currentRules = rules.toArray(new IRule[0]);
 		setRules(currentRules);
 	}
 

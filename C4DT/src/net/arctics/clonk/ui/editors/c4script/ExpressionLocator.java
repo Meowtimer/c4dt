@@ -38,8 +38,10 @@ public class ExpressionLocator extends ScriptParserListener {
 		return exprAtRegion;
 	}
 
+	@Override
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 		expression.traverse(new ScriptParserListener() {
+			@Override
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() <= expression.getExprEnd()) {
 					if (topLevelInRegion == null)

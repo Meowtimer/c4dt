@@ -129,7 +129,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class EngineConfigPrefStore extends PreferenceStore {
 
-		private Engine.EngineSettings settings = (EngineSettings) ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings().clone();
+		private Engine.EngineSettings settings = (EngineSettings) ClonkCore.getDefault().loadEngine(myEngine).currentSettings().clone();
 
 		@Override
 		public void setValue(String name, String value) {
@@ -169,12 +169,12 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		@Override
 		public String getDefaultString(String name) { 
-			return (String)val(ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings(), name);
+			return (String)val(ClonkCore.getDefault().loadEngine(myEngine).currentSettings(), name);
 		}
 
 		@Override
 		public boolean getDefaultBoolean(String name) {
-			return (Boolean)val(ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings(), name);
+			return (Boolean)val(ClonkCore.getDefault().loadEngine(myEngine).currentSettings(), name);
 		}
 
 		public void apply() {
@@ -184,7 +184,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		public void reset() {
-			settings = (EngineSettings) ClonkCore.getDefault().loadEngine(myEngine).getCurrentSettings().clone();
+			settings = (EngineSettings) ClonkCore.getDefault().loadEngine(myEngine).currentSettings().clone();
 		}
 
 	};

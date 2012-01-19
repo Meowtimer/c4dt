@@ -29,11 +29,12 @@ import org.xml.sax.SAXException;
 public class OCEngineDeclarationsImporter {
 
 	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
-		XMLDocImporter importer = importsContainer.getEngine().repositoryDocImporter();
+		XMLDocImporter importer = importsContainer.engine().repositoryDocImporter();
 		importer.setRepositoryPath(repository);
 		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
 		File fnFolder = new File(fnFolderPath);
 		String[] files = fnFolder.list(new FilenameFilter() {
+			@Override
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".xml"); //$NON-NLS-1$
 			}
@@ -46,7 +47,7 @@ public class OCEngineDeclarationsImporter {
 			}
 			Declaration declaration;
 			try {
-				ExtractedDeclarationDocumentation extracted = importer.extractDeclarationInformationFromFunctionXml(fileName, ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION); //$NON-NLS-1$
+				ExtractedDeclarationDocumentation extracted = importer.extractDeclarationInformationFromFunctionXml(fileName, ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION); 
 				declaration = extracted != null ? extracted.toDeclaration() : null;
 			} catch (Exception e) {
 				declaration = null;

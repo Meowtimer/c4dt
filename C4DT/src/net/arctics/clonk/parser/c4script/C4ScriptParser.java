@@ -471,8 +471,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	protected void initialize() {
 		if (container != null) {
-			engine = container.getEngine();
-			specialScriptRules = engine != null ? container.getEngine().getSpecialScriptRules() : null;
+			engine = container.engine();
+			specialScriptRules = engine != null ? container.engine().specialScriptRules() : null;
 
 			if (container.getIndex() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) container.getIndex();
@@ -771,7 +771,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			Variable shadowed = getContainer().findVariable(v.name());
 			// ignore those pesky static variables from scenario scripts
 			if (shadowed != null && !(shadowed.getParentDeclaration() instanceof Scenario)) 
-				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.getQualifiedName(), shadowed.getQualifiedName());
+				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
 		}
 	}
 
@@ -983,7 +983,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					currentFunctionContext.currentDeclaration = var;
 					VarInitialization varInitialization;
 					ExprElm initializationExpression = null;
-					if (scope == Scope.CONST || currentFunc != null || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
+					if (scope == Scope.CONST || currentFunc != null || getContainer().engine().currentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
 						if (peek() == '=') {
 							read();
@@ -1116,8 +1116,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		String str;
 		if (peek() == '&') {
-			if (!container.getEngine().getCurrentSettings().supportsRefs) {
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.getEngine().name());
+			if (!container.engine().currentSettings().supportsRefs) {
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.engine().name());
 			}
 			read();
 			return PrimitiveType.REFERENCE;
@@ -1172,7 +1172,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else
-					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ 
 			} while(!reachedEOF());
 		}
 		endOfHeader = this.offset;
@@ -1273,7 +1273,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
     }
 
 	private String getTextOfLastComment(int absoluteOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, getBuffer())) ? lastComment.getComment().trim() : null; //$NON-NLS-1$
+		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, getBuffer())) ? lastComment.getComment().trim() : null; 
 		lastComment = null;
 		return desc;
 	}
@@ -1397,7 +1397,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				private static final long serialVersionUID = 1L;
 				private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
 				@Override
-				public Engine getEngine() {
+				public Engine engine() {
 					return tempEngine;
 				};
 			});
@@ -3134,8 +3134,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int e = this.offset;
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
-		if (type == PrimitiveType.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
-			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.getEngine().name());
+		if (type == PrimitiveType.REFERENCE && !container.engine().currentSettings().supportsRefs) {
+			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.engine().name());
 		}
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);

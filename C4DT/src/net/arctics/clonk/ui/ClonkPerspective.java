@@ -9,6 +9,7 @@ import org.eclipse.ui.IPerspectiveFactory;
 
 public class ClonkPerspective implements IPerspectiveFactory {
 
+	@Override
 	public void createInitialLayout(IPageLayout layout) {
 		// layout.addFastView("org.eclipse.ui.navigator.ProjectExplorer", (float) 0.2);
 		// layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");

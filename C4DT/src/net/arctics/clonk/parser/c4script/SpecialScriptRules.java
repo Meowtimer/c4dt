@@ -30,13 +30,13 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
@@ -446,7 +446,7 @@ public class SpecialScriptRules {
 							}
 							else for (Directive directive : f.getScript().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
-									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.getContainer().getResource(), directive.contentAsID());
+									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.getContainer().resource(), directive.contentAsID());
 									if (def != null) {
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 									}
@@ -580,7 +580,7 @@ public class SpecialScriptRules {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Index index = parser.getContainer().getIndex();
 				Scenario scenario = null;
-				for (IResource r = parser.getContainer().getResource().getParent(); scenario == null && r != null; r = r.getParent()) {
+				for (IResource r = parser.getContainer().resource().getParent(); scenario == null && r != null; r = r.getParent()) {
 					if (r instanceof IContainer)
 						scenario = Scenario.get((IContainer)r);
 				}
@@ -700,7 +700,7 @@ public class SpecialScriptRules {
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getCurrentFunc())) instanceof String) {
 				String particleName = (String)parmEv;
 				ProjectIndex projIndex = (ProjectIndex)parser.getContainer().getIndex();
-				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true, "Particle.txt");
+				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().resource(), true, "Particle.txt");
 				if (unit != null) {
 					return new DeclarationRegion(unit, parmExpression);
 				}
@@ -724,12 +724,12 @@ public class SpecialScriptRules {
 			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
 				if (definition instanceof Definition) {
-					Definition projDef = (Definition)definition;
+					Definition projDef = definition;
 					IResource res = Utilities.findMemberCaseInsensitively(projDef.definitionFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
 						IniUnit unit;
 						try {
-							unit = (IniUnit) ActMapUnit.pinned(res, true, false);
+							unit = (IniUnit) Structure.pinned(res, true, false);
 						} catch (CoreException e) {
 							e.printStackTrace();
 							return null;

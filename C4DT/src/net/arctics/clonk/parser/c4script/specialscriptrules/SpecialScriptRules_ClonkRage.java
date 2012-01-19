@@ -44,7 +44,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 		if (idMatcher.lookingAt()) {
 			String idString = idMatcher.group();
 			scanner.advance(idString.length());
-			if (BufferedScanner.isWordPart(scanner.peek()) || C4ScriptParser.NUMERAL_PATTERN.matcher(idString).matches()) {
+			if (BufferedScanner.isWordPart(scanner.peek()) || BufferedScanner.NUMERAL_PATTERN.matcher(idString).matches()) {
 				scanner.advance(-idString.length());
 				return null;
 			}

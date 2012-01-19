@@ -28,6 +28,7 @@ public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor 
 		return count;
 	}
 
+	@Override
 	public boolean visit(IResource resource) throws CoreException {
 		if ((flags & COUNT_CONTAINER) > 0) {
 			if (resource instanceof IContainer) {
@@ -42,6 +43,7 @@ public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor 
 		return true;
 	}
 
+	@Override
 	public boolean visit(IResourceDelta delta) throws CoreException {
 		return visit(delta.getResource());
 	}

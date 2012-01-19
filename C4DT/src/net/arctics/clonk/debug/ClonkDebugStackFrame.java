@@ -197,7 +197,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	public String getSourcePath() {
 		if (function instanceof Function) {
 			Function f = (Function) function;
-			IResource r = f.getScript().getResource();
+			IResource r = f.getScript().resource();
 			if (r instanceof IContainer)
 				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$
 			else if (r != null)

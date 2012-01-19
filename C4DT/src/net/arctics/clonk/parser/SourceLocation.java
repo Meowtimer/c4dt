@@ -86,7 +86,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-
 	@Override
 	public int hashCode() {
-		return (int)(start ^ start >>> 32) * 37 + (int)(end ^ end >>> 32) * 37;
+		return (start ^ start >>> 32) * 37 + (end ^ end >>> 32) * 37;
 	}
 	
 	public SourceLocation offset(int o) {

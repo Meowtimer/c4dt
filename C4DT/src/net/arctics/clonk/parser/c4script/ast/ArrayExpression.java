@@ -18,6 +18,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 		super(elms);
 	}
 
+	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append("["); //$NON-NLS-1$
 		for (int i = 0; i < elements.length; i++) {

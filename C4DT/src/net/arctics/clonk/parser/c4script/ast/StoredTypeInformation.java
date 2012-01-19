@@ -37,6 +37,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		
 	}
 	
+	@Override
 	public void merge(IStoredTypeInformation other) {
 		if (type() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type

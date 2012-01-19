@@ -102,6 +102,7 @@ public class OpenObjectDialog extends DeclarationChooser {
 	@Override
 	protected Comparator getItemsComparator() {
 		return new Comparator() {
+			@Override
 			public int compare(Object arg0, Object arg1) {
 				return arg0.toString().compareTo(arg1.toString());
 			}

@@ -74,10 +74,12 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
 
+						@Override
 						public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 							return true; // import whole group
 						}
 
+						@Override
 						public void processData(C4GroupItem item) throws CoreException {
 							for (; currentGroup != item.getParentGroup(); currentGroup = currentGroup.getParentGroup(), currentContainer = currentContainer.getParent());
 							if (item instanceof C4Group) {

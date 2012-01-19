@@ -112,6 +112,7 @@ public class CallFunc extends AccessDeclaration {
 			varIndex = val;
 		}
 
+		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof CallFunc) {
 				CallFunc callFunc = (CallFunc) expr;
@@ -126,6 +127,7 @@ public class CallFunc extends AccessDeclaration {
 			return false;
 		}
 
+		@Override
 		public boolean refersToSameExpression(IStoredTypeInformation other) {
 			if (other.getClass() == CallFunc.VarFunctionsTypeInformation.class) {
 				CallFunc.VarFunctionsTypeInformation otherInfo = (CallFunc.VarFunctionsTypeInformation) other;
@@ -237,14 +239,14 @@ public class CallFunc extends AccessDeclaration {
 	
 	/**
 	 * Return a {@link SpecialFuncRule} applying to {@link CallFunc}s with the same name as this one.
-	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#getSpecialScriptRules()})
+	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialScriptRules()})
 	 * @param role Role mask passed to {@link SpecialScriptRules#getFuncRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallFunc}s such as this one, or null.
 	 */
 	public SpecialFuncRule getSpecialRule(DeclarationObtainmentContext context, int role) {
-		Engine engine = context.getContainer().getEngine();
-		if (engine != null && engine.getSpecialScriptRules() != null) {
-			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName, role);
+		Engine engine = context.getContainer().engine();
+		if (engine != null && engine.specialScriptRules() != null) {
+			return engine.specialScriptRules().getFuncRuleFor(declarationName, role);
 		} else {
 			return null;
 		}
@@ -373,10 +375,10 @@ public class CallFunc extends AccessDeclaration {
 			}
 			// find engine function
 			if (declaration == null)
-				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
+				declaration = context.getContainer().getIndex().engine().findFunction(functionName);
 
 			List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
-			Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
+			Declaration decl = context.getContainer().engine().findLocalFunction(functionName, false);
 			int numCandidates = 0;
 			if (allFromLocalIndex != null)
 				numCandidates += allFromLocalIndex.size();
@@ -600,7 +602,7 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			if (!parser.getContainer().getEngine().getCurrentSettings().proplistsSupported && getPredecessorInSequence() != null)
+			if (!parser.getContainer().engine().currentSettings().proplistsSupported && getPredecessorInSequence() != null)
 				return new CallFunc("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);

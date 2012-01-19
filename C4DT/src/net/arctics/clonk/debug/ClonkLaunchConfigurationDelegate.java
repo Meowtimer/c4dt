@@ -49,6 +49,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
+	@Override
 	public synchronized void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 			
 		// Get scenario and engine
@@ -79,8 +80,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			try {
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					Scenario scenarioObj = Scenario.get(scenario);
-					if (scenarioObj != null && !scenarioObj.getEngine().getCurrentSettings().supportsDebugging)
-						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().name()));
+					if (scenarioObj != null && !scenarioObj.engine().currentSettings().supportsDebugging)
+						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.engine().name()));
 				}
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				Map<String, Object> processAttributes = new HashMap<String, Object>();
@@ -143,17 +144,17 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
 		Script scenarioScript = Scenario.get(scenario);
-		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
+		String gamePath = scenarioScript != null ? scenarioScript.engine().currentSettings().gamePath : null;
 
 		File enginePath = new File("Unspecified");
-		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;
+		String enginePref = scenarioScript != null ? scenarioScript.engine().currentSettings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
 		if (!enginePref.equals("")) //$NON-NLS-1$
 			enginePath = new File(enginePref);
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
-			final String[] engineNames = Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
+			final String[] engineNames = Engine.possibleEngineNamesAccordingToOS(); 
 			for(String name : engineNames) {
 				File path = new File(gamePath, name);
 				if(path.exists()) {
@@ -175,11 +176,11 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	}
 	
 	private static String cmdLineOptionString(Engine engine, String option) {
-		return String.format(engine.getCurrentSettings().cmdLineOptionFormat, option);
+		return String.format(engine.currentSettings().cmdLineOptionFormat, option);
 	}
 	
 	private static String cmdLineOptionString(Engine engine, String option, String argument) {
-		return String.format(engine.getCurrentSettings().cmdLineOptionWithArgumentFormat, option, argument);
+		return String.format(engine.currentSettings().cmdLineOptionWithArgumentFormat, option, argument);
 	}
 	
 	/** 
@@ -197,7 +198,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		
 		Engine engineObj;
 		try {
-			engineObj = Scenario.get((IContainer) scenario).getEngine();
+			engineObj = Scenario.get((IContainer) scenario).engine();
 		} catch (Exception e) {
 			return null;
 		}
@@ -211,7 +212,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {
 					for (IResource res : c.members()) {
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							GroupType gType = engineObj.getGroupTypeForFileName(res.getName());
+							GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
 									args.add(resFilePath(res));
@@ -225,7 +226,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
 			args.add(cmdLineOptionString(engineObj, "fullscreen")); //$NON-NLS-1$
 		else {
-			args.add(cmdLineOptionString(engineObj, engineObj.getCurrentSettings().editorCmdLineOption));
+			args.add(cmdLineOptionString(engineObj, engineObj.currentSettings().editorCmdLineOption));
 			args.add(cmdLineOptionString(engineObj, "noleague")); //$NON-NLS-1$
 		}
 		

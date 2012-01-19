@@ -74,6 +74,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		}
 	}
 
+	@Override
 	public Object[] getChildren() {
 		if (extendedValue instanceof IHasChildrenWithContext)
 			return ((IHasChildrenWithContext)extendedValue).getChildren(this);
@@ -90,12 +91,14 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		return null;
 	}
 	
+	@Override
 	public boolean hasChildren() {
 		return
 			(extendedValue instanceof IHasChildren && ((IHasChildren)extendedValue).hasChildren()) ||
 			(extendedValue instanceof IHasChildrenWithContext && ((IHasChildrenWithContext)extendedValue).hasChildren());
 	}
 
+	@Override
 	public Object context() {
 		return this; // is it's own context; over-abstraction is awesome -.-
 	}

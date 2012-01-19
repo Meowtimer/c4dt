@@ -61,7 +61,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			return location;
 		}
 		public DeclarationLocation(Declaration declaration) {
-			this(declaration, declaration.getLocation(), declaration.getResource());
+			this(declaration, declaration.getLocation(), declaration.resource());
 		}
 		public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
 			super();
@@ -100,6 +100,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	/**
 	 * @return the name
 	 */
+	@Override
 	public String name() {
 		return name;
 	}
@@ -207,7 +208,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns a brief info string describing the declaration.
 	 * @return The short info string.
 	 */
-	public String getInfoText() {
+	public String infoText() {
 		return name();
 	}
 	
@@ -266,7 +267,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 		final Set<Object> scope = new HashSet<Object>();
 		scope.add(script);
-		ClonkProjectNature nat = ClonkProjectNature.get(script.getResource());
+		ClonkProjectNature nat = ClonkProjectNature.get(script.resource());
 		nat.getIndex().forAllRelevantIndexes(new r() {
 			@Override
 			public void run(Index index) {
@@ -283,8 +284,8 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns the resource this declaration is declared in
 	 */
 	@Override
-	public IResource getResource() {
-		return getParentDeclaration() != null ? getParentDeclaration().getResource() : null;
+	public IResource resource() {
+		return getParentDeclaration() != null ? getParentDeclaration().resource() : null;
 	}
 	
 	/**
@@ -400,8 +401,8 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return getParentDeclaration() instanceof Engine;
 	}
 	
-	public Engine getEngine() {
-		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
+	public Engine engine() {
+		return parentDeclaration != null ? parentDeclaration.engine() : null; 
 	}
 
 	@Override
@@ -409,7 +410,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		if (parentDeclaration != null)
 			return parentDeclaration.getIndex();
 		else {
-			IResource res = getResource();
+			IResource res = resource();
 			if (res != null) {
 				ClonkProjectNature nat = ClonkProjectNature.get(res);
 				return nat != null ? nat.getIndex() : null;
@@ -435,14 +436,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	
 	public StringTbl getStringTblForLanguagePref() {
 		try {
-			IResource res = getResource();
+			IResource res = resource();
 			if (res == null)
 				return null;
 			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
 			String pref = ClonkPreferences.getLanguagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
-				return (StringTbl) Structure.pinned((IFile) tblFile, true, false);
+				return (StringTbl) Structure.pinned(tblFile, true, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -527,7 +528,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 
 	public DeclarationLocation[] getDeclarationLocations() {
 		return new DeclarationLocation[] {
-			new DeclarationLocation(this, getLocation(), getResource())
+			new DeclarationLocation(this, getLocation(), resource())
 		};
 	}
 	
@@ -575,9 +576,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Return a string identifying the declaration and the script it's declared in.
 	 * @return
 	 */
-	public String getQualifiedName() {
+	public String qualifiedName() {
 		if (getParentDeclaration() != null)
-			return String.format("%s::%s", getParentDeclaration().getQualifiedName(), this.name());
+			return String.format("%s::%s", getParentDeclaration().qualifiedName(), this.name());
 		else
 			return name();
 	}

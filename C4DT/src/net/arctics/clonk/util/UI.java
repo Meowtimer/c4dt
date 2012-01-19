@@ -60,12 +60,12 @@ import org.eclipse.ui.navigator.CommonNavigator;
  * Stores references to some objects needed for various components of the user interface
  */
 public abstract class UI {
-	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$ 
 	public final static Image MAP_ICON = imageForPath("icons/map.png");
 	public final static Image MAPOVERLAY_ICON = imageForPath("icons/mapoverlay.png");
-	public static final Image TEXT_ICON = imageForPath("icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final Image TEXT_ICON = imageForPath("icons/text.png"); //$NON-NLS-1$ 
+	public static final Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$ 
+	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ 
 	public static final Image DUPE_ICON = imageForPath("icons/dupe.png");
 	public static final Image PROPLIST_ICON = imageForPath("icons/proplist.png");
 	public static final Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
@@ -122,7 +122,7 @@ public abstract class UI {
 	 * @return The icon.
 	 */
 	public static Image definitionIcon(Definition def) {
-		return def.getEngine().image(GroupType.DefinitionGroup);
+		return def.engine().image(GroupType.DefinitionGroup);
 	}
 
 	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
@@ -219,7 +219,7 @@ public abstract class UI {
 	public static String input(Shell shell, String title, String prompt, String defaultValue, IInputValidator validator) {
 		InputDialog newNameDialog = new InputDialog(shell, title, prompt, defaultValue, validator);
 		switch (newNameDialog.open()) {
-		case InputDialog.CANCEL:
+		case Window.CANCEL:
 			return null;
 		}
 		return newNameDialog.getValue();

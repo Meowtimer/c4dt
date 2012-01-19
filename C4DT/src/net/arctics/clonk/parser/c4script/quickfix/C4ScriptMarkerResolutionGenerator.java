@@ -17,6 +17,7 @@ import org.eclipse.ui.IMarkerResolutionGenerator2;
 
 public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGenerator2 {
 	
+	@Override
 	public IMarkerResolution[] getResolutions(IMarker marker) {
 		ClonkQuickAssistProcessor quickAssist = ClonkQuickAssistProcessor.getSingleton();
 		Script script = Script.get(marker.getResource(), true);
@@ -30,6 +31,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		return res.toArray(new IMarkerResolution[res.size()]);
 	}
 
+	@Override
 	public boolean hasResolutions(IMarker marker) {
 		try {
 			return

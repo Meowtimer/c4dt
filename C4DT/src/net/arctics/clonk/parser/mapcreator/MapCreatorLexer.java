@@ -37,7 +37,8 @@ public class MapCreatorLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
+    @Override
+	public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
@@ -694,7 +695,8 @@ public class MapCreatorLexer extends Lexer {
     }
     // $ANTLR end "OPERATOR"
 
-    public void mTokens() throws RecognitionException {
+    @Override
+	public void mTokens() throws RecognitionException {
         // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:8: ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR )
         int alt9=16;
         alt9 = dfa9.predict(input);
@@ -919,7 +921,8 @@ public class MapCreatorLexer extends Lexer {
             this.special = DFA9_special;
             this.transition = DFA9_transition;
         }
-        public String getDescription() {
+        @Override
+		public String getDescription() {
             return "1:1: Tokens : ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );";
         }
     }

@@ -209,8 +209,8 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public String getInfoText() {
+	public String infoText() {
 		IniUnit unit = getIniUnit();
-		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.getInfoText());
+		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText());
 	}
 }

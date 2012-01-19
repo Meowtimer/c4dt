@@ -32,7 +32,7 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		return new IPredicate<IniSection>() {
 			@Override
 			public boolean test(IniSection section) {
-				IniItem entry = section.getSubItem(nameOfEntryToTakeSectionNameFrom(section)); //$NON-NLS-1$
+				IniItem entry = section.getSubItem(nameOfEntryToTakeSectionNameFrom(section)); 
 				return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
 			}
 		};

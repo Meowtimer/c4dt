@@ -203,7 +203,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		Script result = Script.get(file, true);
 		if (result == null) {
 			for (Script s : this.indexedScripts)
-				if (s.getResource() != null && s.getResource().equals(file))
+				if (s.resource() != null && s.resource().equals(file))
 					return s;
 		}
 		return result;
@@ -634,7 +634,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	@Override
-	public Engine getEngine() {
+	public Engine engine() {
 		return ClonkCore.getDefault().getActiveEngine();
 	}
 	
@@ -730,9 +730,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public <T extends Declaration> T getLatestVersion(T from) {
 		try {
 			if (from instanceof Script)
-				return (T) Utilities.getScriptForResource(from.getResource());
-			else if (from instanceof Structure && from.getResource() instanceof IFile)
-				return (T) Structure.pinned(from.getResource(), false, false);
+				return (T) Utilities.getScriptForResource(from.resource());
+			else if (from instanceof Structure && from.resource() instanceof IFile)
+				return (T) Structure.pinned(from.resource(), false, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

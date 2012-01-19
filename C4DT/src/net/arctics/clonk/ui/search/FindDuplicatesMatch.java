@@ -23,7 +23,7 @@ public class FindDuplicatesMatch extends Match implements IHasLabelAndImage {
 
 	@Override
 	public String getLabel() {
-		return dupe.getQualifiedName();
+		return dupe.qualifiedName();
 	}
 
 	@Override

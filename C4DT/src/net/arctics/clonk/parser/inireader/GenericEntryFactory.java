@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
 public class GenericEntryFactory implements IEntryFactory {
 	
+	@Override
 	public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
 		if (value == null)
 			value = ""; //$NON-NLS-1$

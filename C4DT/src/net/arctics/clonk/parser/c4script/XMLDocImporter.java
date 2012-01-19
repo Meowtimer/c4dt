@@ -215,7 +215,7 @@ public class XMLDocImporter {
 					e.printStackTrace();
 					return null;
 				}
-				String text = StreamUtil.stringFromInputStream(stream); //$NON-NLS-1$
+				String text = StreamUtil.stringFromInputStream(stream); 
 				boolean importDocumentation = (flags & DOCUMENTATION) != 0;
 				if (importDocumentation) {
 					try {

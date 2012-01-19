@@ -27,6 +27,7 @@ public class DefCoreUnit extends IniUnit {
 			return ID.NULL;
 	}
 	
+	@Override
 	public String name() {
 		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;

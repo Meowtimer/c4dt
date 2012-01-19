@@ -120,7 +120,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
-				Script script = Script.get((IFile) resource, true);
+				Script script = Script.get(resource, true);
 				if (script != null) {
 					searchScript(resource, script);
 				}
@@ -227,7 +227,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.getScriptForEditor((ITextEditor) editor);
+			Script script = Utilities.getScriptForEditor(editor);
 			if (script != null)
 				return result.getMatches(script);
 		}
@@ -237,7 +237,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.getScriptForEditor((ITextEditor)editor);
+			Script script = Utilities.getScriptForEditor(editor);
 			if (script != null && match.getElement().equals(script.scriptStorage()))
 				return true;
 		}

@@ -86,7 +86,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			NullProgressMonitor mon = null;
 			for (IResource res : resources) {
 				C4GroupItem groupItem;
-				if (res instanceof IFile && engine.getGroupTypeForFileName(res.getName()) != GroupType.OtherGroup) {
+				if (res instanceof IFile && engine.groupTypeForFileName(res.getName()) != GroupType.OtherGroup) {
 					if (mon == null)
 						mon = new NullProgressMonitor();
 					groupItem = C4GroupItem.getGroupItemBackingResource(res);

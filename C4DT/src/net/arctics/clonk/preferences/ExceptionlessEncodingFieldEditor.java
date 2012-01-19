@@ -47,6 +47,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.internal.ide.dialogs.AbstractEncodingFieldEditor#getStoredValue()
 	 */
+	@Override
 	protected String getStoredValue() {
 		String val = getPreferenceStore().getString(getPreferenceName());
 		// return null if equal to default so AbstractEncodingFieldEditor will reflect that
@@ -59,6 +60,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doStore()
 	 */
+	@Override
 	protected void doStore() {
 		String encoding = getSelectedEncoding();
 		

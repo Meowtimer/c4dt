@@ -33,7 +33,7 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 				setNumber(Long.parseLong(input));
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); //$NON-NLS-2$
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); 
 			exp.setInnerException(e);
 			throw exp;
 		}

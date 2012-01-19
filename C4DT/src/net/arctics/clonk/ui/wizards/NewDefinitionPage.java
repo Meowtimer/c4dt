@@ -54,7 +54,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.dialogChanged();
 		ClonkProjectNature nature = ClonkProjectNature.get(project);
 		if (nature != null) {
-			if (!nature.getIndex().getEngine().acceptsId(c4idText.getText())) {
+			if (!nature.getIndex().engine().acceptsId(c4idText.getText())) {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}
@@ -72,7 +72,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.initialize();
 		fileText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
-		setFolderExtension(ClonkProjectNature.getEngine(project).getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+		setFolderExtension(ClonkProjectNature.getEngine(project).currentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}
 	
 	public String getObjectID() {

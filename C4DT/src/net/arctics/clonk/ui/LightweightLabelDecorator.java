@@ -32,7 +32,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			if (res instanceof IFolder) {
 				Engine engine = ClonkProjectNature.getEngine(res);
 				if (engine != null) {
-					GroupType groupType = engine.getGroupTypeForFileName(res.getName());
+					GroupType groupType = engine.groupTypeForFileName(res.getName());
 					ImageDescriptor imgDesc = engine.imageDescriptor(groupType);
 					if (imgDesc != null)
 						decoration.addOverlay(imgDesc, IDecoration.REPLACE);

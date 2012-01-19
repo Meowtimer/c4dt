@@ -98,7 +98,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				CommonNavigator projectExplorer = UI.projectExplorer(window);
 				if (projectExplorer != null)
 					for (Script s : resourcesToBeRefreshed)
-						UI.refreshAllProjectExplorers(s.getResource());
+						UI.refreshAllProjectExplorers(s.resource());
 			}
 		}
 	}
@@ -196,7 +196,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 							script = new SystemScript(null, file);
 						// object script
 						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, getIndex())) != null) //$NON-NLS-1$
-							script = objParser.createObject();
+							script = objParser.createDefinition();
 						// some other file but a script is still needed so get the definition for the folder
 						else
 							script = Definition.definitionCorrespondingToFolder(folder);
@@ -258,7 +258,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						return false;
 				DefinitionParser parser = DefinitionParser.create((IContainer) resource, getIndex());
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
-					Definition object = parser.createObject();
+					Definition object = parser.createDefinition();
 					if (object != null) {
 						queueScript(object);
 					}
@@ -268,7 +268,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
 				// only create standalone-scripts for *.c files residing in System groups
-				String systemName = nature.getIndex().getEngine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
+				String systemName = nature.getIndex().engine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
 				if (
 					resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
 					systemName.equals(resource.getParent().getName())
@@ -607,7 +607,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		for (Structure s : gatheredStructures) {
 			s.validate();
 			if (s.requiresScriptReparse()) {
-				Script script = Script.get(s.getResource(), false);
+				Script script = Script.get(s.resource(), false);
 				if (script != null) {
 					C4ScriptParser p = queueScript(script);
 					newlyAddedParsers.put(script, p);
@@ -653,8 +653,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 									Declaration topLevelDeclaration = ed.topLevelDeclaration();
 									if (
 										topLevelDeclaration != null &&
-										topLevelDeclaration.getResource() != null &&
-										ClonkBuilder.this.getProject().equals(topLevelDeclaration.getResource().getProject())
+										topLevelDeclaration.resource() != null &&
+										ClonkBuilder.this.getProject().equals(topLevelDeclaration.resource().getProject())
 									)
 										ed.clearOutline();
 								}
