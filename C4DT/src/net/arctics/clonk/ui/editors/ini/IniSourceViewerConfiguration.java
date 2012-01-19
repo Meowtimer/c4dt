@@ -97,7 +97,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
 				Matcher m;
 				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset());
-				if (section != null && section.getSectionData() != null) {
+				if (section != null && section.sectionData() != null) {
 					int relativeOffset = region.getOffset()-lineRegion.getOffset();
 					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
 						boolean hoverOverAttrib = relativeOffset < m.start(2);
@@ -105,7 +105,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
-							IniDataBase dataItem = section.getSectionData().getEntry(attrib);
+							IniDataBase dataItem = section.sectionData().getEntry(attrib);
 							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
 							if (dataItem instanceof IniDataEntry) {
 								IniDataEntry entry = (IniDataEntry) dataItem;

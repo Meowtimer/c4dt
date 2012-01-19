@@ -42,11 +42,11 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	protected void endParsing() {
 		IniSection controlsDefsSection = sectionWithName("ControlDefs");
 		if (controlsDefsSection != null) {
-			for (IniItem item : controlsDefsSection.getSubItemList()) {
+			for (IniItem item : controlsDefsSection.subItemList()) {
 				if (item instanceof IniSection) {
 					IniSection section = (IniSection) item;
 					if (section.name().equals("ControlDef")) { //$NON-NLS-1$
-						IniItem identifierEntry = section.getSubItem("Identifier"); //$NON-NLS-1$
+						IniItem identifierEntry = section.subItemByKey("Identifier"); //$NON-NLS-1$
 						if (identifierEntry instanceof IniEntry) {
 							IniEntry e = (IniEntry) identifierEntry;
 							String ident = e.stringValue();

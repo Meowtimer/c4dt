@@ -36,7 +36,7 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
-		ExprElm pred = getPredecessorInSequence();
+		ExprElm pred = predecessorInSequence();
 		if (pred == null) {
 			return declaration == null || ((Variable)declaration).getScope() != Scope.CONST;
 		} else {
@@ -70,10 +70,10 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
-		ExprElm sequencePredecessor = getPredecessorInSequence();
-		IType type = context.getContainer();
+		ExprElm sequencePredecessor = predecessorInSequence();
+		IType type = context.container();
 		if (sequencePredecessor != null)
-			type = sequencePredecessor.getType(context);
+			type = sequencePredecessor.typeInContext(context);
 		if (type != null) for (IType t : type) {
 			Script scriptToLookIn;
 			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
@@ -84,7 +84,7 @@ public class AccessVar extends AccessDeclaration {
 						return proplistComponent;
 				}
 			} else {
-				FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
+				FindDeclarationInfo info = new FindDeclarationInfo(context.container().getIndex());
 				info.setContextFunction(context.getCurrentFunc());
 				info.setSearchOrigin(scriptToLookIn);
 				Variable v = scriptToLookIn.findVariable(declarationName, info);
@@ -98,7 +98,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		ExprElm pred = getPredecessorInSequence();
+		ExprElm pred = predecessorInSequence();
 		if (declaration == null && pred == null)
 			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
 		// local variable used in global function
@@ -108,7 +108,7 @@ public class AccessVar extends AccessDeclaration {
 			switch (var.getScope()) {
 				case LOCAL:
 					Declaration d = parser.getCurrentDeclaration();
-					if (d != null && getPredecessorInSequence() == null) {
+					if (d != null && predecessorInSequence() == null) {
 						Function f = d.getTopLevelParentDeclarationOfType(Function.class);
 						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
 						if (
@@ -120,7 +120,7 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 				case STATIC: case CONST:
-					parser.getContainer().addUsedScript(var.getScript());
+					parser.container().addUsedScript(var.getScript());
 					break;
 				case VAR:
 					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.function() == parser.getCurrentFunc()) {
@@ -149,7 +149,7 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = declarationFromContext(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return new ConstrainedProplist(context.getContainer(), ConstraintKind.CallerType);
+			return new ConstrainedProplist(context.container(), ConstraintKind.CallerType);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
@@ -171,15 +171,15 @@ public class AccessVar extends AccessDeclaration {
 		if (declaration() == Variable.THIS)
 			return;
 		if (declaration() == null) {
-			IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
+			IType predType = predecessorInSequence() != null ? predecessorInSequence().typeInContext(context) : null;
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
 				if (predType instanceof ProplistDeclaration) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(getDeclarationName(), Variable.Scope.VAR);
-						var.expectedToBeOfType(expression.getType(context), TypeExpectancyMode.Expect);
+						var.expectedToBeOfType(expression.typeInContext(context), TypeExpectancyMode.Expect);
 						var.setLocation(context.absoluteSourceLocationFromExpr(this));
-						var.forceType(expression.getType(context));
+						var.forceType(expression.typeInContext(context));
 						var.setInitializationExpression(expression);
 						proplDecl.addComponent(var);
 					}

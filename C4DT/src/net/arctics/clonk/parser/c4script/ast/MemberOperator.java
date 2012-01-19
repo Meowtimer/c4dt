@@ -119,34 +119,34 @@ public class MemberOperator extends ExprElm {
 	}
 
 	/**
-	 * MemberOperator delegates this call to {@link #getPredecessorInSequence()}, if there is one.
+	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
 	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#obtainType(DeclarationObtainmentContext)
 	 */
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		// explicit id
 		if (id != null) {
-			return context.getContainer().nearestDefinitionWithId(id);
+			return context.container().nearestDefinitionWithId(id);
 		}
 		// stuff before -> decides
-		return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.obtainType(context);
+		return predecessorInSequence() != null ? predecessorInSequence().typeInContext(context) : super.obtainType(context);
 	}
 	
 	/**
-	 * MemberOperator delegates this call to {@link #getPredecessorInSequence()}, if there is one.
+	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
 	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#expectedToBeOfType(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode, net.arctics.clonk.parser.ParserErrorCode)
 	 */
 	@Override
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 		// delegate to predecessor
-		if (getPredecessorInSequence() != null)
-			getPredecessorInSequence().expectedToBeOfType(type, context, mode, errorWhenFailed);
+		if (predecessorInSequence() != null)
+			predecessorInSequence().expectedToBeOfType(type, context, mode, errorWhenFailed);
 	}
 
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new DeclarationRegion(parser.getContainer().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
+			return new DeclarationRegion(parser.container().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
 		return null;
 	}
 
@@ -158,13 +158,13 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		ExprElm pred = getPredecessorInSequence();
+		ExprElm pred = predecessorInSequence();
 		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(
 				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
-		if (getLength() > 3 && !parser.getContainer().engine().currentSettings().spaceAllowedBetweenArrowAndTilde)
+		if (getLength() > 3 && !parser.container().engine().currentSettings().spaceAllowedBetweenArrowAndTilde)
 			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
 	}
 	
@@ -189,7 +189,7 @@ public class MemberOperator extends ExprElm {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
-		if (context.getContainer().engine().currentSettings().proplistsSupported) {
+		if (context.container().engine().currentSettings().proplistsSupported) {
 			ExprElm succ = getSuccessorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();

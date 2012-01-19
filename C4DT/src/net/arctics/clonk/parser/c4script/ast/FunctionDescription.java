@@ -43,7 +43,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		for (String part : parts) {
 			if (offset >= off && offset < off+part.length()) {
 				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+					StringTbl stringTbl = parser.container().getStringTblForLanguagePref();
 					if (stringTbl != null) {
 						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
@@ -59,7 +59,7 @@ public class FunctionDescription extends Statement implements Serializable {
 						if (sep != -1)
 							value = value.substring(0, sep);
 						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
-							return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
+							return new DeclarationRegion(parser.container().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
 					}
 				}
 				break;
@@ -76,7 +76,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		int off = 1;
 		for (String part : contents.split("\\|")) { //$NON-NLS-1$
 			if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+				StringTbl stringTbl = parser.container().getStringTblForLanguagePref();
 				String entryName = part.substring(1, part.length()-1);
 				if (stringTbl == null || stringTbl.map().get(entryName) == null) {
 					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);

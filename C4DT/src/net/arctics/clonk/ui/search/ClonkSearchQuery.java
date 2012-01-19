@@ -64,7 +64,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		private StringLiteral functionNameExpr;
 
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
-			if (expression instanceof CallFunc && expression.getPredecessorInSequence() instanceof MemberOperator) {
+			if (expression instanceof CallFunc && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallFunc callFunc = (CallFunc) expression;
 				return callFunc.getDeclarationName().equals(declaration.name());
 			}
@@ -75,7 +75,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 			functionNameExpr = null;
 			if (expression instanceof CallFunc) {
 				CallFunc callFunc = (CallFunc) expression;
-				for (ExprElm e : callFunc.getParams()) {
+				for (ExprElm e : callFunc.params()) {
 					// ask the string literals whether they might refer to a function
 					if (e instanceof StringLiteral) {
 						functionNameExpr = (StringLiteral) e;

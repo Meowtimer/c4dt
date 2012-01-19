@@ -8,7 +8,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	protected ExprElm condition;
 	protected ExprElm body;
 
-	public ExprElm getCondition() {
+	public ExprElm condition() {
 		return condition;
 	}
 

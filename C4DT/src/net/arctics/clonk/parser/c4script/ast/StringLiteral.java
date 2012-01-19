@@ -44,7 +44,7 @@ public final class StringLiteral extends Literal<String> {
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		DeclarationRegion result = StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.getContainer(), true);
+		DeclarationRegion result = StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.container(), true);
 		if (result != null)
 			return result;
 
@@ -55,7 +55,7 @@ public final class StringLiteral extends Literal<String> {
 
 			//  link to functions that are called indirectly
 			
-			SpecialFuncRule funcRule = parentFunc.getSpecialRule(parser, SpecialScriptRules.DECLARATION_LOCATOR);
+			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(parser, SpecialScriptRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
 				DeclarationRegion region = funcRule.locateDeclarationInParameter(parentFunc, parser, myIndex, offset, this);
 				if (region != null) {
@@ -82,7 +82,7 @@ public final class StringLiteral extends Literal<String> {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		
 		// warn about overly long strings
-		long max = parser.getContainer().getIndex().engine().currentSettings().maxStringLen;
+		long max = parser.container().getIndex().engine().currentSettings().maxStringLen;
 		if (max != 0 && getLiteral().length() > max) {
 			parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
 		}
@@ -90,7 +90,7 @@ public final class StringLiteral extends Literal<String> {
 		// stringtbl entries
 		// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 		// and checking for the existence of the table entries there is overkill
-		if (parser.hasAppendTo() || parser.getContainer().resource() == null)
+		if (parser.hasAppendTo() || parser.container().resource() == null)
 			return;
 		String value = getLiteral();
 		int valueLen = value.length();

@@ -35,7 +35,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	/**
 	 * Return the comment string.
 	 */
-	public String getComment() {
+	public String text() {
 		return comment;
 	}
 
@@ -103,7 +103,7 @@ public class Comment extends Statement implements Statement.Attachment {
 		// parse comment as expression and see what goes
 		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.getContainer(), parser.getContainer().getScriptFile()) {
+			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.container(), parser.container().getScriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();

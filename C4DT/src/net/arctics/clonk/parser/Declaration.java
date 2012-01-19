@@ -476,7 +476,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public Script getContainer() {
+			public Script container() {
 				return getScript();
 			}
 

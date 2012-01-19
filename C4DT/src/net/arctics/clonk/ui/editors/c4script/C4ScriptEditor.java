@@ -693,8 +693,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, DeclarationLocator locator) {
 			this.callFunc = callFunc;
 			this.parmIndex = parm != null ? callFunc.indexOfParm(parm) : 0;
-			this.parmsStart = func.getBody().getStart()+callFunc.getParmsStart();
-			this.parmsEnd = func.getBody().getStart()+callFunc.getParmsEnd();
+			this.parmsStart = func.getBody().getStart()+callFunc.parmsStart();
+			this.parmsEnd = func.getBody().getStart()+callFunc.parmsEnd();
 			this.locator = locator;
 		}
 	}
@@ -713,13 +713,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			expr != null;
 			expr = expr.getParent()
 		) {
-			 if (expr instanceof CallFunc && offset-bodyStart >= ((CallFunc)expr).getParmsStart())
+			 if (expr instanceof CallFunc && offset-bodyStart >= ((CallFunc)expr).parmsStart())
 				 break;
 		}
 		if (expr != null) {
 			CallFunc callFunc = (CallFunc) expr;
 			ExprElm prev = null;
-			for (ExprElm parm : callFunc.getParams()) {
+			for (ExprElm parm : callFunc.params()) {
 				if (parm.getExprEnd() > offset) {
 					if (prev == null)
 						break;

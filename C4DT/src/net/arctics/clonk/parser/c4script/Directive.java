@@ -113,7 +113,7 @@ public class Directive extends Declaration implements Serializable {
 				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), C4ScriptParser.NO_THROW, this.toString());
 			else {
 				ID id = contentAsID();
-				Definition obj = parser.getContainer().getIndex().getDefinitionNearestTo(parser.getContainer().resource(), id);
+				Definition obj = parser.container().getIndex().getDefinitionNearestTo(parser.container().resource(), id);
 				if (obj == null)
 					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getLocation(), C4ScriptParser.NO_THROW, getContent());
 			}

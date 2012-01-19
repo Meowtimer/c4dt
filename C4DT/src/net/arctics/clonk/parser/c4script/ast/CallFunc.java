@@ -119,9 +119,9 @@ public class CallFunc extends AccessDeclaration {
 				Object ev;
 				return
 					callFunc.declaration() == varFunction &&
-					callFunc.getParams().length == 1 && // don't bother with more complex cases
-					callFunc.getParams()[0].getType(parser) == PrimitiveType.INT &&
-					((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) &&
+					callFunc.params().length == 1 && // don't bother with more complex cases
+					callFunc.params()[0].typeInContext(parser) == PrimitiveType.INT &&
+					((ev = callFunc.params()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) &&
 					ev.equals(varIndex);
 			}
 			return false;
@@ -170,7 +170,7 @@ public class CallFunc extends AccessDeclaration {
 	 * Return the start offset of the parameters region.
 	 * @return The start offset
 	 */
-	public int getParmsStart() {
+	public int parmsStart() {
 		return parmsStart;
 	}
 
@@ -178,7 +178,7 @@ public class CallFunc extends AccessDeclaration {
 	 * Return the end offset of the parameters region.
 	 * @return The end offset
 	 */
-	public int getParmsEnd() {
+	public int parmsEnd() {
 		return parmsEnd;
 	}
 
@@ -229,7 +229,7 @@ public class CallFunc extends AccessDeclaration {
 	}
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
-		IType t = getType(context);
+		IType t = typeInContext(context);
 		return t.canBeAssignedFrom(TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
 	}
 	@Override
@@ -240,13 +240,13 @@ public class CallFunc extends AccessDeclaration {
 	/**
 	 * Return a {@link SpecialFuncRule} applying to {@link CallFunc}s with the same name as this one.
 	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialScriptRules()})
-	 * @param role Role mask passed to {@link SpecialScriptRules#getFuncRuleFor(String, int)}
+	 * @param role Role mask passed to {@link SpecialScriptRules#funcRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallFunc}s such as this one, or null.
 	 */
-	public SpecialFuncRule getSpecialRule(DeclarationObtainmentContext context, int role) {
-		Engine engine = context.getContainer().engine();
+	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
+		Engine engine = context.container().engine();
 		if (engine != null && engine.specialScriptRules() != null) {
-			return engine.specialScriptRules().getFuncRuleFor(declarationName, role);
+			return engine.specialScriptRules().funcRuleFor(declarationName, role);
 		} else {
 			return null;
 		}
@@ -254,8 +254,8 @@ public class CallFunc extends AccessDeclaration {
 	
 	@Override
 	protected IType callerType(DeclarationObtainmentContext context) {
-		if (getPredecessorInSequence() != null)
-			return getPredecessorInSequence().getType(context);
+		if (predecessorInSequence() != null)
+			return predecessorInSequence().typeInContext(context);
 		else
 			return super.callerType(context);
 	}
@@ -277,7 +277,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 
 		// Some special rule applies and the return type is set accordingly
-		SpecialFuncRule rule = getSpecialRule(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
+		SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 		if (rule != null) {
 			IType returnType = rule.returnType(context, this);
 			if (returnType != null) {
@@ -318,27 +318,27 @@ public class CallFunc extends AccessDeclaration {
 				return;
 			}
 		}
-		ExprElm p = getPredecessorInSequence();
+		ExprElm p = predecessorInSequence();
 		findFunctionUsingPredecessor(p, declarationName, context, decs);
 		multiplePotentialDeclarations = decs.size() > 1;
 	}
 
 	/**
-	 * Find a {@link Function} for some hypothetical {@link CallFunc}, using contextual information such as the {@link ExprElm#getType(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallFunc} in the {@link Sequence}.
-	 * @param p The predecessor of the hypothetical {@link CallFunc} ({@link ExprElm#getPredecessorInSequence()})
+	 * Find a {@link Function} for some hypothetical {@link CallFunc}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallFunc} in the {@link Sequence}.
+	 * @param p The predecessor of the hypothetical {@link CallFunc} ({@link ExprElm#predecessorInSequence()})
 	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallFunc}'s {@link #getDeclarationName()}
 	 * @param context Context to use for searching
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.
 	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
-		IType lookIn = p == null ? context.getContainer() : p.getType(context);
+		IType lookIn = p == null ? context.container() : p.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof Script))
 				continue;
 			Script script = (Script)ty;
-			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
-			info.setSearchOrigin(context.getContainer());
+			FindDeclarationInfo info = new FindDeclarationInfo(context.container().getIndex());
+			info.setSearchOrigin(context.container());
 			Declaration dec = script.findFunction(functionName, info);
 			// parse function before this one
 			if (dec != null && context.getCurrentFunc() != null) {
@@ -362,23 +362,23 @@ public class CallFunc extends AccessDeclaration {
 			// find global function
 			Declaration declaration;
 			try {
-				declaration = context.getContainer().getIndex().findGlobal(Function.class, functionName);
+				declaration = context.container().getIndex().findGlobal(Function.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context == null)
 					System.out.println("No context");
-				if (context.getContainer() == null)
+				if (context.container() == null)
 					System.out.println("No container");
-				if (context.getContainer().getIndex() == null)
+				if (context.container().getIndex() == null)
 					System.out.println("No index");
 				return null;
 			}
 			// find engine function
 			if (declaration == null)
-				declaration = context.getContainer().getIndex().engine().findFunction(functionName);
+				declaration = context.container().getIndex().engine().findFunction(functionName);
 
-			List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
-			Declaration decl = context.getContainer().engine().findLocalFunction(functionName, false);
+			List<Declaration> allFromLocalIndex = context.container().getIndex().declarationMap().get(functionName);
+			Declaration decl = context.container().engine().findLocalFunction(functionName, false);
 			int numCandidates = 0;
 			if (allFromLocalIndex != null)
 				numCandidates += allFromLocalIndex.size();
@@ -408,10 +408,10 @@ public class CallFunc extends AccessDeclaration {
 		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.iterator().next() : null;
 	}
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
-		ExprElm pred = getPredecessorInSequence();
+		ExprElm pred = predecessorInSequence();
 		if (pred == null)
 			return true;
-		IType predType = pred.getType(parser);
+		IType predType = pred.typeInContext(parser);
 		if (predType == null)
 			return false;
 		if (pred instanceof MemberOperator)
@@ -476,11 +476,11 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
-				if (f.getVisibility() == FunctionScope.GLOBAL || getPredecessorInSequence() != null)
-					context.getContainer().addUsedScript(f.getScript());
+				if (f.getVisibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
+					context.container().addUsedScript(f.getScript());
 				boolean specialCaseHandled = false;
 				
-				SpecialFuncRule rule = this.getSpecialRule(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
+				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
 				if (rule != null) {
 					specialCaseHandled = rule.validateArguments(this, params, context);
 				}
@@ -495,7 +495,7 @@ public class CallFunc extends AccessDeclaration {
 						if (given == null)
 							continue;
 						if (!given.validForType(parm.getType(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType().typeName(false), given.getType(context).typeName(false));
+							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType().typeName(false), given.typeInContext(context).typeName(false));
 						else
 							given.expectedToBeOfType(parm.getType(), context);
 					}
@@ -602,7 +602,7 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			if (!parser.getContainer().engine().currentSettings().proplistsSupported && getPredecessorInSequence() != null)
+			if (!parser.container().engine().currentSettings().proplistsSupported && predecessorInSequence() != null)
 				return new CallFunc("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);
@@ -672,7 +672,7 @@ public class CallFunc extends AccessDeclaration {
 		_obtainDeclaration(list, parser);
 		return new DeclarationRegion(list, new Region(getExprStart(), declarationName.length()));
 	}
-	public ExprElm getReturnArg() {
+	public ExprElm soleParm() {
 		if (params.length == 1)
 			return params[0];
 		return new Tuple(params);
@@ -681,7 +681,7 @@ public class CallFunc extends AccessDeclaration {
 	public ControlFlow controlFlow() {
 		return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
-	public ExprElm[] getParams() {
+	public ExprElm[] params() {
 		return params;
 	}
 	public int indexOfParm(ExprElm parm) {
@@ -704,7 +704,7 @@ public class CallFunc extends AccessDeclaration {
 		CachedEngineDeclarations cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
-			if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) {
+			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) {
 				if (ev instanceof Number) {
 					// Var() with a sane constant number
 					return new VarFunctionsTypeInformation((Function) d, ((Number)ev).intValue());
@@ -728,7 +728,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
-	    	Object[] args = ArrayUtil.map(getParams(), Object.class, Conf.EVALUATE_EXPR);
+	    	Object[] args = ArrayUtil.map(params(), Object.class, Conf.EVALUATE_EXPR);
 	    	return ((Function)declaration).invoke(args);
 	    }
 	    else

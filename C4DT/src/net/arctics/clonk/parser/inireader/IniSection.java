@@ -31,7 +31,7 @@ public class IniSection extends Declaration implements
 	private int indentation;
 	private int sectionEnd;
 
-	public int getSectionEnd() {
+	public int sectionEnd() {
 		return sectionEnd;
 	}
 
@@ -39,7 +39,7 @@ public class IniSection extends Declaration implements
 		this.sectionEnd = sectionEnd;
 	}
 
-	public IniDataSection getSectionData() {
+	public IniDataSection sectionData() {
 		return sectionData;
 	}
 
@@ -52,7 +52,7 @@ public class IniSection extends Declaration implements
 		this.name = name;
 	}
 
-	public int getStartPos() {
+	public int startPos() {
 		return getLocation().getStart();
 	}
 
@@ -65,11 +65,11 @@ public class IniSection extends Declaration implements
 		this.itemList = list;
 	}
 
-	public IniItem getSubItem(String key) {
+	public IniItem subItemByKey(String key) {
 		return itemMap.get(key);
 	}
 
-	public List<IniItem> getSubItemList() {
+	public List<IniItem> subItemList() {
 		return itemList;
 	}
 
@@ -85,7 +85,7 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public Object[] children() {
-		return getSubItemList().toArray(new Object[getSubItemList().size()]);
+		return subItemList().toArray(new Object[subItemList().size()]);
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public String toString() {
-		IniUnit unit = getIniUnit();
+		IniUnit unit = iniUnit();
 		return unit != null ? unit.sectionToString(this) : name();
 	}
 
@@ -175,7 +175,7 @@ public class IniSection extends Declaration implements
 		}
 	}
 
-	public int getIndentation() {
+	public int indentation() {
 		return indentation;
 	}
 
@@ -188,7 +188,7 @@ public class IniSection extends Declaration implements
 		return 1;
 	}
 
-	public Iterable<IniSection> getSections() {
+	public Iterable<IniSection> sections() {
 		// unable to make this work generically ;c
 		List<IniSection> sections = new LinkedList<IniSection>();
 		for (ITreeNode node : childCollection()) {
@@ -204,13 +204,13 @@ public class IniSection extends Declaration implements
 				: null;
 	}
 
-	public IniUnit getIniUnit() {
+	public IniUnit iniUnit() {
 		return getParentDeclarationOfType(IniUnit.class);
 	}
 
 	@Override
 	public String infoText() {
-		IniUnit unit = getIniUnit();
+		IniUnit unit = iniUnit();
 		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText());
 	}
 }

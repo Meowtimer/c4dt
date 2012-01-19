@@ -106,7 +106,7 @@ public class PropListExpression extends Value {
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.getCurrentVariable() != null) {
-			return context.getContainer().engine().iniConfigurations().getConfigurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
+			return context.container().engine().iniConfigurations().getConfigurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}
@@ -139,7 +139,7 @@ public class PropListExpression extends Value {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		if (!parser.getContainer().engine().currentSettings().proplistsSupported)
+		if (!parser.container().engine().currentSettings().proplistsSupported)
 			parser.errorWithCode(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
 	

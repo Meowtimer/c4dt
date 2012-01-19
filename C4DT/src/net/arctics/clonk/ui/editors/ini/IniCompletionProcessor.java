@@ -97,24 +97,24 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 		if (!assignment) {
 			if (section != null) {
-				IniDataSection d = section.getSectionData();
+				IniDataSection d = section.sectionData();
 				if (d != null) {
 					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
-				if (section.parentSection() != null && section.parentSection().getSectionData() != null) {
+				if (section.parentSection() != null && section.parentSection().sectionData() != null) {
 					// also propose new sections
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().getSectionData().getEntries().values());
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().sectionData().getEntries().values());
 				} else if (section.getParentDeclaration() instanceof IniUnit) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).configuration().getSections().values());
 				}
 				int indentation = getEditor().getIniUnit().getParser().getTabIndentation(offset);
-				if (indentation == section.getIndentation()+1) {
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.getSectionData().getEntries().values());
+				if (indentation == section.indentation()+1) {
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.sectionData().getEntries().values());
 				}
 			}
 		}
 		else if (assignment && section != null) {
-			IniDataBase itemData = section.getSectionData().getEntry(entryName);
+			IniDataBase itemData = section.sectionData().getEntry(entryName);
 			if (itemData instanceof IniDataEntry) {
 				IniDataEntry entryDef = (IniDataEntry) itemData;
 				Class<?> entryClass = entryDef.getEntryClass();

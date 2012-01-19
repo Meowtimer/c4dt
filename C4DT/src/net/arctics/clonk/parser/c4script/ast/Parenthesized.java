@@ -32,7 +32,7 @@ public class Parenthesized extends Value {
 	}
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		return innerExpr.getType(context);
+		return innerExpr.typeInContext(context);
 	}
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {

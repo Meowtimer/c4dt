@@ -22,14 +22,14 @@ public class BinaryOp extends OperatorExpression {
 		switch (operator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or:
-			IType leftSideType = leftSide().getType(context);
-			IType rightSideType = rightSide().getType(context);
+			IType leftSideType = leftSide().typeInContext(context);
+			IType rightSideType = rightSide().typeInContext(context);
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
 				return PrimitiveType.ANY;
 		case Assign:
-			return rightSide().getType(context);
+			return rightSide().typeInContext(context);
 		default:
 			return super.obtainType(context);
 		}
@@ -87,7 +87,7 @@ public class BinaryOp extends OperatorExpression {
 			}
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
-				statements.add(new ReturnStatement(((CallFunc)rightSide()).getReturnArg().optimize(context)));
+				statements.add(new ReturnStatement(((CallFunc)rightSide()).soleParm().optimize(context)));
 			else
 				statements.add(new SimpleStatement(rightSide().optimize(context)));
 			return new Block(statements);
@@ -181,9 +181,9 @@ public class BinaryOp extends OperatorExpression {
 		}
 		// wrong parameter types
 		if (!leftSide().validForType(operator().getFirstArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().getFirstArgType(), leftSide().getType(context));
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().getFirstArgType(), leftSide().typeInContext(context));
 		if (!rightSide().validForType(operator().getSecondArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().getSecondArgType(), rightSide().getType(context));
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().getSecondArgType(), rightSide().typeInContext(context));
 
 		IType expectedLeft, expectedRight;
 		switch (operator()) {

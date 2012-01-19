@@ -497,9 +497,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						}
 					}
 					if (offendingExpression instanceof CallFunc) {
-						if (offendingExpression.getPredecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.getPredecessorInSequence()).hasTilde()) {
-							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.getPredecessorInSequence()).getId(), 3);
-							opWithTilde.setExprRegion(offendingExpression.getPredecessorInSequence());
+						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
+							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).getId(), 3);
+							opWithTilde.setExprRegion(offendingExpression.predecessorInSequence());
 							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						}
 					}
@@ -526,10 +526,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									function = new Function(accessDec.getDeclarationName(), FunctionScope.PUBLIC),
 									ExprElm.NULL_EXPR
 							));
-							List<Variable> parms = new ArrayList<Variable>(callFunc.getParams().length);
+							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
-							for (ExprElm parm : callFunc.getParams())
-								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.getType(parser)));
+							for (ExprElm parm : callFunc.params())
+								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.typeInContext(parser)));
 							function.setParameters(parms);
 						}
 

@@ -324,7 +324,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						break;
 					}
 				}
-				for (IType t : contextSequence.getType(parser)) {
+				for (IType t : contextSequence.typeInContext(parser)) {
 					IHasSubDeclarations structure;
 					if (t instanceof IHasSubDeclarations)
 						structure = (IHasSubDeclarations) t;
@@ -386,7 +386,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (innermostCallFunc != null) {
 			SpecialScriptRules rules = parser.getSpecialScriptRules();
 			if (rules != null) {
-				SpecialFuncRule funcRule = rules.getFuncRuleFor(innermostCallFunc.getDeclarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
+				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.getDeclarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					ExprElm parmExpr = innermostCallFunc.getSubElementContaining(contextExpression);
 					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);

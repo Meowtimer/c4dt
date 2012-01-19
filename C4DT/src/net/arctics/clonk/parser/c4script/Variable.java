@@ -99,7 +99,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public Variable(String name, ExprElm expr, C4ScriptParser context) {
-		this(name, expr.getType(context));
+		this(name, expr.typeInContext(context));
 		scope = Scope.VAR;
 		setInitializationExpression(expr);
 	}

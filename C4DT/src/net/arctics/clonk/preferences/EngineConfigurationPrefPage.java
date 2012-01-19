@@ -82,8 +82,8 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			super.valueChanged();
 			String gamePathText = getTextControl().getText();
 			IPath gamePath = new Path(gamePathText);
-			setFile(gamePath, gamePathText, getC4GroupEditor(), c4GroupAccordingToOS());
-			setFile(gamePath, gamePathText, getEngineExecutableEditor(), Engine.possibleEngineNamesAccordingToOS());
+			setFile(gamePath, gamePathText, c4groupEditor(), c4GroupAccordingToOS());
+			setFile(gamePath, gamePathText, engineExecutableEditor(), Engine.possibleEngineNamesAccordingToOS());
 			//previousGamePath = gamePathText.toLowerCase();
 		}
 	}
@@ -100,7 +100,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		@Override
 		protected String changePressed() {
 			FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
-			dialog.setFilterPath(getGamePathEditor().getStringValue());
+			dialog.setFilterPath(gamePathEditor().getStringValue());
 			if (extensions != null)
 				dialog.setFilterExtensions(extensions);
 			return dialog.open();
@@ -334,15 +334,15 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 	}
 
-	public FileFieldEditor getC4GroupEditor() {
+	public FileFieldEditor c4groupEditor() {
 		return c4GroupEditor;
 	}
 
-	public FileFieldEditor getEngineExecutableEditor() {
+	public FileFieldEditor engineExecutableEditor() {
 		return engineExecutableEditor;
 	}
 
-	public DirectoryFieldEditor getGamePathEditor() {
+	public DirectoryFieldEditor gamePathEditor() {
 		return gamePathEditor;
 	}
 

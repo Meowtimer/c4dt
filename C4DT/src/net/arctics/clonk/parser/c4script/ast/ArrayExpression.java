@@ -37,7 +37,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 			ArrayUtil.map(elements, IType.class, new IConverter<ExprElm, IType>() {
 				@Override
 				public IType convert(ExprElm from) {
-					return from != null ? from.getType(context) : PrimitiveType.UNKNOWN;
+					return from != null ? from.typeInContext(context) : PrimitiveType.UNKNOWN;
 				}
 			})
 		);

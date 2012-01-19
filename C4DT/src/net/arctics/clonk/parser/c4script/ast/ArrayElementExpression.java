@@ -20,8 +20,8 @@ public class ArrayElementExpression extends Value {
 		IType t = super.obtainType(context);
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
-		if (getPredecessorInSequence() != null) {
-			t = getPredecessorInSequence().getType(context);
+		if (predecessorInSequence() != null) {
+			t = predecessorInSequence().typeInContext(context);
 			if (t instanceof ArrayType)
 				return ((ArrayType)t).typeForElementWithIndex(argument.evaluateAtParseTime(context));
 		}
@@ -48,9 +48,9 @@ public class ArrayElementExpression extends Value {
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		ExprElm predecessor = getPredecessorInSequence();
+		ExprElm predecessor = predecessorInSequence();
 		if (predecessor != null) {
-			IType type = predecessor.getType(parser);
+			IType type = predecessor.typeInContext(parser);
 			if (type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST)) {
 				parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessor);
 			}
@@ -81,11 +81,11 @@ public class ArrayElementExpression extends Value {
 	
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		if (getPredecessorInSequence() != null) {
-			IType t = getPredecessorInSequence().getType(parser);
+		if (predecessorInSequence() != null) {
+			IType t = predecessorInSequence().typeInContext(parser);
 			if (t instanceof ArrayType)
 				return new DeclarationRegion(
-					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
+					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.container().getIndex())
 				);
 		}
 		return super.declarationAt(offset, parser);

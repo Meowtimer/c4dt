@@ -130,7 +130,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	protected boolean isSectionNameValid(String name, IniSection parentSection) {
 		if (parentSection != null) {
-			return parentSection.getSectionData() == null || parentSection.getSectionData().hasSection(name);
+			return parentSection.sectionData() == null || parentSection.sectionData().hasSection(name);
 		}
 		else {
 			IniConfiguration conf = configuration();
@@ -150,7 +150,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
-		IniDataSection sectionConfig = currentSection.getSectionData();
+		IniDataSection sectionConfig = currentSection.sectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key())) {
@@ -166,7 +166,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				}
 				catch(IniParserException e) { // add offsets and throw through
 					// FIXME: whitespace before and after '=' is not taken into account
-					if (e.getOffset() == 0 || e.getEndOffset() == 0) {
+					if (e.offset() == 0 || e.endOffset() == 0) {
 						String key = entry.key();
 						String value = entry.stringValue();
 						if (value == null)
@@ -205,8 +205,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
 		if (parentSection != null) {
-			if (parentSection.getSectionData() != null) {
-				IniDataBase dataItem = parentSection.getSectionData().getEntry(section.name());
+			if (parentSection.sectionData() != null) {
+				IniDataBase dataItem = parentSection.sectionData().getEntry(section.name());
 				return dataItem instanceof IniDataSection ? (IniDataSection)dataItem : null;
 			}
 			else
@@ -239,7 +239,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 		
 		protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
-			int targetIndentation = parentSection != null ? parentSection.getIndentation()+1 : 0;
+			int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
 			while (skipComment());
 			int start = getPosition();
 			// parse head
@@ -352,7 +352,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 		
 		protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
-			int targetIndentation = parentSection != null ? parentSection.getIndentation() : 0;
+			int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
 			while (skipComment());
 			int start = getPosition();
 			eatWhitespace();
@@ -385,7 +385,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				return validateEntry(entry, section, modifyMarkers);
 			} catch (IniParserException e) {
 				if (modifyMarkers)
-					marker(ParserErrorCode.GenericError, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
+					marker(ParserErrorCode.GenericError, e.offset(), e.endOffset(), e.severity(), (Object)e.getMessage());
 				return entry;
 			}
 		}
@@ -447,7 +447,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	public IniItem itemInSection(String section, String entry) {
 		IniSection s = sectionsMap.get(section);
-		return s != null ? s.getSubItem(entry) : null;
+		return s != null ? s.subItemByKey(entry) : null;
 	}
 	
 	public IniEntry entryInSection(String section, String entry) {
@@ -511,7 +511,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.getSections()) : parent.getSections()) {
+		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.getSections()) : parent.sections()) {
 			int start = sec.getLocation().getStart();
 			if (start > offset) {
 				break;

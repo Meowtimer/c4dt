@@ -232,7 +232,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	public final IType getType(DeclarationObtainmentContext context) {
+	public final IType typeInContext(DeclarationObtainmentContext context) {
 		return IResolvableType._.resolve(obtainType(context), context, callerType(context));
 	}
 
@@ -242,7 +242,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return context.getContainer();
+		return context.container();
 	}
 	
 	/**
@@ -258,7 +258,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public final Definition guessObjectType(DeclarationObtainmentContext context) {
-		return Utilities.as(Definition.scriptFrom(getType(context)), Definition.class);
+		return Utilities.as(Definition.scriptFrom(typeInContext(context)), Definition.class);
 	}
 
 	public boolean isModifiable(C4ScriptParser context) {
@@ -323,7 +323,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		predecessorInSequence = p;
 	}
 
-	public ExprElm getPredecessorInSequence() {
+	public ExprElm predecessorInSequence() {
 		return predecessorInSequence;
 	}
 	
@@ -388,13 +388,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return getType(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
+		return typeInContext(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
 	}
 
 	public boolean validForType(IType t, C4ScriptParser context) {
 		if (t == null)
 			return true;
-		IType myType = getType(context);
+		IType myType = typeInContext(context);
 		return t.canBeAssignedFrom(myType) || myType.containsType(t) || canBeConvertedTo(t, context);
 	}
 
@@ -531,7 +531,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void inferTypeFromAssignment(ExprElm rightSide, DeclarationObtainmentContext context) {
-		context.storeTypeInformation(this, rightSide.getType(context));
+		context.storeTypeInformation(this, rightSide.typeInContext(context));
 	}
 
 	public ControlFlow controlFlow() {
@@ -631,7 +631,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The {@link CachedEngineDeclarations}
 	 */
 	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
-		return context.getContainer().getIndex().engine().cachedFuncs();
+		return context.container().getIndex().engine().cachedFuncs();
 	}
 	
 	/**
@@ -840,7 +840,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			ExprElm chainA, chainB;
-			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.getPredecessorInSequence(), chainB = chainB.getPredecessorInSequence()) {
+			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence()) {
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
 					return false;
 			}
@@ -872,7 +872,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				Index index = typeable.getIndex();
 				if (index == null)
 					return;
-				if (index == parser.getContainer().getIndex())
+				if (index == parser.container().getIndex())
 					typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}
