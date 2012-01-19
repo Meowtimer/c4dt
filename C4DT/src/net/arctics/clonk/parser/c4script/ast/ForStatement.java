@@ -15,12 +15,12 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		assignParentToSubElements();
 	}
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.For;
 	}
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword() + " ("); //$NON-NLS-1$
+		builder.append(keyword() + " ("); //$NON-NLS-1$
 		if (initializer != null)
 			initializer.print(builder, depth+1);
 		else
@@ -35,7 +35,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		printBody(builder, depth);
 	}
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {initializer, condition, increment, body};
 	}
 

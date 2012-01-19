@@ -61,7 +61,7 @@ public class ArrayElementExpression extends Value {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {argument};
 	}
 

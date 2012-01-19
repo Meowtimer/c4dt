@@ -16,7 +16,7 @@ public interface IStoredTypeInformation {
 	 * Type stored for the expression.
 	 * @return The type.
 	 */
-	IType getType();
+	IType type();
 	/**
 	 * Store the type.
 	 * @param type The type to store

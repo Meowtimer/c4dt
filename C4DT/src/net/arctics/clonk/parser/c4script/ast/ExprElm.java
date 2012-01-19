@@ -98,13 +98,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public void setFinishedProperly(boolean finished) {setFlagsEnabled(PROPERLY_FINISHED, finished);}
 
 	/**
-	 * Assign 'this' as the parent element of all elements returned by {@link #getSubElements()}.
+	 * Assign 'this' as the parent element of all elements returned by {@link #subElements()}.
 	 * One should not forget calling this when creating sub elements.
 	 */
 	protected void assignParentToSubElements() {
 		// cheap man's solution to the mutability-of-exprelms problem:
 		// Clone sub elements if they look like they might belong to some other parent
-		ExprElm[] subElms = getSubElements();
+		ExprElm[] subElms = subElements();
 		boolean modified = false;
 		for (int i = 0; i < subElms.length; i++) {
 			ExprElm e = subElms[i];
@@ -129,7 +129,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException("Clone not supported which really shouldn't happen");
 		}
-		ExprElm[] clonedElms = ArrayUtil.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
+		ExprElm[] clonedElms = ArrayUtil.map(subElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
 				if (from == null) {
@@ -265,7 +265,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public boolean hasSideEffects() {
-		ExprElm[] subElms = getSubElements();
+		ExprElm[] subElms = subElements();
 		if (subElms != null) {
 			for (ExprElm e : subElms) {
 				if (e != null && e.hasSideEffects())
@@ -291,16 +291,16 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return exprStart;
 	}
 
-	public int getIdentifierStart() {
+	public int identifierStart() {
 		return getExprStart();
 	}
 
-	public int getIdentifierLength() {
+	public int identifierLength() {
 		return getLength();
 	}
 
 	public final IRegion identifierRegion() {
-		return new Region(getIdentifierStart(), getIdentifierLength());
+		return new Region(identifierStart(), identifierLength());
 	}
 
 	public void setExprRegion(int start, int end) {
@@ -331,12 +331,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			return null;
 	}
 
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return EMPTY_EXPR_ARRAY;
 	}
 
 	public void setSubElements(ExprElm[] elms) {
-		if (getSubElements().length > 0)
+		if (subElements().length > 0)
 			System.out.println("setSubElements should be implemented when getSubElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
@@ -361,7 +361,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @throws CloneNotSupportedException
 	 */
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
-		ExprElm[] subElms = getSubElements();
+		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++) {
@@ -423,7 +423,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		} else
 			result = TraversalContinuation.Continue;
-		for (ExprElm sub : getSubElements()) {
+		for (ExprElm sub : subElements()) {
 			if (sub == null)
 				continue;
 			switch (sub.traverse(listener, parser, minimumParseRecursion)) {
@@ -505,7 +505,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (info != null) {
 			switch (mode) {
 			case Expect:
-				if (info.getType() == PrimitiveType.UNKNOWN)
+				if (info.type() == PrimitiveType.UNKNOWN)
 					info.storeType(type);
 				break;
 			case Force:
@@ -513,7 +513,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				break;
 			case Hint:
 				if (!info.generalTypeHint(type) && errorWhenFailed != null)
-					context.warningWithCode(errorWhenFailed, this, info.getType().typeName(false));
+					context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
 				break;
 			}
 		}
@@ -531,12 +531,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		context.storeTypeInformation(this, rightSide.getType(context));
 	}
 
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		return ControlFlow.Continue;
 	}
 	
-	public EnumSet<ControlFlow> getPossibleControlFlows() {
-		return EnumSet.of(getControlFlow()); 
+	public EnumSet<ControlFlow> possibleControlFlows() {
+		return EnumSet.of(controlFlow()); 
 	}
 
 	public final boolean isAlways(boolean what, IEvaluationContext context) {
@@ -552,7 +552,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (expression == this)
 			return true;
 		try {
-			for (ExprElm e : expression.getSubElements())
+			for (ExprElm e : expression.subElements())
 				if (this.containedIn(e))
 					return true;
 		} catch (NullPointerException e) {
@@ -567,7 +567,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return Sub element containing elm or null.
 	 */
 	public ExprElm getSubElementContaining(ExprElm elm) {
-		for (ExprElm subElm : getSubElements()) {
+		for (ExprElm subElm : subElements()) {
 			if (subElm != null) {
 				if (elm.containedIn(subElm))
 					return subElm;
@@ -648,14 +648,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (elm == null)
 			return;
 		elm.offsetExprRegion(diff, true, true);
-		for (ExprElm e : elm.getSubElements()) {
+		for (ExprElm e : elm.subElements()) {
 			offsetExprRegionRecursively(e, diff);
 		}
 	}
 	
 	private void offsetExprRegionRecursivelyStartingAt(ExprElm elm, int diff) {
 		boolean started = false;
-		ExprElm[] elms = getSubElements();
+		ExprElm[] elms = subElements();
 		for (ExprElm e : elms) {
 			if (e == elm) {
 				started = true;
@@ -686,7 +686,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			diff = with.getLength();
 		}
 
-		ExprElm[] subElms = getSubElements();
+		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++) {
@@ -743,8 +743,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
 		if (other.getClass() == this.getClass()) {
-			ExprElm[] mySubElements = this.getSubElements();
-			ExprElm[] otherSubElements = other.getSubElements();
+			ExprElm[] mySubElements = this.subElements();
+			ExprElm[] otherSubElements = other.subElements();
 			if (mySubElements.length != otherSubElements.length) {
 				switch (listener.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
 				case IgnoreLeftSide: case IgnoreRightSide:
@@ -897,7 +897,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	@SuppressWarnings("unchecked")
 	protected <T extends ExprElm> void collectExpressionsOfType(List<T> list, Class<T> type) {
-		for (ExprElm e : getSubElements()) {
+		for (ExprElm e : subElements()) {
 			if (e == null)
 				continue;
 			if (type.isAssignableFrom(e.getClass())) {
@@ -919,7 +919,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public void setAssociatedDeclaration(Declaration declaration) {
-		for (ExprElm s : getSubElements()) {
+		for (ExprElm s : subElements()) {
 			if (s != null) {
 				s.setAssociatedDeclaration(declaration);
 			}
@@ -930,7 +930,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		Sequence fullSequence = sequence();
 		if (fullSequence != null) {
 			List<ExprElm> elms = new LinkedList<ExprElm>();
-			for (ExprElm e : fullSequence.getSubElements()) {
+			for (ExprElm e : fullSequence.subElements()) {
 				elms.add(e);
 				if (e == this)
 					break;
@@ -947,7 +947,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
-		for (ExprElm e : getSubElements()) {
+		for (ExprElm e : subElements()) {
 			if (e != null) {
 				e.postLoad(this, root);
 			}
@@ -960,12 +960,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	/**
-	 * Increment {@link #getExprStart()} and {@link #getExprEnd()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #getSubElements()}
+	 * Increment {@link #getExprStart()} and {@link #getExprEnd()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #subElements()}
 	 * @param amount Amount to increment the location by
 	 */
 	public void incrementLocation(int amount) {
 		setExprRegion(exprStart+amount, exprStart+amount);
-		for (ExprElm e : getSubElements())
+		for (ExprElm e : subElements())
 			if (e != null)
 				e.incrementLocation(amount);
 	}

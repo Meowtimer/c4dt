@@ -86,7 +86,7 @@ public class BinaryOp extends OperatorExpression {
 				statements.add(new SimpleStatement(ex.optimize(context)));
 			}
 			// convert func call to proper return statement
-			if (rightSide().getControlFlow() == ControlFlow.Return)
+			if (rightSide().controlFlow() == ControlFlow.Return)
 				statements.add(new ReturnStatement(((CallFunc)rightSide()).getReturnArg().optimize(context)));
 			else
 				statements.add(new SimpleStatement(rightSide().optimize(context)));
@@ -98,7 +98,7 @@ public class BinaryOp extends OperatorExpression {
 	private ExprElm leftSide, rightSide;
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {leftSide, rightSide};
 	}
 

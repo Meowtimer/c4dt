@@ -10,7 +10,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	protected IType type = PrimitiveType.UNKNOWN;
 
 	@Override
-	public IType getType() {
+	public IType type() {
 		return type;
 	}
 
@@ -38,12 +38,12 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	}
 	
 	public void merge(IStoredTypeInformation other) {
-		if (getType() == PrimitiveType.UNKNOWN)
+		if (type() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
 			storeType(type);
-		else if (!getType().equals(other.getType()))
+		else if (!type().equals(other.type()))
 			// assignments of multiple types - construct type set
-			storeType(TypeSet.create(getType(), other.getType()));
+			storeType(TypeSet.create(type(), other.type()));
 	}
 	
 	@Override
@@ -53,7 +53,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	
 	@Override
 	public String toString() {
-		return "type: " + getType(); //$NON-NLS-1$
+		return "type: " + type(); //$NON-NLS-1$
 	}
 
 }

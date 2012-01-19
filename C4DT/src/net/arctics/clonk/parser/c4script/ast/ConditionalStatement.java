@@ -29,14 +29,14 @@ public abstract class ConditionalStatement extends KeywordStatement {
 
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword());
+		builder.append(keyword());
 		builder.append(" ("); //$NON-NLS-1$
 		condition.print(builder, depth+1);
 		builder.append(")"); //$NON-NLS-1$
 		printBody(builder, depth);
 	}
 
-	public ExprElm getBody() {
+	public ExprElm body() {
 		return body;
 	}
 
@@ -45,7 +45,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {condition, body};
 	}
 

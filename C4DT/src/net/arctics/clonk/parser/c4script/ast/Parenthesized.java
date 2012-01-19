@@ -12,7 +12,7 @@ public class Parenthesized extends Value {
 	private ExprElm innerExpr;
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {innerExpr};
 	}
 	@Override

@@ -7,11 +7,11 @@ public class ContinueStatement extends KeywordStatement {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.Continue;
 	}
 	@Override
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		return ControlFlow.NextIteration;
 	}
 }

@@ -39,7 +39,7 @@ public class SimpleStatement extends Statement {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {expression};
 	}
 
@@ -65,8 +65,8 @@ public class SimpleStatement extends Statement {
 	}
 
 	@Override
-	public ControlFlow getControlFlow() {
-		return expression.getControlFlow();
+	public ControlFlow controlFlow() {
+		return expression.controlFlow();
 	}
 
 	@Override

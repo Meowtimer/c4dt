@@ -26,7 +26,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	public ScriptWithStorageEditorInput(Script script) {
 		super();
 		
-		if (!(script.getScriptStorage() instanceof IStorage))
+		if (!(script.scriptStorage() instanceof IStorage))
 			throw new IllegalArgumentException("script"); //$NON-NLS-1$
 		this.script = new WeakReference<Script>(script);
 	}
@@ -73,7 +73,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)getScript().getScriptStorage();
+		return (IStorage)getScript().scriptStorage();
 	}
 
 	public Script getScript() {

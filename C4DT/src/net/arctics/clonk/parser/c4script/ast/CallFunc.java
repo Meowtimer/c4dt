@@ -75,7 +75,7 @@ public class CallFunc extends AccessDeclaration {
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof CallFunc) {
 				CallFunc callFunc = (CallFunc) expr;
-				if (callFunc.getDeclaration() == this.function)
+				if (callFunc.declaration() == this.function)
 					return true;
 			}
 			return false;
@@ -97,7 +97,7 @@ public class CallFunc extends AccessDeclaration {
 				return;
 			function = (Function) function.latestVersion();
 			if (!soft && !function.isEngineDeclaration()) {
-				function.forceType(getType());
+				function.forceType(type());
 			}
 		}
 		
@@ -117,7 +117,7 @@ public class CallFunc extends AccessDeclaration {
 				CallFunc callFunc = (CallFunc) expr;
 				Object ev;
 				return
-					callFunc.getDeclaration() == varFunction &&
+					callFunc.declaration() == varFunction &&
 					callFunc.getParams().length == 1 && // don't bother with more complex cases
 					callFunc.getParams()[0].getType(parser) == PrimitiveType.INT &&
 					((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) &&
@@ -260,7 +260,7 @@ public class CallFunc extends AccessDeclaration {
 	
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		Declaration d = getDeclaration(context);
+		Declaration d = declarationFromContext(context);
 		
 		// look for gathered type information
 		IType stored = context.queryTypeOfExpression(this, null);
@@ -529,7 +529,7 @@ public class CallFunc extends AccessDeclaration {
 		return result;
 	}
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return params;
 	}
 	@Override
@@ -652,7 +652,7 @@ public class CallFunc extends AccessDeclaration {
 			if (p instanceof Block)
 				break;
 			if (p instanceof ILoop) {
-				if (simpleStatement != null && simpleStatement == ((ILoop)p).getBody())
+				if (simpleStatement != null && simpleStatement == ((ILoop)p).body())
 					return false;
 				return true;
 			}
@@ -676,8 +676,8 @@ public class CallFunc extends AccessDeclaration {
 		return new Tuple(params);
 	}
 	@Override
-	public ControlFlow getControlFlow() {
-		return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.getControlFlow();
+	public ControlFlow controlFlow() {
+		return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
 	public ExprElm[] getParams() {
 		return params;
@@ -698,7 +698,7 @@ public class CallFunc extends AccessDeclaration {
 	}
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		Declaration d = getDeclaration();
+		Declaration d = declaration();
 		CachedEngineDeclarations cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;

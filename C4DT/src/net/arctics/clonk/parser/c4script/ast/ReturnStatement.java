@@ -26,13 +26,13 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.Return;
 	}
 
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword());
+		builder.append(keyword());
 		if (returnExpr != null) {
 			builder.append(" "); //$NON-NLS-1$
 			// return(); -> return 0;
@@ -53,7 +53,7 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {returnExpr};
 	}
 
@@ -63,7 +63,7 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		return ControlFlow.Return;
 	}
 
@@ -100,7 +100,7 @@ public class ReturnStatement extends KeywordStatement {
 					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
 			}
 		}
-		ExprElm[] subElms = expr.getSubElements();
+		ExprElm[] subElms = expr.subElements();
 		for (ExprElm e : subElms) {
 			warnAboutTupleInReturnExpr(parser, e, true);
 		}

@@ -55,7 +55,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 	}
 	
 	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect) {
-		addMatch(match, parser, potential, indirect, match.getIdentifierStart()+parser.bodyOffset(), match.getIdentifierLength());
+		addMatch(match, parser, potential, indirect, match.identifierStart()+parser.bodyOffset(), match.identifierLength());
 	}
 
 }

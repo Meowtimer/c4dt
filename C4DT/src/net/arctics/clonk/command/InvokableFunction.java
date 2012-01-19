@@ -22,18 +22,18 @@ public class InvokableFunction extends Function {
 		IEvaluationContext context = new IEvaluationContext() {
 
 			@Override
-			public Object[] getArguments() {
+			public Object[] arguments() {
 				return args;
 			}
 
 			@Override
-			public Function getFunction() {
+			public Function function() {
 				return InvokableFunction.this;
 			}
 
 			@Override
-			public Object getValueForVariable(String varName) {
-				return variableProvider != null ? variableProvider.getValueForVariable(varName) : null;
+			public Object valueForVariable(String varName) {
+				return variableProvider != null ? variableProvider.valueForVariable(varName) : null;
 			}
 
 			@Override
@@ -47,13 +47,13 @@ public class InvokableFunction extends Function {
 			}
 
 			@Override
-			public int getCodeFragmentOffset() {
-				return InvokableFunction.this.getCodeFragmentOffset();
+			public int codeFragmentOffset() {
+				return InvokableFunction.this.codeFragmentOffset();
 			}
 
 		};
 		Object lastEvaluation = null;
-		for (Statement s : getCodeBlock().getStatements()) {
+		for (Statement s : getCodeBlock().statements()) {
 			try {
 				lastEvaluation = s.evaluate(context);
 			} catch (ReturnException e) {

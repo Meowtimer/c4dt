@@ -108,7 +108,7 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return name();
 	}
 

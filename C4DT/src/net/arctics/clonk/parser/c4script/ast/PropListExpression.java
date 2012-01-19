@@ -22,11 +22,11 @@ public class PropListExpression extends Value {
 	
 	private ProplistDeclaration definedDeclaration;
 	
-	public ProplistDeclaration getDefinedDeclaration() {
+	public ProplistDeclaration definedDeclaration() {
 		return definedDeclaration;
 	}
 	
-	public List<Variable> getComponents() {
+	public List<Variable> components() {
 		return definedDeclaration.getComponents();
 	}
 	
@@ -37,7 +37,7 @@ public class PropListExpression extends Value {
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append('{');
-		List<Variable> components = getComponents();
+		List<Variable> components = components();
 		for (int i = 0; i < components.size(); i++) {
 			Variable component = components.get(i);
 			output.append('\n');
@@ -66,10 +66,10 @@ public class PropListExpression extends Value {
 		return predecessor == null;
 	}
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		if (definedDeclaration == null)
 			return EMPTY_EXPR_ARRAY;
-		List<Variable> components = getComponents();
+		List<Variable> components = components();
 		ExprElm[] result = new ExprElm[components.size()];
 		for (int i = 0; i < result.length; i++)
 			result[i] = components.get(i).getInitializationExpression();
@@ -79,7 +79,7 @@ public class PropListExpression extends Value {
 	public void setSubElements(ExprElm[] elms) {
 		if (definedDeclaration == null)
 			return;
-		List<Variable> components = getComponents();
+		List<Variable> components = components();
 		for (int i = 0; i < Math.min(elms.length, components.size()); i++) {
 			components.get(i).setInitializationExpression(elms[i]);
 		}
@@ -87,7 +87,7 @@ public class PropListExpression extends Value {
 	@Override
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
-		for (Variable component : getComponents()) {
+		for (Variable component : components()) {
 			if (!component.getInitializationExpression().isConstant())
 				return false;
 		}
@@ -96,7 +96,7 @@ public class PropListExpression extends Value {
 	
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
-		List<Variable> components = getComponents();
+		List<Variable> components = components();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components) {
 			map.put(component.name(), component.getInitializationExpression().evaluateAtParseTime(context));

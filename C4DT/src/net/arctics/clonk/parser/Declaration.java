@@ -182,7 +182,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	public Scenario getScenario() {
-		Object file = getScript() != null ? getScript().getScriptStorage() : null;
+		Object file = getScript() != null ? getScript().scriptStorage() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {
@@ -368,7 +368,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return name();
 	}
 	
@@ -496,12 +496,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public Object[] getArguments() {
+			public Object[] arguments() {
 				return new Object[0];
 			}
 
 			@Override
-			public Function getFunction() {
+			public Function function() {
 				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
 			}
 
@@ -511,7 +511,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public int getCodeFragmentOffset() {
+			public int codeFragmentOffset() {
 				return 0;
 			}
 
@@ -519,7 +519,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {}
 
 			@Override
-			public Object getValueForVariable(String varName) {
+			public Object valueForVariable(String varName) {
 				return null;
 			}
 		};

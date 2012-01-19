@@ -19,12 +19,12 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.If;
 	}
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword());
+		builder.append(keyword());
 		builder.append(" ("); //$NON-NLS-1$
 		condition.print(builder, depth);
 		builder.append(")"); //$NON-NLS-1$
@@ -43,7 +43,7 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {condition, body, elseExpr};
 	}
 
@@ -55,11 +55,11 @@ public class IfStatement extends ConditionalStatement {
 	}
 	
 	@Override
-	public EnumSet<ControlFlow> getPossibleControlFlows() {
+	public EnumSet<ControlFlow> possibleControlFlows() {
 		EnumSet<ControlFlow> result = EnumSet.of(ControlFlow.Continue);
-		result.addAll(body.getPossibleControlFlows());
+		result.addAll(body.possibleControlFlows());
 		if (elseExpr != null)
-			result.addAll(elseExpr.getPossibleControlFlows());
+			result.addAll(elseExpr.possibleControlFlows());
 		return result;
 	}
 	
@@ -68,10 +68,10 @@ public class IfStatement extends ConditionalStatement {
 	}
 	
 	@Override
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		// return most optimistic flow (the smaller ordinal() the more "continuy" the flow is)
-		ControlFlow ifCase = body.getControlFlow();
-		ControlFlow elseCase = elseExpr != null ? elseExpr.getControlFlow() : ControlFlow.Continue;
+		ControlFlow ifCase = body.controlFlow();
+		ControlFlow elseCase = elseExpr != null ? elseExpr.controlFlow() : ControlFlow.Continue;
 		return ifCase.ordinal() < elseCase.ordinal() ? ifCase : elseCase;
 	}
 	

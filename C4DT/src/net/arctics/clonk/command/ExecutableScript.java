@@ -22,12 +22,12 @@ public class ExecutableScript extends Script {
 	private InvokableFunction main;
 
 	@Override
-	public String getScriptText() {
+	public String scriptText() {
 		return script;
 	}
 
 	@Override
-	public IStorage getScriptStorage() {
+	public IStorage scriptStorage() {
 		try {
 			return new SimpleScriptStorage(name(), script);
 		} catch (UnsupportedEncodingException e) {
@@ -67,7 +67,7 @@ public class ExecutableScript extends Script {
 		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 
-	public InvokableFunction getMain() {
+	public InvokableFunction main() {
 		return main;
 	}
 

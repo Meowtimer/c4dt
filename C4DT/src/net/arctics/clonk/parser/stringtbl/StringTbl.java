@@ -138,7 +138,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return map.values();
 	}
 
-	public String getNodeName() {
+	public String nodeName() {
 		return "StringTbl";  //$NON-NLS-1$
 	}
 

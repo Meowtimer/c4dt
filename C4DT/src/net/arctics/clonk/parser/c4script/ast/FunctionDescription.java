@@ -28,7 +28,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		builder.append(contents);
 		builder.append(']');
 	}
-	public String getContents() {
+	public String contents() {
 		return contents;
 	}
 	public void setContents(String contents) {

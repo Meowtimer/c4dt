@@ -481,7 +481,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return iniFile != null ? iniFile.getName() : toString();
 	}
 

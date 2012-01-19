@@ -74,7 +74,7 @@ public final class StringLiteral extends Literal<String> {
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().getResource());
 		else if (!r.anySubstitutionsApplied)
-			context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset(), this), context.getScript().getScriptFile());
+			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.getScript().getScriptFile());
 		return r.evaluated;
 	}
 
@@ -109,12 +109,12 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public int getIdentifierStart() {
+	public int identifierStart() {
 		return getExprStart()+1;
 	}
 
 	@Override
-	public int getIdentifierLength() {
+	public int identifierLength() {
 		return stringValue().length();
 	}
 

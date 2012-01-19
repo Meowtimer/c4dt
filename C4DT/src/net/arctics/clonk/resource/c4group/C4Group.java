@@ -533,7 +533,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return getName();
 	}
 

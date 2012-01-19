@@ -12,7 +12,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
  */
 public class Block extends Statement {
 
-
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private Statement[] statements;
 	
@@ -31,7 +30,7 @@ public class Block extends Statement {
 		this(SimpleStatement.wrapExpressions(expressions));
 	}
 	
-	public Statement[] getStatements() {
+	public Statement[] statements() {
 		return statements;
 	}
 
@@ -47,8 +46,8 @@ public class Block extends Statement {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
-		return getStatements();
+	public ExprElm[] subElements() {
+		return statements();
 	}
 
 	@Override
@@ -89,7 +88,7 @@ public class Block extends Statement {
 				}
 			}
 			else
-				notReached = s != null && s.getControlFlow() != ControlFlow.Continue;
+				notReached = s != null && s.controlFlow() != ControlFlow.Continue;
 		}
 		if (commentedOutList != null)
 			return new Block(commentedOutList);
@@ -98,10 +97,10 @@ public class Block extends Statement {
 	}
 	
 	@Override
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		for (Statement s : statements) {
 			// look for first statement that breaks execution
-			ControlFlow cf = s.getControlFlow();
+			ControlFlow cf = s.controlFlow();
 			if (cf != ControlFlow.Continue)
 				return cf;
 		}
@@ -109,13 +108,13 @@ public class Block extends Statement {
 	}
 	
 	@Override
-	public EnumSet<ControlFlow> getPossibleControlFlows() {
+	public EnumSet<ControlFlow> possibleControlFlows() {
 		EnumSet<ControlFlow> result = EnumSet.noneOf(ControlFlow.class);
 		for (Statement s : statements) {
-			ControlFlow cf = s.getControlFlow();
+			ControlFlow cf = s.controlFlow();
 			if (cf != ControlFlow.Continue)
 				return EnumSet.of(cf);
-			EnumSet<ControlFlow> cfs = s.getPossibleControlFlows();
+			EnumSet<ControlFlow> cfs = s.possibleControlFlows();
 			result.addAll(cfs);
 		}
 		return result;

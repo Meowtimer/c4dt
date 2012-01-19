@@ -265,7 +265,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return new IStorageLocation[] {
 			new FolderStorageLocation(engineName) {
 				@Override
-				protected IPath getStorageLocationForEngine(String engineName) {
+				protected IPath storageLocationForEngine(String engineName) {
 					return getWorkspaceStorageLocationForEngine(engineName);
 				}
 				@Override
@@ -280,17 +280,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 					return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
 				}
 				@Override
-				public String getName() {
+				public String name() {
 					return engineName;
 				}
 				@Override
-				public OutputStream getOutputStream(URL storageURL) {
+				public OutputStream outputStreamForURL(URL storageURL) {
 					return null;
 				}
 				@Override
 				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
 					Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
-					containerPath = getName() + "/" + containerPath;
+					containerPath = name() + "/" + containerPath;
 					if (urls != null) {
 						while (urls.hasMoreElements()) {
 							URL url = urls.nextElement();
@@ -311,7 +311,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			new FolderStorageLocation(engineName) {
 				private final IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
 				@Override
-				protected IPath getStorageLocationForEngine(String engineName) {
+				protected IPath storageLocationForEngine(String engineName) {
 					return storageLocationPath;
 				}
 				@Override

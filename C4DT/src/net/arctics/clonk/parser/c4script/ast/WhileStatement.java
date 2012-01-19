@@ -15,13 +15,13 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	}
 
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.While;
 	}
 	
 	@Override
-	public EnumSet<ControlFlow> getPossibleControlFlows() {
-		EnumSet<ControlFlow> result = body.getPossibleControlFlows();
+	public EnumSet<ControlFlow> possibleControlFlows() {
+		EnumSet<ControlFlow> result = body.possibleControlFlows();
 		result.removeAll(EnumSet.of(ControlFlow.BreakLoop, ControlFlow.NextIteration));
 		return result;
 	}

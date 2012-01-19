@@ -390,7 +390,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	@Override
 	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
 		IStoredTypeInformation info = queryStoredTypeInformation(expression);
-		return info != null ? info.getType() : defaultType;
+		return info != null ? info.type() : defaultType;
 	}
 	
 	/**
@@ -462,7 +462,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(Script script) {
-		this((IFile) script.getScriptStorage(), script);
+		this((IFile) script.scriptStorage(), script);
 		initialize();
 	}
 	
@@ -1405,7 +1405,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 
 		@Override
-		public IStorage getScriptStorage() {
+		public IStorage scriptStorage() {
 			try {
 				return new SimpleScriptStorage(expression, expression);
 			} catch (UnsupportedEncodingException e) {
@@ -2584,7 +2584,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			statements.add(statement);
 			boolean statementIsComment = statement instanceof Comment;
 			if (reached) {
-				reached = statement.getControlFlow() == ControlFlow.Continue;
+				reached = statement.controlFlow() == ControlFlow.Continue;
 			}
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment) {
@@ -2986,7 +2986,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (Boolean.FALSE.equals(condEv))
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 		else if (Boolean.TRUE.equals(condEv)) {
-			EnumSet<ControlFlow> flows = body.getPossibleControlFlows();
+			EnumSet<ControlFlow> flows = body.possibleControlFlows();
 			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
 				warningWithCode(ParserErrorCode.InfiniteLoop, body);
 		}
@@ -3086,7 +3086,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static boolean containsConst(ExprElm condition) {
 		if(condition instanceof AccessVar && ((AccessVar)condition).constCondition())
 			return true;
-		for (ExprElm expression : condition.getSubElements())
+		for (ExprElm expression : condition.subElements())
 			if(containsConst(expression))
 				return true;
 		return false;
@@ -3533,17 +3533,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	@Override
-	public Object getValueForVariable(String varName) {
+	public Object valueForVariable(String varName) {
 		return "Yes"; //$NON-NLS-1$
 	}
 
 	@Override
-	public Object[] getArguments() {
+	public Object[] arguments() {
 		return new Object[0];
 	}
 
 	@Override
-	public Function getFunction() {
+	public Function function() {
 		return getCurrentFunc();
 	}
 
@@ -3553,7 +3553,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	@Override
-	public int getCodeFragmentOffset() {
+	public int codeFragmentOffset() {
 		return bodyOffset();
 	}
 

@@ -50,7 +50,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the editor input
 	 */
 	public IEditorInput getEditorInput() {
-		Object storage = getScript() != null ? getScript().getScriptStorage() : getResource();
+		Object storage = getScript() != null ? getScript().scriptStorage() : getResource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
 		if (storage instanceof IStorage && this instanceof Script)

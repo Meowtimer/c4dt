@@ -82,12 +82,12 @@ public class Statement extends ExprElm implements Cloneable {
 		return null;
 	}
 
-	public Comment getInlineComment() {
+	public Comment inlineComment() {
 		return getAttachment(Comment.class);
 	}
 
 	public void setInlineComment(Comment inlineComment) {
-		Comment old = getInlineComment();
+		Comment old = inlineComment();
 		if (old != null) {
 			attachments.remove(old);
 		}
@@ -147,7 +147,7 @@ public class Statement extends ExprElm implements Cloneable {
 		if (!e.isFinishedProperly())
 			// don't traverse children - one not-finished error is enough
 			parser.errorWithCode(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
-		else for (ExprElm expr : e.getSubElements()) {
+		else for (ExprElm expr : e.subElements()) {
 			if (expr != null) {
 				notFinishedError(parser, expr);
 			}

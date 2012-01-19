@@ -10,7 +10,7 @@ public class ExprElmWithSubElementsArray extends Value {
 		assignParentToSubElements();
 	}
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return elements;
 	}
 	@Override

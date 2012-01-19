@@ -16,18 +16,18 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public Object getValueForVariable(String varName) {
-		return base.getValueForVariable(varName);
+	public Object valueForVariable(String varName) {
+		return base.valueForVariable(varName);
 	}
 
 	@Override
-	public Object[] getArguments() {
-		return base.getArguments();
+	public Object[] arguments() {
+		return base.arguments();
 	}
 
 	@Override
-	public Function getFunction() {
-		return base.getFunction();
+	public Function function() {
+		return base.function();
 	}
 
 	@Override
@@ -36,8 +36,8 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public int getCodeFragmentOffset() {
-		return base.getCodeFragmentOffset();
+	public int codeFragmentOffset() {
+		return base.codeFragmentOffset();
 	}
 
 	@Override

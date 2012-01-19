@@ -401,7 +401,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static ExprElm identifierReplacement(AccessDeclaration original, String newName) {
 		AccessVar result = new AccessVar(newName);
-		result.setExprRegion(original.getExprStart(), original.getExprStart()+original.getIdentifierLength());
+		result.setExprRegion(original.getExprStart(), original.getExprStart()+original.identifierLength());
 		return result;
 	}
 	
@@ -431,8 +431,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		if (document == null) {
 			if (editor != null) {
 				document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			} else if (script != null && script.getScriptStorage() instanceof IFile) {
-				needToDisconnect = script.getScriptStorage();
+			} else if (script != null && script.scriptStorage() instanceof IFile) {
+				needToDisconnect = script.scriptStorage();
 				try {
 					ClonkCore.getDefault().getTextFileDocumentProvider().connect(needToDisconnect);
 				} catch (CoreException e) {
@@ -645,7 +645,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				case ReturnAsFunction:
 					if (offendingExpression instanceof Tuple) {
 						Tuple tuple = (Tuple) offendingExpression;
-						ExprElm[] elms = tuple.getSubElements();
+						ExprElm[] elms = tuple.subElements();
 						if (elms.length >= 2) {
 							ExprElm returnExpr = elms[0];
 							ExprElm[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ExprElm.class);

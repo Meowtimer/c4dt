@@ -806,19 +806,19 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object getValueForVariable(String varName) {
+	public Object valueForVariable(String varName) {
 		return findVariable(varName); // return meta object instead of concrete value
 	}
 
 	@Override
-	public Object[] getArguments() {
+	public Object[] arguments() {
 		synchronized (parameters) {
 			return parameters.toArray();
 		}
 	}
 
 	@Override
-	public Function getFunction() {
+	public Function function() {
 		return this;
 	}
 
@@ -828,7 +828,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public int getCodeFragmentOffset() {
+	public int codeFragmentOffset() {
 		return body != null ? body.getOffset() : 0;
 	}
 	

@@ -406,7 +406,7 @@ public class SpecialScriptRules {
 				t = PrimitiveType.OBJECT;
 			}
 			if (t != null) {
-				Function f = (Function) callFunc.getDeclaration();
+				Function f = (Function) callFunc.declaration();
 				if (f != null && f.getReturnType() == PrimitiveType.ARRAY)
 					return new ArrayType(t, null);
 			}
@@ -544,7 +544,7 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
-			Function f = callFunc.getDeclaration() instanceof Function ? (Function)callFunc.getDeclaration() : null;
+			Function f = callFunc.declaration() instanceof Function ? (Function)callFunc.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
 				Object command = arguments[1].evaluateAtParseTime(parser.getCurrentFunc());

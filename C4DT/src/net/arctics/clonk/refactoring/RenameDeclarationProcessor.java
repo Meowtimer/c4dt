@@ -65,7 +65,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
-		Object script = decl.getScript().getScriptStorage();
+		Object script = decl.getScript().scriptStorage();
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
@@ -80,7 +80,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
 			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.name(), Function.class)) {
-				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptStorage() instanceof IFile)
+				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().scriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
 		}
@@ -92,9 +92,9 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			if (element instanceof IFile)
 				file = (IFile)element;
 			else if (element instanceof Script)
-				file = (IFile) ((Script)element).getScriptStorage();
+				file = (IFile) ((Script)element).scriptStorage();
 			else if (element instanceof Function)
-				file = (IFile) ((Function)element).getScript().getScriptStorage();
+				file = (IFile) ((Function)element).getScript().scriptStorage();
 			else if (element instanceof IniUnit)
 				file = ((IniUnit)element).getIniFile();
 			else

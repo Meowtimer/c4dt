@@ -265,7 +265,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editor != null) {
 			return super.pivotFile();
 		} else if (_currentEditorScript != null) {
-			return (IFile) _currentEditorScript.getScriptStorage();
+			return (IFile) _currentEditorScript.scriptStorage();
 		} else {
 			return null;
 		}
@@ -313,10 +313,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			if (contextSequence != null) {
 				// cut off stuff after ->
-				for (int i = contextSequence.getSubElements().length-1; i >= 0; i--) {
-					if (contextSequence.getSubElements()[i] instanceof MemberOperator) {
-						if (i < contextSequence.getSubElements().length-1)
-							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.getSubElements()[i+1]);
+				for (int i = contextSequence.subElements().length-1; i >= 0; i--) {
+					if (contextSequence.subElements()[i] instanceof MemberOperator) {
+						if (i < contextSequence.subElements().length-1)
+							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.subElements()[i+1]);
 						break;
 					}
 				}
@@ -599,7 +599,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
 			if (funcCallInfo != null) {
-				Declaration dec = funcCallInfo.callFunc.getDeclaration();
+				Declaration dec = funcCallInfo.callFunc.declaration();
 				if (dec == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, getEditor().scriptBeingEdited(), new Region(offset, 1))) {

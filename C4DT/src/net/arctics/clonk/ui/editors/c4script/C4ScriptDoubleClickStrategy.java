@@ -49,7 +49,7 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 				return;
 			} else if (expr instanceof AccessDeclaration) {
 				AccessDeclaration accessDec = (AccessDeclaration) expr;
-				viewer.setSelectedRange(func.getBody().getOffset()+accessDec.getIdentifierStart(), accessDec.getIdentifierLength());
+				viewer.setSelectedRange(func.getBody().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
 				return;
 			} else if (expr instanceof PropListExpression || expr instanceof Block) {
 				viewer.setSelectedRange(expr.getExprStart()+func.getBody().getOffset(), expr.getLength());

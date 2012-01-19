@@ -13,10 +13,10 @@ public abstract class KeywordStatement extends Statement {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public abstract String getKeyword();
+	public abstract String keyword();
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword());
+		builder.append(keyword());
 		builder.append(";"); //$NON-NLS-1$
 	}
 

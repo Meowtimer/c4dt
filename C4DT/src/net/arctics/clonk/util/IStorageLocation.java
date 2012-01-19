@@ -16,13 +16,13 @@ public interface IStorageLocation {
 	 * Return the name of this storage location. If the storage location is associated with an engine, the engine's name and this name will be identical.
 	 * @return The name
 	 */
-	String getName();
+	String name();
 	/**
 	 * Create a writable stream for the passed URL which is required to have been obtained from this storage location.
 	 * @param storageURL the URL to create an output stream for
 	 * @return the output stream or null if wrong URL or the storage location is readonly.
 	 */
-	OutputStream getOutputStream(URL storageURL);
+	OutputStream outputStreamForURL(URL storageURL);
 	/**
 	 * Return storage-location specific URL for the passed path, creating the data entry the path refers to if necessary and requested.
 	 * @param entryPath The path of the data entry, relative to the storage location.

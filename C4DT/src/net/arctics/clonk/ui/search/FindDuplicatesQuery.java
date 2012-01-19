@@ -115,7 +115,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 				Block functionCodeBlock = function.getCodeBlock();
 				// ignore simple return functions
 				if (ignoreSimpleFunctions)
-					if (functionCodeBlock == null || functionCodeBlock.getStatements().length == 1 && functionCodeBlock.getStatements()[0] instanceof ReturnStatement)
+					if (functionCodeBlock == null || functionCodeBlock.statements().length == 1 && functionCodeBlock.statements()[0] instanceof ReturnStatement)
 						continue;
 				for (Index index : indexes) {
 					List<Declaration> decs = index.snapshotOfDeclarationsNamed(function.name());
@@ -174,9 +174,9 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 			if (a instanceof AccessVar && b instanceof AccessVar) {
 				AccessVar varA = (AccessVar)a;
 				AccessVar varB = (AccessVar)b;
-				if (varA.getDeclaration() instanceof Variable && varB.getDeclaration() instanceof Variable) {
-					int parmA = ((Variable)varA.getDeclaration()).parameterIndex();
-					int parmB = ((Variable)varB.getDeclaration()).parameterIndex();
+				if (varA.declaration() instanceof Variable && varB.declaration() instanceof Variable) {
+					int parmA = ((Variable)varA.declaration()).parameterIndex();
+					int parmB = ((Variable)varB.declaration()).parameterIndex();
 					if (parmA != -1 && parmA == parmB)
 						return DifferenceHandling.EqualShortCircuited;
 				}

@@ -250,9 +250,9 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 			String type = getTypeName();
 			if (type != null) {
 				builder.append(type);
-				if (getNodeName() != null) {
+				if (nodeName() != null) {
 					builder.append(" "); //$NON-NLS-1$
-					builder.append(getNodeName());
+					builder.append(nodeName());
 				}
 				builder.append(" {\n"); //$NON-NLS-1$
 			}

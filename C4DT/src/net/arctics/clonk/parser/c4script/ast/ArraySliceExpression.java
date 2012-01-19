@@ -37,7 +37,7 @@ public class ArraySliceExpression extends ArrayElementExpression {
 	}
 	
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {argument, argument2};
 	}
 	@Override

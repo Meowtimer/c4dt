@@ -16,7 +16,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		assignParentToSubElements();
 	}
 
-	public ExprElm getArrayExpr() {
+	public ExprElm arrayExpr() {
 		return arrayExpr;
 	}
 
@@ -24,7 +24,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		this.arrayExpr = arrayExpr;
 	}
 
-	public ExprElm getElementExpr() {
+	public ExprElm elementExpr() {
 		return elementExpr;
 	}
 
@@ -33,14 +33,14 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return Keywords.For;
 	}
 
 	@Override
 	public void doPrint(ExprWriter writer, int depth) {
-		StringBuilder builder = new StringBuilder(getKeyword().length()+2+1+1+Keywords.In.length()+1+2);
-		builder.append(getKeyword() + " ("); //$NON-NLS-1$
+		StringBuilder builder = new StringBuilder(keyword().length()+2+1+1+Keywords.In.length()+1+2);
+		builder.append(keyword() + " ("); //$NON-NLS-1$
 		elementExpr.print(builder, depth+1);
 		// remove ';' that elementExpr (a statement) prints
 		if (builder.charAt(builder.length()-1) == ';')
@@ -52,7 +52,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		printBody(body, writer, depth);
 	}
 
-	public ExprElm getBody() {
+	public ExprElm body() {
 		return body;
 	}
 
@@ -61,7 +61,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {elementExpr, arrayExpr, body};
 	}
 

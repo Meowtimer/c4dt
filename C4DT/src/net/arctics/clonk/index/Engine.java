@@ -298,7 +298,7 @@ public class Engine extends Script {
 	}
 
 	@Override
-	public IFile getScriptStorage() {
+	public IFile scriptStorage() {
 		return null;
 	}
 	
@@ -586,7 +586,7 @@ public class Engine extends Script {
 				// only consider valid engine folder if configuration.ini is present
 				URL url = location.getURL(CONFIGURATION_INI_NAME, false); //$NON-NLS-1$
 				if (url != null) {
-					result = new Engine(location.getName());
+					result = new Engine(location.name());
 					result.load(providers);
 					break;
 				}
@@ -636,9 +636,9 @@ public class Engine extends Script {
 	
 	public void writeEngineScript() throws IOException {
 		for (IStorageLocation loc : storageLocations) {
-			URL scriptFile = loc.getURL(loc.getName()+".c", true);
+			URL scriptFile = loc.getURL(loc.name()+".c", true);
 			if (scriptFile != null) {
-				OutputStream output = loc.getOutputStream(scriptFile);
+				OutputStream output = loc.outputStreamForURL(scriptFile);
 				if (output != null) try {
 					Writer writer = new OutputStreamWriter(output);
 					try {
@@ -660,7 +660,7 @@ public class Engine extends Script {
 		for (IStorageLocation loc : storageLocations) {
 			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, true);
 			if (settingsFile != null) {
-				OutputStream output = loc.getOutputStream(settingsFile);
+				OutputStream output = loc.outputStreamForURL(settingsFile);
 				if (output != null) {
 					try {
 						currentSettings.saveTo(output, intrinsicSettings);
@@ -691,7 +691,7 @@ public class Engine extends Script {
 		for (IStorageLocation loc : storageLocations) {
 			URL url = loc.getURL(entryPath, true);
 			if (url != null) {
-				OutputStream result = loc.getOutputStream(url);
+				OutputStream result = loc.outputStreamForURL(url);
 				if (result != null) {
 					return result;
 				}

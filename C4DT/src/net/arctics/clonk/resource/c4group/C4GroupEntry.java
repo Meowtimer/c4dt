@@ -347,7 +347,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return getName();
 	}
 

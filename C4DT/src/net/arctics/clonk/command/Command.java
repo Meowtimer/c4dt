@@ -38,7 +38,7 @@ public class Command {
 		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
-			public IStorage getScriptStorage() {
+			public IStorage scriptStorage() {
 				try {
 					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 				} catch (UnsupportedEncodingException e) {
@@ -50,7 +50,7 @@ public class Command {
 				return "CommandBaseScript"; //$NON-NLS-1$
 			};
 			@Override
-			public String getNodeName() {
+			public String nodeName() {
 				return name();
 			};
 		};

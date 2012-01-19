@@ -63,7 +63,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 		return null;
 	}
 
-	public String getNodeName() {
+	public String nodeName() {
 		return getKey();
 	}
 

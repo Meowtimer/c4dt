@@ -224,7 +224,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			this.script = script;
 		}
 		@Override
-		public Object[] getArguments() {
+		public Object[] arguments() {
 			return arguments;
 		}
 		@Override
@@ -232,15 +232,15 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return script;
 		}
 		@Override
-		public int getCodeFragmentOffset() {
-			return function != null ? function.getCodeFragmentOffset() : 0;
+		public int codeFragmentOffset() {
+			return function != null ? function.codeFragmentOffset() : 0;
 		}
 		@Override
-		public Object getValueForVariable(String varName) {
-			return function != null ? function.getValueForVariable(varName) : null;
+		public Object valueForVariable(String varName) {
+			return function != null ? function.valueForVariable(varName) : null;
 		}
 		@Override
-		public Function getFunction() {
+		public Function function() {
 			return function;
 		}
 		@Override

@@ -19,7 +19,7 @@ public class BunchOfStatements extends Block {
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
 		boolean first = true;
-		for (Statement statement : getStatements()) {
+		for (Statement statement : statements()) {
 			statement.printPrependix(builder, depth);
 			if (first)
 				first = false;

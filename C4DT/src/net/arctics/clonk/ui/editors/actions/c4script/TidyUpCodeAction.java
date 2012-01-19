@@ -128,7 +128,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							// noop
 							break;
 						}
-						elms = new Block(elms.getSubElements());
+						elms = new Block(elms.subElements());
 						elms.exhaustiveOptimize(parser).print(blockStringBuilder, 1);
 						String blockString = blockStringBuilder.toString();
 						int blockBegin;
@@ -163,7 +163,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							selection.getOffset()-(func != null ? func.getBody().getOffset() : 0)+selection.getLength()
 						);
 						if (elms instanceof Block) {
-							for (ExprElm e : elms.getSubElements()) {
+							for (ExprElm e : elms.subElements()) {
 								if (Utilities.regionContainsOtherRegion(region, e))
 									replaceExpression(document, e, parser, textChange);
 							}

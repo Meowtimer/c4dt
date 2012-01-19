@@ -354,7 +354,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, getDeclarationObtainmentContext());
 		}
 		if (initializationExpression instanceof PropListExpression) {
-			((PropListExpression)initializationExpression).getDefinedDeclaration().postLoad(this, root);
+			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
 		}
 	}
 
@@ -387,7 +387,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * Return the function this variable was declared in. This also applies for variables declared inside proplist expressions inside functions.
 	 * @return The function or null if there is no function in the parent chain.
 	 */
-	public Function getFunction() {
+	public Function function() {
 		return getTopLevelParentDeclarationOfType(Function.class);
 	}
 	
@@ -413,17 +413,17 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object getValueForVariable(String varName) {
+	public Object valueForVariable(String varName) {
 		return getScript().findLocalVariable(varName, true);
 	}
 
 	@Override
-	public Object[] getArguments() {
+	public Object[] arguments() {
 		return new Object[0];
 	}
 
 	@Override
-	public int getCodeFragmentOffset() {
+	public int codeFragmentOffset() {
 		// for some reason, initialization expression locations are stored absolutely
 		return 0; // return initializationExpression != null ? initializationExpression.getExprStart() : 0;
 	}

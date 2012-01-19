@@ -67,7 +67,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 			this.variableBeingInitialized = var;
 		}
 		@Override
-		public ExprElm[] getSubElements() {
+		public ExprElm[] subElements() {
 			return new ExprElm[] {expression};
 		}
 		@Override
@@ -121,11 +121,11 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
 	}
 	@Override
-	public String getKeyword() {
+	public String keyword() {
 		return scope.toKeyword();
 	}
 	@Override
-	public VarInitialization[] getSubElements() {
+	public VarInitialization[] subElements() {
 		return varInitializations;
 	}
 	@Override
@@ -139,7 +139,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		builder.append(getKeyword());
+		builder.append(keyword());
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;
 		for (VarInitialization var : varInitializations) {

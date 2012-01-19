@@ -21,14 +21,14 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	}
 
 	@Override
-	public String getName() {
+	public String name() {
 		return engineName;
 	}
 
 	@Override
 	public URL getURL(String entryName, boolean create) {
 		try {
-			File file = getFile(entryName);
+			File file = fileForEntry(entryName);
 			try {
 				if (create) {
 					try {
@@ -50,16 +50,16 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 		}
 	}
 
-	protected abstract IPath getStorageLocationForEngine(String engineName);
+	protected abstract IPath storageLocationForEngine(String engineName);
 
-	private File getFile(String entryName) {
-		IPath path = getStorageLocationForEngine(engineName);
+	private File fileForEntry(String entryName) {
+		IPath path = storageLocationForEngine(engineName);
 		File file = path.append(entryName).toFile();
 		return file;
 	}
 
 	@Override
-	public OutputStream getOutputStream(URL storageURL) {
+	public OutputStream outputStreamForURL(URL storageURL) {
 		try {
 			return new FileOutputStream(new File(storageURL.toURI()));
 		} catch (IOException e) {
@@ -86,8 +86,8 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	
 	@Override
 	public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-		final File folder = getFile(containerPath);
-		containerPath = getName() + "/" + containerPath;
+		final File folder = fileForEntry(containerPath);
+		containerPath = name() + "/" + containerPath;
 		if (folder == null || !folder.exists())
 			return;
 		addFilesFrom(folder, containerPath, listToAddTo, recurse);

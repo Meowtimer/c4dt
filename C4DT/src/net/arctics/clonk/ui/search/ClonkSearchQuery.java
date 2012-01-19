@@ -93,14 +93,14 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 			if (expression instanceof AccessDeclaration) {
 				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
-				Declaration dec = accessDeclExpr.getDeclaration(parser);
+				Declaration dec = accessDeclExpr.declarationFromContext(parser);
 				if (dec != null && dec.latestVersion() == declaration)
 					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-				else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+				else if (Utilities.isAnyOf(accessDeclExpr.declaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
 					result.addMatch(functionNameExpr, parser, true, true);
 				}
 				else if (potentiallyReferencedByObjectCall(expression)) {
-					Function otherFunc = (Function) accessDeclExpr.getDeclaration();
+					Function otherFunc = (Function) accessDeclExpr.declaration();
 					boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
 					result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
 				}
@@ -161,7 +161,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 				}
 				else if (scope instanceof Script) {
 					Script script = (Script) scope;
-					listener.searchScript((IResource) script.getScriptStorage(), script);
+					listener.searchScript((IResource) script.scriptStorage(), script);
 				}
 				else if (scope instanceof Function) {
 					Function func = (Function)scope;
@@ -179,7 +179,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 
 	private void searchScriptRelatedFiles(Script script) throws CoreException {
 		if (script instanceof Definition) {
-			IContainer objectFolder = ((Definition)script).getScriptStorage().getParent();
+			IContainer objectFolder = ((Definition)script).scriptStorage().getParent();
 			for (IResource res : objectFolder.members()) {
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;
@@ -238,7 +238,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			Script script = Utilities.getScriptForEditor((ITextEditor)editor);
-			if (script != null && match.getElement().equals(script.getScriptStorage()))
+			if (script != null && match.getElement().equals(script.scriptStorage()))
 				return true;
 		}
 		return false;

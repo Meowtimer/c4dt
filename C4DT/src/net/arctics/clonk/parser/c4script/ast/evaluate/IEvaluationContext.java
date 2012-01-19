@@ -17,12 +17,12 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * Get arguments supplied to the call of the containing function
 	 * @return The arguments
 	 */
-	Object[] getArguments();
+	Object[] arguments();
 	/**
 	 * Get the function the expression to be evaluated resides in. <i>May be null</i>.
 	 * @return The function
 	 */
-	Function getFunction();
+	Function function();
 	/**
 	 * The script that acts as the general context for this evaluation. <i>May not be null</i>.
 	 * @return
@@ -32,7 +32,7 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * Offset in characters of the code fragment that is being evaluated.
 	 * @return The offset
 	 */
-	int getCodeFragmentOffset();
+	int codeFragmentOffset();
 	/**
 	 * Report back the origin of some expression to the context. Useful to trace back where some string was actually declared.
 	 * @param expression The expression that evaluated to the value to be found at the specified location

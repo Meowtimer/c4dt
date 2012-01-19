@@ -104,7 +104,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public IStorage getScriptStorage() {
+		public IStorage scriptStorage() {
 			IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 			try {
 				return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
@@ -313,7 +313,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 						return;
 					removeMarkers(fn, structure);
-					if (structure.getScriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.getScriptStorage()) == null) {
+					if (structure.scriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.scriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
 						System.out.println("Reparsing");
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
@@ -323,8 +323,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									int severity, Object... args) {
 								if (!parser.errorEnabled(code))
 									return WhatToDo.DropCharges;
-								if (structure.getScriptStorage() instanceof IFile) {
-									code.createMarker((IFile) structure.getScriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+								if (structure.scriptStorage() instanceof IFile) {
+									code.createMarker((IFile) structure.scriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
 								}
 								return WhatToDo.PassThrough;
@@ -350,8 +350,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		public void cleanupAfterRemoval() {
 			try {
-				if (structure.getScriptStorage() instanceof IFile) {
-					IFile file = (IFile)structure.getScriptStorage();
+				if (structure.scriptStorage() instanceof IFile) {
+					IFile file = (IFile)structure.scriptStorage();
 					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 					if (file.exists())
 						reparseWithDocumentContents(null, false, file, structure, null);

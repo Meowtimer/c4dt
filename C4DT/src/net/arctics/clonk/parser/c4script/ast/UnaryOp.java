@@ -28,7 +28,7 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ExprElm[] getSubElements() {
+	public ExprElm[] subElements() {
 		return new ExprElm[] {argument};
 	}
 

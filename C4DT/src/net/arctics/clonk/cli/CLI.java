@@ -29,7 +29,7 @@ public class CLI implements IApplication {
 			String command = scanner.nextLine();
 			ExecutableScript script = Command.executableScriptFromCommand(command);
 			if (script != null) try {
-				Object result = script.getMain().invoke();
+				Object result = script.main().invoke();
 				if (result != null)
 					System.out.println(result.toString());
 			} catch (Exception e) {

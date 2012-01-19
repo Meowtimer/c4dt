@@ -123,7 +123,7 @@ public class AccessVar extends AccessDeclaration {
 					parser.getContainer().addUsedScript(var.getScript());
 					break;
 				case VAR:
-					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.getFunction() == parser.getCurrentFunc()) {
+					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.function() == parser.getCurrentFunc()) {
 						int locationUsed = parser.getCurrentFunc().getBody().getOffset()+this.getExprStart();
 						if (locationUsed < var.getLocation().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
@@ -146,7 +146,7 @@ public class AccessVar extends AccessDeclaration {
 	
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		Declaration d = getDeclaration(context);
+		Declaration d = declarationFromContext(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
 			return new ConstrainedProplist(context.getContainer(), ConstraintKind.CallerType);
@@ -161,16 +161,16 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
-		if (getDeclaration() == Variable.THIS)
+		if (declaration() == Variable.THIS)
 			return;
 		super.expectedToBeOfType(type, context, mode, errorWhenFailed);
 	}
 
 	@Override
 	public void inferTypeFromAssignment(ExprElm expression, DeclarationObtainmentContext context) {
-		if (getDeclaration() == Variable.THIS)
+		if (declaration() == Variable.THIS)
 			return;
-		if (getDeclaration() == null) {
+		if (declaration() == null) {
 			IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
 				if (predType instanceof ProplistDeclaration) {
@@ -230,7 +230,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		if (context != null) {
-			return context.getValueForVariable(getDeclarationName());
+			return context.valueForVariable(getDeclarationName());
 		}
 		else {
 			return super.evaluate(context);
@@ -239,8 +239,8 @@ public class AccessVar extends AccessDeclaration {
 	
 	@Override
 	public boolean isConstant() {
-		if (getDeclaration() instanceof Variable) {
-			Variable var = (Variable) getDeclaration();
+		if (declaration() instanceof Variable) {
+			Variable var = (Variable) declaration();
 			// naturally, consts are constant
 			return var.getScope() == Scope.CONST || definitionProxiedBy(var) != null;
 		}

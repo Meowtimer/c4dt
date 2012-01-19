@@ -55,9 +55,9 @@ public class C4ScriptToCPPConverter {
 				if (prelude && elm instanceof Block) {
 					prelude = false;
 					Block block = (Block) elm;
-					Statement[] statements = new Statement[1+block.getStatements().length];
+					Statement[] statements = new Statement[1+block.statements().length];
 					statements[0] = new ReplacementStatement("FindEngineFunctions();");
-					System.arraycopy(block.getStatements(), 0, statements, 1, block.getStatements().length);
+					System.arraycopy(block.statements(), 0, statements, 1, block.statements().length);
 					Block.printBlock(statements, this, depth);
 					return true;
 				}
@@ -89,8 +89,8 @@ public class C4ScriptToCPPConverter {
 				}
 				else if (elm instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) elm;
-					if (callFunc.getDeclaration() instanceof Function) {
-						Function f = (Function) callFunc.getDeclaration();
+					if (callFunc.declaration() instanceof Function) {
+						Function f = (Function) callFunc.declaration();
 						if (f.getParentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.name()));

@@ -33,12 +33,12 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	@Override
-	public IFile getScriptStorage() {
+	public IFile scriptStorage() {
 		return scriptFile;
 	}
 	
 	@Override
-	public String getScriptText() {
+	public String scriptText() {
 		try {
 			return scriptFile instanceof IFile ? StreamUtil.stringFromFileDocument((IFile)scriptFile) : null;
 		} catch (Exception e) {
@@ -71,7 +71,7 @@ public class SystemScript extends Script implements Serializable {
 	
 	@Override
 	public IResource getResource() {
-		return getScriptStorage();
+		return scriptStorage();
 	}
 	
 	@Override

@@ -341,7 +341,7 @@ public class Definition extends Script {
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
 	@Override
-	public IFile getScriptStorage() {
+	public IFile scriptStorage() {
 		if (this.definitionFolder == null)
 			return null;
 		IResource res = Utilities.findMemberCaseInsensitively(this.definitionFolder, "Script.c"); //$NON-NLS-1$
@@ -350,9 +350,9 @@ public class Definition extends Script {
 	}
 
 	@Override
-	public String getScriptText() {
+	public String scriptText() {
 		try {
-			return StreamUtil.stringFromFileDocument(getScriptStorage());
+			return StreamUtil.stringFromFileDocument(scriptStorage());
 		} catch (Exception e) {
 			return null;
 		}

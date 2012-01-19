@@ -90,7 +90,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		return components;
 	}
 	
-	public String getNodeName() {
+	public String nodeName() {
 		return null;
 	}
 	

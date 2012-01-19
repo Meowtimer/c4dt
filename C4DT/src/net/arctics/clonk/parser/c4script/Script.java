@@ -142,7 +142,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			dictionary.add(d.name());
 	}
 	
-	public String getScriptText() {
+	public String scriptText() {
 		return ""; //$NON-NLS-1$
 	}
 	
@@ -152,7 +152,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	public Function[] calculateLineToFunctionMap() {
 		requireLoaded();
-		String scriptText = this.getScriptText();
+		String scriptText = this.scriptText();
 		int lineStart = 0;
 		int lineEnd = 0;
 		List<Function> mappingAsList = new LinkedList<Function>();
@@ -542,10 +542,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		this.name = name;
 	}
 
-	public abstract IStorage getScriptStorage();
+	public abstract IStorage scriptStorage();
 	
 	public final IFile getScriptFile() {
-		IStorage storage = getScriptStorage();
+		IStorage storage = scriptStorage();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}
 
@@ -847,7 +847,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public String getInfoText() {
 		//requireLoaded();
-		Object f = getScriptStorage();
+		Object f = scriptStorage();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
@@ -936,7 +936,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (script == null)
 			script = Definition.definitionCorrespondingToFolder(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
-		if (onlyForScriptFile && (script == null || script.getScriptStorage() == null || !script.getScriptStorage().equals(resource)))
+		if (onlyForScriptFile && (script == null || script.scriptStorage() == null || !script.scriptStorage().equals(resource)))
 			return null;
 		return script;
 	}
@@ -1018,7 +1018,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public Function getFunction() {
+	public Function function() {
 		return null;
 	}
 	
@@ -1028,17 +1028,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public Object[] getArguments() {
+	public Object[] arguments() {
 		return new Object[0];
 	}
 	
 	@Override
-	public Object getValueForVariable(String varName) {
+	public Object valueForVariable(String varName) {
 		return findLocalVariable(varName, true); // whatever
 	}
 	
 	@Override
-	public int getCodeFragmentOffset() {
+	public int codeFragmentOffset() {
 		return 0;
 	}
 	

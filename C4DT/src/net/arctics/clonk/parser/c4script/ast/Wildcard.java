@@ -160,7 +160,7 @@ public class Wildcard extends PropListExpression {
 		if (body.compare(template, d).isEqual())
 			sink.receivedObject(s);
 		else {
-			for (ExprElm e : body.getSubElements()) {
+			for (ExprElm e : body.subElements()) {
 				matchWildcards(template, e, sink);
 			}
 		}
@@ -181,7 +181,7 @@ public class Wildcard extends PropListExpression {
 						original.getParent().replaceSubElement(original, e.clone(), 0);
 			}
 		}
-		for (ExprElm e : original.getSubElements()) {
+		for (ExprElm e : original.subElements()) {
 			generateReplacement(e, topLevel, wildcardReplacements);
 		}
 		return topLevel;

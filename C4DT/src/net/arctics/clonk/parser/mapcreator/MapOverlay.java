@@ -146,7 +146,7 @@ public class MapOverlay extends MapOverlayBase {
 		MapOverlayBase t;
 		for (t = template; t != null && t.getTemplate() != null; t = t.getTemplate());
 		if (t != null)
-			return t.getNodeName();
+			return t.nodeName();
 		else
 			return super.getTypeName();
 	}

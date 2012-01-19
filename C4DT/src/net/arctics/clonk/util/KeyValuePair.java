@@ -70,7 +70,7 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	}
 
 	@Override
-	public String getNodeName() {
+	public String nodeName() {
 		return (String) getKey();
 	}
 

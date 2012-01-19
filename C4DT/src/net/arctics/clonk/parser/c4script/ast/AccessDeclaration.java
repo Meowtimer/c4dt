@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
+
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -30,7 +31,7 @@ public abstract class AccessDeclaration extends Value {
 	 * @param context Context passed to {@link #obtainDeclaration(DeclarationObtainmentContext)} if declaration is still null.
 	 * @return The declaration or null if a declaration could not be found.
 	 */
-	public Declaration getDeclaration(DeclarationObtainmentContext context) {
+	public Declaration declarationFromContext(DeclarationObtainmentContext context) {
 		if (declaration == null) {
 			declaration = obtainDeclaration(context);
 		}
@@ -41,7 +42,7 @@ public abstract class AccessDeclaration extends Value {
 	 * Return the {@link Declaration} if it has already been obtained or null.
 	 * @return The obtain declaration or null.
 	 */
-	public Declaration getDeclaration() {
+	public Declaration declaration() {
 		return declaration; // return without trying to obtain it (no parser context)
 	}
 
@@ -50,14 +51,14 @@ public abstract class AccessDeclaration extends Value {
 	 * @param context The {@link DeclarationObtainmentContext} (sounds proper to pass it)
 	 * @return The declaration this node most likely refers to
 	 */
-	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
+	protected Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		return null;
 	}
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		getDeclaration(parser); // find the declaration so subclasses can complain about missing variables/functions
+		declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
 	}
 
 	/**
@@ -79,7 +80,7 @@ public abstract class AccessDeclaration extends Value {
 
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new DeclarationRegion(getDeclaration(parser), region(0));
+		return new DeclarationRegion(declarationFromContext(parser), region(0));
 	}
 
 	/**
@@ -99,7 +100,7 @@ public abstract class AccessDeclaration extends Value {
 	}
 
 	@Override
-	public int getIdentifierLength() {
+	public int identifierLength() {
 		return declarationName.length();
 	}
 
@@ -150,7 +151,7 @@ public abstract class AccessDeclaration extends Value {
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		//root.getContainer().getIndex().loadScriptsContainingDeclarationsNamed(declarationName);
-		getDeclaration(root);
+		declarationFromContext(root);
 	}
 	
 }

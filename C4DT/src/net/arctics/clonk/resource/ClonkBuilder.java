@@ -201,7 +201,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						else
 							script = Definition.definitionCorrespondingToFolder(folder);
 					}
-					if (script != null && delta.getResource().equals(script.getScriptStorage())) {
+					if (script != null && delta.getResource().equals(script.scriptStorage())) {
 						queueScript(script);
 					} else
 						processAuxiliaryFiles(file, script);
@@ -217,7 +217,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					break;
 				case IResourceDelta.REMOVED:
 					script = SystemScript.scriptCorrespondingTo(file);
-					if (script != null && file.equals(script.getScriptStorage()))
+					if (script != null && file.equals(script.scriptStorage()))
 						script.getIndex().removeScript(script);
 				}
 				success = true;
@@ -674,7 +674,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private C4ScriptParser queueScript(Script script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
-			IStorage storage = script.getScriptStorage();
+			IStorage storage = script.scriptStorage();
 			if (storage != null) {
 				result = new C4ScriptParser(script);
 				result.setAllowInterleavedFunctionParsing(true);

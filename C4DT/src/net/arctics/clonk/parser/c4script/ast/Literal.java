@@ -56,7 +56,7 @@ public class Literal<T> extends Value {
 
 	@Override
 	public T evaluateAtParseTime(IEvaluationContext context) {
-		context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset(), this), context.getScript().getScriptFile());
+		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.getScript().getScriptFile());
 		return literal;
 	}
 	
