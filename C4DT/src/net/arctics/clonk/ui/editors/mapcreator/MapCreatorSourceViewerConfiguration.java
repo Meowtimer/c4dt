@@ -37,8 +37,8 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 				IRegion region, boolean canShowMultipleHyperlinks) {
 			MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
-			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < ((MapOverlay) overlay).getTemplate().name().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), ((MapOverlay) overlay).getTemplate().name().length()), ((MapOverlay) overlay).getTemplate())};
+			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).template() != null && region.getOffset()-overlay.getLocation().getStart() < ((MapOverlay) overlay).template().name().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), ((MapOverlay) overlay).template().name().length()), ((MapOverlay) overlay).template())};
 			return null;
 		}
 
@@ -133,7 +133,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.getFileBeingEditedBy(getEditor()).getName()));
+		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.fileBeingEditedBy(getEditor()).getName()));
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

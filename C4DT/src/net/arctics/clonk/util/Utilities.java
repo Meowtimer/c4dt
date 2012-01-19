@@ -42,14 +42,14 @@ public abstract class Utilities {
 	private static MessageConsole clonkConsole = null;
 	private static MessageConsoleStream debugConsoleStream = null;
 	
-	public static MessageConsole getClonkConsole() {
+	public static MessageConsole clonkConsole() {
 		if (clonkConsole == null) {
-			clonkConsole = getConsole(Messages.Utilities_ClonkConsole);
+			clonkConsole = consoleWithName(Messages.Utilities_ClonkConsole);
 		}
 		return clonkConsole;
 	}
 	
-	public static MessageConsole getConsole(String name) {
+	public static MessageConsole consoleWithName(String name) {
 		ConsolePlugin plugin = ConsolePlugin.getDefault();
 		IConsoleManager conMan = plugin.getConsoleManager();
 		IConsole[] existing = conMan.getConsoles();
@@ -62,9 +62,9 @@ public abstract class Utilities {
 		return console;
 	}
 	
-	public static MessageConsoleStream getDebugStream() {
+	public static MessageConsoleStream debugStream() {
 		if (debugConsoleStream == null) {
-			debugConsoleStream = getConsole(Messages.Utilities_DebugConsole).newMessageStream();
+			debugConsoleStream = consoleWithName(Messages.Utilities_DebugConsole).newMessageStream();
 		}
 		return debugConsoleStream;
 	}
@@ -79,7 +79,7 @@ public abstract class Utilities {
 				// show console 
 				try {
 					IConsoleView view = (IConsoleView) page.showView(id);
-					view.display(getClonkConsole());
+					view.display(clonkConsole());
 				} catch (PartInitException e) {
 					e.printStackTrace();
 				}
@@ -87,7 +87,7 @@ public abstract class Utilities {
 		});
 	}
 	
-	public static Index getIndex(IResource res) {
+	public static Index indexFromResource(IResource res) {
 		if (res != null) {
 			ClonkProjectNature nature = ClonkProjectNature.get(res);
 			if (nature != null)
@@ -96,14 +96,14 @@ public abstract class Utilities {
 		return null;
 	}
 	
-	public static IFile getFileBeingEditedBy(IEditorPart editor) {
+	public static IFile fileBeingEditedBy(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput)
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
 		else
 			return null;
 	}
 	
-	public static Script getScriptForResource(IResource resource) throws CoreException {
+	public static Script scriptForResource(IResource resource) throws CoreException {
 		if (resource instanceof IContainer)
 			return Definition.definitionCorrespondingToFolder((IContainer) resource);
 		else if (resource instanceof IFile)
@@ -112,7 +112,7 @@ public abstract class Utilities {
 			return null;
 	}
 
-	public static Script getScriptForEditor(IEditorPart editor) {
+	public static Script scriptForEditor(IEditorPart editor) {
 		if (editor instanceof C4ScriptEditor)
 			return ((C4ScriptEditor) editor).scriptBeingEdited();
 		else
@@ -332,62 +332,6 @@ public abstract class Utilities {
 		}
 	};
 	
-	public static String multiply(String s, int times) {
-		StringBuilder builder = new StringBuilder(s.length()*times);
-		for (int i = 0; i < times; i++)
-			builder.append(s);
-		return builder.toString();
-	}
-	
-// Copy-Pasta org.eclipse.jdt.internal.ui.text.correction.NameMatcher
-	
-	private static boolean isSimilarChar(char ch1, char ch2) {
-		return Character.toLowerCase(ch1) == Character.toLowerCase(ch2);
-	}
-	
-	/**
-	 * Returns a similarity value of the two names.
-	 * The range of is from 0 to 256. no similarity is negative
-	 * @param name1 the first name
-	 * @param name2 the second name
-	 * @return the similarity valuer
-	 */
-	public static int getSimilarity(String name1, String name2) {
-		if (name1.length() > name2.length()) {
-			String tmp= name1;
-			name1= name2;
-			name2= tmp;
-		}
-		int name1len= name1.length();
-		int name2len= name2.length();
-
-		int nMatched= 0;
-
-		int i= 0;
-		while (i < name1len && isSimilarChar(name1.charAt(i), name2.charAt(i))) {
-			i++;
-			nMatched++;
-		}
-
-		int k= name1len;
-		int diff= name2len - name1len;
-		while (k > i && isSimilarChar(name1.charAt(k - 1), name2.charAt(k + diff - 1))) {
-			k--;
-			nMatched++;
-		}
-
-		if (nMatched == name2len) {
-			return 200;
-		}
-
-		if (name2len - nMatched > nMatched) {
-			return -1;
-		}
-
-		int tolerance= name2len / 4 + 1;
-		return (tolerance - (k - i)) * 256 / tolerance;
-	}
-	
 	public static <A, B> B as(A obj, Class<B> type) {
 		return type.isInstance(obj) ? type.cast(obj) : null;
 	}
@@ -400,13 +344,6 @@ public abstract class Utilities {
 	}
 	
 	// --------
-	
-	public static String htmlerize(String text) {
-		return text.
-			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
-			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
-	}
+
 	
 }

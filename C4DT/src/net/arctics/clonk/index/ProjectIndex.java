@@ -120,7 +120,7 @@ public class ProjectIndex extends Index {
 		if (res != null) {
 			Script result;
 			try {
-				result = Utilities.getScriptForResource(res);
+				result = Utilities.scriptForResource(res);
 				if (result != null)
 					return result;
 			} catch (CoreException e) {
@@ -197,8 +197,8 @@ public class ProjectIndex extends Index {
 					e.printStackTrace();
 					continue;
 				}
-				if (finder.getResult() != null) {
-					r.add(finder.getResult());
+				if (finder.result() != null) {
+					r.add(finder.result());
 				}
 			}
 		}

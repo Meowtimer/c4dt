@@ -45,7 +45,7 @@ public class FunctionDescription extends Statement implements Serializable {
 				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
 					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 					if (stringTbl != null) {
-						NameValueAssignment entry = stringTbl.getMap().get(part.substring(1, part.length()-1));
+						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
 							return new DeclarationRegion(entry, new Region(getExprStart()+off, part.length()));
 					}
@@ -78,7 +78,7 @@ public class FunctionDescription extends Statement implements Serializable {
 			if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
 				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 				String entryName = part.substring(1, part.length()-1);
-				if (stringTbl == null || stringTbl.getMap().get(entryName) == null) {
+				if (stringTbl == null || stringTbl.map().get(entryName) == null) {
 					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);
 				}
 			}

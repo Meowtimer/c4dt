@@ -215,8 +215,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	public Image getPicture(DefCoreUnit defCore, Image graphics) {
 		Image result = null;
 		IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (pictureEntry != null && pictureEntry.getValueObject() instanceof IntegerArray) {
-			IntegerArray values = (IntegerArray) pictureEntry.getValueObject();
+		if (pictureEntry != null && pictureEntry.value() instanceof IntegerArray) {
+			IntegerArray values = (IntegerArray) pictureEntry.value();
 			result = new Image(canvas.getDisplay(), values.get(2), values.get(3));
 			GC gc = new GC(result);
 			try {

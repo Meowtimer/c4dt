@@ -25,7 +25,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	@Override
 	public Object[] getChildren(Object obj) {
 		if (obj instanceof Declaration)
-			return ((Declaration)obj).getSubDeclarationsForOutline();
+			return ((Declaration)obj).subDeclarationsForOutline();
 		return NO_CHILDREN;
 	}
 

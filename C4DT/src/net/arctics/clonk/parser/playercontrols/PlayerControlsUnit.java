@@ -49,7 +49,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 						IniItem identifierEntry = section.getSubItem("Identifier"); //$NON-NLS-1$
 						if (identifierEntry instanceof IniEntry) {
 							IniEntry e = (IniEntry) identifierEntry;
-							String ident = e.getValue();
+							String ident = e.stringValue();
 							Variable var = new Variable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(Scope.CONST);
 							var.setParentDeclaration(this);
@@ -89,13 +89,13 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T getLatestVersion(T from) {
-		T r = super.getLatestVersion(from);
+	public <T extends Declaration> T latestVersionOf(T of) {
+		T r = super.latestVersionOf(of);
 		if (r != null)
 			return r;
-		if (from instanceof Variable)
+		if (of instanceof Variable)
 			for (Variable c : controlVariables)
-				if (from.name().equals(c.name()))
+				if (of.name().equals(c.name()))
 					return (T) c;
 		return null;
 	};

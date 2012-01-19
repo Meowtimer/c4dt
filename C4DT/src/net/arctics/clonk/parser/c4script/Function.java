@@ -26,7 +26,7 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -356,7 +356,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String infoText() {
 		String description = obtainUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? Utilities.htmlerize(getReturnType().typeName(true)) : "", Utilities.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? StringUtil.htmlerize(getReturnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -463,7 +463,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
+	public Object[] subDeclarationsForOutline() {
 		return ArrayUtil.concat(getLocalVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}
 
@@ -774,9 +774,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T latestVersionOf(T from) {
 		if (from instanceof Variable) {
-			return super.getLatestVersion(from);
+			return super.latestVersionOf(from);
 		} else {
 			for (Declaration other : otherDeclarations) {
 				if (other.getClass() == from.getClass() && other.getLocation() == from.getLocation())

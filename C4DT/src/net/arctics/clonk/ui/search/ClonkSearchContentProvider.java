@@ -41,7 +41,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	@Override
 	public Object getParent(Object element) {
 		if (element instanceof ITreeNode)
-			return ((ITreeNode)element).getParentNode();
+			return ((ITreeNode)element).parentNode();
 		else
 			return null;
 	}
@@ -49,7 +49,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof ITreeNode)
-			return ((ITreeNode)element).getChildCollection().size() > 0;
+			return ((ITreeNode)element).childCollection().size() > 0;
 		else
 			return searchResult.getMatchCount(element) > 0;		
 	}

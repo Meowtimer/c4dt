@@ -115,7 +115,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	public IniUnit getIniUnit() {
 		IniUnit unit = null;
 		try {
-			unit = (IniUnit) Structure.pinned(Utilities.getFileBeingEditedBy(this), true, false);
+			unit = (IniUnit) Structure.pinned(Utilities.fileBeingEditedBy(this), true, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -143,8 +143,8 @@ public class IniTextEditor extends ClonkTextEditor {
 	private Annotation[] oldAnnotations;
 	
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
-		if (item.getChildCollection() != null) {
-			for (INode i : item.getChildCollection()) {
+		if (item.childCollection() != null) {
+			for (INode i : item.childCollection()) {
 				if (i instanceof IniItem) { 
 					if (i instanceof IniSection) {
 						IniSection sec = (IniSection) i;

@@ -21,7 +21,7 @@ public class CustomIniUnit extends IniUnit {
 	private IniConfiguration configuration;
 	
 	@Override
-	public IniConfiguration getConfiguration() {
+	public IniConfiguration configuration() {
 		return configuration;
 	}
 
@@ -65,7 +65,7 @@ public class CustomIniUnit extends IniUnit {
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
 				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
 					continue;
-				IniDataSection dataSection = getConfiguration().getSections().get(annot.category());
+				IniDataSection dataSection = configuration().getSections().get(annot.category());
 				if (dataSection != null) {
 					IniDataBase dataItem = dataSection.getEntry(f.getName());
 					if (dataItem instanceof IniDataEntry) {
@@ -122,7 +122,7 @@ public class CustomIniUnit extends IniUnit {
 				}
 				IniField annot;
 				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.name()))) {
-					Object val = entry.getValueObject();
+					Object val = entry.value();
 					if (val instanceof IConvertibleToPrimitive)
 						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
 					try {

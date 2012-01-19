@@ -26,7 +26,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		extendedValue = value;
 	}
 	
-	public Object getExtendedValue() {
+	public Object extendedValue() {
 		return extendedValue;
 	}
 	
@@ -34,34 +34,34 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		this.entryConfig = entryConfig;
 	}
 	
-	public IniDataEntry getEntryConfig() {
+	public IniDataEntry entryConfig() {
 		return entryConfig;
 	}
 	
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniDataEntry config, boolean createErrorMarkers) {
-		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.getKey(), entry.getValue());
+		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.key(), entry.stringValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
 		cmpl.setParentDeclaration(entry.getParentDeclaration());
 		return cmpl;
 	}
 	
-	public IniUnit getIniUnit() {
+	public IniUnit iniUnit() {
 		return this.getTopLevelParentDeclarationOfType(IniUnit.class);
 	}
 	
 	@Override
-	public String getValue() {
+	public String stringValue() {
 		return extendedValue.toString();
 	}
 	
 	@Override
-	public Object getValueObject() {
+	public Object value() {
 		return extendedValue;
 	}
 	
 	@Override
-	public void setValue(String value, Object context) {
+	public void setStringValue(String value, Object context) {
 		if (extendedValue instanceof IIniEntryValue) {
 			try {
 				((IIniEntryValue)extendedValue).setInput(value, entryConfig, (IniUnit) context);
@@ -75,18 +75,18 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 
 	@Override
-	public Object[] getChildren() {
+	public Object[] children() {
 		if (extendedValue instanceof IHasChildrenWithContext)
-			return ((IHasChildrenWithContext)extendedValue).getChildren(this);
+			return ((IHasChildrenWithContext)extendedValue).children(this);
 		else if (extendedValue instanceof IHasChildren)
-			return ((IHasChildren)extendedValue).getChildren();
+			return ((IHasChildren)extendedValue).children();
 		return null;
 	}
 
 	@Override
-	public Collection<? extends INode> getChildCollection() {
+	public Collection<? extends INode> childCollection() {
 		if (extendedValue instanceof ITreeNode) {
-			return ((ITreeNode) extendedValue).getChildCollection();
+			return ((ITreeNode) extendedValue).childCollection();
 		}
 		return null;
 	}
@@ -105,8 +105,8 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	
 	@Override
 	public void validate() {
-		if (getExtendedValue() instanceof IComplainingIniEntryValue)
-			((IComplainingIniEntryValue)getExtendedValue()).complain(this);
+		if (extendedValue() instanceof IComplainingIniEntryValue)
+			((IComplainingIniEntryValue)extendedValue()).complain(this);
 	}
 	
 }

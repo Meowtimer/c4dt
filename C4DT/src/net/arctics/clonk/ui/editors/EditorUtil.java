@@ -27,7 +27,7 @@ public class EditorUtil {
 						if (next == null) {
 							for (int i = index+1; i < refs.length; i++) {
 								IEditorPart part = refs[i].getEditor(true);
-								IFile file = Utilities.getFileBeingEditedBy(part);
+								IFile file = Utilities.fileBeingEditedBy(part);
 								try {
 									if (file != null && file.getProject().hasNature(ClonkCore.CLONK_NATURE_ID)) {
 										if (part.isDirty()) {

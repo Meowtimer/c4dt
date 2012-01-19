@@ -14,7 +14,7 @@ public class MapCreator extends MapCreatorMap {
 	
 	private IFile file;
 
-	public IFile getFile() {
+	public IFile file() {
 		return file;
 	}
 

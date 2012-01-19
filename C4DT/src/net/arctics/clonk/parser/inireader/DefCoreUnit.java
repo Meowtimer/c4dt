@@ -22,7 +22,7 @@ public class DefCoreUnit extends IniUnit {
 	public ID definitionID() {
 		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (entry instanceof ComplexIniEntry)
-			return (ID)((ComplexIniEntry)entry).getExtendedValue();
+			return (ID)((ComplexIniEntry)entry).extendedValue();
 		else
 			return ID.NULL;
 	}
@@ -30,7 +30,7 @@ public class DefCoreUnit extends IniUnit {
 	@Override
 	public String name() {
 		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
-		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;
+		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).extendedValue() : defaultName;
 	}
 	
 	@Override

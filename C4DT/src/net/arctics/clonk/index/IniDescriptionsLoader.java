@@ -87,7 +87,7 @@ public class IniDescriptionsLoader {
 							for (Entry<String, IniItem> item : section.subItemMap().entrySet()) {
 								if (item.getValue() instanceof IniEntry) {
 									IniEntry entry = (IniEntry) item.getValue();
-									result.put(entry.getKey(), entry.getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
+									result.put(entry.key(), entry.stringValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
 								}
 							}
 							descriptions.put(language, result);

@@ -74,17 +74,17 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public String getKey() {
+	public String key() {
 		return name();
 	}
 
 	@Override
-	public String getValue() {
+	public String stringValue() {
 		return ""; //$NON-NLS-1$
 	}
 
 	@Override
-	public Object[] getChildren() {
+	public Object[] children() {
 		return getSubItemList().toArray(new Object[getSubItemList().size()]);
 	}
 
@@ -94,7 +94,7 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public void setValue(String value, Object context) {
+	public void setStringValue(String value, Object context) {
 		// FIXME?
 	}
 
@@ -103,7 +103,7 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public Collection<? extends IniItem> getChildCollection() {
+	public Collection<? extends IniItem> childCollection() {
 		return itemList;
 	}
 
@@ -113,12 +113,12 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return null;
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
@@ -134,8 +134,8 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
-		return this.getChildren();
+	public Object[] subDeclarationsForOutline() {
+		return this.children();
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class IniSection extends Declaration implements
 	public Iterable<IniSection> getSections() {
 		// unable to make this work generically ;c
 		List<IniSection> sections = new LinkedList<IniSection>();
-		for (ITreeNode node : getChildCollection()) {
+		for (ITreeNode node : childCollection()) {
 			if (node instanceof IniSection) {
 				sections.add((IniSection) node);
 			}

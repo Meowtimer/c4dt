@@ -32,22 +32,22 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	}
 
 	@Override
-	public String getKey() {
+	public String key() {
 		return name;
 	}
 
 	@Override
-	public String getValue() {
+	public String stringValue() {
 		return value;
 	}
 	
 	@Override
 	public String toString() {
-		return getKey() + "=" + getValue(); //$NON-NLS-1$
+		return key() + "=" + stringValue(); //$NON-NLS-1$
 	}
 
 	@Override
-	public void setValue(String value, Object context) {
+	public void setStringValue(String value, Object context) {
 		this.value = value;
 	}
 
@@ -66,24 +66,24 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	}
 
 	@Override
-	public Collection<? extends INode> getChildCollection() {
+	public Collection<? extends INode> childCollection() {
 		return null;
 	}
 
 	@Override
 	public String nodeName() {
-		return getKey();
+		return key();
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		if (parentDeclaration instanceof ITreeNode)
 			return (ITreeNode) parentDeclaration;
 		return null;
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
@@ -100,7 +100,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	
 	@Override
 	public String infoText() {
-	    return getKey() + "=" + getValue(); //$NON-NLS-1$
+	    return key() + "=" + stringValue(); //$NON-NLS-1$
 	}
 
 }

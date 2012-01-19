@@ -105,7 +105,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 					// also propose new sections
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().getSectionData().getEntries().values());
 				} else if (section.getParentDeclaration() instanceof IniUnit) {
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).getConfiguration().getSections().values());
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).configuration().getSections().values());
 				}
 				int indentation = getEditor().getIniUnit().getParser().getTabIndentation(offset);
 				if (indentation == section.getIndentation()+1) {
@@ -165,7 +165,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Index index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
+		Index index = Utilities.indexFromResource(getEditor().getIniUnit().getIniFile());
 		if (index != null) {
 			for (Index i : index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
@@ -215,7 +215,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(editor).getParent());
+		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor).getParent());
 		if (obj != null) {
 			for (IHasIncludes include : obj.conglomerate()) {
 				Script script = Utilities.as(include, Script.class);

@@ -112,20 +112,20 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								Class<?> entryClass = entry.getEntryClass();
 								Declaration declaration = null;
 								if (entryClass == ID.class) {
-									IResource r = Utilities.getFileBeingEditedBy(getEditor());
-									Index index = Utilities.getIndex(r);
+									IResource r = Utilities.fileBeingEditedBy(getEditor());
+									Index index = Utilities.indexFromResource(r);
 									declaration = index.getDefinitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
-									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent());
+									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(getEditor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);
 									}
 								}
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
-									IResource r = Utilities.getFileBeingEditedBy(getEditor());
-									Index index = Utilities.getIndex(r);
+									IResource r = Utilities.fileBeingEditedBy(getEditor());
+									Index index = Utilities.indexFromResource(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.engine() != null && index.engine().acceptsId(id)) {
 										declaration = index.getDefinitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
@@ -146,7 +146,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.getFileBeingEditedBy(getEditor()).getParent()).getIndex();
+									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(getEditor()).getParent()).getIndex();
 									List<Index> indexes = projIndex.relevantIndexes();
 									for (Index index : indexes) {
 										if (index instanceof ProjectIndex) {
@@ -169,8 +169,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								}
 								else if (entryClass == IconSpec.class) {
 									String firstPart = value.split(":")[0];
-									IResource r = Utilities.getFileBeingEditedBy(getEditor());
-									Index index = Utilities.getIndex(r);
+									IResource r = Utilities.fileBeingEditedBy(getEditor());
+									Index index = Utilities.indexFromResource(r);
 									declaration = index.getDefinitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {
@@ -264,7 +264,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.getFileBeingEditedBy(getEditor()).getName() + " proposals"); //$NON-NLS-1$
+		assistant.setStatusMessage(Utilities.fileBeingEditedBy(getEditor()).getName() + " proposals"); //$NON-NLS-1$
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

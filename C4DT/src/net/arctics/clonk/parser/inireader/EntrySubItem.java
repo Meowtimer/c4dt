@@ -29,28 +29,28 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	}
 
 	@Override
-	public String getKey() {
+	public String key() {
 		return "["+String.valueOf(index)+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
-	public String getValue() {
-		return entry.getChildValue(index).toString();
+	public String stringValue() {
+		return entry.valueOfChildAt(index).toString();
 	}
 
 	@Override
-	public void setValue(String value, Object context) {
-		entry.setChildValue(index, value);
+	public void setStringValue(String value, Object context) {
+		entry.setValueOfChildAt(index, value);
 	}
 
 	@Override
-	public Object getChildValue(int index) {
+	public Object valueOfChildAt(int index) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public IHasContext[] getChildren(Object context) {
+	public IHasContext[] children(Object context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -62,7 +62,7 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	}
 
 	@Override
-	public void setChildValue(int index, Object value) {
+	public void setValueOfChildAt(int index, Object value) {
 		// TODO Auto-generated method stub
 		
 	}

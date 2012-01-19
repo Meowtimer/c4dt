@@ -16,32 +16,32 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	}
 
 	@Override
-	public First getKey() {
+	public First key() {
 		return first();
 	}
 
 	@Override
-	public Second getValue() {
+	public Second stringValue() {
 		return  second();
 	}
 
 	@Override
-	public void setValue(Second value, Object context) {
+	public void setStringValue(Second value, Object context) {
 		setSecond(value);
 	}
 	
 	@Override
 	public String toString() {
-		return getKey().toString()+"="+getValue().toString(); //$NON-NLS-1$
+		return key().toString()+"="+stringValue().toString(); //$NON-NLS-1$
 	}
 
 	@Override
-	public Object getChildValue(int index) {
-		return index == 0 ? getKey() : getValue(); 
+	public Object valueOfChildAt(int index) {
+		return index == 0 ? key() : stringValue(); 
 	}
 
 	@Override
-	public IHasContext[] getChildren(Object context) {
+	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[2];
 		for (int i = 0; i < 2; i++)
 			result[i] = new EntrySubItem<KeyValuePair<First, Second>>(this, context, i);
@@ -54,7 +54,7 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	}
 
 	@Override
-	public void setChildValue(int index, Object value) {
+	public void setValueOfChildAt(int index, Object value) {
 		
 	}
 
@@ -65,22 +65,22 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	}
 
 	@Override
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends ITreeNode> childCollection() {
 		return null;
 	}
 
 	@Override
 	public String nodeName() {
-		return (String) getKey();
+		return (String) key();
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return null;
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 

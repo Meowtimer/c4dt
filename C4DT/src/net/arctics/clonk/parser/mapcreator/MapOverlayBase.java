@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -166,7 +166,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		if (getParentDeclaration() instanceof ITreeNode)
 			return (ITreeNode) getParentDeclaration();
 		else
@@ -174,12 +174,12 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
 	@Override
-	public Collection<? extends MapOverlayBase> getChildCollection() {
+	public Collection<? extends MapOverlayBase> childCollection() {
 		return null;
 	}
 
@@ -227,15 +227,15 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		this.body = body;		
 	}
 
-	public MapOverlayBase getTemplate() {
+	public MapOverlayBase template() {
 		return null;
 	}
 	
-	public Operator getOperator() {
+	public Operator operator() {
 		return null;
 	}
 	
-	public String getTypeName() {
+	public String typeName() {
 		for (String key : DEFAULT_CLASS.keySet()) {
 			if (DEFAULT_CLASS.get(key).equals(this.getClass())) {
 				return key;
@@ -247,7 +247,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	@Override
 	public void print(StringBuilder builder, int depth) {
 		try {
-			String type = getTypeName();
+			String type = typeName();
 			if (type != null) {
 				builder.append(type);
 				if (nodeName() != null) {
@@ -261,8 +261,8 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 					Object val = f.get(this);
 					// flatly cloned attributes of template -> don't print
 					// FIXME: doesn't work for enums of course -.-
-					if (val != null && (getTemplate() == null || (val != f.get(getTemplate())))) {
-						builder.append(Utilities.multiply(Conf.indentString, depth));
+					if (val != null && (template() == null || (val != f.get(template())))) {
+						builder.append(StringUtil.multiply(Conf.indentString, depth));
 						builder.append(f.getName());
 						builder.append(" = "); //$NON-NLS-1$
 						builder.append(val.toString());
@@ -271,15 +271,15 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 					}
 				}
 			}
-			Collection<? extends MapOverlayBase> children = this.getChildCollection();
+			Collection<? extends MapOverlayBase> children = this.childCollection();
 			if (children != null) {
 				Operator lastOp = null;
 				for (MapOverlayBase child : children) {
 					if (lastOp == null) {
-						builder.append(Utilities.multiply(Conf.indentString, depth));
+						builder.append(StringUtil.multiply(Conf.indentString, depth));
 					}
 					child.print(builder, depth+1);
-					Operator op = child.getOperator();
+					Operator op = child.operator();
 					if (op != null) {
 						builder.append(" "); //$NON-NLS-1$
 						builder.append(op.toString());
@@ -292,7 +292,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 				}
 			}
 			if (type != null) {
-				builder.append(Utilities.multiply(Conf.indentString, depth));
+				builder.append(StringUtil.multiply(Conf.indentString, depth));
 				builder.append("}"); //$NON-NLS-1$
 			}
 		} catch (Exception e) {
@@ -308,7 +308,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	
 	@Override
 	public String toString() {
-		return getTypeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
+		return typeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 }

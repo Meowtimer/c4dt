@@ -513,17 +513,17 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	@Override
-	public Collection<? extends INode> getChildCollection() {
+	public Collection<? extends INode> childCollection() {
 		return this.getChildren();
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return getParentGroup();
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 

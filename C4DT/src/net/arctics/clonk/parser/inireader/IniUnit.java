@@ -133,7 +133,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			return parentSection.getSectionData() == null || parentSection.getSectionData().hasSection(name);
 		}
 		else {
-			IniConfiguration conf = getConfiguration();
+			IniConfiguration conf = configuration();
 			return conf == null || conf.hasSection(name);
 		}
 	}
@@ -147,28 +147,28 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @return validated entry
 	 */
 	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
-		IniConfiguration configuration = getConfiguration();
+		IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
 		IniDataSection sectionConfig = currentSection.getSectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
-		if (!sectionConfig.hasEntry(entry.getKey())) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.getKey()), entry.getStartPos(), entry.getKey().length() + entry.getStartPos()); 
+		if (!sectionConfig.hasEntry(entry.key())) {
+			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.getStartPos(), entry.key().length() + entry.getStartPos()); 
 		}
-		IniDataBase dataItem = sectionConfig.getEntry(entry.getKey());
+		IniDataBase dataItem = sectionConfig.getEntry(entry.key());
 		if (dataItem instanceof IniDataEntry) {
 			IniDataEntry entryConfig = (IniDataEntry) dataItem;
 			try {
 				try {
-					Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig, this);
+					Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.stringValue(), entryConfig, this);
 					return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 				}
 				catch(IniParserException e) { // add offsets and throw through
 					// FIXME: whitespace before and after '=' is not taken into account
 					if (e.getOffset() == 0 || e.getEndOffset() == 0) {
-						String key = entry.getKey();
-						String value = entry.getValue();
+						String key = entry.key();
+						String value = entry.stringValue();
 						if (value == null)
 							value = ""; //$NON-NLS-1$
 						e.setOffset(entry.getStartPos() + key.length() + 1);
@@ -177,7 +177,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					throw e;
 				}
 			} catch (InvalidClassException e) {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
+				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.getStartPos(),entry.getStartPos() + entry.key().length());
 			}
 		}
 		else {
@@ -213,8 +213,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				return null;
 		}
 		else {
-			return getConfiguration() != null
-			? getConfiguration().getSections().get(section.name())
+			return configuration() != null
+			? configuration().getSections().get(section.name())
 					: null;
 		}
 	}
@@ -269,7 +269,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				currentSection = section;
 				currentSection.setSectionData(getSectionDataFor(section, parentSection));
 				while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
-					itemMap.put(item.getKey(),item);
+					itemMap.put(item.key(),item);
 					itemList.add(item);
 				}
 				section.setSectionEnd(getPosition());
@@ -424,7 +424,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return null;
 	}
 	
-	public IniConfiguration getConfiguration() {
+	public IniConfiguration configuration() {
 		String confName = configurationName();
 		if (confName != null && engine() != null && engine().iniConfigurations() != null)
 			return engine().iniConfigurations().getConfigurationFor(confName);
@@ -460,7 +460,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public Object[] getChildren() {
+	public Object[] children() {
 		return getSections();
 	}
 
@@ -476,7 +476,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public List<? extends IniItem> getChildCollection() {
+	public List<? extends IniItem> childCollection() {
 		return sectionsList;
 	}
 
@@ -486,12 +486,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return null;
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
@@ -527,8 +527,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
-		return this.getChildren();
+	public Object[] subDeclarationsForOutline() {
+		return this.children();
 	}
 	
 	@Override
@@ -662,7 +662,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public String getKey() {
+	public String key() {
 		return name();
 	}
 	

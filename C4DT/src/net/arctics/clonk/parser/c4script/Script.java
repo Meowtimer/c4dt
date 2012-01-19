@@ -758,7 +758,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public INode[] getSubDeclarationsForOutline() {
+	public INode[] subDeclarationsForOutline() {
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
 		all.addAll(functions());
@@ -863,7 +863,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return getParentDeclaration() instanceof ITreeNode ? (ITreeNode)getParentDeclaration() : null;
 	}
 
@@ -873,14 +873,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Collection<? extends INode> getChildCollection() {
-		return Utilities.collectionFromArray(LinkedList.class, getSubDeclarationsForOutline());
+	public Collection<? extends INode> childCollection() {
+		return Utilities.collectionFromArray(LinkedList.class, subDeclarationsForOutline());
 	}
 
 	@Override

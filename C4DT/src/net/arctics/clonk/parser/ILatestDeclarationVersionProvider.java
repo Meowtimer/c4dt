@@ -12,5 +12,5 @@ public interface ILatestDeclarationVersionProvider {
 	 * @param from
 	 * @return
 	 */
-	<T extends Declaration> T getLatestVersion(T from);
+	<T extends Declaration> T latestVersionOf(T from);
 }

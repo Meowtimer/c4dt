@@ -6,7 +6,7 @@ public abstract class ObjectFinderVisitor<T> implements IResourceVisitor {
 
 	protected T result;
 	
-	public T getResult() {
+	public T result() {
 		return result;
 	}
 	

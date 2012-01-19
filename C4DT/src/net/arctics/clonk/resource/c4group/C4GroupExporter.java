@@ -117,7 +117,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 							MessageConsoleStream out = null;
 							if (showExportLog) {
 								// get console
-								MessageConsole myConsole = Utilities.getClonkConsole();
+								MessageConsole myConsole = Utilities.clonkConsole();
 								out = myConsole.newMessageStream();
 								Utilities.displayClonkConsole();
 								// show command line in console

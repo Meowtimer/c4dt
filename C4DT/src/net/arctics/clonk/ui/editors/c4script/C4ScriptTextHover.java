@@ -27,7 +27,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 
 	@Override
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
-		IFile scriptFile = Utilities.getFileBeingEditedBy(configuration.getEditor());
+		IFile scriptFile = Utilities.fileBeingEditedBy(configuration.getEditor());
 		StringBuilder messageBuilder = new StringBuilder();
 		if (declLocator != null && declLocator.getDeclaration() != null) {
 			messageBuilder.append(declLocator.getDeclaration().infoText());

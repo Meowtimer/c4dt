@@ -18,7 +18,7 @@ public class ParticleUnit extends IniUnit {
 	@Override
 	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
 		if (section.name().equals("Particle") && entry.name().equals("Name")) {
-			setName(entry.getValue());
+			setName(entry.stringValue());
 		}
 		return super.validateEntry(entry, section, modifyMarkers);
 	}

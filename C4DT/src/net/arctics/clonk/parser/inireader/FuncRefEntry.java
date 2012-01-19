@@ -13,7 +13,7 @@ public class FuncRefEntry extends NamedReference implements IComplainingIniEntry
 	public void complain(ComplexIniEntry context) {
 		if (toString().equals("None") || toString().equals("")) // special null value //$NON-NLS-1$ //$NON-NLS-2$
 			return;
-		IniUnit iniUnit = context.getIniUnit();
+		IniUnit iniUnit = context.iniUnit();
 		IFile f = iniUnit.getIniFile();
 		if (f != null) {
 			Definition obj = Definition.definitionCorrespondingToFolder(f.getParent());

@@ -727,10 +727,10 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T latestVersionOf(T from) {
 		try {
 			if (from instanceof Script)
-				return (T) Utilities.getScriptForResource(from.resource());
+				return (T) Utilities.scriptForResource(from.resource());
 			else if (from instanceof Structure && from.resource() instanceof IFile)
 				return (T) Structure.pinned(from.resource(), false, false);
 		} catch (CoreException e) {

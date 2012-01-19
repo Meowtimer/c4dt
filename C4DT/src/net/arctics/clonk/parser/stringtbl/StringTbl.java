@@ -37,7 +37,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	private Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
 	private transient IFile file;
 
-	public IFile getFile() {
+	public IFile file() {
 		return file;
 	}
 
@@ -51,7 +51,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return file;
 	}
 
-	public Map<String, NameValueAssignment> getMap() {
+	public Map<String, NameValueAssignment> map() {
 		return map;
 	}
 	
@@ -100,7 +100,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 	
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
+	public Object[] subDeclarationsForOutline() {
 		return map.values().toArray(new Object[map.values().size()]);
 	}
 	
@@ -138,7 +138,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 
 	@Override
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends ITreeNode> childCollection() {
 		return map.values();
 	}
 
@@ -148,12 +148,12 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return null;
 	}
 
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
@@ -181,7 +181,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		DeclarationRegion result = getEntryRegion(stringValue, exprStart, offset);
 		if (result != null) {
 			StringTbl stringTbl = container.getStringTblForLanguagePref();
-			Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
+			Declaration e = stringTbl != null ? stringTbl.map().get(result.getText()) : null;
 			if (e == null && returnNullIfNotFound) {
 				result = null;
 			} else {
@@ -218,7 +218,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					DeclarationRegion region = getEntryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
 						substitutionsApplied = true;
-						builder.append(((NameValueAssignment)region.getConcreteDeclaration()).getValue());
+						builder.append(((NameValueAssignment)region.getConcreteDeclaration()).stringValue());
 						i += region.getRegion().getLength();
 						reg = region;
 						continue Outer;
@@ -259,7 +259,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					String lang = m.group(1);
 					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
 					if (tbl != null) {
-						if (tbl.getMap().get(region.getText()) == null) {
+						if (tbl.map().get(region.getText()) == null) {
 							if (listOfLangFilesItsMissingIn == null)
 								listOfLangFilesItsMissingIn = new StringBuilder(10);
 							if (listOfLangFilesItsMissingIn.length() > 0)

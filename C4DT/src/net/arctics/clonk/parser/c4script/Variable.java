@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * Represents a variable.
@@ -248,10 +248,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			Utilities.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
+			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
 			name(),
 			initializationExpression != null
-				? String.format(valueFormat, Utilities.htmlerize(initializationExpression.toString()))
+				? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))
 				: "", //$NON-NLS-1$
 			obtainUserDescription() != null && obtainUserDescription().length() > 0
 				? String.format(descriptionFormat, obtainUserDescription())

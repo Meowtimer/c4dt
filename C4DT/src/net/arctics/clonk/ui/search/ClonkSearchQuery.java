@@ -190,27 +190,27 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 							for (IniItem entry : sec) {
 								if (entry instanceof ComplexIniEntry) {
 									ComplexIniEntry complex = (ComplexIniEntry) entry;
-									if (complex.getEntryConfig() != null) {
-										Class<?> entryClass = complex.getEntryConfig().getEntryClass();
+									if (complex.entryConfig() != null) {
+										Class<?> entryClass = complex.entryConfig().getEntryClass();
 										if (entryClass == FuncRefEntry.class) {
 											Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {
-												Declaration declaration = obj.findFunction(complex.getValue());
+												Declaration declaration = obj.findFunction(complex.stringValue());
 												if (declaration == this.declaration)
-													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
+													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
 										}
 										else if (declaration instanceof Definition) {
 											if (entryClass == ID.class) {
-												if (script.getIndex().getDefinitionFromEverywhere((ID) complex.getExtendedValue()) == declaration) {
-													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
+												if (script.getIndex().getDefinitionFromEverywhere((ID) complex.extendedValue()) == declaration) {
+													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
 											}
 											else if (entryClass == IDArray.class) {
-												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.getExtendedValue()).getComponents()) {
-													Definition obj = script.getIndex().getDefinitionFromEverywhere(pair.getKey());
+												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).getComponents()) {
+													Definition obj = script.getIndex().getDefinitionFromEverywhere(pair.key());
 													if (obj == declaration)
-														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
+														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
 											}
 										}
@@ -227,7 +227,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.getScriptForEditor(editor);
+			Script script = Utilities.scriptForEditor(editor);
 			if (script != null)
 				return result.getMatches(script);
 		}
@@ -237,7 +237,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 	@Override
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.getScriptForEditor(editor);
+			Script script = Utilities.scriptForEditor(editor);
 			if (script != null && match.getElement().equals(script.scriptStorage()))
 				return true;
 		}

@@ -43,8 +43,8 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -549,7 +549,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								Declaration dec = clonkProposal.getDeclaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
-								int similarity = Utilities.getSimilarity(dec.name(), accessDec.getDeclarationName());
+								int similarity = StringUtil.similarityOf(dec.name(), accessDec.getDeclarationName());
 								if (similarity > 0) {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters

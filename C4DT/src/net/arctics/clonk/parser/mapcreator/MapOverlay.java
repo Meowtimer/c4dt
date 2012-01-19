@@ -53,7 +53,7 @@ public class MapOverlay extends MapOverlayBase {
 	protected List<MapOverlayBase> subOverlays = new LinkedList<MapOverlayBase>();
 
 	@Override
-	public Operator getOperator() {
+	public Operator operator() {
 		return operator;
 	}
 
@@ -82,13 +82,13 @@ public class MapOverlay extends MapOverlayBase {
 		return findDeclaration(declarationName, MapOverlay.class);
 	}
 	
-	public static Class<? extends MapOverlayBase> getDefaultClass(String type) {
+	public static Class<? extends MapOverlayBase> defaultClass(String type) {
 		return DEFAULT_CLASS.get(type);
 	}
 	
-	public MapOverlay getTemplate(String type) {
+	public MapOverlay templateWithName(String name) {
 		for (MapOverlay level = this; level != null; level = (MapOverlay) level.getParentDeclaration()) {
-			MapOverlayBase o = level.findDeclaration(type, MapOverlay.class);
+			MapOverlayBase o = level.findDeclaration(name, MapOverlay.class);
 			if (o instanceof MapOverlay)
 				return (MapOverlay) o;
 		}
@@ -96,18 +96,18 @@ public class MapOverlay extends MapOverlayBase {
 	}
 	
 	@Override
-	public MapOverlayBase getTemplate() {
+	public MapOverlayBase template() {
 		return template;
 	}
 	
 	public MapOverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
-		Class<? extends MapOverlayBase> cls = getDefaultClass(type);
+		Class<? extends MapOverlayBase> cls = defaultClass(type);
 		MapOverlayBase result;
 		if (cls != null) {
 			result = cls.newInstance();
 		}
 		else {
-			MapOverlay template = getTemplate(type);
+			MapOverlay template = templateWithName(type);
 			if (template != null) {
 				result = (MapOverlay) template.clone();
 				((MapOverlay)result).template = template;
@@ -132,7 +132,7 @@ public class MapOverlay extends MapOverlayBase {
 	}
 	
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
+	public Object[] subDeclarationsForOutline() {
 		return this.subOverlays.toArray();
 	}
 	
@@ -142,13 +142,13 @@ public class MapOverlay extends MapOverlayBase {
 	}
 	
 	@Override
-	public String getTypeName() {
+	public String typeName() {
 		MapOverlayBase t;
-		for (t = template; t != null && t.getTemplate() != null; t = t.getTemplate());
+		for (t = template; t != null && t.template() != null; t = t.template());
 		if (t != null)
 			return t.nodeName();
 		else
-			return super.getTypeName();
+			return super.typeName();
 	}
 	
 	public void clear() {
@@ -169,8 +169,8 @@ public class MapOverlay extends MapOverlayBase {
 	
 	public MapOverlayBase overlayAt(int offset) {
 		MapOverlayBase ov;
-		Outer: for (ov = this; ov != null && ov.getChildCollection() != null && ov.getChildCollection().size() != 0;) {
-			for (MapOverlayBase o : ov.getChildCollection()) {
+		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
+			for (MapOverlayBase o : ov.childCollection()) {
 				if (offset >= o.getLocation().getStart() && offset < (o.body!=null?o.body:o.getLocation()).getEnd()) {
 					ov = o;
 					continue Outer;
@@ -182,7 +182,7 @@ public class MapOverlay extends MapOverlayBase {
 	}
 
 	@Override
-	public Collection<? extends MapOverlayBase> getChildCollection() {
+	public Collection<? extends MapOverlayBase> childCollection() {
 		return this.subOverlays;
 	}
 

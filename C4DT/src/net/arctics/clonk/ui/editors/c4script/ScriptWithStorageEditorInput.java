@@ -53,7 +53,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	public String getToolTipText() {
-		return ((ITreeNode)getScript()).getPath().toOSString();
+		return ((ITreeNode)getScript()).path().toOSString();
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	public IPath getPath() {
 		try {
 			if (script instanceof ITreeNode)
-				return ((ITreeNode)script).getPath();
+				return ((ITreeNode)script).path();
 			return getStorage().getFullPath();
 		} catch (Exception e) {
 			e.printStackTrace();

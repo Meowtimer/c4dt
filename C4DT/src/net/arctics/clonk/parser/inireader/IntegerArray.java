@@ -71,7 +71,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	}
 
 	@Override
-	public IHasContext[] getChildren(Object context) {
+	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[values.length];
 		for (int i = 0; i < result.length; i++)
 			result[i] = new EntrySubItem<IntegerArray>(this, context, i);
@@ -79,7 +79,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	}
 
 	@Override
-	public Object getChildValue(int index) {
+	public Object valueOfChildAt(int index) {
 		return values[index];
 	}
 	
@@ -93,7 +93,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	}
 
 	@Override
-	public void setChildValue(int index, Object value) {
+	public void setValueOfChildAt(int index, Object value) {
 		values[index] = value instanceof Integer
 			? new CategoriesValue(index)
 			: new CategoriesValue(0);

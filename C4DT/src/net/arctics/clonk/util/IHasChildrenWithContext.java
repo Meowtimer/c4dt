@@ -1,8 +1,8 @@
 package net.arctics.clonk.util;
 
 public interface IHasChildrenWithContext {
-	public IHasContext[] getChildren(Object context);
+	public IHasContext[] children(Object context);
 	public boolean hasChildren();
-	public Object getChildValue(int index);
-	public void setChildValue(int index, Object value);
+	public Object valueOfChildAt(int index);
+	public void setValueOfChildAt(int index, Object value);
 }

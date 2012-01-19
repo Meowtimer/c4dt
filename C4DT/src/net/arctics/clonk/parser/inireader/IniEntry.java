@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StringUtil;
 
 public class IniEntry extends NameValueAssignment implements IniItem {
 	
@@ -12,15 +12,15 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 		super(pos, endPos, k, v);
 	}
 	
-	public Object getValueObject() {
-		return getValue();
+	public Object value() {
+		return stringValue();
 	}
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
 	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
-		writer.append(Utilities.multiply("\t", indentation));
+		writer.append(StringUtil.multiply("\t", indentation));
 		writer.append(toString());
 	}
 

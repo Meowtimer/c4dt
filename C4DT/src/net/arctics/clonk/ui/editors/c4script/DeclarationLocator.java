@@ -85,7 +85,7 @@ public class DeclarationLocator extends ExpressionLocator {
 
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
-		final Script script = Utilities.getScriptForEditor(getEditor());
+		final Script script = Utilities.scriptForEditor(getEditor());
 		if (script == null)
 			return;
 		synchronized (script) {

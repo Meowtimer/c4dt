@@ -258,7 +258,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, Index index,
 			final Function activeFunc) {
 
-		Script editorScript = Utilities.getScriptForEditor(editor);
+		Script editorScript = Utilities.scriptForEditor(editor);
 		contextExpression = null;
 		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
 				index, activeFunc, editorScript, null);
@@ -592,7 +592,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	protected Function getActiveFunc(IDocument document, int offset) {
-		Script thisScript = Utilities.getScriptForEditor(editor);
+		Script thisScript = Utilities.scriptForEditor(editor);
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}
 

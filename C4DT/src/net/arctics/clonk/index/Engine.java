@@ -742,7 +742,7 @@ public class Engine extends Script {
 					@Override
 					public void run() {
 						try {
-							IOConsoleOutputStream stream = Utilities.getClonkConsole().newOutputStream();
+							IOConsoleOutputStream stream = Utilities.clonkConsole().newOutputStream();
 							byte[] buffer = new byte[1024];
 							int bytesRead;
 							while ((bytesRead = p.getInputStream().read(buffer)) > 0)

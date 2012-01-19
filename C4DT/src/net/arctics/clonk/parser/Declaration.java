@@ -216,7 +216,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns an array of all sub declarations meant to be displayed in the outline.
 	 * @return
 	 */
-	public Object[] getSubDeclarationsForOutline() {
+	public Object[] subDeclarationsForOutline() {
 		return null;
 	}
 	
@@ -237,7 +237,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		if (parent != null)
 			parent = parent.latestVersion();
 		if (parent instanceof ILatestDeclarationVersionProvider) {
-			Declaration latest = ((ILatestDeclarationVersionProvider)parent).getLatestVersion(this);
+			Declaration latest = ((ILatestDeclarationVersionProvider)parent).latestVersionOf(this);
 			if (latest != null)
 				return latest;
 			else

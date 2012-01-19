@@ -67,7 +67,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			}
 		}
 		else if (element instanceof ITreeNode && showStructureOutlines) {
-			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();
+			Collection<? extends INode> children = ((ITreeNode)element).childCollection();
 			return children != null ? ArrayUtil.concat(baseResources, (Object[])children.toArray(new INode[children.size()])) : baseResources;
 		}
 		return showStructureOutlines
@@ -137,14 +137,14 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			try {
 				Structure structure;
 				if ((structure = Structure.pinned((IFile) element, true, false)) != null)
-					return structure instanceof ITreeNode && ((ITreeNode)structure).getChildCollection().size() > 0;
+					return structure instanceof ITreeNode && ((ITreeNode)structure).childCollection().size() > 0;
 			} catch (CoreException e) {
 				return false;
 			}
 		}
 		else if (element instanceof ITreeNode && s) {
 			ITreeNode node = (ITreeNode) element;
-			if (node.getChildCollection() != null && node.getChildCollection().size() > 0)
+			if (node.childCollection() != null && node.childCollection().size() > 0)
 				return true;
 		}
 		return s ? super.hasChildren(element) : false;

@@ -60,7 +60,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 						return true;
 					if (element instanceof Declaration) {
 						if (((Declaration)element).hasSubDeclarationsInOutline()) {
-							for (Object sd : ((Declaration)element).getSubDeclarationsForOutline())
+							for (Object sd : ((Declaration)element).subDeclarationsForOutline())
 								if (select(viewer, element, sd))
 									return true;
 						}

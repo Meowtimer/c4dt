@@ -59,7 +59,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	}
 
 	@Override
-	public IHasContext[] getChildren(Object context) {
+	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[components.size()];
 		for (int i = 0; i < components.size(); i++) {
 			result[i] = new EntrySubItem<KeyValueArrayEntry<KeyType, ValueType>>(this, context, i);
@@ -73,13 +73,13 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	}
 
 	@Override
-	public Object getChildValue(int index) {
+	public Object valueOfChildAt(int index) {
 		return components.get(index);
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked" })
-	public void setChildValue(int index, Object value) {
+	public void setValueOfChildAt(int index, Object value) {
 		KeyValuePair<KeyType, ValueType> kv;
 		if (value instanceof KeyValuePair)
 			kv = (KeyValuePair<KeyType, ValueType>) value;
@@ -92,7 +92,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	}
 	
 	@Override
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends ITreeNode> childCollection() {
 		return components;
 	}
 	
@@ -107,12 +107,12 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	}
 	
 	@Override
-	public ITreeNode getParentNode() {
+	public ITreeNode parentNode() {
 		return null;
 	}
 	
 	@Override
-	public IPath getPath() {
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 	

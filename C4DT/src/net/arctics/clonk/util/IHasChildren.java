@@ -1,6 +1,6 @@
 package net.arctics.clonk.util;
 
 public interface IHasChildren {
-	Object[] getChildren();
+	Object[] children();
 	boolean hasChildren();
 }

@@ -125,11 +125,11 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T latestVersionOf(T from) {
 		if (Variable.class.isAssignableFrom(from.getClass())) {
 			return (T) findComponent(from.name());
 		} else {
-			return super.getLatestVersion(from);
+			return super.latestVersionOf(from);
 		}
 	};
 	
