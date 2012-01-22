@@ -4,7 +4,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;

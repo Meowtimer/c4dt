@@ -106,7 +106,7 @@ public class PropListExpression extends Value {
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.getCurrentVariable() != null) {
-			return context.container().engine().iniConfigurations().configurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
+			return context.containingScript().engine().iniConfigurations().configurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}
@@ -130,7 +130,7 @@ public class PropListExpression extends Value {
 	public <T> T valueEvaluated(String key, Class<T> cls) {
 		ExprElm e = value(key);
 		if (e != null) {
-			Object eval = e.evaluateAtParseTime(definedDeclaration.getParentDeclarationOfType(IEvaluationContext.class));
+			Object eval = e.evaluateAtParseTime(definedDeclaration.firstParentDeclarationOfType(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
 		} else
 			return null;
@@ -139,7 +139,7 @@ public class PropListExpression extends Value {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		if (!parser.container().engine().currentSettings().proplistsSupported)
+		if (!parser.containingScript().engine().currentSettings().proplistsSupported)
 			parser.errorWithCode(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
 	

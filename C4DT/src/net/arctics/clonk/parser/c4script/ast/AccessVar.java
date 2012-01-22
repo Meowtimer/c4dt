@@ -71,7 +71,7 @@ public class AccessVar extends AccessDeclaration {
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
 		ExprElm sequencePredecessor = predecessorInSequence();
-		IType type = context.container();
+		IType type = context.containingScript();
 		if (sequencePredecessor != null)
 			type = sequencePredecessor.typeInContext(context);
 		if (type != null) for (IType t : type) {
@@ -84,8 +84,8 @@ public class AccessVar extends AccessDeclaration {
 						return proplistComponent;
 				}
 			} else {
-				FindDeclarationInfo info = new FindDeclarationInfo(context.container().getIndex());
-				info.setContextFunction(context.getCurrentFunc());
+				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().getIndex());
+				info.setContextFunction(context.currentFunction());
 				info.setSearchOrigin(scriptToLookIn);
 				Variable v = scriptToLookIn.findVariable(declarationName, info);
 				if (v != null)
@@ -107,10 +107,10 @@ public class AccessVar extends AccessDeclaration {
 			var.setUsed(true);
 			switch (var.getScope()) {
 				case LOCAL:
-					Declaration d = parser.getCurrentDeclaration();
+					Declaration d = parser.currentDeclaration();
 					if (d != null && predecessorInSequence() == null) {
-						Function f = d.getTopLevelParentDeclarationOfType(Function.class);
-						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
+						Function f = d.topLevelParentDeclarationOfType(Function.class);
+						Variable v = d.topLevelParentDeclarationOfType(Variable.class);
 						if (
 							(f != null && f.getVisibility() == FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.getScope() != Scope.LOCAL)
@@ -120,12 +120,12 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 				case STATIC: case CONST:
-					parser.container().addUsedScript(var.script());
+					parser.containingScript().addUsedScript(var.script());
 					break;
 				case VAR:
-					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.function() == parser.getCurrentFunc()) {
-						int locationUsed = parser.getCurrentFunc().getBody().getOffset()+this.getExprStart();
-						if (locationUsed < var.getLocation().getOffset())
+					if (var.location() != null && parser.currentFunction() != null && var.function() == parser.currentFunction()) {
+						int locationUsed = parser.currentFunction().getBody().getOffset()+this.getExprStart();
+						if (locationUsed < var.location().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
 					}
 					break;
@@ -149,7 +149,7 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = declarationFromContext(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return new ConstrainedProplist(context.container(), ConstraintKind.CallerType);
+			return new ConstrainedProplist(context.containingScript(), ConstraintKind.CallerType);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;

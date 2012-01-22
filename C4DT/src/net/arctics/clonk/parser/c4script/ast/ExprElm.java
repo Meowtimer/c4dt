@@ -242,7 +242,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return context.container();
+		return context.containingScript();
 	}
 	
 	/**
@@ -631,7 +631,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The {@link CachedEngineDeclarations}
 	 */
 	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
-		return context.container().getIndex().engine().cachedFuncs();
+		return context.containingScript().getIndex().engine().cachedFuncs();
 	}
 	
 	/**
@@ -872,7 +872,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				Index index = typeable.getIndex();
 				if (index == null)
 					return;
-				if (index == parser.container().getIndex())
+				if (index == parser.containingScript().getIndex())
 					typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}

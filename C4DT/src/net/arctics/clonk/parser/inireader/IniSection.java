@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IPath;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
@@ -18,6 +16,8 @@ import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
+
+import org.eclipse.core.runtime.IPath;
 
 public class IniSection extends Declaration implements
 		IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>,
@@ -53,7 +53,7 @@ public class IniSection extends Declaration implements
 	}
 
 	public int startPos() {
-		return getLocation().getStart();
+		return location().getStart();
 	}
 
 	public Map<String, IniItem> subItemMap() {
@@ -200,12 +200,12 @@ public class IniSection extends Declaration implements
 	}
 
 	public IniSection parentSection() {
-		return getParentDeclaration() instanceof IniSection ? (IniSection) getParentDeclaration()
+		return parentDeclaration() instanceof IniSection ? (IniSection) parentDeclaration()
 				: null;
 	}
 
 	public IniUnit iniUnit() {
-		return getParentDeclarationOfType(IniUnit.class);
+		return firstParentDeclarationOfType(IniUnit.class);
 	}
 
 	@Override

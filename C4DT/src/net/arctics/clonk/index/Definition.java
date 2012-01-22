@@ -228,7 +228,7 @@ public class Definition extends Script {
 		}
 
 		@Override
-		public Declaration getParentDeclaration() {
+		public Declaration parentDeclaration() {
 			return Definition.this;
 		}
 

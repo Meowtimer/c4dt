@@ -9,9 +9,9 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -19,6 +19,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -44,11 +45,11 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	 */
 	public static final int CONSIDER_DEFCORE_ID_ALREADY_CHANGED = 1;
 	
-	private Declaration decl;
+	private final Declaration decl;
 	private String newName;
-	private String oldName;
+	private final String oldName;
 	
-	private int options;
+	private final int options;
 
 	/**
 	 * Create a new RenameDeclarationProcessor.
@@ -112,7 +113,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 								try {
 									IniEntry entry = (IniEntry) unit.sectionWithName("DefCore").subItemByKey("id");
 									TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
-									defCoreChange.setEdit(new ReplaceEdit(entry.getLocation().getEnd()-entry.stringValue().length(), entry.stringValue().length(), newName));
+									defCoreChange.setEdit(new ReplaceEdit(entry.location().getEnd()-entry.stringValue().length(), entry.stringValue().length(), newName));
 									composite.add(defCoreChange);
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -120,7 +121,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 							}
 						}
 					} else
-						fileChange.addEdit(new ReplaceEdit(decl.getLocation().getOffset(), decl.getLocation().getLength(), newName));
+						fileChange.addEdit(new ReplaceEdit(decl.location().getOffset(), decl.location().getLength(), newName));
 				}
 //				else if (element instanceof C4Function) {
 //					C4Function relatedFunc = (C4Function)element;
@@ -159,7 +160,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		Declaration existingDec;
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
 		info.setDeclarationClass(decl.getClass());
-		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
+		Structure parentStructure = decl.firstParentDeclarationOfType(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
 			if (existingDec != null) {

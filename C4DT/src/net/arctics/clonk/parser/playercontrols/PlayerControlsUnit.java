@@ -53,7 +53,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 							Variable var = new Variable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(Scope.CONST);
 							var.setParentDeclaration(this);
-							var.setLocation(e.getLocation());
+							var.setLocation(e.location());
 							controlVariables.add(var);
 						}
 					}

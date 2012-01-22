@@ -9,7 +9,7 @@ import java.util.HashSet;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
@@ -55,9 +55,9 @@ public class ClonkHyperlink implements IHyperlink {
 	@Override
 	public void open() {
 		try {
-			DeclarationLocation[] locations = target.getDeclarationLocations();
+			DeclarationLocation[] locations = target.declarationLocations();
 			if (locations.length == 1)
-				ClonkTextEditor.openDeclaration(locations[0].getDeclaration());
+				ClonkTextEditor.openDeclaration(locations[0].declaration());
 			else
 				new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new HashSet<DeclarationLocation>(Arrays.asList(locations))).run();
 			if (ClonkTextEditor.openDeclaration(target) == null) {

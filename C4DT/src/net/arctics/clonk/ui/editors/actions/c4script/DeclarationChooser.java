@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
@@ -56,7 +56,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public boolean matchItem(Object item) {
 			if (item instanceof DeclarationLocation)
-				item = ((DeclarationLocation)item).getDeclaration();
+				item = ((DeclarationLocation)item).declaration();
 			if (!(item instanceof Declaration))
 				return false;
 			final Declaration decl = (Declaration) item;
@@ -75,10 +75,10 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
 				DeclarationLocation decLocation = (DeclarationLocation) element;
-				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(decLocation.getDeclaration());
+				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(decLocation.declaration());
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				if (decLocation.getResource() != null)
-					result.append(decLocation.getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+				if (decLocation.resource() != null)
+					result.append(decLocation.resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 				return result;
 			} else
 				return new StyledString("");
@@ -113,7 +113,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	private static Set<DeclarationLocation> declarationLocationsFrom(Collection<Declaration> proposedDeclarations) {
 		Set<DeclarationLocation> l = new HashSet<DeclarationLocation>();
 		for (Declaration d : proposedDeclarations) {
-			DeclarationLocation[] locations = d.getDeclarationLocations();
+			DeclarationLocation[] locations = d.declarationLocations();
 			if (locations != null) {
 				for (DeclarationLocation dl : locations) {
 					l.add(dl);
@@ -128,7 +128,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	public void create() { 
 		super.create();
 		if (declarations != null && getInitialPattern() == null)
-			((Text)this.getPatternControl()).setText(declarations.iterator().next().getDeclaration().name());
+			((Text)this.getPatternControl()).setText(declarations.iterator().next().declaration().name());
 	}
 
 	@Override
@@ -172,7 +172,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 										s.requireLoaded();
 										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 											if (d.nameMatches(matcher)) {
-												contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.script().getScriptFile()), itemsFilter);
+												contentProvider.add(new DeclarationLocation(d, d.location(), d.script().getScriptFile()), itemsFilter);
 												if (++declarationsBatchSize == 5) {
 													Display.getDefault().asyncExec(refreshListRunnable);
 													declarationsBatchSize = 0;

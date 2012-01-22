@@ -91,7 +91,7 @@ public class C4ScriptToCPPConverter {
 					CallFunc callFunc = (CallFunc) elm;
 					if (callFunc.declaration() instanceof Function) {
 						Function f = (Function) callFunc.declaration();
-						if (f.getParentDeclaration() instanceof Engine) {
+						if (f.parentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.name()));
 							callFunc.printParmString(this, 0);

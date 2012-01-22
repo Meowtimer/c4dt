@@ -90,7 +90,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		}
 		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
 			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getIndex(), startFunction.effectName(), null);
-			result.setLocation(effectParameter.getLocation());
+			result.setLocation(effectParameter.location());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);
 			return result;
@@ -111,7 +111,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			Object parmEv;
-			if (callFunc.params().length >= 1 && (parmEv = callFunc.params()[0].evaluateAtParseTime(context.getCurrentFunc())) instanceof String) {
+			if (callFunc.params().length >= 1 && (parmEv = callFunc.params()[0].evaluateAtParseTime(context.currentFunction())) instanceof String) {
 				String effectName = (String) parmEv;
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
@@ -122,7 +122,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (d instanceof EffectFunction) {
 						EffectFunction effFun = (EffectFunction)d;
 						// parse Start function of effect so ad-hoc variables are known
-						if (!(context.getCurrentFunc() instanceof EffectFunction)) {
+						if (!(context.currentFunction() instanceof EffectFunction)) {
 							EffectFunction f = effFun.startFunction() != null ? effFun.startFunction() : effFun;
 							try {
 								context.parseCodeOfFunction(f, false);
@@ -174,8 +174,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
-			if (arguments.length >= 2 && parser.getCurrentFunc() instanceof DefinitionFunction) {
-				Object nameEv = arguments[0].evaluateAtParseTime(parser.getCurrentFunc());
+			if (arguments.length >= 2 && parser.currentFunction() instanceof DefinitionFunction) {
+				Object nameEv = arguments[0].evaluateAtParseTime(parser.currentFunction());
 				if (nameEv instanceof String) {
 					SourceLocation loc = parser.absoluteSourceLocationFromExpr(arguments[0]);
 					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.getStart(), loc.getEnd(), "");
@@ -188,7 +188,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					var.setInitializationExpression(initializationClone);
 					var.forceType(arguments[1].typeInContext(parser));
 					new AccessVar(var).inferTypeFromAssignment(arguments[1], parser);
-					var.setParentDeclaration(parser.getCurrentFunc());
+					var.setParentDeclaration(parser.currentFunction());
 					//parser.getContainer().addDeclaration(var);
 				}
 			}
@@ -272,7 +272,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (evTracer.tracedFile == null)
 						return true;
 					parser.currentFunctionContext().expressionReportingErrors = arguments[0];
-					if (evTracer.tracedFile.equals(parser.container().getScriptFile())) {
+					if (evTracer.tracedFile.equals(parser.containingScript().getScriptFile())) {
 						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
@@ -297,7 +297,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
-			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.getCurrentFunc())).evaluation instanceof String) {
+			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.currentFunction())).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
 				boolean separateIssuesMarker = false;
 				for (int i = 0; i < formatString.length(); i++) {
@@ -370,7 +370,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : null;
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
-						DeclarationRegion result = getActionLinkForDefinition(parser.getCurrentFunc(), (Definition)ty, parmExpression);
+						DeclarationRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
@@ -381,7 +381,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : parser.container();
+				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : parser.containingScript();
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;

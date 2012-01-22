@@ -620,7 +620,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
 		for (Function f : functions()) {
-			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
+			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
 				return f;
 		}
 		return null;
@@ -864,7 +864,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public ITreeNode parentNode() {
-		return getParentDeclaration() instanceof ITreeNode ? (ITreeNode)getParentDeclaration() : null;
+		return parentDeclaration() instanceof ITreeNode ? (ITreeNode)parentDeclaration() : null;
 	}
 
 	@Override

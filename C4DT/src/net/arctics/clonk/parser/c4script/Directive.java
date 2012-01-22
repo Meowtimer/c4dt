@@ -82,11 +82,11 @@ public class Directive extends Declaration implements Serializable {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
 			public int getExprStart() {
-				return getLocation().getStart();
+				return location().getStart();
 			}
 			@Override
 			public int getExprEnd() {
-				return getLocation().getEnd();
+				return location().getEnd();
 			}
 		};
 	}
@@ -110,12 +110,12 @@ public class Directive extends Declaration implements Serializable {
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (getContent() == null)
-				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), C4ScriptParser.NO_THROW, this.toString());
+				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, location(), C4ScriptParser.NO_THROW, this.toString());
 			else {
 				ID id = contentAsID();
-				Definition obj = parser.container().getIndex().getDefinitionNearestTo(parser.container().resource(), id);
+				Definition obj = parser.containingScript().getIndex().getDefinitionNearestTo(parser.containingScript().resource(), id);
 				if (obj == null)
-					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getLocation(), C4ScriptParser.NO_THROW, getContent());
+					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, getContent());
 			}
 			break;
 		}

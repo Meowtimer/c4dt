@@ -10,30 +10,34 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.util.Sink;
 
-public class EngineLogParser {
+import org.eclipse.ui.console.IPatternMatchListener;
+import org.eclipse.ui.console.PatternMatchEvent;
+import org.eclipse.ui.console.TextConsole;
+
+public class EngineLogParser implements IPatternMatchListener {
 	
 	private static final Pattern ENGINE_ERROR_START_PATTERN = Pattern.compile("\\[.*?\\]\\w*ERROR\\:(.*)");
 	private static final Pattern STACK_TRACE_ENTRY_PATTERN = Pattern.compile("by\\:\\w*(.*)?\\((.*)?\\)\\w*\\((.*)?\\)\\w*\\((.*)?\\:(.*)?\\)");
 	
 	public class EngineErrorFileLocation {
-		private String file;
-		private int line;
+		private final String file;
+		private final int line;
 		public EngineErrorFileLocation(String file, int line) {
 			super();
 			this.file = file;
 			this.line = line;
 		}
-		public String getFile() {
+		public String file() {
 			return file;
 		}
-		public int getLine() {
+		public int line() {
 			return line;
 		}
 	}
 	
 	public class EngineError {
-		private List<EngineErrorFileLocation> stackTrace;
-		private String message;
+		private final List<EngineErrorFileLocation> stackTrace;
+		private final String message;
 		public EngineError(List<EngineErrorFileLocation> stackTrace,
 				String message) {
 			super();
@@ -48,7 +52,7 @@ public class EngineLogParser {
 		}
 	}
 	
-	private BufferedReader logReader;
+	private final BufferedReader logReader;
 	
 	public EngineLogParser(Reader reader) {
 		logReader = new BufferedReader(reader);
@@ -86,5 +90,41 @@ public class EngineLogParser {
 			if (readLine == null)
 				readLine = logReader.readLine();
 		} while (mainLoopPending);
+	}
+
+	@Override
+	public void connect(TextConsole console) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void disconnect() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void matchFound(PatternMatchEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getPattern() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getCompilerFlags() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getLineQualifier() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

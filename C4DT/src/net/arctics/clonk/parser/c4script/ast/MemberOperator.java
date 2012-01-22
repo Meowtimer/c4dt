@@ -126,7 +126,7 @@ public class MemberOperator extends ExprElm {
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		// explicit id
 		if (id != null) {
-			return context.container().nearestDefinitionWithId(id);
+			return context.containingScript().nearestDefinitionWithId(id);
 		}
 		// stuff before -> decides
 		return predecessorInSequence() != null ? predecessorInSequence().typeInContext(context) : super.obtainType(context);
@@ -146,7 +146,7 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new DeclarationRegion(parser.container().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
+			return new DeclarationRegion(parser.containingScript().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
 		return null;
 	}
 
@@ -164,7 +164,7 @@ public class MemberOperator extends ExprElm {
 				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
-		if (getLength() > 3 && !parser.container().engine().currentSettings().spaceAllowedBetweenArrowAndTilde)
+		if (getLength() > 3 && !parser.containingScript().engine().currentSettings().spaceAllowedBetweenArrowAndTilde)
 			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
 	}
 	
@@ -189,7 +189,7 @@ public class MemberOperator extends ExprElm {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
-		if (context.container().engine().currentSettings().proplistsSupported) {
+		if (context.containingScript().engine().currentSettings().proplistsSupported) {
 			ExprElm succ = getSuccessorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();

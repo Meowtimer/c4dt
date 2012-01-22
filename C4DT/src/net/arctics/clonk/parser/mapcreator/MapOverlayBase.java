@@ -167,8 +167,8 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 
 	@Override
 	public ITreeNode parentNode() {
-		if (getParentDeclaration() instanceof ITreeNode)
-			return (ITreeNode) getParentDeclaration();
+		if (parentDeclaration() instanceof ITreeNode)
+			return (ITreeNode) parentDeclaration();
 		else
 			return null;
 	}

@@ -8,12 +8,12 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public interface DeclarationObtainmentContext extends IEvaluationContext {
-	Script container();
-	Function getCurrentFunc();
+	Script containingScript();
+	Function currentFunction();
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);
-	Definition getContainerAsDefinition();
+	Definition containerAsDefinition();
 	void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException;
 	void storeTypeInformation(ExprElm exprElm, IType type);
-	Declaration getCurrentDeclaration();
+	Declaration currentDeclaration();
 	SourceLocation absoluteSourceLocationFromExpr(ExprElm expression);
 }

@@ -420,7 +420,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				if (d == this || !(d instanceof Function))
 					continue;
 				int rating_ = 0;
-				if (d.getParentDeclaration() == this.getParentDeclaration())
+				if (d.parentDeclaration() == this.parentDeclaration())
 					rating_++;
 				if (rating_ > rating) {
 					f = (Function) d;
@@ -695,7 +695,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else {
 			for (Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
 				Declaration existing = it.next();
-				if (existing.getLocation().equals(d.getLocation())) {
+				if (existing.location().equals(d.location())) {
 					it.remove();
 					break;
 				}
@@ -746,7 +746,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (!codeBlockDefrosted) {
 				codeBlockDefrosted = true;
 				if (codeBlock != null)
-					codeBlock.postLoad(null, getDeclarationObtainmentContext());
+					codeBlock.postLoad(null, declarationObtainmentContext());
 			}
 			return codeBlock;
 		} else {
@@ -779,7 +779,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return super.latestVersionOf(from);
 		} else {
 			for (Declaration other : otherDeclarations) {
-				if (other.getClass() == from.getClass() && other.getLocation() == from.getLocation())
+				if (other.getClass() == from.getClass() && other.location() == from.location())
 					return (T) other;
 			}
 		}

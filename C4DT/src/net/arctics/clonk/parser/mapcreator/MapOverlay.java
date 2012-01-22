@@ -87,7 +87,7 @@ public class MapOverlay extends MapOverlayBase {
 	}
 	
 	public MapOverlay templateWithName(String name) {
-		for (MapOverlay level = this; level != null; level = (MapOverlay) level.getParentDeclaration()) {
+		for (MapOverlay level = this; level != null; level = (MapOverlay) level.parentDeclaration()) {
 			MapOverlayBase o = level.findDeclaration(name, MapOverlay.class);
 			if (o instanceof MapOverlay)
 				return (MapOverlay) o;
@@ -171,7 +171,7 @@ public class MapOverlay extends MapOverlayBase {
 		MapOverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
 			for (MapOverlayBase o : ov.childCollection()) {
-				if (offset >= o.getLocation().getStart() && offset < (o.body!=null?o.body:o.getLocation()).getEnd()) {
+				if (offset >= o.location().getStart() && offset < (o.body!=null?o.body:o.location()).getEnd()) {
 					ov = o;
 					continue Outer;
 				}

@@ -597,7 +597,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (parser == null)
 				continue;
 			//System.out.println("Queueing dependent scripts for " + parser.getContainer().toString());
-			for (Script dep : parser.container().dependentScripts()) {
+			for (Script dep : parser.containingScript().dependentScripts()) {
 				if (!parserMap.containsKey(dep)) {
 					C4ScriptParser p = queueScript(dep);
 					newlyAddedParsers.put(dep, p);

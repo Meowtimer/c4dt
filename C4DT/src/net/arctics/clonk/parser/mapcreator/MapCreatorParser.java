@@ -144,7 +144,7 @@ public class MapCreatorParser extends Parser {
     private void moveLevelUp() {
     	lastOverlay = current;
     	if (current != null)
-    		current = (MapOverlay) current.getParentDeclaration();
+    		current = (MapOverlay) current.parentDeclaration();
     }
 
     private void assignOperator(String t) {

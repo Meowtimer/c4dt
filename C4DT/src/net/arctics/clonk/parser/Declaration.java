@@ -7,10 +7,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.IPostLoadable;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IPostLoadable;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.r;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
@@ -18,10 +18,10 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -44,37 +44,6 @@ import org.eclipse.jface.text.IRegion;
  */
 public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IEntityLocatedInIndex {
 
-	public static class DeclarationLocation implements Serializable {
-
-		private static final long serialVersionUID = 1L;
-
-		private Declaration declaration;
-		private IRegion location;
-		private transient IResource resource;
-		public IResource getResource() {
-			return resource;
-		}
-		public Declaration getDeclaration() {
-			return declaration;
-		}
-		public IRegion getLocation() {
-			return location;
-		}
-		public DeclarationLocation(Declaration declaration) {
-			this(declaration, declaration.getLocation(), declaration.resource());
-		}
-		public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
-			super();
-			this.declaration = declaration;
-			this.location = location;
-			this.resource = resource;
-		}
-		@Override
-		public String toString() {
-			return declaration.name();
-		}
-	}
-	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	/**
@@ -123,12 +92,16 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	/**
 	 * @return Return the location of the declaration in its declaring file.
 	 */
-	public SourceLocation getLocation() {
+	public SourceLocation location() {
 		return location;
 	}
 	
-	public IRegion getRegionToSelect() {
-		return getLocation();
+	/**
+	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns the same location as {@link #location()}
+	 * @return The region to select when using editor navigation commands
+	 */
+	public IRegion regionToSelect() {
+		return location();
 	}
 	
 	/**
@@ -148,8 +121,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		setParentDeclaration(script);
 	}
 	
+	/**
+	 * Return the first declaration in the parent chain that is of the specified type.
+	 * @param type The type the parent declaration needs to be of
+	 * @return A matching parent declaration or null
+	 */
 	@SuppressWarnings("unchecked")
-	public final <T extends Declaration> T getFirstParentDeclarationOfType(Class<T> type) {
+	public final <T> T firstParentDeclarationOfType(Class<T> type) {
 		T result = null;
 		for (Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
@@ -157,8 +135,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return result;
 	}
 	
+	/**
+	 * Same as {@link #firstParentDeclarationOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
+	 * @param type
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
-	public final <T extends Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
+	public final <T> T topLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
 		for (Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
@@ -167,22 +150,26 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Returns the toplevel C4Structure this declaration is declared in.
-	 * @return the structure
+	 * Returns the top-level {@link Structure} this declaration is declared in.
+	 * @return the {@link Structure}
 	 */
 	public Structure topLevelStructure() {
-		return getTopLevelParentDeclarationOfType(Structure.class);
+		return topLevelParentDeclarationOfType(Structure.class);
 	}
 	
 	/**
-	 * Returns the script this declaration is declared in.
-	 * @return the script
+	 * Returns the {@link Script} this declaration is declared in.
+	 * @return the {@link Script}
 	 */
 	public Script script() {
-		return getTopLevelParentDeclarationOfType(Script.class);
+		return topLevelParentDeclarationOfType(Script.class);
 	}
 	
-	public Scenario getScenario() {
+	/**
+	 * Return the {@link Scenario} this declaration is declared in.
+	 * @return The {@link Scenario}
+	 */
+	public Scenario scenario() {
 		Object file = script() != null ? script().scriptStorage() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
@@ -205,7 +192,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Returns a brief info string describing the declaration.
+	 * Returns a brief info string describing the declaration. Meant for UI presentation.
 	 * @return The short info string.
 	 */
 	public String infoText() {
@@ -257,7 +244,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Returns the objects this declaration might be referenced in (includes {@link Function}s, {@link IResource}s and other scripts)
+	 * Returns the objects this declaration might be referenced in (includes {@link Function}s, {@link IResource}s and other {@link Script}s)
 	 * @param project
 	 * @return
 	 */
@@ -285,25 +272,15 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	@Override
 	public IResource resource() {
-		return getParentDeclaration() != null ? getParentDeclaration().resource() : null;
+		return parentDeclaration() != null ? parentDeclaration().resource() : null;
 	}
 	
 	/**
 	 * Returns the parent declaration this one is contained in
 	 * @return
 	 */
-	public Declaration getParentDeclaration() {
+	public Declaration parentDeclaration() {
 		return parentDeclaration;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public final <T> T getParentDeclarationOfType(Class<T> cls) {
-		for (Declaration d = getParentDeclaration(); d != null; d = d.getParentDeclaration()) {
-			if (cls.isAssignableFrom(d.getClass())) {
-				return (T) d;
-			}
-		}
-		return null;
 	}
 	
 	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
@@ -398,7 +375,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 
 	public boolean isEngineDeclaration() {
-		return getParentDeclaration() instanceof Engine;
+		return parentDeclaration() instanceof Engine;
 	}
 	
 	public Engine engine() {
@@ -452,7 +429,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	
 	protected int absoluteExpressionsOffset() {return 0;}
 	
-	public DeclarationObtainmentContext getDeclarationObtainmentContext() {
+	/**
+	 * Return a {@link DeclarationObtainmentContext} describing the surrounding environment of this {@link Declaration}. 
+	 * @return The context
+	 */
+	public DeclarationObtainmentContext declarationObtainmentContext() {
 		return new DeclarationObtainmentContext() {
 			
 			@Override
@@ -466,17 +447,17 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public Function getCurrentFunc() {
+			public Function currentFunction() {
 				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
 			}
 			
 			@Override
-			public Definition getContainerAsDefinition() {
+			public Definition containerAsDefinition() {
 				return script() instanceof Definition ? (Definition)script() : null;
 			}
 			
 			@Override
-			public Script container() {
+			public Script containingScript() {
 				return script();
 			}
 
@@ -486,7 +467,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public Declaration getCurrentDeclaration() {
+			public Declaration currentDeclaration() {
 				return Declaration.this;
 			}
 
@@ -526,20 +507,20 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		};
 	}
 
-	public DeclarationLocation[] getDeclarationLocations() {
+	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
-			new DeclarationLocation(this, getLocation(), resource())
+			new DeclarationLocation(this, location(), resource())
 		};
 	}
 	
 	/**
 	 * Return a name that uniquely identifies the declaration in its script
-	 * @return
+	 * @return The unique name
 	 */
-	public String getNameUniqueToParent() {
+	public String makeNameUniqueToParent() {
 		int othersWithSameName = 0;
 		int ownIndex = -1;
-		for (Declaration d : getParentDeclaration().allSubDeclarations(DIRECT_SUBDECLARATIONS|OTHER)) {
+		for (Declaration d : parentDeclaration().allSubDeclarations(DIRECT_SUBDECLARATIONS|OTHER)) {
 			if (d == this) {
 				ownIndex = othersWithSameName++;
 				continue;
@@ -560,7 +541,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public String pathRelativeToIndexEntity() {
 		StringBuilder builder = new StringBuilder();
-		for (Declaration d = this; d != null; d = d.getParentDeclaration()) {
+		for (Declaration d = this; d != null; d = d.parentDeclaration()) {
 			if (d instanceof IndexEntity)
 				break;
 			else {
@@ -573,12 +554,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Return a string identifying the declaration and the script it's declared in.
+	 * Return a string identifying the declaration and the {@link Script} it's declared in.
 	 * @return
 	 */
 	public String qualifiedName() {
-		if (getParentDeclaration() != null)
-			return String.format("%s::%s", getParentDeclaration().qualifiedName(), this.name());
+		if (parentDeclaration() != null)
+			return String.format("%s::%s", parentDeclaration().qualifiedName(), this.name());
 		else
 			return name();
 	}

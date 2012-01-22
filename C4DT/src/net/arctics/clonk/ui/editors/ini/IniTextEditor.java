@@ -148,7 +148,7 @@ public class IniTextEditor extends ClonkTextEditor {
 				if (i instanceof IniItem) { 
 					if (i instanceof IniSection) {
 						IniSection sec = (IniSection) i;
-						positions.add(new Position(sec.getLocation().getOffset(), sec.sectionEnd()-sec.getLocation().getOffset()));
+						positions.add(new Position(sec.location().getOffset(), sec.sectionEnd()-sec.location().getOffset()));
 					}
 					collectAnnotationPositions((IniItem) i, positions);
 				}

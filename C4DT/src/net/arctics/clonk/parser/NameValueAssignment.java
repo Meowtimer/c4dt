@@ -93,8 +93,8 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	}
 	
 	@Override
-	public IRegion getRegionToSelect() {
-		SourceLocation loc = getLocation();
+	public IRegion regionToSelect() {
+		SourceLocation loc = location();
 		return new Region(loc.getOffset()+loc.getLength()-value.length(), value.length());
 	}
 	

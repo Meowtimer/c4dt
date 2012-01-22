@@ -152,7 +152,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		Function activeFunc = parser.getCurrentFunc();
+		Function activeFunc = parser.currentFunction();
 		if (activeFunc != null) {				
 			int addToMakeAbsolute = activeFunc.getBody().getStart() + this.getExprStart();
 			offset += addToMakeAbsolute;
@@ -160,7 +160,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 				String varName = pair.name;
 				Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
-					return new DeclarationRegion(var, new Region(var.getLocation().getStart()-activeFunc.getBody().getStart(), var.getLocation().getLength()));
+					return new DeclarationRegion(var, new Region(var.location().getStart()-activeFunc.getBody().getStart(), var.location().getLength()));
 			}
 		}
 		return super.declarationAt(offset, parser);

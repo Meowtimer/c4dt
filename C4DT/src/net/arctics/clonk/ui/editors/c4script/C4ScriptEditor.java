@@ -286,7 +286,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					for (IMarker m : markers) {
 						
 						// delete markers that are explicitly marked as being caused by parsing the function
-						if (func.getNameUniqueToParent().equals(ParserErrorCode.getDeclarationTag(m))) {
+						if (func.makeNameUniqueToParent().equals(ParserErrorCode.getDeclarationTag(m))) {
 							m.delete();
 							continue;
 						}
@@ -331,7 +331,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							}
 						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 						for (Variable localVar : f.getLocalVars()) {
-							SourceLocation l = localVar.getLocation();
+							SourceLocation l = localVar.location();
 							l.setStart(f.getBody().getOffset()+l.getOffset());
 							l.setEnd(f.getBody().getOffset()+l.getEnd());
 						}
@@ -542,9 +542,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Function f = getFuncAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
-			this.setHighlightRange(f.getLocation().getOffset(), Math.min(
-				f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
-				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
+			this.setHighlightRange(f.location().getOffset(), Math.min(
+				f.getBody().getOffset()-f.location().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
+				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.location().getOffset()
 			), false);
 			noHighlight = false;
 		}

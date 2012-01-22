@@ -225,7 +225,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ProplistDeclaration && ((ProplistDeclaration)other).getLocation().equals(this.getLocation()))
+		if (other instanceof ProplistDeclaration && ((ProplistDeclaration)other).location().equals(this.location()))
 			return true;
 		return false;
 	}

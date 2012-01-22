@@ -866,7 +866,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		private final IndexEntity containingEntity;
 		private final String declarationPath;
 		public EntityDeclaration(Declaration declaration) {
-			this.containingEntity = declaration.getParentDeclarationOfType(IndexEntity.class);
+			this.containingEntity = declaration.firstParentDeclarationOfType(IndexEntity.class);
 			this.declarationPath = declaration.pathRelativeToIndexEntity();
 		}
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;

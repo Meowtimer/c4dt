@@ -166,21 +166,21 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private void proposalsForIndex(Index index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags) {
 		if (!index.isEmpty()) {
 			if (_activeFunc != null) {
-				Scenario s2 = _activeFunc.getScenario();
+				Scenario s2 = _activeFunc.scenario();
 				if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
 					for (Function func : index.globalFunctions()) {
 						if (func == null) {
 							System.out.println("D:");
 							continue;
 						}
-						Scenario s1 = func.getScenario();
+						Scenario s1 = func.scenario();
 						if (s1 != null && s2 != null && s1 != s2)
 							continue;
 						proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
 					}
 				if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
 					for (Variable var : index.staticVariables()) {
-						Scenario s1 = var.getScenario();
+						Scenario s1 = var.scenario();
 						if (s1 != null && s1 != s2)
 							continue;
 						proposalForVar(var,prefix,offset,proposals);

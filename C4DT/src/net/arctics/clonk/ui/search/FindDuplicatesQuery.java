@@ -139,7 +139,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 									dupes = new LinkedList<FindDuplicatesMatch>();
 									detectedDupes.put(function, dupes);
 								}
-								FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.getLocation().getOffset(), otherFn.getLocation().getLength(), function, otherFn);
+								FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.location().getOffset(), otherFn.location().getLength(), function, otherFn);
 								dupes.add(match);
 								result.addMatch(match);
 								deemedDuplicate.add(otherFn);

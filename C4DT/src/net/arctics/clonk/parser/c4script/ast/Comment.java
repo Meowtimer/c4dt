@@ -103,7 +103,7 @@ public class Comment extends Statement implements Statement.Attachment {
 		// parse comment as expression and see what goes
 		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.container(), parser.container().getScriptFile()) {
+			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.containingScript(), parser.containingScript().getScriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();
@@ -114,7 +114,7 @@ public class Comment extends Statement implements Statement.Attachment {
 					return 0;
 				}
 			};
-			commentParser.parseStandaloneStatement(comment, parser.getCurrentFunc(), locator);
+			commentParser.parseStandaloneStatement(comment, parser.currentFunction(), locator);
 		} catch (ParsingException e) {}
 		if (locator.getExprAtRegion() != null) {
 			DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);

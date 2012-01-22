@@ -332,7 +332,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public boolean isAt(int offset) {
-		return offset >= getLocation().getStart() && offset <= getLocation().getEnd();
+		return offset >= location().getStart() && offset <= location().getEnd();
 	}
 
 	public boolean isTypeLocked() {
@@ -355,7 +355,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression instanceof IPostLoadable) {
-			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, getDeclarationObtainmentContext());
+			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, declarationObtainmentContext());
 		}
 		if (initializationExpression instanceof PropListExpression) {
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
@@ -393,7 +393,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public Function function() {
-		return getTopLevelParentDeclarationOfType(Function.class);
+		return topLevelParentDeclarationOfType(Function.class);
 	}
 	
 	@Override

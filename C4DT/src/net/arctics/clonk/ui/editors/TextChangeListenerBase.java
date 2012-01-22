@@ -127,7 +127,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @param add The increment value to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 */
 	protected void adjustDec(Declaration declaration, int threshold, int add) {
-		incrementLocationOffsetsExceedingThreshold(declaration.getLocation(), threshold, add);
+		incrementLocationOffsetsExceedingThreshold(declaration.location(), threshold, add);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int diff = newText.length() - replLength;
 			// mixed
 			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
-				if (dec.getLocation().getStart() >= offset + replLength)
+				if (dec.location().getStart() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {
 					// inside function: expand end location

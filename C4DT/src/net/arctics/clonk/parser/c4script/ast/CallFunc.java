@@ -121,7 +121,7 @@ public class CallFunc extends AccessDeclaration {
 					callFunc.declaration() == varFunction &&
 					callFunc.params().length == 1 && // don't bother with more complex cases
 					callFunc.params()[0].typeInContext(parser) == PrimitiveType.INT &&
-					((ev = callFunc.params()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) &&
+					((ev = callFunc.params()[0].evaluateAtParseTime(parser.currentFunction())) != null) &&
 					ev.equals(varIndex);
 			}
 			return false;
@@ -244,7 +244,7 @@ public class CallFunc extends AccessDeclaration {
 	 * @return The {@link SpecialFuncRule} applying to {@link CallFunc}s such as this one, or null.
 	 */
 	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
-		Engine engine = context.container().engine();
+		Engine engine = context.containingScript().engine();
 		if (engine != null && engine.specialScriptRules() != null) {
 			return engine.specialScriptRules().funcRuleFor(declarationName, role);
 		} else {
@@ -271,7 +271,7 @@ public class CallFunc extends AccessDeclaration {
 		
 		// calling this() as function -> return object type belonging to script
 		if (params.length == 0 && (d == getCachedFuncs(context).This || d == Variable.THIS)) {
-			Definition obj = context.getContainerAsDefinition();
+			Definition obj = context.containerAsDefinition();
 			if (obj != null)
 				return obj;
 		}
@@ -310,7 +310,7 @@ public class CallFunc extends AccessDeclaration {
 		if (declarationName.equals(Keywords.Return))
 			return;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-			Function activeFunc = context.getCurrentFunc();
+			Function activeFunc = context.currentFunction();
 			if (activeFunc != null) {
 				Function inher = activeFunc.getInherited();
 				if (inher != null)
@@ -332,16 +332,16 @@ public class CallFunc extends AccessDeclaration {
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.
 	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
-		IType lookIn = p == null ? context.container() : p.typeInContext(context);
+		IType lookIn = p == null ? context.containingScript() : p.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof Script))
 				continue;
 			Script script = (Script)ty;
-			FindDeclarationInfo info = new FindDeclarationInfo(context.container().getIndex());
-			info.setSearchOrigin(context.container());
+			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().getIndex());
+			info.setSearchOrigin(context.containingScript());
 			Declaration dec = script.findFunction(functionName, info);
 			// parse function before this one
-			if (dec != null && context.getCurrentFunc() != null) {
+			if (dec != null && context.currentFunction() != null) {
 				try {
 					context.parseCodeOfFunction((Function) dec, true);
 				} catch (ParsingException e) {
@@ -362,23 +362,23 @@ public class CallFunc extends AccessDeclaration {
 			// find global function
 			Declaration declaration;
 			try {
-				declaration = context.container().getIndex().findGlobal(Function.class, functionName);
+				declaration = context.containingScript().getIndex().findGlobal(Function.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context == null)
 					System.out.println("No context");
-				if (context.container() == null)
+				if (context.containingScript() == null)
 					System.out.println("No container");
-				if (context.container().getIndex() == null)
+				if (context.containingScript().getIndex() == null)
 					System.out.println("No index");
 				return null;
 			}
 			// find engine function
 			if (declaration == null)
-				declaration = context.container().getIndex().engine().findFunction(functionName);
+				declaration = context.containingScript().getIndex().engine().findFunction(functionName);
 
-			List<Declaration> allFromLocalIndex = context.container().getIndex().declarationMap().get(functionName);
-			Declaration decl = context.container().engine().findLocalFunction(functionName, false);
+			List<Declaration> allFromLocalIndex = context.containingScript().getIndex().declarationMap().get(functionName);
+			Declaration decl = context.containingScript().engine().findLocalFunction(functionName, false);
 			int numCandidates = 0;
 			if (allFromLocalIndex != null)
 				numCandidates += allFromLocalIndex.size();
@@ -396,8 +396,8 @@ public class CallFunc extends AccessDeclaration {
 		if ((p == null || !(p instanceof MemberOperator) || !((MemberOperator)p).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
 			for (Declaration d : listToAddPotentialDeclarationsTo)
-				if (!d.isGlobal() && d instanceof Function && d.getParentDeclaration() instanceof IHasIncludes)
-					typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
+				if (!d.isGlobal() && d instanceof Function && d.parentDeclaration() instanceof IHasIncludes)
+					typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.parentDeclaration(), ConstraintKind.Includes));
 			if (typesWithThatMember.size() > 0) {
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, functionName));
@@ -477,7 +477,7 @@ public class CallFunc extends AccessDeclaration {
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
 				if (f.getVisibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
-					context.container().addUsedScript(f.script());
+					context.containingScript().addUsedScript(f.script());
 				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
@@ -511,9 +511,9 @@ public class CallFunc extends AccessDeclaration {
 			else if (declaration == null) {
 				if (unknownFunctionShouldBeError(context)) {
 					if (declarationName.equals(Keywords.Inherited)) {
-						Function activeFunc = context.getCurrentFunc();
+						Function activeFunc = context.currentFunction();
 						if (activeFunc != null)
-							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().name(), true);
+							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
 						else
 							context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					}
@@ -602,7 +602,7 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			if (!parser.container().engine().currentSettings().proplistsSupported && predecessorInSequence() != null)
+			if (!parser.containingScript().engine().currentSettings().proplistsSupported && predecessorInSequence() != null)
 				return new CallFunc("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);
@@ -613,10 +613,10 @@ public class CallFunc extends AccessDeclaration {
 		// Par(5) -> nameOfParm6
 		if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
-			Function activeFunc = parser.getCurrentFunc();
+			Function activeFunc = parser.currentFunction();
 			if (activeFunc != null) {
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
-					return new AccessVar(parser.getCurrentFunc().parameter(number.intValue()).name());
+					return new AccessVar(parser.currentFunction().parameter(number.intValue()).name());
 			}
 		}
 		
@@ -704,7 +704,7 @@ public class CallFunc extends AccessDeclaration {
 		CachedEngineDeclarations cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
-			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) {
+			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null) {
 				if (ev instanceof Number) {
 					// Var() with a sane constant number
 					return new VarFunctionsTypeInformation((Function) d, ((Number)ev).intValue());

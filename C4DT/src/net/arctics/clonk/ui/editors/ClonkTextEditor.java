@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -137,7 +137,7 @@ public class ClonkTextEditor extends TextEditor {
 			return ed;
 		}
 		if (structure != null) {
-			IEditorInput input = structure.getEditorInput();
+			IEditorInput input = structure.makeEditorInput();
 			if (input != null) {
 				try {
 					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
@@ -183,18 +183,18 @@ public class ClonkTextEditor extends TextEditor {
 	public static IEditorPart openDeclarationLocation(DeclarationLocation location, boolean activate) {
 		try {
 			IEditorPart ed = null;
-			if (location.getResource() instanceof IFile) {
-				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.getResource());
-				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
+			if (location.resource() instanceof IFile) {
+				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.resource());
+				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.resource(), descriptor.getId());
 			}
-			else if (location.getResource() instanceof IContainer) {
-				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.getResource());
+			else if (location.resource() instanceof IContainer) {
+				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.resource());
 				if (def != null) {
 					ed = openDeclaration(def);
 				}
 			}
 			if (ed instanceof ClonkTextEditor) {
-				((ClonkTextEditor) ed).selectAndReveal(location.getLocation());
+				((ClonkTextEditor) ed).selectAndReveal(location.location());
 			}
 			return ed;
 		} catch (Exception e) {
@@ -212,7 +212,7 @@ public class ClonkTextEditor extends TextEditor {
 	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-			if (target != structure && target.getLocation() != null) {
+			if (target != structure && target.location() != null) {
 				if (structure.isDirty() && clonkTextEditor instanceof C4ScriptEditor) {
 					try {
 						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
@@ -225,11 +225,11 @@ public class ClonkTextEditor extends TextEditor {
 				if (target == null)
 					target = old;
 				if (target != null)
-					clonkTextEditor.selectAndReveal(target.getRegionToSelect());
+					clonkTextEditor.selectAndReveal(target.regionToSelect());
 			}
 		} else if (editor instanceof AbstractTextEditor) {
 			AbstractTextEditor ed = (AbstractTextEditor) editor;
-			ed.selectAndReveal(target.getLocation().getStart(), target.getLocation().getEnd()-target.getLocation().getStart());
+			ed.selectAndReveal(target.location().getStart(), target.location().getEnd()-target.location().getStart());
 		}
 	}
 	

@@ -110,10 +110,10 @@ public class ReturnStatement extends KeywordStatement {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
-		Function activeFunc = parser.getCurrentFunc();
+		Function activeFunc = parser.currentFunction();
 		if (activeFunc == null)
 			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
-			parser.getCurrentFunc().expectedToBeOfType(returnExpr.typeInContext(parser), TypeExpectancyMode.Force);
+			parser.currentFunction().expectedToBeOfType(returnExpr.typeInContext(parser), TypeExpectancyMode.Force);
 	}
 }
