@@ -167,7 +167,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return true;
 	}
 	
-	public static DeclarationRegion getEntryRegion(String stringValue, int exprStart, int offset) {
+	public static DeclarationRegion entryRegionInString(String stringValue, int exprStart, int offset) {
 		int firstDollar = stringValue.lastIndexOf('$', offset-1);
 		int secondDollar = stringValue.indexOf('$', offset);
 		if (firstDollar != -1 && secondDollar != -1) {
@@ -177,8 +177,8 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return null;
 	}
 	
-	public static DeclarationRegion getEntryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
-		DeclarationRegion result = getEntryRegion(stringValue, exprStart, offset);
+	public static DeclarationRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
+		DeclarationRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
 			StringTbl stringTbl = container.getStringTblForLanguagePref();
 			Declaration e = stringTbl != null ? stringTbl.map().get(result.getText()) : null;
@@ -215,7 +215,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				switch (value.charAt(i)) {
 				case '$':
 					moreThanOneSubstitution = reg != null;
-					DeclarationRegion region = getEntryForLanguagePref(value, 0, i+1, context, true);
+					DeclarationRegion region = entryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
 						substitutionsApplied = true;
 						builder.append(((NameValueAssignment)region.getConcreteDeclaration()).stringValue());

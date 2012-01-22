@@ -107,7 +107,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				} else if (section.getParentDeclaration() instanceof IniUnit) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).configuration().getSections().values());
 				}
-				int indentation = getEditor().getIniUnit().getParser().getTabIndentation(offset);
+				int indentation = getEditor().getIniUnit().parser().getTabIndentation(offset);
 				if (indentation == section.indentation()+1) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.sectionData().getEntries().values());
 				}
@@ -165,7 +165,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Index index = Utilities.indexFromResource(getEditor().getIniUnit().getIniFile());
+		Index index = Utilities.indexFromResource(getEditor().getIniUnit().iniFile());
 		if (index != null) {
 			for (Index i : index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);

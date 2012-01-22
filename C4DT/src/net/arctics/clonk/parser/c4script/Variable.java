@@ -262,7 +262,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
-		if (!typeLocked && !(getScript() instanceof Engine))
+		if (!typeLocked && !(script() instanceof Engine))
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
@@ -419,7 +419,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public Object valueForVariable(String varName) {
-		return getScript().findLocalVariable(varName, true);
+		return script().findLocalVariable(varName, true);
 	}
 
 	@Override

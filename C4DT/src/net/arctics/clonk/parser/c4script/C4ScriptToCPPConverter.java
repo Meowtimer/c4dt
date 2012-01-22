@@ -74,13 +74,13 @@ public class C4ScriptToCPPConverter {
 					append("C4Value"); //$NON-NLS-1$
 					append(" "); //$NON-NLS-1$
 					int counter = 0;
-					for (VarInitialization var : statement.getVarInitializations()) {
+					for (VarInitialization var : statement.variableInitializations()) {
 						append(var.name);
 						if (var.expression != null) {
 							append(" = "); //$NON-NLS-1$
 							var.expression.print(this, depth+1);
 						}
-						if (++counter < statement.getVarInitializations().length)
+						if (++counter < statement.variableInitializations().length)
 							append(", "); //$NON-NLS-1$
 						else
 							append(";"); //$NON-NLS-1$

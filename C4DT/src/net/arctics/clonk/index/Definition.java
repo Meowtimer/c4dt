@@ -233,7 +233,7 @@ public class Definition extends Script {
 		}
 
 		@Override
-		public Structure getTopLevelStructure() {
+		public Structure topLevelStructure() {
 			return Definition.this;
 		}
 
@@ -267,8 +267,8 @@ public class Definition extends Script {
 		}
 		
 		@Override
-		public Script getScript() {
-			return Definition.this.getScript();
+		public Script script() {
+			return Definition.this.script();
 		}
 		
 	}

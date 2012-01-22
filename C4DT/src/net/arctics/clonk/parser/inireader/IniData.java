@@ -280,7 +280,7 @@ public class IniData {
 	 * @param filename including extension
 	 * @return the configuration or <tt>null</tt>
 	 */
-	public IniConfiguration getConfigurationFor(String filename) {
+	public IniConfiguration configurationFor(String filename) {
 		return configurations.get(filename);
 	}
 	

@@ -494,8 +494,8 @@ public class Engine extends Script {
 				}
 				try {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
-					unit.getParser().parse(false);
-					for (IniSection section : unit.getSections()) {
+					unit.parser().parse(false);
+					for (IniSection section : unit.sections()) {
 						Declaration declaration = findDeclaration(section.name());
 						if (declaration != null) {
 							unit.commitSection(declaration, section, false);

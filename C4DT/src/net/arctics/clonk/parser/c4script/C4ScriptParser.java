@@ -670,7 +670,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// function is weird or does not belong here - ignore
 			if (function.getBody() == null)
 				return;
-			if (function.getScript() != container) {
+			if (function.script() != container) {
 				if (builder != null) {
 					builder.parseFunction(function);
 				}
@@ -777,7 +777,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	private boolean createWarningAtDeclarationOfVariable(Block block, Variable variable, ParserErrorCode code, Object... formatArguments) {
 		for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
-			for (VarInitialization initialization : decl.getVarInitializations()) {
+			for (VarInitialization initialization : decl.variableInitializations()) {
 				if (initialization.variableBeingInitialized == variable) {
 					ExprElm old = currentFunctionContext.expressionReportingErrors;
 					currentFunctionContext.expressionReportingErrors = decl;
@@ -2880,7 +2880,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					errorWithCode(ParserErrorCode.ExpectedCode, this.offset, this.offset+1);
 				} else if (initialization instanceof VarDeclarationStatement) {
 					VarDeclarationStatement decStatement = (VarDeclarationStatement) initialization;
-					loopVariable = decStatement.getVarInitializations()[0].variableBeingInitialized;
+					loopVariable = decStatement.variableInitializations()[0].variableBeingInitialized;
 				}
 			}
 		}
@@ -3495,7 +3495,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			context.setScript(tempScript);
 			context.setBody(new SourceLocation(0, statementText.length()));
 		}
-		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(statementText, context.getScript(), markerListener) {
+		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(statementText, context.script(), markerListener) {
 			@Override
 			public int bodyOffset() {
 				return 0;
@@ -3548,7 +3548,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	@Override
-	public Script getScript() {
+	public Script script() {
 		return container();
 	}
 

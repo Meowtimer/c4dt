@@ -30,7 +30,7 @@ public class SimpleStatement extends Statement {
 		assignParentToSubElements();
 	}
 
-	public ExprElm getExpression() {
+	public ExprElm expression() {
 		return expression;
 	}
 

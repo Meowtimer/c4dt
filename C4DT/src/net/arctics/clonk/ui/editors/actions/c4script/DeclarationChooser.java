@@ -62,7 +62,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 			final Declaration decl = (Declaration) item;
 			for (Pattern p : getPatterns()) {
 				Matcher matcher = p.matcher("");
-				final Structure structure = decl.getTopLevelStructure();
+				final Structure structure = decl.topLevelStructure();
 				if (!(decl.nameMatches(matcher) || (structure != null && structure.nameMatches(matcher))))
 					return false;
 			}
@@ -172,7 +172,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 										s.requireLoaded();
 										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 											if (d.nameMatches(matcher)) {
-												contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.getScript().getScriptFile()), itemsFilter);
+												contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.script().getScriptFile()), itemsFilter);
 												if (++declarationsBatchSize == 5) {
 													Display.getDefault().asyncExec(refreshListRunnable);
 													declarationsBatchSize = 0;

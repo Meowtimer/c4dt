@@ -350,13 +350,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The documentation URl
 	 */
 	public String getDocumentationURL() {
-		return getDocumentationURL(name(), getScript().engine());
+		return getDocumentationURL(name(), script().engine());
 	}
 
 	@Override
 	public String infoText() {
 		String description = obtainUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? StringUtil.htmlerize(getReturnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? StringUtil.htmlerize(getReturnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -400,7 +400,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function getInherited() {
 		
 		// search in #included scripts
-		Collection<? extends IHasIncludes> includesCollection = getScript().getIncludes(false);
+		Collection<? extends IHasIncludes> includesCollection = script().getIncludes(false);
 		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			Function fun = includes[i].findFunction(name());

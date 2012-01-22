@@ -441,12 +441,12 @@ public class SpecialScriptRules {
 					List<IType> types = new LinkedList<IType>();
 					for (Index index : context.container().getIndex().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
-							if (f.getScript() instanceof Definition) {
-								types.add(new ConstrainedProplist((Definition)f.getScript(), ConstraintKind.Includes));
+							if (f.script() instanceof Definition) {
+								types.add(new ConstrainedProplist((Definition)f.script(), ConstraintKind.Includes));
 							}
-							else for (Directive directive : f.getScript().directives()) {
+							else for (Directive directive : f.script().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
-									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.container().resource(), directive.contentAsID());
+									Definition def = f.script().getIndex().getDefinitionNearestTo(context.container().resource(), directive.contentAsID());
 									if (def != null) {
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 									}

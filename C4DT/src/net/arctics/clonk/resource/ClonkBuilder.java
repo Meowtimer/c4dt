@@ -702,7 +702,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public void parseFunction(Function function) {
 		C4ScriptParser parser;
 		synchronized (parserMap) {
-			parser = parserMap.get(function.getScript());
+			parser = parserMap.get(function.script());
 		}
 		if (parser != null) {
 			try {

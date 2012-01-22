@@ -65,7 +65,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
-		Object script = decl.getScript().scriptStorage();
+		Object script = decl.script().scriptStorage();
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
@@ -75,12 +75,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration location
-		elements.add(decl.getScript());
+		elements.add(decl.script());
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
 			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.name(), Function.class)) {
-				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().scriptStorage() instanceof IFile)
+				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().scriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
 		}
@@ -94,9 +94,9 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			else if (element instanceof Script)
 				file = (IFile) ((Script)element).scriptStorage();
 			else if (element instanceof Function)
-				file = (IFile) ((Function)element).getScript().scriptStorage();
+				file = (IFile) ((Function)element).script().scriptStorage();
 			else if (element instanceof IniUnit)
-				file = ((IniUnit)element).getIniFile();
+				file = ((IniUnit)element).iniFile();
 			else
 				file = null;
 			if (file != null) {
@@ -163,7 +163,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
 			if (existingDec != null) {
-				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
+				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.script().toString()));
 			}
 		}
 		

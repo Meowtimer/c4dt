@@ -69,7 +69,7 @@ public class Wildcard extends PropListExpression {
 		return acceptedClasses;
 	}
 	
-	public ExprElm getTemplate() {
+	public ExprElm template() {
 		return original;
 	}
 	
@@ -82,7 +82,7 @@ public class Wildcard extends PropListExpression {
 		return true; // of course
 	}
 	
-	public String getTag() {
+	public String tag() {
 		return tag;
 	}
 	
@@ -154,7 +154,7 @@ public class Wildcard extends PropListExpression {
 
 			@Override
 			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
-				s.wildcardMatches.put(wildcard.getTag(), expression);
+				s.wildcardMatches.put(wildcard.tag(), expression);
 			}
 		};
 		if (body.compare(template, d).isEqual())
@@ -172,8 +172,8 @@ public class Wildcard extends PropListExpression {
 		}
 		if (original instanceof Wildcard) {
 			Wildcard w = (Wildcard) original;
-			if (w.getTag() != null) {
-				ExprElm e = wildcardReplacements.wildcardMatches.get(w.getTag());
+			if (w.tag() != null) {
+				ExprElm e = wildcardReplacements.wildcardMatches.get(w.tag());
 				if (e != null)
 					if (topLevel == original)
 						return e.clone();

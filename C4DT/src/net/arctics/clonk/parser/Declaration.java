@@ -170,7 +170,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns the toplevel C4Structure this declaration is declared in.
 	 * @return the structure
 	 */
-	public Structure getTopLevelStructure() {
+	public Structure topLevelStructure() {
 		return getTopLevelParentDeclarationOfType(Structure.class);
 	}
 	
@@ -178,12 +178,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns the script this declaration is declared in.
 	 * @return the script
 	 */
-	public Script getScript() {
+	public Script script() {
 		return getTopLevelParentDeclarationOfType(Script.class);
 	}
 	
 	public Scenario getScenario() {
-		Object file = getScript() != null ? getScript().scriptStorage() : null;
+		Object file = script() != null ? script().scriptStorage() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {
@@ -262,7 +262,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		final Script script = getScript();
+		final Script script = script();
 		if (isGlobal())
 			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 		final Set<Object> scope = new HashSet<Object>();
@@ -472,12 +472,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			
 			@Override
 			public Definition getContainerAsDefinition() {
-				return getScript() instanceof Definition ? (Definition)getScript() : null;
+				return script() instanceof Definition ? (Definition)script() : null;
 			}
 			
 			@Override
 			public Script container() {
-				return getScript();
+				return script();
 			}
 
 			@Override
@@ -507,8 +507,8 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public Script getScript() {
-				return Declaration.this.getScript();
+			public Script script() {
+				return Declaration.this.script();
 			}
 
 			@Override

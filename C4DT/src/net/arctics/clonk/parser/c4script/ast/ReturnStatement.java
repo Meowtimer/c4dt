@@ -44,7 +44,7 @@ public class ReturnStatement extends KeywordStatement {
 		builder.append(";"); //$NON-NLS-1$
 	}
 
-	public ExprElm getReturnExpr() {
+	public ExprElm returnExpression() {
 		return returnExpr;
 	}
 

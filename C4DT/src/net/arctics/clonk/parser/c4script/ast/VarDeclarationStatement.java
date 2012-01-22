@@ -134,7 +134,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		System.arraycopy(elms, 0, newElms, 0, elms.length);
 		varInitializations = newElms;
 	}
-	public final VarInitialization[] getVarInitializations() {
+	public final VarInitialization[] variableInitializations() {
 		return varInitializations;
 	}
 	@Override

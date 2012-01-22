@@ -84,7 +84,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	}
 	
 	public int get(int index) {
-		return values[index].getSummedValue();
+		return values[index].summedValue();
 	}
 
 	@Override

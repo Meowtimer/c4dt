@@ -8,7 +8,7 @@ public class ReturnException extends ControlFlowException {
 
 	private Object result;
 
-	public Object getResult() {
+	public Object result() {
 		return result;
 	}
 	

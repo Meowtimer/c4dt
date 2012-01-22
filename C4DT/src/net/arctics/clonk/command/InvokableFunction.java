@@ -42,8 +42,8 @@ public class InvokableFunction extends Function {
 			}
 
 			@Override
-			public Script getScript() {
-				return InvokableFunction.this.getScript();
+			public Script script() {
+				return InvokableFunction.this.script();
 			}
 
 			@Override
@@ -57,7 +57,7 @@ public class InvokableFunction extends Function {
 			try {
 				lastEvaluation = s.evaluate(context);
 			} catch (ReturnException e) {
-				return e.getResult();
+				return e.result();
 			} catch (ControlFlowException e) {
 				switch (e.getControlFlow()) {
 				case BreakLoop:

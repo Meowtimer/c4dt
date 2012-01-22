@@ -130,7 +130,7 @@ public class ClonkTextEditor extends TextEditor {
 	public static IEditorPart openDeclaration(Declaration target, boolean activate) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		Structure structure = target.getTopLevelStructure();
+		Structure structure = target.topLevelStructure();
 		if (structure instanceof IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) {
 			IEditorPart ed = ((IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) structure).getEditor();
 			revealInEditor(target, structure, ed);

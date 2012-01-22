@@ -26,7 +26,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		components.add(new KeyValuePair<KeyType, ValueType>(id,num));
 	}
 
-	public List<KeyValuePair<KeyType, ValueType>> getComponents() {
+	public List<KeyValuePair<KeyType, ValueType>> components() {
 		return components;
 	}
 	

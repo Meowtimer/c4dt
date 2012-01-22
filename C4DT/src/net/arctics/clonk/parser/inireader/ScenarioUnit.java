@@ -17,10 +17,10 @@ public class ScenarioUnit extends IniUnit {
 	}
 	
 	@Override
-	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
+	protected IniDataSection sectionDataFor(IniSection section, IniSection parentSection) {
 		if (section.name().startsWith("Player")) //$NON-NLS-1$
 			return configuration().getSections().get("Player"); //$NON-NLS-1$
-		return super.getSectionDataFor(section, parentSection);
+		return super.sectionDataFor(section, parentSection);
 	}
 	
 	@Override

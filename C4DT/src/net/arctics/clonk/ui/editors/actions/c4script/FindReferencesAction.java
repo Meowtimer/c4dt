@@ -21,7 +21,7 @@ public class FindReferencesAction extends C4ScriptEditorAction {
 		try {
 			Declaration declaration = getDeclarationAtSelection(false);
 			if (declaration != null) {
-				ClonkProjectNature nature = ClonkProjectNature.get(declaration.getScript());				
+				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());				
 				if (nature == null) {
 					nature = ClonkProjectNature.get(getTextEditor()); 
 				}

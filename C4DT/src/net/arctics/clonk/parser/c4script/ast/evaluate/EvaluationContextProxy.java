@@ -31,8 +31,8 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public Script getScript() {
-		return base.getScript();
+	public Script script() {
+		return base.script();
 	}
 
 	@Override

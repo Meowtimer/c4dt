@@ -80,7 +80,7 @@ public class IniDescriptionsLoader {
 					InputStream input = descs.openStream();
 					try {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
-						unit.getParser().parse(false);
+						unit.parser().parse(false);
 						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();

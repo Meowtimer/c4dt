@@ -37,7 +37,7 @@ public abstract class ClonkSearchQueryBase implements ISearchQuery, IFileMatchAd
 	@Override
 	public IFile getFile(Object element) {
 		if (element instanceof Declaration)
-			return ((Declaration)element).getScript().getScriptFile();
+			return ((Declaration)element).script().getScriptFile();
 		if (element instanceof Script)
 			return  ((Script)element).getScriptFile();
 		if (element instanceof IFile) {

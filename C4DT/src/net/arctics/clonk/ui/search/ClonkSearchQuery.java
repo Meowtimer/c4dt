@@ -165,7 +165,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 				}
 				else if (scope instanceof Function) {
 					Function func = (Function)scope;
-					C4ScriptParser parser = new C4ScriptParser(func.getScript());
+					C4ScriptParser parser = new C4ScriptParser(func.script());
 					parser.setCurrentFunc(func);
 					parser.reportExpressionsAndStatements(func, listener, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				}
@@ -207,7 +207,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 												}
 											}
 											else if (entryClass == IDArray.class) {
-												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).getComponents()) {
+												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
 													Definition obj = script.getIndex().getDefinitionFromEverywhere(pair.key());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));

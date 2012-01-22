@@ -176,7 +176,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						Scenario s1 = func.getScenario();
 						if (s1 != null && s2 != null && s1 != s2)
 							continue;
-						proposalForFunc(func, prefix, offset, proposals, func.getScript().name(), true);
+						proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
 					}
 				if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
 					for (Variable var : index.staticVariables()) {
@@ -425,7 +425,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
 		Index index = function.getIndex();
 		processor.contextExpression = expression;
-		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.getScript(), parser);
+		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.script(), parser);
 		return result;
 	}
 

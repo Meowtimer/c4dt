@@ -99,7 +99,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
-			null, var.infoText(), " - " + (var.getScript() != null ? var.getScript().name() : "<adhoc>"), //$NON-NLS-1$
+			null, var.infoText(), " - " + (var.script() != null ? var.script().name() : "<adhoc>"), //$NON-NLS-1$
 			getEditor()
 		);
 		prop.setCategory(Category.Variables);

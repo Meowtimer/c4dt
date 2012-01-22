@@ -198,7 +198,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
 			if (function.name().equals("Definition")) //$NON-NLS-1$
 				return;
-			Function definitionFunc = function.getScript().findLocalFunction("Definition", false); //$NON-NLS-1$
+			Function definitionFunc = function.script().findLocalFunction("Definition", false); //$NON-NLS-1$
 			if (definitionFunc != null) {
 				try {
 					context.parseCodeOfFunction(definitionFunc, true);
@@ -228,7 +228,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return arguments;
 		}
 		@Override
-		public Script getScript() {
+		public Script script() {
 			return script;
 		}
 		@Override
@@ -256,7 +256,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return tracer;
 		}
 		public static EvaluationTracer evaluate(ExprElm expression, Function function) {
-			return evaluate(expression, null, function.getScript(), function);
+			return evaluate(expression, null, function.script(), function);
 		}
 	}
 	

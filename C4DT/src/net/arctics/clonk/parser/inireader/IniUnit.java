@@ -81,7 +81,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	private IniUnitParser parser;
 	
-	public IniUnitParser getParser() {
+	public IniUnitParser parser() {
 		return parser;
 	}
 	
@@ -114,7 +114,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * Returns the file the configuration was read from
 	 * @return the file
 	 */
-	public IFile getIniFile() {
+	public IFile iniFile() {
 		return iniFile;
 	}
 	
@@ -203,7 +203,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		sectionsMap.clear();
 	}
 
-	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
+	protected IniDataSection sectionDataFor(IniSection section, IniSection parentSection) {
 		if (parentSection != null) {
 			if (parentSection.sectionData() != null) {
 				IniDataBase dataItem = parentSection.sectionData().getEntry(section.name());
@@ -267,7 +267,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
 				List<IniItem> itemList = new LinkedList<IniItem>();
 				currentSection = section;
-				currentSection.setSectionData(getSectionDataFor(section, parentSection));
+				currentSection.setSectionData(sectionDataFor(section, parentSection));
 				while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
 					itemMap.put(item.key(),item);
 					itemList.add(item);
@@ -330,11 +330,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				if (resetScannerWithFileContents) {
 					reset();
 				}
-				if (modifyMarkers && getIniFile() != null) {
+				if (modifyMarkers && iniFile() != null) {
 					try {
-						getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+						iniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 						// deactivate creating markers if it's contained in a linked group
-						modifyMarkers = C4GroupItem.getGroupItemBackingResource(getIniFile()) == null;
+						modifyMarkers = C4GroupItem.getGroupItemBackingResource(iniFile()) == null;
 					} catch (CoreException e) {
 						e.printStackTrace();
 					}
@@ -427,7 +427,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public IniConfiguration configuration() {
 		String confName = configurationName();
 		if (confName != null && engine() != null && engine().iniConfigurations() != null)
-			return engine().iniConfigurations().getConfigurationFor(confName);
+			return engine().iniConfigurations().configurationFor(confName);
 		else
 			return null;
 	}
@@ -455,13 +455,13 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return item instanceof IniEntry ? (IniEntry)item : null;
 	}
 
-	public IniSection[] getSections() {
+	public IniSection[] sections() {
 		return sectionsList.toArray(new IniSection[sectionsList.size()]);
 	}
 
 	@Override
 	public Object[] children() {
-		return getSections();
+		return sections();
 	}
 
 	@Override
@@ -511,7 +511,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.getSections()) : parent.sections()) {
+		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.sections()) : parent.sections()) {
 			int start = sec.getLocation().getStart();
 			if (start > offset) {
 				break;
@@ -545,14 +545,14 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public Structure getTopLevelStructure() {
+	public Structure topLevelStructure() {
 		return this;
 	}
 	
 	@Override
 	public String toString() {
-		if (getIniFile() != null)
-			return getIniFile().getFullPath().toOSString();
+		if (iniFile() != null)
+			return iniFile().getFullPath().toOSString();
 		else
 			return super.toString();
 	}
@@ -565,7 +565,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					try {
 						IniUnit unit = createAdequateIniUnit((IFile) resource);
 						if (unit != null) {
-							unit.getParser().parse(duringBuild);
+							unit.parser().parse(duringBuild);
 						}
 						return unit;
 					} catch (Exception e) {
@@ -578,7 +578,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		Class<? extends IniUnit> cls = getIniUnitClass(file);
+		Class<? extends IniUnit> cls = iniUnitClassForResource(file);
 		if (cls == null) {
 			return null;
 		}
@@ -603,7 +603,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @param resource the ini file to return an IniUnit class for
 	 * @return the IniUnit class or null if no suitable one could be found
 	 */
-	public static Class<? extends IniUnit> getIniUnitClass(IResource resource) {
+	public static Class<? extends IniUnit> iniUnitClassForResource(IResource resource) {
 		try {
 			IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
 			if (contentType == null)
@@ -683,7 +683,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public String infoText() {
 		return String.format(
 			INFO_FORMAT,
-			this.defaultName, this.getIniFile().getProjectRelativePath().toOSString()
+			this.defaultName, this.iniFile().getProjectRelativePath().toOSString()
 		);
 	}
 

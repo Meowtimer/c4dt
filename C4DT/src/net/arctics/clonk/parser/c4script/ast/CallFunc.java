@@ -477,7 +477,7 @@ public class CallFunc extends AccessDeclaration {
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
 				if (f.getVisibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
-					context.container().addUsedScript(f.getScript());
+					context.container().addUsedScript(f.script());
 				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);

@@ -71,7 +71,7 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Attachment> T getAttachment(Class<T> cls) {
+	public <T extends Attachment> T attachmentOfType(Class<T> cls) {
 		if (attachments != null) {
 			for (Attachment a : attachments) {
 				if (cls.isAssignableFrom(a.getClass())) {
@@ -83,7 +83,7 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 
 	public Comment inlineComment() {
-		return getAttachment(Comment.class);
+		return attachmentOfType(Comment.class);
 	}
 
 	public void setInlineComment(Comment inlineComment) {

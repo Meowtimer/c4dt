@@ -20,7 +20,7 @@ public class Placeholder extends ExprElm {
 		return true;
 	}
 
-	public String getEntryName() {
+	public String entryName() {
 		return entryName;
 	}
 	@Override

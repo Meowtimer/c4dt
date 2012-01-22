@@ -78,7 +78,7 @@ public class CategoriesValue {
 		}
 	}
 	
-	public int getSummedValue() {
+	public int summedValue() {
 		return summedValue;
 	}
 	

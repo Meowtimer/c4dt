@@ -63,7 +63,7 @@ public class IfStatement extends ConditionalStatement {
 		return result;
 	}
 	
-	public ExprElm getElse() {
+	public ExprElm elseExpression() {
 		return elseExpr;
 	}
 	

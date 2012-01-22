@@ -27,7 +27,7 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * The script that acts as the general context for this evaluation. <i>May not be null</i>.
 	 * @return
 	 */
-	Script getScript();
+	Script script();
 	/**
 	 * Offset in characters of the code fragment that is being evaluated.
 	 * @return The offset

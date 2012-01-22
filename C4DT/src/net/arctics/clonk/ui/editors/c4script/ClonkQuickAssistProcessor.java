@@ -478,7 +478,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
 				case NotFinished:
-					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).getExpression())) {
+					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).expression())) {
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
 								topLevel // will be added by converting topLevel to string
@@ -614,10 +614,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						SimpleStatement statement = (SimpleStatement) topLevel;
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_ConvertToReturn,
-								new ReturnStatement((statement.getExpression()))
+								new ReturnStatement((statement.expression()))
 						);
 						addRemoveReplacement(document, expressionRegion, replacements, func);
-						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
+						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
 					}
 					break;
@@ -625,8 +625,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					if (topLevel instanceof SimpleStatement) {
 						SimpleStatement statement = (SimpleStatement) topLevel;
 
-						if (statement.getExpression() instanceof BinaryOp) {
-							BinaryOp binaryOp = (BinaryOp) statement.getExpression();
+						if (statement.expression() instanceof BinaryOp) {
+							BinaryOp binaryOp = (BinaryOp) statement.expression();
 							if (binaryOp.operator() == Operator.Equal && binaryOp.leftSide().isModifiable(parser)) {
 								replacements.add(
 										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,

@@ -88,8 +88,8 @@ public class IniTextEditor extends ClonkTextEditor {
 			if (!unitParsed) {
 				unitParsed = true;
 				String newDocumentString = editor != null ? editor.getSourceViewer().getDocument().get() : document.get();
-				structure.getParser().reset(newDocumentString);
-				structure.getParser().parse(false, false);
+				structure.parser().reset(newDocumentString);
+				structure.parser().parse(false, false);
 			}
 			return true;
 		}

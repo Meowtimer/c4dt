@@ -508,7 +508,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	public void removeDeclaration(Declaration declaration) {
 		requireLoaded();
-		if (declaration.getScript() != this)
+		if (declaration.script() != this)
 			declaration.setScript(this);
 		if (declaration instanceof Function) {
 			if (definedFunctions != null) synchronized (definedFunctions) {
@@ -550,12 +550,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public Script getScript() {
+	public Script script() {
 		return this;
 	}
 
 	@Override
-	public Structure getTopLevelStructure() {
+	public Structure topLevelStructure() {
 		return this;
 	}
 

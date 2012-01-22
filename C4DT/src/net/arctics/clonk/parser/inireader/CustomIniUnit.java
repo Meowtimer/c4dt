@@ -101,7 +101,7 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void commitTo(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		for (IniSection section : this.getSections()) {
+		for (IniSection section : this.sections()) {
 			commitSection(object, section, true);
 		}
 	}
@@ -149,7 +149,7 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		getParser().parse(false);
+		parser().parse(false);
 		commitTo(obj);
 	}
 

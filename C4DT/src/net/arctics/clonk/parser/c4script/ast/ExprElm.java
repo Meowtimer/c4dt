@@ -8,10 +8,10 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.CachedEngineDeclarations;
-import net.arctics.clonk.index.IPostLoadable;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IPostLoadable;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -804,7 +804,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 *
 	 */
 	protected static final class GenericStoredTypeInformation extends StoredTypeInformation {
-		private ExprElm referenceElm;
+		private final ExprElm referenceElm;
 		
 		public GenericStoredTypeInformation(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
@@ -914,11 +914,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		List<T> l = new LinkedList<T>();
 		collectExpressionsOfType(l, cls);
 		return l;
-	}
-	
-	// getting/setting some associated variable so the exprelm knows from whence it came
-	public Declaration associatedDeclaration() {
-		return null;
 	}
 	
 	public void setAssociatedDeclaration(Declaration declaration) {

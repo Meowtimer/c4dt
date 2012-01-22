@@ -44,7 +44,7 @@ public final class StringLiteral extends Literal<String> {
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		DeclarationRegion result = StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.container(), true);
+		DeclarationRegion result = StringTbl.entryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.container(), true);
 		if (result != null)
 			return result;
 
@@ -69,12 +69,12 @@ public final class StringLiteral extends Literal<String> {
 	
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
-		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), StringUtil.evaluateEscapes(getLiteral()), false);
+		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), StringUtil.evaluateEscapes(getLiteral()), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().resource());
 		else if (!r.anySubstitutionsApplied)
-			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.getScript().getScriptFile());
+			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().getScriptFile());
 		return r.evaluated;
 	}
 
@@ -97,7 +97,7 @@ public final class StringLiteral extends Literal<String> {
 		// warn when using non-declared string tbl entries
 		for (int i = 0; i < valueLen;) {
 			if (i+1 < valueLen && value.charAt(i) == '$') {
-				DeclarationRegion region = StringTbl.getEntryRegion(stringValue(), getExprStart(), (i+1));
+				DeclarationRegion region = StringTbl.entryRegionInString(stringValue(), getExprStart(), (i+1));
 				if (region != null) {
 					StringTbl.reportMissingStringTblEntries(parser, region);
 					i += region.getRegion().getLength();

@@ -8,11 +8,11 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
@@ -106,14 +106,14 @@ public class PropListExpression extends Value {
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.getCurrentVariable() != null) {
-			return context.container().engine().iniConfigurations().getConfigurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
+			return context.container().engine().iniConfigurations().configurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}
 	}
 	
 	private Declaration associatedDeclaration;
-	public Declaration getAssociatedDeclaration() {
+	public Declaration associatedDeclaration() {
 		return associatedDeclaration;
 	}
 	@Override

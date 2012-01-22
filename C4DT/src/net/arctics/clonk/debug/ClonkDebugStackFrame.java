@@ -87,7 +87,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	@Override
 	public String getName() throws DebugException {
 		if (function instanceof Function)
-			return String.format(NAME_FORMAT, ((Function)function).getScript().name(), ((Function) function).getLongParameterString(true), line);
+			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).getLongParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else
@@ -197,7 +197,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	public String getSourcePath() {
 		if (function instanceof Function) {
 			Function f = (Function) function;
-			IResource r = f.getScript().resource();
+			IResource r = f.script().resource();
 			if (r instanceof IContainer)
 				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$
 			else if (r != null)
