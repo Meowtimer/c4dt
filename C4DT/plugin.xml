@@ -79,7 +79,7 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-extensions="c4m" id="net.arctics.clonk.material" name="%MaterialDefinition_Name"
+			file-extensions="c4m,ocm" id="net.arctics.clonk.material" name="%MaterialDefinition_Name"
 			priority="high" />
 		
 		<content-type base-type="net.arctics.clonk.inifile"
