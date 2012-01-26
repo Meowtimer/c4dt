@@ -31,14 +31,14 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			return;
 		
 		try {
-			if (Character.isLetterOrDigit(configuration.getEditor().getDocumentProvider().getDocument(configuration.getEditor().getEditorInput()).getChar(pos))) {
+			if (Character.isLetterOrDigit(configuration.editor().getDocumentProvider().getDocument(configuration.editor().getEditorInput()).getChar(pos))) {
 				super.doubleClicked(viewer);
 				return;
 			}
 		} catch (Exception e) {
 		}
 
-		Script script = Utilities.scriptForEditor(configuration.getEditor());
+		Script script = Utilities.scriptForEditor(configuration.editor());
 		Function func = script.funcAt(pos);
 		if (func != null) {
 			ExpressionLocator locator = new ExpressionLocator(pos-func.getBody().getOffset());

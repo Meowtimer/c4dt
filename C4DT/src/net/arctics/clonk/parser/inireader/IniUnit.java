@@ -161,7 +161,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			IniDataEntry entryConfig = (IniDataEntry) dataItem;
 			try {
 				try {
-					Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.stringValue(), entryConfig, this);
+					Object value = configuration.getFactory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
 					return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 				}
 				catch(IniParserException e) { // add offsets and throw through

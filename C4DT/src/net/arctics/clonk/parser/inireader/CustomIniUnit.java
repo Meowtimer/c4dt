@@ -71,10 +71,10 @@ public class CustomIniUnit extends IniUnit {
 					if (dataItem instanceof IniDataEntry) {
 						IniDataEntry entry = (IniDataEntry) dataItem;
 						Constructor<?> ctor;
-						Object value = f.getType() == entry.getEntryClass() ? f.get(object) : null;
+						Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
 						if (value == null) {
 							try {
-								ctor = entry.getEntryClass().getConstructor(f.getType());
+								ctor = entry.entryClass().getConstructor(f.getType());
 							} catch (SecurityException e) {
 								ctor = null;
 							} catch (NoSuchMethodException e) {

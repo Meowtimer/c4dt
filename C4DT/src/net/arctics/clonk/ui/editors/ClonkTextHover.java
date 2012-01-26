@@ -39,7 +39,7 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 
 		@Override
 		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
-			hyperlink = configuration.getEditor().hyperlinkAtOffset(offset);
+			hyperlink = configuration.editor().hyperlinkAtOffset(offset);
 			if (hyperlink != null)
 				return hyperlink.getHyperlinkRegion();
 			return null;

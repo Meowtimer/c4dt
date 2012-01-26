@@ -49,7 +49,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 						values[i] = new CategoriesValue(0);
 					else {
 						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1); //$NON-NLS-1$
-						values[i] = new CategoriesValue(parts[i].trim(), context.engine(), entryData.getConstantsPrefix());
+						values[i] = new CategoriesValue(parts[i].trim(), context.engine(), entryData.constantsPrefix());
 					}
 				}
 				this.values = values;

@@ -191,7 +191,7 @@ public class ReferencesQuery extends SearchQueryBase {
 								if (entry instanceof ComplexIniEntry) {
 									ComplexIniEntry complex = (ComplexIniEntry) entry;
 									if (complex.entryConfig() != null) {
-										Class<?> entryClass = complex.entryConfig().getEntryClass();
+										Class<?> entryClass = complex.entryConfig().entryClass();
 										if (entryClass == FuncRefEntry.class) {
 											Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {

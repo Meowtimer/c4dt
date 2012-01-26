@@ -35,7 +35,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
 				IRegion region, boolean canShowMultipleHyperlinks) {
-			MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
+			MapOverlayBase overlay = editor().getMapCreator().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
 			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).template() != null && region.getOffset()-overlay.location().getStart() < ((MapOverlay) overlay).template().name().length())
 				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.location().getOffset(), ((MapOverlay) overlay).template().name().length()), ((MapOverlay) overlay).template())};
@@ -122,7 +122,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		MapCreatorCompletionProcessor processor = new MapCreatorCompletionProcessor(getEditor());
+		MapCreatorCompletionProcessor processor = new MapCreatorCompletionProcessor(editor());
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		
@@ -133,7 +133,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.fileBeingEditedBy(getEditor()).getName()));
+		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.fileBeingEditedBy(editor()).getName()));
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

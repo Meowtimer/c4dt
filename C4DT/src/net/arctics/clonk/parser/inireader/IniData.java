@@ -5,13 +5,13 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.util.ArrayUtil;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -132,7 +132,7 @@ public class IniData {
 				// there was a '==' comparison all the time :D - did work by chance or what?
 				if (node.getNodeName().equals("entry")) { //$NON-NLS-1$
 					IniDataEntry entry = IniDataEntry.createFromXML(node, factory);
-					section.getEntries().put(entry.getEntryName(), entry);
+					section.getEntries().put(entry.entryName(), entry);
 				}
 				else if (node.getNodeName().equals("section")) {
 					IniDataSection sec = IniDataSection.createFromXML(node, factory);
@@ -221,25 +221,26 @@ public class IniData {
 			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) { //$NON-NLS-1$
 				entry.entryDescription = n.getNodeValue();
 			}
-			if (entry.entryClass == CategoriesArray.class || entry.entryClass == IntegerArray.class) {
-				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) { //$NON-NLS-1$
-					entry.extraData = n.getNodeValue().split(","); //$NON-NLS-1$
-				}
-				else if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null) { //$NON-NLS-1$
-					entry.extraData = n.getNodeValue();
-				}
+			if (
+				(n = entryNode.getAttributes().getNamedItem("flags")) != null || //$NON-NLS-1$
+				(n = entryNode.getAttributes().getNamedItem("enumValues")) != null //$NON-NLS-1$
+			) {
+				entry.extraData = ArrayUtil.mapValueToIndex(n.getNodeValue().split(",")); //$NON-NLS-1$
+			}
+			if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null) { //$NON-NLS-1$
+				entry.extraData = n.getNodeValue();
 			}
 			return entry;
 		}
 		
-		public String getEntryName() {
+		public String entryName() {
 			return entryName;
 		}
 
-		public Class<?> getEntryClass() {
+		public Class<?> entryClass() {
 			return entryClass;
 		}
-		public String getDescription() {
+		public String description() {
 			return entryDescription;
 		}
 		
@@ -253,9 +254,18 @@ public class IniData {
 			entryDescription = desc;
 		}
 		
-		public String getConstantsPrefix() {
+		public String constantsPrefix() {
 			try {
 				return (String) extraData;
+			} catch (ClassCastException e) {
+				return null;
+			}
+		}
+		
+		@SuppressWarnings("unchecked")
+		public Map<String, Integer> enumValues() {
+			try {
+				return (Map<String, Integer>) extraData;
 			} catch (ClassCastException e) {
 				return null;
 			}

@@ -347,8 +347,10 @@
 				description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)." />
 			<entry name="ColorAnimation" class="SignedInteger"
 				description="0 oder 1. Farbanimation." />
-			<entry name="Shape" class="SignedInteger"
-				description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh." />
+			<entry name="Shape" class="Enum"
+				description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh."
+				enumValues="Flat,TopFlat,Smooth,Rough,Octagon,Smoother"
+			/>
 			<entry name="Density" class="SignedInteger"
 				description="Dichte: 50 fest, 25 flüssig (andere Werte nicht zulässig)." />
 			<entry name="Friction" class="SignedInteger"
@@ -365,6 +367,7 @@
 				description="ca. 100-500. Massenverhältnis beim Freigraben." />
 			<entry name="Dig2ObjectRequest" class="SignedInteger"
 				description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben." />
+			<entry name="Dig2ObjectCollect" class="SignedInteger" />
 			<entry name="Blast2ObjectRatio" class="SignedInteger"
 				description="ca. 100-500. Massenverhältnis beim Freisprengen." />
 			<entry name="Blast2PXSRatio" class="SignedInteger"

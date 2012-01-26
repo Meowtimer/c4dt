@@ -30,13 +30,17 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 			if (input.equals("")) //$NON-NLS-1$
 				number = 0;
 			else
-				setNumber(Long.parseLong(input));
+				setNumberFromStringValue(input, entryData, context);
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); 
 			exp.setInnerException(e);
 			throw exp;
 		}
+	}
+
+	protected void setNumberFromStringValue(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+		setNumber(Long.parseLong(input));
 	}
 	
 	@Override

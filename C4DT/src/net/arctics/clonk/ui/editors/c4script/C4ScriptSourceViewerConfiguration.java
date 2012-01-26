@@ -37,7 +37,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
-				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
+				DeclarationLocator locator = new DeclarationLocator(editor(), viewer.getDocument(),region);
 				if (locator.getDeclaration() != null && locator.getDeclaration().declarationLocations() != null)
 					return new IHyperlink[] {
 						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
@@ -76,7 +76,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 
 	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new C4ScriptCodeScanner(getColorManager(), getEditor().scriptBeingEdited().engine());
+			scanner = new C4ScriptCodeScanner(getColorManager(), editor().scriptBeingEdited().engine());
 			scanner.setDefaultReturnToken(
 					new Token(
 							new TextAttribute(
@@ -106,7 +106,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		assistant = new ClonkContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(getEditor(),assistant);
+		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(),assistant);
 		for (String s : ClonkPartitionScanner.C4S_PARTITIONS)
 			assistant.setContentAssistProcessor(processor, s);
 		assistant.install(sourceViewer);
@@ -209,7 +209,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public void refreshSyntaxColoring() {
-		getClonkScanner().commitRules(getColorManager(), getEditor().scriptBeingEdited().engine());
+		getClonkScanner().commitRules(getColorManager(), editor().scriptBeingEdited().engine());
 	}
 
 }

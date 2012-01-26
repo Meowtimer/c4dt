@@ -117,7 +117,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			IniDataBase itemData = section.sectionData().getEntry(entryName);
 			if (itemData instanceof IniDataEntry) {
 				IniDataEntry entryDef = (IniDataEntry) itemData;
-				Class<?> entryClass = entryDef.getEntryClass();
+				Class<?> entryClass = entryDef.entryClass();
 				if (entryClass == ID.class || entryClass == IconSpec.class) {
 					proposalsForIndex(offset, proposals, prefix, wordOffset);
 				}
@@ -156,7 +156,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
-			for (Variable v : editor().unit().engine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
+			for (Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix())) {
 				if (v.getScope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
@@ -204,9 +204,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (IniDataBase entry : sectionData.getEntries().values()) {
 			if (entry instanceof IniDataEntry) {
 				IniDataEntry e = (IniDataEntry) entry;
-				if (!e.getEntryName().toLowerCase().contains(prefix))
+				if (!e.entryName().toLowerCase().contains(prefix))
 					continue;
-				proposals.add(new CompletionProposal(e.getEntryName(), wordOffset, prefix.length(), e.getEntryName().length(), null, e.getEntryName(), null, e.getDescription()));
+				proposals.add(new CompletionProposal(e.entryName(), wordOffset, prefix.length(), e.entryName().length(), null, e.entryName(), null, e.description()));
 			}
 			else if (entry instanceof IniDataSection) {
 				// FIXME

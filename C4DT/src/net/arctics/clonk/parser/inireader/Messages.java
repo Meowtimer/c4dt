@@ -8,6 +8,7 @@ public class Messages extends NLS {
 	public static String UnknownOption;
 	public static String IniSection_InfoTextFormat;
 	public static String InternalIniParserBug;
+	public static String Enum_UnknownValue;
 	public static String ExpectedIntegerArray;
 	public static String IntegerExpected;
 	public static String OnlyUnsignedIntegersAllowed;

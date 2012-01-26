@@ -29,7 +29,7 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 		return ClonkPartitionScanner.C4S_PARTITIONS;
 	}
 
-	public EditorType getEditor() {
+	public EditorType editor() {
 		return textEditor;
 	}
 

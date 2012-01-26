@@ -171,6 +171,13 @@ public class ArrayUtil {
 		return result;
 	}
 	
+	public static <T> Map<T, Integer> mapValueToIndex(T[] items) {
+		Map<T, Integer> result = new HashMap<T, Integer>();
+		for (int i = 0; i < items.length; i++)
+			result.put(items[i], i);
+		return result;
+	}
+	
 	public static <From, To> Iterable<To> map(Iterable<From> source, IConverter<From, To> converter) {
 		return new ConvertingIterable<From, To>(converter, source);
 	}
