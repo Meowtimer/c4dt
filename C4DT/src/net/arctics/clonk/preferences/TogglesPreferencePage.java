@@ -32,7 +32,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 
 	@Override
 	public void init(IWorkbench workbench) {
-		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
+		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
 	}
 	
 	@Override

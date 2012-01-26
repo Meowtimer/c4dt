@@ -641,7 +641,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			if (customizationNature != null) {
 				for (IResource r = resource(); r != customizationNature.getProject(); r = r.getParent()) {
 					if (r.getParent() == customizationNature.getProject()) {
-						return ClonkCore.getDefault().loadEngine(r.getName());
+						return ClonkCore.instance().loadEngine(r.getName());
 					}
 				}
 			}

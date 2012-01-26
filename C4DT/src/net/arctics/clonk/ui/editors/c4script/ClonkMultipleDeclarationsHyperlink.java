@@ -36,7 +36,7 @@ public class ClonkMultipleDeclarationsHyperlink extends ClonkHyperlink {
 	}
 
 	private boolean chooseDeclarations() {
-		DeclarationChooser chooser = new DeclarationChooser(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), this.proposedDeclarations, true);
+		DeclarationChooser chooser = new DeclarationChooser(ClonkCore.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.proposedDeclarations, true);
 		switch (chooser.open()) {
 		case Window.OK:
 			boolean b = true;

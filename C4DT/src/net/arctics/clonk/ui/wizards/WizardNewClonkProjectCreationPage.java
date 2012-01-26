@@ -97,9 +97,9 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	@Override
 	public Engine getEngine(boolean fallbackToDefault) {
 		engineEditor.store();
-		Engine engine = ClonkCore.getDefault().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
+		Engine engine = ClonkCore.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
 		if (fallbackToDefault && engine == null)
-			engine = ClonkCore.getDefault().getActiveEngine();
+			engine = ClonkCore.instance().getActiveEngine();
 		return engine;
 	}
 	

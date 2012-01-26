@@ -15,7 +15,7 @@ public class OpenObjectHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		OpenObjectDialog dialog = new OpenObjectDialog(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell());
+		OpenObjectDialog dialog = new OpenObjectDialog(ClonkCore.instance().getWorkbench().getActiveWorkbenchWindow().getShell());
 		switch (dialog.open()) {
 		case Window.OK:
 			for (Definition o : dialog.getSelectedObjects()) {

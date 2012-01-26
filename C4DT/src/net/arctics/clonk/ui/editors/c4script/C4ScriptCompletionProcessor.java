@@ -394,9 +394,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
-			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+			ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 			if (reg.get("keyword") == null) { //$NON-NLS-1$
-				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null) {
@@ -457,9 +457,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private ClonkCompletionProposal callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, ParmInfo... parmTypes) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 		if (reg.get("callback") == null) { //$NON-NLS-1$
-			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		int replacementLength = 0;
 		if (prefix != null)
@@ -516,9 +516,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (prefix != null) {
 						if (!declarator.toLowerCase().startsWith(prefix)) continue;
 					}
-					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 					if (reg.get("declarator") == null) { //$NON-NLS-1$
-						reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+						reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
@@ -532,9 +532,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (prefix != null) {
 						if (!directive.toLowerCase().contains(prefix)) continue;
 					}
-					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 					if (reg.get("directive") == null) { //$NON-NLS-1$
-						reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+						reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();

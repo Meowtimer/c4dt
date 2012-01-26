@@ -44,7 +44,7 @@ public abstract class Conf {
 	}
 	
 	static {
-		if (!ClonkCore.getDefault().runsHeadless()) {
+		if (!ClonkCore.instance().runsHeadless()) {
 			EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {

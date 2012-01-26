@@ -294,7 +294,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 		public void runOnMarker(IMarker marker) {
 			try {
-				ClonkCore.getDefault().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
+				ClonkCore.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
 						apply(document);
@@ -437,12 +437,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			} else if (script != null && script.scriptStorage() instanceof IFile) {
 				needToDisconnect = script.scriptStorage();
 				try {
-					ClonkCore.getDefault().getTextFileDocumentProvider().connect(needToDisconnect);
+					ClonkCore.instance().getTextFileDocumentProvider().connect(needToDisconnect);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					return;
 				}
-				document = ClonkCore.getDefault().getTextFileDocumentProvider().getDocument(needToDisconnect);
+				document = ClonkCore.instance().getTextFileDocumentProvider().getDocument(needToDisconnect);
 			}
 		}
 		try {
@@ -730,7 +730,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 		} finally {
 			if (needToDisconnect != null) {
-				ClonkCore.getDefault().getTextFileDocumentProvider().disconnect(needToDisconnect);
+				ClonkCore.instance().getTextFileDocumentProvider().disconnect(needToDisconnect);
 			}
 		}
 

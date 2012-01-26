@@ -51,10 +51,10 @@ public class ClonkColorConstants {
 	
 	public static RGB getColor(String prefName) {
 		String actualPrefName = actualPrefName(prefName);
-		RGB result = PreferenceConverter.getColor(ClonkCore.getDefault().getPreferenceStore(), actualPrefName);
+		RGB result = PreferenceConverter.getColor(ClonkCore.instance().getPreferenceStore(), actualPrefName);
 		if (result == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
 			result = getDefaultColor(prefName);
-			PreferenceConverter.setValue(ClonkCore.getDefault().getPreferenceStore(), actualPrefName, result);
+			PreferenceConverter.setValue(ClonkCore.instance().getPreferenceStore(), actualPrefName, result);
 		}
 		return result;
 	}

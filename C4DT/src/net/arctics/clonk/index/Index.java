@@ -635,7 +635,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	@Override
 	public Engine engine() {
-		return ClonkCore.getDefault().getActiveEngine();
+		return ClonkCore.instance().getActiveEngine();
 	}
 	
 	@Override
@@ -887,7 +887,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 		@Override
 		public Object resolve(Index index) {
-			return ClonkCore.getDefault().loadEngine(engineName);
+			return ClonkCore.instance().loadEngine(engineName);
 		}
 	}
 	

@@ -66,9 +66,9 @@ public class ClonkProjectNature implements IProjectNature {
 		public Engine getEngine() {
 			if (cachedEngine == null) {
 				// engineName can be "" or null since that is handled by loadEngine
-				cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
+				cachedEngine = ClonkCore.instance().loadEngine(engineName);
 				if (cachedEngine == null)
-					cachedEngine = ClonkCore.getDefault().getActiveEngine();
+					cachedEngine = ClonkCore.instance().getActiveEngine();
 			}
 			return cachedEngine;
 		}
@@ -121,7 +121,7 @@ public class ClonkProjectNature implements IProjectNature {
 		private void guessEngine(ClonkProjectNature nature) {
 			List<IProject> referencingProjects = nature.getReferencingClonkProjects();
 			Map<String, Integer> score = new HashMap<String, Integer>();
-			for (String engine : ClonkCore.getDefault().namesOfAvailableEngines()) {
+			for (String engine : ClonkCore.instance().namesOfAvailableEngines()) {
 				score.put(engine, 0);
 			}
 			for (IProject proj : referencingProjects) {
@@ -224,7 +224,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public IPath getSettingsFileLocation() {
-		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+".ini");
+		return ClonkCore.instance().getStateLocation().append(getProject().getName()+".ini");
 	}
 	
 	/**
@@ -270,7 +270,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private void loadIndex() {
 		getSettings();
-		if (ClonkCore.getDefault().updateTookPlace()) {
+		if (ClonkCore.instance().updateTookPlace()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
 			index = new ProjectIndex(getProject(), getIndexFolder());
 			performBuildOnOutdatedProject();
@@ -300,7 +300,7 @@ public class ClonkProjectNature implements IProjectNature {
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-				if (ClonkCore.getDefault().getVersionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
+				if (ClonkCore.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
 					getSettings().guessValues(ClonkProjectNature.this);
 				}
 			}
@@ -308,7 +308,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	private File getIndexFolder() {
-		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile();
+		return ClonkCore.instance().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile();
 	}
 	
 	/**

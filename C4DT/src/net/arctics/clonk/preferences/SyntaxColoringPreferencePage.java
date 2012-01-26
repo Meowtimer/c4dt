@@ -14,7 +14,7 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 
 	public SyntaxColoringPreferencePage() {
 		super (GRID);
-		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
+		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
 	}
 	
 	@Override

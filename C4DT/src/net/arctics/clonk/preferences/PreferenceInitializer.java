@@ -11,7 +11,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
 	@Override
 	public void initializeDefaultPreferences() {
-		ClonkPreferences.commitDefaultsToPrefStore(ClonkCore.getDefault().getPreferenceStore());
+		ClonkPreferences.commitDefaultsToPrefStore(ClonkCore.instance().getPreferenceStore());
 	}
 
 }

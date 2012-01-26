@@ -147,7 +147,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private void updateProjectChooserEnablization() {
 		projectEditor.addButton.setEnabled(!openInCurrentProject.getSelection());
 		projectEditor.text.setEnabled(!openInCurrentProject.getSelection());
-		ClonkCore.getDefault().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
+		ClonkCore.instance().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
 		// trigger setting of project
 		selectionChanged(UI.projectExplorer(getSite().getWorkbenchWindow()), getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
 	}
@@ -173,7 +173,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		openInCurrentProject.addSelectionListener(this);
 
 		PreferenceStore dummyPrefStore = new PreferenceStore();
-		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
+		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ClonkCore.instance().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
 
 		createProjectEditor(optionsComposite, UI.createFormData(
 			new FormAttachment(0, 5),
@@ -189,7 +189,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			new FormAttachment(100, 0))
 		);
 
-		openInCurrentProject.setSelection(ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_CREATE_LINK_IN_CURRENT_PROJECT));
+		openInCurrentProject.setSelection(ClonkCore.instance().getPreferenceStore().getBoolean(PREF_CREATE_LINK_IN_CURRENT_PROJECT));
 		updateProjectChooserEnablization();
 
 		folderTree = new TreeViewer(parent, SWT.NONE);
@@ -272,7 +272,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				engine = nature.getIndex().engine();
 		}
 		if (engine == null)
-			engine = ClonkCore.getDefault().getActiveEngine();
+			engine = ClonkCore.instance().getActiveEngine();
 		return engine;
 	}
 
@@ -322,7 +322,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
 		if (e.getSource() == projectEditor.text) {
-			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
+			ClonkCore.instance().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
 			refreshTree(true);
 		}
 	}

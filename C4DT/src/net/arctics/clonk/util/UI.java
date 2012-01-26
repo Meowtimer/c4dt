@@ -77,7 +77,7 @@ public abstract class UI {
 	 */
 	public static Image functionIcon(Function function) {
 		String iconName = function.getVisibility().name().toLowerCase();
-		return ClonkCore.getDefault().getIconImage(iconName);
+		return ClonkCore.instance().getIconImage(iconName);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public abstract class UI {
 	 */
 	public static Image variableIcon(Variable variable) {
 		String iconName = variable.getScope().toString().toLowerCase();
-		return ClonkCore.getDefault().getIconImage(iconName);
+		return ClonkCore.instance().getIconImage(iconName);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public abstract class UI {
 
 	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
 		String path = url.toExternalForm();
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 		Object result;
 		while ((result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path)) == null)
 			reg.put(path, ImageDescriptor.createFromURL(url));
@@ -135,7 +135,7 @@ public abstract class UI {
 	}
 	
 	private static Object imageThingieForPath(String path, boolean returnDescriptor) {
-		return imageThingieForURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null), returnDescriptor);
+		return imageThingieForURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path(path), null), returnDescriptor);
 	}
 	
 	public static ImageDescriptor imageDescriptorForPath(String path) {

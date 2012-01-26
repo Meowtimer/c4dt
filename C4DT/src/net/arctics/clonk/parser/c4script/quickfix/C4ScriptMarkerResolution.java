@@ -41,7 +41,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 		Script script = Script.get(marker.getResource(), true);
 		Function func = script.funcAt(region.getOffset()); 
 		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
-		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
+		TextFileDocumentProvider provider = ClonkCore.instance().getTextFileDocumentProvider();
 		IDocument doc = null;
 		try {
 			provider.connect(marker.getResource());

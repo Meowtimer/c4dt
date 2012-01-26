@@ -69,7 +69,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	
 	private static class WeakListenerManagerPCL extends WeakListenerManager<IPropertyChangeListener> implements IPropertyChangeListener	{
 		public WeakListenerManagerPCL() {
-			ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
+			ClonkCore.instance().getPreferenceStore().addPropertyChangeListener(this);
 		}
 		@Override
 		public void propertyChange(PropertyChangeEvent event) {

@@ -47,7 +47,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 			File gf = groupFiles[i];
 			if (new File(destinationFile, gf.getName()).equals(gf)) {
 				if (importingFolder == null)
-					importingFolder = ClonkCore.getDefault().requestFolderInStateLocation(IMPORTING_FOLDER);
+					importingFolder = ClonkCore.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
 				File fileMoveDestination = new File(importingFolder, gf.getName());
 				if (gf.renameTo(fileMoveDestination)) {
 					groupFiles[i] = fileMoveDestination;

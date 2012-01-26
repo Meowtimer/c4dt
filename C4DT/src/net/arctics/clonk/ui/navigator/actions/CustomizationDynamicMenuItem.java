@@ -118,7 +118,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			resPath = container.getProjectRelativePath();
 			String engineName = resPath.segment(0);
 			resPath = resPath.removeFirstSegments(1);
-			engine = ClonkCore.getDefault().loadEngine(engineName);
+			engine = ClonkCore.instance().loadEngine(engineName);
 			if (engine != null) {
 				Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
 				return filesToReplicate;

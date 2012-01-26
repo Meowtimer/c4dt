@@ -90,7 +90,7 @@ public class StreamUtil {
 	}
 
 	public static String stringFromFileDocument(IFile file) {
-		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
+		TextFileDocumentProvider provider = ClonkCore.instance().getTextFileDocumentProvider();
 		try {
 			provider.connect(file);
 		} catch (CoreException e) {

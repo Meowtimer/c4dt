@@ -98,7 +98,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 							monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 							for (IContainer container : selectedContainers) {
 								try {
-									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
+									final TextFileDocumentProvider textFileDocProvider = ClonkCore.instance().getTextFileDocumentProvider();
 									final List<IFile> failedSaves = new LinkedList<IFile>();
 									container.accept(new IResourceVisitor() {
 										@Override

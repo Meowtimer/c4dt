@@ -77,7 +77,7 @@ public class ClonkHyperlink implements IHyperlink {
 		String docURLTemplate = Function.getDocumentationURL(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
+		if (ClonkCore.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
 			browser = support.getExternalBrowser();
 		}
 		else {

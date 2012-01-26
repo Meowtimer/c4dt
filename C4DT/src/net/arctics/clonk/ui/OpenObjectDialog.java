@@ -85,9 +85,9 @@ public class OpenObjectDialog extends DeclarationChooser {
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
-		IDialogSettings settings = ClonkCore.getDefault().getDialogSettings().getSection(DIALOG_SETTINGS);
+		IDialogSettings settings = ClonkCore.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
 		if (settings == null)
-			settings = ClonkCore.getDefault().getDialogSettings().addNewSection(DIALOG_SETTINGS);
+			settings = ClonkCore.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
 		return settings;
 	}
 

@@ -54,7 +54,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 	}
 
 	private ImageDescriptor getIcon(String name) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		ImageRegistry reg = ClonkCore.instance().getImageRegistry();
 		if (reg.get(name) == null) {
 			reg.put(name, UI.imageDescriptorForPath("icons/" + name)); //$NON-NLS-1$
 		}

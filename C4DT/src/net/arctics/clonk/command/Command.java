@@ -127,7 +127,7 @@ public class Command {
 		@CommandFunction
 		public static void OpenDoc(Object context, String funcName) {
 			try {
-				ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.getDefault().getActiveEngine());
+				ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.instance().getActiveEngine());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -141,7 +141,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
-			Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			Engine engine = ClonkCore.instance().loadEngine(engineName);
 			FileOutputStream stream = new FileOutputStream(fileName);
 			Writer writer = new OutputStreamWriter(stream);
 			engine.writeEngineScript(writer);
@@ -160,7 +160,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
-			Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			Engine engine = ClonkCore.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
@@ -169,11 +169,11 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(ClonkCore.getDefault().getActiveEngine().currentSettings(), name, value);
+			setFieldValue(ClonkCore.instance().getActiveEngine().currentSettings(), name, value);
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
-			Engine engine = ClonkCore.getDefault().getActiveEngine();
+			Engine engine = ClonkCore.instance().getActiveEngine();
 			setFieldValue(
 					engine.intrinsicSettings(), name,
 					engine.currentSettings().getClass().getField(name).get(engine.currentSettings())

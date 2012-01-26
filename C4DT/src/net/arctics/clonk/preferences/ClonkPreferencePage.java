@@ -18,7 +18,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 
 	public ClonkPreferencePage() {
 		super(GRID);
-		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
+		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
 	}
 	
 	@Override
@@ -59,7 +59,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					}
 			};
 		}
-		List<String> engines = ClonkCore.getDefault().namesOfAvailableEngines();
+		List<String> engines = ClonkCore.instance().namesOfAvailableEngines();
 		String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
 		int i = 0;
 		if (includeDefault) {

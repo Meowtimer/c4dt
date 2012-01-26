@@ -126,7 +126,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
 	private Version versionFromLastRun;
 	
-	public Version getVersionFromLastRun() {
+	public Version versionFromLastRun() {
 		return versionFromLastRun;
 	}
 	
@@ -289,7 +289,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				}
 				@Override
 				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-					Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
+					Enumeration<URL> urls = ClonkCore.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
 					if (urls != null) {
 						while (urls.hasMoreElements()) {
@@ -420,7 +420,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 *
 	 * @return the shared instance
 	 */
-	public static ClonkCore getDefault() {
+	public static ClonkCore instance() {
 		return plugin;
 	}
 	
@@ -606,7 +606,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				// delete old index - could be renamed i guess but renaming a project is not exactly a common activity
 				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(CLONK_NATURE_ID)) {
 					ClonkProjectNature proj = ClonkProjectNature.get(event.getResource());
-					ClonkCore.getDefault().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
+					ClonkCore.instance().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
 				}
 			}
 		} catch (CoreException e) {
