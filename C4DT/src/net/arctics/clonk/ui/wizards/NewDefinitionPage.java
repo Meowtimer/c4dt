@@ -72,14 +72,14 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.initialize();
 		fileText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
-		setFolderExtension(ClonkProjectNature.getEngine(project).currentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+		setFolderExtension(ClonkProjectNature.getEngine(project).currentSettings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}
 	
-	public String getObjectID() {
+	public String objectID() {
 		return c4idText.getText();
 	}
 	
-	public String getObjectDescription() {
+	public String objectDescription() {
 		return descriptionText.getText();
 	}
 

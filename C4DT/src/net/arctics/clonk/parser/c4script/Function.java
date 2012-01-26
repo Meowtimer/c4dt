@@ -342,7 +342,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public static String getDocumentationURL(String functionName, Engine engine) {
-		return engine.currentSettings().getDocumentationURLForFunction(functionName);
+		return engine.currentSettings().documentationURLForFunction(functionName);
 	}
 	
 	/**

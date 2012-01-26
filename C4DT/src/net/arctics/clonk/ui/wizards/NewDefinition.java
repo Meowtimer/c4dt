@@ -38,8 +38,8 @@ public class NewDefinition extends NewClonkFolderWizard<NewDefinitionPage> imple
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$$ID$$", page.getObjectID()); //$NON-NLS-1$
-		result.put("$$Description$$", page.getObjectDescription()); //$NON-NLS-1$
+		result.put("$$ID$$", page.objectID()); //$NON-NLS-1$
+		result.put("$$Description$$", page.objectDescription()); //$NON-NLS-1$
 		return result;
 	}
 

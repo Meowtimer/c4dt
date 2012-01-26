@@ -231,7 +231,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private File tempLandscapeRenderFile = null;
 	
 	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
-		String materialFolderBaseName = "Material."+engine.currentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+		String materialFolderBaseName = "Material."+engine.currentSettings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null) {

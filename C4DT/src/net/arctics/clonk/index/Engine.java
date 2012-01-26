@@ -117,6 +117,9 @@ public class Engine extends Script {
 		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
 		@IniField(category="Intrinsic")
 		public String fileExtensionToGroupTypeMapping;
+		/** Extension for material definition files */
+		@IniField(category="Intrinsic")
+		public String materialExtension;
 		/** Whether 0 is of type any */
 		@IniField(category="Intrinsic")
 		public boolean treatZeroAsAny;
@@ -153,7 +156,7 @@ public class Engine extends Script {
 		 * Return a map mapping a file name extension to a group type for this engine.
 		 * @return The map.
 		 */
-		public Map<String, C4Group.GroupType> getFileExtensionToGroupTypeMapping() {
+		public Map<String, C4Group.GroupType> fileExtensionToGroupTypeMapping() {
 			if (fetgtm == null) {
 				fetgtm = new HashMap<String, C4Group.GroupType>(C4Group.GroupType.values().length);
 				for (String mapping : fileExtensionToGroupTypeMapping.split(",")) {
@@ -168,8 +171,8 @@ public class Engine extends Script {
 			return fetgtm;
 		}
 		
-		public Map<C4Group.GroupType, String> getGroupTypeToFileExtensionMapping() {
-			getFileExtensionToGroupTypeMapping();
+		public Map<C4Group.GroupType, String> groupTypeToFileExtensionMapping() {
+			fileExtensionToGroupTypeMapping();
 			return rfetgtm;
 		}
 		
@@ -178,10 +181,10 @@ public class Engine extends Script {
 		 * Return a filter string for c4group files to be used with file dialogs
 		 * @return The filter string
 		 */
-		public String getFileDialogFilterForGroupFiles() {
+		public String fileDialogFilterForGroupFiles() {
 			if (fileDialogFilterString == null) {
-				StringBuilder builder = new StringBuilder(6*getFileExtensionToGroupTypeMapping().size());
-				for (String ext : getFileExtensionToGroupTypeMapping().keySet()) {
+				StringBuilder builder = new StringBuilder(6*fileExtensionToGroupTypeMapping().size());
+				for (String ext : fileExtensionToGroupTypeMapping().keySet()) {
 					builder.append("*.");
 					builder.append(ext);
 					builder.append(";");
@@ -191,7 +194,7 @@ public class Engine extends Script {
 			return fileDialogFilterString;
 		}
 
-		public String getDocumentationURLForFunction(String functionName) {
+		public String documentationURLForFunction(String functionName) {
 			String urlFormatString = useDocsFromRepository
 				? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
 				: docURLTemplate;
@@ -762,7 +765,7 @@ public class Engine extends Script {
 	}
 	
 	public C4Group.GroupType groupTypeForExtension(String ext) {
-		C4Group.GroupType gt = currentSettings.getFileExtensionToGroupTypeMapping().get(ext);
+		C4Group.GroupType gt = currentSettings.fileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
 			return gt;
 		else
@@ -794,7 +797,7 @@ public class Engine extends Script {
 	 * @return Group name with correct extension.
 	 */
 	public String groupName(String name, GroupType groupType) {
-		return name + "." + currentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
+		return name + "." + currentSettings().groupTypeToFileExtensionMapping().get(groupType);
 	}
 	
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();

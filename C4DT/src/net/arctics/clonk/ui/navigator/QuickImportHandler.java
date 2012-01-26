@@ -29,7 +29,7 @@ public class QuickImportHandler extends ClonkResourceHandler {
 		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+(noMulti?0:SWT.MULTI));
 		fileDialog.setFilterPath(ClonkProjectNature.getEngine(container).currentSettings().gamePath);
 		fileDialog.setText(String.format(title, container.getName()));
-		fileDialog.setFilterExtensions(new String[] {ClonkProjectNature.getEngine(container).currentSettings().getFileDialogFilterForGroupFiles(), "*.*"}); //$NON-NLS-1$
+		fileDialog.setFilterExtensions(new String[] {ClonkProjectNature.getEngine(container).currentSettings().fileDialogFilterForGroupFiles(), "*.*"}); //$NON-NLS-1$
 		if (fileDialog.open() != null)
 			return ArrayUtil.map(fileDialog.getFileNames(), File.class, new FullPathConverter(fileDialog));
 		else

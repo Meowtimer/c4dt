@@ -55,7 +55,7 @@ public final class C4GroupListEditor extends ListEditor {
 		case 0:
 			FileDialog dialog = new FileDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
-			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).currentSettings().getFileDialogFilterForGroupFiles() });
+			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).currentSettings().fileDialogFilterForGroupFiles() });
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by
 			// the super class

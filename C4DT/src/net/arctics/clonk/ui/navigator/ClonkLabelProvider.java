@@ -7,6 +7,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -14,11 +15,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -41,8 +42,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (element.toString().endsWith(".txt")) { //$NON-NLS-1$
 				return UI.TEXT_ICON;
 			}
-			if (element.toString().endsWith(".c4m")) { //$NON-NLS-1$
-				return UI.MATERIAL_ICON;
+			Engine engine = ClonkProjectNature.getEngine((IFile)element);
+			if (engine != null) {
+				if (element.toString().endsWith(engine.currentSettings().materialExtension))
+					return engine.image("material");
 			}
 		}
 		else if (element instanceof IFolder) {
