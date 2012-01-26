@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
-import net.arctics.clonk.ui.search.ClonkSearchQuery;
+import net.arctics.clonk.ui.search.ReferencesQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
 
 import org.eclipse.core.resources.IFile;
@@ -70,7 +70,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
-		ClonkSearchQuery query = new ClonkSearchQuery(decl, ClonkProjectNature.get(declaringFile));
+		ReferencesQuery query = new ReferencesQuery(decl, ClonkProjectNature.get(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		// all references in code

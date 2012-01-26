@@ -39,7 +39,7 @@ import net.arctics.clonk.preferences.ClonkPreferences;
  * @author madeen
  *
  */
-public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTComparisonDelegate {
+public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDelegate {
 	
 	private Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
 	private Set<Index> indexes = new HashSet<Index>();
@@ -49,15 +49,15 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 		return detectedDupes;
 	}
 	
-	private FindDuplicatesQuery() {}
+	private DuplicatesQuery() {}
 	
 	/**
 	 * Return a new FindDuplicatesQuery that will operate on a list of functions.
 	 * @param functions The function list
 	 * @return The new query
 	 */
-	public static FindDuplicatesQuery queryWithFunctions(List<Function> functions) {
-		FindDuplicatesQuery result = new FindDuplicatesQuery();
+	public static DuplicatesQuery queryWithFunctions(List<Function> functions) {
+		DuplicatesQuery result = new DuplicatesQuery();
 		result.fillFunctionMapWithFunctionList(functions);
 		for (List<Function> fnList : result.functionsToBeChecked.values())
 			for (Function f : fnList)
@@ -71,8 +71,8 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 	 * @param scripts The script list
 	 * @return The new query
 	 */
-	public static FindDuplicatesQuery queryWithScripts(Iterable<Script> scripts) {
-		FindDuplicatesQuery result = new FindDuplicatesQuery();
+	public static DuplicatesQuery queryWithScripts(Iterable<Script> scripts) {
+		DuplicatesQuery result = new DuplicatesQuery();
 		List<Function> fns = new LinkedList<Function>();
 		for (Script script : scripts) {
 			fns.addAll(script.functions());
@@ -199,15 +199,15 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 								// fuck off, recursion
 								if (_a == aCounterpart || _a == bCounterpart)
 									return DifferenceHandling.Differs;
-								return FindDuplicatesQuery.this.differs(_a, _b, what);
+								return DuplicatesQuery.this.differs(_a, _b, what);
 							}
 							@Override
 							public boolean optionEnabled(Option option) {
-								return FindDuplicatesQuery.this.optionEnabled(option);
+								return DuplicatesQuery.this.optionEnabled(option);
 							}
 							@Override
 							public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
-								FindDuplicatesQuery.this.wildcardMatched(wildcard, expression);
+								DuplicatesQuery.this.wildcardMatched(wildcard, expression);
 							}
 						};
 						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())

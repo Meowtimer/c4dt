@@ -12,9 +12,9 @@ import org.eclipse.search.ui.text.IFileMatchAdapter;
 
 public class ClonkSearchResult extends AbstractTextSearchResult {
 	
-	private ClonkSearchQueryBase query;
+	private SearchQueryBase query;
 	
-	public ClonkSearchResult(ClonkSearchQueryBase query) {
+	public ClonkSearchResult(SearchQueryBase query) {
 		this.query = query;
 	}
 

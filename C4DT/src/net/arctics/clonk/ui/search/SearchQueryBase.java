@@ -10,7 +10,7 @@ import org.eclipse.search.ui.text.IEditorMatchAdapter;
 import org.eclipse.search.ui.text.IFileMatchAdapter;
 import org.eclipse.search.ui.text.Match;
 
-public abstract class ClonkSearchQueryBase implements ISearchQuery, IFileMatchAdapter, IEditorMatchAdapter {
+public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter, IEditorMatchAdapter {
 
 	protected static final Match[] NO_MATCHES = new Match[0];
 	

@@ -2,13 +2,13 @@ package net.arctics.clonk.ui.search;
 
 public class FindDuplicatesSearchResult extends ClonkSearchResult {
 
-	public FindDuplicatesSearchResult(ClonkSearchQueryBase query) {
+	public FindDuplicatesSearchResult(SearchQueryBase query) {
 		super(query);
 	}
 	
 	@Override
-	public FindDuplicatesQuery getQuery() {
-		return (FindDuplicatesQuery) super.getQuery();
+	public DuplicatesQuery getQuery() {
+		return (DuplicatesQuery) super.getQuery();
 	}
 
 }

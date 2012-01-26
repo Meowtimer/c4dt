@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
-import net.arctics.clonk.ui.search.ClonkSearchQuery;
+import net.arctics.clonk.ui.search.ReferencesQuery;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -29,7 +29,7 @@ public class FindReferencesAction extends C4ScriptEditorAction {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
 					return;
 				}
-				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(declaration, nature));
+				NewSearchUI.runQueryInBackground(new ReferencesQuery(declaration, nature));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

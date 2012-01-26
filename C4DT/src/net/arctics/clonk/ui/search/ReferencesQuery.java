@@ -43,12 +43,12 @@ import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class ClonkSearchQuery extends ClonkSearchQueryBase {
+public class ReferencesQuery extends SearchQueryBase {
 
 	protected Declaration declaration;
 	private Object[] scope;
 
-	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
+	public ReferencesQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration.latestVersion();
 		this.scope = declaration.occurenceScope(project);

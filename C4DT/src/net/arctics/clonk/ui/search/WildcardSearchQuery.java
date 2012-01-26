@@ -8,7 +8,7 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.IEditorPart;
 
-public class WildcardSearchQuery extends ClonkSearchQueryBase {
+public class WildcardSearchQuery extends SearchQueryBase {
 
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {

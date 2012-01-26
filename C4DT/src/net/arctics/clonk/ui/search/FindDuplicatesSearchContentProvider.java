@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 public class FindDuplicatesSearchContentProvider extends ClonkSearchContentProvider {
 
-	private FindDuplicatesQuery query;
+	private DuplicatesQuery query;
 	private FindDuplicatesSearchResult result;
 	
 	public FindDuplicatesSearchContentProvider(ClonkSearchResultPage page, boolean flat) {
