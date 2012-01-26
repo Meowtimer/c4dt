@@ -170,7 +170,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				newLine = true;
 				break;
 			default:
-				lineEnd = scanner.getPosition();
+				lineEnd = scanner.tell();
 			}
 			if (newLine) {
 				region.setOffset(lineStart);
@@ -179,7 +179,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				if (f == null)
 					f = this.funcAt(lineEnd);
 				mappingAsList.add(f);
-				lineStart = scanner.getPosition();
+				lineStart = scanner.tell();
 				lineEnd = lineStart;
 			}
 		}

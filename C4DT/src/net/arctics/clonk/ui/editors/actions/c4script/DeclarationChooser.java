@@ -163,9 +163,9 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 				@Override
 				public void run(Index index) {
 					int declarationsBatchSize = 0;
-					MainLoop: for (Script s : index.allScripts())
-						if (s.dictionary() != null)
-							for (String str : s.dictionary())
+					MainLoop: for (Script s : index.allScripts()) {
+						if (s.dictionary() != null) {
+							for (String str : s.dictionary()) {
 								for (Pattern ps : patternStrings) {
 									Matcher matcher = ps.matcher(str);
 									if (matcher.lookingAt()) {
@@ -181,6 +181,9 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 										continue MainLoop;
 									}
 								}
+							}
+						}
+					}
 				}
 			});
 		if (declarations != null)

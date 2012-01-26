@@ -803,8 +803,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return the line string
 	 */
 	@Override
-	public String getLineAt(IRegion region) {
-		return this.getLineAt(region);
+	public String lineAtRegion(IRegion region) {
+		return this.lineAtRegion(region);
 	}
 
 	/**
@@ -1273,7 +1273,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
     }
 
 	private String getTextOfLastComment(int absoluteOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, getBuffer())) ? lastComment.text().trim() : null; 
+		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer())) ? lastComment.text().trim() : null; 
 		lastComment = null;
 		return desc;
 	}

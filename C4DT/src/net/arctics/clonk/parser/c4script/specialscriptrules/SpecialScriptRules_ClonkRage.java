@@ -40,7 +40,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 	
 	@Override
 	public ID parseId(BufferedScanner scanner) {
-		Matcher idMatcher = ID_PATTERN.matcher(scanner.getBuffer().substring(scanner.getPosition()));
+		Matcher idMatcher = ID_PATTERN.matcher(scanner.buffer().substring(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			String idString = idMatcher.group();
 			scanner.advance(idString.length());

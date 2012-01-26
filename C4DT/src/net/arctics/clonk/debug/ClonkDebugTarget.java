@@ -294,7 +294,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									scanner.read();
 									String varType = scanner.readIdent();
 									scanner.read();
-									String varValue = event.substring(scanner.getPosition());
+									String varValue = event.substring(scanner.tell());
 									if (varName != null && varType != null && varValue != null) {
 										ClonkDebugVariable var = vars.get(varName);
 										if (var != null) {

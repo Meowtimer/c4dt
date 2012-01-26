@@ -419,7 +419,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		// a <match all identifiers> pattern would cause zillions of err0rs
 		if (scanner instanceof C4ScriptParser)
 			return null;
-		Matcher idMatcher = ID_PATTERN.matcher(scanner.getBuffer().substring(scanner.getPosition()));
+		Matcher idMatcher = ID_PATTERN.matcher(scanner.buffer().substring(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			String idString = idMatcher.group();
 			scanner.advance(idString.length());

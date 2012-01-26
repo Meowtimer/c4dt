@@ -83,11 +83,11 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			else {
 				scanner.unread();
-				int start = scanner.getPosition();
+				int start = scanner.tell();
 				String key = scanner.readStringUntil('=');
 				if (scanner.read() == '=') {
 					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-					sink.addTblEntry(key, value, start, scanner.getPosition());
+					sink.addTblEntry(key, value, start, scanner.tell());
 				}
 				else
 					scanner.unread();

@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.util.StreamUtil;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -127,7 +128,7 @@ public class BufferedScanner {
 	
 	public static boolean isUmlaut(char character) {
 		character = Character.toLowerCase(character);
-	    return character == 'ß' || character == 'ä' || character == 'ü' || character == 'ö';
+	    return character == 'ï¿½' || character == 'ï¿½' || character == 'ï¿½' || character == 'ï¿½';
     }
 	
 	public static boolean isWordStart(int character) {
@@ -193,6 +194,17 @@ public class BufferedScanner {
 		}
 		seek(this.offset-subtract);
 		return len;
+	}
+	
+	public boolean skipSingleLineEnding() {
+		if (read() == '\r') {
+			if (read() != '\n')
+				unread();
+			return true;
+		} else {
+			unread();
+			return false;
+		}
 	}
 	
 	/**
@@ -293,7 +305,7 @@ public class BufferedScanner {
 		return eat(WHITESPACE_CHARS);
 	}
 	
-	public static int getTabIndentation(String s, int pos) {
+	public static int indentationOfStringAtPos(String s, int pos) {
 		if (pos >= s.length())
 			pos = s.length();
 		int tabs = 0;
@@ -307,12 +319,12 @@ public class BufferedScanner {
 		return tabs;
 	}
 	
-	public int getTabIndentation(int offset) {
-		return getTabIndentation(buffer, offset);
+	public int indentationAt(int offset) {
+		return indentationOfStringAtPos(buffer, offset);
 	}
 	
-	public int getTabIndentation() {
-		return getTabIndentation(buffer, getPosition());
+	public int currentIndentation() {
+		return indentationOfStringAtPos(buffer, tell());
 	}
 
 	/**
@@ -347,7 +359,7 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * True if {@link #getPosition()} >= {@link #bufferSize()}
+	 * True if {@link #tell()} >= {@link #bufferSize()}
 	 * @return whether eof reached
 	 */
 	public final boolean reachedEOF() {
@@ -358,7 +370,7 @@ public class BufferedScanner {
 	 * Current offset
 	 * @return offset
 	 */
-	public final int getPosition() {
+	public final int tell() {
 		return offset;
 	}
 
@@ -371,7 +383,7 @@ public class BufferedScanner {
 	public String readStringAt(int start, int end) {
 		if (start == end)
 			return ""; //$NON-NLS-1$
-		int p = getPosition();
+		int p = tell();
 		seek(start);
 		String result = readString(end-start);
 		seek(p);
@@ -405,8 +417,8 @@ public class BufferedScanner {
 	 * @param region the region
 	 * @return the line string
 	 */
-	public String getLineAt(IRegion region) {
-		IRegion lineRegion = getLineRegion(region);
+	public String lineAtRegion(IRegion region) {
+		IRegion lineRegion = regionOfLineContainingRegion(region);
 		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
 	}
 	
@@ -415,7 +427,7 @@ public class BufferedScanner {
 	 * @param region the region
 	 * @return the substring
 	 */
-	public String getSubstringOfBuffer(IRegion region) {
+	public String bufferSubstringAtRegion(IRegion region) {
 		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
 	}
 	
@@ -425,15 +437,15 @@ public class BufferedScanner {
 	 * @param regionInLine the region
 	 * @return the line region
 	 */
-	public static IRegion getLineRegion(String text, IRegion regionInLine) {
+	public static IRegion regionOfLineContainingRegion(String text, IRegion regionInLine) {
 		int start, end;
 		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
 		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
 		return new Region(start, end-start);
 	}
 	
-	public IRegion getLineRegion(IRegion regionInLine) {
-		return getLineRegion(this.buffer, regionInLine);
+	public IRegion regionOfLineContainingRegion(IRegion regionInLine) {
+		return regionOfLineContainingRegion(this.buffer, regionInLine);
 	}
 
 	/**
@@ -448,13 +460,13 @@ public class BufferedScanner {
 	 * Return the buffer the scanner operates on
 	 * @return the buffer
 	 */
-	public String getBuffer() {
+	public String buffer() {
 		return buffer;
 	}
 	
 	@Override
 	public String toString() {
-		return "offset: " + getPosition() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
+		return "offset: " + tell() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

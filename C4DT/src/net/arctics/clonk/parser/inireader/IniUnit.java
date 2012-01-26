@@ -240,25 +240,25 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		
 		protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
 			int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
+			int rollback = tell();
 			while (skipComment());
-			int start = getPosition();
 			// parse head
-			int indentation = getTabIndentation();
+			int indentation = currentIndentation();
+			int start = tell();
 			if (read() == '[' && indentation == targetIndentation) {
-				String name = readStringUntil(']','\n','\r');
+				String name = readStringUntil(']', '\n', '\r');
 				if (read() != ']') {
 					if (modifyMarkers)
-						marker(ParserErrorCode.TokenExpected, start, getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
+						marker(ParserErrorCode.TokenExpected, tell()-1, tell(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
 					return null;
-				}
-				else {
+				} else {
 					if (!isSectionNameValid(name, parentSection)) {
 						if (modifyMarkers)
-							marker(ParserErrorCode.UnknownSection, start, getPosition()-1, IMarker.SEVERITY_WARNING, name);
+							marker(ParserErrorCode.UnknownSection, start+1, tell()-1, IMarker.SEVERITY_WARNING, name);
 					}
 					eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 				}
-				int end = getPosition();
+				int end = tell();
 				IniSection section = new IniSection(new SourceLocation(start, end), name);
 				section.setParentDeclaration(parentSection != null ? parentSection : IniUnit.this);
 				section.setIndentation(indentation);
@@ -272,12 +272,14 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					itemMap.put(item.key(),item);
 					itemList.add(item);
 				}
-				section.setSectionEnd(getPosition());
+				// include single line ending following the entries so that editor region collapse management works properly
+				skipSingleLineEnding();
+				section.setSectionEnd(tell()+1);
 				section.setSubItems(itemMap, itemList);
 				return section;
 			}
 			else {
-				unread();
+				seek(rollback);
 				return null;
 			}
 		}
@@ -299,13 +301,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					eatWhitespace();
 					return true;
 				case '*':
-					for (; !reachedEOF();) {
-						if (read() == '*') {
-							if (read() == '/')
-								break;
-							else
-								unread();
-						}
+					for (;!reachedEOF();) {
+						if (read() == '/')
+							break;
+						else
+							unread();
 					}
 					eatWhitespace();
 					return true;
@@ -353,32 +353,35 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		
 		protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
 			int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
+			int rollback = tell();
 			while (skipComment());
-			int start = getPosition();
 			eatWhitespace();
-			int indentation = getTabIndentation();
+			int indentation = currentIndentation();
 			if (indentation != targetIndentation || read() == '[') {
-				seek(start);
+				seek(rollback);
 				return null;
 			}
 			unread();
-			if (reachedEOF()) return null;
-			int keyStart = getPosition();
+			if (reachedEOF()) {
+				seek(rollback);
+				return null;
+			}
+			int keyStart = tell();
 			String key = readIdent();
 			eatWhitespace();
 			if (read() != '=') {
 				if (modifyMarkers)
-					marker(ParserErrorCode.TokenExpected, keyStart+key.length(), getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+					marker(ParserErrorCode.TokenExpected, keyStart+key.length(), tell(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 			}
-			eat(new char[] {' ', '\t'});
+			eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 			String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
-			int valEnd = getPosition();
+			int valEnd = tell();
 			int commentStart = value != null ? value.indexOf('#') : -1;
 			if (commentStart != -1) {
 				valEnd -= value.length()-commentStart;
 				value = value.substring(0, commentStart);
 			}
-			eat(BufferedScanner.NEWLINE_CHARS);
+			//eat(BufferedScanner.NEWLINE_CHARS);
 			IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 			entry.setParentDeclaration(section);
 			try {
@@ -392,15 +395,13 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		
 		protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
 			IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
-			if (entry == null) {
-				IniSection s = parseSection(modifyMarkers, parentSection);
-				if (s != null)
-					return s;
-				else
-					return null;
-			}
-			else
+			if (entry != null)
 				return entry;
+			IniSection sec = parseSection(modifyMarkers, parentSection);
+			if (sec != null)
+				return sec;
+			
+			return null;
 		}
 		
 	}

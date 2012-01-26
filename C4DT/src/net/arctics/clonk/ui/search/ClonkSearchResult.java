@@ -49,8 +49,8 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 	}
 	
 	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect, int s, int l) {
-		IRegion lineRegion = parser.getLineRegion(new Region(s, l));
-		String line = parser.getSubstringOfBuffer(lineRegion);
+		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
+		String line = parser.bufferSubstringAtRegion(lineRegion);
 		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.containingScript(), s, l, potential, indirect));
 	}
 	
