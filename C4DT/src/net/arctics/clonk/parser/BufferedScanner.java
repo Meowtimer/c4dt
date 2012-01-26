@@ -128,7 +128,7 @@ public class BufferedScanner {
 	
 	public static boolean isUmlaut(char character) {
 		character = Character.toLowerCase(character);
-	    return character == '�' || character == '�' || character == '�' || character == '�';
+	    return character == 'ä' || character == 'ö' || character == 'ü' || character == 'ß';
     }
 	
 	public static boolean isWordStart(int character) {
