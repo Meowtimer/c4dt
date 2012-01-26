@@ -81,8 +81,8 @@ public class C4ScriptParserTestCase {
 							if (scanner instanceof C4ScriptParser)
 								return null;
 							if (ID_MATCHER.reset(
-									scanner.getBuffer().substring(
-											scanner.getPosition()))
+									scanner.buffer().substring(
+											scanner.tell()))
 									.lookingAt()) {
 								String idString = ID_MATCHER.group();
 								scanner.advance(idString.length());
@@ -103,12 +103,12 @@ public class C4ScriptParserTestCase {
 					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 					@Override
-					public SpecialScriptRules getSpecialScriptRules() {
+					public SpecialScriptRules specialScriptRules() {
 						return rules;
 					};
 
 					@Override
-					public EngineSettings getCurrentSettings() {
+					public EngineSettings currentSettings() {
 						if (settings == null) {
 							settings = new EngineSettings();
 							settings.maxStringLen = 0;
@@ -123,7 +123,7 @@ public class C4ScriptParserTestCase {
 				};
 
 				@Override
-				public Engine getEngine() {
+				public Engine engine() {
 					return engine;
 				};
 			}) {
@@ -132,7 +132,7 @@ public class C4ScriptParserTestCase {
 						"TestScript", script);
 
 				@Override
-				public IStorage getScriptStorage() {
+				public IStorage scriptStorage() {
 					return storage;
 				}
 			};
