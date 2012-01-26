@@ -35,7 +35,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		
 		try {
-			getEditor().silentReparse();
+			editor().silentReparse();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -63,8 +63,8 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(offset);
-		if (overlay == getEditor().getMapCreator())
+		MapOverlayBase overlay = editor().getMapCreator().overlayAt(offset);
+		if (overlay == editor().getMapCreator())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
 

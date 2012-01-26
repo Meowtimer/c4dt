@@ -225,7 +225,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 
 		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
-			if (getEditor().scriptBeingEdited().getIndex().engine() != null)
+			if (editor().scriptBeingEdited().getIndex().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
 		if (activeFunc == null)
@@ -404,7 +404,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 				proposals.add(prop);
 			}
 		}
@@ -468,7 +468,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				null,
 				repString, offset, replacementLength, 
-				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback, getEditor()); //$NON-NLS-1$
+				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback, editor()); //$NON-NLS-1$
 		proposals.add(prop);
 		return prop;
 	}
@@ -522,7 +522,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					}
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 					prop.setCategory(Category.Keywords);
 					proposals.add(prop);
 				}
@@ -538,7 +538,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					}
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 					prop.setCategory(Category.Directives);
 					proposals.add(prop);
 				}
@@ -607,8 +607,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				Declaration dec = funcCallInfo.callFunc.declaration();
 				if (dec == null) {
 					RegionDescription d = new RegionDescription();
-					if (funcCallInfo.locator.initializeRegionDescription(d, getEditor().scriptBeingEdited(), new Region(offset, 1))) {
-						funcCallInfo.locator.initializeProposedDeclarations(getEditor().scriptBeingEdited(), d, null, funcCallInfo.callFunc);
+					if (funcCallInfo.locator.initializeRegionDescription(d, editor().scriptBeingEdited(), new Region(offset, 1))) {
+						funcCallInfo.locator.initializeProposedDeclarations(editor().scriptBeingEdited(), d, null, funcCallInfo.callFunc);
 						if (funcCallInfo.locator.getProposedDeclarations() != null)
 							for (Declaration dec_ : funcCallInfo.locator.getProposedDeclarations()) {
 								if (dec == null)
@@ -639,7 +639,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			// HACK: if changed, hide the old one -.-
 			if (!Utilities.objectsEqual(prevInformation, info)) {
-				ClonkContentAssistant assistant = this.getEditor().getContentAssistant();
+				ClonkContentAssistant assistant = this.editor().getContentAssistant();
 				//if (!assistant.isProposalPopupActive())
 				assistant.hide();
 			}

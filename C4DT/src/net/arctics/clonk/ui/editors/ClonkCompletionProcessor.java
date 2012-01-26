@@ -17,7 +17,7 @@ import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
 
-	public EditorType getEditor() {
+	public EditorType editor() {
 		return editor;
 	}
 
@@ -45,7 +45,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), getEditor()); //$NON-NLS-1$
+				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
@@ -85,7 +85,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				cursorPosition++;
 		}
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,cursorPosition,
-				UI.functionIcon(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
+				UI.functionIcon(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, editor()); //$NON-NLS-1$
 		prop.setCategory(Category.Functions);
 		proposals.add(prop);
 	}
@@ -100,7 +100,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
 			null, var.infoText(), " - " + (var.script() != null ? var.script().name() : "<adhoc>"), //$NON-NLS-1$
-			getEditor()
+			editor()
 		);
 		prop.setCategory(Category.Variables);
 		proposals.add(prop);

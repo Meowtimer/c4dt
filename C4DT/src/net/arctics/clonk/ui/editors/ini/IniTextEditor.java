@@ -104,15 +104,15 @@ public class IniTextEditor extends ClonkTextEditor {
 	public void refreshOutline() {
 		textChangeListener.forgetUnitParsed();
 		if (outlinePage != null)
-			outlinePage.setInput(getIniUnit());
+			outlinePage.setInput(unit());
 	}
 	
 	@Override
 	public Declaration topLevelDeclaration() {
-		return getIniUnit(); 
+		return unit(); 
 	}
 
-	public IniUnit getIniUnit() {
+	public IniUnit unit() {
 		IniUnit unit = null;
 		try {
 			unit = (IniUnit) Structure.pinned(Utilities.fileBeingEditedBy(this), true, false);
@@ -158,7 +158,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	
 	public void updateFoldingStructure() {
 		List<Position> positions = new ArrayList<Position>(20);
-		collectAnnotationPositions(getIniUnit(), positions);
+		collectAnnotationPositions(unit(), positions);
 		Annotation[] annotations = new Annotation[positions.size()];
 		
 		// this will hold the new annotations along with their corresponding positions
@@ -182,7 +182,7 @@ public class IniTextEditor extends ClonkTextEditor {
 		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
 		projectionAnnotationModel = projectionViewer.getProjectionAnnotationModel();
 		
-		getIniUnit();
+		unit();
 		updateFoldingStructure();
 	}
 

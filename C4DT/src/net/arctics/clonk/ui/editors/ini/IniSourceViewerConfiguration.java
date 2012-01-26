@@ -96,7 +96,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				IRegion lineRegion = textViewer.getDocument().getLineInformationOfOffset(region.getOffset());
 				String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
 				Matcher m;
-				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset());
+				IniSection section = getEditor().unit().sectionAtOffset(region.getOffset());
 				if (section != null && section.sectionData() != null) {
 					int relativeOffset = region.getOffset()-lineRegion.getOffset();
 					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
@@ -134,13 +134,13 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == Action.class) {
-									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) getEditor().getIniUnit();
+									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) getEditor().unit();
 									declaration = iniUnit.sectionMatching(iniUnit.nameMatcherPredicate(value));
 								}
 								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
-										declaration = getEditor().getIniUnit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										declaration = getEditor().unit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -174,7 +174,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									declaration = index.getDefinitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {
-									DeclarationRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, getEditor().getIniUnit(), true);
+									DeclarationRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, getEditor().unit(), true);
 									if (reg != null) {
 										declaration = reg.getConcreteDeclaration();
 										linkStart += reg.getRegion().getOffset();
@@ -230,7 +230,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().getIniUnit().engine()));
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().unit().engine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		

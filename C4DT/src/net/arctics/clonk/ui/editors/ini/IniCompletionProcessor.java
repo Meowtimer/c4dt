@@ -92,8 +92,8 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 		prefix = prefix.toLowerCase();	
 
-		getEditor().ensureIniUnitUpToDate();
-		section = getEditor().getIniUnit().sectionAtOffset(offset);
+		editor().ensureIniUnitUpToDate();
+		section = editor().unit().sectionAtOffset(offset);
 
 		if (!assignment) {
 			if (section != null) {
@@ -107,7 +107,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				} else if (section.parentDeclaration() instanceof IniUnit) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.parentDeclaration()).configuration().getSections().values());
 				}
-				int indentation = getEditor().getIniUnit().parser().indentationAt(offset);
+				int indentation = editor().unit().parser().indentationAt(offset);
 				if (indentation == section.indentation()+1) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.sectionData().getEntries().values());
 				}
@@ -156,7 +156,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
-			for (Variable v : getEditor().getIniUnit().engine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
+			for (Variable v : editor().unit().engine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
 				if (v.getScope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
@@ -165,7 +165,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Index index = Utilities.indexFromResource(getEditor().getIniUnit().iniFile());
+		Index index = Utilities.indexFromResource(editor().unit().iniFile());
 		if (index != null) {
 			for (Index i : index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
@@ -272,14 +272,14 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	@Override
 	public void assistSessionEnded(ContentAssistEvent event) {
-		getEditor().unlockUnit();
+		editor().unlockUnit();
 	}
 
 	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
-			getEditor().forgetUnitParsed();
-			getEditor().lockUnit();
+			editor().forgetUnitParsed();
+			editor().lockUnit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
