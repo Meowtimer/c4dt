@@ -8,12 +8,13 @@ import java.util.Set;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
@@ -35,24 +36,24 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * Little helper thingie to find declarations
  *
  */
-public class DeclarationLocator extends ExpressionLocator {
+public class EntityLocator extends ExpressionLocator {
 	private ITextEditor editor;
-	private Declaration declaration;
-	private Set<Declaration> proposedDeclarations;
+	private IIndexEntity entity;
+	private Set<IIndexEntity> potentialEntities;
 	private C4ScriptParser parser;
 	
-	public Set<Declaration> getProposedDeclarations() {
-		return proposedDeclarations;
+	public Set<IIndexEntity> potentialEntities() {
+		return potentialEntities;
 	}
 
 	public ITextEditor getEditor() {
 		return editor;
 	}
 
-	private static IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
+	private static IPredicate<IIndexEntity> IS_GLOBAL = new IPredicate<IIndexEntity>() {
 		@Override
-		public boolean test(Declaration item) {
-			return item.isGlobal();
+		public boolean test(IIndexEntity item) {
+			return item instanceof Declaration && ((Declaration)item).isGlobal();
 		};
 	};
 	
@@ -83,7 +84,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		return true;
 	}
 
-	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
+	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
 		final Script script = Utilities.scriptForEditor(getEditor());
 		if (script == null)
@@ -98,7 +99,7 @@ public class DeclarationLocator extends ExpressionLocator {
 				exprRegion = new Region(region.getOffset()-d.bodyStart,0);
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 				if (exprAtRegion != null) {
-					DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+					EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 					initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 				}
 			}
@@ -107,17 +108,17 @@ public class DeclarationLocator extends ExpressionLocator {
 		}
 	}
 
-	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, DeclarationRegion declRegion, ExprElm exprAtRegion) {
+	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, EntityRegion declRegion, ExprElm exprAtRegion) {
 		boolean setRegion;
-		if (declRegion != null && declRegion.getPotentialDeclarations() != null && declRegion.getPotentialDeclarations().size() > 0) {
+		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
-			this.proposedDeclarations = declRegion.getPotentialDeclarations();
+			this.potentialEntities = declRegion.potentialEntities();
 			setRegion = true;
 		}
-		else if (declRegion != null && declRegion.getConcreteDeclaration() != null) {
+		else if (declRegion != null && declRegion.concreteDeclaration() != null) {
 			// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
 			// in which case the type of the calling object is probably known
-			this.declaration = declRegion.getConcreteDeclaration();
+			this.entity = declRegion.concreteDeclaration();
 			setRegion = true;
 		}
 		else if (exprAtRegion instanceof AccessDeclaration) {
@@ -129,9 +130,9 @@ public class DeclarationLocator extends ExpressionLocator {
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType t = access.predecessorInSequence() != null ? access.predecessorInSequence().typeInContext(parser) : null;
 			if (t == null || t.specificness() <= PrimitiveType.OBJECT.specificness()) {
-				for (Index i : script.getIndex().relevantIndexes())
+				for (Index i : script.index().relevantIndexes())
 					i.loadScriptsContainingDeclarationsNamed(declarationName);
-				for (Index i : script.getIndex().relevantIndexes()) {
+				for (Index i : script.index().relevantIndexes()) {
 					List<Declaration> decs = i.declarationMap().get(declarationName);
 					if (decs != null)
 						projectDeclarations.addAll(decs);
@@ -148,21 +149,21 @@ public class DeclarationLocator extends ExpressionLocator {
 			
 			Function engineFunc = regionDescription.engine.findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
-				proposedDeclarations = new HashSet<Declaration>();
+				potentialEntities = new HashSet<IIndexEntity>();
 				if (projectDeclarations != null)
-					proposedDeclarations.addAll(projectDeclarations);
+					potentialEntities.addAll(projectDeclarations);
 				// only add engine func if not overloaded by any global function
-				if (engineFunc != null && !Utilities.any(proposedDeclarations, IS_GLOBAL))
-					proposedDeclarations.add(engineFunc);
-				if (proposedDeclarations.size() == 0)
-					proposedDeclarations = null;
-				else if (proposedDeclarations.size() == 1) {
-					for (Declaration d : proposedDeclarations) {
-						this.declaration = d;
+				if (engineFunc != null && !Utilities.any(potentialEntities, IS_GLOBAL))
+					potentialEntities.add(engineFunc);
+				if (potentialEntities.size() == 0)
+					potentialEntities = null;
+				else if (potentialEntities.size() == 1) {
+					for (IIndexEntity e : potentialEntities) {
+						this.entity = e;
 						break;
 					}
 				}
-				setRegion = proposedDeclarations != null;
+				setRegion = potentialEntities != null;
 			}
 			else
 				setRegion = false;
@@ -170,7 +171,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		else
 			setRegion = false;
 		if (setRegion && declRegion != null)
-			this.exprRegion = new Region(regionDescription.bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
+			this.exprRegion = new Region(regionDescription.bodyStart+declRegion.region().getOffset(), declRegion.region().getLength());
 	}
 
 	private void simpleFindDeclaration(IDocument doc, IRegion region, Script script, Function func) throws BadLocationException {
@@ -187,21 +188,21 @@ public class DeclarationLocator extends ExpressionLocator {
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
-		declaration = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
+		entity = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.index(), func));
 	}
 
 	/**
 	 * @return the identRegion
 	 */
-	public IRegion getIdentRegion() {
+	public IRegion identRegion() {
 		return exprRegion;
 	}
 
 	/**
 	 * @return the declaration
 	 */
-	public Declaration getDeclaration() {
-		return declaration;
+	public IIndexEntity entity() {
+		return entity;
 	}
 
 	@Override

@@ -24,10 +24,10 @@ public class FindDuplicateAction extends C4ScriptEditorAction {
 			C4ScriptEditor ed = (C4ScriptEditor) getTextEditor();
 			ed.reparseWithDocumentContents(null, false);
 			// force refreshing index so the functions acting as origins will be properly added to the declaration map
-			ed.scriptBeingEdited().getIndex().refreshIndex();
+			ed.scriptBeingEdited().index().refreshIndex();
 			
 			List<Function> functions = new LinkedList<Function>();
-			Declaration declaration = getDeclarationAtSelection(true);
+			Declaration declaration = declarationAtSelection(true);
 			if (declaration instanceof Function)
 				functions.add((Function) declaration);
 			else for (Function f : ((C4ScriptEditor)getTextEditor()).scriptBeingEdited().functions())

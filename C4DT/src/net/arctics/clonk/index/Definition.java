@@ -96,7 +96,7 @@ public class Definition extends Script {
 	public void setId(ID newId) {
 		if (id.equals(newId))
 			return;
-		Index index = this.getIndex();
+		Index index = this.index();
 		index.removeDefinition(this);
 		id = newId;
 		index.addDefinition(this);
@@ -152,8 +152,8 @@ public class Definition extends Script {
 	}
 
 	@Override
-	public boolean nameMatches(Matcher matcher) {
-		if (super.nameMatches(matcher))
+	public boolean matchedBy(Matcher matcher) {
+		if (super.matchedBy(matcher))
 			return true;
 		if (id() != null && matcher.reset(id().stringValue()).lookingAt())
 			return true;
@@ -262,8 +262,8 @@ public class Definition extends Script {
 		}
 		
 		@Override
-		public Index getIndex() {
-			return Definition.this.getIndex();
+		public Index index() {
+			return Definition.this.index();
 		}
 		
 		@Override

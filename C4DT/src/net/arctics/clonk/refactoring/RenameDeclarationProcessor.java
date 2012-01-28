@@ -80,7 +80,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
-			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.name(), Function.class)) {
+			for (Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class)) {
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().scriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
@@ -153,12 +153,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.getIndex() instanceof ProjectIndex)) {
+		if (!(baseDecl.index() instanceof ProjectIndex)) {
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
 		}
 		
 		Declaration existingDec;
-		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(decl.index());
 		info.setDeclarationClass(decl.getClass());
 		Structure parentStructure = decl.firstParentDeclarationOfType(Structure.class);
 		if (parentStructure != null) {

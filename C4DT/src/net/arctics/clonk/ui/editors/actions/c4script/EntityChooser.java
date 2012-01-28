@@ -1,10 +1,9 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.convertArray;
 import static net.arctics.clonk.util.ArrayUtil.setFromIterable;
 
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,10 +12,10 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationLocation;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
@@ -37,9 +36,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
-public class DeclarationChooser extends FilteredItemsSelectionDialog {
+public class EntityChooser extends FilteredItemsSelectionDialog {
 
-	protected final class DeclarationsFilter extends ItemsFilter {
+	protected final class Filter extends ItemsFilter {
 		private Pattern[] patterns;
 
 		public Pattern[] getPatterns() {
@@ -55,15 +54,10 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 		@Override
 		public boolean matchItem(Object item) {
-			if (item instanceof DeclarationLocation)
-				item = ((DeclarationLocation)item).declaration();
-			if (!(item instanceof Declaration))
-				return false;
-			final Declaration decl = (Declaration) item;
+			IIndexEntity entity = (IIndexEntity)item;
 			for (Pattern p : getPatterns()) {
 				Matcher matcher = p.matcher("");
-				final Structure structure = decl.topLevelStructure();
-				if (!(decl.nameMatches(matcher) || (structure != null && structure.nameMatches(matcher))))
+				if (entity.matchedBy(matcher))
 					return false;
 			}
 			return true;
@@ -87,48 +81,30 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
-	private final Set<DeclarationLocation> declarations;
+	private final Set<? extends IIndexEntity> entities;
 	private Index index;
 
-	public DeclarationChooser(Shell shell, Set<DeclarationLocation> proposedDeclarations) {
+	public EntityChooser(Shell shell, Set<? extends IIndexEntity> entities) {
 		super(shell);
-		this.declarations = proposedDeclarations;
+		this.entities = entities;
 		setListLabelProvider(new LabelProvider());
 		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
-	public DeclarationChooser(Shell shell, Iterable<Declaration> declarations) {
-		this(shell, setFromIterable(declarations), true);
+	public EntityChooser(Shell shell, Iterable<? extends IIndexEntity> declarations) {
+		this(shell, setFromIterable(declarations));
 	}
 	
-	public DeclarationChooser(Shell shell, Index index) {
-		this(shell, (Set<DeclarationLocation>)null);
+	public EntityChooser(Shell shell, Index index) {
+		this(shell, (Set<? extends IIndexEntity>)null);
 		this.index = index;
-	}
-	
-	public DeclarationChooser(Shell shell, Set<Declaration> proposedDeclarations, boolean doYouHateIt) {
-		this(shell, declarationLocationsFrom(proposedDeclarations));
-	}
-	
-	private static Set<DeclarationLocation> declarationLocationsFrom(Collection<Declaration> proposedDeclarations) {
-		Set<DeclarationLocation> l = new HashSet<DeclarationLocation>();
-		for (Declaration d : proposedDeclarations) {
-			DeclarationLocation[] locations = d.declarationLocations();
-			if (locations != null) {
-				for (DeclarationLocation dl : locations) {
-					l.add(dl);
-					break;
-				}
-			}
-		}
-		return l;
 	}
 
 	@Override
 	public void create() { 
 		super.create();
-		if (declarations != null && getInitialPattern() == null)
-			((Text)this.getPatternControl()).setText(declarations.iterator().next().declaration().name());
+		if (entities != null && getInitialPattern() == null)
+			((Text)this.getPatternControl()).setText(entities.iterator().next().name());
 	}
 
 	@Override
@@ -145,13 +121,13 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	@Override
 	protected ItemsFilter createFilter() {
-		return new DeclarationsFilter();
+		return new Filter();
 	}
 	
 	@Override
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
-		final Pattern[] patternStrings = ((DeclarationsFilter)itemsFilter).getPatterns();
+		final Pattern[] patternStrings = ((Filter)itemsFilter).getPatterns();
 		final Runnable refreshListRunnable = new Runnable() {
 			@Override
 			public void run() {
@@ -171,7 +147,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 									if (matcher.lookingAt()) {
 										s.requireLoaded();
 										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
-											if (d.nameMatches(matcher)) {
+											if (d.matchedBy(matcher)) {
 												contentProvider.add(new DeclarationLocation(d, d.location(), d.script().getScriptFile()), itemsFilter);
 												if (++declarationsBatchSize == 5) {
 													Display.getDefault().asyncExec(refreshListRunnable);
@@ -186,8 +162,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 					}
 				}
 			});
-		if (declarations != null)
-			for (DeclarationLocation d : declarations)
+		if (entities != null)
+			for (IIndexEntity d : entities)
 				contentProvider.add(d, itemsFilter);
 	}
 
@@ -221,17 +197,17 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return Status.OK_STATUS;
 	}
 
-	public DeclarationLocation[] getSelectedDeclarationLocations() {
-		return ArrayUtil.convertArray(this.getResult(), DeclarationLocation.class);
+	public IIndexEntity[] selectedEntities() {
+		return convertArray(this.getResult(), IIndexEntity.class);
 	}
 	
 	public boolean openSelection() {
 		boolean b = true;
-		for (DeclarationLocation loc : getSelectedDeclarationLocations()) {
-			ClonkTextEditor.openDeclarationLocation(loc, b);
+		for (IIndexEntity e : selectedEntities()) {
+			ClonkHyperlink.openTarget(e, b);
 			b = false;
 		}
-		return b;
+		return !b;
 	}
 	
 	public void run() {

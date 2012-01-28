@@ -639,7 +639,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	@Override
-	public Index getIndex() {
+	public Index index() {
 		return this;
 	}
 	
@@ -845,8 +845,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		protected String referencedProjectName;
 		public EntityReference(IndexEntity referencedEntity) {
 			super(referencedEntity);
-			if (referencedEntity != null && referencedEntity.getIndex() != null)
-				referencedProjectName = referencedEntity.getIndex().name();
+			if (referencedEntity != null && referencedEntity.index() != null)
+				referencedProjectName = referencedEntity.index().name();
 		}
 		@Override
 		protected Index getIndex(Index context) {
@@ -905,7 +905,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			return null;
 		if (entity instanceof Engine)
 			return new EngineRef((Engine)entity);
-		else if (entity.getIndex() == this)
+		else if (entity.index() == this)
 			return new EntityId(entity);
 		else
 			return new EntityReference(entity);
@@ -935,7 +935,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 						return super.replaceObject(obj);
 					}
 				};
-				objStream.writeObject(getIndex());
+				objStream.writeObject(index());
 				objStream.close();
 			} finally {
 				out.close();
@@ -979,7 +979,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 
 	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {
-		Index objIndex = obj.getIndex();
+		Index objIndex = obj.index();
 		if (objIndex == null || objIndex == this)
 			return obj;
 		else

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Shell;
 public class ClonkTextHover<EditorType extends ClonkTextEditor> implements ITextHover, ITextHoverExtension {
 
 		protected final ClonkSourceViewerConfiguration<EditorType> configuration;
-		private transient IHyperlink hyperlink;
+		private IHyperlink hyperlink;
 		
 		public ClonkTextHover(ClonkSourceViewerConfiguration<EditorType> clonkSourceViewerConfiguration) {
 			super();
@@ -29,10 +29,10 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
 			if (hyperlink instanceof ClonkHyperlink) {
 				ClonkHyperlink clonkHyperlink = (ClonkHyperlink) hyperlink;
-				Declaration dec = clonkHyperlink.getTarget();
-				hyperlink = null;
-				if (dec != null)
-					return dec.infoText();
+				IIndexEntity entity = clonkHyperlink.target();
+				// hyperlink = null; // what was that about
+				if (entity != null)
+					return entity.infoText();
 			}
 			return null;
 		}

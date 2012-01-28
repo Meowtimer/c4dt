@@ -21,7 +21,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.util.ITreeNode;
@@ -167,25 +167,25 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return true;
 	}
 	
-	public static DeclarationRegion entryRegionInString(String stringValue, int exprStart, int offset) {
+	public static EntityRegion entryRegionInString(String stringValue, int exprStart, int offset) {
 		int firstDollar = stringValue.lastIndexOf('$', offset-1);
 		int secondDollar = stringValue.indexOf('$', offset);
 		if (firstDollar != -1 && secondDollar != -1) {
 			String entry = stringValue.substring(firstDollar+1, secondDollar);
-			return new DeclarationRegion(null, new Region(exprStart+1+firstDollar, secondDollar-firstDollar+1), entry);
+			return new EntityRegion(null, new Region(exprStart+1+firstDollar, secondDollar-firstDollar+1), entry);
 		}
 		return null;
 	}
 	
-	public static DeclarationRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
-		DeclarationRegion result = entryRegionInString(stringValue, exprStart, offset);
+	public static EntityRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
+		EntityRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
 			StringTbl stringTbl = container.getStringTblForLanguagePref();
-			Declaration e = stringTbl != null ? stringTbl.map().get(result.getText()) : null;
+			Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
 			if (e == null && returnNullIfNotFound) {
 				result = null;
 			} else {
-				result.setDeclaration(e);
+				result.setEntity(e);
 			}
 		}
 		return result;
@@ -193,7 +193,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	
 	public static class EvaluationResult {
 		public String evaluated;
-		public DeclarationRegion singleDeclarationRegionUsed;
+		public EntityRegion singleDeclarationRegionUsed;
 		public boolean anySubstitutionsApplied;
 	}
 	
@@ -207,7 +207,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		int valueLen = value.length();
 		StringBuilder builder = new StringBuilder(valueLen*2);
 		// insert stringtbl entries
-		DeclarationRegion reg = null;
+		EntityRegion reg = null;
 		boolean moreThanOneSubstitution = false;
 		boolean substitutionsApplied = false;
 		Outer: for (int i = 0; i < valueLen;) {
@@ -215,11 +215,11 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				switch (value.charAt(i)) {
 				case '$':
 					moreThanOneSubstitution = reg != null;
-					DeclarationRegion region = entryForLanguagePref(value, 0, i+1, context, true);
+					EntityRegion region = entryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
 						substitutionsApplied = true;
-						builder.append(((NameValueAssignment)region.getConcreteDeclaration()).stringValue());
-						i += region.getRegion().getLength();
+						builder.append(((NameValueAssignment)region.concreteDeclaration()).stringValue());
+						i += region.region().getLength();
 						reg = region;
 						continue Outer;
 					}
@@ -247,7 +247,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	 * @param parser The parser
 	 * @param region The region describing the string table reference in question
 	 */
-	public static void reportMissingStringTblEntries(C4ScriptParser parser, DeclarationRegion region) {
+	public static void reportMissingStringTblEntries(C4ScriptParser parser, EntityRegion region) {
 		StringBuilder listOfLangFilesItsMissingIn = null;
 		try {
 			for (IResource r : (parser.containingScript().resource() instanceof IContainer ? (IContainer)parser.containingScript().resource() : parser.containingScript().resource().getParent()).members()) {
@@ -259,7 +259,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					String lang = m.group(1);
 					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
 					if (tbl != null) {
-						if (tbl.map().get(region.getText()) == null) {
+						if (tbl.map().get(region.text()) == null) {
 							if (listOfLangFilesItsMissingIn == null)
 								listOfLangFilesItsMissingIn = new StringBuilder(10);
 							if (listOfLangFilesItsMissingIn.length() > 0)
@@ -271,7 +271,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		} catch (CoreException e) {}
 		if (listOfLangFilesItsMissingIn != null) {
-			parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.getRegion(), listOfLangFilesItsMissingIn.toString());
+			parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.region(), listOfLangFilesItsMissingIn.toString());
 		}
 	}
 

@@ -273,7 +273,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	@Override
 	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
-		Index index = getIndex();
+		Index index = index();
 		if (index == null)
 			return NO_INCLUDES;
 		return getIncludes(index, recursive);
@@ -318,12 +318,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	@Override
 	public Declaration findDeclaration(String name) {
-		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
+		return findDeclaration(name, new FindDeclarationInfo(index()));
 	}
 
 	@Override
 	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(index());
 		info.setDeclarationClass(declarationClass);
 		return findDeclaration(declarationName, info);
 	}
@@ -472,7 +472,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			}
 			// engine function
 			if (f == null)
-				f = getIndex().engine().findDeclaration(name, info);
+				f = index().engine().findDeclaration(name, info);
 
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
@@ -572,12 +572,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public Function findFunction(String functionName) {
-		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(index());
 		return findFunction(functionName, info);
 	}
 
 	public Variable findVariable(String varName) {
-		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(index());
 		return findVariable(varName, info);
 	}
 
@@ -740,7 +740,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
-		Index index = getIndex();
+		Index index = index();
 		if (index != null)
 			return index.getDefinitionNearestTo(resource(), id);
 		return null;
@@ -920,7 +920,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	@Override
 	public Engine engine() {
-		Index index = getIndex();
+		Index index = index();
 		return index != null ? index.engine() : null;
 	}
 	

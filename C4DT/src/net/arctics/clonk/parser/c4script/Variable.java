@@ -299,7 +299,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return new Object[] {parentDeclaration};
 		if (!isGloballyAccessible() && parentDeclaration instanceof Definition) {
 			Definition obj = (Definition) parentDeclaration;
-			Index index = obj.getIndex();
+			Index index = obj.index();
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);
 			for (Definition o : index) {

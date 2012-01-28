@@ -5,7 +5,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
@@ -79,9 +79,9 @@ public class ReferencesQuery extends SearchQueryBase {
 					// ask the string literals whether they might refer to a function
 					if (e instanceof StringLiteral) {
 						functionNameExpr = (StringLiteral) e;
-						DeclarationRegion decRegion = e.declarationAt(0, parser);
+						EntityRegion decRegion = e.declarationAt(0, parser);
 						if (decRegion != null)
-							return decRegion.getConcreteDeclaration() == declaration;
+							return decRegion.concreteDeclaration() == declaration;
 						break;
 					}
 				}
@@ -202,13 +202,13 @@ public class ReferencesQuery extends SearchQueryBase {
 										}
 										else if (declaration instanceof Definition) {
 											if (entryClass == ID.class) {
-												if (script.getIndex().getDefinitionFromEverywhere((ID) complex.extendedValue()) == declaration) {
+												if (script.index().getDefinitionFromEverywhere((ID) complex.extendedValue()) == declaration) {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
 											}
 											else if (entryClass == IDArray.class) {
 												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
-													Definition obj = script.getIndex().getDefinitionFromEverywhere(pair.key());
+													Definition obj = script.index().getDefinitionFromEverywhere(pair.key());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}

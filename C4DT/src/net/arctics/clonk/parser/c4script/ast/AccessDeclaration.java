@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -79,8 +79,8 @@ public abstract class AccessDeclaration extends Value {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new DeclarationRegion(declarationFromContext(parser), region(0));
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+		return new EntityRegion(declarationFromContext(parser), region(0));
 	}
 
 	/**

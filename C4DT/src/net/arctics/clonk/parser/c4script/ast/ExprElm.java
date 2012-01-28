@@ -13,7 +13,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -447,7 +447,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
 	}
 
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		return null;
 	}
 
@@ -631,7 +631,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The {@link CachedEngineDeclarations}
 	 */
 	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
-		return context.containingScript().getIndex().engine().cachedFuncs();
+		return context.containingScript().index().engine().cachedFuncs();
 	}
 	
 	/**
@@ -856,9 +856,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 		
 		public static ITypeable getTypeable(ExprElm referenceElm, C4ScriptParser parser) {
-			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
-			if (decRegion != null && decRegion.getTypedDeclaration() != null)
-				return decRegion.getTypedDeclaration();
+			EntityRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
+			if (decRegion != null && decRegion.typedDeclaration() != null)
+				return decRegion.typedDeclaration();
 			else
 				return null;
 		}
@@ -869,10 +869,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (typeable != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				Index index = typeable.getIndex();
+				Index index = typeable.index();
 				if (index == null)
 					return;
-				if (index == parser.containingScript().getIndex())
+				if (index == parser.containingScript().index())
 					typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}

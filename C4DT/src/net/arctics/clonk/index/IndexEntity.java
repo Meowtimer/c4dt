@@ -51,7 +51,7 @@ public abstract class IndexEntity extends Structure {
 	}
 	
 	@Override
-	public final Index getIndex() {
+	public final Index index() {
 		return index;
 	}
 

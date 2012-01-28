@@ -1,10 +1,10 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -37,14 +37,14 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
-				DeclarationLocator locator = new DeclarationLocator(editor(), viewer.getDocument(),region);
-				if (locator.getDeclaration() != null && locator.getDeclaration().declarationLocations() != null)
+				EntityLocator locator = new EntityLocator(editor(), viewer.getDocument(),region);
+				if (locator.entity() != null)
 					return new IHyperlink[] {
-						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
+						new ClonkHyperlink(locator.identRegion(), locator.entity())
 					};
-				else if (locator.getProposedDeclarations() != null)
+				else if (locator.potentialEntities() != null)
 					return new IHyperlink[] {
-						new ClonkMultipleDeclarationsHyperlink(locator.getIdentRegion(), locator.getProposedDeclarations())
+						new ClonkHyperlink(locator.identRegion(), locator.potentialEntities())
 					};
 				return null;
 			} catch (Exception e) {
@@ -189,7 +189,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		};
 	}
 	
-	private C4ScriptAutoEditStrategy autoEditStrategy = new C4ScriptAutoEditStrategy(this);
+	private final C4ScriptAutoEditStrategy autoEditStrategy = new C4ScriptAutoEditStrategy(this);
 	
 	public C4ScriptAutoEditStrategy getAutoEditStrategy() {
 		return autoEditStrategy;

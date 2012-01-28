@@ -1,14 +1,14 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -41,10 +41,10 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		DeclarationRegion result = StringTbl.entryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.containingScript(), true);
+		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.containingScript(), true);
 		if (result != null)
 			return result;
 
@@ -53,11 +53,10 @@ public final class StringLiteral extends Literal<String> {
 			CallFunc parentFunc = (CallFunc) getParent();
 			int myIndex = parentFunc.indexOfParm(this);
 
-			//  link to functions that are called indirectly
-			
+			// delegate finding a link to special function rules
 			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(parser, SpecialScriptRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
-				DeclarationRegion region = funcRule.locateDeclarationInParameter(parentFunc, parser, myIndex, offset, this);
+				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parser, myIndex, offset, this);
 				if (region != null) {
 					return region;
 				}
@@ -72,7 +71,7 @@ public final class StringLiteral extends Literal<String> {
 		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), StringUtil.evaluateEscapes(getLiteral()), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
-			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().resource());
+			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.region(), (IFile) r.singleDeclarationRegionUsed.concreteDeclaration().resource());
 		else if (!r.anySubstitutionsApplied)
 			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().getScriptFile());
 		return r.evaluated;
@@ -82,7 +81,7 @@ public final class StringLiteral extends Literal<String> {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		
 		// warn about overly long strings
-		long max = parser.containingScript().getIndex().engine().currentSettings().maxStringLen;
+		long max = parser.containingScript().index().engine().currentSettings().maxStringLen;
 		if (max != 0 && getLiteral().length() > max) {
 			parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
 		}
@@ -97,10 +96,10 @@ public final class StringLiteral extends Literal<String> {
 		// warn when using non-declared string tbl entries
 		for (int i = 0; i < valueLen;) {
 			if (i+1 < valueLen && value.charAt(i) == '$') {
-				DeclarationRegion region = StringTbl.entryRegionInString(stringValue(), getExprStart(), (i+1));
+				EntityRegion region = StringTbl.entryRegionInString(stringValue(), getExprStart(), (i+1));
 				if (region != null) {
 					StringTbl.reportMissingStringTblEntries(parser, region);
-					i += region.getRegion().getLength();
+					i += region.region().getLength();
 					continue;
 				}
 			}

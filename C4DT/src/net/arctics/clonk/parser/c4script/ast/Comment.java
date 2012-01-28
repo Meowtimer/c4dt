@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
@@ -99,7 +99,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		// parse comment as expression and see what goes
 		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
@@ -117,9 +117,9 @@ public class Comment extends Statement implements Statement.Attachment {
 			commentParser.parseStandaloneStatement(comment, parser.currentFunction(), locator);
 		} catch (ParsingException e) {}
 		if (locator.getExprAtRegion() != null) {
-			DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
+			EntityRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
 			if (reg != null)
-				return reg.addOffsetInplace(getExprStart()+2);
+				return reg.incrementRegionBy(getExprStart()+2);
 			else
 				return null;
 		}

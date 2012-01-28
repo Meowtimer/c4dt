@@ -3,24 +3,27 @@ package net.arctics.clonk.ui.editors;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
+import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * A hyperlink that stores a reference to the hyperlinked Clonk declaration
@@ -29,12 +32,17 @@ import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
 public class ClonkHyperlink implements IHyperlink {
 
 	private final IRegion region;
-	protected Declaration target;
+	protected Set<IIndexEntity> targets;
 
-	public ClonkHyperlink(IRegion region, Declaration target) {
+	public ClonkHyperlink(IRegion region, IIndexEntity target) {
 		super();
 		this.region = region;
-		this.target = target;
+		this.targets = ArrayUtil.set(target);
+	}
+	
+	public ClonkHyperlink(IRegion region, Set<IIndexEntity> targets) {
+		this.region = region;
+		this.targets = targets;
 	}
 
 	@Override
@@ -44,7 +52,9 @@ public class ClonkHyperlink implements IHyperlink {
 
 	@Override
 	public String getHyperlinkText() {
-		return target.name();
+		for (IIndexEntity t : targets)
+			return t.name();
+		return "hyperlink to ?";
 	}
 
 	@Override
@@ -54,17 +64,33 @@ public class ClonkHyperlink implements IHyperlink {
 
 	@Override
 	public void open() {
+		if (this.targets.size() == 1) {
+			openTarget(this.targets.iterator().next(), true);
+		}
+		else
+			chooseDeclarations();
+	}
+
+	private void chooseDeclarations() {
+		EntityChooser chooser = new EntityChooser(ClonkCore.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
+		chooser.run();
+	}
+
+	public static void openTarget(IIndexEntity target, boolean activateEditor) {
 		try {
-			DeclarationLocation[] locations = target.declarationLocations();
-			if (locations.length == 1)
-				ClonkTextEditor.openDeclaration(locations[0].declaration());
-			else
-				new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new HashSet<DeclarationLocation>(Arrays.asList(locations))).run();
-			if (ClonkTextEditor.openDeclaration(target) == null) {
-				// can't open editor so try something else like opening up a documentation page in the browser
-				if (target.isEngineDeclaration()) {
-					openDocumentationForFunction(target.name(), target.engine());
+			if (target instanceof Declaration) {
+				Declaration dec = (Declaration)target;
+				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null) {
+					// can't open editor so try something else like opening up a documentation page in the browser
+					if (dec.isEngineDeclaration()) {
+						openDocumentationForFunction(dec.name(), dec.engine());
+					}
 				}
+			}
+			else if (target instanceof ProjectResource) {
+				CommonNavigator nav = UI.projectExplorer();
+				nav.setFocus();
+				nav.selectReveal(new StructuredSelection(((ProjectResource)target).resource()));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,12 +120,16 @@ public class ClonkHyperlink implements IHyperlink {
 		}
 	}
 
-	public IRegion getRegion() {
+	public IRegion region() {
 		return region;
 	}
 
-	public Declaration getTarget() {
-		return target;
+	public IIndexEntity target() {
+		return targets.iterator().next();
+	}
+	
+	public Set<IIndexEntity> targets() {
+		return targets;
 	}
 
 }

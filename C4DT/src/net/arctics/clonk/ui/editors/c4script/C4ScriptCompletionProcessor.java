@@ -8,25 +8,26 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
@@ -40,7 +41,7 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
-import net.arctics.clonk.ui.editors.c4script.DeclarationLocator.RegionDescription;
+import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Gen;
 import net.arctics.clonk.util.IConverter;
@@ -132,7 +133,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
-	private ContentAssistant assistant;
+	private final ContentAssistant assistant;
 	private ExprElm contextExpression;
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
@@ -225,7 +226,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 
 		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
-			if (editor().scriptBeingEdited().getIndex().engine() != null)
+			if (editor().scriptBeingEdited().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
 		if (activeFunc == null)
@@ -346,12 +347,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		if (proposalCycle == ProposalCycle.ALL) {
-			if (editorScript.getIndex().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
-				for (Function func : editorScript.getIndex().engine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().engine().name(), true);
+			if (editorScript.index().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
+				for (Function func : editorScript.index().engine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, editorScript.index().engine().name(), true);
 				}
 				if (contextSequence == null) {
-					for (Variable var : editorScript.getIndex().engine().variables()) {
+					for (Variable var : editorScript.index().engine().variables()) {
 						proposalForVar(var,prefix,offset,proposals);
 					}
 				}
@@ -423,7 +424,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public static List<ICompletionProposal> computeProposalsForExpression(ExprElm expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
-		Index index = function.getIndex();
+		Index index = function.index();
 		processor.contextExpression = expression;
 		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.script(), parser);
 		return result;
@@ -604,17 +605,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
 			if (funcCallInfo != null) {
-				Declaration dec = funcCallInfo.callFunc.declaration();
-				if (dec == null) {
+				IIndexEntity entity = funcCallInfo.callFunc.declaration();
+				if (entity == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().scriptBeingEdited(), new Region(offset, 1))) {
 						funcCallInfo.locator.initializeProposedDeclarations(editor().scriptBeingEdited(), d, null, funcCallInfo.callFunc);
-						if (funcCallInfo.locator.getProposedDeclarations() != null)
-							for (Declaration dec_ : funcCallInfo.locator.getProposedDeclarations()) {
-								if (dec == null)
-									dec = dec_;
+						if (funcCallInfo.locator.potentialEntities() != null)
+							for (IIndexEntity e : funcCallInfo.locator.potentialEntities()) {
+								if (entity == null)
+									entity = e;
 								else {
-									dec = null;
+									entity = null;
 									break;
 								}
 							}
@@ -622,14 +623,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 //				if (dec == null && funcCallInfo.locator != null)
 //					dec = funcCallInfo.locator.getDeclaration();
-				if (dec instanceof Function) {
-					String parmString = ((Function)dec).getLongParameterString(false, false).trim();
+				if (entity instanceof Function) {
+					String parmString = ((Function)entity).getLongParameterString(false, false).trim();
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 					info = new ClonkContextInformation(
-							dec.name() + "()", null, //$NON-NLS-1$
+							entity.name() + "()", null, //$NON-NLS-1$
 							parmString,
-							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)dec).numParameters()
+							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)entity).numParameters()
 					);
 				}
 			}

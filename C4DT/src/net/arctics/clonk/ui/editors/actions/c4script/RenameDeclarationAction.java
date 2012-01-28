@@ -4,10 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
-import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -26,7 +28,9 @@ public class RenameDeclarationAction extends C4ScriptEditorAction {
 	@Override
 	public void run() {
 		try {
-			performRenameRefactoring(getDeclarationAtSelection(false), null, 0);
+			IIndexEntity entity = entityAtSelection(false);
+			if (entity != null)
+				performRenameRefactoring((Declaration)entity, null, 0);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

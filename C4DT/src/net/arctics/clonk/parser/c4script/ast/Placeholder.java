@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -30,19 +30,19 @@ public class Placeholder extends ExprElm {
 		builder.append('$');
 	}
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		StringTbl stringTbl = parser.containingScript().getStringTblForLanguagePref();
 		if (stringTbl != null) {
 			NameValueAssignment entry = stringTbl.map().get(entryName);
 			if (entry != null)
-				return new DeclarationRegion(entry, this);
+				return new EntityRegion(entry, this);
 		}
 		return super.declarationAt(offset, parser);
 	}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		StringTbl.reportMissingStringTblEntries(parser, new DeclarationRegion(null, this, entryName));
+		StringTbl.reportMissingStringTblEntries(parser, new EntityRegion(null, this, entryName));
 	}
 	
 	@Override

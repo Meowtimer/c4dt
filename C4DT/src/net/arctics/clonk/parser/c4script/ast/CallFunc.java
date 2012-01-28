@@ -7,34 +7,35 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineDeclarations;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
+import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IResolvableType;
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -104,8 +105,8 @@ public class CallFunc extends AccessDeclaration {
 	}
 	
 	private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
-		private Function varFunction;
-		private long varIndex;
+		private final Function varFunction;
+		private final long varIndex;
 
 		private VarFunctionsTypeInformation(Function function, long val) {
 			varFunction = function;
@@ -301,12 +302,15 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
-		List<Declaration> decs = new LinkedList<Declaration>();
+		List<IIndexEntity> decs = new LinkedList<IIndexEntity>();
 		_obtainDeclaration(decs, context);
-		return decs.size() > 0 ? decs.get(0) : null;
+		for (IIndexEntity e : decs)
+			if (e instanceof Declaration)
+				return (Declaration)e;
+		return null;
 	}
 
-	protected void _obtainDeclaration(Collection<Declaration> decs, DeclarationObtainmentContext context) {
+	protected void _obtainDeclaration(Collection<IIndexEntity> list, DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
 			return;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
@@ -314,13 +318,13 @@ public class CallFunc extends AccessDeclaration {
 			if (activeFunc != null) {
 				Function inher = activeFunc.getInherited();
 				if (inher != null)
-					decs.add(inher);
+					list.add(inher);
 				return;
 			}
 		}
 		ExprElm p = predecessorInSequence();
-		findFunctionUsingPredecessor(p, declarationName, context, decs);
-		multiplePotentialDeclarations = decs.size() > 1;
+		findFunctionUsingPredecessor(p, declarationName, context, list);
+		multiplePotentialDeclarations = list.size() > 1;
 	}
 
 	/**
@@ -331,13 +335,13 @@ public class CallFunc extends AccessDeclaration {
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.
 	 */
-	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
+	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.containingScript() : p.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof Script))
 				continue;
 			Script script = (Script)ty;
-			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().getIndex());
+			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 			info.setSearchOrigin(context.containingScript());
 			Declaration dec = script.findFunction(functionName, info);
 			// parse function before this one
@@ -362,22 +366,22 @@ public class CallFunc extends AccessDeclaration {
 			// find global function
 			Declaration declaration;
 			try {
-				declaration = context.containingScript().getIndex().findGlobal(Function.class, functionName);
+				declaration = context.containingScript().index().findGlobal(Function.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context == null)
 					System.out.println("No context");
 				if (context.containingScript() == null)
 					System.out.println("No container");
-				if (context.containingScript().getIndex() == null)
+				if (context.containingScript().index() == null)
 					System.out.println("No index");
 				return null;
 			}
 			// find engine function
 			if (declaration == null)
-				declaration = context.containingScript().getIndex().engine().findFunction(functionName);
+				declaration = context.containingScript().index().engine().findFunction(functionName);
 
-			List<Declaration> allFromLocalIndex = context.containingScript().getIndex().declarationMap().get(functionName);
+			List<Declaration> allFromLocalIndex = context.containingScript().index().declarationMap().get(functionName);
 			Declaration decl = context.containingScript().engine().findLocalFunction(functionName, false);
 			int numCandidates = 0;
 			if (allFromLocalIndex != null)
@@ -395,7 +399,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		if ((p == null || !(p instanceof MemberOperator) || !((MemberOperator)p).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
-			for (Declaration d : listToAddPotentialDeclarationsTo)
+			for (Declaration d : ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class))
 				if (!d.isGlobal() && d instanceof Function && d.parentDeclaration() instanceof IHasIncludes)
 					typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.parentDeclaration(), ConstraintKind.Includes));
 			if (typesWithThatMember.size() > 0) {
@@ -405,7 +409,10 @@ public class CallFunc extends AccessDeclaration {
 					p.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
 			}
 		}
-		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.iterator().next() : null;
+		if (listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0)
+			return ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class).iterator().next();
+		else
+			return null;
 	}
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
 		ExprElm pred = predecessorInSequence();
@@ -667,10 +674,10 @@ public class CallFunc extends AccessDeclaration {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		Set<Declaration> list = new HashSet<Declaration>();
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+		Set<IIndexEntity> list = new HashSet<IIndexEntity>();
 		_obtainDeclaration(list, parser);
-		return new DeclarationRegion(list, new Region(getExprStart(), declarationName.length()));
+		return new EntityRegion(list, new Region(getExprStart(), declarationName.length()));
 	}
 	public ExprElm soleParm() {
 		if (params.length == 1)

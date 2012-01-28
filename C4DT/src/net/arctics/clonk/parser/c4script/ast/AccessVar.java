@@ -84,7 +84,7 @@ public class AccessVar extends AccessDeclaration {
 						return proplistComponent;
 				}
 			} else {
-				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().getIndex());
+				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 				info.setContextFunction(context.currentFunction());
 				info.setSearchOrigin(scriptToLookIn);
 				Variable v = scriptToLookIn.findVariable(declarationName, info);

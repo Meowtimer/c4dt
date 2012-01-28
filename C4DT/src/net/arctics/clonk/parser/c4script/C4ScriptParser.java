@@ -474,8 +474,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			engine = container.engine();
 			specialScriptRules = engine != null ? container.engine().specialScriptRules() : null;
 
-			if (container.getIndex() instanceof ProjectIndex) {
-				ProjectIndex projIndex = (ProjectIndex) container.getIndex();
+			if (container.index() instanceof ProjectIndex) {
+				ProjectIndex projIndex = (ProjectIndex) container.index();
 				ClonkProjectNature nature = projIndex.getNature();
 				if (nature != null) {
 					errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
@@ -2287,14 +2287,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private ExprElm parseExpression() throws ParsingException {
 		return parseExpression(true);
 	}
-	
-	private static final char[] getQuotesAndNewLineChars() {
-		char[] result = new char[1+BufferedScanner.NEWLINE_CHARS.length];
-		result[0] = '"';
-		System.arraycopy(BufferedScanner.NEWLINE_CHARS, 0, result, 1, BufferedScanner.NEWLINE_CHARS.length);
-		return result;
-	}
-	private static final char[] QUOTES_AND_NEWLINE_CHARS = getQuotesAndNewLineChars();
 	
 	/**
 	 * Parse a string literal and store it in the {@link FunctionContext#parsedString} field.

@@ -5,7 +5,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
+import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
-public class OpenObjectDialog extends DeclarationChooser {
+public class OpenObjectDialog extends EntityChooser {
 	
 	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
 	

@@ -13,20 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -44,6 +37,13 @@ import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.Utilities;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 /**
  * This class contains some special rules that are applied to certain objects during parsing
@@ -235,7 +235,7 @@ public class SpecialScriptRules {
 		 * @return Return null if no declaration could be found that is referred to.
 		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return null;
 		}
 		/**
@@ -269,12 +269,12 @@ public class SpecialScriptRules {
 		public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
 	}
 	
-	private Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
-	private Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
-	private Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
-	private Map<String, SpecialFuncRule> parmProposalContributors = new HashMap<String, SpecialFuncRule>();
-	private List<SpecialFuncRule> defaultParmTypeAssigners = new LinkedList<SpecialFuncRule>();
-	private List<SpecialFuncRule> functionEventListeners = new LinkedList<SpecialFuncRule>();
+	private final Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
+	private final Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
+	private final Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
+	private final Map<String, SpecialFuncRule> parmProposalContributors = new HashMap<String, SpecialFuncRule>();
+	private final List<SpecialFuncRule> defaultParmTypeAssigners = new LinkedList<SpecialFuncRule>();
+	private final List<SpecialFuncRule> functionEventListeners = new LinkedList<SpecialFuncRule>();
 	
 	public Iterable<SpecialFuncRule> defaultParmTypeAssignerRules() {
 		return defaultParmTypeAssigners;
@@ -439,14 +439,14 @@ public class SpecialScriptRules {
 				Object ev = callFunc.params()[0].evaluateAtParseTime(context.currentFunction());
 				if (ev instanceof String) {
 					List<IType> types = new LinkedList<IType>();
-					for (Index index : context.containingScript().getIndex().relevantIndexes()) {
+					for (Index index : context.containingScript().index().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
 							if (f.script() instanceof Definition) {
-								types.add(new ConstrainedProplist((Definition)f.script(), ConstraintKind.Includes));
+								types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
 							}
 							else for (Directive directive : f.script().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
-									Definition def = f.script().getIndex().getDefinitionNearestTo(context.containingScript().resource(), directive.contentAsID());
+									Definition def = f.script().index().getDefinitionNearestTo(context.containingScript().resource(), directive.contentAsID());
 									if (def != null) {
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 									}
@@ -503,7 +503,7 @@ public class SpecialScriptRules {
 			return false; // don't stop regular parameter validating
 		};
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
@@ -511,9 +511,9 @@ public class SpecialScriptRules {
 					C4ScriptParser.parseStandaloneStatement(lit.getLiteral(), parser.currentFunction(), locator, null);
 				} catch (ParsingException e) {}
 				if (locator.getExprAtRegion() != null) {
-					DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
+					EntityRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
 					if (reg != null)
-						return reg.addOffsetInplace(lit.getExprStart()+1);
+						return reg.incrementRegionBy(lit.getExprStart()+1);
 				}
 			}
 			return null;
@@ -523,14 +523,14 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.params()[0].typeInContext(parser);
 				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
 				Function func = scriptToLookIn.findFunction(lit.getLiteral());
 				if (func != null) {
-					return new DeclarationRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
+					return new EntityRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
 				}
 			}
 			return null;
@@ -575,10 +575,10 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Index index = parser.containingScript().getIndex();
+				Index index = parser.containingScript().index();
 				Scenario scenario = null;
 				for (IResource r = parser.containingScript().resource().getParent(); scenario == null && r != null; r = r.getParent()) {
 					if (r instanceof IContainer)
@@ -587,7 +587,7 @@ public class SpecialScriptRules {
 				if (scenario != null) {
 					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
-						return new DeclarationRegion(scenFunc, lit.identifierRegion());
+						return new EntityRegion(scenFunc, lit.identifierRegion());
 				} else {
 					final List<Declaration> decs = new LinkedList<Declaration>();
 					index.forAllRelevantIndexes(new Index.r() {
@@ -602,7 +602,7 @@ public class SpecialScriptRules {
 						};
 					});
 					if (decs.size() > 0)
-						return new DeclarationRegion(new HashSet<Declaration>(decs), lit.identifierRegion());
+						return new EntityRegion(new HashSet<IIndexEntity>(decs), lit.identifierRegion());
 				}
 			}
 			return null;
@@ -615,12 +615,12 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Function f = parser.containingScript().findFunction(lit.stringValue());
 				if (f != null)
-					return new DeclarationRegion(f, lit.identifierRegion());
+					return new EntityRegion(f, lit.identifierRegion());
 			}
 			return null;
 		};
@@ -632,7 +632,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params()[0].guessObjectType(parser);
@@ -643,7 +643,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn != null) {
 					Function f = typeToLookIn.findFunction(lit.stringValue());
 					if (f != null)
-						return new DeclarationRegion(f, lit.identifierRegion());
+						return new EntityRegion(f, lit.identifierRegion());
 				}
 			}
 			return null;
@@ -656,7 +656,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params().length > 1 ? callFunc.params()[1].guessObjectType(parser) : null;
@@ -667,7 +667,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn != null) {
 					Variable var = typeToLookIn.findVariable(lit.stringValue());
 					if (var != null)
-						return new DeclarationRegion(var, lit.identifierRegion());
+						return new EntityRegion(var, lit.identifierRegion());
 				}
 			}
 			return null;
@@ -689,24 +689,32 @@ public class SpecialScriptRules {
 		};
 	};
 	
+	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
+		public abstract IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser);
+		@Override
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			Object parmEv;
+			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
+				String resourceName = (String)parmEv;
+				ProjectIndex pi = (ProjectIndex)parser.containingScript().index();
+				IIndexEntity e = locateEntityByName(resourceName, pi, parser);
+				if (e != null) {
+					return new EntityRegion(e, parmExpression);
+				}
+			}
+			return null;
+		}
+	}
+	
 	/**
 	 * Links to particle definitions from various particle functions.
 	 */
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
-	public final SpecialFuncRule linkToParticles = new SpecialFuncRule() {
+	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
-			Object parmEv;
-			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
-				String particleName = (String)parmEv;
-				ProjectIndex projIndex = (ProjectIndex)parser.containingScript().getIndex();
-				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.containingScript().resource(), true, "Particle.txt");
-				if (unit != null) {
-					return new DeclarationRegion(unit, parmExpression);
-				}
-			}
-			return null;
-		};
+		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
+			return pi.findPinnedStructure(ParticleUnit.class, name, parser.containingScript().resource(), true, "Particle.txt");
+		}
 	};
 	
 	/**
@@ -716,10 +724,10 @@ public class SpecialScriptRules {
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return getActionLinkForDefinition(parser.currentFunction(), parser.containerAsDefinition(), parmExpression);
 		}
-		protected DeclarationRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
+		protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
 			Object parmEv;
 			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
@@ -737,7 +745,7 @@ public class SpecialScriptRules {
 						if (unit instanceof IniUnitWithNamedSections) {
 							IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
 							if (actionSection != null) {
-								return new DeclarationRegion(actionSection, actionNameExpression);
+								return new EntityRegion(actionSection, actionNameExpression);
 							}
 						}
 					}
@@ -756,11 +764,11 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SpecialFuncRule() {
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
-				parser.containingScript().getIndex().forAllRelevantIndexes(new Index.r() {
+				parser.containingScript().index().forAllRelevantIndexes(new Index.r() {
 					@Override
 					public void run(Index index) {
 						List<Declaration> decs = index.declarationMap().get(lit.getLiteral());
@@ -769,7 +777,7 @@ public class SpecialScriptRules {
 					}
 				});
 				if (matchingDecs.size() > 0)
-					return new DeclarationRegion(new HashSet<Declaration>(matchingDecs), lit.identifierRegion());
+					return new EntityRegion(new HashSet<IIndexEntity>(matchingDecs), lit.identifierRegion());
 			}
 			return null;
 		};

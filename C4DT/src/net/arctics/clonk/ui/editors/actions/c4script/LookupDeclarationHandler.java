@@ -31,7 +31,7 @@ public class LookupDeclarationHandler extends AbstractHandler {
 					if (s instanceof Script)
 						for (Declaration d : ((Script)s).allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 							declarations.add(d);
-				DeclarationChooser chooser = new DeclarationChooser(HandlerUtil.getActiveShell(event), declarations);
+				EntityChooser chooser = new EntityChooser(HandlerUtil.getActiveShell(event), declarations);
 				chooser.setInitialPattern(".*");
 				chooser.run();
 			}
@@ -39,7 +39,7 @@ public class LookupDeclarationHandler extends AbstractHandler {
 		else {
 			ClonkProjectNature nat = ClonkProjectNature.get(part);
 			if (nat != null && nat.getIndex() != null)
-				new DeclarationChooser(HandlerUtil.getActiveShell(event), nat.getIndex()).run();
+				new EntityChooser(HandlerUtil.getActiveShell(event), nat.getIndex()).run();
 		}
 		return null;
 	}

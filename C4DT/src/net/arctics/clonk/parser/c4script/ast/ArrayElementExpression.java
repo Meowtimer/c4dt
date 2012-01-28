@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -80,12 +80,12 @@ public class ArrayElementExpression extends Value {
 	}
 	
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (predecessorInSequence() != null) {
 			IType t = predecessorInSequence().typeInContext(parser);
 			if (t instanceof ArrayType)
-				return new DeclarationRegion(
-					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.containingScript().getIndex())
+				return new EntityRegion(
+					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.containingScript().index())
 				);
 		}
 		return super.declarationAt(offset, parser);

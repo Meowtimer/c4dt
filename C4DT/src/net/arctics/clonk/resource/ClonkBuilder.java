@@ -218,7 +218,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				case IResourceDelta.REMOVED:
 					script = SystemScript.scriptCorrespondingTo(file);
 					if (script != null && file.equals(script.scriptStorage()))
-						script.getIndex().removeScript(script);
+						script.index().removeScript(script);
 				}
 				success = true;
 			}
@@ -240,7 +240,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					// remove object when folder is removed
 					object = Definition.definitionCorrespondingToFolder((IContainer)delta.getResource());
 					if (object != null)
-						object.getIndex().removeDefinition(object);
+						object.index().removeDefinition(object);
 					break;
 				}
 				success = true;

@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -33,8 +33,8 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new DeclarationRegion(parser.containingScript().nearestDefinitionWithId(idValue()), region(0));
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+		return new EntityRegion(parser.containingScript().nearestDefinitionWithId(idValue()), region(0));
 	}
 
 }

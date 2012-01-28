@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -99,8 +99,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
 		}
 		@Override
-		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			return new DeclarationRegion(variableBeingInitialized, this);
+		public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+			return new EntityRegion(variableBeingInitialized, this);
 		}
 	}
 	
@@ -151,7 +151,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc != null) {				
 			int addToMakeAbsolute = activeFunc.getBody().getStart() + this.getExprStart();
@@ -160,7 +160,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 				String varName = pair.name;
 				Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
-					return new DeclarationRegion(var, new Region(var.location().getStart()-activeFunc.getBody().getStart(), var.location().getLength()));
+					return new EntityRegion(var, new Region(var.location().getStart()-activeFunc.getBody().getStart(), var.location().getLength()));
 			}
 		}
 		return super.declarationAt(offset, parser);

@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -89,7 +89,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return false;
 		}
 		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
-			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getIndex(), startFunction.effectName(), null);
+			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.index(), startFunction.effectName(), null);
 			result.setLocation(effectParameter.location());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);
@@ -137,7 +137,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return null;
 		};
 		@Override
-		public DeclarationRegion locateDeclarationInParameter(
+		public EntityRegion locateEntityInParameter(
 				CallFunc callFunc, C4ScriptParser parser, int index,
 				int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
@@ -150,11 +150,11 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 							null
 					);
 					if (d instanceof EffectFunction) {
-						return new DeclarationRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
+						return new EntityRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
 					}
 				}
 			}
-			return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+			return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 		}
 	};
 	
@@ -343,11 +343,11 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			protected DeclarationRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm parmExpression) {
+			protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm parmExpression) {
 				if (definition == null)
 					return null;
 				Object parmEv;
-				DeclarationRegion result = super.getActionLinkForDefinition(currentFunction, definition, parmExpression);
+				EntityRegion result = super.getActionLinkForDefinition(currentFunction, definition, parmExpression);
 				if (result != null)
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
@@ -357,25 +357,25 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 							ProplistDeclaration proplDecl = (ProplistDeclaration) ty;
 							Variable action = proplDecl.findComponent((String)parmEv);
 							if (action != null)
-								return new DeclarationRegion(action, parmExpression);
+								return new EntityRegion(action, parmExpression);
 						}
 					}
 				}
 				return null;
 			};
 			@Override
-			public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index != 0)
 					return null;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : null;
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
-						DeclarationRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
+						EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
 				}
-				return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 			@Override
 			public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {

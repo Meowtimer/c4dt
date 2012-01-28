@@ -17,9 +17,9 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -42,7 +42,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IEntityLocatedInIndex {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IIndexEntity {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -341,8 +341,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @param matcher The matcher, obtained from a {@link Pattern}, that will be {@link Matcher#reset(CharSequence)} with all the strings the user might want to filter for in order to refer to this declaration.
 	 * @return whether this declaration should be filtered out (false) or not (true)
 	 */
-	public boolean nameMatches(Matcher matcher) {
-		return name() != null && matcher.reset(name()).lookingAt();
+	@Override
+	public boolean matchedBy(Matcher matcher) {
+		if (name() != null && matcher.reset(name()).lookingAt())
+			return true;
+		if (topLevelStructure() != null && topLevelStructure().matchedBy(matcher))
+			return true;
+		return false;
 	}
 	
 	@Override
@@ -383,9 +388,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 
 	@Override
-	public Index getIndex() {
+	public Index index() {
 		if (parentDeclaration != null)
-			return parentDeclaration.getIndex();
+			return parentDeclaration.index();
 		else {
 			IResource res = resource();
 			if (res != null) {

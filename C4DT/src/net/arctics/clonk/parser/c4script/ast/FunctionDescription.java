@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -35,7 +35,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (contents == null)
 			return null;
 		String[] parts = contents.split("\\|"); //$NON-NLS-1$
@@ -47,7 +47,7 @@ public class FunctionDescription extends Statement implements Serializable {
 					if (stringTbl != null) {
 						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
-							return new DeclarationRegion(entry, new Region(getExprStart()+off, part.length()));
+							return new EntityRegion(entry, new Region(getExprStart()+off, part.length()));
 					}
 				}
 				else {
@@ -59,7 +59,7 @@ public class FunctionDescription extends Statement implements Serializable {
 						if (sep != -1)
 							value = value.substring(0, sep);
 						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
-							return new DeclarationRegion(parser.containingScript().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
+							return new EntityRegion(parser.containingScript().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
 					}
 				}
 				break;

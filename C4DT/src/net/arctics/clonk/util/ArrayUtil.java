@@ -253,7 +253,7 @@ public class ArrayUtil {
 		return t;
 	}
 	
-	public static <T> Set<T> setFromIterable(Iterable<T> iterable) {
+	public static <T> Set<? extends T> setFromIterable(Iterable<T> iterable) {
 		Set<T> set = new HashSet<T>();
 		for (T d : iterable)
 			set.add(d);

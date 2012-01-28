@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -19,19 +19,19 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 		putFuncRule(criteriaSearchRule, "FindObject2");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index == 1 && callFunc.getDeclarationName().equals("ObjectSetAction")) {
 					IType t = callFunc.params()[0].typeInContext(parser);
 					if (t != null) for (IType ty : t) {
 						if (ty instanceof Definition) {
 							Definition def = (Definition)ty;
-							DeclarationRegion result = getActionLinkForDefinition(parser.currentFunction(), def, parmExpression);
+							EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), def, parmExpression);
 							if (result != null)
 								return result;
 						}
 					}
 				}
-				return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 		}, "ObjectSetAction");
 	}

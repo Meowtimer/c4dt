@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
  * @author madeen
  *
  */
-public interface ITypeable extends IEntityLocatedInIndex {
+public interface ITypeable extends IIndexEntity {
 	/**
 	 * The outside world expects this entity to be of the specified type. Act accordingly.
 	 * @param t The type this entity is expected to be of

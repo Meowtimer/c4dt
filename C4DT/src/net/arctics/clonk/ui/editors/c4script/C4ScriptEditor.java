@@ -689,8 +689,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public CallFunc callFunc;
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
-		public DeclarationLocator locator;
-		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, DeclarationLocator locator) {
+		public EntityLocator locator;
+		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, EntityLocator locator) {
 			this.callFunc = callFunc;
 			this.parmIndex = parm != null ? callFunc.indexOfParm(parm) : 0;
 			this.parmsStart = func.getBody().getStart()+callFunc.parmsStart();
@@ -703,7 +703,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Function f = this.getFuncAt(offset);
 		if (f == null)
 			return null;
-		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
+		EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ExprElm expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search

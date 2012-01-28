@@ -409,7 +409,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		
 		// search in index
-		List<Declaration> decsWithSameName = getIndex().declarationMap().get(this.name());
+		List<Declaration> decsWithSameName = index().declarationMap().get(this.name());
 		if (decsWithSameName != null) {
 			Function f = null;
 			int rating = -1;
@@ -432,7 +432,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		
 		// search in engine
-		Function f = getIndex().engine().findFunction(name());
+		Function f = index().engine().findFunction(name());
 		if (f != null)
 			return f;
 		

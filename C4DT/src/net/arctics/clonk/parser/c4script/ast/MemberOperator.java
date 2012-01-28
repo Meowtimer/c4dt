@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine.EngineSettings;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -144,9 +144,9 @@ public class MemberOperator extends ExprElm {
 	}
 
 	@Override
-	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new DeclarationRegion(parser.containingScript().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
+			return new EntityRegion(parser.containingScript().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
 		return null;
 	}
 

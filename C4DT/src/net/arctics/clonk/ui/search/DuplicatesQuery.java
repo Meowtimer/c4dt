@@ -61,7 +61,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 		result.fillFunctionMapWithFunctionList(functions);
 		for (List<Function> fnList : result.functionsToBeChecked.values())
 			for (Function f : fnList)
-				for (Index i : f.getIndex().relevantIndexes())
+				for (Index i : f.index().relevantIndexes())
 					result.indexes.add(i);
 		return result;
 	}
@@ -76,7 +76,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 		List<Function> fns = new LinkedList<Function>();
 		for (Script script : scripts) {
 			fns.addAll(script.functions());
-			result.indexes.add(script.getIndex());
+			result.indexes.add(script.index());
 		}
 		result.fillFunctionMapWithFunctionList(fns);
 		return result;
@@ -104,7 +104,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 		Set<Function> deemedDuplicate = new HashSet<Function>();
 		for (List<Function> fnList : functionsToBeChecked.values())
 			for (Function f : fnList)
-				for (Index i : f.getIndex().relevantIndexes())
+				for (Index i : f.index().relevantIndexes())
 					indexes.add(i);
 		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet()) {
 			for (final Function function : entry.getValue()) {

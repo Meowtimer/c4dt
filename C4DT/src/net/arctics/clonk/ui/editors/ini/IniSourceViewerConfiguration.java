@@ -4,30 +4,30 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.FuncRefEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
-import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
-import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
+import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.util.Utilities;
 
@@ -146,7 +146,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent()).getIndex();
+									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent()).index();
 									List<Index> indexes = projIndex.relevantIndexes();
 									for (Index index : indexes) {
 										if (index instanceof ProjectIndex) {
@@ -174,11 +174,11 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									declaration = index.getDefinitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {
-									DeclarationRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);
+									EntityRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);
 									if (reg != null) {
-										declaration = reg.getConcreteDeclaration();
-										linkStart += reg.getRegion().getOffset();
-										linkLen = reg.getRegion().getLength();
+										declaration = reg.concreteDeclaration();
+										linkStart += reg.region().getOffset();
+										linkLen = reg.region().getLength();
 									}
 								}
 								
@@ -193,10 +193,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				}
 				return null;
 			} catch (BadLocationException e) {
-				//e.printStackTrace(); oh well
+				//e.printStackTrace(); oh well, happens
 				return null;
 			} catch (NullPointerException e) {
-				// ignore, due to file being at unusal location
+				// ignore, due to file being at unusual location
 				return null;
 			}
 		}
