@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,8 +16,10 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -34,6 +38,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.Utilities;
@@ -708,6 +713,41 @@ public class SpecialScriptRules {
 		@Override
 		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
 			return pi.findPinnedStructure(ParticleUnit.class, name, parser.containingScript().resource(), true, "Particle.txt");
+		}
+	};
+	
+	/**
+	 * Rule to link to sound files.
+	 */
+	@AppliedTo(functions={"Sound"})
+	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
+		protected ProjectResource soundResourceInFolder(String name, Engine engine, IContainer container, ProjectIndex pi) {
+			for (String e : engine.currentSettings().supportedSoundFileExtensions()) {
+				IResource res = container.findMember(name+"."+e);
+				if (res != null)
+					return new ProjectResource(pi, res);
+			}
+			return null;
+		}
+		@Override
+		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
+			ProjectResource res;
+			Engine engine = parser.containingScript().engine();
+			String soundGroupName = "Sound."+engine.currentSettings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+			for (IContainer c = as(parser.containingScript().resource(), IContainer.class), d = c;
+				c != null;
+				c = c.getParent(), d = c != null ? as(c.findMember("Sound.ocg"), IContainer.class) : null
+			) {
+				res = soundResourceInFolder(name, engine, c, pi);
+				if (res != null)
+					return res;
+				if (d != null) {
+					res = soundResourceInFolder(name, engine, d, pi);
+					if (res != null)
+						return res;
+				}
+			}
+			return null;
 		}
 	};
 	

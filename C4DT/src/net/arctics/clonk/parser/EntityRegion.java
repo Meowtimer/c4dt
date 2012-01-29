@@ -25,6 +25,9 @@ public final class EntityRegion {
 		else
 			return null;
 	}
+	public IIndexEntity entity() {
+		return entity;
+	}
 	public ITypeable typedDeclaration() {
 		if (entity instanceof ITypeable)
 			return (ITypeable)entity;

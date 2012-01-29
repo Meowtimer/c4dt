@@ -115,10 +115,10 @@ public class EntityLocator extends ExpressionLocator {
 			this.potentialEntities = declRegion.potentialEntities();
 			setRegion = true;
 		}
-		else if (declRegion != null && declRegion.concreteDeclaration() != null) {
+		else if (declRegion != null && declRegion.entity() != null) {
 			// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
 			// in which case the type of the calling object is probably known
-			this.entity = declRegion.concreteDeclaration();
+			this.entity = declRegion.entity();
 			setRegion = true;
 		}
 		else if (exprAtRegion instanceof AccessDeclaration) {

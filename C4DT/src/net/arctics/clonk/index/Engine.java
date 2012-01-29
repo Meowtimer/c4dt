@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,6 +127,9 @@ public class Engine extends Script {
 		/** Engine supports proplists (OC) */
 		@IniField(category="Intrinsic")
 		public boolean proplistsSupported;
+		/** ';'-separated list of file extensions supported as sound files */
+		@IniField(category="Intrinsic")
+		public String supportedSoundFileExtensions;
 		
 		// Settings that are actually intended to be user-configurable
 		
@@ -152,6 +156,8 @@ public class Engine extends Script {
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
 		private transient Map<C4Group.GroupType, String> rfetgtm;
+		private transient List<String> supportedSoundFileExtensions_;
+		
 		/**
 		 * Return a map mapping a file name extension to a group type for this engine.
 		 * @return The map.
@@ -199,6 +205,13 @@ public class Engine extends Script {
 				? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
 				: docURLTemplate;
 			return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
+		}
+		
+		public List<String> supportedSoundFileExtensions() {
+			if (supportedSoundFileExtensions_ == null) {
+				supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
+			}
+			return supportedSoundFileExtensions_;
 		}
 
 	}
