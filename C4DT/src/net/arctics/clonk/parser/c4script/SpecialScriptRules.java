@@ -162,25 +162,19 @@ public class SpecialScriptRules {
 		 */
 		public final int getRoleMask() {
 			int result = 0;
-			Outer: for (Method m : getClass().getDeclaredMethods()) {
+			for (Method m : getClass().getMethods()) {
 				try {
-					Method baseMethod = m;
-					for (Class<?> cls = getClass(); cls != null; cls = cls.getSuperclass()) {
-						if (baseMethod == null) {
-							try {
-								baseMethod = cls.getMethod(m.getName(), m.getParameterTypes());
-							} catch (Exception e) {
-								baseMethod = null;
-							}
+					Class<?> cls = m.getDeclaringClass().getSuperclass();
+					while (cls != null) {
+						Method baseMethod = cls.getMethod(m.getName(), m.getParameterTypes());
+						if (baseMethod == null)
+							break;
+						SignifiesRole annot = baseMethod.getAnnotation(SignifiesRole.class);
+						if (annot != null) {
+							result |= annot.role();
+							break;
 						}
-						if (baseMethod != null) {
-							SignifiesRole annot = baseMethod.getAnnotation(SignifiesRole.class);
-							if (annot != null) {
-								result |= annot.role();
-								continue Outer;
-							}
-						}
-						baseMethod = null;
+						cls = baseMethod.getDeclaringClass().getSuperclass();
 					}
 				} catch (Exception e) {
 					continue;

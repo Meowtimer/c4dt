@@ -23,7 +23,7 @@ public interface IIndexEntity {
 	 */
 	boolean matchedBy(Matcher matcher);
 	/**
-	 * Return some informational text descibring this entity for the user.
+	 * Return some informational text describing this entity for the user.
 	 * @return Informational text
 	 */
 	String infoText();

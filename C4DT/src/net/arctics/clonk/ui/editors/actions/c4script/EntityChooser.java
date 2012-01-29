@@ -19,6 +19,7 @@ import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.CoreException;
@@ -58,9 +59,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			for (Pattern p : getPatterns()) {
 				Matcher matcher = p.matcher("");
 				if (entity.matchedBy(matcher))
-					return false;
+					return true;
 			}
-			return true;
+			return false;
 		}
 	}
 
@@ -68,11 +69,10 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
-				DeclarationLocation decLocation = (DeclarationLocation) element;
-				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(decLocation.declaration());
+				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				if (decLocation.resource() != null)
-					result.append(decLocation.resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+				if (element instanceof IHasRelatedResource)
+					result.append(((IHasRelatedResource)element).resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 				return result;
 			} else
 				return new StyledString("");

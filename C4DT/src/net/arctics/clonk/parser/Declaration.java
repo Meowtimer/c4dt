@@ -195,6 +195,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Returns a brief info string describing the declaration. Meant for UI presentation.
 	 * @return The short info string.
 	 */
+	@Override
 	public String infoText() {
 		return name();
 	}
@@ -345,7 +346,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	public boolean matchedBy(Matcher matcher) {
 		if (name() != null && matcher.reset(name()).lookingAt())
 			return true;
-		if (topLevelStructure() != null && topLevelStructure().matchedBy(matcher))
+		if (topLevelStructure() != null && topLevelStructure() != this && topLevelStructure().matchedBy(matcher))
 			return true;
 		return false;
 	}

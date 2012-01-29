@@ -9,6 +9,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -78,6 +79,8 @@ public class ClonkHyperlink implements IHyperlink {
 
 	public static void openTarget(IIndexEntity target, boolean activateEditor) {
 		try {
+			if (target instanceof DeclarationLocation)
+				target = ((DeclarationLocation)target).declaration();
 			if (target instanceof Declaration) {
 				Declaration dec = (Declaration)target;
 				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null) {

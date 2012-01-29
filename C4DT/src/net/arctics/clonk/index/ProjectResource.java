@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.parser.c4script.IIndexEntity;
+import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
@@ -11,11 +12,12 @@ import org.eclipse.core.resources.IResource;
  * @author madeen
  *
  */
-public class ProjectResource implements IIndexEntity {
+public class ProjectResource implements IIndexEntity, IHasRelatedResource {
 
 	private final IResource resource;
 	private final ProjectIndex index;
 	
+	@Override
 	public IResource resource() {
 		return resource;
 	}
