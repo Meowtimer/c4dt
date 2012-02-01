@@ -3,18 +3,18 @@ package net.arctics.clonk.parser;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.resource.ClonkBuilder;
+import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.resource.ClonkBuilder;
-import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 /**
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
@@ -122,7 +122,6 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	
 	/**
 	 * factory for creating structures
-	 *
 	 */
 	public interface IStructureFactory {
 		/**

@@ -811,7 +811,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			this.referenceElm = referenceElm;
 			ITypeable typeable = getTypeable(referenceElm, parser);
 			if (typeable != null)
-				this.type = typeable.getType();
+				this.type = typeable.type();
 		}
 		
 		private static final IASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {

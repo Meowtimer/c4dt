@@ -280,7 +280,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				builder.append("\n"); //$NON-NLS-1$
 				builder.append("\n"); //$NON-NLS-1$
 				try {
-					document.replace(func.getHeader().getOffset(), 0, builder.toString());
+					document.replace(func.header().getOffset(), 0, builder.toString());
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
@@ -449,8 +449,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			if (script == null || document == null)
 				return;
 			Function func = script.funcAt(position.getOffset());
-			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.getBody().getOffset()+expressionRegion.getOffset());
-			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.getBody().getStart());
+			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.body().getOffset()+expressionRegion.getOffset());
+			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.body().getStart());
 			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 			ExprElm offendingExpression = locator.getExprAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
@@ -562,7 +562,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						// propose adding projects to the referenced projects which contain a definition with a matching name
 						if (accessDec.getParent() instanceof CallFunc) {
 							Variable parm = ((CallFunc)accessDec.getParent()).parmDefinitionForParmExpression(accessDec);
-							if (parm != null && parm.getType().canBeAssignedFrom(PrimitiveType.ID)) {
+							if (parm != null && parm.type().canBeAssignedFrom(PrimitiveType.ID)) {
 								final IProject p = marker.getResource().getProject();
 								IProject[] referencedProjects;
 								try {
@@ -685,7 +685,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						}
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.getBody().getOffset())
+							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.body().getOffset())
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
 					break;
@@ -709,7 +709,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 				for (final Replacement replacement : replacements) {
 					String replacementAsString = "later"; //$NON-NLS-1$
-					int offset = func.getBody().getOffset();
+					int offset = func.body().getOffset();
 					int length;
 					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
 						offset += replacement.getReplacementExpression().getExprStart();
@@ -739,7 +739,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	private Replacement addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
 		Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
-			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.getBody().getOffset()) //$NON-NLS-1$
+			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.body().getOffset()) //$NON-NLS-1$
 		);
 		result.regionToBeReplacedSpecifiedByReplacementExpression = true;
 		return result;

@@ -103,7 +103,7 @@ public class ClonkHyperlink implements IHyperlink {
 	private static WeakReference<IWebBrowser> internalBrowser = new WeakReference<IWebBrowser>(null);
 
 	public static void openDocumentationForFunction(String functionName, Engine engine) throws PartInitException, MalformedURLException {
-		String docURLTemplate = Function.getDocumentationURL(functionName, engine);
+		String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
 		if (ClonkCore.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {

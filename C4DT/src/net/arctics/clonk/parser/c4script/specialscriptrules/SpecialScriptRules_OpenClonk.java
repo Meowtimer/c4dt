@@ -352,8 +352,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
-					if (actMapLocal != null && actMapLocal.getType() != null) {
-						for (IType ty : actMapLocal.getType()) if (ty instanceof ProplistDeclaration) {
+					if (actMapLocal != null && actMapLocal.type() != null) {
+						for (IType ty : actMapLocal.type()) if (ty instanceof ProplistDeclaration) {
 							ProplistDeclaration proplDecl = (ProplistDeclaration) ty;
 							Variable action = proplDecl.findComponent((String)parmEv);
 							if (action != null)
@@ -386,8 +386,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;
 						Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
-						if (actMapLocal != null && actMapLocal.getType() != null) {
-							for (IType a : actMapLocal.getType()) {
+						if (actMapLocal != null && actMapLocal.type() != null) {
+							for (IType a : actMapLocal.type()) {
 								if (a instanceof ProplistDeclaration) {
 									ProplistDeclaration proplDecl = (ProplistDeclaration) a;
 									for (Variable comp : proplDecl.getComponents()) {

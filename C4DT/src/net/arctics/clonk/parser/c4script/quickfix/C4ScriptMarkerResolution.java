@@ -40,7 +40,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	public void run(IMarker marker) {
 		Script script = Script.get(marker.getResource(), true);
 		Function func = script.funcAt(region.getOffset()); 
-		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
+		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.body().getOffset());
 		TextFileDocumentProvider provider = ClonkCore.instance().getTextFileDocumentProvider();
 		IDocument doc = null;
 		try {
@@ -61,7 +61,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			ExprElm expr = locator.getTopLevelInRegion();
 			if (expr != null) {
 				try {
-					doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveOptimize(parser).toString());
+					doc.replace(expr.getOffset()+func.body().getOffset(), expr.getLength(), expr.exhaustiveOptimize(parser).toString());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

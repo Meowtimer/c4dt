@@ -41,18 +41,18 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		Script script = Utilities.scriptForEditor(configuration.editor());
 		Function func = script.funcAt(pos);
 		if (func != null) {
-			ExpressionLocator locator = new ExpressionLocator(pos-func.getBody().getOffset());
+			ExpressionLocator locator = new ExpressionLocator(pos-func.body().getOffset());
 			C4ScriptParser.reportExpressionsAndStatements(viewer.getDocument(), script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 			ExprElm expr = locator.getExprAtRegion();
 			if (expr instanceof StringLiteral) {
-				viewer.setSelectedRange(func.getBody().getOffset()+expr.getExprStart()+1, expr.getLength()-2);
+				viewer.setSelectedRange(func.body().getOffset()+expr.getExprStart()+1, expr.getLength()-2);
 				return;
 			} else if (expr instanceof AccessDeclaration) {
 				AccessDeclaration accessDec = (AccessDeclaration) expr;
-				viewer.setSelectedRange(func.getBody().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
+				viewer.setSelectedRange(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
 				return;
 			} else if (expr instanceof PropListExpression || expr instanceof Block) {
-				viewer.setSelectedRange(expr.getExprStart()+func.getBody().getOffset(), expr.getLength());
+				viewer.setSelectedRange(expr.getExprStart()+func.body().getOffset(), expr.getLength());
 				return;
 			}
 		}

@@ -248,7 +248,7 @@ public class Definition extends Script {
 		}
 
 		@Override
-		public IType getType() {
+		public IType type() {
 			return Definition.this.objectType();
 		}
 

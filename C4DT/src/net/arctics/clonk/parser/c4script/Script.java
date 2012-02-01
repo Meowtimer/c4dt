@@ -595,8 +595,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		//System.out.println("");
 		requireLoaded();
 		for (Function f : functions()) {
-			int fStart = f.getBody().getOffset();
-			int fEnd   = f.getBody().getOffset()+f.getBody().getLength();
+			int fStart = f.body().getOffset();
+			int fEnd   = f.body().getOffset()+f.body().getLength();
 			int rStart = region.getOffset();
 			int rEnd   = region.getOffset()+region.getLength();
 			//System.out.println(String.format("Shit: %d %d", fStart, fEnd));
@@ -620,7 +620,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
 		for (Function f : functions()) {
-			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
+			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.body().getOffset()+f.body().getLength())
 				return f;
 		}
 		return null;
@@ -781,7 +781,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.getReturnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (Variable p : f.parameters()) {
-				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.getType().typeName(true))); //$NON-NLS-1$
+				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.type().typeName(true))); //$NON-NLS-1$
 			}
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
 			if (f.obtainUserDescription() != null) {
@@ -794,7 +794,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.type().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
 			if (v.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.obtainUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$

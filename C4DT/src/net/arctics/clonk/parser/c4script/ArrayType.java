@@ -215,7 +215,7 @@ public class ArrayType implements IType {
 			}
 
 			@Override
-			public IType getType() {
+			public IType type() {
 				return typeForElementWithIndex(evaluatedIndexExpression);
 			}
 

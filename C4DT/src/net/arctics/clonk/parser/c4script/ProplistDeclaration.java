@@ -188,7 +188,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public IHasIncludes prototype() {
 		for (Variable v : components)
 			if (v.name().equals(PROTOTYPE_KEY)) {
-				IType t = v.getType();
+				IType t = v.type();
 				for (IType ty : t)
 					if (ty instanceof IHasIncludes)
 						return (IHasIncludes)ty;

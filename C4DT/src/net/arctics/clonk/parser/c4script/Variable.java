@@ -108,7 +108,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return the type
 	 */
 	@Override
-	public IType getType() {
+	public IType type() {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
 		return type;
@@ -241,7 +241,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	@Override
 	public String infoText() {
-		IType t = getType(); //getObjectType() != null ? getObjectType() : getType();
+		IType t = type(); //getObjectType() != null ? getObjectType() : getType();
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue

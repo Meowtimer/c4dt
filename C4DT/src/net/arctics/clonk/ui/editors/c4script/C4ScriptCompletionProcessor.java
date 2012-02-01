@@ -294,7 +294,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		CallFunc innermostCallFunc = null;
 
 		if (editorScript != null) {
-			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
+			final int preservedOffset = offset - (activeFunc != null?activeFunc.body().getStart():0);
 			if (contextExpression == null && !specifiedParser) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,

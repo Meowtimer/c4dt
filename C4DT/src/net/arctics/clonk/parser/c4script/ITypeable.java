@@ -18,7 +18,7 @@ public interface ITypeable extends IIndexEntity {
 	 * Return the current type the entity is deemed to be of.
 	 * @return The current type
 	 */
-	public IType getType();
+	public IType type();
 	/**
 	 * Force the type of this entity.
 	 * @param type The type to force the entity to be of
@@ -43,12 +43,12 @@ public interface ITypeable extends IIndexEntity {
 		 * @param type The type as passed by a call to {@link #expectedToBeOfType(ITypeable, IType)}
 		 */
 		public static void expectedToBeOfType(ITypeable instance, IType type) {
-			if (instance.getType() == PrimitiveType.UNKNOWN)
+			if (instance.type() == PrimitiveType.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
 				instance.forceType(type);
-			else if (!instance.getType().equals(type))
+			else if (!instance.type().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.forceType(TypeSet.create(type, instance.getType()));
+				instance.forceType(TypeSet.create(type, instance.type()));
 		}
 	}
 }

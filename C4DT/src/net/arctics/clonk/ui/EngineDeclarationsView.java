@@ -205,7 +205,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			declarationNameField.setText(var.name());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_TypeTitle);
-			returnTypeBox = createComboBoxForType(parent, var.getType());
+			returnTypeBox = createComboBoxForType(parent, var.type());
 		
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, var.getScope());
@@ -244,7 +244,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
 			if (func.parameters() != null) {
 				for(Variable par : func.parameters()) {
-					createParameterControls(parent, par.getType(), par.name());
+					createParameterControls(parent, par.type(), par.name());
 				}
 			}
 			

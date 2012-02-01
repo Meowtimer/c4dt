@@ -316,7 +316,7 @@ public class CallFunc extends AccessDeclaration {
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
 			Function activeFunc = context.currentFunction();
 			if (activeFunc != null) {
-				Function inher = activeFunc.getInherited();
+				Function inher = activeFunc.inheritedFunction();
 				if (inher != null)
 					list.add(inher);
 				return;
@@ -501,10 +501,10 @@ public class CallFunc extends AccessDeclaration {
 						ExprElm given = params[givenParam++];
 						if (given == null)
 							continue;
-						if (!given.validForType(parm.getType(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType().typeName(false), given.typeInContext(context).typeName(false));
+						if (!given.validForType(parm.type(), context))
+							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.type().typeName(false), given.typeInContext(context).typeName(false));
 						else
-							given.expectedToBeOfType(parm.getType(), context);
+							given.expectedToBeOfType(parm.type(), context);
 					}
 				}
 				

@@ -80,7 +80,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 		if (d instanceof Variable)
 			return ((Variable)d).getInitializationExpression();
 		else if (d instanceof Function)
-			return ((Function)d).getCodeBlock();
+			return ((Function)d).codeBlock();
 		else
 			return null;
 	}
@@ -137,30 +137,30 @@ public class TidyUpCodeAction extends TextEditorAction {
 						if (func.isOldStyle()) {
 							blockBegin = elms.getExprStart();
 							blockLength = elms.getExprEnd() - blockBegin;
-							blockBegin += func.getBody().getStart();
+							blockBegin += func.body().getStart();
 						}
 						else {
-							blockBegin  = func.getBody().getStart()-1;
-							blockLength = func.getBody().getEnd()+1 - blockBegin;
+							blockBegin  = func.body().getStart()-1;
+							blockLength = func.body().getEnd()+1 - blockBegin;
 						}
 						// eat indentation
-						while (blockBegin-1 >= func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
+						while (blockBegin-1 >= func.header().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
 							blockBegin--;
 							blockLength++;
 						}
 						try {
 							textChange.addEdit(new ReplaceEdit(blockBegin, blockLength, blockString));
 							// convert old style function to new style function
-							String newHeader = func.getHeaderString(false);
-							textChange.addEdit(new ReplaceEdit(func.getHeader().getStart(), func.getHeader().getLength(), newHeader));
+							String newHeader = func.headerString(false);
+							textChange.addEdit(new ReplaceEdit(func.header().getStart(), func.header().getLength(), newHeader));
 						} catch (MalformedTreeException mt) {
 							System.out.println("Adding edit for " + func.name() + " failed");
 						}
 					}
 					else if (noSelection) {
 						region.setStartAndEnd(
-							selection.getOffset()-(func != null ? func.getBody().getOffset() : 0),
-							selection.getOffset()-(func != null ? func.getBody().getOffset() : 0)+selection.getLength()
+							selection.getOffset()-(func != null ? func.body().getOffset() : 0),
+							selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
 						);
 						if (elms instanceof Block) {
 							for (ExprElm e : elms.subElements()) {

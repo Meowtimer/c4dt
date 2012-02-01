@@ -124,7 +124,7 @@ public class AccessVar extends AccessDeclaration {
 					break;
 				case VAR:
 					if (var.location() != null && parser.currentFunction() != null && var.function() == parser.currentFunction()) {
-						int locationUsed = parser.currentFunction().getBody().getOffset()+this.getExprStart();
+						int locationUsed = parser.currentFunction().body().getOffset()+this.getExprStart();
 						if (locationUsed < var.location().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
 					}
@@ -154,7 +154,7 @@ public class AccessVar extends AccessDeclaration {
 		if (stored != null)
 			return stored;
 		if (d instanceof ITypeable)
-			return ((ITypeable) d).getType();
+			return ((ITypeable) d).type();
 			//return new SameTypeAsSomeTypeable((ITypeable)d);
 		return PrimitiveType.UNKNOWN;
 	}

@@ -105,7 +105,7 @@ public class EffectFunction extends Function {
 	
 	public IType effectType() {
 		synchronized (parameters) {
-			return parameters.size() >= 2 ? parameters.get(1).getType() : PrimitiveType.PROPLIST;
+			return parameters.size() >= 2 ? parameters.get(1).type() : PrimitiveType.PROPLIST;
 		}
 	}
 

@@ -555,7 +555,7 @@ public class SpecialScriptRules {
 						ExprElm given = arguments[givenParam++];
 						if (given == null)
 							continue;
-						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.getType();
+						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						if (!given.validForType(parmType, parser))
 							parser.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.typeInContext(parser));
 						else

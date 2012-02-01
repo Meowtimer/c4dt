@@ -282,7 +282,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (numParameters() > 0) {
 			for(Variable par : parameters()) {
-				IType staticType = engineCompatible ? par.getType().staticType() : par.getType();
+				IType staticType = engineCompatible ? par.type().staticType() : par.type();
 				if (engineCompatible && !par.isActualParm())
 					continue;
 				if (staticType != PrimitiveType.UNKNOWN && staticType != null) {
@@ -332,7 +332,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the body
 	 */
-	public SourceLocation getBody() {
+	public SourceLocation body() {
 		return body;
 	}
 	
@@ -341,7 +341,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return Variable.Scope.values().length + visibility.ordinal();
 	}
 
-	public static String getDocumentationURL(String functionName, Engine engine) {
+	public static String documentationURLForFunction(String functionName, Engine engine) {
 		return engine.currentSettings().documentationURLForFunction(functionName);
 	}
 	
@@ -349,8 +349,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * For engine functions: Return URL string for documentation
 	 * @return The documentation URl
 	 */
-	public String getDocumentationURL() {
-		return getDocumentationURL(name(), script().engine());
+	public String documentationURL() {
+		return documentationURLForFunction(name(), script().engine());
 	}
 
 	@Override
@@ -397,7 +397,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Return the function this one inherits from
 	 * @return The inherited function
 	 */
-	public Function getInherited() {
+	public Function inheritedFunction() {
 		
 		// search in #included scripts
 		Collection<? extends IHasIncludes> includesCollection = script().getIncludes(false);
@@ -446,7 +446,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function baseFunction() {
 		Function result = this;
 		Set<Function> alreadyVisited = new HashSet<Function>();
-		for (Function f = this; f != null; f = f.getInherited()) {
+		for (Function f = this; f != null; f = f.inheritedFunction()) {
 			if (alreadyVisited.contains(f)) {
 				System.out.println(String.format("%s causes inherited loop", f.qualifiedName()));
 				break;
@@ -481,7 +481,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Return the location of the function header
 	 * @return
 	 */
-	public SourceLocation getHeader() {
+	public SourceLocation header() {
 		return header;
 	}
 
@@ -528,7 +528,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param oldStyle Whether to return the header string in old 'label-style'
 	 * @return The header string
 	 */
-	public String getHeaderString(boolean oldStyle) {
+	public String headerString(boolean oldStyle) {
 		StringBuilder builder = new StringBuilder();
 		printHeader(builder, oldStyle);
 		return builder.toString();
@@ -537,8 +537,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/*+
 	 * Return the header string
 	 */
-	public String getHeaderString() {
-		return getHeaderString(isOldStyle());
+	public String headerString() {
+		return headerString(isOldStyle());
 	}
 
 	@Override
@@ -549,7 +549,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public IType getType() {
+	public IType type() {
 		return getReturnType();
 	}
 
@@ -578,7 +578,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			recursionCatcher.add(f);
 			if (otherFunc == f)
 				return true;
-			f = f.getInherited();
+			f = f.inheritedFunction();
 		}
 		return false;
 	}
@@ -597,7 +597,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			recursionCatcher.add(f);
 			if (otherFunc.inheritsFrom(f, recursionCatcher))
 				return true;
-			f = f.getInherited();
+			f = f.inheritedFunction();
 		}
 		return false;
 	}
@@ -741,7 +741,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param source The source to test against
 	 * @return The code block or null if it was created from differing source.
 	 */
-	public Block getCodeBlock(String source) {
+	public Block codeBlockMatchingSource(String source) {
 		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
 			if (!codeBlockDefrosted) {
 				codeBlockDefrosted = true;
@@ -758,18 +758,18 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Return the cached block without performing checks.
 	 * @return The cached code block
 	 */
-	public Block getCodeBlock() {
-		return getCodeBlock(null);
+	public Block codeBlock() {
+		return codeBlockMatchingSource(null);
 	}
 
 	@Override
 	public int getLength() {
-		return getBody().getLength();
+		return body().getLength();
 	}
 
 	@Override
 	public int getOffset() {
-		return getBody().getOffset();
+		return body().getOffset();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -802,7 +802,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public int absoluteExpressionsOffset() {
-		return getBody().getOffset();
+		return body().getOffset();
 	}
 
 	@Override

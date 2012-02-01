@@ -411,9 +411,9 @@ public class Engine extends Script {
 						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 						private boolean fleshedOut;
 						@Override
-						public synchronized IType getType() {
+						public synchronized IType type() {
 							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-							return super.getType();
+							return super.type();
 						}
 					});
 				else

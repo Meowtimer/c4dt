@@ -668,7 +668,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (!allowInterleavedFunctionParsing && withNewContext)
 				return;
 			// function is weird or does not belong here - ignore
-			if (function.getBody() == null)
+			if (function.body() == null)
 				return;
 			if (function.script() != container) {
 				if (builder != null) {
@@ -703,15 +703,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				// reset local vars
 				function.resetLocalVarTypes();
 				beginTypeInferenceBlock();
-				this.seek(function.getBody().getStart());
+				this.seek(function.body().getStart());
 				// parse code block
-				int endOfFunc = function.getBody().getEnd();
+				int endOfFunc = function.body().getEnd();
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				List<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 				BunchOfStatements bunch = new BunchOfStatements(statements);
 				if (function.isOldStyle() && statements.size() > 0)
-					function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
+					function.body().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
 				warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 				function.storeBlock(bunch, functionSource(function));
 				applyStoredTypeInformationList(false); // apply short-term inference information
@@ -1683,7 +1683,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			markerEnd += offs;
 		}
 		Function cf = currentFunction();
-		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.getBody() != null && this.offset > cf.getBody().getEnd()+1);
+		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo)
 			markers.add(new MarkerInfo(this, code, markerStart, markerEnd, severity, args));
@@ -3212,8 +3212,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	@Override
 	public int bodyOffset() {
 		Function f = currentFunction();
-		if (f != null && f.getBody() != null) {
-			return f.getBody().getStart();
+		if (f != null && f.body() != null) {
+			return f.body().getStart();
 		} else {
 			return 0;
 		}
@@ -3228,7 +3228,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (function == null) {
 			return null;
 		} else {
-			return buffer.substring(function.getBody().getStart(), function.getBody().getEnd());
+			return buffer.substring(function.body().getStart(), function.body().getEnd());
 		}
 	}
 	
@@ -3296,7 +3296,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunctionContext.currentDeclaration = func;
 		try {
 			String functionSource = functionSource(func);
-			Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
+			Block cachedBlock = func != null ? func.codeBlockMatchingSource(functionSource) : null;
 			// if block is non-existant or outdated, parse function code and store block
 			if (cachedBlock == null) {
 				if (func != null)

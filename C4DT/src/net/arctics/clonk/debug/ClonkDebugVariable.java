@@ -34,7 +34,7 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	@Override
 	public String getReferenceTypeName() throws DebugException {
-		return variable.getType().toString();
+		return variable.type().toString();
 	}
 
 	@Override

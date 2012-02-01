@@ -111,7 +111,7 @@ public class C4ScriptToCPPConverter {
 		output.append("(C4AulContext *cthr");
 		for (Variable parm : function.parameters()) {
 			output.append(", ");
-			output.append(PrimitiveType.cppTypeFromType(parm.getType()));
+			output.append(PrimitiveType.cppTypeFromType(parm.type()));
 			output.append(" ");
 			output.append(parm.name());
 		}
@@ -130,7 +130,7 @@ public class C4ScriptToCPPConverter {
 		for (Function f : script.functions()) {
 			if (f instanceof Function) {
 				Function invokable = f;
-				printFunction(invokable, invokable.getCodeBlock(), scriptWriter);
+				printFunction(invokable, invokable.codeBlock(), scriptWriter);
 			}
 		}
 		
