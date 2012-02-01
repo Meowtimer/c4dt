@@ -19,7 +19,7 @@ public class ExecutableScript extends Script {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private String script;
-	private InvokableFunction main;
+	private Function main;
 
 	@Override
 	public String scriptText() {
@@ -43,14 +43,14 @@ public class ExecutableScript extends Script {
 		C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 			@Override
 			protected Function newFunction(String nameWillBe) {
-				return new InvokableFunction();
+				return new Function();
 			}
 			@Override
 			public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
-				if (!(function instanceof InvokableFunction))
+				if (!(function instanceof Function))
 					return;
 				if (function.name().equals("Main")) { //$NON-NLS-1$
-					main = (InvokableFunction)function;
+					main = (Function)function;
 				}
 				super.parseCodeOfFunction(function, withNewContext);
 			}
@@ -67,7 +67,7 @@ public class ExecutableScript extends Script {
 		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 
-	public InvokableFunction main() {
+	public Function main() {
 		return main;
 	}
 

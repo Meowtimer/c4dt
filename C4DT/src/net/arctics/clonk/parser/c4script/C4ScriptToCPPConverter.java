@@ -14,17 +14,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.command.InvokableFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
@@ -33,8 +32,8 @@ import net.arctics.clonk.util.StreamUtil;
 
 public class C4ScriptToCPPConverter {
 	
-	private Map<String, String> stringConstants = new HashMap<String, String>();
-	private List<Function> globalFunctionsUsed = new LinkedList<Function>();
+	private final Map<String, String> stringConstants = new HashMap<String, String>();
+	private final List<Function> globalFunctionsUsed = new LinkedList<Function>();
 	
 	private String regString(String text) {
 		String ident = stringConstants.get(text);
@@ -129,8 +128,8 @@ public class C4ScriptToCPPConverter {
 		
 		StringWriter scriptWriter = new StringWriter();
 		for (Function f : script.functions()) {
-			if (f instanceof InvokableFunction) {
-				InvokableFunction invokable = (InvokableFunction) f;
+			if (f instanceof Function) {
+				Function invokable = f;
 				printFunction(invokable, invokable.getCodeBlock(), scriptWriter);
 			}
 		}
