@@ -14,7 +14,7 @@ public class OperatorExpression extends Value {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		return operator.getResultType();
+		return operator.resultType();
 	}
 
 	public OperatorExpression(Operator operator) {

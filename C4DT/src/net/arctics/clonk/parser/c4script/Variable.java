@@ -332,7 +332,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public boolean isAt(int offset) {
-		return offset >= location().getStart() && offset <= location().getEnd();
+		return offset >= location().start() && offset <= location().end();
 	}
 
 	public boolean isTypeLocked() {

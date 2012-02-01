@@ -124,19 +124,19 @@ public enum Operator {
 		return operatorName;
 	}
 	
-	public PrimitiveType getFirstArgType() {
+	public PrimitiveType firstArgType() {
 		return firstArgType;
 	}
 	
-	public PrimitiveType getSecondArgType() {
+	public PrimitiveType secondArgType() {
 		return secondArgType;
 	}
 	
-	public PrimitiveType getResultType() {
+	public PrimitiveType resultType() {
 		return resultType;
 	}
 	
-	public int getNumArgs() {
+	public int numArgs() {
 		return secondArgType != null ? 2 : 1;
 	}
 
@@ -160,19 +160,19 @@ public enum Operator {
 		return this == Increment || this == Decrement || this.name().startsWith("Assign"); //$NON-NLS-1$
 	}
 	
-	public String getOldStyleFunctionEquivalent() {
+	public String oldStyleFunctionEquivalent() {
 		return oldStyleFunctionEquivalent;
 	}
 	
 	public static Operator oldStyleFunctionReplacement(String funcName) {
 		for (Operator o : values()) {
-			if (o.getOldStyleFunctionEquivalent() != null && o.getOldStyleFunctionEquivalent().equals(funcName))
+			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
 				return o;
 		}
 		return null;
 	}
 	
-	public int getPriority() {
+	public int priority() {
 		return priority;
 	}
 

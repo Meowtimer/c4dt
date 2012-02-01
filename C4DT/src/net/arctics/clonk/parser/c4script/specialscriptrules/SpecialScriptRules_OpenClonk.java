@@ -178,7 +178,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				Object nameEv = arguments[0].evaluateAtParseTime(parser.currentFunction());
 				if (nameEv instanceof String) {
 					SourceLocation loc = parser.absoluteSourceLocationFromExpr(arguments[0]);
-					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.getStart(), loc.getEnd(), "");
+					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.start(), loc.end(), "");
 					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
 					var.setScope(Scope.LOCAL);
 					// clone argument since the offset of the expression inside the func body is relative while

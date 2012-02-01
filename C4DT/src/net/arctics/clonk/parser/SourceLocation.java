@@ -5,8 +5,7 @@ import java.util.regex.Matcher;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Function;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
+
 import org.eclipse.jface.text.IRegion;
 
 public class SourceLocation implements IRegion, Serializable, Cloneable {
@@ -23,8 +22,8 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 		end = matcher.end();
 	}
 	public SourceLocation(IRegion region, Function relative) {
-		start = relative.body().getStart()+region.getOffset();
-		end = relative.body().getStart()+region.getOffset()+region.getLength();
+		start = relative.body().start()+region.getOffset();
+		end = relative.body().start()+region.getOffset()+region.getLength();
 	}
 	public SourceLocation(int offset, IRegion relativeLocation) {
 		start = offset+relativeLocation.getOffset();
@@ -40,7 +39,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	/**
 	 * @return the start
 	 */
-	public int getStart() {
+	public int start() {
 		return start;
 	}
 	/**
@@ -52,35 +51,31 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	/**
 	 * @return the end
 	 */
-	public int getEnd() {
+	public int end() {
 		return end;
 	}
 	@Override
 	public int getLength() {
-		return getEnd()-getStart();
+		return start-end;
 	}
 	@Override
 	public int getOffset() {
-		return getStart();
+		return start;
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof SourceLocation) {
 			SourceLocation cmp = (SourceLocation) obj;
-			return (cmp.getStart() == start && cmp.getEnd() == end);
+			return (cmp.start() == start && cmp.end() == end);
 		}
 		else
 			return false;
 	}
 	
-	public String getString(IDocument document) throws BadLocationException {
-		return document.get(start, end-start);
-	}
-	
 	@Override
 	public String toString() {
-		return "("+getStart()+", "+getEnd()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		return "("+start()+", "+end()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-

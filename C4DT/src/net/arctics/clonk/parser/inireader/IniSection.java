@@ -53,7 +53,7 @@ public class IniSection extends Declaration implements
 	}
 
 	public int startPos() {
-		return location().getStart();
+		return location().start();
 	}
 
 	public Map<String, IniItem> subItemMap() {

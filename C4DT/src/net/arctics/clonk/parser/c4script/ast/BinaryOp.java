@@ -146,7 +146,7 @@ public class BinaryOp extends OperatorExpression {
 	public void doPrint(ExprWriter output, int depth) {
 
 		// put brackets around operands in case some transformation messed up prioritization
-		boolean needsBrackets = leftSide instanceof BinaryOp && operator().getPriority() > ((BinaryOp)leftSide).operator().getPriority();
+		boolean needsBrackets = leftSide instanceof BinaryOp && operator().priority() > ((BinaryOp)leftSide).operator().priority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
 		leftSide.print(output, depth+1);
@@ -157,7 +157,7 @@ public class BinaryOp extends OperatorExpression {
 		output.append(operator().getOperatorName());
 		output.append(" "); //$NON-NLS-1$
 
-		needsBrackets = rightSide instanceof BinaryOp && operator().getPriority() > ((BinaryOp)rightSide).operator().getPriority();
+		needsBrackets = rightSide instanceof BinaryOp && operator().priority() > ((BinaryOp)rightSide).operator().priority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
 		rightSide.print(output, depth+1);
@@ -180,10 +180,10 @@ public class BinaryOp extends OperatorExpression {
 			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().getOperatorName());
 		}
 		// wrong parameter types
-		if (!leftSide().validForType(operator().getFirstArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().getFirstArgType(), leftSide().typeInContext(context));
-		if (!rightSide().validForType(operator().getSecondArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().getSecondArgType(), rightSide().typeInContext(context));
+		if (!leftSide().validForType(operator().firstArgType(), context))
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().firstArgType(), leftSide().typeInContext(context));
+		if (!rightSide().validForType(operator().secondArgType(), context))
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().secondArgType(), rightSide().typeInContext(context));
 
 		IType expectedLeft, expectedRight;
 		switch (operator()) {
@@ -191,8 +191,8 @@ public class BinaryOp extends OperatorExpression {
 			expectedLeft = expectedRight = null;
 			break;
 		default:
-			expectedLeft = operator().getFirstArgType();
-			expectedRight = operator().getSecondArgType();
+			expectedLeft = operator().firstArgType();
+			expectedRight = operator().secondArgType();
 		}
 		
 		if (expectedLeft != null)
@@ -216,8 +216,8 @@ public class BinaryOp extends OperatorExpression {
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		try {
-			Object leftSide  = operator().getFirstArgType().convert(this.leftSide().evaluateAtParseTime(context));
-			Object rightSide = operator().getSecondArgType().convert(this.rightSide().evaluateAtParseTime(context));
+			Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateAtParseTime(context));
+			Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateAtParseTime(context));
 			if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
 				switch (operator()) {
 				case And:

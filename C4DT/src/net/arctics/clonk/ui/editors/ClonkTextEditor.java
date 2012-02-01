@@ -229,7 +229,7 @@ public class ClonkTextEditor extends TextEditor {
 			}
 		} else if (editor instanceof AbstractTextEditor) {
 			AbstractTextEditor ed = (AbstractTextEditor) editor;
-			ed.selectAndReveal(target.location().getStart(), target.location().getEnd()-target.location().getStart());
+			ed.selectAndReveal(target.location().start(), target.location().end()-target.location().start());
 		}
 	}
 	

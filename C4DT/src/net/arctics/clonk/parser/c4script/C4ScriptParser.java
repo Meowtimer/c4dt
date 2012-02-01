@@ -703,9 +703,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				// reset local vars
 				function.resetLocalVarTypes();
 				beginTypeInferenceBlock();
-				this.seek(function.body().getStart());
+				this.seek(function.body().start());
 				// parse code block
-				int endOfFunc = function.body().getEnd();
+				int endOfFunc = function.body().end();
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				List<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
@@ -1683,7 +1683,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			markerEnd += offs;
 		}
 		Function cf = currentFunction();
-		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().getEnd()+1);
+		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().end()+1);
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo)
 			markers.add(new MarkerInfo(this, code, markerStart, markerEnd, severity, args));
@@ -2161,12 +2161,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							unread(); // unread c
 							Operator op = parseOperator();
 							if (op != null && op.isBinary()) {
-								int priorOfNewOp = op.getPriority();
+								int priorOfNewOp = op.priority();
 								ExprElm newLeftSide = null;
 								BinaryOp theOp = null;
 								for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
 									BinaryOp oneOp = (BinaryOp) opFromBottom;
-									if (priorOfNewOp > oneOp.operator().getPriority() || (priorOfNewOp == oneOp.operator().getPriority() && op.isRightAssociative())) {
+									if (priorOfNewOp > oneOp.operator().priority() || (priorOfNewOp == oneOp.operator().priority() && op.isRightAssociative())) {
 										theOp = oneOp;
 										break;
 									}
@@ -3213,7 +3213,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public int bodyOffset() {
 		Function f = currentFunction();
 		if (f != null && f.body() != null) {
-			return f.body().getStart();
+			return f.body().start();
 		} else {
 			return 0;
 		}
@@ -3228,7 +3228,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (function == null) {
 			return null;
 		} else {
-			return buffer.substring(function.body().getStart(), function.body().getEnd());
+			return buffer.substring(function.body().start(), function.body().end());
 		}
 	}
 	

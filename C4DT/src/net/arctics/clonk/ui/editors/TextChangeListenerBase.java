@@ -113,10 +113,10 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 */
 	protected void incrementLocationOffsetsExceedingThreshold(SourceLocation location, int threshold, int add) {
 		if (location != null) {
-			if (location.getStart() > threshold)
-				location.setStart(location.getStart()+add);
-			if (location.getEnd() >= threshold)
-				location.setEnd(location.getEnd()+add);
+			if (location.start() > threshold)
+				location.setStart(location.start()+add);
+			if (location.end() >= threshold)
+				location.setEnd(location.end()+add);
 		}
 	}
 
@@ -154,13 +154,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int diff = newText.length() - replLength;
 			// mixed
 			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
-				if (dec.location().getStart() >= offset + replLength)
+				if (dec.location().start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {
 					// inside function: expand end location
 					Function func = (Function) dec;
-					if (offset >= func.body().getStart() && offset+replLength < func.body().getEnd()) {
-						func.body().setEnd(func.body().getEnd()+diff);
+					if (offset >= func.body().start() && offset+replLength < func.body().end()) {
+						func.body().setEnd(func.body().end()+diff);
 					}
 				}
 			}

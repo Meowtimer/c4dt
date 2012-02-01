@@ -193,7 +193,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (f != null) {
 				Block originalBlock = f.codeBlock();
 				if (originalBlock != null) {
-					ExpressionLocator locator = new ExpressionLocator(new Region(event.getOffset()-f.body().getStart(), event.getLength()));
+					ExpressionLocator locator = new ExpressionLocator(new Region(event.getOffset()-f.body().start(), event.getLength()));
 					originalBlock.traverse(locator);
 					ExprElm foundExpression = locator.getExprAtRegion();
 					if (foundExpression != null) {
@@ -208,7 +208,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
 						if (patchStatement != null) {
 							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
-							StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.body().getStart(), f.body().getLength()));
+							StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.body().start(), f.body().getLength()));
 							wholeFuncBodyBuilder.replace(originalStatement.getExprStart(), originalStatement.getExprEnd(), patchStatementText);
 							f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
 						}
@@ -294,7 +294,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						// delete marks inside the body region
 						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
 						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
-						if (body == null || (markerStart >= body.getStart() && markerEnd < body.getEnd())) {
+						if (body == null || (markerStart >= body.start() && markerEnd < body.end())) {
 							m.delete();
 							continue;
 						}
@@ -333,7 +333,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						for (Variable localVar : f.getLocalVars()) {
 							SourceLocation l = localVar.location();
 							l.setStart(f.body().getOffset()+l.getOffset());
-							l.setEnd(f.body().getOffset()+l.getEnd());
+							l.setEnd(f.body().getOffset()+l.end());
 						}
 					}
 				}
@@ -693,8 +693,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, EntityLocator locator) {
 			this.callFunc = callFunc;
 			this.parmIndex = parm != null ? callFunc.indexOfParm(parm) : 0;
-			this.parmsStart = func.body().getStart()+callFunc.parmsStart();
-			this.parmsEnd = func.body().getStart()+callFunc.parmsEnd();
+			this.parmsStart = func.body().start()+callFunc.parmsStart();
+			this.parmsEnd = func.body().start()+callFunc.parmsEnd();
 			this.locator = locator;
 		}
 	}
@@ -707,7 +707,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		ExprElm expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
-		int bodyStart = f.body().getStart();
+		int bodyStart = f.body().start();
 		for (
 			expr = locator.getExprAtRegion();
 			expr != null;

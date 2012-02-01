@@ -137,14 +137,14 @@ public class TidyUpCodeAction extends TextEditorAction {
 						if (func.isOldStyle()) {
 							blockBegin = elms.getExprStart();
 							blockLength = elms.getExprEnd() - blockBegin;
-							blockBegin += func.body().getStart();
+							blockBegin += func.body().start();
 						}
 						else {
-							blockBegin  = func.body().getStart()-1;
-							blockLength = func.body().getEnd()+1 - blockBegin;
+							blockBegin  = func.body().start()-1;
+							blockLength = func.body().end()+1 - blockBegin;
 						}
 						// eat indentation
-						while (blockBegin-1 >= func.header().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
+						while (blockBegin-1 >= func.header().end() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
 							blockBegin--;
 							blockLength++;
 						}
@@ -152,7 +152,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							textChange.addEdit(new ReplaceEdit(blockBegin, blockLength, blockString));
 							// convert old style function to new style function
 							String newHeader = func.headerString(false);
-							textChange.addEdit(new ReplaceEdit(func.header().getStart(), func.header().getLength(), newHeader));
+							textChange.addEdit(new ReplaceEdit(func.header().start(), func.header().getLength(), newHeader));
 						} catch (MalformedTreeException mt) {
 							System.out.println("Adding edit for " + func.name() + " failed");
 						}

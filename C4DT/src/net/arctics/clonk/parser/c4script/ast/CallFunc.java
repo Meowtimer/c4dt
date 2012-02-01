@@ -572,7 +572,7 @@ public class CallFunc extends AccessDeclaration {
 		Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
-			if (replOperator.getNumArgs() == 2)
+			if (replOperator.numArgs() == 2)
 				return new BinaryOp(replOperator, params[0].optimize(parser), NumberLiteral.ZERO);
 			ExprElm n = params[0].optimize(parser);
 			if (n instanceof BinaryOp)

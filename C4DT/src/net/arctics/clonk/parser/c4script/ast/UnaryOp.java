@@ -70,10 +70,10 @@ public class UnaryOp extends OperatorExpression {
 			//				System.out.println(getArgument().toString() + " does not behave");
 			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
 		}
-		if (!argument().validForType(operator().getFirstArgType(), context)) {
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, argument(), operator().getFirstArgType().toString(), argument().typeInContext(context).toString());
+		if (!argument().validForType(operator().firstArgType(), context)) {
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, argument(), operator().firstArgType().toString(), argument().typeInContext(context).toString());
 		}
-		argument().expectedToBeOfType(operator().getFirstArgType(), context, TypeExpectancyMode.Force, ParserErrorCode.InternalError);
+		argument().expectedToBeOfType(operator().firstArgType(), context, TypeExpectancyMode.Force, ParserErrorCode.InternalError);
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class UnaryOp extends OperatorExpression {
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		try {
 			Object ev = argument.evaluateAtParseTime(context);
-			Object conv = operator().getFirstArgType().convert(ev);
+			Object conv = operator().firstArgType().convert(ev);
 			switch (operator()) {
 			case Not:
 				return !(Boolean)conv;

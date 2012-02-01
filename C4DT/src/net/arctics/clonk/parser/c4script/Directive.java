@@ -20,7 +20,7 @@ public class Directive extends Declaration implements Serializable {
 		INCLUDE,
 		APPENDTO;
 
-		private String lowerCase = name().toLowerCase();
+		private final String lowerCase = name().toLowerCase();
 
 		public static DirectiveType makeType(String arg) {
 			for (DirectiveType d : values())
@@ -35,8 +35,8 @@ public class Directive extends Declaration implements Serializable {
 		}
 	}
 
-	private DirectiveType type;
-	private String content;
+	private final DirectiveType type;
+	private final String content;
 	private transient ID cachedID;
 
 	public Directive(DirectiveType type, String content) {
@@ -76,17 +76,14 @@ public class Directive extends Declaration implements Serializable {
 
 	public ExprElm getExprElm() {
 		return new ExprElm() {
-			/**
-			 * 
-			 */
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
 			public int getExprStart() {
-				return location().getStart();
+				return location().start();
 			}
 			@Override
 			public int getExprEnd() {
-				return location().getEnd();
+				return location().end();
 			}
 		};
 	}

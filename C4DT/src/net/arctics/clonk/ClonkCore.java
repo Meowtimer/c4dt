@@ -218,7 +218,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 		}
 		// get engine definitions from workspace
-		File[] workspaceEngines = getWorkspaceStorageLocationForEngines().toFile().listFiles();
+		File[] workspaceEngines = workspaceStorageLocationForEngines().toFile().listFiles();
 		if (workspaceEngines != null) {
 			for (File wEngine : workspaceEngines) {
 				// only accepting folders should be sufficient
@@ -266,11 +266,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			new FolderStorageLocation(engineName) {
 				@Override
 				protected IPath storageLocationForEngine(String engineName) {
-					return getWorkspaceStorageLocationForEngine(engineName);
+					return workspaceStorageLocationForEngine(engineName);
 				}
 				@Override
 				public File toFolder() {
-					return new File(getWorkspaceStorageLocationForActiveEngine().toOSString());
+					return new File(workspaceStorageLocationForActiveEngine().toOSString());
 				};
 			},
 
@@ -328,12 +328,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
-	public IPath getWorkspaceStorageLocationForActiveEngine() {
-		return getWorkspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+	public IPath workspaceStorageLocationForActiveEngine() {
+		return workspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 	
-	public IPath getWorkspaceStorageLocationForEngine(String engineName) {
-		IPath path = getWorkspaceStorageLocationForEngines(); 
+	public IPath workspaceStorageLocationForEngine(String engineName) {
+		IPath path = workspaceStorageLocationForEngines(); 
 		path = path.append(String.format("%s", engineName));
 		File dir = path.toFile();
 		if (!dir.exists())
@@ -341,7 +341,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return path;
 	}
 
-	private IPath getWorkspaceStorageLocationForEngines() {
+	private IPath workspaceStorageLocationForEngines() {
 	    return getStateLocation().append("engines"); //$NON-NLS-1$
     }
 	
@@ -358,7 +358,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	public void exportEngineToXMLInWorkspace(String engineName) {
 		try {
-			IPath engineXML = getWorkspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
+			IPath engineXML = workspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
 
 			File engineXMLFile = engineXML.toFile();
 			if (engineXMLFile.exists())
@@ -379,7 +379,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	public void saveEngineInWorkspace(String engineName) {
 		try {
-			IPath engine = getWorkspaceStorageLocationForEngine(engineName);
+			IPath engine = workspaceStorageLocationForEngine(engineName);
 
 			File engineFile = engine.toFile();
 			if (engineFile.exists())

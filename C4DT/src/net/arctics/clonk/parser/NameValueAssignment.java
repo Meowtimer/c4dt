@@ -24,11 +24,11 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	}
 
 	public int getStartPos() {
-		return location.getStart();
+		return location.start();
 	}
 	
 	public int getEndPos() {
-		return location.getEnd();
+		return location.end();
 	}
 
 	@Override

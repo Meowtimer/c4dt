@@ -113,7 +113,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 								try {
 									IniEntry entry = (IniEntry) unit.sectionWithName("DefCore").subItemByKey("id");
 									TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
-									defCoreChange.setEdit(new ReplaceEdit(entry.location().getEnd()-entry.stringValue().length(), entry.stringValue().length(), newName));
+									defCoreChange.setEdit(new ReplaceEdit(entry.location().end()-entry.stringValue().length(), entry.stringValue().length(), newName));
 									composite.add(defCoreChange);
 								} catch (Exception e) {
 									e.printStackTrace();

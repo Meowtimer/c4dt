@@ -69,7 +69,7 @@ public class CustomizationNature implements IProjectNature {
 			return null;
 		}
 		for (String engineName : ClonkCore.instance().namesOfAvailableEngines()) {
-			URI workspaceStorageURI = URIUtil.toURI(ClonkCore.instance().getWorkspaceStorageLocationForEngine(engineName));			
+			URI workspaceStorageURI = URIUtil.toURI(ClonkCore.instance().workspaceStorageLocationForEngine(engineName));			
 			try {
 				newProject.getFolder(engineName).createLink(workspaceStorageURI, 0, null);
 			} catch (CoreException e) {

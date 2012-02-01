@@ -171,7 +171,7 @@ public class MapOverlay extends MapOverlayBase {
 		MapOverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
 			for (MapOverlayBase o : ov.childCollection()) {
-				if (offset >= o.location().getStart() && offset < (o.body!=null?o.body:o.location()).getEnd()) {
+				if (offset >= o.location().start() && offset < (o.body!=null?o.body:o.location()).end()) {
 					ov = o;
 					continue Outer;
 				}
