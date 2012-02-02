@@ -56,7 +56,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	}
 	@Override
 	public int getLength() {
-		return start-end;
+		return end-start;
 	}
 	@Override
 	public int getOffset() {
