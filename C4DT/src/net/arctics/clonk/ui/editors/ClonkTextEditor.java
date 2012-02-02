@@ -393,4 +393,10 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
+	@Override
+	protected void initializeKeyBindingScopes() {
+		super.initializeKeyBindingScopes();
+	//	setKeyBindingScopes(new String[] { ClonkCore.CLONK_CONTEXT_ID });
+	}
+	
 }

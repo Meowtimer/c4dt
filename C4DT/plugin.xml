@@ -22,6 +22,12 @@
 			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
 		</editor>
 	</extension>
+	
+	<extension point="org.eclipse.ui.contexts">
+		<context id="net.arctics.clonk.context" name="Clonk Editing" parentId="org.eclipse.ui.textEditorScope">
+			
+    	</context>
+	</extension>
 
 	<extension point="org.eclipse.core.resources.natures" id="clonknature"
 		name="Clonk Nature">

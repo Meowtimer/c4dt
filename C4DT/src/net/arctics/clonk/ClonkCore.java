@@ -78,6 +78,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * id for Clonk project natures
 	 */
 	public static final String CLONK_NATURE_ID = id("clonknature"); //$NON-NLS-1$
+	
+	/**
+	 * Binding context for Clonk related editing activities
+	 */
+	public static final String CLONK_CONTEXT_ID = id("context");
 
 	/**
 	 * id for error markers that denote errors in a script
