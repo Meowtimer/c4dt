@@ -148,7 +148,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 										s.requireLoaded();
 										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 											if (d.matchedBy(matcher)) {
-												contentProvider.add(new DeclarationLocation(d, d.location(), d.script().getScriptFile()), itemsFilter);
+												contentProvider.add(new DeclarationLocation(d, d.location(), d.script().scriptFile()), itemsFilter);
 												if (++declarationsBatchSize == 5) {
 													Display.getDefault().asyncExec(refreshListRunnable);
 													declarationsBatchSize = 0;

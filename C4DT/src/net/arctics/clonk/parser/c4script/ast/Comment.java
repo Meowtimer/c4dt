@@ -103,7 +103,7 @@ public class Comment extends Statement implements Statement.Attachment {
 		// parse comment as expression and see what goes
 		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.containingScript(), parser.containingScript().getScriptFile()) {
+			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.containingScript(), parser.containingScript().scriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();

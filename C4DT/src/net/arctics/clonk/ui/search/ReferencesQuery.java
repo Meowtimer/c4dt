@@ -131,7 +131,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		public void searchScript(IResource resource, Script script) {
 			C4ScriptParser parser = new C4ScriptParser(script);
 			if (declaration instanceof Definition) {
-				Directive include = script.getIncludeDirectiveFor((Definition) declaration);
+				Directive include = script.directiveIncludingDefinition((Definition) declaration);
 				if (include != null)
 					result.addMatch(include.getExprElm(), parser, false, false);
 			}

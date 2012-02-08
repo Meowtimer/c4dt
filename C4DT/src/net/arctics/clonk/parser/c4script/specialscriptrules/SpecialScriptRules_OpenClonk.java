@@ -272,7 +272,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (evTracer.tracedFile == null)
 						return true;
 					parser.currentFunctionContext().expressionReportingErrors = arguments[0];
-					if (evTracer.tracedFile.equals(parser.containingScript().getScriptFile())) {
+					if (evTracer.tracedFile.equals(parser.containingScript().scriptFile())) {
 						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());

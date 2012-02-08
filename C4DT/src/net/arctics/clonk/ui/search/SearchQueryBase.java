@@ -37,9 +37,9 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 	@Override
 	public IFile getFile(Object element) {
 		if (element instanceof Declaration)
-			return ((Declaration)element).script().getScriptFile();
+			return ((Declaration)element).script().scriptFile();
 		if (element instanceof Script)
-			return  ((Script)element).getScriptFile();
+			return  ((Script)element).scriptFile();
 		if (element instanceof IFile) {
 			return (IFile)element;
 		}

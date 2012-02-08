@@ -191,7 +191,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * Returns the strict level of the script
 	 * @return the #strict level set for this script or the default level supplied by the engine configuration
 	 */
-	public int getStrictLevel() {
+	public int strictLevel() {
 		requireLoaded();
 		long level = engine() != null ? engine().currentSettings().strictDefaultLevel : -1;
 		for (Directive d : this.directives()) {
@@ -212,7 +212,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * Returns \#include and \#appendto directives 
 	 * @return The directives
 	 */
-	public Directive[] getIncludeDirectives() {
+	public Directive[] includeDirectives() {
 		requireLoaded();
 		List<Directive> result = new ArrayList<Directive>();
 		for (Directive d : directives()) {
@@ -303,9 +303,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @param obj The {@link Definition} to return a corresponding {@link Directive} for
 	 * @return The {@link Directive} or null if no matching directive exists in this script.
 	 */
-	public Directive getIncludeDirectiveFor(Definition obj) {
+	public Directive directiveIncludingDefinition(Definition obj) {
 		requireLoaded();
-		for (Directive d : getIncludeDirectives()) {
+		for (Directive d : includeDirectives()) {
 			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
 				return d;
 		}
@@ -544,7 +544,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	public abstract IStorage scriptStorage();
 	
-	public final IFile getScriptFile() {
+	public final IFile scriptFile() {
 		IStorage storage = scriptStorage();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}

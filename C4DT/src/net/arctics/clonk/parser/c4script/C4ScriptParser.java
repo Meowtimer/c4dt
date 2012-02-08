@@ -482,7 +482,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			}
 
-			strictLevel = container.getStrictLevel();
+			strictLevel = container.strictLevel();
 			container.containsGlobals = false;
 		}
 		currentFunctionContext.initialize();
@@ -557,7 +557,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseDeclarations() {
 		synchronized (container) {
-			strictLevel = container.getStrictLevel();
+			strictLevel = container.strictLevel();
 			int offset = 0;
 			this.seek(offset);
 			setAllowInterleavedFunctionParsing(true);
@@ -625,7 +625,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	public void prepareForFunctionParsing() {
 		if (parsedFunctions == null) {
-			strictLevel = container.getStrictLevel();
+			strictLevel = container.strictLevel();
 			scriptLevelTypeInformationMerger = new TypeInformationMerger();
 			parsedFunctions = new HashSet<Function>();
 		}
@@ -3301,7 +3301,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (cachedBlock == null) {
 				if (func != null)
 					func.clearLocalVars();
-				strictLevel = containingScript().getStrictLevel();
+				strictLevel = containingScript().strictLevel();
 				enableErrors(EnumSet.of(
 					ParserErrorCode.TokenExpected,
 					ParserErrorCode.InvalidExpression,
