@@ -1,4 +1,4 @@
-package net.arctics.clonk.filesystem;
+package net.arctics.clonk.resource.c4group;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -8,12 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.resource.c4group.C4GroupEntryHeader;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.resource.c4group.C4GroupTopLevelCompressed;
-import net.arctics.clonk.resource.c4group.C4GroupUncompressed;
-import net.arctics.clonk.resource.c4group.C4GroupHeaderFilterBase;
+
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
@@ -60,10 +55,10 @@ public class C4GroupFileSystem extends FileSystem {
 	}
 
 	/**
-	 * Map to keep track of created C4Groups. WeakReference is so that the C4Group object can be purged if noone apart
+	 * Map to keep track of created C4Groups. {@link WeakReference}s are used as values so that the {@link C4Group} object can be purged if nothing apart
 	 * from the file system is holding on to it. 
 	 */
-	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
+	private final Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
 
 	/**
 	 * Global instance of the file system
@@ -71,7 +66,9 @@ public class C4GroupFileSystem extends FileSystem {
 	private static C4GroupFileSystem sharedInstance;
 
 	/**
-	 * Create a new C4GroupFileSystem. This will only work once, setting the variable backing {@link #getInstance()}. Subsequent calls will result in failed assertions.
+	 * Create a new C4GroupFileSystem. This will only work once, setting the variable backing {@link #instance()}.
+	 * Subsequent calls will result in failed assertions.
+	 * This constructor is declared as to allow the plugin.xml parsing machinery to call it.
 	 */
 	public C4GroupFileSystem() {
 		super();
@@ -82,10 +79,11 @@ public class C4GroupFileSystem extends FileSystem {
 	}
 
 	/**
-	 * Return the singleton instance of this file system.
+	 * Return the singleton instance of this file system. There still needs to be a corresponding configuration entry for the file system in the plugin.xml file
+	 * or else this method will return null since the singleton was never created.  
 	 * @return The singleton
 	 */
-	public static C4GroupFileSystem getInstance() {
+	public static C4GroupFileSystem instance() {
 		return sharedInstance;
 	}
 
@@ -94,7 +92,7 @@ public class C4GroupFileSystem extends FileSystem {
 	 * Called when a linked resource in the workspace is about to be deleted.
 	 * @param group The group to delete
 	 */
-	public void delete(C4Group group) {
+	public void removeGroupFromRegistry(C4Group group) {
 		rootGroups.remove(group.getOrigin());
 	}
 
@@ -142,7 +140,7 @@ public class C4GroupFileSystem extends FileSystem {
 								}
 
 								@Override
-								public int getFlags(C4GroupEntry entry) {
+								public int flagsForEntry(C4GroupFile entry) {
 									for (String s : EXTENSIONS_TO_ALWAYS_LOAD)
 										if (entry.getName().endsWith(s))
 											return 0;
@@ -158,7 +156,7 @@ public class C4GroupFileSystem extends FileSystem {
 					}
 					catch (Exception e) {
 						e.printStackTrace();
-						return failStore(file);
+						return invalidGroupFileStoreForFile(file);
 					}
 					rootGroups.put(groupFile, new WeakReference<C4Group>(group));
 				}
@@ -178,11 +176,11 @@ public class C4GroupFileSystem extends FileSystem {
 			return group.findChild(new Path(file.getAbsolutePath().substring(groupFile.getAbsolutePath().length())));
 		}
 		else {
-			return failStore(file);
+			return invalidGroupFileStoreForFile(file);
 		}
 	}
 
-	private IFileStore failStore(File file) {
+	private IFileStore invalidGroupFileStoreForFile(File file) {
 		C4Group group = new C4GroupTopLevelCompressed(file.getName(), file);
 		rootGroups.put(file, new WeakReference<C4Group>(group));
 		return group;

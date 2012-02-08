@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.util.INodeWithPath;
 import net.arctics.clonk.util.Utilities;
 
@@ -36,7 +35,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 			return true;
 		};
 		@Override
-		public int getFlags(C4GroupEntry entry) {
+		public int flagsForEntry(C4GroupFile entry) {
 			return DONTREADINTOMEMORY;
 		};
 	};

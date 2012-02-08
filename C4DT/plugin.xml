@@ -729,7 +729,7 @@
 	
 	<extension point="org.eclipse.core.filesystem.filesystems">
     	<filesystem scheme="c4group">
-			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
+			<run class="net.arctics.clonk.resource.c4group.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
 	

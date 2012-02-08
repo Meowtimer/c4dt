@@ -3,7 +3,7 @@ package net.arctics.clonk.resource.c4group;
 import org.eclipse.core.runtime.CoreException;
 
 /**
- * Interface used to filter files in c4groups so they won't be loaded into memory
+ * Interface used to filter files in {@link C4Group}s so they won't be loaded into memory
  */
 public abstract class C4GroupHeaderFilterBase {
 	
@@ -11,15 +11,15 @@ public abstract class C4GroupHeaderFilterBase {
 	
 	public abstract boolean accepts(C4GroupEntryHeader header, C4Group context);
 	
-	public void processData(C4GroupItem item) throws CoreException {
+	public void processGroupItem(C4GroupItem item) throws CoreException {
 		
 	}
 	
-	public void created(C4GroupEntryHeader header, C4GroupItem item) {
+	public void notifyAboutCreatedItem(C4GroupEntryHeader header, C4GroupItem item) {
 		
 	}
 	
-	public int getFlags(C4GroupEntry entry) {
+	public int flagsForEntry(C4GroupFile entry) {
 		return 0;
 	}
 }

@@ -33,7 +33,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
 /**
- * C4Group support.
+ * Represents a C4Group in memory.
  * @author ZokRadonh
  *
  */
@@ -77,7 +77,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	
 	private final String entryName;
 	private List<C4GroupItem> childEntries;
-	private boolean completed;
+	private boolean loaded;
 	private boolean hasChildren;
 	private C4GroupHeader header;
 	private C4GroupEntryHeader entryHeader;
@@ -200,9 +200,10 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 	
     /**
-     * Reads the c4group (or parts of it based on the supplied filter) into memory
-     * @param recursively whether recursively or only this group
+     * Reads the C4Group (or parts of it based on the supplied filter) into memory
+     * @param recursively whether to load sub groups recursively or only this group
      * @param filter the filter used for deciding which files are to be dropped
+     * @param stream The stream to read the compressed data from
      * @throws C4GroupInvalidDataException
      * @throws IOException 
      * @throws CoreException
@@ -224,16 +225,16 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				predecessor.readIntoMemory(true, filter);
 			}*/
 
-			if (!completed) {
+			if (!loaded) {
 
-				completed = true;
+				loaded = true;
 				header = C4GroupHeader.createFromStream(stream);
 
 				childEntries = new ArrayList<C4GroupItem>(header.getEntries());
 				List<Object> readObjects = new ArrayList<Object>(header.getEntries());
 
 				// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
-				for(int i = 0; i < header.getEntries(); i++) {
+				for (int i = 0; i < header.getEntries(); i++) {
 					hasChildren = true;
 					C4GroupEntryHeader entryHeader = C4GroupEntryHeader.createFromStream(stream);
 					if (!(filter.accepts(entryHeader, this) || entryHeader.isGroup())) {
@@ -248,15 +249,15 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 							entry = group;
 						}
 						else {
-							entry = new C4GroupEntry(this, entryHeader);
+							entry = new C4GroupFile(this, entryHeader);
 						}
-						filter.created(entryHeader, entry);
+						filter.notifyAboutCreatedItem(entryHeader, entry);
 						readObjects.add(entry);
 					}
 				}
 
 				// process group before processing child items
-				filter.processData(this);
+				filter.processGroupItem(this);
 
 				if (recursively) {
 					// open (read into memory or process in a way defined by the filter) or skip 
@@ -276,8 +277,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 						if (o instanceof C4GroupItem) {
 							childEntries.add((C4GroupItem) o);
 							// not recursive: only read files
-							if (o instanceof C4GroupEntry)
-								((C4GroupEntry)o).readIntoMemory(false, filter, stream);
+							if (o instanceof C4GroupFile)
+								((C4GroupFile)o).readIntoMemory(false, filter, stream);
 						}
 				}
 
@@ -295,7 +296,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					boolean isFile = !header.isGroup();
 					C4GroupItem childItem =
 						isFile
-							? new C4GroupEntry(this, header)
+							? new C4GroupFile(this, header)
 							: child.isDirectory()
 								? new C4GroupUncompressed(this, child.getName(), child)
 								: new C4GroupTopLevelCompressed(this, child.getName(), child);
@@ -317,19 +318,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		
 	}
 	
-	public final void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter) throws C4GroupInvalidDataException, IOException, CoreException {
-		readIntoMemory(recursively, filter, getStream());
-	}
-	
 	/**
-	 * Reads all the group's contents into memory
-	 * @param recursively whether recursively or only for this group 
+	 * Like {@link #readIntoMemory(boolean, C4GroupHeaderFilterBase, InputStream)}, but with the stream parameter set to {@link #getStream()}.
 	 * @throws C4GroupInvalidDataException
 	 * @throws IOException
 	 * @throws CoreException
 	 */
-	public void readIntoMemory(boolean recursively) throws C4GroupInvalidDataException, IOException, CoreException {
-		readIntoMemory(recursively, ACCEPT_EVERYTHING, getStream());
+	public final void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter) throws C4GroupInvalidDataException, IOException, CoreException {
+		readIntoMemory(recursively, filter, getStream());
 	}
 
 	/**
@@ -379,10 +375,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	@Override
 	public String getName() {
 		return entryName;
-	}
-
-	public boolean isCompleted() {
-		return completed;
 	}
 	
 	/**
@@ -555,7 +547,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
 		if (outdated()) {
 			childEntries = null; // force refresh
-			completed = false;
+			loaded = false;
 		}
 		List<C4GroupItem> childEntries = this.getChildren();
 		String[] result = new String[childEntries.size()];

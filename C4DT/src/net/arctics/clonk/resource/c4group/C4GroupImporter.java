@@ -80,7 +80,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						}
 
 						@Override
-						public void processData(C4GroupItem item) throws CoreException {
+						public void processGroupItem(C4GroupItem item) throws CoreException {
 							for (; currentGroup != item.getParentGroup(); currentGroup = currentGroup.getParentGroup(), currentContainer = currentContainer.getParent());
 							if (item instanceof C4Group) {
 								C4Group group = (C4Group)item;
@@ -93,7 +93,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 								currentGroup = group;
 							}
 							else {
-								C4GroupEntry entry = (C4GroupEntry)item;
+								C4GroupFile entry = (C4GroupFile)item;
 								IFile newFile = currentContainer.getFile(new Path(entry.getName()));
 								InputStream newContents = entry.getContents();
 								try {

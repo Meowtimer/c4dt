@@ -8,14 +8,12 @@ import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.filesystem.C4GroupFileSystem;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * Represents a top-level compressed group
- *
+ * Represents a top-level compressed C4Group.
  */
 public class C4GroupTopLevelCompressed extends C4Group {
 	
@@ -193,7 +191,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	
 	@Override
 	public void delete(int options, IProgressMonitor monitor) throws CoreException {
-		C4GroupFileSystem.getInstance().delete(this);
+		C4GroupFileSystem.instance().removeGroupFromRegistry(this);
 	}
 	
 	@Override

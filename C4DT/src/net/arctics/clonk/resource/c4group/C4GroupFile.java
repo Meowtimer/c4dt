@@ -28,11 +28,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * Represents one entry in a C4Group file.
+ * Represents one file in a {@link C4Group} file.
  * @author ZokRadonh
  *
  */
-public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable {
+public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	
 	private static class EntryCache {
 		
@@ -49,9 +49,9 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 			}
 		}
 		
-		private Map<C4GroupEntry, CachedEntry> files = new HashMap<C4GroupEntry, CachedEntry>();
+		private final Map<C4GroupFile, CachedEntry> files = new HashMap<C4GroupFile, CachedEntry>();
 		
-		public File getCachedFile(C4GroupEntry groupEntry) throws IOException, CoreException {
+		public File getCachedFile(C4GroupFile groupEntry) throws IOException, CoreException {
 			CachedEntry e = files.get(groupEntry);
 			if (e == null || e.modified()) {
 				File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -87,17 +87,17 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 
 	private transient File exportFromFile;
 
-	public C4GroupEntry(C4Group parentGroup, C4GroupEntryHeader header) {
+	public C4GroupFile(C4Group parentGroup, C4GroupEntryHeader header) {
 		this.parentGroup = parentGroup;
 		this.header = header;
 	}
 
-	protected C4GroupEntry() {
+	protected C4GroupFile() {
 		completed = true;
 	}
 
-	public static C4GroupEntry makeEntry(C4Group parent, C4GroupEntryHeader header, File exportFromFile) {
-		C4GroupEntry entry = new C4GroupEntry();
+	public static C4GroupFile makeEntry(C4Group parent, C4GroupEntryHeader header, File exportFromFile) {
+		C4GroupFile entry = new C4GroupFile();
 		entry.parentGroup = parent;
 		entry.header = header;
 		entry.contents = null;
@@ -110,7 +110,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		if (completed) return;
 		completed = true;
 
-		if ((filter.getFlags(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0) {
+		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0) {
 			fetchContents(stream);
 		}
 		else {
@@ -118,7 +118,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		}
 
 		// process contents (contents could be null after this call)
-		filter.processData(this);
+		filter.processGroupItem(this);
 
 	}
 
@@ -343,7 +343,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class cls) {
-		if (cls == C4GroupEntry.class)
+		if (cls == C4GroupFile.class)
 			return this;
 		return null;
 	}
