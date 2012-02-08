@@ -736,7 +736,7 @@ public class SpecialScriptRules {
 			String soundGroupName = "Sound."+engine.currentSettings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 			for (IContainer c = as(parser.containingScript().resource(), IContainer.class), d = c;
 				c != null;
-				c = c.getParent(), d = c != null ? as(c.findMember("Sound.ocg"), IContainer.class) : null
+				c = c.getParent(), d = c != null ? as(c.findMember(soundGroupName), IContainer.class) : null
 			) {
 				res = soundResourceInFolder(name, engine, c, pi);
 				if (res != null)
