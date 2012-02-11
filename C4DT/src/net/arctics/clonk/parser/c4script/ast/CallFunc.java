@@ -60,7 +60,7 @@ public class CallFunc extends AccessDeclaration {
 			super();
 			this.function = function;
 			if (function != null)
-				type = function.getReturnType();
+				type = function.returnType();
 		}
 		
 		@Override
@@ -287,7 +287,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		
 		if (d instanceof Function) {
-			return ((Function)d).getReturnType();
+			return ((Function)d).returnType();
 		}
 
 		return super.obtainType(context);
@@ -723,7 +723,7 @@ public class CallFunc extends AccessDeclaration {
 			if (f.typeIsInvariant()) {
 				return null;
 			}
-			IType retType = f.getReturnType();
+			IType retType = f.returnType();
 			if (retType == null || !retType.containsAnyTypeOf(PrimitiveType.ANY, PrimitiveType.REFERENCE))
 				return new FunctionReturnTypeInformation((Function)d);
 			if (d.isEngineDeclaration())

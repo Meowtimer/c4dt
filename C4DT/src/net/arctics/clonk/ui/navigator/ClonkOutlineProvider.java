@@ -81,9 +81,9 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		if (element instanceof Function) {
 			Function func = ((Function)element);
 			StyledString string = new StyledString(func.getLongParameterString(true, false));
-			if (func.getReturnType() != null && func.getReturnType() != PrimitiveType.UNKNOWN && func.getReturnType() != PrimitiveType.ANY) {
+			if (func.returnType() != null && func.returnType() != PrimitiveType.UNKNOWN && func.returnType() != PrimitiveType.ANY) {
 				string.append(" : "); //$NON-NLS-1$
-				string.append(func.getReturnType().typeName(true), StyledString.DECORATIONS_STYLER);
+				string.append(func.returnType().typeName(true), StyledString.DECORATIONS_STYLER);
 			}
 			return string;
 		}

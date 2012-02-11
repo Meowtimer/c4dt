@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
+import net.arctics.clonk.parser.c4script.openclonk.OCSourceDeclarationsImporter;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.UI;
@@ -222,7 +222,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			declarationNameField.setText(func.name());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ReturnTypeTitle);
-			returnTypeBox = createComboBoxForType(parent, func.getReturnType());
+			returnTypeBox = createComboBoxForType(parent, func.returnType());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, func.getVisibility());
@@ -517,7 +517,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 							try {
 								final Script engine = ClonkCore.instance().getActiveEngine();
 								//engine.clearDeclarations();
-								OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
+								OCSourceDeclarationsImporter importer = new OCSourceDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);
 							} catch (Exception e) {
 								e.printStackTrace();

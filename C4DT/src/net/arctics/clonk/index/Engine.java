@@ -27,7 +27,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Script;
@@ -36,7 +35,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
-import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
+import net.arctics.clonk.parser.c4script.openclonk.OCSourceDeclarationsImporter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -155,6 +154,21 @@ public class Engine extends Script {
 		/** Whether to dynamically load documentation from the given repository **/
 		@IniField
 		public boolean readDocumentationFromRepository;
+		
+		@IniField(category="Source")
+		public String initFunctionMapPattern;
+		@IniField(category="Source")
+		public String constMapPattern;
+		@IniField(category="Source")
+		public String fnMapPattern;
+		@IniField(category="Source")
+		public String fnMapEntryPattern;
+		@IniField(category="Source")
+		public String constMapEntryPattern;
+		@IniField(category="Source")
+		public String addFuncPattern;
+		@IniField(category="Source")
+		public String fnDeclarationPattern;
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
 		private transient Map<C4Group.GroupType, String> rfetgtm;
@@ -387,10 +401,13 @@ public class Engine extends Script {
 		this.clearDeclarations();
 		try {
 			createDeclarationsFromRepositoryDocumentationFiles();
-			OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
+			OCSourceDeclarationsImporter importer = new OCSourceDeclarationsImporter();
+			importer.overwriteExistingDeclarations = false;
 			importer.importFromRepository(this, currentSettings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null)
 				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
+			if (findVariable("nil") == null)
+				this.addDeclaration(new Variable("nil", Variable.Scope.CONST));
 		} finally {
 			modified();
 		}
@@ -420,30 +437,9 @@ public class Engine extends Script {
 			}
 			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
 			if (isConst)
-				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-					private boolean fleshedOut;
-					@Override
-					public synchronized IType type() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.type();
-					}
-				});
+				this.addDeclaration(new DocumentedVariable(rawFileName, Variable.Scope.CONST));
 			else
-				this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-					private boolean fleshedOut;
-					@Override
-					public Iterable<? extends Variable> parameters() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.parameters();
-					}
-					@Override
-					public IType getReturnType() {
-						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-						return super.getReturnType();
-					}
-				});
+				this.addDeclaration(new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL));
 		}
 	}
 	
@@ -643,7 +639,7 @@ public class Engine extends Script {
 		}
 		writer.append("\n"); //$NON-NLS-1$
 		for (Function f : functions()) {
-			String returnType = f.getReturnType().toString();
+			String returnType = f.returnType().toString();
 			String desc = f.obtainUserDescription();
 			if (desc != null) {
 				if (desc.contains("\n")) { //$NON-NLS-1$

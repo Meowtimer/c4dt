@@ -778,7 +778,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.getReturnType().typeName(true))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.returnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (Variable p : f.parameters()) {
 				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.type().typeName(true))); //$NON-NLS-1$

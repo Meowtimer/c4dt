@@ -105,7 +105,7 @@ public class C4ScriptToCPPConverter {
 
 	public void printFunction(Function function, Block body, Writer output) throws IOException {
 		output.append("static ");
-		output.append(PrimitiveType.cppTypeFromType(function.getReturnType()));
+		output.append(PrimitiveType.cppTypeFromType(function.returnType()));
 		output.append(" ");
 		output.append(function.name());
 		output.append("(C4AulContext *cthr");

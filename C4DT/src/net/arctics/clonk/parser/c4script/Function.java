@@ -175,7 +175,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the returnType
 	 */
-	public IType getReturnType() {
+	public IType returnType() {
 		if (returnType == null)
 			returnType = PrimitiveType.UNKNOWN;
 		return returnType;
@@ -356,7 +356,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String infoText() {
 		String description = obtainUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? StringUtil.htmlerize(getReturnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -550,7 +550,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public IType type() {
-		return getReturnType();
+		return returnType();
 	}
 
 	@Override

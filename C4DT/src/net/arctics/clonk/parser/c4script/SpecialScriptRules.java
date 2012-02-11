@@ -406,7 +406,7 @@ public class SpecialScriptRules {
 			}
 			if (t != null) {
 				Function f = (Function) callFunc.declaration();
-				if (f != null && f.getReturnType() == PrimitiveType.ARRAY)
+				if (f != null && f.returnType() == PrimitiveType.ARRAY)
 					return new ArrayType(t, null);
 			}
 			return t;
