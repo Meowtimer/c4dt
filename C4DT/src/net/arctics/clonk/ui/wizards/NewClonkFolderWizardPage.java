@@ -55,7 +55,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		this.selection = selection;
 		GroupType groupType = this.groupType();
 		if (groupType != null) {
-			Engine engine = ClonkProjectNature.getEngine(selection);
+			Engine engine = ClonkProjectNature.engineFromSelection(selection);
 			if (engine != null)
 				setImageDescriptor(engine.imageDescriptor(groupType.name()+"Big"));
 		}

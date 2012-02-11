@@ -119,7 +119,7 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 
 		private void guessEngine(ClonkProjectNature nature) {
-			List<IProject> referencingProjects = nature.getReferencingClonkProjects();
+			List<IProject> referencingProjects = nature.referencingClonkProjects();
 			Map<String, Integer> score = new HashMap<String, Integer>();
 			for (String engine : ClonkCore.instance().namesOfAvailableEngines()) {
 				score.put(engine, 0);
@@ -192,7 +192,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Returns the index of the project, loading it from disk if necessary.
 	 * @return the project index
 	 */
-	public synchronized ProjectIndex getIndex() {
+	public synchronized ProjectIndex index() {
 		if (index == null && !indexLoadingPending) {
 			indexLoadingPending = true;
 			loadIndex();
@@ -208,7 +208,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProjectIndex forceIndexRecreation() {
 		index = null;
 		loadSettings();
-		File indexFolder = getIndexFolder();
+		File indexFolder = indexFolder();
 		// legacy index file - delete
 		if (indexFolder.isFile())
 			indexFolder.delete();
@@ -218,7 +218,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProjectIndex getIndexCreatingEmptyOneIfNotPresent() {
 		if (index == null) {
 			loadSettings();
-			index = new ProjectIndex(project, getIndexFolder()); 
+			index = new ProjectIndex(project, indexFolder()); 
 		}
 		return index;
 	}
@@ -240,7 +240,7 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public void saveSettings() {
 		try {
-			getSettings();
+			settings();
 			StreamUtil.writeToFile(getSettingsFileLocation().toFile(), new StreamUtil.StreamWriteRunnable() {
 				@Override
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
@@ -269,13 +269,13 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Load the index from disk. Exceptions thrown while loading cause a new empty index to be created and returned.
 	 */
 	private void loadIndex() {
-		getSettings();
+		settings();
 		if (ClonkCore.instance().updateTookPlace()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
-			index = new ProjectIndex(getProject(), getIndexFolder());
+			index = new ProjectIndex(getProject(), indexFolder());
 			performBuildOnOutdatedProject();
 		} else {
-			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, getIndexFolder(), null);
+			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null);
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
 				loadedIndex.setProject(getProject());
@@ -286,7 +286,7 @@ public class ClonkProjectNature implements IProjectNature {
 					loadedIndex = null;
 				}
 			}
-			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), getIndexFolder());
+			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), indexFolder());
 		}
 	}
 
@@ -301,13 +301,13 @@ public class ClonkProjectNature implements IProjectNature {
 					e.printStackTrace();
 				}
 				if (ClonkCore.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
-					getSettings().guessValues(ClonkProjectNature.this);
+					settings().guessValues(ClonkProjectNature.this);
 				}
 			}
 		});
 	}
 
-	private File getIndexFolder() {
+	private File indexFolder() {
 		return ClonkCore.instance().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile();
 	}
 	
@@ -363,7 +363,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	public static ClonkProjectNature get(String projectName) {
-		for (IProject proj : getClonkProjects()) {
+		for (IProject proj : clonkProjectsInWorkspace()) {
 			if (proj.getName().equals(projectName)) {
 				try {
 					return (ClonkProjectNature) proj.getNature(ClonkCore.CLONK_NATURE_ID);
@@ -385,7 +385,7 @@ public class ClonkProjectNature implements IProjectNature {
 		return null;
 	}
 
-	public ProjectSettings getSettings() {
+	public ProjectSettings settings() {
 		if (settings == null)
 			loadSettings();
 		return settings;
@@ -395,7 +395,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * All Clonk projects in the current workspace
 	 * @return array containing the Clonk projects
 	 */
-	public static IProject[] getClonkProjects() {
+	public static IProject[] clonkProjectsInWorkspace() {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] projects = root.getProjects();
 		
@@ -426,7 +426,7 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 	}
 
-	public List<IProject> getReferencingClonkProjects() {
+	public List<IProject> referencingClonkProjects() {
 		List<IProject> result = new ArrayList<IProject>(10);
 		result.add(getProject());
 		addProjectsFromReferencedProjects(result, getProject());
@@ -435,17 +435,17 @@ public class ClonkProjectNature implements IProjectNature {
 	
 	public void reloadIndex() {
 		index = null;
-		getIndex();
+		index();
 	}
 
-	public static Engine getEngine(IResource res) {
+	public static Engine engineFromResource(IResource res) {
 		ClonkProjectNature nat = get(res);
-		return nat != null ? nat.getSettings().getEngine() : null;
+		return nat != null ? nat.settings().getEngine() : null;
 	}
 	
-	public static Engine getEngine(ISelection selection) {
+	public static Engine engineFromSelection(ISelection selection) {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
-			return getEngine((IResource) ((IStructuredSelection)selection).getFirstElement());
+			return engineFromResource((IResource) ((IStructuredSelection)selection).getFirstElement());
 		else
 			return null;
 	}

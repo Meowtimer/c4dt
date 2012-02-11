@@ -36,7 +36,7 @@ public class ProjectIndex extends Index {
 	
 	@Override
 	public Engine engine() {
-		return nature.getSettings().getEngine();
+		return nature.settings().getEngine();
 	}
 	
 	/**
@@ -138,7 +138,7 @@ public class ProjectIndex extends Index {
 	 */
 	public static ProjectIndex get(IProject project) {
 		ClonkProjectNature nature = ClonkProjectNature.get(project);
-		return nature != null ? nature.getIndex() : null;
+		return nature != null ? nature.index() : null;
 	}
 
 	@Override

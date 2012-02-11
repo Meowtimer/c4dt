@@ -38,8 +38,8 @@ public class LookupDeclarationHandler extends AbstractHandler {
 		}
 		else {
 			ClonkProjectNature nat = ClonkProjectNature.get(part);
-			if (nat != null && nat.getIndex() != null)
-				new EntityChooser(HandlerUtil.getActiveShell(event), nat.getIndex()).run();
+			if (nat != null && nat.index() != null)
+				new EntityChooser(HandlerUtil.getActiveShell(event), nat.index()).run();
 		}
 		return null;
 	}

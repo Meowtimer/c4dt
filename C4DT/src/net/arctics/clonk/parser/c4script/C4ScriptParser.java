@@ -478,7 +478,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				ProjectIndex projIndex = (ProjectIndex) container.index();
 				ClonkProjectNature nature = projIndex.getNature();
 				if (nature != null) {
-					errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
+					errorsDisabledByProjectSettings = nature.settings().getDisabledErrorsSet();
 				}
 			}
 

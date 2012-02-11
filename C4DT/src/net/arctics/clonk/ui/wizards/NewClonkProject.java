@@ -37,7 +37,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			proj.create(desc,null);
 			proj.open(null);
 			
-			ClonkProjectNature.get(proj).getSettings().setEngineName(page.getEngine(false) != null ? page.getEngine(false).name() : "");
+			ClonkProjectNature.get(proj).settings().setEngineName(page.getEngine(false) != null ? page.getEngine(false).name() : "");
 			
 			// link and import
 			for (String group : page.getGroupsToBeLinked()) {

@@ -64,8 +64,8 @@ public class OpenObjectDialog extends EntityChooser {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			ClonkProjectNature nat = ClonkProjectNature.get(proj);
-			if (nat != null && nat.getIndex() != null) {
-				for (Index index : nat.getIndex().relevantIndexes()) {
+			if (nat != null && nat.index() != null) {
+				for (Index index : nat.index().relevantIndexes()) {
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
 				}
 			}

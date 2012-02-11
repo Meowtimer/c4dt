@@ -30,7 +30,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			IResource res = (IResource) element;
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
-				Engine engine = ClonkProjectNature.getEngine(res);
+				Engine engine = ClonkProjectNature.engineFromResource(res);
 				if (engine != null) {
 					GroupType groupType = engine.groupTypeForFileName(res.getName());
 					ImageDescriptor imgDesc = engine.imageDescriptor(groupType);

@@ -45,7 +45,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		for (IContainer c : packs) {
 			if (c == null)
 				continue;
-			Engine engine = ClonkProjectNature.get(c).getIndex().engine();
+			Engine engine = ClonkProjectNature.get(c).index().engine();
 			List<Pair<IContainer, String>> list = packsDividedInEngines.get(engine);
 			if (list == null) {
 				list = new LinkedList<Pair<IContainer, String>>();

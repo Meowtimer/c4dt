@@ -256,7 +256,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		final Set<Object> scope = new HashSet<Object>();
 		scope.add(script);
 		ClonkProjectNature nat = ClonkProjectNature.get(script.resource());
-		nat.getIndex().forAllRelevantIndexes(new r() {
+		nat.index().forAllRelevantIndexes(new r() {
 			@Override
 			public void run(Index index) {
 				for (Script s : index.allScripts())
@@ -396,7 +396,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			IResource res = resource();
 			if (res != null) {
 				ClonkProjectNature nat = ClonkProjectNature.get(res);
-				return nat != null ? nat.getIndex() : null;
+				return nat != null ? nat.index() : null;
 			}
 			else
 				return null;

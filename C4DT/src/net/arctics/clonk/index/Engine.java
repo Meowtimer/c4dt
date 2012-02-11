@@ -54,11 +54,7 @@ import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
@@ -453,14 +449,9 @@ public class Engine extends Script {
 		if (currentSettings().readDocumentationFromRepository) {
 			xmlDocImporter.setRepositoryPath(currentSettings().repositoryPath);
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
-			new Job("Initialize doc importer for " + this.name()) {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					xmlDocImporter.initialize();
-					createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
-					return Status.OK_STATUS;
-				}
-			}.schedule();
+			
+			xmlDocImporter.initialize();
+			createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
 		}
 	}
 	

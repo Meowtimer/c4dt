@@ -42,7 +42,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (element.toString().endsWith(".txt")) { //$NON-NLS-1$
 				return UI.TEXT_ICON;
 			}
-			Engine engine = ClonkProjectNature.getEngine((IFile)element);
+			Engine engine = ClonkProjectNature.engineFromResource((IFile)element);
 			if (engine != null) {
 				if (element.toString().endsWith(engine.currentSettings().materialExtension))
 					return engine.image("material");
@@ -50,7 +50,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			Engine engine = ClonkProjectNature.getEngine(folder);
+			Engine engine = ClonkProjectNature.engineFromResource(folder);
 			if (engine != null) {
 				return engine.image(engine.groupTypeForFileName(folder.getName()));
 			}
@@ -77,7 +77,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			GroupType groupType = ClonkProjectNature.getEngine(folder).groupTypeForFileName(folder.getName());
+			GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
 			if (groupType == GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {

@@ -91,7 +91,7 @@ public abstract class Utilities {
 		if (res != null) {
 			ClonkProjectNature nature = ClonkProjectNature.get(res);
 			if (nature != null)
-				return nature.getIndex();
+				return nature.index();
 		}
 		return null;
 	}

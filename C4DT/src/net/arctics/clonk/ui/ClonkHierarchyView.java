@@ -56,8 +56,8 @@ public class ClonkHierarchyView extends ViewPart {
 			if (parentElement instanceof Definition) {
 				Definition parent = (Definition) parentElement;
 				List<Script> result = new LinkedList<Script>();
-				for (IProject p : ClonkProjectNature.getClonkProjects()) {
-					Index index = ClonkProjectNature.get(p).getIndex();
+				for (IProject p : ClonkProjectNature.clonkProjectsInWorkspace()) {
+					Index index = ClonkProjectNature.get(p).index();
 					for (Script script : index.allScripts()) {
 						if (filter.test(parent, script))
 							result.add(script);
@@ -87,9 +87,9 @@ public class ClonkHierarchyView extends ViewPart {
 
 		private Script[] getRootScripts(Object input, IFilter filter) {
 			List<Script> result = new LinkedList<Script>();
-			IProject[] clonkProjects = ClonkProjectNature.getClonkProjects(); 
+			IProject[] clonkProjects = ClonkProjectNature.clonkProjectsInWorkspace(); 
 			for (IProject p : clonkProjects) {
-				Index index = ClonkProjectNature.get(p).getIndex();
+				Index index = ClonkProjectNature.get(p).index();
 				for (Script script : index.allScripts()) {
 					if (filter.isRootScript(script))
 						result.add(script);

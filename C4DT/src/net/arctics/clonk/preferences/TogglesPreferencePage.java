@@ -40,7 +40,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 		boolean r = super.performOk();
 		if (r)
 			for (CommonNavigator nav : UI.projectExplorers())
-				for (IProject proj : ClonkProjectNature.getClonkProjects())
+				for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 					nav.getCommonViewer().refresh(proj);
 		return r;
 	}

@@ -288,7 +288,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	public Engine getEngine() {
 		ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
-		return nat != null ? nat.getIndex().engine() : null;
+		return nat != null ? nat.index().engine() : null;
 	}
 	
 	public void chooseScenario() {
@@ -312,7 +312,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 				return type == C4Group.GroupType.FolderGroup;
 			}
 		};
-		for(IProject proj : ClonkProjectNature.getClonkProjects())
+		for(IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 			try {
 				proj.accept(scenCollector);
 			} catch (CoreException e) {}

@@ -54,11 +54,11 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.dialogChanged();
 		ClonkProjectNature nature = ClonkProjectNature.get(project);
 		if (nature != null) {
-			if (!nature.getIndex().engine().acceptsId(c4idText.getText())) {
+			if (!nature.index().engine().acceptsId(c4idText.getText())) {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}
-			Iterable<? extends Definition> objects = nature.getIndex().getDefinitionsWithID(ID.get(c4idText.getText()));
+			Iterable<? extends Definition> objects = nature.index().getDefinitionsWithID(ID.get(c4idText.getText()));
 			if (objects != null) {
 				updateStatus(Messages.NewC4ObjectPage_IDAlreadyInUse);
 				return;
@@ -72,7 +72,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.initialize();
 		fileText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
-		setFolderExtension(ClonkProjectNature.getEngine(project).currentSettings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+		setFolderExtension(ClonkProjectNature.engineFromResource(project).currentSettings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}
 	
 	public String objectID() {

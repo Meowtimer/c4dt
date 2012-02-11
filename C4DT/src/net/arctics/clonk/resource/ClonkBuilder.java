@@ -268,7 +268,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
 				// only create standalone-scripts for *.c files residing in System groups
-				String systemName = nature.getIndex().engine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
+				String systemName = nature.index().engine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
 				if (
 					resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
 					systemName.equals(resource.getParent().getName())
@@ -332,7 +332,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private final Set<Pair<Definition, ID>> renamedDefinitions = Collections.synchronizedSet(new HashSet<Pair<Definition, ID>>());
 
 	private Index getIndex() {
-		return ClonkProjectNature.get(getProject()).getIndex();
+		return ClonkProjectNature.get(getProject()).index();
 	}
 	
 	@Override
@@ -365,7 +365,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		clearUIOfReferencesBeforeBuild();
 		IProject proj = getProject();
-		ClonkProjectNature.get(proj).getIndex().beginModification();
+		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
 
@@ -392,7 +392,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				return null;
 			}
 		} finally {
-			ClonkProjectNature.get(proj).getIndex().endModification();
+			ClonkProjectNature.get(proj).index().endModification();
 			clearState();
 		}
 	}
@@ -462,7 +462,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				ClonkProjectNature.get(project).getIndex().saveShallow();
+				ClonkProjectNature.get(project).index().saveShallow();
 				monitor.worked(3);
 				return Status.OK_STATUS;
 			} finally {
@@ -478,7 +478,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	) throws CoreException {
 		
 		nature = ClonkProjectNature.get(proj); 
-		Index index = nature.getIndex();
+		Index index = nature.index();
 		
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
@@ -692,7 +692,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
 		}
-		nature.getIndex().addScript(script);
+		nature.index().addScript(script);
 		if (parser != null) {
 			parser.clean();
 			parser.parseDeclarations();
@@ -726,7 +726,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parser != null) {
 			try {
 				// parse #included scripts before this one
-				for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {
+				for (IHasIncludes include : script.getIncludes(nature.index(), false)) {
 					if (include instanceof Script)
 						performBuildPhaseTwo((Script) include);
 				}

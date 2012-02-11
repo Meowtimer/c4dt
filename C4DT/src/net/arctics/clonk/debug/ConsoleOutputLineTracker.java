@@ -51,7 +51,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		}
 		project = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
 		nature = ClonkProjectNature.get(project);
-		resourcesInRelevantProjects = getSubResourcesFromResourceCollection(ArrayUtil.map(nature.getIndex().relevantIndexes(), new IConverter<Index, IResource>() {
+		resourcesInRelevantProjects = getSubResourcesFromResourceCollection(ArrayUtil.map(nature.index().relevantIndexes(), new IConverter<Index, IResource>() {
 			@Override
 			public IResource convert(Index from) {
 				return from.getProject();

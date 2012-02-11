@@ -375,7 +375,7 @@ public class Definition extends Script {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		ClonkProjectNature.get(definitionFolder.getProject()).getIndex().removeDefinition(this);
+		ClonkProjectNature.get(definitionFolder.getProject()).index().removeDefinition(this);
 	}
 
 	/**

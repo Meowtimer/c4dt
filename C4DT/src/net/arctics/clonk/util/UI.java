@@ -200,7 +200,7 @@ public abstract class UI {
 		result.setContentProvider(new WorkbenchContentProvider() {
 			@Override
 			public Object[] getChildren(Object element) {
-				return ClonkProjectNature.getClonkProjects();
+				return ClonkProjectNature.clonkProjectsInWorkspace();
 			}
 		});
 		result.setComparator(new ViewerComparator());
@@ -258,7 +258,7 @@ public abstract class UI {
 			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
 		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
 		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
-		dialog.setElements(ClonkProjectNature.getClonkProjects());
+		dialog.setElements(ClonkProjectNature.clonkProjectsInWorkspace());
 		dialog.setMultipleSelection(multiSelect);
 
 		// Set selection

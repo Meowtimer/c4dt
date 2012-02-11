@@ -439,8 +439,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				List<Index> newOnes = new LinkedList<Index>();
 				for (IProject p : projIndex.getProject().getReferencedProjects()) {
 					ClonkProjectNature n = ClonkProjectNature.get(p);
-					if (n != null && n.getIndex() != null && !result.contains(n.getIndex()))
-						newOnes.add(n.getIndex());
+					if (n != null && n.index() != null && !result.contains(n.index()))
+						newOnes.add(n.index());
 				}
 				result.addAll(newOnes);
 				for (Index i : newOnes)
@@ -852,7 +852,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		protected Index getIndex(Index context) {
 			if (referencedProjectName != null) {
 				ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
-				return nat != null ? nat.getIndex() : null;
+				return nat != null ? nat.index() : null;
 			} else
 				return null;
 		}

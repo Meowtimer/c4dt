@@ -184,7 +184,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	private void informAboutUpdate(Version oldVersion, Version newVersion) {
 		// only if there are projects at all
-		if (ClonkProjectNature.getClonkProjects().length > 0) {
+		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0) {
 			if (versionGap(oldVersion, newVersion, 1, 5, 9)) {
 				UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
 			}

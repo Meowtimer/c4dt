@@ -51,7 +51,7 @@ public class ResourceTester extends PropertyTester {
 	}
 
 	private static boolean checkGroupType(IResource res, C4Group.GroupType gt) {
-		Engine engine = ClonkProjectNature.getEngine(res);
+		Engine engine = ClonkProjectNature.engineFromResource(res);
 		return engine != null && engine.groupTypeForFileName(res.getName()) == gt;
 	}
 

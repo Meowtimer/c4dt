@@ -218,7 +218,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		ClonkProjectNature nature = ClonkProjectNature.get(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-		Index index = nature.getIndex();
+		Index index = nature.index();
 
 		final Function activeFunc = getActiveFunc(doc, offset);
 		this._activeFunc = activeFunc;

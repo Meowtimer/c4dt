@@ -79,7 +79,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		try {
 			if (element.isLinked())
 				return;
-			Engine engine = ClonkProjectNature.getEngine(element);
+			Engine engine = ClonkProjectNature.engineFromResource(element);
 			if (engine == null)
 				return;
 			IResource[] resources = element.members();
@@ -153,7 +153,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot)
-			return ClonkProjectNature.getClonkProjects();
+			return ClonkProjectNature.clonkProjectsInWorkspace();
 		else
 			return getChildren(inputElement);
 	}

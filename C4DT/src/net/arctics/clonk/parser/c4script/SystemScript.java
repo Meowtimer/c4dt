@@ -55,7 +55,7 @@ public class SystemScript extends Script implements Serializable {
 		if (f != null) { 
 			f.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, this);
 			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
-			index = nature != null ? nature.getIndex() : null;
+			index = nature != null ? nature.index() : null;
 		}
 		scriptFilePath = f != null ? f.getFullPath().toPortableString() : ""; //$NON-NLS-1$
 	}

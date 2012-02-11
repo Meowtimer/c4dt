@@ -269,7 +269,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		if (p != null && p.isOpen()) {
 			ClonkProjectNature nature = ClonkProjectNature.get(p);
 			if (nature != null)
-				engine = nature.getIndex().engine();
+				engine = nature.index().engine();
 		}
 		if (engine == null)
 			engine = ClonkCore.instance().getActiveEngine();

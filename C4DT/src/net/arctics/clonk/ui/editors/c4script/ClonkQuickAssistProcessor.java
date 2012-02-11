@@ -572,10 +572,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									break;
 								}
 								ID defId = ID.get(accessDec.declarationName());
-								for (final IProject proj : ClonkProjectNature.getClonkProjects()) {
+								for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
 										ClonkProjectNature nat = ClonkProjectNature.get(proj);
-										if (nat.getIndex().getDefinitionsWithID(defId) != null)
+										if (nat.index().getDefinitionsWithID(defId) != null)
 											replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
 												@Override
 												public void performAdditionalActionsBeforeDoingReplacements() {

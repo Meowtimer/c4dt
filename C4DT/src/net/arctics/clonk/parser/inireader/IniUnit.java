@@ -635,7 +635,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public Engine engine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(resource());
 		if (nature != null) {
-			return nature.getIndex().engine();
+			return nature.index().engine();
 		} else {
 			CustomizationNature customizationNature = CustomizationNature.get(resource().getProject());
 			if (customizationNature != null) {

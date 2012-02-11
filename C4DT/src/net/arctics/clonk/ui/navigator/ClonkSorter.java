@@ -38,7 +38,7 @@ public class ClonkSorter extends ViewerSorter {
 	private int getSortPriorityIgnoringTags(IResource resource) {
 		if (!resource.getProject().equals(cachedProject)) {
 			cachedProject = resource.getProject();
-			cachedEngine = ClonkProjectNature.getEngine(resource);
+			cachedEngine = ClonkProjectNature.engineFromResource(resource);
 		}
 		GroupType gt;
 		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != GroupType.OtherGroup) {

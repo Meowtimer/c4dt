@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.fileBeingEditedBy;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
@@ -34,6 +36,7 @@ import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -736,6 +739,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	@Override
 	protected void initializeEditor() {
+		IFile file = fileBeingEditedBy(this);
+		if (file != null) {
+			ClonkProjectNature.get(file).index();
+		}
 		super.initializeEditor();
 	}
 

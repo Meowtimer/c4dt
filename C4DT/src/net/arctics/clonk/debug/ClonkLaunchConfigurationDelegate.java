@@ -206,7 +206,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			return null;
 		
 		// add stuff from the project so Clonk does not fail to find them
-		for (Index index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
+		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
 				IContainer projectLevel = ((ProjectIndex)index).getProject();
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {

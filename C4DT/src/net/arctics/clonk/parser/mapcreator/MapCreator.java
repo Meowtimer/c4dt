@@ -50,7 +50,7 @@ public class MapCreator extends MapCreatorMap {
 	@Override
 	public Engine engine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(file);
-		return nature != null && nature.getIndex() != null ? nature.getIndex().engine() : super.engine();
+		return nature != null && nature.index() != null ? nature.index().engine() : super.engine();
 	}
 
 }
