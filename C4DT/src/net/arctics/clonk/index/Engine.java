@@ -36,6 +36,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
+import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -56,6 +57,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -384,58 +386,64 @@ public class Engine extends Script {
 	private void createPlaceholderDeclarationsToBeFleshedOutFromDocumentation() {
 		this.clearDeclarations();
 		try {
-			for (File xmlFile : new File(currentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
-				boolean isConst = false;
-				try {
-					FileReader r = new FileReader(xmlFile);
-					try {
-						for (String l : StringUtil.lines(r)) {
-							if (l.contains("<const>")) {
-								isConst = true;
-								break;
-							} else if (l.contains("<func>")) {
-								isConst = false;
-								break;
-							}
-						}
-					} finally {
-						r.close();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					continue;
-				}
-				String rawFileName = StringUtil.rawFileName(xmlFile.getName());
-				if (isConst)
-					this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
-						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-						private boolean fleshedOut;
-						@Override
-						public synchronized IType type() {
-							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-							return super.type();
-						}
-					});
-				else
-					this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
-						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-						private boolean fleshedOut;
-						@Override
-						public Iterable<? extends Variable> parameters() {
-							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-							return super.parameters();
-						}
-						@Override
-						public IType getReturnType() {
-							fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
-							return super.getReturnType();
-						}
-					});
-			}
+			createDeclarationsFromRepositoryDocumentationFiles();
+			OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
+			importer.importFromRepository(this, currentSettings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null)
 				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
 		} finally {
 			modified();
+		}
+	}
+
+	private void createDeclarationsFromRepositoryDocumentationFiles() {
+		for (File xmlFile : new File(currentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+			boolean isConst = false;
+			try {
+				FileReader r = new FileReader(xmlFile);
+				try {
+					for (String l : StringUtil.lines(r)) {
+						if (l.contains("<const>")) {
+							isConst = true;
+							break;
+						} else if (l.contains("<func>")) {
+							isConst = false;
+							break;
+						}
+					}
+				} finally {
+					r.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+			if (isConst)
+				this.addDeclaration(new Variable(rawFileName, Variable.Scope.CONST) {
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+					private boolean fleshedOut;
+					@Override
+					public synchronized IType type() {
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+						return super.type();
+					}
+				});
+			else
+				this.addDeclaration(new Function(rawFileName, Function.FunctionScope.GLOBAL) {
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+					private boolean fleshedOut;
+					@Override
+					public Iterable<? extends Variable> parameters() {
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+						return super.parameters();
+					}
+					@Override
+					public IType getReturnType() {
+						fleshedOut = repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+						return super.getReturnType();
+					}
+				});
 		}
 	}
 	
