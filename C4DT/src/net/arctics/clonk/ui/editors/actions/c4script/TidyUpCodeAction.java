@@ -78,7 +78,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 
 	private static ExprElm codeFor(Declaration d) {
 		if (d instanceof Variable)
-			return ((Variable)d).getInitializationExpression();
+			return ((Variable)d).initializationExpression();
 		else if (d instanceof Function)
 			return ((Function)d).codeBlock();
 		else

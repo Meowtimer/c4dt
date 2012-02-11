@@ -126,7 +126,7 @@ public class EntityLocator extends ExpressionLocator {
 			
 			// gather declarations with that name from involved project indexes
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
-			String declarationName = access.getDeclarationName();
+			String declarationName = access.declarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType t = access.predecessorInSequence() != null ? access.predecessorInSequence().typeInContext(parser) : null;
 			if (t == null || t.specificness() <= PrimitiveType.OBJECT.specificness()) {

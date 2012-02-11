@@ -87,7 +87,7 @@ public abstract class AccessDeclaration extends Value {
 	 * Return the declaration name this expression uses to refer to a {@link Declaration}.
 	 * @return The declaration name
 	 */
-	public String getDeclarationName() {
+	public String declarationName() {
 		return declarationName;
 	}
 	

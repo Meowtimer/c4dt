@@ -609,7 +609,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Variable variableWithInitializationAt(IRegion region) {
 		requireLoaded();
 		for (Variable v : variables()) {
-			ExprElm initialization = v.getInitializationExpression();
+			ExprElm initialization = v.initializationExpression();
 			if (initialization != null && initialization.containsOffset(region.getOffset()))
 				return v;
 		}
@@ -794,7 +794,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.type().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.type().typeName(true), Boolean.valueOf(v.scope() == Scope.CONST))); //$NON-NLS-1$
 			if (v.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.obtainUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$

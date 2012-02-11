@@ -11,7 +11,7 @@ public class ClonkDebugVariableValue extends ClonkDebugValue implements IValue {
 		this.variable = variable;
 	}
 
-	public ClonkDebugVariable getVariable() {
+	public ClonkDebugVariable variable() {
     	return variable;
     }
 	

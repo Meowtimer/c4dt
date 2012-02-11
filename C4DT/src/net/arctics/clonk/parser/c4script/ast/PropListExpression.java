@@ -44,7 +44,7 @@ public class PropListExpression extends Value {
 			Conf.printIndent(output, depth-1);
 			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
-			component.getInitializationExpression().print(output, depth+1);
+			component.initializationExpression().print(output, depth+1);
 			if (i < components.size()-1) {
 				output.append(',');
 			} else {
@@ -72,7 +72,7 @@ public class PropListExpression extends Value {
 		List<Variable> components = components();
 		ExprElm[] result = new ExprElm[components.size()];
 		for (int i = 0; i < result.length; i++)
-			result[i] = components.get(i).getInitializationExpression();
+			result[i] = components.get(i).initializationExpression();
 		return result;
 	}
 	@Override
@@ -88,7 +88,7 @@ public class PropListExpression extends Value {
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
 		for (Variable component : components()) {
-			if (!component.getInitializationExpression().isConstant())
+			if (!component.initializationExpression().isConstant())
 				return false;
 		}
 		return true;
@@ -99,7 +99,7 @@ public class PropListExpression extends Value {
 		List<Variable> components = components();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components) {
-			map.put(component.name(), component.getInitializationExpression().evaluateAtParseTime(context));
+			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
 		}
 		return map;
 	}
@@ -123,7 +123,7 @@ public class PropListExpression extends Value {
 	
 	public ExprElm value(String key) {
 		Variable keyVar = definedDeclaration.findComponent(key);
-		return keyVar != null ? keyVar.getInitializationExpression() : null;
+		return keyVar != null ? keyVar.initializationExpression() : null;
 	} 
 	
 	@SuppressWarnings("unchecked")

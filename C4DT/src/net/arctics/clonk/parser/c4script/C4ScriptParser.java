@@ -606,11 +606,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				directive.validate(this);
 
 			for (Variable variable : container.variables()) {
-				ExprElm initialization = variable.getInitializationExpression();
+				ExprElm initialization = variable.initializationExpression();
 				if (initialization != null) {
 					ExprElm old = currentFunctionContext.expressionReportingErrors;
 					currentFunctionContext.expressionReportingErrors = initialization;
-					if (variable.getScope() == Scope.CONST && !initialization.isConstant()) {
+					if (variable.scope() == Scope.CONST && !initialization.isConstant()) {
 						errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
 					}
 					initialization.reportErrors(this);
@@ -643,7 +643,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// local Name = "Exploder";
 			Variable nameLocal = container.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
-				ExprElm expr = nameLocal.getInitializationExpression();
+				ExprElm expr = nameLocal.initializationExpression();
 				if (expr != null) {
 					obj.setName(expr.evaluateAtParseTime(obj).toString());
 				}
@@ -1257,7 +1257,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Create a new function. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function will be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
+	 * Create a new function. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
@@ -2474,7 +2474,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if ((scope = Scope.makeScope(readWord)) != null) {
 					List<VarInitialization> initializations = parseVariableDeclaration(true, !options.contains(ParseStatementOption.InitializationStatement), scope, null);
 					if (initializations != null) {
-						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.getScope());
+						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.scope());
 					}
 				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement))

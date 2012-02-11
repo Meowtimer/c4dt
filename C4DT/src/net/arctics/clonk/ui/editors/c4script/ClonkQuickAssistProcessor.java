@@ -244,7 +244,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						String s = UI.input(
 								PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 								Messages.ClonkQuickAssistProcessor_SpecifyValue,
-								String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
+								String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.declarationName()), accessDec.declarationName(),
 								new IInputValidator() {
 									@Override
 									public String isValid(String newText) {
@@ -462,7 +462,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					assert(offendingExpression instanceof CallFunc);
 					replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()), 0)
+							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).declarationName()), 0)
 					);
 					break;
 				case NeverReached: {
@@ -492,7 +492,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						if (topLevel == op.getParent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-									new VarDeclarationStatement(var.getDeclarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+									new VarDeclarationStatement(var.declarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
 						}
 					}
@@ -509,21 +509,21 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 						// create new variable or function
 						Replacement createNewDeclarationReplacement = replacements.add(
-								String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.getDeclarationName()),
+								String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
 								ExprElm.NULL_EXPR,
 								false
 						);
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.getAdditionalDeclarations();
 						if (accessDec instanceof AccessVar) {
 							decs.add(new Replacement.AdditionalDeclaration(
-									new Variable(accessDec.getDeclarationName(), Scope.LOCAL),
+									new Variable(accessDec.declarationName(), Scope.LOCAL),
 									ExprElm.NULL_EXPR
 							));
 						} else {
 							CallFunc callFunc = (CallFunc) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
-									function = new Function(accessDec.getDeclarationName(), FunctionScope.PUBLIC),
+									function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
 									ExprElm.NULL_EXPR
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
@@ -549,7 +549,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								Declaration dec = clonkProposal.getDeclaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
-								int similarity = StringUtil.similarityOf(dec.name(), accessDec.getDeclarationName());
+								int similarity = StringUtil.similarityOf(dec.name(), accessDec.declarationName());
 								if (similarity > 0) {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
@@ -571,7 +571,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									e.printStackTrace();
 									break;
 								}
-								ID defId = ID.get(accessDec.getDeclarationName());
+								ID defId = ID.get(accessDec.declarationName());
 								for (final IProject proj : ClonkProjectNature.getClonkProjects()) {
 									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
 										ClonkProjectNature nat = ClonkProjectNature.get(proj);
@@ -637,7 +637,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case NoInheritedFunction:
-					if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).getDeclarationName().equals(Keywords.Inherited)) {
+					if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).declarationName().equals(Keywords.Inherited)) {
 						replacements.add(
 								String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 								identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),

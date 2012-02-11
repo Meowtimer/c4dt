@@ -66,7 +66,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallFunc && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallFunc callFunc = (CallFunc) expression;
-				return callFunc.getDeclarationName().equals(declaration.name());
+				return callFunc.declarationName().equals(declaration.name());
 			}
 			return false;
 		}

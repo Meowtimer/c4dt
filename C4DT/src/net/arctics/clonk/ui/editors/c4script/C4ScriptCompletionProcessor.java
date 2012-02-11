@@ -387,7 +387,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (innermostCallFunc != null) {
 			SpecialScriptRules rules = parser.getSpecialScriptRules();
 			if (rules != null) {
-				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.getDeclarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
+				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					ExprElm parmExpr = innermostCallFunc.getSubElementContaining(contextExpression);
 					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
@@ -583,7 +583,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
 			}
 			else if ((var = Utilities.as(dec, Variable.class)) != null) {
-				if (var.getScope() != Scope.STATIC && var.getScope() != Scope.CONST)
+				if (var.scope() != Scope.STATIC && var.scope() != Scope.CONST)
 					proposalForVar(var, prefix, wordOffset, proposals);
 			}
 			else if ((include = Utilities.as(dec, Script.class)) != null) {

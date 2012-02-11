@@ -86,7 +86,7 @@ public abstract class UI {
 	 * @return The variable icon.
 	 */
 	public static Image variableIcon(Variable variable) {
-		String iconName = variable.getScope().toString().toLowerCase();
+		String iconName = variable.scope().toString().toLowerCase();
 		return ClonkCore.instance().getIconImage(iconName);
 	}
 

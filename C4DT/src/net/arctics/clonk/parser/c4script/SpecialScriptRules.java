@@ -165,7 +165,7 @@ public class SpecialScriptRules {
 		 * ARGUMENT_VALIDATOR.
 		 * @return The role mask.
 		 */
-		public final int getRoleMask() {
+		public final int computeRoleMask() {
 			int result = 0;
 			for (Method m : getClass().getMethods()) {
 				try {
@@ -287,7 +287,7 @@ public class SpecialScriptRules {
 		String[] functions(int role);
 	}
 	private void putFuncRule(SpecialFuncRule rule, FunctionsGett0r functionsGetter) {
-		int mask = rule.getRoleMask();
+		int mask = rule.computeRoleMask();
 		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : functionsGetter.functions(ARGUMENT_VALIDATOR)) {
 			argumentValidators.put(func, rule);
 		}
@@ -414,7 +414,7 @@ public class SpecialScriptRules {
 		
 		private IType searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallFunc callFunc, boolean topLevel) {
 			IType result = null;
-			String declarationName = callFunc.getDeclarationName();
+			String declarationName = callFunc.declarationName();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();

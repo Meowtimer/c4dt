@@ -330,7 +330,7 @@ public class CallFunc extends AccessDeclaration {
 	/**
 	 * Find a {@link Function} for some hypothetical {@link CallFunc}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallFunc} in the {@link Sequence}.
 	 * @param p The predecessor of the hypothetical {@link CallFunc} ({@link ExprElm#predecessorInSequence()})
-	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallFunc}'s {@link #getDeclarationName()}
+	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallFunc}'s {@link #declarationName()}
 	 * @param context Context to use for searching
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.

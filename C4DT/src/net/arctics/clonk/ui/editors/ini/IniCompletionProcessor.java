@@ -157,7 +157,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
 			for (Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix())) {
-				if (v.getScope() == Scope.CONST) {
+				if (v.scope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
 			}

@@ -208,7 +208,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			returnTypeBox = createComboBoxForType(parent, var.type());
 		
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
-			scopeBox = createComboBoxForScope(parent, var.getScope());
+			scopeBox = createComboBoxForScope(parent, var.scope());
 		}
 
 		private void createFunctionEditDialog(Composite parent, Function func) {

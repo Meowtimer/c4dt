@@ -38,7 +38,7 @@ public class AccessVar extends AccessDeclaration {
 	public boolean isModifiable(C4ScriptParser context) {
 		ExprElm pred = predecessorInSequence();
 		if (pred == null) {
-			return declaration == null || ((Variable)declaration).getScope() != Scope.CONST;
+			return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
 		} else {
 			return true; // you can never be so sure 
 		}
@@ -79,7 +79,7 @@ public class AccessVar extends AccessDeclaration {
 			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 				// find pseudo-variable from proplist expression
 				if (t instanceof ProplistDeclaration) {
-					Variable proplistComponent = ((ProplistDeclaration)t).findComponent(getDeclarationName());
+					Variable proplistComponent = ((ProplistDeclaration)t).findComponent(declarationName());
 					if (proplistComponent != null)
 						return proplistComponent;
 				}
@@ -105,7 +105,7 @@ public class AccessVar extends AccessDeclaration {
 		else if (declaration instanceof Variable) {
 			Variable var = (Variable) declaration;
 			var.setUsed(true);
-			switch (var.getScope()) {
+			switch (var.scope()) {
 				case LOCAL:
 					Declaration d = parser.currentDeclaration();
 					if (d != null && predecessorInSequence() == null) {
@@ -113,7 +113,7 @@ public class AccessVar extends AccessDeclaration {
 						Variable v = d.topLevelParentDeclarationOfType(Variable.class);
 						if (
 							(f != null && f.getVisibility() == FunctionScope.GLOBAL) ||
-							(f == null && v != null && v.getScope() != Scope.LOCAL)
+							(f == null && v != null && v.scope() != Scope.LOCAL)
 						) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
 						}
@@ -132,7 +132,7 @@ public class AccessVar extends AccessDeclaration {
 			}
 		}
 		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
-			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW, this.getDeclarationName());
+			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW, this.declarationName());
 		}
 	}
 
@@ -176,7 +176,7 @@ public class AccessVar extends AccessDeclaration {
 				if (predType instanceof ProplistDeclaration) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
-						Variable var = new Variable(getDeclarationName(), Variable.Scope.VAR);
+						Variable var = new Variable(declarationName(), Variable.Scope.VAR);
 						var.expectedToBeOfType(expression.typeInContext(context), TypeExpectancyMode.Expect);
 						var.setLocation(context.absoluteSourceLocationFromExpr(this));
 						var.forceType(expression.typeInContext(context));
@@ -201,14 +201,14 @@ public class AccessVar extends AccessDeclaration {
 		Definition obj;
 		if (declaration instanceof Variable) {
 			final Variable var = (Variable) declaration;
-			if (var.getScope() == Scope.CONST) {
+			if (var.scope() == Scope.CONST) {
 				// if the whole of the initialization expression of the const gets evaluated to some traceable location,
 				// report that to the original context as the origin of the AccessVar expression
 				// evaluate in the context of the var by proxy
 				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(var) {
 					@Override
 					public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
-						if (expression == var.getInitializationExpression())
+						if (expression == var.initializationExpression())
 							context.reportOriginForExpression(AccessVar.this, location, file);
 					}
 				});
@@ -224,13 +224,13 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	public boolean constCondition() {
-		return declaration instanceof Variable && ((Variable)declaration).getScope() == Scope.CONST;
+		return declaration instanceof Variable && ((Variable)declaration).scope() == Scope.CONST;
 	}
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		if (context != null) {
-			return context.valueForVariable(getDeclarationName());
+			return context.valueForVariable(declarationName());
 		}
 		else {
 			return super.evaluate(context);
@@ -242,7 +242,7 @@ public class AccessVar extends AccessDeclaration {
 		if (declaration() instanceof Variable) {
 			Variable var = (Variable) declaration();
 			// naturally, consts are constant
-			return var.getScope() == Scope.CONST || definitionProxiedBy(var) != null;
+			return var.scope() == Scope.CONST || definitionProxiedBy(var) != null;
 		}
 		else
 			return false;

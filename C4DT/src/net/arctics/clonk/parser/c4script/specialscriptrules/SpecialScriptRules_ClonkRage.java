@@ -20,7 +20,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
 			public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
-				if (index == 1 && callFunc.getDeclarationName().equals("ObjectSetAction")) {
+				if (index == 1 && callFunc.declarationName().equals("ObjectSetAction")) {
 					IType t = callFunc.params()[0].typeInContext(parser);
 					if (t != null) for (IType ty : t) {
 						if (ty instanceof Definition) {

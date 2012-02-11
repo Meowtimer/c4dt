@@ -329,7 +329,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public ExprElm getSuccessorInSequence() {
 		if (getParent() instanceof Sequence)
-			return ((Sequence)getParent()).getSuccessor(this);
+			return ((Sequence)getParent()).successorOfSubElement(this);
 		else
 			return null;
 	}

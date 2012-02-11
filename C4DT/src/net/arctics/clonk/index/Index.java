@@ -246,7 +246,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			addToDeclarationMap(func);
 		}
 		for (Variable var : script.variables()) {
-			if (var.getScope() == Scope.STATIC || var.getScope() == Scope.CONST)
+			if (var.scope() == Scope.STATIC || var.scope() == Scope.CONST)
 				staticVariables.add(var);
 			addToDeclarationMap(var);
 		}

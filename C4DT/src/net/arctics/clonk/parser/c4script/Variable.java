@@ -155,7 +155,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * @return the scope
 	 */
-	public Scope getScope() {
+	public Scope scope() {
 		return scope;
 	}
 	
@@ -266,7 +266,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
-	public ExprElm getInitializationExpression() {
+	public ExprElm initializationExpression() {
 		return initializationExpression;
 	}
 	
@@ -279,7 +279,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
-		ExprElm e = getInitializationExpression();
+		ExprElm e = initializationExpression();
 		if (e != null)
 			return e.evaluateAtParseTime(context);
 		else
@@ -372,7 +372,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
-		builder.append(getScope().toKeyword());
+		builder.append(scope().toKeyword());
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(name());
 		builder.append(";"); //$NON-NLS-1$

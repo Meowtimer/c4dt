@@ -630,7 +630,7 @@ public class Engine extends Script {
 
 	public void writeEngineScript(Writer writer) throws IOException {
 		for (Variable v : variables()) {
-			String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.name()); //$NON-NLS-1$
+			String text = String.format("%s %s;\n", v.scope().toKeyword(), v.name()); //$NON-NLS-1$
 			writer.append(text);
 		}
 		writer.append("\n"); //$NON-NLS-1$
@@ -731,7 +731,7 @@ public class Engine extends Script {
 		}
 		List<Variable> result = new LinkedList<Variable>();
 		for (Variable v : variables()) {
-			if (v.getScope() == Scope.CONST && v.name().startsWith(prefix)) {
+			if (v.scope() == Scope.CONST && v.name().startsWith(prefix)) {
 				result.add(v);
 			}
 		}
