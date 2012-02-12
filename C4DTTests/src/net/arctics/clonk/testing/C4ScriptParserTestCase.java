@@ -202,7 +202,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.errors.size() == 0);
 		assertTrue(setup.script.findFunction("Test") != null);
 		block.toString();
-		assertTrue(setup.script.findFunction("Test").getCodeBlock()
+		assertTrue(setup.script.findFunction("Test").codeBlock()
 				.compare(block, new IASTComparisonDelegate() {
 					@Override
 					public DifferenceHandling differs(ExprElm a, ExprElm b,
@@ -256,7 +256,7 @@ public class C4ScriptParserTestCase {
 	public void testTypeInference() throws UnsupportedEncodingException, ParsingException {
 		Setup setup = new Setup(file(callingMethod()));
 		setup.parser.parse();
-		IType t = setup.script.findFunction("TypeInference").findVariable("x").getType();
+		IType t = setup.script.findFunction("TypeInference").findVariable("x").type();
 		assertTrue(t instanceof TypeSet);
 		TypeSet ty = (TypeSet)t;
 		assertTrue(ty.size() == 3 && ty.types().contains(PrimitiveType.STRING) && ty.types().contains(PrimitiveType.BOOL) && ty.types().contains(PrimitiveType.INT));
