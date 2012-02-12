@@ -778,6 +778,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (from instanceof Variable) {
 			return super.latestVersionOf(from);
 		} else {
+			if (otherDeclarations == null)
+				return null;
 			for (Declaration other : otherDeclarations) {
 				if (other.getClass() == from.getClass() && other.location() == from.location())
 					return (T) other;
