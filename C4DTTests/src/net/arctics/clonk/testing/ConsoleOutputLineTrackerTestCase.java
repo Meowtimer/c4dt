@@ -29,6 +29,7 @@ public class ConsoleOutputLineTrackerTestCase {
 		public class Link {
 			public int offset;
 			public int length;
+			@SuppressWarnings("unused")
 			public IHyperlink hyperlink;
 		}
 		
