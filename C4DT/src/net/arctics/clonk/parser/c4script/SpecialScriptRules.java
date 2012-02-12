@@ -283,10 +283,10 @@ public class SpecialScriptRules {
 		return functionEventListeners;
 	}
 	
-	private interface FunctionsGett0r {
+	private interface FunctionsByRole {
 		String[] functions(int role);
 	}
-	private void putFuncRule(SpecialFuncRule rule, FunctionsGett0r functionsGetter) {
+	private void putFuncRule(SpecialFuncRule rule, FunctionsByRole functionsGetter) {
 		int mask = rule.computeRoleMask();
 		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : functionsGetter.functions(ARGUMENT_VALIDATOR)) {
 			argumentValidators.put(func, rule);
@@ -309,7 +309,7 @@ public class SpecialScriptRules {
 	}
 	
 	public void putFuncRule(SpecialFuncRule rule, final Field fieldReference) {
-		putFuncRule(rule, new FunctionsGett0r() {
+		putFuncRule(rule, new FunctionsByRole() {
 			@Override
 			public String[] functions(int role) {
 				return SpecialRule.getFunctionsAppliedTo(fieldReference, role);
@@ -318,7 +318,7 @@ public class SpecialScriptRules {
 	}
 	
 	public void putFuncRule(SpecialFuncRule rule, final String... functions) {
-		putFuncRule(rule, new FunctionsGett0r() {
+		putFuncRule(rule, new FunctionsByRole() {
 			@Override
 			public String[] functions(int role) {
 				return functions;
