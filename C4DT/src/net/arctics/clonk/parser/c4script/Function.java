@@ -184,7 +184,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the visibility
 	 */
-	public FunctionScope getVisibility() {
+	public FunctionScope visibility() {
 		return visibility;
 	}
 	
@@ -507,7 +507,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param oldStyle Whether to print in old 'label-style'
 	 */
 	public void printHeader(StringBuilder output, boolean oldStyle) {
-		output.append(getVisibility().toString());
+		output.append(visibility().toString());
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
@@ -616,7 +616,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@Override
 	public boolean isGlobal() {
-		return getVisibility() == FunctionScope.GLOBAL;
+		return visibility() == FunctionScope.GLOBAL;
 	}
 	
 	/**
@@ -655,7 +655,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
-		builder.append(getVisibility().toKeyword());
+		builder.append(visibility().toKeyword());
 		builder.append(" ");
 		builder.append(Keywords.Func);
 		builder.append(" ");

@@ -225,7 +225,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			returnTypeBox = createComboBoxForType(parent, func.returnType());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
-			scopeBox = createComboBoxForScope(parent, func.getVisibility());
+			scopeBox = createComboBoxForScope(parent, func.visibility());
 			
 			new Label(parent, SWT.NONE).setText(Messages.Engine_DescriptionTitle);
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);

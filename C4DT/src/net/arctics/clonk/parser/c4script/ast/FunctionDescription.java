@@ -47,7 +47,7 @@ public class FunctionDescription extends Statement implements Serializable {
 					if (stringTbl != null) {
 						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
-							return new EntityRegion(entry, new Region(getExprStart()+off, part.length()));
+							return new EntityRegion(entry, new Region(start()+off, part.length()));
 					}
 				}
 				else {
@@ -59,7 +59,7 @@ public class FunctionDescription extends Statement implements Serializable {
 						if (sep != -1)
 							value = value.substring(0, sep);
 						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
-							return new EntityRegion(parser.containingScript().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
+							return new EntityRegion(parser.containingScript().findDeclaration(value), new Region(start()+off+nameValue[0].length()+1, value.length()));
 					}
 				}
 				break;
@@ -79,7 +79,7 @@ public class FunctionDescription extends Statement implements Serializable {
 				StringTbl stringTbl = parser.containingScript().getStringTblForLanguagePref();
 				String entryName = part.substring(1, part.length()-1);
 				if (stringTbl == null || stringTbl.map().get(entryName) == null) {
-					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);
+					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(start()+off, part.length()), entryName);
 				}
 			}
 			off += part.length()+1;

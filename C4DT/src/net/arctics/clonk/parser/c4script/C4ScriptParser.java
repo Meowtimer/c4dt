@@ -397,7 +397,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the strict level of the script that was specified using the #strict directive.
 	 * @return
 	 */
-	public int getStrictLevel() {
+	public int strictLevel() {
 		return strictLevel;
 	}
 	
@@ -711,7 +711,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 				BunchOfStatements bunch = new BunchOfStatements(statements);
 				if (function.isOldStyle() && statements.size() > 0)
-					function.body().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
+					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
 				warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 				function.storeBlock(bunch, functionSource(function));
 				applyStoredTypeInformationList(false); // apply short-term inference information
@@ -1906,7 +1906,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				Operator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					setExprRegionRelativeToFuncBody(op, result.getExprStart()+bodyOffset(), this.offset);
+					setExprRegionRelativeToFuncBody(op, result.start()+bodyOffset(), this.offset);
 					return op;
 				} else {
 					// a binary operator following this sequence
@@ -2014,7 +2014,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	@Override
 	public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
 		int bodyOffset = bodyOffset();
-		return absoluteSourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
+		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
 	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
@@ -2164,7 +2164,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								int priorOfNewOp = op.priority();
 								ExprElm newLeftSide = null;
 								BinaryOp theOp = null;
-								for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
+								for (ExprElm opFromBottom = current.parent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.parent()) {
 									BinaryOp oneOp = (BinaryOp) opFromBottom;
 									if (priorOfNewOp > oneOp.operator().priority() || (priorOfNewOp == oneOp.operator().priority() && op.isRightAssociative())) {
 										theOp = oneOp;
@@ -2252,7 +2252,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (reportErrors) {
 			reportErrorsOf(root);
 		}
-		root.setParsingRecursion(currentFunctionContext.parseExpressionRecursion);
+		root.setNestingDepth(currentFunctionContext.parseExpressionRecursion);
 		if (listener != null && currentFunctionContext.parseExpressionRecursion <= 1) {
 			listener.expressionDetected(root, this);
 		}
@@ -2525,7 +2525,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void handleStatementCreated(Statement statement) throws ParsingException {
-		statement.setParsingRecursion(currentFunctionContext.parseStatementRecursion);
+		statement.setNestingDepth(currentFunctionContext.parseStatementRecursion);
 		statement.setFlagsEnabled(ExprElm.STATEMENT_REACHED, currentFunctionContext.statementReached);
 		reportErrorsOf(statement);
 		if (currentFunctionContext.parseStatementRecursion == 1) {
@@ -2782,7 +2782,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			returnExpr = null;
 		else {
 			enableError(ParserErrorCode.TuplesNotAllowed, false);
-			if (getStrictLevel() < 2)
+			if (strictLevel() < 2)
 				enableError(ParserErrorCode.EmptyParentheses, false);
 			returnExpr = parseExpression();
 			if (returnExpr == null) {

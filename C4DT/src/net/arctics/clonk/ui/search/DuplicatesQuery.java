@@ -183,9 +183,9 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 			}
 			
 			// ignore order of operands in binary associative operator expression 
-			if (a.getParent() instanceof BinaryOp && b.getParent() instanceof BinaryOp) {
-				BinaryOp opA = (BinaryOp) a.getParent();
-				BinaryOp opB = (BinaryOp) b.getParent();
+			if (a.parent() instanceof BinaryOp && b.parent() instanceof BinaryOp) {
+				BinaryOp opA = (BinaryOp) a.parent();
+				BinaryOp opB = (BinaryOp) b.parent();
 				if (opA.operator() == opB.operator() && opA.operator().isAssociative()) {
 					if (
 						b == opB.leftSide() || b == opB.rightSide() &&

@@ -112,7 +112,7 @@ public class AccessVar extends AccessDeclaration {
 						Function f = d.topLevelParentDeclarationOfType(Function.class);
 						Variable v = d.topLevelParentDeclarationOfType(Variable.class);
 						if (
-							(f != null && f.getVisibility() == FunctionScope.GLOBAL) ||
+							(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.scope() != Scope.LOCAL)
 						) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
@@ -124,7 +124,7 @@ public class AccessVar extends AccessDeclaration {
 					break;
 				case VAR:
 					if (var.location() != null && parser.currentFunction() != null && var.function() == parser.currentFunction()) {
-						int locationUsed = parser.currentFunction().body().getOffset()+this.getExprStart();
+						int locationUsed = parser.currentFunction().body().getOffset()+this.start();
 						if (locationUsed < var.location().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
 					}

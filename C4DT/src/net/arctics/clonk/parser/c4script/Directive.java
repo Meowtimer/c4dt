@@ -78,11 +78,11 @@ public class Directive extends Declaration implements Serializable {
 		return new ExprElm() {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
-			public int getExprStart() {
+			public int start() {
 				return location().start();
 			}
 			@Override
-			public int getExprEnd() {
+			public int end() {
 				return location().end();
 			}
 		};

@@ -38,7 +38,7 @@ public class BinaryOp extends OperatorExpression {
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		if (context.getStrictLevel() >= 2) {
+		if (context.strictLevel() >= 2) {
 			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;
@@ -50,7 +50,7 @@ public class BinaryOp extends OperatorExpression {
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-		if ((operator() == Operator.And || operator() == Operator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
+		if ((operator() == Operator.And || operator() == Operator.Or) && (parent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
 			ExprElm block = convertOperatorHackToBlock(context);
 			if (block != null)
 				return block;
@@ -170,13 +170,13 @@ public class BinaryOp extends OperatorExpression {
 		leftSide().reportErrors(context);
 		rightSide().reportErrors(context);
 		// sanity
-		setExprRegion(leftSide().getExprStart(), rightSide().getExprEnd());
+		setExprRegion(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C
 		if (operator().modifiesArgument() && !leftSide().isModifiable(context)) {
 			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
 		}
 		// obsolete operators in #strict 2
-		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.getStrictLevel() >= 2)) {
+		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2)) {
 			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().getOperatorName());
 		}
 		// wrong parameter types

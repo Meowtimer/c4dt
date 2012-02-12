@@ -200,19 +200,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					originalBlock.traverse(locator);
 					ExprElm foundExpression = locator.getExprAtRegion();
 					if (foundExpression != null) {
-						final Statement originalStatement = foundExpression.getParent(Statement.class);
-						int absoluteOffsetToStatement = f.body().getOffset()+originalStatement.getExprStart();
+						final Statement originalStatement = foundExpression.parentOfType(Statement.class);
+						int absoluteOffsetToStatement = f.body().getOffset()+originalStatement.start();
 						String originalStatementText = event.getDocument().get(absoluteOffsetToStatement, originalStatement.getLength());
 						StringBuilder patchStatementTextBuilder = new StringBuilder(originalStatementText);
 						patchStatementTextBuilder.delete(event.getOffset()-absoluteOffsetToStatement, event.getOffset()-absoluteOffsetToStatement+event.getLength());
 						patchStatementTextBuilder.insert(event.getOffset()-absoluteOffsetToStatement, event.getText());
 						String patchStatementText = patchStatementTextBuilder.toString();
-						patchParser.setStatementStart(originalStatement.getExprStart());
+						patchParser.setStatementStart(originalStatement.start());
 						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
 						if (patchStatement != null) {
-							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
+							originalStatement.parent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
 							StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.body().start(), f.body().getLength()));
-							wholeFuncBodyBuilder.replace(originalStatement.getExprStart(), originalStatement.getExprEnd(), patchStatementText);
+							wholeFuncBodyBuilder.replace(originalStatement.start(), originalStatement.end(), patchStatementText);
 							f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
 						}
 					}
@@ -714,7 +714,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		for (
 			expr = locator.getExprAtRegion();
 			expr != null;
-			expr = expr.getParent()
+			expr = expr.parent()
 		) {
 			 if (expr instanceof CallFunc && offset-bodyStart >= ((CallFunc)expr).parmsStart())
 				 break;
@@ -723,12 +723,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			CallFunc callFunc = (CallFunc) expr;
 			ExprElm prev = null;
 			for (ExprElm parm : callFunc.params()) {
-				if (parm.getExprEnd() > offset) {
+				if (parm.end() > offset) {
 					if (prev == null)
 						break;
-					String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
+					String docText = getSourceViewer().getDocument().get(bodyStart+prev.end(), parm.start()-prev.end());
 					int commaIndex = docText.indexOf(',');
-					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev, locator);
+					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.end()+commaIndex ? parm : prev, locator);
 				}
 				prev = parm;
 			}

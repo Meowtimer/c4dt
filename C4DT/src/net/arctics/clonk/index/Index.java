@@ -238,7 +238,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	protected <T extends Script> void addGlobalsFromScript(T script) {
 		for (Function func : script.functions()) {
-			if (func.getVisibility() == FunctionScope.GLOBAL)
+			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
 			for (Declaration otherDec : func.getOtherDeclarations())
 				if (otherDec instanceof ProplistDeclaration)

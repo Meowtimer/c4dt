@@ -96,7 +96,7 @@ public class ReferencesQuery extends SearchQueryBase {
 				Declaration dec = accessDeclExpr.declarationFromContext(parser);
 				if (dec != null && dec.latestVersion() == declaration)
 					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-				else if (Utilities.isAnyOf(accessDeclExpr.declaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+				else if (Utilities.isAnyOf(accessDeclExpr.declaration(), expression.cachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
 					result.addMatch(functionNameExpr, parser, true, true);
 				}
 				else if (potentiallyReferencedByObjectCall(expression)) {

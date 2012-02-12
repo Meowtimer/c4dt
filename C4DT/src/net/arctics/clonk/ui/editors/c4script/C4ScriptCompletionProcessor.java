@@ -307,13 +307,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
-				innermostCallFunc = contextExpression.getParent(CallFunc.class);
+				innermostCallFunc = contextExpression.parentOfType(CallFunc.class);
 				if (
 						contextExpression instanceof MemberOperator ||
 						(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
 				) {
 					// we only care about sequences
-					contextSequence = Utilities.as(contextExpression.getParent(), Sequence.class);
+					contextSequence = Utilities.as(contextExpression.parent(), Sequence.class);
 				}
 			}
 			if (contextSequence != null) {
@@ -389,7 +389,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (rules != null) {
 				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
-					ExprElm parmExpr = innermostCallFunc.getSubElementContaining(contextExpression);
+					ExprElm parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
 					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
 				}
 			}
@@ -426,7 +426,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
 		Index index = function.index();
 		processor.contextExpression = expression;
-		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.script(), parser);
+		processor.internalProposalsInsideOfFunction(expression != null ? expression.end() : 0, 0, document, "", result, index, function, function.script(), parser);
 		return result;
 	}
 
@@ -578,8 +578,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			Variable var;
 			Script include;
 			if ((func = Utilities.as(dec, Function.class)) != null) {
-				if (func.getVisibility() != FunctionScope.GLOBAL)
-					if (!noPrivateFuncs  || func.getVisibility() == FunctionScope.PUBLIC)
+				if (func.visibility() != FunctionScope.GLOBAL)
+					if (!noPrivateFuncs  || func.visibility() == FunctionScope.PUBLIC)
 						proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
 			}
 			else if ((var = Utilities.as(dec, Variable.class)) != null) {

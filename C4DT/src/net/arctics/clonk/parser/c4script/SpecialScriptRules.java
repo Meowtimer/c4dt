@@ -486,7 +486,7 @@ public class SpecialScriptRules {
 							try {
 								// pass through to the 'real' script parser
 								if (parser.errorEnabled(code)) {
-									parser.markerWithCode(code, arguments[0].getExprStart()+1+markerStart, arguments[0].getExprStart()+1+markerEnd, flags, severity, args);
+									parser.markerWithCode(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
 								}
 							} catch (ParsingException e) {
 								// shouldn't happen
@@ -512,7 +512,7 @@ public class SpecialScriptRules {
 				if (locator.getExprAtRegion() != null) {
 					EntityRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
 					if (reg != null)
-						return reg.incrementRegionBy(lit.getExprStart()+1);
+						return reg.incrementRegionBy(lit.start()+1);
 				}
 			}
 			return null;
@@ -529,7 +529,7 @@ public class SpecialScriptRules {
 				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
 				Function func = scriptToLookIn.findFunction(lit.getLiteral());
 				if (func != null) {
-					return new EntityRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
+					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
 				}
 			}
 			return null;

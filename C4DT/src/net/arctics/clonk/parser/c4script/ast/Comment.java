@@ -119,7 +119,7 @@ public class Comment extends Statement implements Statement.Attachment {
 		if (locator.getExprAtRegion() != null) {
 			EntityRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
 			if (reg != null)
-				return reg.incrementRegionBy(getExprStart()+2);
+				return reg.incrementRegionBy(start()+2);
 			else
 				return null;
 		}

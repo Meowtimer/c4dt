@@ -96,7 +96,7 @@ public class ReturnStatement extends KeywordStatement {
 			if (tupleIsError) {
 				parser.errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
 			} else {
-				if (parser.getStrictLevel() >= 2)
+				if (parser.strictLevel() >= 2)
 					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
 			}
 		}

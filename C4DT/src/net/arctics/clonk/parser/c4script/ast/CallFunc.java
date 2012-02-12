@@ -271,7 +271,7 @@ public class CallFunc extends AccessDeclaration {
 			return stored;
 		
 		// calling this() as function -> return object type belonging to script
-		if (params.length == 0 && (d == getCachedFuncs(context).This || d == Variable.THIS)) {
+		if (params.length == 0 && (d == cachedFuncs(context).This || d == Variable.THIS)) {
 			Definition obj = context.containerAsDefinition();
 			if (obj != null)
 				return obj;
@@ -445,7 +445,7 @@ public class CallFunc extends AccessDeclaration {
 		super.reportErrors(context);
 		
 		// notify parser about unnamed parameter usage
-		if (declaration == getCachedFuncs(context).Par) {
+		if (declaration == cachedFuncs(context).Par) {
 			if (params.length > 0) {
 				context.unnamedParamaterUsed(params[0]);
 			}
@@ -454,7 +454,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		// return as function
 		else if (declarationName.equals(Keywords.Return)) {
-			if (context.getStrictLevel() >= 2)
+			if (context.strictLevel() >= 2)
 				context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
 			else
 				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
@@ -462,7 +462,7 @@ public class CallFunc extends AccessDeclaration {
 		else {
 			
 			// inherited/_inherited not allowed in non-strict mode
-			if (context.getStrictLevel() <= 0) {
+			if (context.strictLevel() <= 0) {
 				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
 					context.errorWithCode(ParserErrorCode.InheritedDisabledInStrict0, this);
 				}
@@ -475,7 +475,7 @@ public class CallFunc extends AccessDeclaration {
 			if (declaration instanceof Variable) {
 				if (params.length == 0) {
 					// no warning when in #strict mode
-					if (context.getStrictLevel() >= 2)
+					if (context.strictLevel() >= 2)
 						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name());
 				} else {
 					context.errorWithCode(ParserErrorCode.VariableCalled, this, C4ScriptParser.NO_THROW, declaration.name());
@@ -483,7 +483,7 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
-				if (f.getVisibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
+				if (f.visibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
 					context.containingScript().addUsedScript(f.script());
 				boolean specialCaseHandled = false;
 				
@@ -520,13 +520,13 @@ public class CallFunc extends AccessDeclaration {
 					if (declarationName.equals(Keywords.Inherited)) {
 						Function activeFunc = context.currentFunction();
 						if (activeFunc != null)
-							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
+							context.errorWithCode(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
 						else
-							context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+							context.errorWithCode(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					}
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited))
-						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
+						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
 					}
 				}
 		}
@@ -584,7 +584,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && declaration == cachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = params[i+2].optimize(parser);
@@ -618,7 +618,7 @@ public class CallFunc extends AccessDeclaration {
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 		
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
+		if (params.length <= 1 && declaration != null && declaration == cachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 			Function activeFunc = parser.currentFunction();
 			if (activeFunc != null) {
@@ -628,21 +628,21 @@ public class CallFunc extends AccessDeclaration {
 		}
 		
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == getCachedFuncs(parser).SetVar || declaration == getCachedFuncs(parser).SetLocal || declaration == getCachedFuncs(parser).AssignVar)) {
+		if (params.length == 2 && declaration != null && (declaration == cachedFuncs(parser).SetVar || declaration == cachedFuncs(parser).SetLocal || declaration == cachedFuncs(parser).AssignVar)) {
 			return new BinaryOp(Operator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == getCachedFuncs(parser).DecVar || declaration == getCachedFuncs(parser).IncVar)) {
-			return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallFunc(getCachedFuncs(parser).Var.name(), new ExprElm[] {
+		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar)) {
+			return new UnaryOp(declaration == cachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
+					new CallFunc(cachedFuncs(parser).Var.name(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
 					})
 			);
 		}
 
 		// Call("Func", 5, 5) -> Func(5, 5)
-		if (params.length >= 1 && declaration != null && declaration == getCachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
+		if (params.length >= 1 && declaration != null && declaration == cachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
 			String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
@@ -657,7 +657,7 @@ public class CallFunc extends AccessDeclaration {
 
 	private boolean containedInLoopHeaderOrNotStandaloneExpression() {
 		SimpleStatement simpleStatement = null;
-		for (ExprElm p = getParent(); p != null; p = p.getParent()) {
+		for (ExprElm p = parent(); p != null; p = p.parent()) {
 			if (p instanceof Block)
 				break;
 			if (p instanceof ILoop) {
@@ -677,7 +677,7 @@ public class CallFunc extends AccessDeclaration {
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		Set<IIndexEntity> list = new HashSet<IIndexEntity>();
 		_obtainDeclaration(list, parser);
-		return new EntityRegion(list, new Region(getExprStart(), declarationName.length()));
+		return new EntityRegion(list, new Region(start(), declarationName.length()));
 	}
 	public ExprElm soleParm() {
 		if (params.length == 1)
@@ -708,7 +708,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
-		CachedEngineDeclarations cache = getCachedFuncs(parser);
+		CachedEngineDeclarations cache = cachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null) {

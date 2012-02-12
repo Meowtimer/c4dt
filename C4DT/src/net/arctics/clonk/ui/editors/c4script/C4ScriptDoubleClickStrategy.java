@@ -45,14 +45,14 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			C4ScriptParser.reportExpressionsAndStatements(viewer.getDocument(), script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 			ExprElm expr = locator.getExprAtRegion();
 			if (expr instanceof StringLiteral) {
-				viewer.setSelectedRange(func.body().getOffset()+expr.getExprStart()+1, expr.getLength()-2);
+				viewer.setSelectedRange(func.body().getOffset()+expr.start()+1, expr.getLength()-2);
 				return;
 			} else if (expr instanceof AccessDeclaration) {
 				AccessDeclaration accessDec = (AccessDeclaration) expr;
 				viewer.setSelectedRange(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
 				return;
 			} else if (expr instanceof PropListExpression || expr instanceof Block) {
-				viewer.setSelectedRange(expr.getExprStart()+func.body().getOffset(), expr.getLength());
+				viewer.setSelectedRange(expr.start()+func.body().getOffset(), expr.getLength());
 				return;
 			}
 		}

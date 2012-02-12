@@ -178,7 +178,7 @@ public class Wildcard extends PropListExpression {
 					if (topLevel == original)
 						return e.clone();
 					else
-						original.getParent().replaceSubElement(original, e.clone(), 0);
+						original.parent().replaceSubElement(original, e.clone(), 0);
 			}
 		}
 		for (ExprElm e : original.subElements()) {

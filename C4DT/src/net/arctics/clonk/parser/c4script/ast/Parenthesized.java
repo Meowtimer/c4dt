@@ -50,7 +50,7 @@ public class Parenthesized extends Value {
 	@Override
 	public ExprElm optimize(C4ScriptParser parser)
 	throws CloneNotSupportedException {
-		if (!(getParent() instanceof OperatorExpression) && !(getParent() instanceof Sequence))
+		if (!(parent() instanceof OperatorExpression) && !(parent() instanceof Sequence))
 			return innerExpr.optimize(parser);
 		return super.optimize(parser);
 	}

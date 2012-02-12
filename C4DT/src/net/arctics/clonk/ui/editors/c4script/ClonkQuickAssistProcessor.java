@@ -384,8 +384,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		public Replacement add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
-			if (elm.getExprEnd() == elm.getExprStart() && offending != null)
-				elm.setExprRegion(offending.getExprStart(), offending.getExprEnd());
+			if (elm.end() == elm.start() && offending != null)
+				elm.setExprRegion(offending.start(), offending.end());
 			Replacement newOne = new Replacement(replacement, elm, specifiable);
 			// don't add duplicates
 			for (Replacement existing : this)
@@ -404,7 +404,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static ExprElm identifierReplacement(AccessDeclaration original, String newName) {
 		AccessVar result = new AccessVar(newName);
-		result.setExprRegion(original.getExprStart(), original.getExprStart()+original.identifierLength());
+		result.setExprRegion(original.start(), original.start()+original.identifierLength());
 		return result;
 	}
 	
@@ -486,10 +486,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case UndeclaredIdentifier:
-					if (offendingExpression instanceof AccessVar && offendingExpression.getParent() instanceof BinaryOp) {
+					if (offendingExpression instanceof AccessVar && offendingExpression.parent() instanceof BinaryOp) {
 						AccessVar var = (AccessVar) offendingExpression;
-						BinaryOp op = (BinaryOp) offendingExpression.getParent();
-						if (topLevel == op.getParent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression) {
+						BinaryOp op = (BinaryOp) offendingExpression.parent();
+						if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
 									new VarDeclarationStatement(var.declarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
@@ -535,8 +535,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 						// gather proposals through ClonkCompletionProcessor and propose those with a similar name 
 						ExprElm expr;
-						if (offendingExpression.getParent() instanceof Sequence) {
-							Sequence sequence = (Sequence) offendingExpression.getParent();
+						if (offendingExpression.parent() instanceof Sequence) {
+							Sequence sequence = (Sequence) offendingExpression.parent();
 							expr = sequence.sequenceWithElementsRemovedFrom(offendingExpression); 
 						} else
 							expr = null;
@@ -560,8 +560,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						}
 						
 						// propose adding projects to the referenced projects which contain a definition with a matching name
-						if (accessDec.getParent() instanceof CallFunc) {
-							Variable parm = ((CallFunc)accessDec.getParent()).parmDefinitionForParmExpression(accessDec);
+						if (accessDec.parent() instanceof CallFunc) {
+							Variable parm = ((CallFunc)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
 							if (parm != null && parm.type().canBeAssignedFrom(PrimitiveType.ID)) {
 								final IProject p = marker.getResource().getProject();
 								IProject[] referencedProjects;
@@ -671,10 +671,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						if (next == null) {
 							if (previous != null) {
 								// removing last initialization -> change ',' before it to ';'
-								parser.seek(previous.getExprEnd());
+								parser.seek(previous.end());
 								parser.eatWhitespace();
 								if (parser.peek() == ',') {
-									regionToDelete.setStartAndEnd(parser.tell(), cur.getExprEnd());
+									regionToDelete.setStartAndEnd(parser.tell(), cur.end());
 								}
 							} else {
 								addRemoveReplacement(document, expressionRegion, replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
@@ -712,7 +712,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					int offset = func.body().getOffset();
 					int length;
 					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
-						offset += replacement.getReplacementExpression().getExprStart();
+						offset += replacement.getReplacementExpression().start();
 						length = replacement.getReplacementExpression().getLength();
 					} else {
 						offset += expressionRegion.getOffset();

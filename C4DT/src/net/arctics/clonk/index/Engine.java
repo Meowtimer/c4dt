@@ -640,7 +640,7 @@ public class Engine extends Script {
 				}
 			} else
 				desc = ""; //$NON-NLS-1$
-			String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
+			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
 			writer.append(text);
 		}
 	}

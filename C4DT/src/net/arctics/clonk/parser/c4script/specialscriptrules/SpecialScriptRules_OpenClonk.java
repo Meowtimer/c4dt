@@ -150,7 +150,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 							null
 					);
 					if (d instanceof EffectFunction) {
-						return new EntityRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
+						return new EntityRegion(d, new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 					}
 				}
 			}

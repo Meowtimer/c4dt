@@ -76,7 +76,7 @@ public abstract class UI {
 	 * @return The function icon.
 	 */
 	public static Image functionIcon(Function function) {
-		String iconName = function.getVisibility().name().toLowerCase();
+		String iconName = function.visibility().name().toLowerCase();
 		return ClonkCore.instance().getIconImage(iconName);
 	}
 	

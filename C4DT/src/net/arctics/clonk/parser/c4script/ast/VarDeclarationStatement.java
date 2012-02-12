@@ -52,7 +52,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 			super();
 			this.name = name;
 			this.expression = expression;
-			setExprRegion(namePos, expression != null ? expression.getExprEnd() : namePos + name.length());
+			setExprRegion(namePos, expression != null ? expression.end() : namePos + name.length());
 			assignParentToSubElements();
 		}
 		/**
@@ -87,7 +87,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		 * @return
 		 */
 		public VarInitialization getPreviousInitialization() {
-			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
+			VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).varInitializations;
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
 		}
 		/**
@@ -95,7 +95,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		 * @return
 		 */
 		public VarInitialization getNextInitialization() {
-			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
+			VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).varInitializations;
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
 		}
 		@Override
@@ -154,7 +154,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc != null) {				
-			int addToMakeAbsolute = activeFunc.body().start() + this.getExprStart();
+			int addToMakeAbsolute = activeFunc.body().start() + this.start();
 			offset += addToMakeAbsolute;
 			for (VarInitialization pair : varInitializations) {
 				String varName = pair.name;

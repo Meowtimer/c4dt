@@ -480,7 +480,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
 				int bodyOffset = absoluteExpressionsOffset();
-				return new SourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
+				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 			}
 
 			@Override

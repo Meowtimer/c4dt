@@ -146,7 +146,7 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new EntityRegion(parser.containingScript().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
+			return new EntityRegion(parser.containingScript().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
 	}
 
@@ -190,7 +190,7 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		if (context.containingScript().engine().currentSettings().proplistsSupported) {
-			ExprElm succ = getSuccessorInSequence();
+			ExprElm succ = successorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();
 		}

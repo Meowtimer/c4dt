@@ -29,8 +29,8 @@ public final class BoolLiteral extends Literal<Boolean> {
 	}
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		if (getParent() instanceof BinaryOp) {
-			Operator op = ((BinaryOp) getParent()).operator();
+		if (parent() instanceof BinaryOp) {
+			Operator op = ((BinaryOp) parent()).operator();
 			if (op == Operator.And || op == Operator.Or)
 				parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
 		}

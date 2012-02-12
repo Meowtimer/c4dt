@@ -106,7 +106,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 				public int compare(Declaration arg0, Declaration arg1) {
 					ExprElm codeA = codeFor(arg0);
 					ExprElm codeB = codeFor(arg1);
-					return codeB.getExprStart()-codeA.getExprStart();
+					return codeB.start()-codeA.start();
 				}
 			});
 			for (Declaration d : decs) {
@@ -135,8 +135,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 						int blockLength;
 						// eat braces if new style func
 						if (func.isOldStyle()) {
-							blockBegin = elms.getExprStart();
-							blockLength = elms.getExprEnd() - blockBegin;
+							blockBegin = elms.start();
+							blockLength = elms.end() - blockBegin;
 							blockBegin += func.body().start();
 						}
 						else {
@@ -190,10 +190,10 @@ public class TidyUpCodeAction extends TextEditorAction {
 	}
 	
 	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
-		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
+		String oldString = document.get(e.start(), e.end()-e.start());
 		String newString = e.exhaustiveOptimize(parser).toString(2);
 		if (!oldString.equals(newString))
-			textChange.addEdit(new ReplaceEdit(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString));
+			textChange.addEdit(new ReplaceEdit(e.start(), e.end()-e.start(), newString));
 	}
 	
 }

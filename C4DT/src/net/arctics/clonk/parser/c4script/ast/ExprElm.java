@@ -65,22 +65,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	private ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
 
+	private int nestingDepth;
+
 	/**
-	 * Recursion level of the method that parsed this expression/statement which
-	 * could have been parseStatement or parseExpression
+	 * Set how deeply nested the expression is in the AST.
+	 * @param nestingDepth The depth
 	 */
-	private int parsingRecursion;
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public int getParsingRecursion() {
-		return parsingRecursion;
-	}
-	
-	public void setParsingRecursion(int expressionRecursion) {
-		this.parsingRecursion = expressionRecursion;
+	public void setNestingDepth(int nestingDepth) {
+		this.nestingDepth = nestingDepth;
 	}
 	
 	public final boolean flagsEnabled(int flags) {
@@ -109,7 +101,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		for (int i = 0; i < subElms.length; i++) {
 			ExprElm e = subElms[i];
 			if (e != null) {
-				if (e.getParent() != null && e.getParent() != this) {
+				if (e.parent() != null && e.parent() != this) {
 					modified = true;
 					subElms[i] = e = e.clone();
 				}
@@ -146,7 +138,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * Return the parent of this expression.
 	 * @return
 	 */
-	public ExprElm getParent() {
+	public ExprElm parent() {
 		return parent;
 	}
 	
@@ -156,9 +148,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The first parent of the given class or null if such parent does not exist
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends ExprElm> T getParent(Class<T> cls) {
+	public <T extends ExprElm> T parentOfType(Class<T> cls) {
 		ExprElm e;
-		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.getParent());
+		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
 
@@ -278,24 +270,24 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	@Override
 	public int getLength() {
-		return getExprEnd()-getExprStart();
+		return end()-start();
 	}
 
 	@Override
 	public int getOffset() {
-		return getExprStart();
+		return start();
 	}
 
-	public int getExprEnd() {
+	public int end() {
 		return exprEnd;
 	}
 
-	public int getExprStart() {
+	public int start() {
 		return exprStart;
 	}
 
 	public int identifierStart() {
-		return getExprStart();
+		return start();
 	}
 
 	public int identifierLength() {
@@ -327,9 +319,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return predecessorInSequence;
 	}
 	
-	public ExprElm getSuccessorInSequence() {
-		if (getParent() instanceof Sequence)
-			return ((Sequence)getParent()).successorOfSubElement(this);
+	public ExprElm successorInSequence() {
+		if (parent() instanceof Sequence)
+			return ((Sequence)parent()).successorOfSubElement(this);
 		else
 			return null;
 	}
@@ -409,12 +401,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	/**
 	 * Traverses this expression by calling expressionDetected on the supplied IExpressionListener for the root expression and its sub elements.
 	 * @param listener the expression listener
-	 * @param parser the parser as contet
+	 * @param parser the parser as context
+	 * @param minimumNesting Minimum AST nesting expressions being reported need to have 
 	 * @return flow control for the calling function
 	 */
-	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser, int minimumParseRecursion) {
+	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser, int minimumNesting) {
 		TraversalContinuation result;
-		if (parsingRecursion >= minimumParseRecursion) {
+		if (nestingDepth >= minimumNesting) {
 			result = listener.expressionDetected(this, parser);
 			switch (result) {
 			case Cancel:
@@ -429,7 +422,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		for (ExprElm sub : subElements()) {
 			if (sub == null)
 				continue;
-			switch (sub.traverse(listener, parser, minimumParseRecursion)) {
+			switch (sub.traverse(listener, parser, minimumNesting)) {
 			case Continue:
 				break;
 			case TraverseSubElements: case Cancel:
@@ -444,7 +437,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public IRegion region(int offset) {
-		return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
+		return new Region(offset+start(), end()-start());
 	}
 
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
@@ -458,11 +451,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	private static final ExprElm[] exprElmsForTypes = new ExprElm[PrimitiveType.values().length];
 
 	/**
-	 * Returns a canonical ExprElm object for the given type such that its getType() returns the given type
+	 * Returns a canonical {@link ExprElm} object for the given type such that its {@link #typeInContext(DeclarationObtainmentContext)} returns the given type
 	 * @param type the type to return a canonical ExprElm of
-	 * @return the canonical ExprElm object
+	 * @return the canonical {@link ExprElm} object
 	 */
-	public static ExprElm getExprElmForType(final PrimitiveType type) {
+	public static ExprElm exprElmForPrimitiveType(final PrimitiveType type) {
 		if (exprElmsForTypes[type.ordinal()] == null) {
 			exprElmsForTypes[type.ordinal()] = new ExprElm() {
 				/**
@@ -569,7 +562,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param elm The expression that has one of the sub elements in its parent chain.
 	 * @return Sub element containing elm or null.
 	 */
-	public ExprElm getSubElementContaining(ExprElm elm) {
+	public ExprElm findSubElementContaining(ExprElm elm) {
 		for (ExprElm subElm : subElements()) {
 			if (subElm != null) {
 				if (elm.containedIn(subElm))
@@ -588,7 +581,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public boolean containsOffset(int offset) {
-		return offset >= getExprStart() && offset <= getExprEnd();
+		return offset >= start() && offset <= end();
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
@@ -630,7 +623,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param context Context the {@link Engine} is lifted from
 	 * @return The {@link CachedEngineDeclarations}
 	 */
-	public final CachedEngineDeclarations getCachedFuncs(DeclarationObtainmentContext context) {
+	public final CachedEngineDeclarations cachedFuncs(DeclarationObtainmentContext context) {
 		return context.containingScript().index().engine().cachedFuncs();
 	}
 	
@@ -667,8 +660,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 		offsetExprRegion(diff, false, true);
-		if (getParent() != null) {
-			getParent().offsetExprRegionRecursivelyStartingAt(this, diff);
+		if (parent() != null) {
+			parent().offsetExprRegionRecursivelyStartingAt(this, diff);
 		}
 	}
 	
@@ -707,8 +700,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			setSubElements(newSubElms);
 			with.setParent(this);
 			offsetExprRegion(diff, false, true);
-			if (getParent() != null) {
-				getParent().offsetExprRegionRecursivelyStartingAt(this, diff);
+			if (parent() != null) {
+				parent().offsetExprRegionRecursivelyStartingAt(this, diff);
 			}
 		} else {
 			throw new InvalidParameterException("element must actually be a subelement of this");
@@ -894,7 +887,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public Statement containingStatementOrThis() {
 		ExprElm p;
-		for (p = this; p != null && !(p instanceof Statement); p = p.getParent());
+		for (p = this; p != null && !(p instanceof Statement); p = p.parent());
 		return (Statement)p;
 	}
 	
@@ -940,7 +933,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	private Sequence sequence() {
-		return getParent() instanceof Sequence ? (Sequence)getParent() : null;
+		return parent() instanceof Sequence ? (Sequence)parent() : null;
 	}
 
 	@Override
@@ -958,7 +951,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	/**
-	 * Increment {@link #getExprStart()} and {@link #getExprEnd()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #subElements()}
+	 * Increment {@link #start()} and {@link #end()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #subElements()}
 	 * @param amount Amount to increment the location by
 	 */
 	public void incrementLocation(int amount) {

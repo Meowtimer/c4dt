@@ -75,7 +75,7 @@ public abstract class AccessDeclaration extends Value {
 	}
 
 	public IRegion declarationRegion(int offset) {
-		return new Region(offset+getExprStart(), declarationName.length());
+		return new Region(offset+start(), declarationName.length());
 	}
 
 	@Override

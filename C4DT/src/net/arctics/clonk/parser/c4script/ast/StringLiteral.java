@@ -44,13 +44,13 @@ public final class StringLiteral extends Literal<String> {
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.containingScript(), true);
+		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parser.containingScript(), true);
 		if (result != null)
 			return result;
 
 		// look whether some special linking rule can be applied to this literal
-		if (getParent() instanceof CallFunc) {
-			CallFunc parentFunc = (CallFunc) getParent();
+		if (parent() instanceof CallFunc) {
+			CallFunc parentFunc = (CallFunc) parent();
 			int myIndex = parentFunc.indexOfParm(this);
 
 			// delegate finding a link to special function rules
@@ -96,7 +96,7 @@ public final class StringLiteral extends Literal<String> {
 		// warn when using non-declared string tbl entries
 		for (int i = 0; i < valueLen;) {
 			if (i+1 < valueLen && value.charAt(i) == '$') {
-				EntityRegion region = StringTbl.entryRegionInString(stringValue(), getExprStart(), (i+1));
+				EntityRegion region = StringTbl.entryRegionInString(stringValue(), start(), (i+1));
 				if (region != null) {
 					StringTbl.reportMissingStringTblEntries(parser, region);
 					i += region.region().getLength();
@@ -109,7 +109,7 @@ public final class StringLiteral extends Literal<String> {
 
 	@Override
 	public int identifierStart() {
-		return getExprStart()+1;
+		return start()+1;
 	}
 
 	@Override

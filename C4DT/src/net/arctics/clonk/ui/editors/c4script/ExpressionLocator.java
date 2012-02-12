@@ -43,7 +43,7 @@ public class ExpressionLocator extends ScriptParserListener {
 		expression.traverse(new ScriptParserListener() {
 			@Override
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() <= expression.getExprEnd()) {
+				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
 					if (topLevelInRegion == null)
 						topLevelInRegion = expression;
 					exprAtRegion = expression;

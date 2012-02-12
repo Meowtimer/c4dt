@@ -69,7 +69,7 @@ public class Block extends Statement {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
-		if (getParent() != null && !(getParent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
+		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
 			return new BunchOfStatements(statements);
 		}
 		// uncomment never-reached statements

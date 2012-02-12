@@ -99,7 +99,7 @@ public class EntityLocator extends ExpressionLocator {
 				exprRegion = new Region(region.getOffset()-d.bodyStart,0);
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 				if (exprAtRegion != null) {
-					EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+					EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
 					initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 				}
 			}
@@ -210,7 +210,7 @@ public class EntityLocator extends ExpressionLocator {
 		expression.traverse(new ScriptParserListener() {
 			@Override
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
+				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;
 				}
