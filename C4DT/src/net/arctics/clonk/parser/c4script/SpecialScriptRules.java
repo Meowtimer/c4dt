@@ -722,6 +722,11 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Sound"})
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
 		protected ProjectResource soundResourceInFolder(String name, Engine engine, IContainer container, ProjectIndex pi) {
+			{
+				IResource res = container.findMember(name);
+				if (res != null)
+					return new ProjectResource(pi, res);
+			}
 			for (String e : engine.currentSettings().supportedSoundFileExtensions()) {
 				IResource res = container.findMember(name+"."+e);
 				if (res != null)
