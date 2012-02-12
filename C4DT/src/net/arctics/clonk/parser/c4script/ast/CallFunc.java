@@ -25,7 +25,6 @@ import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
@@ -416,22 +415,29 @@ public class CallFunc extends AccessDeclaration {
 	}
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
 		ExprElm pred = predecessorInSequence();
+		// standalone function? always bark!
 		if (pred == null)
 			return true;
+		// not typed? weird
 		IType predType = pred.typeInContext(parser);
 		if (predType == null)
 			return false;
+		// called via ~? ok
 		if (pred instanceof MemberOperator)
 			if (((MemberOperator)pred).hasTilde())
 				return false;
+		// wat
 		boolean anythingNonPrimitive = false;
+		// allow this->Unknown()
+		if (predType instanceof IHasConstraint && ((IHasConstraint)predType).constraintKind() == ConstraintKind.CallerType)
+			return false;
 		for (IType t : predType) {
 			if (t instanceof PrimitiveType)
 				continue;
 			if (!(t instanceof IHasConstraint))
 				return false;
 			else {
-				IResolvableType hasConstraint = (IResolvableType) t;
+				IHasConstraint hasConstraint = (IHasConstraint) t;
 				anythingNonPrimitive = true;
 				// something resolved to something less specific than a ScriptBase? drop
 				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof Script))
