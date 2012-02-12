@@ -765,7 +765,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, Block block) {
 		if (func == null)
 			return;
-		for (Variable v : func.getLocalVars()) {
+		for (Variable v : func.localVars()) {
 			if (!v.isUsed())
 				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());
 			Variable shadowed = containingScript().findVariable(v.name());
@@ -1100,7 +1100,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		switch (scope) {
 		case VAR:
 			result.setParentDeclaration(currentFunction());
-			currentFunction().getLocalVars().add(result);
+			currentFunction().localVars().add(result);
 			break;
 		case CONST: case STATIC: case LOCAL:
 			result.setParentDeclaration(containingScript());

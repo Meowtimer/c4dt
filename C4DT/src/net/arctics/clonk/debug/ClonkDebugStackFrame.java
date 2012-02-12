@@ -47,7 +47,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 				if (parm.isActualParm())
 					l.add(new ClonkDebugVariable(this, parm));
 			}
-			for (Variable local : f.getLocalVars()) {
+			for (Variable local : f.localVars()) {
 				l.add(new ClonkDebugVariable(this, local));
 			}
 			variables = l.toArray(new ClonkDebugVariable[l.size()]);
@@ -87,7 +87,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	@Override
 	public String getName() throws DebugException {
 		if (function instanceof Function)
-			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).getLongParameterString(true), line);
+			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).longParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else

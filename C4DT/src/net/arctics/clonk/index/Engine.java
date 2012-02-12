@@ -456,10 +456,10 @@ public class Engine extends Script {
 	}
 	
 	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
-		if (declaration.getCurrentlySetUserDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.name()))
-			return declaration.getCurrentlySetUserDescription();
+		if (declaration.userDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.name()))
+			return declaration.userDescription();
 		applyDocumentationAndSignatureFromRepository(declaration);
-		return declaration.getCurrentlySetUserDescription();
+		return declaration.userDescription();
 	}
 	
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
@@ -640,7 +640,7 @@ public class Engine extends Script {
 				}
 			} else
 				desc = ""; //$NON-NLS-1$
-			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
+			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.longParameterString(true, true)); //$NON-NLS-1$
 			writer.append(text);
 		}
 	}

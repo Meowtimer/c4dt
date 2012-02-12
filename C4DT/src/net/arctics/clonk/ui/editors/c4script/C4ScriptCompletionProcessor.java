@@ -363,7 +363,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (Variable v : activeFunc.parameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
-			for (Variable v : activeFunc.getLocalVars()) {
+			for (Variable v : activeFunc.localVars()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
 		}
@@ -624,7 +624,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 //				if (dec == null && funcCallInfo.locator != null)
 //					dec = funcCallInfo.locator.getDeclaration();
 				if (entity instanceof Function) {
-					String parmString = ((Function)entity).getLongParameterString(false, false).trim();
+					String parmString = ((Function)entity).longParameterString(false, false).trim();
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 					info = new ClonkContextInformation(

@@ -171,7 +171,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public String getCurrentlySetUserDescription() {
+	public String userDescription() {
 		return description;
 	}
 

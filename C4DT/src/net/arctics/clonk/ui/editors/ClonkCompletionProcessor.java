@@ -69,7 +69,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (!func.name().toLowerCase().startsWith(prefix))
 				return;
 		}
-		String displayString = func.getLongParameterString(true);
+		String displayString = func.longParameterString(true);
 		int replacementLength = 0;
 		if (prefix != null) replacementLength = prefix.length();
 		

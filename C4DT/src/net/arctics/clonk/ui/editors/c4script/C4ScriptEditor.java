@@ -333,7 +333,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								return WhatToDo.PassThrough;
 							}
 						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
-						for (Variable localVar : f.getLocalVars()) {
+						for (Variable localVar : f.localVars()) {
 							SourceLocation l = localVar.location();
 							l.setStart(f.body().getOffset()+l.getOffset());
 							l.setEnd(f.body().getOffset()+l.end());

@@ -80,7 +80,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	public static StyledString getStyledTextForEveryone(Object element) {
 		if (element instanceof Function) {
 			Function func = ((Function)element);
-			StyledString string = new StyledString(func.getLongParameterString(true, false));
+			StyledString string = new StyledString(func.longParameterString(true, false));
 			if (func.returnType() != null && func.returnType() != PrimitiveType.UNKNOWN && func.returnType() != PrimitiveType.ANY) {
 				string.append(" : "); //$NON-NLS-1$
 				string.append(func.returnType().typeName(true), StyledString.DECORATIONS_STYLER);

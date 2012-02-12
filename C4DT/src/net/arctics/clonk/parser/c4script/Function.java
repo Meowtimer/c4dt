@@ -125,7 +125,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the localVars
 	 */
-	public List<Variable> getLocalVars() {
+	public List<Variable> localVars() {
 		return localVars;
 	}
 
@@ -200,7 +200,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public String getCurrentlySetUserDescription() {
+	public String userDescription() {
 		return description;
 	}
 
@@ -264,7 +264,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param engineCompatible print parameters in an engine-parseable manner
 	 * @return the function string
 	 */
-	public String getLongParameterString(boolean withFuncName, boolean engineCompatible) {
+	public String longParameterString(boolean withFuncName, boolean engineCompatible) {
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
 			string.append(name());
@@ -275,8 +275,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return string.toString();
 	}
 	
-	public String getLongParameterString(boolean withFuncName) {
-		return getLongParameterString(withFuncName, true);	
+	public String longParameterString(boolean withFuncName) {
+		return longParameterString(withFuncName, true);	
 	}
 
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
@@ -356,7 +356,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String infoText() {
 		String description = obtainUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "", StringUtil.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "", StringUtil.htmlerize(longParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -459,12 +459,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
-		return otherDeclarations != null || (getLocalVars() != null && getLocalVars().size() > 0);
+		return otherDeclarations != null || (localVars() != null && localVars().size() > 0);
 	}
 
 	@Override
 	public Object[] subDeclarationsForOutline() {
-		return ArrayUtil.concat(getLocalVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
+		return ArrayUtil.concat(localVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}
 
 	/**
@@ -659,7 +659,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		builder.append(" ");
 		builder.append(Keywords.Func);
 		builder.append(" ");
-		builder.append(getLongParameterString(true));
+		builder.append(longParameterString(true));
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n{\n");
@@ -678,7 +678,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Remove local variables.
 	 */
 	public void clearLocalVars() {
-		getLocalVars().clear();
+		localVars().clear();
 		if (otherDeclarations != null) {
 			otherDeclarations.clear();
 		}
@@ -711,7 +711,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Return 'other' declarations (neither parameters nor variables)
 	 * @return The list of other declarations. Will not be null, even if there are not other declarations.
 	 */
-	public List<Declaration> getOtherDeclarations() {
+	public List<Declaration> otherDeclarations() {
 		if (otherDeclarations == null) {
 			return NO_OTHER_DECLARATIONS;
 		} else {
@@ -725,7 +725,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public void resetLocalVarTypes() {
-		for (Variable v : getLocalVars()) {
+		for (Variable v : localVars()) {
 			v.forceType(PrimitiveType.UNKNOWN);
 		}
 	}

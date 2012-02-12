@@ -240,7 +240,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		for (Function func : script.functions()) {
 			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
-			for (Declaration otherDec : func.getOtherDeclarations())
+			for (Declaration otherDec : func.otherDeclarations())
 				if (otherDec instanceof ProplistDeclaration)
 					addToProplistDeclarations((ProplistDeclaration) otherDec);
 			addToDeclarationMap(func);
