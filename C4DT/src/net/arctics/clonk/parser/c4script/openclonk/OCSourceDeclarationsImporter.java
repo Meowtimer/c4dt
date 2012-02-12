@@ -135,26 +135,26 @@ public class OCSourceDeclarationsImporter {
 							int i = 1;
 							String returnType = fnDeclarationMatcher.group(i++);
 							String name = fnDeclarationMatcher.group(i++);
-							if (name.equals("SetPlayerControlEnabled")) {
-								System.out.println("oh come on!");
-							}
 							// some functions to be ignored
 							if (name.equals("_goto") || name.equals("_this")) {
 								continue;
 							}
 							i++; // optional Object in C4AulContext
+							i++; // optional actual parameters with preceding comma
 							String parms = fnDeclarationMatcher.group(i++);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
 								fun = new DocumentedFunction(name, PrimitiveType.typeFromCPPType(returnType));
-								String[] parmStrings = parms.split("\\,");
-								List<Variable> parList = new ArrayList<Variable>(parmStrings.length);
-								for (String parm : parmStrings) {
-									int x;
-									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
-									String pname = parm.substring(x+1);
-									String type = parm.substring(0, x+1).trim();
-									parList.add(new Variable(pname, PrimitiveType.typeFromCPPType(type)));
+								String[] parmStrings = parms != null ? parms.split("\\,") : null;
+								List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
+								if (parmStrings != null) {
+									for (String parm : parmStrings) {
+										int x;
+										for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
+										String pname = parm.substring(x+1);
+										String type = parm.substring(0, x+1).trim();
+										parList.add(new Variable(pname, PrimitiveType.typeFromCPPType(type)));
+									}
 								}
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
