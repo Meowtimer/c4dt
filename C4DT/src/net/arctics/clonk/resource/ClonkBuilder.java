@@ -335,12 +335,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		return ClonkProjectNature.get(getProject()).index();
 	}
 	
+	private static String buildTask(String text, IProject project) {
+		return String.format(text, project.getName()); 
+	}
+	
+	private String buildTask(String text) {
+		return buildTask(text, getProject());
+	}
+	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		System.out.println(String.format(Messages.ClonkBuilder_CleaningProject, getProject().getName()));
+		System.out.println(buildTask(Messages.ClonkBuilder_CleaningProject));
 		// clean up this project
 		if (monitor != null)
-			monitor.beginTask(Messages.CleaningUp, 1);
+			monitor.beginTask(buildTask(Messages.CleaningUp), 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			proj.deleteMarkers(null, true, IResource.DEPTH_INFINITE);
@@ -434,13 +442,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		private final Script[] scriptsToSave;
 		private final IProject project;
 		public SaveScriptsJob(IProject project, Script... scriptsToSave) {
-			super(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts);
+			super(buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
 			this.scriptsToSave = scriptsToSave;
 			this.project = project;
 		}
 		@Override
 		protected IStatus run(final IProgressMonitor monitor) {
-			monitor.beginTask(Messages.ClonkBuilder_SavingScriptIndexFiles, scriptsToSave.length+3);
+			monitor.beginTask(buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.length+3);
 			try {
 				ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 				for (final Script s : scriptsToSave) {
@@ -489,11 +497,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, resourceCounter);
 
 			// initialize progress monitor
-			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? 3000 : IProgressMonitor.UNKNOWN);
+			monitor.beginTask(buildTask(Messages.BuildProject), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? 3000 : IProgressMonitor.UNKNOWN);
 			
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
-			monitor.subTask(Messages.ClonkBuilder_GatheringScripts);
+			monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
 			// delete old declarations
@@ -502,7 +510,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.refreshIndex();
 			
 			// parse declarations
-			monitor.subTask(Messages.ClonkBuilder_ParseDeclarations);
+			monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 			int parserMapSize;
 			Map<Script, C4ScriptParser> newlyEnqueuedParsers = new HashMap<Script, C4ScriptParser>();
 			Map<Script, C4ScriptParser> enqueuedFromLastIteration = new HashMap<Script, C4ScriptParser>();
@@ -551,7 +559,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 			
 			// parse function code
-			monitor.subTask(Messages.ClonkBuilder_ParseFunctionCode);
+			monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			for (Script s : scripts)
 				s.generateFindDeclarationCache();

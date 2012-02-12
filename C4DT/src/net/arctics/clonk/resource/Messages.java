@@ -9,7 +9,6 @@ public class Messages extends NLS {
 	public static String ClonkBuilder_GatheringScripts;
 	public static String ClonkBuilder_ParseCodeTask;
 	public static String ClonkBuilder_ParseDeclarations;
-	public static String ClonkBuilder_ParseDeclarationsTask;
 	public static String ClonkBuilder_ParseFunctionCode;
 	public static String ClonkBuilder_RenameRefactoringPrompt;
 	public static String ClonkBuilder_RenameRefactoringTitle;
