@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.Declaration;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -25,12 +26,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	}
 	
 	/** Associated declaration */
-	private Declaration declaration;
+	private final Declaration declaration;
 	
 	/** The string to be displayed in the completion proposal popup. */
 	private String displayString;
 	/** The string to be displayed after the display string. */
-	private String postInfo;
+	private final String postInfo;
 	/** The replacement string. */
 	protected String replacementString;
 
@@ -41,9 +42,9 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The cursor position after this proposal has been applied. */
 	protected int cursorPosition;
 	/** The image to be displayed in the completion proposal popup. */
-	private Image image;
+	private final Image image;
 	/** The context information of this proposal. */
-	private IContextInformation contextInformation;
+	private final IContextInformation contextInformation;
 	/** The additional info of this proposal. */
 	private String additionalProposalInfo;
 	
@@ -171,6 +172,14 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	@Override
 	public String getDisplayString() {
+		if (declaration != null)
+			System.out.println("getDisplayString for " + declaration.name());
+		if (declaration instanceof IDocumentedDeclaration && ((IDocumentedDeclaration)declaration).fetchDocumentation())
+			displayString = declaration.displayString();
+		return displayString();
+	}
+
+	private String displayString() {
 		if (displayString != null)
 			return displayString;
 		return replacementString;
@@ -189,6 +198,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	@Override
 	public StyledString getStyledDisplayString() {
+		getDisplayString();
 		if (displayString == null)
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 		StyledString result = new StyledString(displayString);
@@ -198,7 +208,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return result;
 	}
 	
-	public Category getCategory() {
+	public Category category() {
 		return category;
 	}
 	
@@ -210,8 +220,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		if (other.category != null && this.category != null && other.category != this.category) {
 			return this.category.ordinal() - other.category.ordinal();
 		}
-		String dispA = this.getDisplayString();
-		String dispB = other.getDisplayString();
+		String dispA = this.displayString();
+		String dispB = other.displayString();
 		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
 		boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
 		if (bracketStartA && !bracketStartB)

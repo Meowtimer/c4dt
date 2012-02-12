@@ -4,12 +4,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
-
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -20,6 +17,9 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StringUtil;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Represents a variable.
@@ -257,6 +257,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 				? String.format(descriptionFormat, obtainUserDescription())
 				: "" //$NON-NLS-1$
 		);
+	}
+	
+	@Override
+	public String displayString() {
+		return this.name();
 	}
 	
 	@Override

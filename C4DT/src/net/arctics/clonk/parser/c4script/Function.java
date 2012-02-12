@@ -278,6 +278,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public String longParameterString(boolean withFuncName) {
 		return longParameterString(withFuncName, true);	
 	}
+	
+	@Override
+	public String displayString() {
+		return longParameterString(true);
+	}
 
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (numParameters() > 0) {

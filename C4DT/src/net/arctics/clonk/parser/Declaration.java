@@ -200,6 +200,10 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return name();
 	}
 	
+	public String displayString() {
+		return infoText();
+	}
+	
 	/**
 	 * Returns an array of all sub declarations meant to be displayed in the outline.
 	 * @return

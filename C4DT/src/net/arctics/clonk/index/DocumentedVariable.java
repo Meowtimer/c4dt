@@ -4,7 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 
-public final class DocumentedVariable extends Variable {
+public final class DocumentedVariable extends Variable implements IDocumentedDeclaration {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private boolean fleshedOut;
 
@@ -18,7 +18,15 @@ public final class DocumentedVariable extends Variable {
 
 	@Override
 	public synchronized IType type() {
-		fleshedOut = engine().repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+		fetchDocumentation();
 		return super.type();
+	}
+
+	@Override
+	public boolean fetchDocumentation() {
+		if (!fleshedOut)
+			return fleshedOut = this.engine().repositoryDocImporter().fleshOutPlaceholder(this, fleshedOut);
+		else
+			return false;
 	}
 }
