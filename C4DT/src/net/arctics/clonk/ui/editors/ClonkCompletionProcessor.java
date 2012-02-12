@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
@@ -69,23 +70,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (!func.name().toLowerCase().startsWith(prefix))
 				return;
 		}
-		String displayString = func.longParameterString(true);
-		int replacementLength = 0;
-		if (prefix != null) replacementLength = prefix.length();
-		
-		/*String contextInfoString = func.getLongParameterString(false);
-		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
+		int replacementLength = prefix != null ? prefix.length() : 0;
 
 		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		int cursorPosition = func.name().length();
-		if (brackets) {
-			if (func.numParameters() == 0)
-				cursorPosition += 2;
-			else
-				cursorPosition++;
-		}
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,cursorPosition,
-				UI.functionIcon(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, editor()); //$NON-NLS-1$
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			func, replacement, offset, replacementLength,
+			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
+		);
 		prop.setCategory(Category.Functions);
 		proposals.add(prop);
 	}

@@ -1,7 +1,9 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -53,6 +55,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	
 	/** Category for sorting */
 	private Category category;
+	
+	private boolean displayStringRecomputationNecessary;
 
 	public void setEditor(ClonkTextEditor editor) {
 		this.editor = editor;
@@ -124,6 +128,22 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.setEditor(editor);
 	}
 	
+	public ClonkCompletionProposal(
+		Declaration declaration,
+		String replacementString,
+		int replacementOffset, int replacementLength,
+		Image image,
+		IContextInformation contextInformation,
+		String additionalProposalInfo, String postInfo,
+		ClonkTextEditor editor
+	) {
+		this(
+			declaration, replacementString, replacementOffset, replacementLength,
+			declaration.name().length(), image, declaration.displayString(), contextInformation, additionalProposalInfo, postInfo, editor
+		);
+		displayStringRecomputationNecessary = true;
+	}
+	
 	public Declaration getDeclaration() {
 		return declaration;
 	}
@@ -172,10 +192,20 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	@Override
 	public String getDisplayString() {
-		if (declaration != null)
-			System.out.println("getDisplayString for " + declaration.name());
-		if (declaration instanceof IDocumentedDeclaration && ((IDocumentedDeclaration)declaration).fetchDocumentation())
+		if (displayStringRecomputationNecessary) {
+			displayStringRecomputationNecessary = false;
+			if (declaration instanceof IDocumentedDeclaration)
+				((IDocumentedDeclaration)declaration).fetchDocumentation();
 			displayString = declaration.displayString();
+			Function func = as(declaration, Function.class);
+			if (func != null) {
+				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
+				// for more than zero parameters, jump into brackets to let user type her parameters
+				if (replacementString.length() > declaration.name().length()) {
+					cursorPosition += func.numParameters() == 0 ? 2 : 1;
+				}
+			}
+		}
 		return displayString();
 	}
 
