@@ -51,14 +51,14 @@ public class Directive extends Declaration implements Serializable {
 	/**
 	 * @return the type
 	 */
-	public DirectiveType getType() {
+	public DirectiveType type() {
 		return type;
 	}
 
 	/**
 	 * @return the content
 	 */
-	public String getContent() {
+	public String contents() {
 		return content;
 	}
 
@@ -74,7 +74,11 @@ public class Directive extends Declaration implements Serializable {
 		return type.toString();
 	}
 
-	public ExprElm getExprElm() {
+	/**
+	 * Return an {@link ExprElm} whose {@link ExprElm#start()} and {@link ExprElm#end()} methods match this directive's {@link #location()}.
+	 * @return
+	 */
+	public ExprElm asExpression() {
 		return new ExprElm() {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
@@ -90,7 +94,7 @@ public class Directive extends Declaration implements Serializable {
 
 	public ID contentAsID() {
 		if (cachedID == null)
-			cachedID = ID.get(this.getContent());
+			cachedID = ID.get(this.contents());
 		return cachedID;
 	}
 
@@ -102,17 +106,17 @@ public class Directive extends Declaration implements Serializable {
 	}
 
 	public void validate(C4ScriptParser parser) throws ParsingException {
-		switch (getType()) {
+		switch (type()) {
 		case APPENDTO:
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
-			if (getContent() == null)
+			if (contents() == null)
 				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, location(), C4ScriptParser.NO_THROW, this.toString());
 			else {
 				ID id = contentAsID();
 				Definition obj = parser.containingScript().index().getDefinitionNearestTo(parser.containingScript().resource(), id);
 				if (obj == null)
-					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, getContent());
+					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, contents());
 			}
 			break;
 		}
@@ -120,9 +124,9 @@ public class Directive extends Declaration implements Serializable {
 	
 	@Override
 	public boolean matchedBy(Matcher matcher) {
-		if (matcher.reset(getType().name()).lookingAt() || matcher.reset("#"+getType().name()).lookingAt())
+		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt())
 			return true;
-		return getContent() != null && matcher.reset(getContent()).lookingAt();
+		return contents() != null && matcher.reset(contents()).lookingAt();
 	}
 
 }

@@ -195,9 +195,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		long level = engine() != null ? engine().currentSettings().strictDefaultLevel : -1;
 		for (Directive d : this.directives()) {
-			if (d.getType() == DirectiveType.STRICT) {
+			if (d.type() == DirectiveType.STRICT) {
 				try {
-					level = Math.max(level, Integer.parseInt(d.getContent()));
+					level = Math.max(level, Integer.parseInt(d.contents()));
 				}
 				catch (NumberFormatException e) {
 					if (level < 1)
@@ -216,7 +216,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		List<Directive> result = new ArrayList<Directive>();
 		for (Directive d : directives()) {
-			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
+			if (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) {
 				result.add(d);
 			}
 		}
@@ -238,7 +238,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (definedDirectives != null) synchronized(definedDirectives) {
 			for (Directive d : definedDirectives) {
 				ID id = d.contentAsID();
-				if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
+				if (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) {
 					for (Index in : index.relevantIndexes()) {
 						Iterable<? extends Definition> defs = in.getDefinitionsWithID(id);
 						if (defs != null)
@@ -306,7 +306,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Directive directiveIncludingDefinition(Definition obj) {
 		requireLoaded();
 		for (Directive d : includeDirectives()) {
-			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
+			if ((d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
 				return d;
 		}
 		return null;

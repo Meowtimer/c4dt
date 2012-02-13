@@ -226,7 +226,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	private void detectAppendages(Script script) {
 		for (Directive d : script.directives())
-			if (d.getType() == DirectiveType.APPENDTO) {
+			if (d.type() == DirectiveType.APPENDTO) {
 				List<Script> appendtoList = appendages.get(d.contentAsID());
 				if (appendtoList == null) {
 					appendtoList = new LinkedList<Script>();

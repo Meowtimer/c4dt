@@ -133,7 +133,7 @@ public class ReferencesQuery extends SearchQueryBase {
 			if (declaration instanceof Definition) {
 				Directive include = script.directiveIncludingDefinition((Definition) declaration);
 				if (include != null)
-					result.addMatch(include.getExprElm(), parser, false, false);
+					result.addMatch(include.asExpression(), parser, false, false);
 			}
 			for (Function f : script.functions()) {
 				parser.setCurrentFunc(f);
