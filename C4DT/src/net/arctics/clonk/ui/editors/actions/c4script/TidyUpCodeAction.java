@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Script;
@@ -157,7 +157,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							System.out.println("Adding edit for " + func.name() + " failed");
 						}
 					}
-					else if (noSelection) {
+					else if (!noSelection) {
 						region.setStartAndEnd(
 							selection.getOffset()-(func != null ? func.body().getOffset() : 0),
 							selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
