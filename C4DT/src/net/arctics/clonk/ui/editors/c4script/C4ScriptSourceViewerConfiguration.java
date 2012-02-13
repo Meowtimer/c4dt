@@ -74,7 +74,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		return doubleClickStrategy;
 	}
 
-	protected C4ScriptCodeScanner getClonkScanner() {
+	protected C4ScriptCodeScanner clonkScanner() {
 		if (scanner == null) {
 			scanner = new C4ScriptCodeScanner(getColorManager(), editor().scriptBeingEdited().engine());
 			scanner.setDefaultReturnToken(
@@ -150,15 +150,15 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
 		DefaultDamagerRepairer dr =
-			new DefaultDamagerRepairer(getClonkScanner());
+			new DefaultDamagerRepairer(clonkScanner());
 		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_CODEBODY);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_CODEBODY);
 		
-		dr = new DefaultDamagerRepairer(getClonkScanner());
+		dr = new DefaultDamagerRepairer(clonkScanner());
 		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_STRING);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_STRING);
 		
-		dr = new DefaultDamagerRepairer(getClonkScanner());
+		dr = new DefaultDamagerRepairer(clonkScanner());
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
@@ -191,7 +191,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	private final C4ScriptAutoEditStrategy autoEditStrategy = new C4ScriptAutoEditStrategy(this);
 	
-	public C4ScriptAutoEditStrategy getAutoEditStrategy() {
+	public C4ScriptAutoEditStrategy autoEditStrategy() {
 		return autoEditStrategy;
 	}
 
@@ -209,7 +209,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public void refreshSyntaxColoring() {
-		getClonkScanner().commitRules(getColorManager(), editor().scriptBeingEdited().engine());
+		clonkScanner().commitRules(getColorManager(), editor().scriptBeingEdited().engine());
 	}
 
 }

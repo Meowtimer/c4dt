@@ -365,7 +365,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			super.cleanupAfterRemoval();
 		}
 		
-		public static TextChangeListener getListenerFor(IDocument document) {
+		public static TextChangeListener listenerFor(IDocument document) {
 			return (TextChangeListener) listeners.get(document);
 		}
 	}
@@ -542,7 +542,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.handleCursorPositionChanged();
 		
 		// highlight active function
-		Function f = getFuncAtCursor();
+		Function f = functionAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
 			this.setHighlightRange(f.location().getOffset(), Math.min(
@@ -555,18 +555,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.resetHighlightRange();
 		
 		// inform auto edit strategy about cursor position change so it can delete its override regions
-		getC4ScriptSourceViewerConfiguration().getAutoEditStrategy().handleCursorPositionChanged(
+		sourceViewerConfiguration().autoEditStrategy().handleCursorPositionChanged(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
 
 	}
 
-	private final C4ScriptSourceViewerConfiguration getC4ScriptSourceViewerConfiguration() {
+	private final C4ScriptSourceViewerConfiguration sourceViewerConfiguration() {
 		return (C4ScriptSourceViewerConfiguration)getSourceViewerConfiguration();
 	}
 
 	@Override
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
-		getC4ScriptSourceViewerConfiguration().getAutoEditStrategy().completionProposalApplied(proposal);
+		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		super.completionProposalApplied(proposal);
 	}
 
@@ -607,7 +607,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return textChangeListener;
 	}
 
-	public Function getFuncAt(int offset) {
+	public Function functionAt(int offset) {
 		Script script = scriptBeingEdited();
 		if (script != null) {
 			Function f = script.funcAt(offset);
@@ -616,8 +616,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return null;
 	}
 	
-	public Function getFuncAtCursor() {
-		return getFuncAt(cursorPos());
+	public Function functionAtCursor() {
+		return functionAt(cursorPos());
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(IScriptParserListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
@@ -702,8 +702,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	public FuncCallInfo getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
-		Function f = this.getFuncAt(offset);
+	public FuncCallInfo innermostCallFuncExprParmAtOffset(int offset) throws BadLocationException, ParsingException {
+		Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
 		EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));

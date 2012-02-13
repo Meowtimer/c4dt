@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -603,7 +604,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
-			FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
+			FuncCallInfo funcCallInfo = editor.innermostCallFuncExprParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = funcCallInfo.callFunc.declaration();
 				if (entity == null) {
@@ -624,6 +625,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 //				if (dec == null && funcCallInfo.locator != null)
 //					dec = funcCallInfo.locator.getDeclaration();
 				if (entity instanceof Function) {
+					if (entity instanceof IDocumentedDeclaration)
+						((IDocumentedDeclaration)entity).fetchDocumentation();
 					String parmString = ((Function)entity).longParameterString(false, false).trim();
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;

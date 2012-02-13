@@ -164,7 +164,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	private void tryAutoBlock(IDocument d, DocumentCommand c) {
 		try {
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
-				Function f = getConfiguration().editor().getFuncAtCursor();
+				Function f = getConfiguration().editor().functionAtCursor();
 				if (f != null && unbalanced(d, f.body())) {
 					IRegion r = d.getLineInformationOfOffset(c.offset);
 					int start = r.getOffset();

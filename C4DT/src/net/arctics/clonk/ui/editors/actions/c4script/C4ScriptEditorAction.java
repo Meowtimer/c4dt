@@ -68,7 +68,7 @@ public abstract class C4ScriptEditorAction extends TextEditorAction {
 			if (info.entity() != null)
 				return info.entity();
 			else if (fallbackToCurrentFunction && getTextEditor() instanceof C4ScriptEditor)
-				return ((C4ScriptEditor)getTextEditor()).getFuncAtCursor();
+				return ((C4ScriptEditor)getTextEditor()).functionAtCursor();
 			else
 				return null;
 		} catch (BadLocationException e) {

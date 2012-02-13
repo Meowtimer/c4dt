@@ -286,7 +286,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				}
 			}
 			
-			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.getListenerFor(document);
+			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.listenerFor(document);
 			if (listener != null) {
 				listener.scheduleReparsing(false);
 			}
