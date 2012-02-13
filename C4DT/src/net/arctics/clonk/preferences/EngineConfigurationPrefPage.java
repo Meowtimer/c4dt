@@ -43,6 +43,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	private String myEngine;
 	private FileFieldEditor c4GroupEditor;
 	private FileFieldEditor engineExecutableEditor;
+	private DirectoryFieldEditor repositoryPathEditor;
 	private DirectoryFieldEditor gamePathEditor;
 	private List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
 	private EngineConfigPrefStore engineConfigPrefStore;
@@ -224,7 +225,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				engineConfigurationComposite, appExtensions(true))
 			);
 		addField(
-			new DirectoryFieldEditor(
+			repositoryPathEditor = new DirectoryFieldEditor(
 				"repositoryPath", //$NON-NLS-1$
 				Messages.OpenClonkRepo,
 				engineConfigurationComposite
@@ -276,14 +277,37 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 					getPreferenceStore().setValue("useDocsFromRepository", checker.getSelection()); //$NON-NLS-1$
 				};
 			}
-			);
+		);
 		addField(
 			new BooleanFieldEditor(
 				"readDocumentationFromRepository", //$NON-NLS-1$
 				Messages.EngineConfigurationPrefPage_ReadDocFromRepository,
 				engineConfigurationComposite
-				)
-			);
+			)
+			{
+				private boolean valid;
+				@Override
+				protected void refreshValidState() {
+					valid = !(this.getBooleanValue() && repositoryPathEditor.getStringValue().equals("")); //$NON-NLS-1$
+					if (!valid)
+						setErrorMessage(Messages.EngineConfigurationPrefPage_SettingNeedsRepositoryPath);
+					else
+						clearErrorMessage();
+				};
+				@Override
+				public boolean isValid() {
+					return valid;
+				}
+				@Override
+				protected void valueChanged(boolean oldValue, boolean newValue) {
+					super.valueChanged(oldValue, newValue);
+					boolean oldValid = valid;
+					refreshValidState();
+					if (valid != oldValid)
+						fireStateChanged(IS_VALID, oldValue, newValue);
+				};
+			}
+		);
 
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
