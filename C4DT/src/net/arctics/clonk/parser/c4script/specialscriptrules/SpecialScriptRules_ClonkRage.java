@@ -17,6 +17,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 	public SpecialScriptRules_ClonkRage() {
 		super();
 		putFuncRule(criteriaSearchRule, "FindObject2");
+		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
 			public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
