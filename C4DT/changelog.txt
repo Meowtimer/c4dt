@@ -150,3 +150,10 @@ are then taken into account in various places
 1.6.0:
 -More aggressive type inference
 -Bugs fixed/New bugs introduced
+1.7.0:
+-OC: Read documentation/definitions from repository (optional)
+	-This is a combination of reading *.xml files from docs and extracting declarations from C4Script.cpp/C4ObjectScript.cpp/C4GameScript.cpp via pattern matching
+-Bugs fixed/New bugs introduced
+-Outline view has filter box
+-Multicore-Clean-Build (?)
+-Link-clicking sound names in Sound(...) calls
