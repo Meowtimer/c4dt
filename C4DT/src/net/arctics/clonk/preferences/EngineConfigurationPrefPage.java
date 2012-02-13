@@ -4,6 +4,7 @@ import java.beans.Beans;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Engine.EngineSettings;
@@ -45,9 +46,10 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	private FileFieldEditor engineExecutableEditor;
 	private DirectoryFieldEditor repositoryPathEditor;
 	private DirectoryFieldEditor gamePathEditor;
-	private List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
+	private final List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
 	private EngineConfigPrefStore engineConfigPrefStore;
-
+	private BooleanFieldEditor readDocumentationFromRepositoryEditor;
+	
 	private class GamePathEditor extends DirectoryFieldEditor {
 
 		public GamePathEditor(Composite parent, String name, String labelText) {
@@ -91,7 +93,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class EngineRelatedFileFieldEditor extends FileFieldEditor {
 		// redeclare since field from super class is not accessible -.-
-		private String[] extensions;
+		private final String[] extensions;
 
 		public EngineRelatedFileFieldEditor(String pref, String title, Composite parent, String[] extensions) {
 			super(pref, title, parent);
@@ -279,34 +281,11 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			}
 		);
 		addField(
-			new BooleanFieldEditor(
+			readDocumentationFromRepositoryEditor = new BooleanFieldEditor(
 				"readDocumentationFromRepository", //$NON-NLS-1$
 				Messages.EngineConfigurationPrefPage_ReadDocFromRepository,
 				engineConfigurationComposite
 			)
-			{
-				private boolean valid;
-				@Override
-				protected void refreshValidState() {
-					valid = !(this.getBooleanValue() && repositoryPathEditor.getStringValue().equals("")); //$NON-NLS-1$
-					if (!valid)
-						setErrorMessage(Messages.EngineConfigurationPrefPage_SettingNeedsRepositoryPath);
-					else
-						clearErrorMessage();
-				};
-				@Override
-				public boolean isValid() {
-					return valid;
-				}
-				@Override
-				protected void valueChanged(boolean oldValue, boolean newValue) {
-					super.valueChanged(oldValue, newValue);
-					boolean oldValid = valid;
-					refreshValidState();
-					if (valid != oldValid)
-						fireStateChanged(IS_VALID, oldValue, newValue);
-				};
-			}
 		);
 
 		GridLayout gridLayout = new GridLayout();
@@ -338,6 +317,11 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	@Override
 	public boolean performOk() {
+		if (readDocumentationFromRepositoryEditor.getBooleanValue() && repositoryPathEditor.getStringValue().equals("")) {
+			setErrorMessage(Messages.EngineConfigurationPrefPage_ReadingDocumentationRequiresRepositoryPath);
+			return false;
+		}
+		setValid(true);
 		boolean result = super.performOk();
 		if (result)
 			engineConfigPrefStore.apply();

@@ -27,7 +27,7 @@ public class Messages extends NLS {
 	public static String ShowExportLog;
 	public static String C4GroupExecutable;
 	public static String EngineConfigurationPrefPage_ReadDocFromRepository;
-	public static String EngineConfigurationPrefPage_SettingNeedsRepositoryPath;
+	public static String EngineConfigurationPrefPage_ReadingDocumentationRequiresRepositoryPath;
 	public static String EngineConfigurationPrefPage_SettingsForEngineTitle;
 	public static String EngineConfigurationPrefPage_UseRepositoryDocsFolder0;
 	public static String EngineExecutable;
