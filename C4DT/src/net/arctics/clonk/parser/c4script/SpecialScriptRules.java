@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -723,12 +724,12 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
 		protected ProjectResource soundResourceInFolder(String name, Engine engine, IContainer container, ProjectIndex pi) {
 			{
-				IResource res = container.findMember(name);
+				IResource res = findMemberCaseInsensitively(container, name);
 				if (res != null)
 					return new ProjectResource(pi, res);
 			}
 			for (String e : engine.currentSettings().supportedSoundFileExtensions()) {
-				IResource res = container.findMember(name+"."+e);
+				IResource res = findMemberCaseInsensitively(container, name+"."+e);
 				if (res != null)
 					return new ProjectResource(pi, res);
 			}
