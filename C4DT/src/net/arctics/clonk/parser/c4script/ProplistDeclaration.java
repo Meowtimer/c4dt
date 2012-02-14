@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -11,7 +13,6 @@ import java.util.Set;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
-import static net.arctics.clonk.util.ArrayUtil.*;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.StringUtil;
 
@@ -171,11 +172,6 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public IType staticType() {
 		return PrimitiveType.PROPLIST;
-	}
-	
-	@Override
-	public String name() {
-		return "Proplist Expression 0009247331";
 	}
 	
 	@Override

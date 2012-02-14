@@ -10,7 +10,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
@@ -136,20 +135,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	/**
-	 * @return the expectedContent
+	 * Return any object type this variable is expected to hold a value of.
+	 * @return Some {@link Definition} contained in this variable's {@link #type()}
 	 */
-	public Definition getObjectType() {
+	public Definition objectType() {
 		for (IType t : type) {
 			if (t instanceof Definition) {
 				return (Definition)t;
 			}
 		}
 		return null;
-	}
-
-	public ID getObjectID() {
-		Definition obj = getObjectType();
-		return obj != null ? obj.id() : null;
 	}
 
 	/**
@@ -275,7 +270,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return initializationExpression;
 	}
 	
-	public IRegion getInitializationExpressionLocation() {
+	public IRegion initializationExpressionLocation() {
 		if (initializationExpression instanceof ExprElm) {
 			return initializationExpression;
 		} else {

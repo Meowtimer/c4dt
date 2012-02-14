@@ -421,7 +421,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		System.out.println("dunno");
 	}
 	
-	public StringTbl getStringTblForLanguagePref() {
+	public StringTbl localStringTblMatchingLanguagePref() {
 		try {
 			IResource res = resource();
 			if (res == null)

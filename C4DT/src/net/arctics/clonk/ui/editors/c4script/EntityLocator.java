@@ -78,7 +78,7 @@ public class EntityLocator extends ExpressionLocator {
 			if (var == null)
 				return false;
 			else
-				d.initialize(var.getInitializationExpressionLocation(), var.engine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
+				d.initialize(var.initializationExpressionLocation(), var.engine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
 		} else
 			d.initialize(d.func.body(), d.func.engine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 		return true;

@@ -243,7 +243,7 @@ public class Definition extends Script {
 		}
 
 		@Override
-		public Definition getObjectType() {
+		public Definition objectType() {
 			return null;
 		}
 

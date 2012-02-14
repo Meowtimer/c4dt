@@ -43,7 +43,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		for (String part : parts) {
 			if (offset >= off && offset < off+part.length()) {
 				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-					StringTbl stringTbl = parser.containingScript().getStringTblForLanguagePref();
+					StringTbl stringTbl = parser.containingScript().localStringTblMatchingLanguagePref();
 					if (stringTbl != null) {
 						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
@@ -76,7 +76,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		int off = 1;
 		for (String part : contents.split("\\|")) { //$NON-NLS-1$
 			if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-				StringTbl stringTbl = parser.containingScript().getStringTblForLanguagePref();
+				StringTbl stringTbl = parser.containingScript().localStringTblMatchingLanguagePref();
 				String entryName = part.substring(1, part.length()-1);
 				if (stringTbl == null || stringTbl.map().get(entryName) == null) {
 					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(start()+off, part.length()), entryName);

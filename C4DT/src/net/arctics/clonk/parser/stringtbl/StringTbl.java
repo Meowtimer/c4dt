@@ -180,7 +180,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public static EntityRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
 		EntityRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
-			StringTbl stringTbl = container.getStringTblForLanguagePref();
+			StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
 			Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
 			if (e == null && returnNullIfNotFound) {
 				result = null;

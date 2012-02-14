@@ -1,29 +1,29 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ITypeable;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ITypeable;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.evaluate.EvaluationContextProxy;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Variable name expression element.
@@ -176,7 +176,16 @@ public class AccessVar extends AccessDeclaration {
 				if (predType instanceof ProplistDeclaration) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
-						Variable var = new Variable(declarationName(), Variable.Scope.VAR);
+						Variable var = new Variable(declarationName(), Variable.Scope.VAR) {
+							private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
+							@Override
+							public String infoText() {
+								String sup = super.infoText();
+								sup += String.format("<br/><b>Effect: '%s'</b>", this.parentDeclaration().name());
+								return sup;
+							}
+						};
 						var.expectedToBeOfType(expression.typeInContext(context), TypeExpectancyMode.Expect);
 						var.setLocation(context.absoluteSourceLocationFromExpr(this));
 						var.forceType(expression.typeInContext(context));
