@@ -226,7 +226,7 @@ public class XMLDocImporter {
 							for (PoTranslationFragment f : translationFragments) {
 								if (f.line == lineNo) {
 									String englishWithPlaceholdersReplacedWithTagCaptureGroups = Pattern.quote(f.english).replaceAll("<placeholder\\-([0-9]+)/>", "\\\\E(<.*?>.*?</.*?>)\\\\Q");
-									System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
+									//System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
 									Matcher englishMatcher = Pattern.compile(englishWithPlaceholdersReplacedWithTagCaptureGroups).matcher(textLine);
 									Matcher placeHolderInLocalizedMatcher = Pattern.compile("<placeholder\\-([0-9]+)/>").matcher(f.localized);
 									StringBuilder localizedWithTagsPutIn = new StringBuilder(f.localized);

@@ -1,11 +1,15 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.Utilities.as;
+
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
@@ -17,14 +21,22 @@ import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.ide.FileStoreEditorInput;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
 import org.eclipse.ui.navigator.CommonNavigator;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * A hyperlink that stores a reference to the hyperlinked Clonk declaration
@@ -81,7 +93,21 @@ public class ClonkHyperlink implements IHyperlink {
 		try {
 			if (target instanceof DeclarationLocation)
 				target = ((DeclarationLocation)target).declaration();
-			if (target instanceof Declaration) {
+			DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
+			if (documentedFunction != null && documentedFunction.originInfo() != null && documentedFunction.location() != null) {
+				IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
+					new File(documentedFunction.engine().currentSettings().repositoryPath, documentedFunction.originInfo())
+				);
+				IEditorPart editor = IDE.openEditor(
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
+					new FileStoreEditorInput(sourceFile),
+					EditorsUI.DEFAULT_TEXT_EDITOR_ID
+				);
+				if (editor instanceof ITextEditor) {
+					((ITextEditor)editor).selectAndReveal(documentedFunction.location().getOffset(), documentedFunction.location().getLength());
+				}
+			}
+			else if (target instanceof Declaration) {
 				Declaration dec = (Declaration)target;
 				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null) {
 					// can't open editor so try something else like opening up a documentation page in the browser
