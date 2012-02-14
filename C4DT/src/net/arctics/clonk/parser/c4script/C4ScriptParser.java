@@ -962,102 +962,112 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			}
 			
-			do {
-				eatWhitespace();
-				IType typeOfNewVar;
-				// when parsing an engine script from (res/engines/...), allow specifying the type directly
-				if (isEngine) {
-					typeOfNewVar = parseFunctionReturnType();
-					if (typeOfNewVar != null)
-						eatWhitespace();
-				}
-				else
-					typeOfNewVar = null;
-				
-				int s = this.offset;
-				String varName = readIdent();
-				int e = this.offset;
-				Declaration outerDec = currentFunctionContext.currentDeclaration;
-				try {
-					Variable var = createVarInScope(varName, scope, s, e, comment);
-					currentFunctionContext.currentDeclaration = var;
-					VarInitialization varInitialization;
-					ExprElm initializationExpression = null;
-					if (scope == Scope.CONST || currentFunc != null || containingScript().engine().currentSettings().nonConstGlobalVarsAssignment) {
-						eatWhitespace();
-						if (peek() == '=') {
-							read();
+			{
+				int rewind = this.offset;
+				do {
+					eatWhitespace();
+					IType typeOfNewVar;
+					// when parsing an engine script from (res/engines/...), allow specifying the type directly
+					if (isEngine) {
+						typeOfNewVar = parseFunctionReturnType();
+						if (typeOfNewVar != null)
 							eatWhitespace();
-							
-							// parse initialization value with all errors disabled so no false errors 
-							boolean old = allErrorsDisabled;
-							allErrorsDisabled |= !reportErrors;
-							try {
-								initializationExpression = parseExpression(reportErrors);
-							} finally {
-								allErrorsDisabled = old;
-							}
+					}
+					else
+						typeOfNewVar = null;
 
-							try {
-								if (currentFunc == null) {
-									// only set initialization expression outside function so TidyUpCode won't have overlapping edits when trying
-									// to tidy up both the function code and the initialization expression separately
-									switch (scope) {
-									case CONST:
-										// never evaluate expressions, it's nice to have them and stuff
-										/*if (varInitialization.expression.isConstant()) {
+					int s = this.offset;
+					String varName = readIdent();
+					int e = this.offset;
+					Declaration outerDec = currentFunctionContext.currentDeclaration;
+					try {
+						Variable var = createVarInScope(varName, scope, s, e, comment);
+						currentFunctionContext.currentDeclaration = var;
+						VarInitialization varInitialization;
+						ExprElm initializationExpression = null;
+						if (scope == Scope.CONST || currentFunc != null || containingScript().engine().currentSettings().nonConstGlobalVarsAssignment) {
+							eatWhitespace();
+							if (peek() == '=') {
+								read();
+								eatWhitespace();
+
+								// parse initialization value with all errors disabled so no false errors 
+								boolean old = allErrorsDisabled;
+								allErrorsDisabled |= !reportErrors;
+								try {
+									initializationExpression = parseExpression(reportErrors);
+								} finally {
+									allErrorsDisabled = old;
+								}
+
+								try {
+									if (currentFunc == null) {
+										// only set initialization expression outside function so TidyUpCode won't have overlapping edits when trying
+										// to tidy up both the function code and the initialization expression separately
+										switch (scope) {
+										case CONST:
+											// never evaluate expressions, it's nice to have them and stuff
+											/*if (varInitialization.expression.isConstant()) {
 											varInitialization.variableBeingInitialized.setConstValue(varInitialization.expression.evaluateAtParseTime(Utilities.or(getCurrentFunc(), container)));
 											break;
 										}*/
-										// fallthrough
-									case LOCAL: case STATIC:
-										var.setInitializationExpression(initializationExpression);
-										break;
+											// fallthrough
+										case LOCAL: case STATIC:
+											var.setInitializationExpression(initializationExpression);
+											break;
+										}
 									}
+								} catch (Exception ex) {
+									ex.printStackTrace();
+									errorWithCode(ParserErrorCode.InvalidExpression, initializationExpression);
 								}
-							} catch (Exception ex) {
-								ex.printStackTrace();
-								errorWithCode(ParserErrorCode.InvalidExpression, initializationExpression);
-							}
 
-							typeOfNewVar = initializationExpression instanceof IType
-								? (IType)initializationExpression
-								: initializationExpression != null
-									? initializationExpression.typeInContext(this)
-									: PrimitiveType.UNKNOWN;
-						} else {
-							if (scope == Scope.CONST && !isEngine)
-								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
-							else if (scope == Scope.STATIC && isEngine)
-								var.forceType(PrimitiveType.INT); // most likely
+								typeOfNewVar = initializationExpression instanceof IType
+									? (IType)initializationExpression
+										: initializationExpression != null
+										? initializationExpression.typeInContext(this)
+											: PrimitiveType.UNKNOWN;
+							} else {
+								if (scope == Scope.CONST && !isEngine)
+									errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
+								else if (scope == Scope.STATIC && isEngine)
+									var.forceType(PrimitiveType.INT); // most likely
+							}
 						}
-					}
-					varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
-					createdVariables.add(varInitialization);
-					if (typeOfNewVar != null) {
-						switch (scope) {
-						case CONST: case STATIC:
-							container.containsGlobals = true;
-						case LOCAL:
-							if (currentFunc == null) {
-								varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
+						varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
+						createdVariables.add(varInitialization);
+						if (typeOfNewVar != null) {
+							switch (scope) {
+							case CONST: case STATIC:
+								container.containsGlobals = true;
+							case LOCAL:
+								if (currentFunc == null) {
+									varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
+									break;
+								}
+								break;
+							case VAR:
+								//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
 								break;
 							}
-							break;
-						case VAR:
-							//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
-							break;
 						}
+						rewind = this.offset;
+						eatWhitespace();
+					} finally {
+						currentFunctionContext.currentDeclaration = outerDec;
 					}
-					eatWhitespace();
-				} finally {
-					currentFunctionContext.currentDeclaration = outerDec;
-				}
-			} while(read() == ',');
-			unread();
+				} while(read() == ',');
+				seek(rewind);
+			}
 			
-			if (checkForFinalSemicolon && read() != ';')
-				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
+			if (checkForFinalSemicolon) {
+				int rewind = this.offset;
+				eatWhitespace();
+				if (read() != ';') {
+					seek(rewind);
+					errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
+				}
+			}
 			
 			// look for comment following directly and decorate the newly created variables with it
 			String inlineComment = getTextOfInlineComment();
@@ -2472,9 +2482,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					}
 				}
 				else if ((scope = Scope.makeScope(readWord)) != null) {
-					List<VarInitialization> initializations = parseVariableDeclaration(true, !options.contains(ParseStatementOption.InitializationStatement), scope, null);
+					List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
 					if (initializations != null) {
 						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.scope());
+						if (!options.contains(ParseStatementOption.InitializationStatement)) {
+							if (read() != ';') {
+								unread();
+								result.setFinishedProperly(false);
+							}
+						}
 					}
 				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement))
