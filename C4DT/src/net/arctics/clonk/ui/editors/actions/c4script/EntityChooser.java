@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.Script;
@@ -148,7 +147,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 										s.requireLoaded();
 										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
 											if (d.matchedBy(matcher)) {
-												contentProvider.add(new DeclarationLocation(d, d.location(), d.script().scriptFile()), itemsFilter);
+												contentProvider.add(d, itemsFilter);
 												if (++declarationsBatchSize == 5) {
 													Display.getDefault().asyncExec(refreshListRunnable);
 													declarationsBatchSize = 0;
