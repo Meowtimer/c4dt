@@ -37,22 +37,6 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class TidyUpCodeAction extends TextEditorAction {
 
-	public final static class CodeChunk {
-		public Declaration relatedDeclaration;
-		public List<ExprElm> expressions;
-		// encompasses all expressions of the declaration
-		public boolean complete;
-		public CodeChunk(Declaration declaration, List<ExprElm> expressions) {
-			super();
-			this.relatedDeclaration = declaration;
-			this.expressions = expressions;
-		}
-		@Override
-		public String toString() {
-			return (relatedDeclaration != null ? relatedDeclaration.toString() : "<No Declaration>") + " " + expressions.toString();
-		}
-	}
-
 	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
@@ -92,7 +76,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 		final IDocument document
 	) {
 		boolean noSelection = selection == null || selection.getLength() == 0 || selection.getLength() == document.getLength();
-		MutableRegion region = new MutableRegion(0, 0);
+		MutableRegion region = new MutableRegion(noSelection ? 0 : selection.getOffset(), noSelection ? document.getLength() : selection.getLength());
 		synchronized (document) {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
@@ -118,7 +102,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 					ExprElm elms = codeFor(d);
 					if (elms == null)
 						continue;
-					if (func != null && noSelection) {
+					if (func != null) {
 						StringBuilder blockStringBuilder = new StringBuilder(region.getLength());
 						switch (Conf.braceStyle) {
 						case NewLine:
@@ -157,11 +141,13 @@ public class TidyUpCodeAction extends TextEditorAction {
 							System.out.println("Adding edit for " + func.name() + " failed");
 						}
 					}
-					else if (!noSelection) {
-						region.setStartAndEnd(
-							selection.getOffset()-(func != null ? func.body().getOffset() : 0),
-							selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
-						);
+					else {
+						if (!noSelection) {
+							region.setStartAndEnd(
+								selection.getOffset()-(func != null ? func.body().getOffset() : 0),
+								selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
+							);
+						}
 						if (elms instanceof Block) {
 							for (ExprElm e : elms.subElements()) {
 								if (Utilities.regionContainsOtherRegion(region, e))

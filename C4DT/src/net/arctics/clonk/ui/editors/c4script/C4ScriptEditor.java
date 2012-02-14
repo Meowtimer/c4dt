@@ -318,7 +318,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.scriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.scriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
-						System.out.println("Reparsing");
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
