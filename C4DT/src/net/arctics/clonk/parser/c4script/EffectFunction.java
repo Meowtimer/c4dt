@@ -27,7 +27,7 @@ public class EffectFunction extends Function {
 			pattern = Pattern.compile(String.format(FUNCTION_NAME_FORMAT, "(.*?)", name()+"$"));
 		}
 		
-		public Pattern getPattern() {
+		public Pattern pattern() {
 			return pattern;
 		}
 		

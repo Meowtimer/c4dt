@@ -82,7 +82,7 @@ public class XMLDocImporter {
 	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>"); //$NON-NLS-1$
 	private boolean initialized = false;
 
-	public synchronized String getRepositoryPath() {
+	public synchronized String repositoryPath() {
 		return repositoryPath;
 	}
 	
@@ -308,14 +308,14 @@ public class XMLDocImporter {
 		}
 	}
 	
-	private static void getTextIncludingTags(Node n, StringBuilder builder) {
+	private static void appendContentsOfNode(Node n, StringBuilder builder) {
 		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
 			Node c = n.getChildNodes().item(i);
 			if (c.getNodeValue() != null)
 				builder.append(c.getNodeValue());
 			else {
 				builder.append("<"+c.getNodeName()+">");
-				getTextIncludingTags(c, builder);
+				appendContentsOfNode(c, builder);
 				builder.append("<"+c.getNodeName()+"/>");
 			}
 		}
@@ -323,7 +323,7 @@ public class XMLDocImporter {
 	
 	private static String getTextIncludingTags(Node n) {
 		StringBuilder b = new StringBuilder();
-		getTextIncludingTags(n, b);
+		appendContentsOfNode(n, b);
 		return b.toString();
 	}
 

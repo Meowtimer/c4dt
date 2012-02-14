@@ -42,6 +42,8 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 
+	private static final String DEFINITION_FUNCTION = "Definition";
+
 	/**
 	 * Rule to handle typing of effect proplists.<br>
 	 * Assigns default parameters to effect functions.
@@ -99,7 +101,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		public Function newFunction(String name) {
 			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX)) {
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-					Matcher m = t.getPattern().matcher(name);
+					Matcher m = t.pattern().matcher(name);
 					if (m.matches())
 						return new EffectFunction(m.group(1), t);
 				}
@@ -166,7 +168,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
 		@Override
 		public Function newFunction(String name) {
-			if (name.equals("Definition")) { //$NON-NLS-1$
+			if (name.equals(DEFINITION_FUNCTION)) { //$NON-NLS-1$
 				return new DefinitionFunction();
 			}
 			else
@@ -196,9 +198,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
-			if (function.name().equals("Definition")) //$NON-NLS-1$
+			if (function.name().equals(DEFINITION_FUNCTION)) //$NON-NLS-1$
 				return;
-			Function definitionFunc = function.script().findLocalFunction("Definition", false); //$NON-NLS-1$
+			Function definitionFunc = function.script().findLocalFunction(DEFINITION_FUNCTION, false); //$NON-NLS-1$
 			if (definitionFunc != null) {
 				try {
 					context.parseCodeOfFunction(definitionFunc, true);
