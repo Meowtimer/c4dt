@@ -26,9 +26,8 @@ public class OCSourceDeclarationsImporter {
 	
 	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) {
 		// also import from fn list in C4Script.cpp
-		readMissingFuncsFromSource(importsContainer, repository, "/src/script/C4Script.cpp");
-		readMissingFuncsFromSource(importsContainer, repository, "/src/game/script/C4GameScript.cpp");
-		readMissingFuncsFromSource(importsContainer, repository, "/src/game/object/C4ObjectScript.cpp");
+		for (String sourceFile : importsContainer.engine().currentSettings().cppSources.split(";"))
+			readMissingFuncsFromSource(importsContainer, repository, sourceFile);
 		if (monitor != null)
 			monitor.done();
 	}

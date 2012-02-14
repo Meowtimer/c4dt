@@ -151,6 +151,8 @@ public class Engine extends Script {
 		@IniField
 		public boolean readDocumentationFromRepository;
 		
+		// Fields related to scanning cpp source files for built-in declarations. 
+		
 		@IniField(category="Source")
 		public String initFunctionMapPattern;
 		@IniField(category="Source")
@@ -165,6 +167,8 @@ public class Engine extends Script {
 		public String addFuncPattern;
 		@IniField(category="Source")
 		public String fnDeclarationPattern;
+		@IniField(category="Source")
+		public String cppSources;
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
 		private transient Map<C4Group.GroupType, String> rfetgtm;
