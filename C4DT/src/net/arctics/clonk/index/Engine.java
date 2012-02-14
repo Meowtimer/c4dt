@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
@@ -35,7 +36,6 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
-import net.arctics.clonk.parser.c4script.openclonk.OCSourceDeclarationsImporter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -167,6 +167,9 @@ public class Engine extends Script {
 		public String addFuncPattern;
 		@IniField(category="Source")
 		public String fnDeclarationPattern;
+		/**
+		 * List of cpp source file paths - relative to a repository - to import declarations from. Used by {@link CPPSourceDeclarationsImporter}
+		 */
 		@IniField(category="Source")
 		public String cppSources;
 		
@@ -401,7 +404,7 @@ public class Engine extends Script {
 		this.clearDeclarations();
 		try {
 			createDeclarationsFromRepositoryDocumentationFiles();
-			OCSourceDeclarationsImporter importer = new OCSourceDeclarationsImporter();
+			CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 			importer.overwriteExistingDeclarations = false;
 			importer.importFromRepository(this, currentSettings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null)

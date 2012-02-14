@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.openclonk;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,29 +10,38 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.DocumentedVariable;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Engine.EngineSettings;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-public class OCSourceDeclarationsImporter {
+/**
+ * Helper to import declarations from source files. Geared towards OpenClonk source.
+ * @author madeen
+ *
+ */
+public class CPPSourceDeclarationsImporter {
 
 	public boolean overwriteExistingDeclarations = true;
 	
+	/**
+	 * Import declarations from a source repository, putting them in the supplied {@link Script} container.
+	 * Source file paths are fetched from the container's engine's settings' {@link EngineSettings#cppSources} 
+	 * @param importsContainer The container to import the declarations into. Usually an {@link Engine}
+	 * @param repository Repository path to prepend to cpp source paths
+	 * @param monitor Monitor used to monitor the progress of the operation.
+	 */
 	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) {
 		// also import from fn list in C4Script.cpp
-		for (String sourceFile : importsContainer.engine().currentSettings().cppSources.split(";"))
-			readMissingFuncsFromSource(importsContainer, repository, sourceFile);
+		for (String sourceFile : importsContainer.engine().currentSettings().cppSources.split(","))
+			readDeclarationsFromSource(importsContainer, repository, sourceFile);
 		if (monitor != null)
 			monitor.done();
 	}
 
-	private void readMissingFuncsFromSource(Script importsContainer, String repository, String sourceFilePath) {
+	private void readDeclarationsFromSource(Script importsContainer, String repository, String sourceFilePath) {
 
 		final int SECTION_None = 0;
 		final int SECTION_InitFunctionMap = 1;

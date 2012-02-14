@@ -10,11 +10,11 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.openclonk.OCSourceDeclarationsImporter;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.UI;
@@ -517,7 +517,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 							try {
 								final Script engine = ClonkCore.instance().getActiveEngine();
 								//engine.clearDeclarations();
-								OCSourceDeclarationsImporter importer = new OCSourceDeclarationsImporter();
+								CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);
 							} catch (Exception e) {
 								e.printStackTrace();
