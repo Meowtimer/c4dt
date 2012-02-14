@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
-import net.arctics.clonk.parser.inireader.FuncRefEntry;
+import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -116,7 +116,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									Index index = Utilities.indexFromResource(r);
 									declaration = index.getDefinitionNearestTo(r, ID.get(value));
 								}
-								else if (entryClass == FuncRefEntry.class) {
+								else if (entryClass == FunctionEntry.class) {
 									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);

@@ -252,7 +252,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
-					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
+					if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 						return;
 					try {
 						try {
@@ -313,7 +313,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				@Override
 				public void run() {
-					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
+					if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 						return;
 					removeMarkers(fn, structure);
 					if (structure.scriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.scriptStorage()) == null) {

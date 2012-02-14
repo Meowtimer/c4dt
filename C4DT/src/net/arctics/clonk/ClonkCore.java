@@ -162,7 +162,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
-					setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+					setActiveEngineByName(ClonkPreferences.valueOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 					for (Engine e : loadedEngines())
 						e.reinitializeDocImporter();
@@ -330,11 +330,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private String engineConfigurationFolder;
 
 	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
-		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+		setActiveEngineByName(ClonkPreferences.valueOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
 	public IPath workspaceStorageLocationForActiveEngine() {
-		return workspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+		return workspaceStorageLocationForEngine(ClonkPreferences.valueOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 	
 	public IPath workspaceStorageLocationForEngine(String engineName) {

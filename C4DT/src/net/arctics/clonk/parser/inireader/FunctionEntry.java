@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 
-public class FuncRefEntry extends NamedReference implements IComplainingIniEntryValue {
+public class FunctionEntry extends NamedReference implements IComplainingIniEntryValue {
 
 	@Override
 	public void complain(ComplexIniEntry context) {

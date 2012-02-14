@@ -34,7 +34,7 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 
-	private boolean showStructureOutlines() {return ClonkPreferences.getPreferenceToggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
+	private boolean showStructureOutlines() {return ClonkPreferences.toggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
 	
 	@Override
 	public Object[] getChildren(Object element) {

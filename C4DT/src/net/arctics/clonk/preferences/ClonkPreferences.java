@@ -37,7 +37,7 @@ public class ClonkPreferences {
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
-	public static String getPreferenceOrDefault(String prefName) {
+	public static String valueOrDefault(String prefName) {
 		String def;
 		try {
 			Field prefField = valueFieldMapping.get(prefName);
@@ -57,10 +57,10 @@ public class ClonkPreferences {
         } catch (Exception e) {
 	        def = null;
         }
-        return getPreference(prefName, def, null);
+        return value(prefName, def, null);
 	}
 	
-	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
+	public static String value(String prefName, String def, IScopeContext[] contexts) {
 		try {
 			return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
 		} catch (Exception e) {
@@ -68,20 +68,20 @@ public class ClonkPreferences {
 		}
 	}
 	
-	public static String getPreference(String prefName) {
-		return getPreference(prefName, null, null);
+	public static String value(String prefName) {
+		return value(prefName, null, null);
 	}
 	
-	public static boolean getPreferenceToggle(String toggleName, boolean defaultValue) {
+	public static boolean toggle(String toggleName, boolean defaultValue) {
 		return Platform.getPreferencesService().getBoolean(ClonkCore.PLUGIN_ID, toggleName, defaultValue, null);
 	}
 	
-	public static String getLanguagePref() {
-		return getPreferenceOrDefault(PREFERRED_LANGID);
+	public static String languagePref() {
+		return valueOrDefault(PREFERRED_LANGID);
 	}
 	
 	public static String getLanguagePrefForDocumentation() {
-		String pref = getLanguagePref();
+		String pref = languagePref();
 		return pref.equals("DE") ? "de" : "en";
 	}
 	

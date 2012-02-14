@@ -35,7 +35,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
- * Configuration page for configuring one engine. At the moment, two such pages are created, parameterized to let the user edit settings for ClonkRage and OpenClonk. respectively.
+ * Configuration page for configuring one {@link Engine}. At the moment, two such pages are created, parameterized to let the user edit settings for ClonkRage and OpenClonk. respectively.
  * @author madeen
  *
  */

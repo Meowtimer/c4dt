@@ -313,12 +313,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				if (obj != null)
 					newDefText = obj.idWithName();
 
-				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
+				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.languagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (descFile instanceof IFile) {
 					newHtml = rtfToHtml(StreamUtil.stringFromFileDocument((IFile) descFile));
 				}
 				else {
-					descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+					descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 					if (descFile instanceof IFile) {
 						newHtml = StreamUtil.stringFromFileDocument((IFile) descFile);
 					}

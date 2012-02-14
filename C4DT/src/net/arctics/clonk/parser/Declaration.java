@@ -427,7 +427,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			if (res == null)
 				return null;
 			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-			String pref = ClonkPreferences.getLanguagePref();
+			String pref = ClonkPreferences.languagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
 				return (StringTbl) Structure.pinned(tblFile, true, false);

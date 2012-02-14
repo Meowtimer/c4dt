@@ -94,7 +94,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	public C4ScriptAutoEditStrategy(C4ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
 		weakListenerManager.addListener(this);
-		disabled = ClonkPreferences.getPreferenceToggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
+		disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
 
 	private static boolean looksLikeIdent(IDocument d, int position) throws BadLocationException {
@@ -331,7 +331,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(ClonkPreferences.NO_AUTOBRACKETPAIRS))
-			disabled = ClonkPreferences.getPreferenceToggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
+			disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
 	
 }

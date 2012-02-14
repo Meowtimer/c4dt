@@ -59,7 +59,7 @@ public class IniDescriptionsLoader {
 	public <T extends IHasUserDescription & IHasName> String descriptionFor(T declaration) {
 		Map<String, String> descs;
 		try {
-			descs = loadDescriptions(ClonkPreferences.getLanguagePref());
+			descs = loadDescriptions(ClonkPreferences.languagePref());
 			return descs != null ? descs.get(declaration.name()) : null;
 		} catch (IOException e) {
 			return null;

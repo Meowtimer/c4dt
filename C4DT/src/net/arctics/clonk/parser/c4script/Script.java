@@ -849,7 +849,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		//requireLoaded();
 		Object f = scriptStorage();
 		if (f instanceof IFile) {
-			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return StreamUtil.stringFromFileDocument((IFile) infoFile);

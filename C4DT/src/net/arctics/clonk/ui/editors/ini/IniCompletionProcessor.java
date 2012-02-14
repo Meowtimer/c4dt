@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
-import net.arctics.clonk.parser.inireader.FuncRefEntry;
+import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -127,7 +127,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
 					proposalsForIntegerEntry(proposals, prefix, wordOffset);
 				}
-				else if (entryClass == FuncRefEntry.class) {
+				else if (entryClass == FunctionEntry.class) {
 					proposalsForFunctionEntry(proposals, prefix, wordOffset);
 				}
 				else if (entryClass == IDArray.class) {

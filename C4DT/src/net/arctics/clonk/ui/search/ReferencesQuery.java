@@ -20,7 +20,7 @@ import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
-import net.arctics.clonk.parser.inireader.FuncRefEntry;
+import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -192,7 +192,7 @@ public class ReferencesQuery extends SearchQueryBase {
 									ComplexIniEntry complex = (ComplexIniEntry) entry;
 									if (complex.entryConfig() != null) {
 										Class<?> entryClass = complex.entryConfig().entryClass();
-										if (entryClass == FuncRefEntry.class) {
+										if (entryClass == FunctionEntry.class) {
 											Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {
 												Declaration declaration = obj.findFunction(complex.stringValue());

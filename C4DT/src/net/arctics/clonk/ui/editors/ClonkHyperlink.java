@@ -118,7 +118,7 @@ public class ClonkHyperlink implements IHyperlink {
 		if (browser != null) {
 			browser.openURL(new URL(String.format(
 				docURLTemplate,
-				functionName, ClonkPreferences.getLanguagePref().toLowerCase()
+				functionName, ClonkPreferences.languagePref().toLowerCase()
 			)));
 		}
 	}

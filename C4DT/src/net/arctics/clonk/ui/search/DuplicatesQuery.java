@@ -97,7 +97,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 	
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
-		boolean ignoreSimpleFunctions = ClonkPreferences.getPreferenceToggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
+		boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
 		
 		detectedDupes.clear();
 		Set<Index> indexes = new HashSet<Index>();

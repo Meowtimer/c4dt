@@ -141,7 +141,7 @@ public class Definition extends Script {
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
-			String preferredName = localizedNames.get(ClonkPreferences.getLanguagePref());
+			String preferredName = localizedNames.get(ClonkPreferences.languagePref());
 			if (preferredName != null)
 				setName(preferredName);
 		}

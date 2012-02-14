@@ -467,7 +467,7 @@ public class Engine extends Script {
 		// dynamically load from repository
 		if (currentSettings().readDocumentationFromRepository) {
 			XMLDocImporter importer = repositoryDocImporter().initialize();
-			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.getLanguagePref(), XMLDocImporter.DOCUMENTATION);
+			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.languagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
 				declaration.setUserDescription(d.description);
 				if (declaration instanceof Function) {
