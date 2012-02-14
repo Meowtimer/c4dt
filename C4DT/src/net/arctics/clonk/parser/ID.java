@@ -8,7 +8,7 @@ import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 
 /**
- * Represents a C4ID.
+ * Represents a C4ID. This class manages a global pool of unique {@link ID} objects and restricts construction of new instances to calling {@link #get(String)}..
  * @author madeen
  *
  */
@@ -20,12 +20,13 @@ public final class ID implements Serializable, ISerializationResolvable {
 	private final String name;
 	
 	private ID(String id) {
-		synchronized (idPool) {
-			name = id;
-			idPool.put(id, this);
-		}
+		name = id;
+		idPool.put(id, this);
 	}
 	
+	/**
+	 * Resolve serialized {@link ID} by returning an interned version of it.
+	 */
 	@Override
 	public ID resolve(Index index) {
 		synchronized (idPool) {
@@ -84,7 +85,11 @@ public final class ID implements Serializable, ISerializationResolvable {
 		return stringValue();
 	}
 
-	public final int length() {
+	/**
+	 * Return the length of this ID's {@link #stringValue()}
+	 * @return The length
+	 */
+	public int length() {
 		return name.length();
 	}
 }

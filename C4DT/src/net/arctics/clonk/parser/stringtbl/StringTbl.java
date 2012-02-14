@@ -218,7 +218,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					EntityRegion region = entryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
 						substitutionsApplied = true;
-						builder.append(((NameValueAssignment)region.concreteDeclaration()).stringValue());
+						builder.append(((NameValueAssignment)region.entityAs(Declaration.class)).stringValue());
 						i += region.region().getLength();
 						reg = region;
 						continue Outer;

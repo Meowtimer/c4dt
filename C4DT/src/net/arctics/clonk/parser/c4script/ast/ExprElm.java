@@ -585,7 +585,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		ITypeable d = GenericStoredTypeInformation.getTypeable(this, parser);
+		ITypeable d = GenericStoredTypeInformation.typeableFromExpression(this, parser);
 		if (d != null && !d.typeIsInvariant()) {
 			return new GenericStoredTypeInformation(this, parser);
 		}
@@ -802,7 +802,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		public GenericStoredTypeInformation(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
 			this.referenceElm = referenceElm;
-			ITypeable typeable = getTypeable(referenceElm, parser);
+			ITypeable typeable = typeableFromExpression(referenceElm, parser);
 			if (typeable != null)
 				this.type = typeable.type();
 		}
@@ -848,17 +848,17 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				return false;
 		}
 		
-		public static ITypeable getTypeable(ExprElm referenceElm, C4ScriptParser parser) {
+		public static ITypeable typeableFromExpression(ExprElm referenceElm, C4ScriptParser parser) {
 			EntityRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
-			if (decRegion != null && decRegion.typedDeclaration() != null)
-				return decRegion.typedDeclaration();
+			if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
+				return decRegion.entityAs(ITypeable.class);
 			else
 				return null;
 		}
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypeable typeable = getTypeable(referenceElm, parser);
+			ITypeable typeable = typeableFromExpression(referenceElm, parser);
 			if (typeable != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)

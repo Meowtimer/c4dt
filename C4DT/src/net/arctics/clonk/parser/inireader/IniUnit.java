@@ -154,7 +154,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key())) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.getStartPos(), entry.key().length() + entry.getStartPos()); 
+			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.start(), entry.key().length() + entry.start()); 
 		}
 		IniDataBase dataItem = sectionConfig.getEntry(entry.key());
 		if (dataItem instanceof IniDataEntry) {
@@ -171,13 +171,13 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 						String value = entry.stringValue();
 						if (value == null)
 							value = ""; //$NON-NLS-1$
-						e.setOffset(entry.getStartPos() + key.length() + 1);
-						e.setEndOffset(entry.getStartPos() + key.length() + 1 + value.length());
+						e.setOffset(entry.start() + key.length() + 1);
+						e.setEndOffset(entry.start() + key.length() + 1 + value.length());
 					}
 					throw e;
 				}
 			} catch (InvalidClassException e) {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.getStartPos(),entry.getStartPos() + entry.key().length());
+				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.start(),entry.start() + entry.key().length());
 			}
 		}
 		else {

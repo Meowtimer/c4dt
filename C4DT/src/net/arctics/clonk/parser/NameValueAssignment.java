@@ -2,15 +2,20 @@ package net.arctics.clonk.parser;
 
 import java.util.Collection;
 
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
+/**
+ * Declaration of some kind consisting basically of a {@link #name()} being assigned a {@link #stringValue()}.
+ * @author madeen
+ *
+ */
 public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -22,13 +27,13 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 		this.name = k;
 		value = v;
 	}
-
-	public int getStartPos() {
-		return location.start();
+	
+	public int start() {
+		return location().start();
 	}
 	
-	public int getEndPos() {
-		return location.end();
+	public int end() {
+		return location().end();
 	}
 
 	@Override
@@ -53,12 +58,12 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 
 	@Override
 	public int getLength() {
-		return getEndPos() - getStartPos();
+		return location().getLength();
 	}
 
 	@Override
 	public int getOffset() {
-		return getStartPos();
+		return location().getOffset();
 	}
 
 	@Override

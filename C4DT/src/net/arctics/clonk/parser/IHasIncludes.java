@@ -8,11 +8,11 @@ import java.util.Set;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Script;
 
 /**
- * Some type that has includes.
+ * Some type that has includes. Most likely some kind of {@link Script}.
  * @author madeen
- *
  */
 public interface IHasIncludes extends IHasSubDeclarations, IType {
 	Collection<? extends IHasIncludes> getIncludes(boolean recursive);

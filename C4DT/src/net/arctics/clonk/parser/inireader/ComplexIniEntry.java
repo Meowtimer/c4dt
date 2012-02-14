@@ -39,7 +39,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 	
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniDataEntry config, boolean createErrorMarkers) {
-		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.key(), entry.stringValue());
+		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
 		cmpl.setParentDeclaration(entry.parentDeclaration());

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
 import java.io.Writer;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.StringUtil;
