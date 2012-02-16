@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.CustomizationNature;
 import net.arctics.clonk.util.StreamUtil;
@@ -118,7 +118,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			resPath = container.getProjectRelativePath();
 			String engineName = resPath.segment(0);
 			resPath = resPath.removeFirstSegments(1);
-			engine = ClonkCore.instance().loadEngine(engineName);
+			engine = Core.instance().loadEngine(engineName);
 			if (engine != null) {
 				Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
 				return filesToReplicate;

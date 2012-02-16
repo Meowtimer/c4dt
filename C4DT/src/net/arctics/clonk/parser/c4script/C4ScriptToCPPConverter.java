@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -178,7 +178,7 @@ public class C4ScriptToCPPConverter {
 			System.out.println(String.format("File %s does not exist", args[0]));
 			return;
 		}
-		ClonkCore.headlessInitialize(engineConfigurationFolder, "OpenClonk");
+		Core.headlessInitialize(engineConfigurationFolder, "OpenClonk");
 		InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
 		String script = StreamUtil.stringFromReader(reader);
 		Index dummyIndex = new Index();

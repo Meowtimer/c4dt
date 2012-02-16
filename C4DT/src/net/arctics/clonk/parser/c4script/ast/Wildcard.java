@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -31,7 +31,7 @@ public class Wildcard extends PropListExpression {
 	public static final String PROP_TEMPLATE = "Template";
 	public static final String PROP_CLASSES = "Classes";
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	/**
 	 * List of ExprElm classes this wildcard accepts as substitute.

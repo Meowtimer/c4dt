@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.actions;
 
 import java.text.DateFormat;
 import java.util.Calendar;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -32,7 +32,7 @@ public class AboutHandler extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		String version = convertVersionStringToReadableInfo(ClonkCore.instance().getBundle().getVersion());
+		String version = convertVersionStringToReadableInfo(Core.instance().getBundle().getVersion());
 		String message = String.format(Messages.AboutHandler_InfoTemplate, version);
 		MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.AboutHandler_Title, message);
 		return null;

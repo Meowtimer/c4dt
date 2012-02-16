@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.Serializable;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.stringtbl.StringTbl;
 import org.eclipse.jface.text.Region;
 
 public class FunctionDescription extends Statement implements Serializable {
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private String contents;
 	public FunctionDescription(String contents) {

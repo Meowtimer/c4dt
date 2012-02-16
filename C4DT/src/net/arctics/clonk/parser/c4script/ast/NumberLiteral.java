@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.Iterator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Operator;
@@ -16,7 +16,7 @@ import net.arctics.clonk.util.ArrayUtil;
 public final class NumberLiteral extends Literal<Long> {
 
 	public static class ZeroType extends SameTypeAsSomeTypeable {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		
 		public ZeroType() {
 			super(null);
@@ -41,7 +41,7 @@ public final class NumberLiteral extends Literal<Long> {
 		}
 	}
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final NumberLiteral ZERO = new NumberLiteral(0);
 	public static final ZeroType ZERO_TYPE = new ZeroType();

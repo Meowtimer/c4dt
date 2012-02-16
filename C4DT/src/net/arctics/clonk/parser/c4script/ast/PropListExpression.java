@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class PropListExpression extends Value {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private ProplistDeclaration definedDeclaration;
 	

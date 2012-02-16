@@ -1,13 +1,13 @@
 package net.arctics.clonk.parser.inireader;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.IPredicate;
 
 public abstract class IniUnitWithNamedSections extends IniUnit {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	public IniUnitWithNamedSections(Object input) {
 		super(input);

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.core.resources.IContainer;
@@ -24,9 +24,9 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 			dropTargetEvent.dataTypes.length == 1 &&
 			FileTransfer.getInstance().isSupportedType(dropTargetEvent.dataTypes[0]))
 		{
-			return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, "Drag"); //$NON-NLS-1$
+			return new Status(IStatus.OK, Core.PLUGIN_ID, "Drag"); //$NON-NLS-1$
 		}
-		return new Status(IStatus.CANCEL, ClonkCore.PLUGIN_ID, "Nope"); //$NON-NLS-1$
+		return new Status(IStatus.CANCEL, Core.PLUGIN_ID, "Nope"); //$NON-NLS-1$
 	}
 
 	@Override

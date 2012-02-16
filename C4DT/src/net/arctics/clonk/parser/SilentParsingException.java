@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 /**
  * Special parsing exception thrown when the error is not supposed to be shown to the user (in form of error markers in the Errors view for example).
@@ -8,7 +8,7 @@ import net.arctics.clonk.ClonkCore;
  */
 public class SilentParsingException extends ParsingException {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Reason reason;
 	

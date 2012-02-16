@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
  */
 public class Literal<T> extends Value {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final T literal;
 
 	@Override

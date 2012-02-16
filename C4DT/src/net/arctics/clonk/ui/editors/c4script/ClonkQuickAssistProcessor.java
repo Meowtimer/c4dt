@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.ClonkCore.IDocumentAction;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -123,7 +123,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				e.printStackTrace();
 				return false;
 			}
-			if (ty.equals(ClonkCore.MARKER_C4SCRIPT_ERROR) || ty.equals(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING)) {
+			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING)) {
 				return fixableParserErrorCodes.contains(ParserErrorCode.getErrorCode(ma.getMarker()));
 			}
 		}
@@ -294,7 +294,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 		public void runOnMarker(IMarker marker) {
 			try {
-				ClonkCore.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
+				Core.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
 						apply(document);
@@ -373,7 +373,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private ExprElm offending;
 		private List<ICompletionProposal> existingList;
 		public ReplacementsList(ExprElm offending, List<ICompletionProposal> existingList) {
@@ -437,12 +437,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			} else if (script != null && script.scriptStorage() instanceof IFile) {
 				needToDisconnect = script.scriptStorage();
 				try {
-					ClonkCore.instance().getTextFileDocumentProvider().connect(needToDisconnect);
+					Core.instance().getTextFileDocumentProvider().connect(needToDisconnect);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					return;
 				}
-				document = ClonkCore.instance().getTextFileDocumentProvider().getDocument(needToDisconnect);
+				document = Core.instance().getTextFileDocumentProvider().getDocument(needToDisconnect);
 			}
 		}
 		try {
@@ -730,7 +730,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 		} finally {
 			if (needToDisconnect != null) {
-				ClonkCore.instance().getTextFileDocumentProvider().disconnect(needToDisconnect);
+				Core.instance().getTextFileDocumentProvider().disconnect(needToDisconnect);
 			}
 		}
 

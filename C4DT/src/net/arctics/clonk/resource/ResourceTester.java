@@ -1,6 +1,6 @@
 package net.arctics.clonk.resource;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -86,7 +86,7 @@ public class ResourceTester extends PropertyTester {
 	/** @return Whether the given resource is inside a project sporting a Clonk project nature */
 	public static boolean isInClonkProject(IResource res) {
 		try {
-			return res.getProject().equals(res.getParent()) && res.getProject().hasNature(ClonkCore.CLONK_NATURE_ID);
+			return res.getProject().equals(res.getParent()) && res.getProject().hasNature(Core.NATURE_ID);
 		} catch (Exception e) {
 			return false;
 		}

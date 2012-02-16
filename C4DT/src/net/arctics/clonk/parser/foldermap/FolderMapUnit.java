@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.foldermap;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.IniUnit;
 
 public class FolderMapUnit extends IniUnit {
@@ -14,6 +14,6 @@ public class FolderMapUnit extends IniUnit {
 		super(input);
 	}
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 }

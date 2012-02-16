@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.runtime.IPath;
@@ -14,7 +14,7 @@ import org.eclipse.core.runtime.Path;
 
 public class C4GroupUncompressed extends C4Group {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public C4GroupUncompressed(C4Group parent, String name, File file) {
 		super(parent, name, file);

@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public class ArrayElementExpression extends Value {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected ExprElm argument;
 
 	@Override

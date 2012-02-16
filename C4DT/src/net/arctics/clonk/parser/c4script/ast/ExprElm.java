@@ -6,7 +6,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -38,7 +38,7 @@ import org.eclipse.jface.text.Region;
  */
 public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final ExprElm NULL_EXPR = new ExprElm();
 	public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
@@ -461,7 +461,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				/**
 				 * 
 				 */
-				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 				@Override
 				protected IType obtainType(DeclarationObtainmentContext context) {

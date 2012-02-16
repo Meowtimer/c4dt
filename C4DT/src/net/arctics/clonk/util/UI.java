@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
@@ -77,7 +77,7 @@ public abstract class UI {
 	 */
 	public static Image functionIcon(Function function) {
 		String iconName = function.visibility().name().toLowerCase();
-		return ClonkCore.instance().getIconImage(iconName);
+		return Core.instance().getIconImage(iconName);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public abstract class UI {
 	 */
 	public static Image variableIcon(Variable variable) {
 		String iconName = variable.scope().toString().toLowerCase();
-		return ClonkCore.instance().getIconImage(iconName);
+		return Core.instance().getIconImage(iconName);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public abstract class UI {
 
 	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
 		String path = url.toExternalForm();
-		ImageRegistry reg = ClonkCore.instance().getImageRegistry();
+		ImageRegistry reg = Core.instance().getImageRegistry();
 		Object result;
 		while ((result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path)) == null)
 			reg.put(path, ImageDescriptor.createFromURL(url));
@@ -135,7 +135,7 @@ public abstract class UI {
 	}
 	
 	private static Object imageThingieForPath(String path, boolean returnDescriptor) {
-		return imageThingieForURL(FileLocator.find(ClonkCore.instance().getBundle(), new Path(path), null), returnDescriptor);
+		return imageThingieForURL(FileLocator.find(Core.instance().getBundle(), new Path(path), null), returnDescriptor);
 	}
 	
 	public static ImageDescriptor imageDescriptorForPath(String path) {
@@ -230,7 +230,7 @@ public abstract class UI {
 	}
 	
 	public static void message(String message, int kind) {
-		MessageDialog.open(kind, null, ClonkCore.HUMAN_READABLE_NAME, message, SWT.NONE);
+		MessageDialog.open(kind, null, Core.HUMAN_READABLE_NAME, message, SWT.NONE);
 	}
 	
 	public static void message(String message) {

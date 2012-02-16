@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -68,7 +68,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class Index extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private transient static final IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
 		@Override
@@ -161,12 +161,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public Definition getDefinition(IContainer folder) {
 		try {
 			// fetch from session cache
-			if (folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != null)
-				return (Definition) folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID);
+			if (folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID) != null)
+				return (Definition) folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID);
 			
 			// create session cache
-			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			Iterable<? extends Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
+			Iterable<? extends Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for (Definition obj : objects) {
 					if ((obj instanceof Definition)) {
@@ -325,7 +325,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	/**
 	 * Remove a {@link Definition} from this index.<br>
 	 * {@link #refreshIndex()} will need to be called manually after this.
-	 * No attempts are made to remove session properties from affected resources (see {@link ClonkCore#FOLDER_DEFINITION_REFERENCE_ID})
+	 * No attempts are made to remove session properties from affected resources (see {@link Core#FOLDER_DEFINITION_REFERENCE_ID})
 	 * @param definition The {@link Definition} to remove from the index
 	 */
 	public void removeDefinition(Definition definition) {
@@ -635,7 +635,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	@Override
 	public Engine engine() {
-		return ClonkCore.instance().getActiveEngine();
+		return Core.instance().getActiveEngine();
 	}
 	
 	@Override
@@ -801,7 +801,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private static class EntityId implements Serializable, ISerializationResolvable {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		protected long referencedEntityId;
 		protected Object referencedEntityToken;
 		public EntityId(IndexEntity referencedEntity) {
@@ -841,7 +841,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private static class EntityReference extends EntityId {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		protected String referencedProjectName;
 		public EntityReference(IndexEntity referencedEntity) {
 			super(referencedEntity);
@@ -869,7 +869,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			this.containingEntity = declaration.firstParentDeclarationOfType(IndexEntity.class);
 			this.declarationPath = declaration.pathRelativeToIndexEntity();
 		}
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Declaration resolve(Index index) {
 			if (containingEntity instanceof Structure)
@@ -880,14 +880,14 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private static class EngineRef implements Serializable, ISerializationResolvable {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String engineName;
 		public EngineRef(Engine engine) {
 			this.engineName = engine.name();
 		}
 		@Override
 		public Object resolve(Index index) {
-			return ClonkCore.instance().loadEngine(engineName);
+			return Core.instance().loadEngine(engineName);
 		}
 	}
 	

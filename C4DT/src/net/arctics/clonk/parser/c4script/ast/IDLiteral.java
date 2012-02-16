@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.EntityRegion;
@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public final class IDLiteral extends Literal<ID> {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public IDLiteral(ID literal) {
 		super(literal);

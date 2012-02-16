@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -1400,7 +1400,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	private static final class TempScript extends Script {
 		private final String expression;
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		private TempScript(String expression) {
 			super(new Index() {
@@ -1641,7 +1641,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.container = parser.containingScript();
 		}
 		public IMarker deploy() {
-			IMarker result = code.createMarker(scriptFile, container, ClonkCore.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
+			IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
 			if (cf != null)
 				ParserErrorCode.setDeclarationTag(result, cf.makeNameUniqueToParent());
 			IRegion exprLocation = reporter;

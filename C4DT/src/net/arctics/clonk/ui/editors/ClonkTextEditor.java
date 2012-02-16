@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationLocation;
@@ -241,7 +241,7 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
-	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.actionsBundle")); //$NON-NLS-1$
+	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
 	
 	@Override
 	protected void createActions() {
@@ -396,7 +396,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void initializeKeyBindingScopes() {
 		super.initializeKeyBindingScopes();
-	//	setKeyBindingScopes(new String[] { ClonkCore.CLONK_CONTEXT_ID });
+		setKeyBindingScopes(new String[] { Core.CONTEXT_ID });
 	}
 	
 }

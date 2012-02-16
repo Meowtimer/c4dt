@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
@@ -21,7 +21,7 @@ import net.arctics.clonk.index.Index;
  */
 public class TypeSet implements IType, ISerializationResolvable, IResolvableType {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private static List<TypeSet> typeSets = new LinkedList<TypeSet>();
 	

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -54,7 +54,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 	}
 
 	private ImageDescriptor getIcon(String name) {
-		ImageRegistry reg = ClonkCore.instance().getImageRegistry();
+		ImageRegistry reg = Core.instance().getImageRegistry();
 		if (reg.get(name) == null) {
 			reg.put(name, UI.imageDescriptorForPath("icons/" + name)); //$NON-NLS-1$
 		}

@@ -13,7 +13,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -90,7 +90,7 @@ public class StreamUtil {
 	}
 
 	public static String stringFromFileDocument(IFile file) {
-		TextFileDocumentProvider provider = ClonkCore.instance().getTextFileDocumentProvider();
+		TextFileDocumentProvider provider = Core.instance().getTextFileDocumentProvider();
 		try {
 			provider.connect(file);
 		} catch (CoreException e) {

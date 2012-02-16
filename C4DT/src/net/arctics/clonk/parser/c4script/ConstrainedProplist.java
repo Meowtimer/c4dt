@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -19,7 +19,7 @@ import net.arctics.clonk.util.Utilities;
  */
 public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclarations, IHasIncludes {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private IHasIncludes constraint;
 	private ConstraintKind constraintKind;

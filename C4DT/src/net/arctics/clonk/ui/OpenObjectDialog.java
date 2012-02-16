@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -85,9 +85,9 @@ public class OpenObjectDialog extends EntityChooser {
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
-		IDialogSettings settings = ClonkCore.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
+		IDialogSettings settings = Core.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
 		if (settings == null)
-			settings = ClonkCore.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
+			settings = Core.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
 		return settings;
 	}
 

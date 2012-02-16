@@ -9,7 +9,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -194,7 +194,7 @@ public class IniData {
 			if (name.equals("C4ID")) //$NON-NLS-1$
 				return ID.class;
 			if (!name.contains(".")) { //$NON-NLS-1$
-				name = ClonkCore.id("parser.inireader."+name); //$NON-NLS-1$
+				name = Core.id("parser.inireader."+name); //$NON-NLS-1$
 			}
 			try {
 				return Class.forName(name);

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -93,7 +93,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		if (monitor != null)
 			monitor.beginTask(Messages.Exporting, numTotal);
 		IPreferencesService service = Platform.getPreferencesService();
-		final boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
+		final boolean showExportLog = service.getBoolean(Core.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		for (Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
 			final String c4groupPath = byEngine.getKey().currentSettings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {

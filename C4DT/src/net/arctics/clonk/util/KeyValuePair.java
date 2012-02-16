@@ -4,12 +4,12 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.IPath;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.EntrySubItem;
 
 public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext, ITreeNode {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public KeyValuePair(First first, Second second) {
 		super(first, second);

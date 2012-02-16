@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
@@ -39,13 +39,13 @@ import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
 public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 	
-	public static final String LAUNCH_TYPE = ClonkCore.id("debug.ClonkLaunch"); //$NON-NLS-1$
+	public static final String LAUNCH_TYPE = Core.id("debug.ClonkLaunch"); //$NON-NLS-1$
 	
-	public static final String ATTR_PROJECT_NAME = ClonkCore.id("debug.ProjectNameAttr"); //$NON-NLS-1$
-	public static final String ATTR_SCENARIO_NAME = ClonkCore.id("debug.ScenarioNameAttr"); //$NON-NLS-1$
-	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr"); //$NON-NLS-1$
-	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr"); //$NON-NLS-1$
-	public static final String ATTR_CUSTOMARGS = ClonkCore.id("debug.CustomArgs"); //$NON-NLS-1$
+	public static final String ATTR_PROJECT_NAME = Core.id("debug.ProjectNameAttr"); //$NON-NLS-1$
+	public static final String ATTR_SCENARIO_NAME = Core.id("debug.ScenarioNameAttr"); //$NON-NLS-1$
+	public static final String ATTR_FULLSCREEN = Core.id("debug.FullscreenAttr"); //$NON-NLS-1$
+	public static final String ATTR_RECORD = Core.id("debug.RecordAttr"); //$NON-NLS-1$
+	public static final String ATTR_CUSTOMARGS = Core.id("debug.CustomArgs"); //$NON-NLS-1$
 	
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
@@ -108,10 +108,10 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	
 	/** Helper for throwing CoreException objects */
 	public void abort(int severity, String message) throws CoreException {
-		throw new CoreException(new Status(severity, ClonkCore.PLUGIN_ID, message));
+		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message));
 	}
 	public void abort(int severity, String message, Throwable nested) throws CoreException {
-		throw new CoreException(new Status(severity, ClonkCore.PLUGIN_ID, message, nested));
+		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message, nested));
 	}
 	
 	/** 

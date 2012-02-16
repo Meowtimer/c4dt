@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.Arrays;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
@@ -104,7 +104,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private VarInitialization[] varInitializations;
 	private Scope scope;
 

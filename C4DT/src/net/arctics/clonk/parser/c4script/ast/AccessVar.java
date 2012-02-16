@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -32,7 +32,7 @@ import org.eclipse.jface.text.IRegion;
  */
 public class AccessVar extends AccessDeclaration {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
@@ -177,7 +177,7 @@ public class AccessVar extends AccessDeclaration {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(declarationName(), Variable.Scope.VAR) {
-							private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+							private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 							@Override
 							public String infoText() {

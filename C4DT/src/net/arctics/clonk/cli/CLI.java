@@ -2,7 +2,7 @@ package net.arctics.clonk.cli;
 
 import java.util.Scanner;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 
@@ -24,7 +24,7 @@ public class CLI implements IApplication {
 			engineConfigurationFolder = args[0];
 		else
 			engineConfigurationFolder = System.getenv().get("C4DTENGINECONFIGURATIONCLI");
-		ClonkCore.headlessInitialize(engineConfigurationFolder, "OpenClonk");
+		Core.headlessInitialize(engineConfigurationFolder, "OpenClonk");
 		while (!done) {
 			String command = scanner.nextLine();
 			ExecutableScript script = Command.executableScriptFromCommand(command);

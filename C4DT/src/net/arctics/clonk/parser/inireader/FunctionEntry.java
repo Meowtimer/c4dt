@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ParserErrorCode;
 
@@ -18,7 +18,7 @@ public class FunctionEntry extends NamedReference implements IComplainingIniEntr
 		if (f != null) {
 			Definition obj = Definition.definitionCorrespondingToFolder(f.getParent());
 			if (obj != null && obj.findFunction(this.toString()) == null)
-				iniUnit.markerAtValue(ClonkCore.MARKER_C4SCRIPT_ERROR, ParserErrorCode.UndeclaredIdentifier, context, IMarker.SEVERITY_ERROR, toString());
+				iniUnit.markerAtValue(Core.MARKER_C4SCRIPT_ERROR, ParserErrorCode.UndeclaredIdentifier, context, IMarker.SEVERITY_ERROR, toString());
 		}
 	}
 

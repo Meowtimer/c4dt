@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
 
@@ -31,8 +31,8 @@ import org.eclipse.ui.navigator.CommonNavigator;
 
 public class ColorTagging extends ContributionItem {
 	
-	public static final QualifiedName COLOR_TAG = new QualifiedName(ClonkCore.PLUGIN_ID, "colorTag"); //$NON-NLS-1$
-	public static final QualifiedName COLOR_RGB = new QualifiedName(ClonkCore.PLUGIN_ID, "colorRGB"); //$NON-NLS-1$
+	public static final QualifiedName COLOR_TAG = new QualifiedName(Core.PLUGIN_ID, "colorTag"); //$NON-NLS-1$
+	public static final QualifiedName COLOR_RGB = new QualifiedName(Core.PLUGIN_ID, "colorRGB"); //$NON-NLS-1$
 	
 	private static final Map<String, RGB> existingTags = new HashMap<String, RGB>();
 	

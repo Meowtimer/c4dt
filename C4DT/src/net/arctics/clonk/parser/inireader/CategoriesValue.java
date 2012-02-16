@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
@@ -70,7 +70,7 @@ public class CategoriesValue {
 		}
 		else for (String part : parts) {
 			part = part.trim();
-			Variable var = ClonkCore.instance().getActiveEngine().findVariable(part);
+			Variable var = Core.instance().getActiveEngine().findVariable(part);
 			if (var == null) {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 			}

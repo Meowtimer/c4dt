@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -103,7 +103,7 @@ public class Definition extends Script {
 		
 		if (definitionFolder != null) {
 			try {
-				definitionFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
+				definitionFolder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -215,7 +215,7 @@ public class Definition extends Script {
 	 *
 	 */
 	public final class ProxyVar extends Variable {
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		@Override
 		public String name() {
@@ -273,7 +273,7 @@ public class Definition extends Script {
 		
 	}
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	protected transient IContainer definitionFolder;
 	protected String relativePath;
@@ -387,16 +387,16 @@ public class Definition extends Script {
 		if (Utilities.objectsEqual(folder, definitionFolder))
 			return;
 		if (definitionFolder != null && definitionFolder.exists())
-			definitionFolder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, null);
+			definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);
 		// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
 		// (see ClonkIndex.getLatestVersion)
 		definitionFolder = folder != null ? folder : definitionFolder;
 		if (folder != null) {
-			folder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, this);
+			folder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (id() != null)
-				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
+				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			else
-				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
+				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
 			//index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -81,7 +81,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (groupType == GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {
-					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
+					String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
 					return getIDText(folder.getName(), c4id, false);
 				} catch (CoreException e) {
 					e.printStackTrace();

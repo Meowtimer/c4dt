@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -51,7 +51,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		public void readStream(InputStream stream);
 	}
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
 		getParentGroup().readFromStream(whoWantsThat, pos, callback);
@@ -580,7 +580,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
-		throw new CoreException(new Status(1, ClonkCore.PLUGIN_ID, "FileStore stream cannot be opened on C4Group")); //$NON-NLS-1$
+		throw new CoreException(new Status(1, Core.PLUGIN_ID, "FileStore stream cannot be opened on C4Group")); //$NON-NLS-1$
 	}
 	
 	public long lastModified() {

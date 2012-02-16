@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.EnumSet;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 /**
@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
  */
 public class Block extends Statement {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private Statement[] statements;
 	
 	public Block(List<Statement> statements) {

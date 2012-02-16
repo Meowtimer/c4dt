@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -48,7 +48,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 				messageBuilder.append(superInfo);
 		}
 		try {
-			IMarker[] markers = scriptFile.findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
+			IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
 			boolean foundSomeMarkers = false;
 			for (IMarker m : markers) {
 				int charStart;

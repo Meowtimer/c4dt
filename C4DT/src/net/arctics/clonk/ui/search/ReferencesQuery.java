@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -174,7 +174,7 @@ public class ReferencesQuery extends SearchQueryBase {
 			e.printStackTrace();
 		}
 		
-		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
+		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 
 	private void searchScriptRelatedFiles(Script script) throws CoreException {

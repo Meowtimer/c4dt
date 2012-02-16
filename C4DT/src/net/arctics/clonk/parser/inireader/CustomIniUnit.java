@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -153,5 +153,5 @@ public class CustomIniUnit extends IniUnit {
 		commitTo(obj);
 	}
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 }

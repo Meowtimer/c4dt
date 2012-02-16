@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.wizards;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
@@ -97,9 +97,9 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	@Override
 	public Engine getEngine(boolean fallbackToDefault) {
 		engineEditor.store();
-		Engine engine = ClonkCore.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
+		Engine engine = Core.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
 		if (fallbackToDefault && engine == null)
-			engine = ClonkCore.instance().getActiveEngine();
+			engine = Core.instance().getActiveEngine();
 		return engine;
 	}
 	

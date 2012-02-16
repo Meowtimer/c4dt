@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.lang.ref.WeakReference;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -19,7 +19,7 @@ import org.eclipse.ui.IStorageEditorInput;
 
 public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
-	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
+	private static final String FACTORY_ID = Core.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
 	private WeakReference<Script> script;
 	
@@ -38,7 +38,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	public ImageDescriptor getImageDescriptor() {
-		return ClonkCore.instance().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
+		return Core.instance().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
 	}
 
 	@Override

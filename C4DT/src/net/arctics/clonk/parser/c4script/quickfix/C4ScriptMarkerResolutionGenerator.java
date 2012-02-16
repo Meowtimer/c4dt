@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.quickfix;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.c4script.ClonkQuickAssistProcessor;
 import net.arctics.clonk.ui.editors.c4script.ClonkQuickAssistProcessor.ParameterizedProposal;
@@ -36,8 +36,8 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		try {
 			return
 				ClonkQuickAssistProcessor.getSingleton() != null &&
-				(marker.getType().equals(ClonkCore.MARKER_C4SCRIPT_ERROR) ||
-				 marker.getType().equals(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING));
+				(marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR) ||
+				 marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING));
 		} catch (CoreException e) {
 			return false;
 		}

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
@@ -32,7 +32,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 
 	@Override
 	public void init(IWorkbench workbench) {
-		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
+		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
 	
 	@Override

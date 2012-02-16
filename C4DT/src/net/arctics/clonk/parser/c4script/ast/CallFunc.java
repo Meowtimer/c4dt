@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -50,7 +50,7 @@ import org.eclipse.jface.text.Region;
  */
 public class CallFunc extends AccessDeclaration {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private final static class FunctionReturnTypeInformation extends StoredTypeInformation {
 		private Function function;

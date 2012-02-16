@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
@@ -36,7 +36,7 @@ public class Command {
 
 	static {
 		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
-			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public IStorage scriptStorage() {
 				try {
@@ -72,7 +72,7 @@ public class Command {
 
 	private static class NativeCommandFunction extends Function {
 
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		private final transient Method method;
 
@@ -127,7 +127,7 @@ public class Command {
 		@CommandFunction
 		public static void OpenDoc(Object context, String funcName) {
 			try {
-				ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.instance().getActiveEngine());
+				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().getActiveEngine());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -141,7 +141,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
-			Engine engine = ClonkCore.instance().loadEngine(engineName);
+			Engine engine = Core.instance().loadEngine(engineName);
 			FileOutputStream stream = new FileOutputStream(fileName);
 			Writer writer = new OutputStreamWriter(stream);
 			engine.writeEngineScript(writer);
@@ -160,7 +160,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
-			Engine engine = ClonkCore.instance().loadEngine(engineName);
+			Engine engine = Core.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
@@ -169,11 +169,11 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(ClonkCore.instance().getActiveEngine().currentSettings(), name, value);
+			setFieldValue(Core.instance().getActiveEngine().currentSettings(), name, value);
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
-			Engine engine = ClonkCore.instance().getActiveEngine();
+			Engine engine = Core.instance().getActiveEngine();
 			setFieldValue(
 					engine.intrinsicSettings(), name,
 					engine.currentSettings().getClass().getField(name).get(engine.currentSettings())

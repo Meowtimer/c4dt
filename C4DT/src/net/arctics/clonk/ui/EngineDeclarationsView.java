@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -323,7 +323,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	 * The constructor.
 	 */
 	public EngineDeclarationsView() {
-		ClonkCore.instance().getPreferenceStore().addPropertyChangeListener(this);
+		Core.instance().getPreferenceStore().addPropertyChangeListener(this);
 	}
 
 	/**
@@ -356,7 +356,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	 * Refreshes this viewer completely with information freshly obtained from this viewer's model.
 	 */
 	public void refresh() {
-		viewer.setInput(ClonkCore.instance().getActiveEngine());
+		viewer.setInput(Core.instance().getActiveEngine());
 		//viewer.refresh();
 	}
 	
@@ -420,7 +420,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Window.OK) {
-					ClonkCore.instance().getActiveEngine().addDeclaration(func);
+					Core.instance().getActiveEngine().addDeclaration(func);
 				}
 				refresh();
 			}
@@ -437,7 +437,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Window.OK) {
-					ClonkCore.instance().getActiveEngine().addDeclaration(var);
+					Core.instance().getActiveEngine().addDeclaration(var);
 				}
 				refresh();
 			}
@@ -474,7 +474,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof Declaration) {
-							ClonkCore.instance().getActiveEngine().removeDeclaration((Declaration) selectedItem);
+							Core.instance().getActiveEngine().removeDeclaration((Declaration) selectedItem);
 						}
 					}
 					refresh();
@@ -489,7 +489,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			@Override
 			public void run() {
 				try {
-					ClonkCore.instance().getActiveEngine().writeEngineScript();
+					Core.instance().getActiveEngine().writeEngineScript();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -506,7 +506,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = ClonkCore.instance().getActiveEngine().currentSettings().repositoryPath;
+					final String repo = Core.instance().getActiveEngine().currentSettings().repositoryPath;
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
@@ -515,7 +515,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final Script engine = ClonkCore.instance().getActiveEngine();
+								final Script engine = Core.instance().getActiveEngine();
 								//engine.clearDeclarations();
 								CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);
@@ -537,7 +537,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			@Override
 			public void run() {
 			    try {
-	                ClonkCore.instance().loadActiveEngine();
+	                Core.instance().loadActiveEngine();
                 } catch (Exception e) { 
 	                e.printStackTrace();
                 }
@@ -553,12 +553,12 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				InputDialog dialog = new InputDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 						Messages.SpecifyEngineName, Messages.SpecifyEngineNameDesc,
-						ClonkCore.instance().getActiveEngine().name(),
+						Core.instance().getActiveEngine().name(),
 						null
 				);
 				switch (dialog.open()) {				
 				case Window.OK:
-					ClonkCore.instance().exportEngineToXMLInWorkspace(dialog.getValue());
+					Core.instance().exportEngineToXMLInWorkspace(dialog.getValue());
 					break;
 				}
 			}
@@ -600,7 +600,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	
 	@Override
 	public void dispose() {
-		ClonkCore.instance().getPreferenceStore().removePropertyChangeListener(this);
+		Core.instance().getPreferenceStore().removePropertyChangeListener(this);
 	}
 	
 }

@@ -2,7 +2,7 @@ package net.arctics.clonk.resource;
 
 import java.net.URI;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
@@ -14,7 +14,7 @@ import org.eclipse.core.runtime.CoreException;
 
 public class CustomizationNature implements IProjectNature {
 
-	public static final String NATURE_ID = ClonkCore.id("c4dt_customization");
+	public static final String NATURE_ID = Core.id("c4dt_customization");
 	
 	private IProject project;
 	
@@ -68,8 +68,8 @@ public class CustomizationNature implements IProjectNature {
 			e.printStackTrace();
 			return null;
 		}
-		for (String engineName : ClonkCore.instance().namesOfAvailableEngines()) {
-			URI workspaceStorageURI = URIUtil.toURI(ClonkCore.instance().workspaceStorageLocationForEngine(engineName));			
+		for (String engineName : Core.instance().namesOfAvailableEngines()) {
+			URI workspaceStorageURI = URIUtil.toURI(Core.instance().workspaceStorageLocationForEngine(engineName));			
 			try {
 				newProject.getFolder(engineName).createLink(workspaceStorageURI, 0, null);
 			} catch (CoreException e) {

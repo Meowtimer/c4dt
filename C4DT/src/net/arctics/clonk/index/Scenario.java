@@ -1,6 +1,6 @@
 package net.arctics.clonk.index;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ID;
 
 import org.eclipse.core.resources.IContainer;
@@ -21,6 +21,6 @@ public class Scenario extends Definition {
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 }

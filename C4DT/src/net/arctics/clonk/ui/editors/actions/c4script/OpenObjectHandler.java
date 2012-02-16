@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.ui.OpenObjectDialog;
@@ -15,7 +15,7 @@ public class OpenObjectHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		OpenObjectDialog dialog = new OpenObjectDialog(ClonkCore.instance().getWorkbench().getActiveWorkbenchWindow().getShell());
+		OpenObjectDialog dialog = new OpenObjectDialog(Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell());
 		switch (dialog.open()) {
 		case Window.OK:
 			for (Definition o : dialog.getSelectedObjects()) {

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
@@ -178,7 +178,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public String getIdentifier() {
-		return ClonkCore.id("refactoring.renameDeclaration"); //$NON-NLS-1$
+		return Core.id("refactoring.renameDeclaration"); //$NON-NLS-1$
 	}
 
 	@Override

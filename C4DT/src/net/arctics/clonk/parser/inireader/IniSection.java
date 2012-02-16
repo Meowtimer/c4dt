@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
@@ -23,7 +23,7 @@ public class IniSection extends Declaration implements
 		IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>,
 		IniItem {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private Map<String, IniItem> itemMap;
 	private List<IniItem> itemList;

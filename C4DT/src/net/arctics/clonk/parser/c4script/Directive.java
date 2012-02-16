@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public class Directive extends Declaration implements Serializable {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public enum DirectiveType {
 		STRICT,
@@ -80,7 +80,7 @@ public class Directive extends Declaration implements Serializable {
 	 */
 	public ExprElm asExpression() {
 		return new ExprElm() {
-			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public int start() {
 				return location().start();

@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -62,7 +62,7 @@ public class ClonkPreferences {
 	
 	public static String value(String prefName, String def, IScopeContext[] contexts) {
 		try {
-			return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+			return Platform.getPreferencesService().getString(Core.PLUGIN_ID, prefName, def, contexts);
 		} catch (Exception e) {
 			return def;
 		}
@@ -73,7 +73,7 @@ public class ClonkPreferences {
 	}
 	
 	public static boolean toggle(String toggleName, boolean defaultValue) {
-		return Platform.getPreferencesService().getBoolean(ClonkCore.PLUGIN_ID, toggleName, defaultValue, null);
+		return Platform.getPreferencesService().getBoolean(Core.PLUGIN_ID, toggleName, defaultValue, null);
 	}
 	
 	public static String languagePref() {

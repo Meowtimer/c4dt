@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ui.wizards.Messages;
 import net.arctics.clonk.util.Utilities;
 
@@ -47,7 +47,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 			File gf = groupFiles[i];
 			if (new File(destinationFile, gf.getName()).equals(gf)) {
 				if (importingFolder == null)
-					importingFolder = ClonkCore.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
+					importingFolder = Core.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
 				File fileMoveDestination = new File(importingFolder, gf.getName());
 				if (gf.renameTo(fileMoveDestination)) {
 					groupFiles[i] = fileMoveDestination;

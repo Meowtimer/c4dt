@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -67,7 +67,7 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
  */
 public class Engine extends Script {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static class EngineSettings extends SettingsBase {
 
@@ -584,7 +584,7 @@ public class Engine extends Script {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, name()));
+				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", Core.PLUGIN_ID, name()));
 			specialScriptRules = rulesClass.newInstance();
 			specialScriptRules.initialize();
 		} catch (ClassNotFoundException e) {

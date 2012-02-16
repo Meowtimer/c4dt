@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
@@ -168,9 +168,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
-		IDialogSettings settings = ClonkCore.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
+		IDialogSettings settings = Core.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
 		if (settings == null) {
-			settings = ClonkCore.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
+			settings = Core.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
 		}
 		return settings;
 	}

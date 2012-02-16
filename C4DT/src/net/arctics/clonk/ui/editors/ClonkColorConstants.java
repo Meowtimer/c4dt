@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.swt.graphics.RGB;
@@ -51,10 +51,10 @@ public class ClonkColorConstants {
 	
 	public static RGB getColor(String prefName) {
 		String actualPrefName = actualPrefName(prefName);
-		RGB result = PreferenceConverter.getColor(ClonkCore.instance().getPreferenceStore(), actualPrefName);
+		RGB result = PreferenceConverter.getColor(Core.instance().getPreferenceStore(), actualPrefName);
 		if (result == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
 			result = defaultColor(prefName);
-			PreferenceConverter.setValue(ClonkCore.instance().getPreferenceStore(), actualPrefName, result);
+			PreferenceConverter.setValue(Core.instance().getPreferenceStore(), actualPrefName, result);
 		}
 		return result;
 	}

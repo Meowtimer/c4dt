@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.playercontrols;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
 public class PlayerControlsUnit extends IniUnitWithNamedSections {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private final List<Variable> controlVariables = new LinkedList<Variable>();
 	

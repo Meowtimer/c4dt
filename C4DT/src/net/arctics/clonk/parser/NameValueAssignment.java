@@ -2,7 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.util.Collection;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -18,7 +18,7 @@ import org.eclipse.jface.text.Region;
  */
 public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private String value;
 	

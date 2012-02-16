@@ -13,7 +13,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
@@ -71,7 +71,7 @@ import org.eclipse.ui.part.*;
  */
 public class ClonkPreviewView extends ViewPart implements ISelectionListener, ControlListener {
 
-	public static final String ID = ClonkCore.id("views.ClonkPreviewView"); //$NON-NLS-1$
+	public static final String ID = Core.id("views.ClonkPreviewView"); //$NON-NLS-1$
 	private static final float LANDSCAPE_PREVIEW_SCALE = 0.5f;
 	
 	private final class PreviewUpdaterJob extends Job {

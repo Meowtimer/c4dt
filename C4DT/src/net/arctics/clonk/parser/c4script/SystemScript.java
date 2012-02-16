@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -21,7 +21,7 @@ import org.eclipse.core.runtime.Path;
  */
 public class SystemScript extends Script implements Serializable {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private transient IFile scriptFile;
 	private String scriptFilePath;
@@ -50,10 +50,10 @@ public class SystemScript extends Script implements Serializable {
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
-			scriptFile.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, null);
+			scriptFile.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
 		scriptFile = f;
 		if (f != null) { 
-			f.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, this);
+			f.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
 			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.index() : null;
 		}

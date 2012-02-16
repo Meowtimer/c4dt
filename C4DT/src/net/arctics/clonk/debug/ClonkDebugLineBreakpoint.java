@@ -1,6 +1,6 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 
 import org.eclipse.core.resources.IMarker;
@@ -23,7 +23,7 @@ public class ClonkDebugLineBreakpoint extends LineBreakpoint {
 		IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
 			@Override
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker(ClonkCore.id("breakpointMarker")); //$NON-NLS-1$
+				IMarker marker = resource.createMarker(Core.id("breakpointMarker")); //$NON-NLS-1$
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
 				marker.setAttribute(IBreakpoint.ENABLED, true);
 				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());

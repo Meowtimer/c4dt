@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.Iterator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -29,7 +29,7 @@ public class EditorUtil {
 								IEditorPart part = refs[i].getEditor(true);
 								IFile file = Utilities.fileBeingEditedBy(part);
 								try {
-									if (file != null && file.getProject().hasNature(ClonkCore.CLONK_NATURE_ID)) {
+									if (file != null && file.getProject().hasNature(Core.NATURE_ID)) {
 										if (part.isDirty()) {
 											next = part;
 											index = i;

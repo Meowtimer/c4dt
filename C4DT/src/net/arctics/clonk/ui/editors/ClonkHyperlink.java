@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectResource;
@@ -85,7 +85,7 @@ public class ClonkHyperlink implements IHyperlink {
 	}
 
 	private void chooseDeclarations() {
-		EntityChooser chooser = new EntityChooser(ClonkCore.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
+		EntityChooser chooser = new EntityChooser(Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
 		chooser.run();
 	}
 
@@ -132,7 +132,7 @@ public class ClonkHyperlink implements IHyperlink {
 		String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (ClonkCore.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
+		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
 			browser = support.getExternalBrowser();
 		}
 		else {

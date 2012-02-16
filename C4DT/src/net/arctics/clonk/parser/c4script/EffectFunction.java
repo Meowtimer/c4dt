@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 /**
  * One of the Fx* functions
@@ -12,7 +12,7 @@ import net.arctics.clonk.ClonkCore;
  */
 public class EffectFunction extends Function {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final String FUNCTION_NAME_PREFIX = "Fx"; //$NON-NLS-1$
 	public static final String FUNCTION_NAME_FORMAT = FUNCTION_NAME_PREFIX + "%s%s"; 
 	

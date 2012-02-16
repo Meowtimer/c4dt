@@ -29,7 +29,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -70,7 +70,7 @@ import org.xml.sax.SAXException;
  */
 public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	protected transient List<Function> definedFunctions;
 	protected transient List<Variable> definedVariables;

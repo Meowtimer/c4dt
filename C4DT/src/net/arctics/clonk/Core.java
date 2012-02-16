@@ -65,24 +65,24 @@ import org.xml.sax.SAXException;
 /**
  * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
  */
-public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
+public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 	
 	public static final String HUMAN_READABLE_NAME = Messages.ClonkCore_HumanReadableName;
 	
 	/**
 	 * The Plugin-ID
 	 */
-	public static final String PLUGIN_ID = ClonkCore.class.getPackage().getName();
+	public static final String PLUGIN_ID = Core.class.getPackage().getName();
 
 	/**
 	 * id for Clonk project natures
 	 */
-	public static final String CLONK_NATURE_ID = id("clonknature"); //$NON-NLS-1$
+	public static final String NATURE_ID = id("clonknature"); //$NON-NLS-1$
 	
 	/**
 	 * Binding context for Clonk related editing activities
 	 */
-	public static final String CLONK_CONTEXT_ID = id("context");
+	public static final String CONTEXT_ID = id("context");
 
 	/**
 	 * id for error markers that denote errors in a script
@@ -114,7 +114,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * Shared instance
 	 */
-	private static ClonkCore plugin;
+	private static Core instance;
 
 	/**
 	 * Provider used by the plugin to provide text of documents
@@ -125,7 +125,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * The constructor
 	 * @throws IOException 
 	 */
-	public ClonkCore() {
+	public Core() {
 	}
 	
 	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
@@ -149,7 +149,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			versionFromLastRun = new Version(0, 5, 0); // oold
 		}
 		
-		plugin = this;
+		instance = this;
 		
 		loadActiveEngine();
 
@@ -294,7 +294,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				}
 				@Override
 				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-					Enumeration<URL> urls = ClonkCore.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
+					Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
 					if (urls != null) {
 						while (urls.hasMoreElements()) {
@@ -416,7 +416,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public void stop(BundleContext context) throws Exception {
 		//saveExternIndex(); clean build causes save
 		ResourcesPlugin.getWorkspace().removeSaveParticipant(this);
-		plugin = null;
+		instance = null;
 		super.stop(context);
 	}
 
@@ -425,17 +425,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 *
 	 * @return the shared instance
 	 */
-	public static ClonkCore instance() {
-		return plugin;
+	public static Core instance() {
+		return instance;
 	}
 	
 	private boolean runsHeadless;
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
-		if (plugin == null) {
-			plugin = new ClonkCore();
-			plugin.runsHeadless = true;
-			plugin.engineConfigurationFolder = engineConfigurationFolder;
-			plugin.setActiveEngineByName(engine);
+		if (instance == null) {
+			instance = new Core();
+			instance.runsHeadless = true;
+			instance.engineConfigurationFolder = engineConfigurationFolder;
+			instance.setActiveEngineByName(engine);
 		}
 	}
 
@@ -609,9 +609,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			switch (event.getType()) {
 			case IResourceChangeEvent.PRE_DELETE:
 				// delete old index - could be renamed i guess but renaming a project is not exactly a common activity
-				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(CLONK_NATURE_ID)) {
+				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(NATURE_ID)) {
 					ClonkProjectNature proj = ClonkProjectNature.get(event.getResource());
-					ClonkCore.instance().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
+					Core.instance().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
 				}
 			}
 		} catch (CoreException e) {

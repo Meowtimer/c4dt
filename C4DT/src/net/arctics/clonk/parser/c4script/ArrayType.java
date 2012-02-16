@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
@@ -18,7 +18,7 @@ import net.arctics.clonk.util.ArrayUtil;
  */
 public class ArrayType implements IType {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private IType generalElementType;
 	private final int presumedLength;

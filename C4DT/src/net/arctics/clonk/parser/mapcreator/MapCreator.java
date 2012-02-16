@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.mapcreator;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -10,7 +10,7 @@ import org.eclipse.core.resources.IResource;
 
 public class MapCreator extends MapCreatorMap {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private IFile file;
 

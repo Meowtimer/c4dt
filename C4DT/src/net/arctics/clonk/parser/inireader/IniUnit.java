@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
@@ -48,7 +48,7 @@ import org.eclipse.core.runtime.content.IContentType;
  */
 public class IniUnit extends Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private static final String INFO_FORMAT = "%s - %s";
 	
 	/**
@@ -414,7 +414,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
-		marker(ClonkCore.MARKER_INI_ERROR, error, start, end, markerSeverity, args);
+		marker(Core.MARKER_INI_ERROR, error, start, end, markerSeverity, args);
 	}
 	
 	public void markerAtValue(String markerType, ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
@@ -589,14 +589,14 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = ArrayUtil.map(false, new Object[] {
-		ClonkCore.id("scenariocfg")  , ScenarioUnit.class, //$NON-NLS-1$
-		ClonkCore.id("actmap")       , ActMapUnit.class, //$NON-NLS-1$
-		ClonkCore.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$
-		ClonkCore.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
-		ClonkCore.id("material")     , MaterialUnit.class, //$NON-NLS-1$
-		ClonkCore.id("plrcontroldef"), PlayerControlsUnit.class, //$NON-NLS-1$
-		ClonkCore.id("foldermap")    , FolderMapUnit.class,
-		ClonkCore.id("teamsdef")     , TeamsUnit.class
+		Core.id("scenariocfg")  , ScenarioUnit.class, //$NON-NLS-1$
+		Core.id("actmap")       , ActMapUnit.class, //$NON-NLS-1$
+		Core.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$
+		Core.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
+		Core.id("material")     , MaterialUnit.class, //$NON-NLS-1$
+		Core.id("plrcontroldef"), PlayerControlsUnit.class, //$NON-NLS-1$
+		Core.id("foldermap")    , FolderMapUnit.class,
+		Core.id("teamsdef")     , TeamsUnit.class
 	});
 
 	/**
@@ -622,7 +622,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (C4GroupItem.getGroupItemBackingResource(iniFile) != null)
 			return;
 		try {
-			iniFile.deleteMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, 0);
+			iniFile.deleteMarkers(Core.MARKER_C4SCRIPT_ERROR, true, 0);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -641,7 +641,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			if (customizationNature != null) {
 				for (IResource r = resource(); r != customizationNature.getProject(); r = r.getParent()) {
 					if (r.getParent() == customizationNature.getProject()) {
-						return ClonkCore.instance().loadEngine(r.getName());
+						return Core.instance().loadEngine(r.getName());
 					}
 				}
 			}

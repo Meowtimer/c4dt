@@ -1,12 +1,12 @@
 package net.arctics.clonk.index;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 
 public final class DocumentedFunction extends Function implements IDocumentedDeclaration {
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private boolean fleshedOut;
 	private String originInfo;
 	

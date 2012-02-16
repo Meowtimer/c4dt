@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -147,7 +147,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private void updateProjectChooserEnablization() {
 		projectEditor.addButton.setEnabled(!openInCurrentProject.getSelection());
 		projectEditor.text.setEnabled(!openInCurrentProject.getSelection());
-		ClonkCore.instance().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
+		Core.instance().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
 		// trigger setting of project
 		selectionChanged(UI.projectExplorer(getSite().getWorkbenchWindow()), getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
 	}
@@ -173,7 +173,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		openInCurrentProject.addSelectionListener(this);
 
 		PreferenceStore dummyPrefStore = new PreferenceStore();
-		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ClonkCore.instance().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
+		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, Core.instance().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
 
 		createProjectEditor(optionsComposite, UI.createFormData(
 			new FormAttachment(0, 5),
@@ -189,7 +189,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			new FormAttachment(100, 0))
 		);
 
-		openInCurrentProject.setSelection(ClonkCore.instance().getPreferenceStore().getBoolean(PREF_CREATE_LINK_IN_CURRENT_PROJECT));
+		openInCurrentProject.setSelection(Core.instance().getPreferenceStore().getBoolean(PREF_CREATE_LINK_IN_CURRENT_PROJECT));
 		updateProjectChooserEnablization();
 
 		folderTree = new TreeViewer(parent, SWT.NONE);
@@ -272,7 +272,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				engine = nature.index().engine();
 		}
 		if (engine == null)
-			engine = ClonkCore.instance().getActiveEngine();
+			engine = Core.instance().getActiveEngine();
 		return engine;
 	}
 
@@ -322,7 +322,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
 		if (e.getSource() == projectEditor.text) {
-			ClonkCore.instance().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
+			Core.instance().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
 			refreshTree(true);
 		}
 	}

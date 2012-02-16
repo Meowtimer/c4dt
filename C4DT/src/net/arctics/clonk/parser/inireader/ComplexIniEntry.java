@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.util.Collection;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
@@ -12,7 +12,7 @@ import net.arctics.clonk.util.ITreeNode;
 
 public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Object extendedValue;
 	private IniDataEntry entryConfig;

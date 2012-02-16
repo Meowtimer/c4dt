@@ -3,7 +3,7 @@ package net.arctics.clonk.index;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Script;
@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.Path;
  */
 public class ProjectIndex extends Index {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private transient IProject project;

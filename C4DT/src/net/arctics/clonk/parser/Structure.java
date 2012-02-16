@@ -3,7 +3,7 @@ package net.arctics.clonk.parser;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkBuilder;
@@ -22,7 +22,7 @@ import org.eclipse.ui.part.FileEditorInput;
  */
 public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider {
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	/**
 	 * Finds a declaration inside this structure
@@ -72,7 +72,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	public void pinTo(IResource resource) throws CoreException {
-		resource.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, this);
+		resource.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	public static Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
-		Structure result = (Structure) file.getSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID);
+		Structure result = (Structure) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
 		if (result == null && force) {
 			result = createStructureForFile(file, duringBuild);
 			if (result != null)
@@ -101,7 +101,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public static Structure unPinFrom(IFile file) throws CoreException {
 		Structure pinned = pinned(file, false, false);
 		if (pinned != null)
-			file.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, null);
+			file.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
 		return pinned;
 	}
 	

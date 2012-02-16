@@ -2,13 +2,13 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.EnumSet;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class WhileStatement extends ConditionalStatement implements ILoop {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public WhileStatement(ExprElm condition, ExprElm body) {
 		super(condition, body);

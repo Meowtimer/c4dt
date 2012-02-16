@@ -2,7 +2,7 @@ package net.arctics.clonk.preferences;
 
 import java.lang.reflect.Field;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -14,7 +14,7 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 
 	public SyntaxColoringPreferencePage() {
 		super (GRID);
-		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
+		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
 	
 	@Override

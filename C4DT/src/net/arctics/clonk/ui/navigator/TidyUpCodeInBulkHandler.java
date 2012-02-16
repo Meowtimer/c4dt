@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
@@ -98,7 +98,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 							monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 							for (IContainer container : selectedContainers) {
 								try {
-									final TextFileDocumentProvider textFileDocProvider = ClonkCore.instance().getTextFileDocumentProvider();
+									final TextFileDocumentProvider textFileDocProvider = Core.instance().getTextFileDocumentProvider();
 									final List<IFile> failedSaves = new LinkedList<IFile>();
 									container.accept(new IResourceVisitor() {
 										@Override

@@ -3,7 +3,7 @@ package net.arctics.clonk.preferences;
 import java.beans.Beans;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -18,7 +18,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 
 	public ClonkPreferencePage() {
 		super(GRID);
-		setPreferenceStore(ClonkCore.instance().getPreferenceStore());
+		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
 	
 	@Override
@@ -59,7 +59,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					}
 			};
 		}
-		List<String> engines = ClonkCore.instance().namesOfAvailableEngines();
+		List<String> engines = Core.instance().namesOfAvailableEngines();
 		String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
 		int i = 0;
 		if (includeDefault) {

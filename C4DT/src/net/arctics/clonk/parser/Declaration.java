@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
@@ -44,7 +44,7 @@ import org.eclipse.jface.text.IRegion;
  */
 public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IIndexEntity {
 
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	/**
 	 * The name of this declaration

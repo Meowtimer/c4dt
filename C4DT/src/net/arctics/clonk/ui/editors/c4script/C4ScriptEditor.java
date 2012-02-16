@@ -13,8 +13,8 @@ import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.ClonkCore.IDocumentAction;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -90,6 +90,40 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
  */
 public class C4ScriptEditor extends ClonkTextEditor {
 
+	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
+		@Override
+		public void keyPressed(KeyEvent e) {}
+
+		@Override
+		public void mouseDoubleClick(MouseEvent e) {}
+
+		@Override
+		public void mouseDown(MouseEvent e) {}
+
+		private void showContentAssistance() {
+			// show parameter help
+			ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
+			try {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
+					if (!getContentAssistant().isProposalPopupActive())
+						if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+							opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+			} catch (NullPointerException nullP) {
+				// might just be not that much of an issue
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			showContentAssistance();
+		}
+
+		@Override
+		public void mouseUp(MouseEvent e) {
+			showContentAssistance();
+		}
+	}
+
 	/**
 	 * Temporary script that is created when no other script can be found for this editor
 	 * @author madeen
@@ -97,11 +131,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	private static final class ScratchScript extends Script implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor editor;
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		private ScratchScript(C4ScriptEditor editor) {
 			super(new Index() {
-				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			});
 			this.editor = editor;
 		}
@@ -279,12 +313,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (script != null && script.resource() != null) {
 				try {
 					// delete all "while typing" errors
-					IMarker[] markers = script.resource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
+					IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
 					for (IMarker m : markers) {
 						m.delete();
 					}
 					// delete regular markers that are in the region of interest
-					markers = script.resource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
+					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.body() : null;
 					for (IMarker m : markers) {
 						
@@ -326,7 +360,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								if (!parser.errorEnabled(code))
 									return WhatToDo.DropCharges;
 								if (structure.scriptStorage() instanceof IFile) {
-									code.createMarker((IFile) structure.scriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
 								}
 								return WhatToDo.PassThrough;
@@ -370,8 +404,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private final ColorManager colorManager;
-	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting"); //$NON-NLS-1$
-	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor"); //$NON-NLS-1$
+	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
+	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
 	
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
@@ -435,39 +469,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
 	}
 
-	private interface ICursorListener_Again extends KeyListener, MouseListener {}
-	private final ICursorListener_Again showContentAssistAtKeyUpListener = new ICursorListener_Again() {
-
-		@Override
-		public void keyPressed(KeyEvent e) {}
-		@Override
-		public void mouseDoubleClick(MouseEvent e) {}
-		@Override
-		public void mouseDown(MouseEvent e) {}
-
-		private void showContentAssistance() {
-			// show parameter help
-			ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
-			try {
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
-					if (!getContentAssistant().isProposalPopupActive())
-						if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-							opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
-			} catch (NullPointerException nullP) {
-				// might just be not that much of an issue
-			}
-		}
-
-		@Override
-		public void keyReleased(KeyEvent e) {
-			showContentAssistance();
-		}
-
-		@Override
-		public void mouseUp(MouseEvent e) {
-			showContentAssistance();
-		}
-	};
+	private final ShowContentAssistAtKeyUpListener showContentAssistAtKeyUpListener = new ShowContentAssistAtKeyUpListener();
 	
 	@Override
 	public void createPartControl(Composite parent) {
@@ -490,7 +492,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.dispose();
 	}
 	
-	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
+	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(Core.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
 	
 	@Override
 	protected void createActions() {
@@ -643,7 +645,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		} else if (document instanceof IFile) {
 			try {
-				parser = ClonkCore.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
 					@Override
 					public C4ScriptParser run(IDocument document) {
 						return new C4ScriptParser(document.get(), script, script.scriptFile());

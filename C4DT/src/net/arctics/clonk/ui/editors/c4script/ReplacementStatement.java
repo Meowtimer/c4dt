@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Statement;
@@ -16,7 +16,7 @@ import org.eclipse.jface.text.IRegion;
  */
 public class ReplacementStatement extends Statement {
 	private final String replacementString;
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	/**
 	 * Create a new ReplacementStatement with a replacement string.

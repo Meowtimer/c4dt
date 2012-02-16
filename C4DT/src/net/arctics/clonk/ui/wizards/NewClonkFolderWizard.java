@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
@@ -176,7 +176,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	
 	protected void throwCoreException(String message) throws CoreException {
 		IStatus status =
-			new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, IStatus.OK, message, null);
+			new Status(IStatus.ERROR, Core.PLUGIN_ID, IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
 

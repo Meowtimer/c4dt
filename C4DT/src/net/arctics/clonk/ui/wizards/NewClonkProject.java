@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.wizards;
 
 import java.io.File;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
@@ -29,9 +29,9 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
 			if (!page.useDefaults())
 				desc.setLocation(page.getLocationPath());
-			desc.setNatureIds(new String[] {ClonkCore.id("clonknature")}); //$NON-NLS-1$
+			desc.setNatureIds(new String[] {Core.id("clonknature")}); //$NON-NLS-1$
 			ICommand command = desc.newCommand();
-			command.setBuilderName(ClonkCore.id("builder")); //$NON-NLS-1$
+			command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
 			desc.setBuildSpec(new ICommand[] {command});
 			desc.setReferencedProjects(page.getProjectsToReference());
 			proj.create(desc,null);

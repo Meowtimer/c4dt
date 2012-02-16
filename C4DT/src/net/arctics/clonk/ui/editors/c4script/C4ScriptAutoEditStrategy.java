@@ -4,7 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.ast.Conf;
@@ -69,7 +69,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	
 	private static class WeakListenerManagerPCL extends WeakListenerManager<IPropertyChangeListener> implements IPropertyChangeListener	{
 		public WeakListenerManagerPCL() {
-			ClonkCore.instance().getPreferenceStore().addPropertyChangeListener(this);
+			Core.instance().getPreferenceStore().addPropertyChangeListener(this);
 		}
 		@Override
 		public void propertyChange(PropertyChangeEvent event) {

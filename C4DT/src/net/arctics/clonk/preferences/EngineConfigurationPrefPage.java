@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Engine.EngineSettings;
 import net.arctics.clonk.ui.navigator.ClonkFolderView;
@@ -132,7 +132,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class EngineConfigPrefStore extends PreferenceStore {
 
-		private Engine.EngineSettings settings = (EngineSettings) ClonkCore.instance().loadEngine(myEngine).currentSettings().clone();
+		private Engine.EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).currentSettings().clone();
 
 		@Override
 		public void setValue(String name, String value) {
@@ -172,22 +172,22 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		@Override
 		public String getDefaultString(String name) { 
-			return (String)val(ClonkCore.instance().loadEngine(myEngine).currentSettings(), name);
+			return (String)val(Core.instance().loadEngine(myEngine).currentSettings(), name);
 		}
 
 		@Override
 		public boolean getDefaultBoolean(String name) {
-			return (Boolean)val(ClonkCore.instance().loadEngine(myEngine).currentSettings(), name);
+			return (Boolean)val(Core.instance().loadEngine(myEngine).currentSettings(), name);
 		}
 
 		public void apply() {
-			ClonkCore.instance().loadEngine(myEngine).setCurrentSettings(settings);
+			Core.instance().loadEngine(myEngine).setCurrentSettings(settings);
 			if (ClonkFolderView.instance() != null)
 				ClonkFolderView.instance().update();
 		}
 
 		public void reset() {
-			settings = (EngineSettings) ClonkCore.instance().loadEngine(myEngine).currentSettings().clone();
+			settings = (EngineSettings) Core.instance().loadEngine(myEngine).currentSettings().clone();
 		}
 
 	};

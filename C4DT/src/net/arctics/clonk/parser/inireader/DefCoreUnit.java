@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.Script;
@@ -8,7 +8,7 @@ import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {
 	
-	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	@Override
 	protected String configurationName() {
