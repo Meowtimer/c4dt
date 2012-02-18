@@ -1,5 +1,15 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
+import net.arctics.clonk.parser.mapcreator.MapOverlay;
+import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
+import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.ScriptCommentScanner;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -18,20 +28,9 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 
-import net.arctics.clonk.parser.mapcreator.MapOverlay;
-import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
-import net.arctics.clonk.ui.editors.ScriptCommentScanner;
-import net.arctics.clonk.util.Utilities;
-
 public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
 
 	public class MapCreatorHyperlinkDetector implements IHyperlinkDetector {
-
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
 				IRegion region, boolean canShowMultipleHyperlinks) {
@@ -41,7 +40,6 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.location().getOffset(), ((MapOverlay) overlay).template().name().length()), ((MapOverlay) overlay).template())};
 			return null;
 		}
-
 	}
 
 	private RuleBasedScanner scanner;

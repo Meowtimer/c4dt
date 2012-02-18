@@ -10,9 +10,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.StringUtil;
 
@@ -28,6 +30,15 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	
 	protected List<Variable> components;
 	protected boolean adHoc;
+	protected ExprElm implicitPrototype;
+	
+	/**
+	 * Return the implicitly set prototype expression for this declaration. Acts as fallback if no explicit 'Prototype' field is found.
+	 * @return The implicit prototype
+	 */
+	public ExprElm implicitPrototype() {
+		return implicitPrototype;
+	}
 
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
@@ -90,11 +101,23 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * @param declarationName The name of the variable
 	 * @return The found variable or null.
 	 */
-	public Variable findComponent(String declarationName) {
+	public Variable findComponent(String declarationName, Set<ProplistDeclaration> recursionPrevention) {
+		if (recursionPrevention.contains(this))
+			return null;
+		else
+			recursionPrevention.add(this);
 		for (Variable v : components)
 			if (v.name().equals(declarationName))
 				return v;
-		return null;
+		ProplistDeclaration proto = prototype();
+		if (proto != null)
+			return proto.findComponent(declarationName, recursionPrevention);
+		else
+			return null;
+	}
+	
+	public Variable findComponent(String declarationName) {
+		return findComponent(declarationName, new HashSet<ProplistDeclaration>());
 	}
 
 	@Override
@@ -111,13 +134,14 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
-			its.add(getComponents());
 			if ((mask & NO_INCLUDED_SUBDECLARATIONS) == 0) {
 				Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
 				gatherIncludes(includes, true);
 				for (IHasIncludes i : includes)
-					its.add(i.allSubDeclarations(mask & NO_INCLUDED_SUBDECLARATIONS));
+					its.add(i.allSubDeclarations(mask | NO_INCLUDED_SUBDECLARATIONS));
 			}
+			else
+				its.add(getComponents());
 			return new CompoundIterable<Declaration>(its);
 		}
 		else
@@ -181,14 +205,23 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * Return the prototype of this proplist declaration. Obtained from the special 'Prototype' entry.
 	 * @return The Prototype {@link ProplistDeclaration} or null, if either the 'Prototype' entry does not exist or the type of the Prototype expression does not denote a proplist declaration.
 	 */
-	public IHasIncludes prototype() {
-		for (Variable v : components)
+	public ProplistDeclaration prototype() {
+		ExprElm prototypeExpr = null;
+		for (Variable v : components) {
 			if (v.name().equals(PROTOTYPE_KEY)) {
-				IType t = v.type();
-				for (IType ty : t)
-					if (ty instanceof IHasIncludes)
-						return (IHasIncludes)ty;
+				prototypeExpr = v.initializationExpression();
+				break;
 			}
+		}
+		if (prototypeExpr == null)	
+			prototypeExpr = implicitPrototype;
+		if (prototypeExpr != null) {
+			IType t = prototypeExpr.typeInContext(declarationObtainmentContext());
+			if (t != null)
+				for (IType ty : t)
+					if (ty instanceof ProplistDeclaration)
+						return (ProplistDeclaration)ty;
+		}
 		return null;
 	}
 
@@ -241,5 +274,21 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public String toString() {
 		return StringUtil.writeBlock(null, "{", "}", ", ", components);		
 	}
+
+	/**
+	 * Set {@link #implicitPrototype()} and return this declaration.
+	 * @param prototypeExpression The implicit prototype to set
+	 * @return This one.
+	 */
+	public ProplistDeclaration withImplicitProtoype(ExprElm prototypeExpression) {
+		this.implicitPrototype = prototypeExpression;
+		return this;
+	}
+	
+	@Override
+	public void postLoad(Declaration parent, Index root) {
+		super.postLoad(parent, root);
+	}
+	
 
 }

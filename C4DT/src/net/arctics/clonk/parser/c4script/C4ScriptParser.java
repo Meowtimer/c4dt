@@ -63,6 +63,7 @@ import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.MissingStatement;
+import net.arctics.clonk.parser.c4script.ast.NewProplist;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
@@ -1743,7 +1744,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		ExprElm prevElm = null;
 		int noWhitespaceEating = sequenceStart;
 		boolean proper = true;
-		do {
+		boolean noNewProplist = false;
+		Loop: do {
 			elm = null;
 			
 			noWhitespaceEating = this.offset;
@@ -1783,30 +1785,55 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (elm == null) {
 				String word = readIdent();
 				if (word != null && word.length() > 0) {
-					int beforeSpace = this.offset;
-					eatWhitespace();
-					if (read() == '(') {
-						int s = this.offset;
-						// function call
-						List<ExprElm> args = new LinkedList<ExprElm>();
-						parseRestOfTuple(args, reportErrors);
-						CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
-						callFunc.setParmsRegion(s-bodyOffset(), this.offset-1-bodyOffset());
-						elm = callFunc;
-					} else {
-						this.seek(beforeSpace);
-						// bool
-						if (word.equals(Keywords.True))
-							elm = new BoolLiteral(true);
-						else if (word.equals(Keywords.False))
-							elm = new BoolLiteral(false);
-						else
-							// variable
-							elm = new AccessVar(word);
+					if (!noNewProplist && word.equals(Keywords.New)) {
+						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
+						ExprElm prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
+						boolean treatNewAsVarName = false;
+						if (prototype == null)
+							treatNewAsVarName = true;
+						else {
+							prototype.setFinishedProperly(true); // :/
+							eatWhitespace();
+							ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+							if (proplDec != null)
+								elm = new NewProplist(proplDec, prototype);
+							else
+								treatNewAsVarName = true;
+						}
+						if (treatNewAsVarName) {
+							// oh wait, just a variable named new with some expression following it
+							this.seek(noWhitespaceEating);
+							elm = ExprElm.NULL_EXPR; // just to satisfy loop condition
+							noNewProplist = true;
+							continue Loop;
+						}
+					}
+					else {
+						int beforeSpace = this.offset;
+						eatWhitespace();
+						if (read() == '(') {
+							int s = this.offset;
+							// function call
+							List<ExprElm> args = new LinkedList<ExprElm>();
+							parseRestOfTuple(args, reportErrors);
+							CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
+							callFunc.setParmsRegion(s-bodyOffset(), this.offset-1-bodyOffset());
+							elm = callFunc;
+						} else {
+							this.seek(beforeSpace);
+							// bool
+							if (word.equals(Keywords.True))
+								elm = new BoolLiteral(true);
+							else if (word.equals(Keywords.False))
+								elm = new BoolLiteral(false);
+							else
+								// variable
+								elm = new AccessVar(word);
+						}
 					}
 				}
 			}
-			
+
 			// string
 			String s;
 			if (elm == null && (s = parseString()) != null)
@@ -1886,6 +1913,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					prevElm = elm;
 				}
 			}
+			
+			noNewProplist = false;
 
 		} while (elm != null);
 		this.seek(noWhitespaceEating);
@@ -2287,6 +2316,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
+	private static final char[] OPENING_BLOCK_BRACKET_DELIMITER = new char[] { '{' };
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
 	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 	

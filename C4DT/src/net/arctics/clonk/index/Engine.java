@@ -409,8 +409,8 @@ public class Engine extends Script {
 			importer.importFromRepository(this, currentSettings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null)
 				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
-			if (findVariable("nil") == null)
-				this.addDeclaration(new Variable("nil", Variable.Scope.CONST));
+			if (findVariable(Keywords.Nil) == null)
+				this.addDeclaration(new Variable(Keywords.Nil, Variable.Scope.CONST));
 		} finally {
 			modified();
 		}

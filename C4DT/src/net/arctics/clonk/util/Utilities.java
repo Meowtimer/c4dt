@@ -343,7 +343,4 @@ public abstract class Utilities {
 			return b;
 	}
 	
-	// --------
-
-	
 }

@@ -327,7 +327,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
-		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS|NO_INCLUDED_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.postLoad(this, root);

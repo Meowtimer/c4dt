@@ -37,4 +37,8 @@ public interface Keywords {
 	public static final String False = "false"; //$NON-NLS-1$
 
 	public static final String DefinitionFunc = "Definition"; //$NON-NLS-1$
+	
+	public static final String New = "new";
+
+	public static final String Nil = "nil";
 }

@@ -1,5 +1,6 @@
 package net.arctics.clonk.debug;
 
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.util.Utilities;
 
@@ -37,7 +38,7 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 
 	@Override
 	public String getValueString() throws DebugException {
-		return value != null ? value.toString() : "nil"; //$NON-NLS-1$
+		return value != null ? value.toString() : Keywords.Nil; //$NON-NLS-1$
 	}
 
 	@Override
