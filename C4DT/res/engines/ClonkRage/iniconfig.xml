@@ -31,13 +31,13 @@
 				description="Aktivitität fürs Umdrehen." />
 			<entry name="NoOtherAction" class="Boolean"
 				description="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />
-			<entry name="StartCall" class="FuncRefEntry"
+			<entry name="StartCall" class="FunctionEntry"
 				description="Objektscriptfunktion, die beim Start der Aktivität aufgerufen wird." />
-			<entry name="EndCall" class="FuncRefEntry"
+			<entry name="EndCall" class="FunctionEntry"
 				description="Wird am Ende der Aktivität aufgerufen." />
-			<entry name="PhaseCall" class="FuncRefEntry"
+			<entry name="PhaseCall" class="FunctionEntry"
 				description="Wird bei jedem Phasenschritt aufgerufen." />
-			<entry name="AbortCall" class="FuncRefEntry"
+			<entry name="AbortCall" class="FunctionEntry"
 				description="Wird aufgerufen, wenn die Aktivität vor ihrem Ende durch eine andere ersetzt wird." />
 			<entry name="InLiquidAction" class="Action"
 				description="Auszuführende Aktion, wenn das Objekt in Flüssigkeiten eintaucht." />
@@ -68,7 +68,7 @@
 				constantsPrefix="C4D_" />
 			<entry name="MaxUserSelect" class="SignedInteger"
 				description="Maximale Anzahl beim Platzieren des Objekts im Menüsystem." />
-			<entry name="TimerCall" class="FuncRefEntry"
+			<entry name="TimerCall" class="FunctionEntry"
 				description="Regelmäßig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte." />
 			<entry name="Timer" class="SignedInteger"
 				description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35." />
