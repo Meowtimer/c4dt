@@ -43,7 +43,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	public String getName() {
-		return "[" + getScript().name() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return "[" + script().name() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	public String getToolTipText() {
-		return ((ITreeNode)getScript()).path().toOSString();
+		return ((ITreeNode)script()).path().toOSString();
 	}
 
 	@Override
@@ -76,15 +76,15 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).getScript() == getScript());
+		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script() == script());
 	}
 
 	@Override
 	public IStorage getStorage() throws CoreException {
-		return getScript().scriptStorage();
+		return script().scriptStorage();
 	}
 
-	public Script getScript() {
+	public Script script() {
 		return script.get();
 	}
 

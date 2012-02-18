@@ -33,7 +33,7 @@ public class LinkHelper implements ILinkHelper {
 	@Override
 	public IStructuredSelection findSelection(IEditorInput anInput) {
 		ScriptWithStorageEditorInput input = (ScriptWithStorageEditorInput) anInput;
-		StructuredSelection sel = new TreeSelection(getTreePath(input.getScript()));
+		StructuredSelection sel = new TreeSelection(getTreePath(input.script()));
 		return sel;
 	}
 	
