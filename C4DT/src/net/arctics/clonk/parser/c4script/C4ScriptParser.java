@@ -1795,9 +1795,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							prototype.setFinishedProperly(true); // :/
 							eatWhitespace();
 							ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
-							if (proplDec != null)
+							if (proplDec != null) {
+								reportErrorsOf(prototype);
 								elm = new NewProplist(proplDec, prototype);
-							else
+							} else
 								treatNewAsVarName = true;
 						}
 						if (treatNewAsVarName) {
