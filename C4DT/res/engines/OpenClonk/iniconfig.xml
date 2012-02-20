@@ -430,6 +430,8 @@
 				description="Size"/>
 			<entry name="MinHeightCount" class="UnsignedInteger"
 				description="Minimale Dicke bis es gezählt wird"/>
+			<entry name="ShapeTexture" class="java.lang.String"
+				description="Texture of the shape"/>
 		</section>
 		<section name="Reaction">
 			<entry name="Type" class="java.lang.String" />
