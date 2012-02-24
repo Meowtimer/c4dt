@@ -3,9 +3,12 @@ package net.arctics.clonk.index;
 import java.lang.reflect.Field;
 
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 
 /**
- * Contains cached engine functions that may be used frequently.
+ * Holds references to common engine functions that some {@link AccessDeclaration#optimize(net.arctics.clonk.parser.c4script.C4ScriptParser)} implementations
+ * might compare their declarations with to determine viable code transformations. All the public fields of this class will be set to refer to functions of the
+ * same name from the engine this helper object is associated with.
  */
 public class CachedEngineDeclarations {
 
@@ -35,10 +38,20 @@ public class CachedEngineDeclarations {
 	public Function GetID;
 	public Object   This; // this as variable name not allowed so exclude this var -.-
 	
+	/**
+	 * Functions used to dynamically call functions on an object (Call, PrivateCall, PublicCall)
+	 */
 	public final Function[] ObjectCallFunctions;
-	
+	/**
+	 * Functions used to dynamically call functions on an object or in the {@link Scenario} script (GameCall, PrivateCall, ProtectedCall, Call)
+	 */
 	public final Function[] CallFunctions;
 
+	/**
+	 * Create new {@link CachedEngineDeclarations} for some {@link Engine}.
+	 * Fields will be initialized by searching for respective functions and variables in the {@link Engine}. 
+	 * @param engine The engine to create the object for
+	 */
 	public CachedEngineDeclarations(Engine engine) {
 		this.engine = engine;
 		try {

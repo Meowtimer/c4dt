@@ -61,7 +61,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 
 /**
- * Container for engine functions and constants.
+ * Container for engine functions and constants. Will be either initialized by parsing a special 'engine script' embedded into the plugin jar which
+ * contains definitions for engine definitions in a slightly modified c4script syntax (return type specification, no function bodies), or
+ * by parsing c++ source files from a source repository of the OpenClonk kind.
  * @author Madeen
  *
  */
@@ -69,6 +71,12 @@ public class Engine extends Script {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	/**
+	 * Settings object encapsulating configuration options for a specific engine.
+	 * Read from res/engines/&lt;engine&gt;/configuration.ini and <workspace>/.metadata/.plugins/net.arctics.clonk/engines/&lt;engine&gt;/configuration.ini
+	 * @author madeen
+	 *
+	 */
 	public static class EngineSettings extends SettingsBase {
 
 		/** Default strictness level applied to scripts with no explicit #strict line. */
@@ -86,8 +94,8 @@ public class Engine extends Script {
 		@IniField(category="Intrinsic")
 		public boolean nonConstGlobalVarsAssignment;
 		/**
-		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a Variable object each Definition maintains as its 'proxy variable'.<br/>
-		 * This toggle activates/deactivates this behaviour.
+		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
+		 * This toggle activates/deactivates this behavior.
 		 * */ 
 		@IniField(category="Intrinsic")
 		public boolean definitionsHaveProxyVariables;
@@ -246,33 +254,54 @@ public class Engine extends Script {
 	
 	private transient SpecialScriptRules specialScriptRules;
 	
+	/**
+	 * Return the {@link SpecialScriptRules} object associated with this engine. It is an instance of SpecialScriptRules_&lt;name&gt;
+	 * @return The {@link SpecialScriptRules} object
+	 */
 	public SpecialScriptRules specialScriptRules() {
 		return specialScriptRules;
 	}
 
+	/**
+	 * Return the {@link EngineSettings} read from the configuration.ini file embedded into the plugin jar.
+	 * @return The intrinsic settings
+	 */
 	public EngineSettings intrinsicSettings() {
 		return intrinsicSettings;
 	}
 
-	public void setCurrentSettings(EngineSettings currentSettings) {
+	/**
+	 * Set {@link #settings()}, save them to the workspace configuration.ini file and reinitialize anything that needs reinitializing
+	 * based on modification of settings such as {@link EngineSettings#readDocumentationFromRepository}
+	 * @param settings The settings to apply
+	 */
+	public void applySettings(EngineSettings settings) {
 		EngineSettings oldSettings = this.currentSettings;
-		this.currentSettings = currentSettings;
+		this.currentSettings = settings;
 		saveSettings();
 		if (
-			!Utilities.objectsEqual(oldSettings.repositoryPath, currentSettings.repositoryPath) ||
-			oldSettings.readDocumentationFromRepository != currentSettings.readDocumentationFromRepository
+			!Utilities.objectsEqual(oldSettings.repositoryPath, settings.repositoryPath) ||
+			oldSettings.readDocumentationFromRepository != settings.readDocumentationFromRepository
 		) {
-			if (currentSettings.readDocumentationFromRepository)
+			if (settings.readDocumentationFromRepository)
 				reinitializeDocImporter();
 			else
 				parseEngineScript();
 		}
 	}
 
-	public EngineSettings currentSettings() {
+	/**
+	 * Return the currently active {@link EngineSettings}.
+	 * @return The current settings
+	 */
+	public EngineSettings settings() {
 		return currentSettings;
 	}
 
+	/**
+	 * Return {@link CachedEngineDeclarations} for this engine.
+	 * @return The {@link CachedEngineDeclarations}
+	 */
 	public final CachedEngineDeclarations cachedFuncs() {
 		return cachedFuncs;
 	}
@@ -281,12 +310,19 @@ public class Engine extends Script {
 		return iniConfigurations;
 	}
 
+	/**
+	 * Create new engine with the specified name.
+	 * @param name The name of the engine
+	 */
 	public Engine(String name) {
 		super(null);
 		setName(name);
 		modified();
 	}
 
+	/**
+	 * 
+	 */
 	public void modified() {
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
@@ -406,7 +442,7 @@ public class Engine extends Script {
 			createDeclarationsFromRepositoryDocumentationFiles();
 			CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 			importer.overwriteExistingDeclarations = false;
-			importer.importFromRepository(this, currentSettings().repositoryPath, new NullProgressMonitor());
+			importer.importFromRepository(this, settings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null)
 				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
 			if (findVariable(Keywords.Nil) == null)
@@ -417,7 +453,7 @@ public class Engine extends Script {
 	}
 
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
-		for (File xmlFile : new File(currentSettings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+		for (File xmlFile : new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
 			boolean isConst = false;
 			try {
 				FileReader r = new FileReader(xmlFile);
@@ -453,8 +489,8 @@ public class Engine extends Script {
 	 */
 	public void reinitializeDocImporter() {
 		xmlDocImporter.discardInitialization();
-		if (currentSettings().readDocumentationFromRepository) {
-			xmlDocImporter.setRepositoryPath(currentSettings().repositoryPath);
+		if (settings().readDocumentationFromRepository) {
+			xmlDocImporter.setRepositoryPath(settings().repositoryPath);
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 			
 			xmlDocImporter.initialize();
@@ -472,7 +508,7 @@ public class Engine extends Script {
 	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
-		if (currentSettings().readDocumentationFromRepository) {
+		if (settings().readDocumentationFromRepository) {
 			XMLDocImporter importer = repositoryDocImporter().initialize();
 			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.languagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
@@ -555,11 +591,11 @@ public class Engine extends Script {
 								System.out.println("Messages while parsing " + url.toString());
 							}
 							System.out.println(String.format(
-									"%s @(%d, %d)",
-									code.getErrorString(args),
-									lno.obtainLineNumber(errorStart),
-									lno.obtainCharNumberInObtainedLine()
-									));
+								"%s @(%d, %d)",
+								code.getErrorString(args),
+								lno.obtainLineNumber(errorStart),
+								lno.obtainCharNumberInObtainedLine()
+							));
 							super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
 						}
 					};
@@ -624,7 +660,7 @@ public class Engine extends Script {
 		}
 		loadIniConfigurations();
 		createSpecialRules();
-		if (!currentSettings().readDocumentationFromRepository)
+		if (!settings().readDocumentationFromRepository)
 			parseEngineScript();
 		loadDeclarationsConfiguration();
 		reinitializeDocImporter();
@@ -745,9 +781,9 @@ public class Engine extends Script {
 	}
 	
 	public Process executeEmbeddedUtility(String name, String... args) {
-		if (!currentSettings().supportsEmbeddedUtilities)
+		if (!settings().supportsEmbeddedUtilities)
 			return null;
-		String path = currentSettings().engineExecutablePath;
+		String path = settings().engineExecutablePath;
 		if (path != null) {
 			String[] completeArgs = new String[2+args.length];
 			completeArgs[0] = path;
@@ -812,19 +848,19 @@ public class Engine extends Script {
 	 * @return Group name with correct extension.
 	 */
 	public String groupName(String name, GroupType groupType) {
-		return name + "." + currentSettings().groupTypeToFileExtensionMapping().get(groupType);
+		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType);
 	}
 	
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
 	private IniDescriptionsLoader iniDescriptionsLoader;
 	
 	/**
-	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #currentSettings()}.
+	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #settings()}.
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
 		synchronized (xmlDocImporter) {
-			xmlDocImporter.setRepositoryPath(currentSettings().repositoryPath);
+			xmlDocImporter.setRepositoryPath(settings().repositoryPath);
 			return xmlDocImporter.initialize();
 		}
 	}

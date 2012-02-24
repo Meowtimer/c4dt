@@ -169,14 +169,14 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(Core.instance().getActiveEngine().currentSettings(), name, value);
+			setFieldValue(Core.instance().getActiveEngine().settings(), name, value);
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			Engine engine = Core.instance().getActiveEngine();
 			setFieldValue(
 					engine.intrinsicSettings(), name,
-					engine.currentSettings().getClass().getField(name).get(engine.currentSettings())
+					engine.settings().getClass().getField(name).get(engine.settings())
 			);
 		}
 	}

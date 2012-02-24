@@ -132,7 +132,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class EngineConfigPrefStore extends PreferenceStore {
 
-		private Engine.EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).currentSettings().clone();
+		private Engine.EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).settings().clone();
 
 		@Override
 		public void setValue(String name, String value) {
@@ -172,22 +172,22 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		@Override
 		public String getDefaultString(String name) { 
-			return (String)val(Core.instance().loadEngine(myEngine).currentSettings(), name);
+			return (String)val(Core.instance().loadEngine(myEngine).settings(), name);
 		}
 
 		@Override
 		public boolean getDefaultBoolean(String name) {
-			return (Boolean)val(Core.instance().loadEngine(myEngine).currentSettings(), name);
+			return (Boolean)val(Core.instance().loadEngine(myEngine).settings(), name);
 		}
 
 		public void apply() {
-			Core.instance().loadEngine(myEngine).setCurrentSettings(settings);
+			Core.instance().loadEngine(myEngine).applySettings(settings);
 			if (ClonkFolderView.instance() != null)
 				ClonkFolderView.instance().update();
 		}
 
 		public void reset() {
-			settings = (EngineSettings) Core.instance().loadEngine(myEngine).currentSettings().clone();
+			settings = (EngineSettings) Core.instance().loadEngine(myEngine).settings().clone();
 		}
 
 	};

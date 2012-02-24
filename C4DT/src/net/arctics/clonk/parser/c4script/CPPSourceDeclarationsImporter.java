@@ -35,7 +35,7 @@ public class CPPSourceDeclarationsImporter {
 	 */
 	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) {
 		// also import from fn list in C4Script.cpp
-		for (String sourceFile : importsContainer.engine().currentSettings().cppSources.split(","))
+		for (String sourceFile : importsContainer.engine().settings().cppSources.split(","))
 			readDeclarationsFromSource(importsContainer, repository, sourceFile);
 		if (monitor != null)
 			monitor.done();
@@ -52,7 +52,7 @@ public class CPPSourceDeclarationsImporter {
 
 		String c4ScriptFilePath = repository + sourceFilePath; //$NON-NLS-1$
 		File c4ScriptFile;
-		EngineSettings settings = importsContainer.engine().currentSettings();
+		EngineSettings settings = importsContainer.engine().settings();
 		if ((c4ScriptFile = new File(c4ScriptFilePath)).exists()) {
 			Matcher[] sectionStartMatchers = new Matcher[] {
 				Pattern.compile(settings.initFunctionMapPattern).matcher(""),

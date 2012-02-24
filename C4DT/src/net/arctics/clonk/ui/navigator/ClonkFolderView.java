@@ -254,7 +254,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void refreshTree(boolean onlyIfInputChanged) {
 		Engine engine = getCurrentEngine();
-		String clonkPath = engine != null ? engine.currentSettings().gamePath : null;
+		String clonkPath = engine != null ? engine.settings().gamePath : null;
 		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
 			? new File( clonkPath)
 			: new File("/"); //$NON-NLS-1$

@@ -96,7 +96,7 @@ public class ClonkHyperlink implements IHyperlink {
 			DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
 			if (documentedFunction != null && documentedFunction.originInfo() != null && documentedFunction.location() != null) {
 				IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
-					new File(documentedFunction.engine().currentSettings().repositoryPath, documentedFunction.originInfo())
+					new File(documentedFunction.engine().settings().repositoryPath, documentedFunction.originInfo())
 				);
 				IEditorPart editor = IDE.openEditor(
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),

@@ -164,7 +164,7 @@ public class MemberOperator extends ExprElm {
 				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
-		if (getLength() > 3 && !parser.containingScript().engine().currentSettings().spaceAllowedBetweenArrowAndTilde)
+		if (getLength() > 3 && !parser.containingScript().engine().settings().spaceAllowedBetweenArrowAndTilde)
 			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
 	}
 	
@@ -189,7 +189,7 @@ public class MemberOperator extends ExprElm {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
-		if (context.containingScript().engine().currentSettings().proplistsSupported) {
+		if (context.containingScript().engine().settings().proplistsSupported) {
 			ExprElm succ = successorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();

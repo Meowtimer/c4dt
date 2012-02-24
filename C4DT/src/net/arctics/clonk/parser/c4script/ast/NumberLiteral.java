@@ -77,7 +77,7 @@ public final class NumberLiteral extends Literal<Long> {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		if (longValue() == 0 && context.containingScript().engine().currentSettings().treatZeroAsAny)
+		if (longValue() == 0 && context.containingScript().engine().settings().treatZeroAsAny)
 			return ZERO_TYPE;
 		else
 			return PrimitiveType.INT;

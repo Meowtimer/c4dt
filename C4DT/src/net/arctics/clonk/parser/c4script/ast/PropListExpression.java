@@ -139,7 +139,7 @@ public class PropListExpression extends Value {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		if (!parser.containingScript().engine().currentSettings().proplistsSupported)
+		if (!parser.containingScript().engine().settings().proplistsSupported)
 			parser.errorWithCode(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
 	

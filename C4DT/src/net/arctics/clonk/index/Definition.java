@@ -117,7 +117,7 @@ public class Definition extends Script {
 		if (
 				cls == null ||
 				cls == Definition.class ||
-				(engine() != null && engine().currentSettings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
+				(engine() != null && engine().settings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
 			if (id != null && id.stringValue().equals(name))
 				return variableRequired ? this.proxyVar() : this;
@@ -288,7 +288,7 @@ public class Definition extends Script {
 	 * Helper variable used for long-id definitions.
 	 */
 	public ProxyVar proxyVar() {
-		if (engine() != null && !engine().currentSettings().definitionsHaveProxyVariables)
+		if (engine() != null && !engine().settings().definitionsHaveProxyVariables)
 			return proxyVar = null;
 		if (proxyVar == null)
 			proxyVar = new ProxyVar();

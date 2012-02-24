@@ -728,7 +728,7 @@ public class SpecialScriptRules {
 				if (res != null)
 					return new ProjectResource(pi, res);
 			}
-			for (String e : engine.currentSettings().supportedSoundFileExtensions()) {
+			for (String e : engine.settings().supportedSoundFileExtensions()) {
 				IResource res = findMemberCaseInsensitively(container, name+"."+e);
 				if (res != null)
 					return new ProjectResource(pi, res);
@@ -739,7 +739,7 @@ public class SpecialScriptRules {
 		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
 			ProjectResource res;
 			Engine engine = parser.containingScript().engine();
-			String soundGroupName = "Sound."+engine.currentSettings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+			String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 			for (IContainer c = as(parser.containingScript().resource(), IContainer.class), d = c;
 				c != null;
 				c = c.getParent(), d = c != null ? as(c.findMember(soundGroupName), IContainer.class) : null

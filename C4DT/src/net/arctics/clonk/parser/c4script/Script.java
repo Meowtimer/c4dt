@@ -193,7 +193,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 */
 	public int strictLevel() {
 		requireLoaded();
-		long level = engine() != null ? engine().currentSettings().strictDefaultLevel : -1;
+		long level = engine() != null ? engine().settings().strictDefaultLevel : -1;
 		for (Directive d : this.directives()) {
 			if (d.type() == DirectiveType.STRICT) {
 				try {

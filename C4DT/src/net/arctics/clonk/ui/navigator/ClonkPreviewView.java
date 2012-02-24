@@ -231,14 +231,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private File tempLandscapeRenderFile = null;
 	
 	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
-		String materialFolderBaseName = "Material."+engine.currentSettings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+		String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null) {
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
 			}
 		}
-		return engine.currentSettings().gamePath+"/"+materialFolderBaseName; 
+		return engine.settings().gamePath+"/"+materialFolderBaseName; 
 	}
 
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
@@ -261,7 +261,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					// render landscape.txt using utility embedded into OpenClonk
 					ClonkProjectNature nature = ClonkProjectNature.get(file);
 					Engine engine = nature != null ? nature.index().engine() : null;
-					if (engine != null && engine.currentSettings().supportsEmbeddedUtilities) try {
+					if (engine != null && engine.settings().supportsEmbeddedUtilities) try {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
 							tempLandscapeRenderFile.deleteOnExit();

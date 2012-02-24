@@ -80,7 +80,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			try {
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					Scenario scenarioObj = Scenario.get(scenario);
-					if (scenarioObj != null && !scenarioObj.engine().currentSettings().supportsDebugging)
+					if (scenarioObj != null && !scenarioObj.engine().settings().supportsDebugging)
 						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.engine().name()));
 				}
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
@@ -144,10 +144,10 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
 		Script scenarioScript = Scenario.get(scenario);
-		String gamePath = scenarioScript != null ? scenarioScript.engine().currentSettings().gamePath : null;
+		String gamePath = scenarioScript != null ? scenarioScript.engine().settings().gamePath : null;
 
 		File enginePath = new File("Unspecified");
-		String enginePref = scenarioScript != null ? scenarioScript.engine().currentSettings().engineExecutablePath : null;
+		String enginePref = scenarioScript != null ? scenarioScript.engine().settings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
 		if (!enginePref.equals("")) //$NON-NLS-1$
@@ -176,11 +176,11 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	}
 	
 	private static String cmdLineOptionString(Engine engine, String option) {
-		return String.format(engine.currentSettings().cmdLineOptionFormat, option);
+		return String.format(engine.settings().cmdLineOptionFormat, option);
 	}
 	
 	private static String cmdLineOptionString(Engine engine, String option, String argument) {
-		return String.format(engine.currentSettings().cmdLineOptionWithArgumentFormat, option, argument);
+		return String.format(engine.settings().cmdLineOptionWithArgumentFormat, option, argument);
 	}
 	
 	/** 
@@ -226,7 +226,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
 			args.add(cmdLineOptionString(engineObj, "fullscreen")); //$NON-NLS-1$
 		else {
-			args.add(cmdLineOptionString(engineObj, engineObj.currentSettings().editorCmdLineOption));
+			args.add(cmdLineOptionString(engineObj, engineObj.settings().editorCmdLineOption));
 			args.add(cmdLineOptionString(engineObj, "noleague")); //$NON-NLS-1$
 		}
 		

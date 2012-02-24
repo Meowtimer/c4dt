@@ -421,7 +421,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						String.format(Messages.ClonkBuilder_RenameRefactoringPrompt, oldID.stringValue(), newID.stringValue()),
 						String.format(Messages.ClonkBuilder_RenameRefactoringTitle, oldID.stringValue()))
 					) {
-						// perform a refactoring - the RenameDeclarationProcessor will take care of renaming the proxyvar which in turn will cause the id of the definition to actually be changed
+						// perform a refactoring
 						RenameDeclarationAction.performRenameRefactoring(var, newID.stringValue(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
 					}
 					// set id in any case

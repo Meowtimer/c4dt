@@ -42,7 +42,7 @@ public final class C4GroupListEditor extends ListEditor {
 
 	@Override
 	protected String getNewInputObject() {
-		String gamePath = engineProvider.getEngine(true).currentSettings().gamePath;
+		String gamePath = engineProvider.getEngine(true).settings().gamePath;
 		// not yet saved -> look in field editor
 		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null) {
 			gamePath = gamePathEditor.getStringValue();
@@ -55,7 +55,7 @@ public final class C4GroupListEditor extends ListEditor {
 		case 0:
 			FileDialog dialog = new FileDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
-			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).currentSettings().fileDialogFilterForGroupFiles() });
+			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).settings().fileDialogFilterForGroupFiles() });
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by
 			// the super class

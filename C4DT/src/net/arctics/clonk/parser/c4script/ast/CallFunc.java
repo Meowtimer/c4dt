@@ -615,7 +615,7 @@ public class CallFunc extends AccessDeclaration {
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
-			if (!parser.containingScript().engine().currentSettings().proplistsSupported && predecessorInSequence() != null)
+			if (!parser.containingScript().engine().settings().proplistsSupported && predecessorInSequence() != null)
 				return new CallFunc("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);

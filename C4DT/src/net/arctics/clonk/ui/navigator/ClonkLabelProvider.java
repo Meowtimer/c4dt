@@ -44,7 +44,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			}
 			Engine engine = ClonkProjectNature.engineFromResource((IFile)element);
 			if (engine != null) {
-				if (element.toString().endsWith(engine.currentSettings().materialExtension))
+				if (element.toString().endsWith(engine.settings().materialExtension))
 					return engine.image("material");
 			}
 		}

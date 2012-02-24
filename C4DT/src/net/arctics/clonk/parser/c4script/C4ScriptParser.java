@@ -986,7 +986,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						currentFunctionContext.currentDeclaration = var;
 						VarInitialization varInitialization;
 						ExprElm initializationExpression = null;
-						if (scope == Scope.CONST || currentFunc != null || containingScript().engine().currentSettings().nonConstGlobalVarsAssignment) {
+						if (scope == Scope.CONST || currentFunc != null || containingScript().engine().settings().nonConstGlobalVarsAssignment) {
 							eatWhitespace();
 							if (peek() == '=') {
 								read();
@@ -1127,7 +1127,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		String str;
 		if (peek() == '&') {
-			if (!container.engine().currentSettings().supportsRefs) {
+			if (!container.engine().settings().supportsRefs) {
 				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.engine().name());
 			}
 			read();
@@ -3173,7 +3173,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int e = this.offset;
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
-		if (type == PrimitiveType.REFERENCE && !container.engine().currentSettings().supportsRefs) {
+		if (type == PrimitiveType.REFERENCE && !container.engine().settings().supportsRefs) {
 			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.engine().name());
 		}
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
