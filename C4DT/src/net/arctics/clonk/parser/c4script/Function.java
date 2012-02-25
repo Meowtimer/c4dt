@@ -194,7 +194,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String obtainUserDescription() {
 		if (isEngineDeclaration())
-			return engine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+			return engine().obtainDescription(this);
 		else
 			return description;
 	}

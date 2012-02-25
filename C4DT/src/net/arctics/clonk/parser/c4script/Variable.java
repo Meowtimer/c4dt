@@ -160,7 +160,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public String obtainUserDescription() {
 		if (isEngineDeclaration())
-			return engine().getDescriptionPossiblyReadingItFromRepositoryDocs(this);
+			return engine().obtainDescription(this);
 		else
 			return description;
 	}

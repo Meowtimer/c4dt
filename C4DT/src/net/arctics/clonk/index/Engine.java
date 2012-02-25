@@ -204,6 +204,10 @@ public class Engine extends Script {
 			return fetgtm;
 		}
 		
+		/**
+		 * Reverse map of {@link #fileExtensionToGroupTypeMapping()}
+		 * @return The reverse map
+		 */
 		public Map<C4Group.GroupType, String> groupTypeToFileExtensionMapping() {
 			fileExtensionToGroupTypeMapping();
 			return rfetgtm;
@@ -227,6 +231,12 @@ public class Engine extends Script {
 			return fileDialogFilterString;
 		}
 
+		/**
+		 * Return documentation URL for a function name. The result will be a local file URL if {@link #useDocsFromRepository} is set,
+		 * a link based on the {@link #docURLTemplate} if not.
+		 * @param functionName The funciton name
+		 * @return The URL string
+		 */
 		public String documentationURLForFunction(String functionName) {
 			String urlFormatString = useDocsFromRepository
 				? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
@@ -234,6 +244,10 @@ public class Engine extends Script {
 			return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 		}
 		
+		/**
+		 * Return a list of sound file extensions this engine supports.
+		 * @return The extension list
+		 */
 		public List<String> supportedSoundFileExtensions() {
 			if (supportedSoundFileExtensions_ == null) {
 				supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
@@ -306,6 +320,10 @@ public class Engine extends Script {
 		return cachedFuncs;
 	}
 	
+	/**
+	 * Return {@link IniData} configuration for this engine
+	 * @return The {@link IniData} configuration
+	 */
 	public IniData iniConfigurations() {
 		return iniConfigurations;
 	}
@@ -317,26 +335,20 @@ public class Engine extends Script {
 	public Engine(String name) {
 		super(null);
 		setName(name);
-		modified();
+		intrinsicSettings = new EngineSettings();
+		resetCache();
 	}
 
-	/**
-	 * 
-	 */
-	public void modified() {
-		if (intrinsicSettings == null) {
-			intrinsicSettings = new EngineSettings();
-		}
+	private void resetCache() {
 		cachedFuncs = new CachedEngineDeclarations(this);
 		cachedPrefixedVariables = null;
 	}
 
-	@Override
-	public void postLoad(Declaration parent, Index root) {
-		super.postLoad(parent, root);
-		modified();
-	}
-
+	/**
+	 * Return an array containing possible engine executable paths according to the OS Eclipse runs on.
+	 * The paths are relative to a Clonk folder.
+	 * @return The array of executable paths
+	 */
 	public static String[] possibleEngineNamesAccordingToOS() {
 		// reordered to save lots of cpu time
 		if (Util.isWindows()) {
@@ -355,14 +367,22 @@ public class Engine extends Script {
 		return new String[] { "clonk" }; //$NON-NLS-1$
 	}
 
+	/**
+	 * Return whether this engine accepts the given text as ID
+	 * @param text The ID text
+	 * @return Whether accepted or not
+	 */
 	public boolean acceptsId(String text) {
 		return specialScriptRules().parseId(new BufferedScanner(text)) != null;
 	}
 
-	public boolean hasCustomSettings() {
+	private boolean hasCustomSettings() {
 		return !currentSettings.equals(intrinsicSettings);
 	}
 
+	/**
+	 * I am my own engine!
+	 */
 	@Override
 	public Engine engine() {
 		return this;
@@ -375,6 +395,10 @@ public class Engine extends Script {
 	
 	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
 	
+	/**
+	 * Load settings from this engine's {@link #storageLocations()}
+	 * @throws IOException
+	 */
 	public void loadSettings() throws IOException {
 		// combine settings files in reverse-order so custom config is based on default
 		for (int i = storageLocations.length-1; i >= 0; i--) {
@@ -402,6 +426,9 @@ public class Engine extends Script {
 		}
 	}
 	
+	/**
+	 * Load ini configuration from this engine's {@link #storageLocations()}
+	 */
 	private void loadIniConfigurations() {
 		try {
 			for (int i = storageLocations.length-1; i >= 0; i--) {
@@ -448,7 +475,7 @@ public class Engine extends Script {
 			if (findVariable(Keywords.Nil) == null)
 				this.addDeclaration(new Variable(Keywords.Nil, Variable.Scope.CONST));
 		} finally {
-			modified();
+			resetCache();
 		}
 	}
 
@@ -484,7 +511,7 @@ public class Engine extends Script {
 	
 	/**
 	 * Tell this engine to discard information about documentation already read on-demand from the repository docs folder so
-	 * the next time documentation needs to be obtained via {@link #getDescriptionPossiblyReadingItFromRepositoryDocs(IHasUserDescription)},
+	 * the next time documentation needs to be obtained via {@link #obtainDescription(IHasUserDescription)},
 	 * a repository doc reading will be performed.
 	 */
 	public void reinitializeDocImporter() {
@@ -498,14 +525,21 @@ public class Engine extends Script {
 		}
 	}
 	
-	public <T extends IHasUserDescription & IHasName> String getDescriptionPossiblyReadingItFromRepositoryDocs(T declaration) {
+	/**
+	 * Obtain a description for the specified declaration. From which source this description is lifted depends on settings
+	 * such as {@link EngineSettings#readDocumentationFromRepository}. If that setting is set attempts will be made to extract
+	 * the description from the <repository>/docs folder, with the fallback being descriptions<lang>.ini files in the res/engines/<engine> folder.
+	 * @param declaration The declaration for which to obtain a description
+	 * @return The description or null if I don't know what went wrong
+	 */
+	public <T extends IHasUserDescription & IHasName> String obtainDescription(T declaration) {
 		if (declaration.userDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.name()))
 			return declaration.userDescription();
 		applyDocumentationAndSignatureFromRepository(declaration);
 		return declaration.userDescription();
 	}
-	
-	public <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
+
+	private <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
 		if (settings().readDocumentationFromRepository) {
@@ -532,7 +566,7 @@ public class Engine extends Script {
 		return false;
 	}
 	
-	public void loadDeclarationsConfiguration() {
+	private void loadDeclarationsConfiguration() {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
 			if (loc == null)
@@ -566,7 +600,7 @@ public class Engine extends Script {
 		}
 	}
 	
-	public void parseEngineScript() {
+	private void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
 			final URL url = loc.getURL(name()+".c", false);
 			if (url != null) {
@@ -631,17 +665,22 @@ public class Engine extends Script {
 		}
 	}
 	
-	public static Engine loadFromStorageLocations(final IStorageLocation... providers) {
+	/**
+	 * Load an {@link Engine} from a list of {@link IStorageLocation}s
+	 * @param locations The locations, which usually are just two, one representing a location in the user's workspace/.metadata folder and the other being embedded in the plugin jar.
+	 * @return The loaded {@link Engine}
+	 */
+	public static Engine loadFromStorageLocations(final IStorageLocation... locations) {
 		Engine result = null;
 		try {
-			for (IStorageLocation location : providers) {
+			for (IStorageLocation location : locations) {
 				if (location == null)
 					continue;
 				// only consider valid engine folder if configuration.ini is present
 				URL url = location.getURL(CONFIGURATION_INI_NAME, false); 
 				if (url != null) {
 					result = new Engine(location.name());
-					result.load(providers);
+					result.load(locations);
 					break;
 				}
 			}
@@ -708,6 +747,9 @@ public class Engine extends Script {
 		}
 	}
 	
+	/**
+	 * Save the settings!
+	 */
 	public void saveSettings() {
 		if (!hasCustomSettings())
 			return;
