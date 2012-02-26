@@ -36,7 +36,7 @@ public class ProjectIndex extends Index {
 	
 	@Override
 	public Engine engine() {
-		return nature.settings().getEngine();
+		return nature.settings().engine();
 	}
 	
 	/**

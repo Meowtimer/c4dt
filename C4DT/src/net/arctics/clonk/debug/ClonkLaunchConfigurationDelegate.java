@@ -9,10 +9,9 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
@@ -143,11 +142,11 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		Script scenarioScript = Scenario.get(scenario);
-		String gamePath = scenarioScript != null ? scenarioScript.engine().settings().gamePath : null;
+		Index index = Utilities.indexFromResource(scenario);
+		String gamePath = index != null ? index.engine().settings().gamePath : null;
 
 		File enginePath = new File("Unspecified");
-		String enginePref = scenarioScript != null ? scenarioScript.engine().settings().engineExecutablePath : null;
+		String enginePref = index != null ? index.engine().settings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
 		if (!enginePref.equals("")) //$NON-NLS-1$

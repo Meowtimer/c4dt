@@ -63,7 +63,7 @@ public class ClonkProjectNature implements IProjectNature {
 		public ProjectSettings() {
 		}
 		
-		public Engine getEngine() {
+		public Engine engine() {
 			if (cachedEngine == null) {
 				// engineName can be "" or null since that is handled by loadEngine
 				cachedEngine = Core.instance().loadEngine(engineName);
@@ -440,7 +440,7 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public static Engine engineFromResource(IResource res) {
 		ClonkProjectNature nat = get(res);
-		return nat != null ? nat.settings().getEngine() : null;
+		return nat != null ? nat.settings().engine() : null;
 	}
 	
 	public static Engine engineFromSelection(ISelection selection) {
