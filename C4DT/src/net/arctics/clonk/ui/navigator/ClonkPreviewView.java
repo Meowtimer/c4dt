@@ -311,7 +311,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				
 				Definition obj = Definition.definitionCorrespondingToFolder(container);
 				if (obj != null)
-					newDefText = obj.idWithName();
+					newDefText = obj.infoTextIncludingIDAndName();
 
 				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.languagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (descFile instanceof IFile) {

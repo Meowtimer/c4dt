@@ -76,7 +76,7 @@ public class Definition extends Script {
 		this.name = name;
 	}
 
-	public String idWithName() {
+	public String infoTextIncludingIDAndName() {
 		return id() != null ? String.format(Messages.C4Object_IDWithName, name(), id().toString()) : name();
 	}
 
