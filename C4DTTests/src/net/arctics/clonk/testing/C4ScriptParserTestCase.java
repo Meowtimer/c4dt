@@ -1,6 +1,9 @@
 package net.arctics.clonk.testing;
 
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,9 +13,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Index;
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -40,15 +43,14 @@ import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 
 import org.eclipse.core.resources.IStorage;
-import org.junit.*;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public class C4ScriptParserTestCase {
 
@@ -60,13 +62,12 @@ public class C4ScriptParserTestCase {
 	public class Setup {
 		public Script script;
 		public C4ScriptParser parser;
-		private List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(
-				20);
+		private final List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(20);
 
 		public Setup(final String script) throws UnsupportedEncodingException {
 			this.script = new Script(new Index() {
-				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-				private Engine engine = new Engine("TestEngine") {
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+				private final Engine engine = new Engine("TestEngine") {
 					private final SpecialScriptRules rules = new SpecialScriptRules() {
 						private final Matcher ID_MATCHER = Pattern.compile(
 								"[A-Za-z_][A-Za-z_0-9]*").matcher("");
@@ -100,7 +101,7 @@ public class C4ScriptParserTestCase {
 						}
 					};
 					private EngineSettings settings;
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+					private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 					@Override
 					public SpecialScriptRules specialScriptRules() {
@@ -108,7 +109,7 @@ public class C4ScriptParserTestCase {
 					};
 
 					@Override
-					public EngineSettings currentSettings() {
+					public EngineSettings settings() {
 						if (settings == null) {
 							settings = new EngineSettings();
 							settings.maxStringLen = 0;
@@ -127,7 +128,7 @@ public class C4ScriptParserTestCase {
 					return engine;
 				};
 			}) {
-				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				SimpleScriptStorage storage = new SimpleScriptStorage(
 						"TestScript", script);
 
