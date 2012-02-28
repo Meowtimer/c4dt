@@ -393,6 +393,12 @@ public class Engine extends Script {
 		return null;
 	}
 	
+	@Override
+	public void postLoad(Declaration parent, Index root) {
+		super.postLoad(parent, root);
+		resetCache();
+	}
+	
 	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
 	
 	/**
