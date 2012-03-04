@@ -1,10 +1,13 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -24,12 +27,12 @@ public class LookupDeclarationHandler extends AbstractHandler {
 		if (part instanceof C4ScriptEditor) {
 			Script script = ((C4ScriptEditor)part).scriptBeingEdited();
 			if (script != null) {
-				Set<IHasIncludes> scripts = new HashSet<IHasIncludes>();
-				script.gatherIncludes(scripts, true);
+				List<IHasIncludes> scripts = new ArrayList<IHasIncludes>();
+				script.gatherIncludes(script.index(), scripts, GatherIncludesOptions.Recursive);
 				Set<Declaration> declarations = new HashSet<Declaration>();
 				for (IHasIncludes s : scripts)
 					if (s instanceof Script)
-						for (Declaration d : ((Script)s).allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
+						for (Declaration d : ((Script)s).accessibleDeclarations(IHasSubDeclarations.ALL))
 							declarations.add(d);
 				EntityChooser chooser = new EntityChooser(HandlerUtil.getActiveShell(event), declarations);
 				chooser.setInitialPattern(".*");

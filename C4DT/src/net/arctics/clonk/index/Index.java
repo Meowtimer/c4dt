@@ -251,7 +251,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			addToDeclarationMap(var);
 		}
 		detectAppendages(script);
-		for (IHasIncludes s : script.getIncludes(this, false))
+		for (IHasIncludes s : script.includes(this, 0))
 			if (s instanceof Script)
 				((Script) s).addDependentScript(script);
 	}
@@ -537,7 +537,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		if (declarations != null) {
 			return pivot != null
 				? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
-				: declarations.get(0);
+				: IS_GLOBAL.test(declarations.get(0))
+					? declarations.get(0)
+					: null;
 		}
 		return null;
 	}

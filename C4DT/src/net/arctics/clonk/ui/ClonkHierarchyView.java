@@ -4,23 +4,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
@@ -42,15 +43,15 @@ public class ClonkHierarchyView extends ViewPart {
 		private static final IFilter INCLUDES_FILTER = new IFilter() {
 			@Override
 			public boolean test(Definition parent, Script script) {
-				return script.includes(parent);
+				return script.doesInclude(script.index(), parent);
 			}
 			@Override
 			public boolean isRootScript(Script script) {
-				return script instanceof Definition && !(script instanceof Scenario) && !script.getIncludes(false).iterator().hasNext();
+				return script instanceof Definition && !(script instanceof Scenario) && !script.includes(0).iterator().hasNext();
 			}
 		};
 		
-		private IFilter filter = INCLUDES_FILTER;
+		private final IFilter filter = INCLUDES_FILTER;
 		
 		public Script[] getScriptsDerivedFrom(Object parentElement, IFilter filter) {
 			if (parentElement instanceof Definition) {

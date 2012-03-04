@@ -81,7 +81,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			List<Declaration> decs = new ArrayList<Declaration>();
-			for (Declaration d : script.allSubDeclarations(IHasSubDeclarations.VARIABLES|+IHasSubDeclarations.FUNCTIONS)) {
+			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.VARIABLES|+IHasSubDeclarations.FUNCTIONS)) {
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
 			}

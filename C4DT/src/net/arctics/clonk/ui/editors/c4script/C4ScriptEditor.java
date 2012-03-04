@@ -274,7 +274,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (declaration instanceof Function) {
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).body(), offset, add);
 			}
-			for (Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
+			for (Declaration v : declaration.subDeclarations(declaration.index(), IHasSubDeclarations.ALL)) {
 				adjustDec(v, offset, add);
 			}
 		}
@@ -671,6 +671,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.setListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
+		parser.script().generateFindDeclarationCache();
 		//if (!onlyDeclarations)
 			parser.parseCodeOfFunctionsAndValidate();
 		if (storedLocalsTypeInformation != null) {

@@ -303,12 +303,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);
 			for (Definition o : index) {
-				if (o.includes(obj)) {
+				if (o.doesInclude(project.index(), obj)) {
 					result.add(o);
 				}
 			}
 			for (Script script : index.indexedScripts()) {
-				if (script.includes(obj)) {
+				if (script.doesInclude(project.index(), obj)) {
 					result.add(script);
 				}
 			}
@@ -379,11 +379,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if (initializationExpression instanceof IHasSubDeclarations) {
-			return ((IHasSubDeclarations)initializationExpression).allSubDeclarations(mask);
+			return ((IHasSubDeclarations)initializationExpression).subDeclarations(contextIndex, mask);
 		} else {
-			return super.allSubDeclarations(mask);
+			return super.subDeclarations(contextIndex, mask);
 		}
 	}
 	

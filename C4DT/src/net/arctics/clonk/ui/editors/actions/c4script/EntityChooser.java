@@ -145,7 +145,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 									Matcher matcher = ps.matcher(str);
 									if (matcher.lookingAt()) {
 										s.requireLoaded();
-										for (Declaration d : s.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS))
+										for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
 											if (d.matchedBy(matcher)) {
 												contentProvider.add(d, itemsFilter);
 												if (++declarationsBatchSize == 5) {

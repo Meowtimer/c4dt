@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.util.Utilities;
@@ -21,8 +21,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private IHasIncludes constraint;
-	private ConstraintKind constraintKind;
+	private final IHasIncludes constraint;
+	private final ConstraintKind constraintKind;
 	private transient Iterable<IType> iterable;
 	
 	/**
@@ -152,9 +152,11 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 		if (isType && type == PrimitiveType.ID)
 			return true;
 		if (type instanceof Script)
-			return ((Script)type).includes(constraint);
-		if (type instanceof ConstrainedProplist)
-			return ((ConstrainedProplist)type).constraint().includes(constraint);
+			return ((Script)type).doesInclude(((Script)type).index(), constraint);
+		if (type instanceof ConstrainedProplist) {
+			//return ((ConstrainedProplist)type).constraint().includes(index(), constraint);
+			return false; // >:o
+		}
 		return false;
 	}
 
@@ -206,8 +208,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
-		return constraint.allSubDeclarations(mask);
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+		return constraint.subDeclarations(contextIndex, mask);
 	}
 
 	@Override
@@ -226,18 +228,18 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
-		return constraint.getIncludes(recursive);
+	public Collection<? extends IHasIncludes> includes(Index contextIndex, int options) {
+		return constraint.includes(contextIndex, options);
 	}
 
 	@Override
-	public boolean includes(IHasIncludes other) {
-		return constraint.includes(other);
+	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
+		return constraint.doesInclude(contextIndex, other);
 	}
 
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, boolean recursive) {
-		return constraint.gatherIncludes(set, recursive);
+	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
+		return constraint.gatherIncludes(contextIndex, set, options);
 	}
 
 }

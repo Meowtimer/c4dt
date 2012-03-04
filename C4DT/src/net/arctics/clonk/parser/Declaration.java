@@ -296,8 +296,17 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
 	@Override
-	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		return NO_SUB_DECLARATIONS;
+	}
+	
+	/**
+	 * Return {@link #subDeclarations(Index, int)} with the contextIndex parameter set to {@link #index()}
+	 * @param mask The mask, passed on to {@link #subDeclarations(Index, int)}
+	 * @return Result of {@link #subDeclarations(Index, int)}
+	 */
+	public final Iterable<? extends Declaration> accessibleDeclarations(int mask) {
+		return subDeclarations(index(), mask);
 	}
 	
 	@Override
@@ -327,7 +336,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
-		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS|NO_INCLUDED_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.accessibleDeclarations(ALL);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.postLoad(this, root);
@@ -530,7 +539,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	public String makeNameUniqueToParent() {
 		int othersWithSameName = 0;
 		int ownIndex = -1;
-		for (Declaration d : parentDeclaration().allSubDeclarations(DIRECT_SUBDECLARATIONS|OTHER)) {
+		for (Declaration d : parentDeclaration().accessibleDeclarations(ALL|OTHER)) {
 			if (d == this) {
 				ownIndex = othersWithSameName++;
 				continue;

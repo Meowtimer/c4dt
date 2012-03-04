@@ -138,7 +138,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			dictionary.clear();
 		else
 			dictionary = new HashSet<String>();
-		for (Declaration d : allSubDeclarations(DIRECT_SUBDECLARATIONS))
+		for (Declaration d : accessibleDeclarations(ALL))
 			dictionary.add(d.name());
 	}
 	
@@ -229,7 +229,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, boolean recursive) {
+	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
 		requireLoaded();
 		if (set.contains(this))
 			return false;
@@ -237,16 +237,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			set.add(this);
 		if (definedDirectives != null) synchronized(definedDirectives) {
 			for (Directive d : definedDirectives) {
-				ID id = d.contentAsID();
-				if (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) {
-					for (Index in : index.relevantIndexes()) {
+				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
+					ID id = d.contentAsID();
+					for (Index in : contextIndex.relevantIndexes()) {
 						Iterable<? extends Definition> defs = in.getDefinitionsWithID(id);
-						if (defs != null)
-							for (Definition def : defs)
-								if (!recursive)
+						if (defs != null) {
+							for (Definition def : defs) {
+								if ((options & GatherIncludesOptions.Recursive) == 0)
 									set.add(def);
-								else
-									def.gatherIncludes(set, true);
+								else {
+									if (d.type() == DirectiveType.INCLUDE)
+										options &= ~GatherIncludesOptions.NoAppendages;
+									def.gatherIncludes(contextIndex, set, options);
+								}
+							}
+						}
 					}
 				}
 			}
@@ -255,30 +260,32 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	/**
-	 * Does the same as gatherIncludes except that the user does not have to create their own list
-	 * @param index The index to be passed to gatherIncludes
+	 * Return {@link #includes(Index, boolean)}({@link #index()}, {@code recursive});
+	 * @param recursive Whether the returned collection also contains includes of the includes.
 	 * @return The includes
 	 */
-	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
-		requireLoaded();
-		if (includes != null && !recursive)
-			return includes;
+	public Collection<? extends IHasIncludes> includes(int options) {
+		if (index() == null)
+			return NO_INCLUDES;
 		else
-			return IHasIncludes.Default.getIncludes(this, recursive);
+			return includes(index(), options);
 	}
-
+	
 	/**
-	 * Does the same as {@link #gatherIncludes(Set, boolean)}x except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
+	 * Does the same as gatherIncludes except that the user does not have to create their own list
+	 * @param index The index to be passed to gatherIncludes
+	 * @param recursive Whether the returned collection also contains includes of the includes.
 	 * @return The includes
 	 */
 	@Override
-	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
-		Index index = index();
-		if (index == null)
-			return NO_INCLUDES;
-		return getIncludes(index, recursive);
+	public Collection<? extends IHasIncludes> includes(Index index, int options) {
+		requireLoaded();
+		if (includes != null && (options & GatherIncludesOptions.Recursive) == 0 && index == this.index())
+			return includes;
+		else
+			return IHasIncludes.Default.includes(index, this, options);
 	}
-	
+
 	public Iterable<Script> dependentScripts() {
 		requireLoaded();
 		if (dependentScripts == null)
@@ -356,19 +363,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return null;
 	}
 
-	/**
-	 * Returns all declarations of this script (functions, variables and directives)
-	 */
 	@Override
-	public Iterable<Declaration> allSubDeclarations(int mask) {
+	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
 		List<Iterable<? extends Declaration>> its = new ArrayList<Iterable<? extends Declaration>>(4);
 		if ((mask & FUNCTIONS) != 0)
 			its.add(functions());
 		if ((mask & VARIABLES) != 0)
 			its.add(variables());
-		if ((mask & INCLUDES) != 0)
-			its.add(filteredIterable(getIncludes(false), Declaration.class));
 		if ((mask & DIRECTIVES) != 0)
 			its.add(directives());
 		return new CompoundIterable<Declaration>(its);
@@ -435,7 +437,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 						return v;
 
 			info.recursion++;
-			for (IHasIncludes o : getIncludes(info.index, false)) {
+			for (IHasIncludes o : includes(info.index, 0)) {
 				Declaration result = o.findDeclaration(name, info);
 				if (result != null)
 					return result;
@@ -454,6 +456,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					if (f != null && f.isGlobal())
 						return f;
 				}
+				f = null;
 			}
 			// definition from extern index
 			if (engine().acceptsId(name)) {
@@ -632,11 +635,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @return True if this script includes the other one, false if not.
 	 */
 	@Override
-	public boolean includes(IHasIncludes other) {
+	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
 		requireLoaded();
 		if (other == this)
 			return true;
-		Iterable<? extends IHasIncludes> incs = this.getIncludes(false);
+		Iterable<? extends IHasIncludes> incs = this.includes(0);
 		for (IHasIncludes o : incs)
 			if (o == other)
 				return true;
@@ -661,7 +664,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				return func;
 		}
 		if (includeIncludes) {
-			for (Script script : filteredIterable(getIncludes(false), Script.class)) {
+			for (Script script : filteredIterable(includes(0), Script.class)) {
 				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
 				if (func != null)
 					return func;
@@ -680,7 +683,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				return var;
 		}
 		if (includeIncludes) {
-			for (Script script : filteredIterable(getIncludes(false), Script.class)) {
+			for (Script script : filteredIterable(includes(0), Script.class)) {
 				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
 				if (var != null)
 					return var;
@@ -750,10 +753,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
 	 * @return the Iterable
 	 */
-	public Set<IHasIncludes> conglomerate() {
+	public List<IHasIncludes> conglomerate() {
 		requireLoaded();
-		Set<IHasIncludes> s = new HashSet<IHasIncludes>();
-		gatherIncludes(s, true);
+		List<IHasIncludes> s = new ArrayList<IHasIncludes>(10);
+		gatherIncludes(index(), s, GatherIncludesOptions.Recursive);
 		return s;
 	}
 
@@ -974,7 +977,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			type == PrimitiveType.OBJECT ||
 			type == PrimitiveType.PROPLIST ||
 			type == this ||
-			(type instanceof ConstrainedProplist && this.includes(((ConstrainedProplist)type).constraint())) ||
+			(type instanceof ConstrainedProplist && this.doesInclude(this.index(), ((ConstrainedProplist)type).constraint())) ||
 			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
 	}
 	
@@ -1005,7 +1008,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				return true;
 			if (t instanceof Definition) {
 				Definition obj = (Definition) t;
-				if (this.includes(obj))
+				if (this.doesInclude(obj.index(), obj))
 					return true;
 			}
 		}
@@ -1049,28 +1052,26 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		return this;
 	}
-	
-	private void _generateFindDeclarationCache(Set<Script> scriptsAlreadyVisited, Script script) {
-		if (scriptsAlreadyVisited.contains(script))
-			return;
-		else
-			scriptsAlreadyVisited.add(script);
-		for (IHasIncludes i : script.getIncludes(false))
-			if (i instanceof Script)
-				_generateFindDeclarationCache(scriptsAlreadyVisited, (Script)i);
-		for (Function f : script.functions())
-			cachedFunctionMap.put(f.name(), f);
-		for (Variable v : script.variables())
-			cachedVariableMap.put(v.name(), v);
+
+	private void _generateFindDeclarationCache() {
+		List<IHasIncludes> conglo = this.conglomerate();
+		Collections.reverse(conglo);
+		for (IHasIncludes i : conglo) {
+			if (i instanceof Script) {
+				for (Function f : ((Script)i).functions())
+					cachedFunctionMap.put(f.name(), f);
+				for (Variable v : ((Script)i).variables())
+					cachedVariableMap.put(v.name(), v);
+			}
+		}
 	}
 	
 	public void generateFindDeclarationCache() {
 		cachedFunctionMap = new HashMap<String, Function>();
 		cachedVariableMap = new HashMap<String, Variable>();
 		includes = null;
-		includes = getIncludes(false);
-		Set<Script> scripts = new HashSet<Script>();
-		_generateFindDeclarationCache(scripts, this);
+		includes = includes(0);
+		_generateFindDeclarationCache();
 	}
 	
 	@Override

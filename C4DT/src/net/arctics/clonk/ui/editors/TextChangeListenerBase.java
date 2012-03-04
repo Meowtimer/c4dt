@@ -137,13 +137,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected void adjustDeclarationLocations(DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0) {
 			// text was added
-			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
 				adjustDec(dec, event.getOffset(), event.getText().length());
 			}
 		}
 		else if (event.getLength() > 0 && event.getText().length() == 0) {
 			// text was removed
-			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
 				adjustDec(dec, event.getOffset(), -event.getLength());
 			}
 		}
@@ -153,7 +153,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int offset = event.getOffset();
 			int diff = newText.length() - replLength;
 			// mixed
-			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
 				if (dec.location().start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {

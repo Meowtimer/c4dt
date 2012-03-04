@@ -88,7 +88,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
 			null, var.infoText(), " - " + (var.script() != null ? var.script().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()

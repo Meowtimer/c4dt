@@ -5,7 +5,6 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -168,17 +167,24 @@ public class Definition extends Script {
 	}
 
 	@Override
-	public  boolean gatherIncludes(final Set<IHasIncludes> set, final boolean recursive) {
-		if (!super.gatherIncludes(set, recursive))
+	public void generateFindDeclarationCache() {
+		super.generateFindDeclarationCache();
+	}
+	
+	@Override
+	public  boolean gatherIncludes(Index contextIndex, final List<IHasIncludes> set, final int options) {
+		if (!super.gatherIncludes(contextIndex, set, options))
 			return false;
-		if (index != null) {
-			List<Script> appendages = index.appendagesOf(Definition.this);
-			if (appendages != null)
-				for (Script s : appendages)
-					if (!recursive)
-						set.add(s);
-					else
-						s.gatherIncludes(set, true);
+		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
+			for (Index i : contextIndex.relevantIndexes()) {
+				List<Script> appendages = i.appendagesOf(Definition.this);
+				if (appendages != null)
+					for (Script s : appendages)
+						if ((options & GatherIncludesOptions.Recursive) == 0)
+							set.add(s);
+						else
+							s.gatherIncludes(i, set, options | GatherIncludesOptions.NoAppendages);
+			}
 		}
 		return true;
 	}

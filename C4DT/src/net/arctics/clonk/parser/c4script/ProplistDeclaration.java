@@ -131,17 +131,10 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 	
 	@Override
-	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
-			if ((mask & NO_INCLUDED_SUBDECLARATIONS) == 0) {
-				Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
-				gatherIncludes(includes, true);
-				for (IHasIncludes i : includes)
-					its.add(i.allSubDeclarations(mask | NO_INCLUDED_SUBDECLARATIONS));
-			}
-			else
-				its.add(getComponents());
+			its.add(getComponents());
 			return new CompoundIterable<Declaration>(its);
 		}
 		else
@@ -226,29 +219,29 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
-		return IHasIncludes.Default.getIncludes(this, recursive);
+	public Collection<? extends IHasIncludes> includes(Index contextIndex, int options) {
+		return IHasIncludes.Default.includes(contextIndex, this, options);
 	}
 
 	@Override
-	public boolean includes(IHasIncludes other) {
-		Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
-		gatherIncludes(includes, true);
+	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
+		List<IHasIncludes> includes = new ArrayList<IHasIncludes>(10);
+		gatherIncludes(contextIndex, includes, GatherIncludesOptions.Recursive);
 		return includes.contains(other);
 	}
 	
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, boolean recursive) {
+	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
 		if (set.contains(this))
 			return false;
 		else
 			set.add(this);
 		IHasIncludes proto = prototype();
 		if (proto != null)
-			if (!recursive)
+			if ((options & GatherIncludesOptions.Recursive) == 0)
 				set.add(proto);
 			else
-				proto.gatherIncludes(set, recursive);
+				proto.gatherIncludes(contextIndex, set, options);
 		return true;
 	}
 	

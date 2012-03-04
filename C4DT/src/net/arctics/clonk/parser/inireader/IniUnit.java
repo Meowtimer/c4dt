@@ -13,6 +13,7 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -650,7 +651,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & OTHER) != 0)
 			return this.sectionsList;
 		else

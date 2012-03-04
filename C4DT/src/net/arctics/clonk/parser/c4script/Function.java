@@ -14,6 +14,7 @@ import java.util.Set;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
@@ -405,7 +406,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function inheritedFunction() {
 		
 		// search in #included scripts
-		Collection<? extends IHasIncludes> includesCollection = script().getIncludes(false);
+		Collection<? extends IHasIncludes> includesCollection = script().includes(0);
 		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			Function fun = includes[i].findFunction(name());
@@ -608,7 +609,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public Iterable<Declaration> allSubDeclarations(int mask) {
+	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
 		List<Iterable<? extends Declaration>> l = new ArrayList<Iterable<? extends Declaration>>(3);
 		if ((mask & VARIABLES) != 0) {
 			l.add(localVars);

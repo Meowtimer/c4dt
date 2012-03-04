@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -149,12 +150,19 @@ public abstract class Utilities {
 	 * @return The distance to a container that both a and b are contained in
 	 */
 	public static int distanceToCommonContainer(IResource a, IResource b) {
+		return Math.max(_distanceToCommonContainer(a, b), _distanceToCommonContainer(b, a));
+	}
+	
+	private static int _distanceToCommonContainer(IResource a, IResource b) {
 		IContainer c;
 		int dist = 0;
 		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
 			if (resourceInside(b, c))
 				break;
-			dist++;
+			if (Scenario.get(c) != null)
+				dist += 100; // scenario boundary - when looking for a definition, always prefer the one not contained in a scenario if the search starts from elsewhere than that scenario
+			else
+				dist++;
 		}
 		return dist;
 	}

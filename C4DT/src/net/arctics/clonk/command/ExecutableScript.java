@@ -3,16 +3,17 @@ package net.arctics.clonk.command;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
-import org.eclipse.core.resources.IStorage;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+
+import org.eclipse.core.resources.IStorage;
 
 public class ExecutableScript extends Script {
 
@@ -50,7 +51,7 @@ public class ExecutableScript extends Script {
 				if (!(function instanceof Function))
 					return;
 				if (function.name().equals("Main")) { //$NON-NLS-1$
-					main = (Function)function;
+					main = function;
 				}
 				super.parseCodeOfFunction(function, withNewContext);
 			}
@@ -63,7 +64,7 @@ public class ExecutableScript extends Script {
 	}
 
 	@Override
-	public Collection<IHasIncludes> getIncludes(Index index, boolean recursive) {
+	public Collection<IHasIncludes> includes(Index index, int options) {
 		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 
