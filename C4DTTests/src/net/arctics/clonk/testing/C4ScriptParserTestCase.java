@@ -62,7 +62,7 @@ public class C4ScriptParserTestCase {
 	public class Setup {
 		public Script script;
 		public C4ScriptParser parser;
-		private final List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(20);
+		public final List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(20);
 
 		public Setup(final String script) throws UnsupportedEncodingException {
 			this.script = new Script(new Index() {
@@ -206,8 +206,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.script.findFunction("Test").codeBlock()
 				.compare(block, new IASTComparisonDelegate() {
 					@Override
-					public DifferenceHandling differs(ExprElm a, ExprElm b,
-							Object what) {
+					public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 						return DifferenceHandling.Differs;
 					}
 
@@ -261,6 +260,14 @@ public class C4ScriptParserTestCase {
 		assertTrue(t instanceof TypeSet);
 		TypeSet ty = (TypeSet)t;
 		assertTrue(ty.size() == 3 && ty.types().contains(PrimitiveType.STRING) && ty.types().contains(PrimitiveType.BOOL) && ty.types().contains(PrimitiveType.INT));
+	}
+	
+	
+	@Test
+	public void testResultOfUnknownFunctionIsNotCallerType() throws UnsupportedEncodingException, ParsingException {
+		Setup setup = new Setup(file(callingMethod()));
+		setup.parser.parse();
+		assertTrue(setup.errors.size() == 0);
 	}
 
 }

@@ -1,0 +1,4 @@
+func Test() {
+	var obj = CreateObject(GetID());
+	Log(obj->Something());
+}
