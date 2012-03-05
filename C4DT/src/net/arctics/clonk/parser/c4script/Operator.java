@@ -62,7 +62,7 @@ public enum Operator {
 	static {
 		HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
 		for (Operator op : values()) {
-			workInProgress.put(op.getOperatorName(), op);
+			workInProgress.put(op.operatorName(), op);
 		}
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
@@ -120,7 +120,7 @@ public enum Operator {
 //		System.out.print(";");
 //	}
 
-	public String getOperatorName() {
+	public String operatorName() {
 		return operatorName;
 	}
 	
@@ -197,7 +197,7 @@ public enum Operator {
 	public static String[] arrayOfOperatorNames() {
 		String[] result = new String[values().length];
 		for (Operator o : values()) {
-			result[o.ordinal()] = o.getOperatorName();
+			result[o.ordinal()] = o.operatorName();
 		}
 		return result;
 	}

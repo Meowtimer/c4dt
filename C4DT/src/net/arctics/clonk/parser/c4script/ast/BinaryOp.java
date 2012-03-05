@@ -154,7 +154,7 @@ public class BinaryOp extends OperatorExpression {
 			output.append(")"); //$NON-NLS-1$
 
 		output.append(" "); //$NON-NLS-1$
-		output.append(operator().getOperatorName());
+		output.append(operator().operatorName());
 		output.append(" "); //$NON-NLS-1$
 
 		needsBrackets = rightSide instanceof BinaryOp && operator().priority() > ((BinaryOp)rightSide).operator().priority();
@@ -177,7 +177,7 @@ public class BinaryOp extends OperatorExpression {
 		}
 		// obsolete operators in #strict 2
 		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2)) {
-			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().getOperatorName());
+			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().operatorName());
 		}
 		// wrong parameter types
 		if (!leftSide().validForType(operator().firstArgType(), context))

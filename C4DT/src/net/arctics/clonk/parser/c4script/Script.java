@@ -331,7 +331,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		FindDeclarationInfo info = new FindDeclarationInfo(index());
-		info.setDeclarationClass(declarationClass);
+		info.declarationClass = declarationClass;
 		return findDeclaration(declarationName, info);
 	}
 
@@ -387,23 +387,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 
 		// prevent infinite recursion
-		if (info.getAlreadySearched().contains(this))
+		if (info.alreadySearched.contains(this))
 			return null;
-		info.getAlreadySearched().add(this);
+		info.alreadySearched.add(this);
 		
-		Class<? extends Declaration> decClass = info.getDeclarationClass();
+		Class<? extends Declaration> decClass = info.declarationClass;
 
 		// local variable?
 		if (info.recursion == 0)
-			if (info.getContextFunction() != null && (decClass == null || decClass == Variable.class)) {
-				Declaration v = info.getContextFunction().findVariable(name);
+			if (info.contextFunction != null && (decClass == null || decClass == Variable.class)) {
+				Declaration v = info.contextFunction.findVariable(name);
 				if (v != null)
 					return v;
 			}
 		
 		// prefer using the cache
 		boolean didUseCacheForLocalDeclarations = false;
-		if (cachedVariableMap != null || cachedFunctionMap != null) {
+		if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index()) {
 			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
 				Declaration d = cachedVariableMap.get(name);
 				if (d != null)
@@ -569,7 +569,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	public Function findFunction(String functionName, FindDeclarationInfo info) {
 		info.resetState();
-		info.setDeclarationClass(Function.class);
+		info.declarationClass = Function.class;
 		return (Function) findDeclaration(functionName, info);
 	}
 
@@ -586,7 +586,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	public Variable findVariable(String varName, FindDeclarationInfo info) {
 		info.resetState();
-		info.setDeclarationClass(Variable.class);
+		info.declarationClass = Variable.class;
 		return (Variable) findDeclaration(varName, info);
 	}
 

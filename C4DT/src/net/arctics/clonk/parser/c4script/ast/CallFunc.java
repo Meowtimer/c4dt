@@ -341,7 +341,7 @@ public class CallFunc extends AccessDeclaration {
 				continue;
 			Script script = (Script)ty;
 			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
-			info.setSearchOrigin(context.containingScript());
+			info.searchOrigin = context.containingScript();
 			Declaration dec = script.findFunction(functionName, info);
 			// parse function before this one
 			if (dec != null && context.currentFunction() != null) {

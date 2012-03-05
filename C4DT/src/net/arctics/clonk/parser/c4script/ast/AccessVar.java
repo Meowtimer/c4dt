@@ -85,8 +85,8 @@ public class AccessVar extends AccessDeclaration {
 				}
 			} else {
 				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
-				info.setContextFunction(context.currentFunction());
-				info.setSearchOrigin(scriptToLookIn);
+				info.contextFunction = context.currentFunction();
+				info.searchOrigin = scriptToLookIn;
 				Variable v = scriptToLookIn.findVariable(declarationName, info);
 				if (v != null)
 					return v;

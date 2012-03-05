@@ -223,9 +223,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		for (Variable v : proplistDeclaration.getComponents())
 			addToDeclarationMap(v);
 	}
-	
+
 	private void detectAppendages(Script script) {
-		for (Directive d : script.directives())
+		for (Directive d : script.directives()) {
 			if (d.type() == DirectiveType.APPENDTO) {
 				List<Script> appendtoList = appendages.get(d.contentAsID());
 				if (appendtoList == null) {
@@ -234,6 +234,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				}
 				appendtoList.add(script);
 			}
+		}
 	}
 	
 	protected <T extends Script> void addGlobalsFromScript(T script) {

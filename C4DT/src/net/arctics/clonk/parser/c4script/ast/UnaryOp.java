@@ -50,9 +50,9 @@ public class UnaryOp extends OperatorExpression {
 			argument.print(output, depth+1);
 			if (unop != null && needsSpace(unop))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
-			output.append(operator().getOperatorName());
+			output.append(operator().operatorName());
 		} else {
-			output.append(operator().getOperatorName());
+			output.append(operator().operatorName());
 			if (unop != null && needsSpace(unop))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
 			argument.print(output, depth+1);

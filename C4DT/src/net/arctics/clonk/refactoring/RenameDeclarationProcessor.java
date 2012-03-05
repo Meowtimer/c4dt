@@ -159,7 +159,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		
 		Declaration existingDec;
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.index());
-		info.setDeclarationClass(decl.getClass());
+		info.declarationClass = decl.getClass();
 		Structure parentStructure = decl.firstParentDeclarationOfType(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());

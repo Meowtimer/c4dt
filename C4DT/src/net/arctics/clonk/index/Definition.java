@@ -111,7 +111,7 @@ public class Definition extends Script {
 
 	@Override
 	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
-		Class<?> cls = info.getDeclarationClass();
+		Class<?> cls = info.declarationClass;
 		boolean variableRequired = false;
 		if (
 				cls == null ||
