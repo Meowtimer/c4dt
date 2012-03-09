@@ -7,6 +7,7 @@ import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
@@ -33,21 +34,20 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Little helper thingie to find declarations
+ * Little helper thingie to find {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such. 
  *
  */
 public class EntityLocator extends ExpressionLocator {
-	private ITextEditor editor;
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
 	private C4ScriptParser parser;
 	
+	/**
+	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
+	 * @return Set of potential entities
+	 */
 	public Set<IIndexEntity> potentialEntities() {
 		return potentialEntities;
-	}
-
-	public ITextEditor getEditor() {
-		return editor;
 	}
 
 	private static IPredicate<IIndexEntity> IS_GLOBAL = new IPredicate<IIndexEntity>() {
@@ -84,9 +84,16 @@ public class EntityLocator extends ExpressionLocator {
 		return true;
 	}
 
+	/**
+	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded. 
+	 * @param editor The editor
+	 * @param doc The script document
+	 * @param region Region in the script
+	 * @throws BadLocationException
+	 * @throws ParsingException
+	 */
 	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
-		this.editor = editor;
-		final Script script = Utilities.scriptForEditor(getEditor());
+		final Script script = Utilities.scriptForEditor(editor);
 		if (script == null)
 			return;
 		synchronized (script) {
@@ -192,14 +199,14 @@ public class EntityLocator extends ExpressionLocator {
 	}
 
 	/**
-	 * @return the identRegion
+	 * @return Region of the expression detected at the location the {@link EntityLocator} was initialized at.
 	 */
-	public IRegion identRegion() {
+	public IRegion expressionRegion() {
 		return exprRegion;
 	}
 
 	/**
-	 * @return the declaration
+	 * @return The entity the expression region refers to with sufficient certainty.
 	 */
 	public IIndexEntity entity() {
 		return entity;

@@ -460,7 +460,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			}
 			// definition from extern index
 			if (engine().acceptsId(name)) {
-				f = info.index.getDefinitionNearestTo(resource(), ID.get(name));
+				f = info.index.definitionNearestTo(resource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
 					f = ((Definition)f).proxyVar();
 				}
@@ -745,13 +745,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Definition nearestDefinitionWithId(ID id) {
 		Index index = index();
 		if (index != null)
-			return index.getDefinitionNearestTo(resource(), id);
+			return index.definitionNearestTo(resource(), id);
 		return null;
 	}
 
 	/**
-	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
-	 * @return the Iterable
+	 * Returns a list containing all scripts that are included by this script plus the script itself.
+	 * @return The list
 	 */
 	public List<IHasIncludes> conglomerate() {
 		requireLoaded();

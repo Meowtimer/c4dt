@@ -472,7 +472,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param id The id
 	 * @return The chosen definition.
 	 */
-	public Definition getDefinitionNearestTo(IResource resource, ID id) {
+	public Definition definitionNearestTo(IResource resource, ID id) {
 		Definition best = null;
 		for (Index index : relevantIndexes()) {
 			if (resource != null) {
@@ -493,7 +493,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @return The definition with a matching id. Undefined which one if there are more than one
 	 */
 	public Definition getDefinitionFromEverywhere(ID id) {
-		return getDefinitionNearestTo(null, id);
+		return definitionNearestTo(null, id);
 	}
 
 	/**

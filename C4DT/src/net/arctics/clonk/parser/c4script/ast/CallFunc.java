@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -337,9 +339,11 @@ public class CallFunc extends AccessDeclaration {
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.containingScript() : p.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
-			if (!(ty instanceof Script))
+			if (!(ty instanceof IHasConstraint))
 				continue;
-			Script script = (Script)ty;
+			Script script = as(((IHasConstraint)ty).constraint(), Script.class);
+			if (script == null)
+				continue;
 			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 			info.searchOrigin = context.containingScript();
 			Declaration dec = script.findFunction(functionName, info);

@@ -114,7 +114,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								if (entryClass == ID.class) {
 									IResource r = Utilities.fileBeingEditedBy(editor());
 									Index index = Utilities.indexFromResource(r);
-									declaration = index.getDefinitionNearestTo(r, ID.get(value));
+									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FunctionEntry.class) {
 									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent());
@@ -128,7 +128,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									Index index = Utilities.indexFromResource(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.engine() != null && index.engine().acceptsId(id)) {
-										declaration = index.getDefinitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
+										declaration = index.definitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -171,7 +171,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									String firstPart = value.split(":")[0];
 									IResource r = Utilities.fileBeingEditedBy(editor());
 									Index index = Utilities.indexFromResource(r);
-									declaration = index.getDefinitionNearestTo(r, ID.get(firstPart));
+									declaration = index.definitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {
 									EntityRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);

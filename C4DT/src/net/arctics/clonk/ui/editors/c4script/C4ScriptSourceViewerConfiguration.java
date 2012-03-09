@@ -40,11 +40,11 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 				EntityLocator locator = new EntityLocator(editor(), viewer.getDocument(),region);
 				if (locator.entity() != null)
 					return new IHyperlink[] {
-						new ClonkHyperlink(locator.identRegion(), locator.entity())
+						new ClonkHyperlink(locator.expressionRegion(), locator.entity())
 					};
 				else if (locator.potentialEntities() != null)
 					return new IHyperlink[] {
-						new ClonkHyperlink(locator.identRegion(), locator.potentialEntities())
+						new ClonkHyperlink(locator.expressionRegion(), locator.potentialEntities())
 					};
 				return null;
 			} catch (Exception e) {

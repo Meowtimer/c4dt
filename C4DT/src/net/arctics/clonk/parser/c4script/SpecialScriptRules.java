@@ -446,7 +446,7 @@ public class SpecialScriptRules {
 							}
 							else for (Directive directive : f.script().directives()) {
 								if (directive.type() == DirectiveType.APPENDTO) {
-									Definition def = f.script().index().getDefinitionNearestTo(context.containingScript().resource(), directive.contentAsID());
+									Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
 									if (def != null) {
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 									}
