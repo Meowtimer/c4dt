@@ -1,7 +1,6 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.StringUtil;
 
@@ -59,11 +58,11 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
 						return true;
 					if (element instanceof Declaration) {
-						if (((Declaration)element).hasSubDeclarationsInOutline()) {
-							for (Object sd : ((Declaration)element).subDeclarationsForOutline())
+						Object[] subDecs = ((Declaration)element).subDeclarationsForOutline();
+						if (subDecs != null)
+							for (Object sd : subDecs)
 								if (select(viewer, element, sd))
 									return true;
-						}
 					}
 					return false;
 				}

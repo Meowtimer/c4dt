@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
@@ -141,7 +142,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unn�tz
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
-		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
+		assistant.setQuickAssistProcessor(new C4ScriptQuickAssistProcessor());
 		return assistant;
 	}
 	

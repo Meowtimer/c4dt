@@ -76,16 +76,16 @@ import java.util.regex.Pattern;
  * @author ZokRadonh
  *
  */
-public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
+public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static final ICompletionProposal[] NO_SUGGESTIONS = new ICompletionProposal[0];
-	private static ClonkQuickAssistProcessor singleton;
+	private static C4ScriptQuickAssistProcessor singleton;
 	
-	public static ClonkQuickAssistProcessor getSingleton() {
+	public static C4ScriptQuickAssistProcessor getSingleton() {
 		return singleton;
 	}
 	
-	public ClonkQuickAssistProcessor() {
+	public C4ScriptQuickAssistProcessor() {
 		super();
 		assert(singleton == null);
 		singleton = this;

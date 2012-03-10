@@ -9,8 +9,6 @@ import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.ui.editors.c4script.ClonkContentAssistant;
-import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

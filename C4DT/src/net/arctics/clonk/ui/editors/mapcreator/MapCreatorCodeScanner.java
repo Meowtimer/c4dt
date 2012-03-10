@@ -5,11 +5,11 @@ import java.util.List;
 
 import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
+import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
-import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
-import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;

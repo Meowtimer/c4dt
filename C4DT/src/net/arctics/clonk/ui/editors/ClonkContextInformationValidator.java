@@ -1,7 +1,8 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;

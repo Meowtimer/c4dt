@@ -11,7 +11,10 @@ import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
+import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
+import net.arctics.clonk.ui.editors.PragmaRule;
 import net.arctics.clonk.ui.editors.WordScanner;
 
 import org.eclipse.jface.text.rules.*;

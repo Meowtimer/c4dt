@@ -7,10 +7,10 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
+import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
-import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
-import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
