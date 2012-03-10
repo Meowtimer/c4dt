@@ -62,7 +62,7 @@ public abstract class IndexEntity extends Structure {
 	public final void requireLoaded() {
 		if (index == null)
 			return;
-		synchronized (index) {
+		synchronized (index.saveSynchronizer()) {
 			if (notFullyLoaded) {
 				notFullyLoaded = false;
 				try {
@@ -112,7 +112,7 @@ public abstract class IndexEntity extends Structure {
 	 * @throws IOException 
 	 */
 	public final void save() throws IOException {
-		synchronized (index) {
+		synchronized (index.saveSynchronizer()) {
 			if (index != null) try {
 				requireLoaded();
 				index.saveEntity(this);

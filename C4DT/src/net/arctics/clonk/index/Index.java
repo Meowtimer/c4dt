@@ -69,6 +69,9 @@ import org.eclipse.core.runtime.CoreException;
 public class Index extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	
+	private transient Object saveSynchronizer = new Object();
+	public Object saveSynchronizer() {return saveSynchronizer;}
 
 	private transient static final IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
 		@Override
@@ -137,6 +140,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	public void postLoad() throws CoreException {
+		if (saveSynchronizer == null)
+			saveSynchronizer = new Object();
 		for (IndexEntity e : entities()) {
 			e.index = this;
 			e.notFullyLoaded = true;
