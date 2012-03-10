@@ -111,6 +111,7 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_Arg_Type2;
 	public static String ParserErrorCode_Arg_Typename;
 	public static String ParserErrorCode_Arg_Variable;
+	public static String ParserErrorCode_Arg_VariableType;
 	public static String ParserErrorCode_Arg_WeirdoNumber;
 	public static String TooManyParameters;
 	static {

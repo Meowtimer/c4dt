@@ -32,7 +32,7 @@ public enum ParserErrorCode {
 	ConstantValueExpected(Messages.ConstantValueExpected),
 	CommaOrSemicolonExpected(Messages.CommaOrSemicolonExpected),
 	IncompatibleTypes(Messages.IncompatibleTypes, Messages.ParserErrorCode_Arg_Type1, Messages.ParserErrorCode_Arg_Type2),
-	VariableCalled(Messages.VariableCalled, Messages.ParserErrorCode_Arg_Variable),
+	VariableCalled(Messages.VariableCalled, Messages.ParserErrorCode_Arg_Variable, Messages.ParserErrorCode_Arg_VariableType),
 	TypeAsName(Messages.TypeAsName, Messages.ParserErrorCode_Arg_Typename),
 	BlockNotClosed(Messages.BlockNotClosed),
 	UnknownDirective(Messages.UnknownDirective),

@@ -287,9 +287,10 @@ public class CallFunc extends AccessDeclaration {
 			}
 		}
 		
-		if (d instanceof Function) {
+		if (d instanceof Function)
 			return ((Function)d).returnType();
-		}
+		else if (d instanceof Variable)
+			return ((Variable)d).type();
 
 		return super.obtainType(context);
 	}
@@ -346,18 +347,16 @@ public class CallFunc extends AccessDeclaration {
 				continue;
 			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 			info.searchOrigin = context.containingScript();
-			Declaration dec = script.findFunction(functionName, info);
+			info.contextFunction = context.currentFunction();
+			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
-			if (dec != null && context.currentFunction() != null) {
+			if (dec instanceof Function && context.currentFunction() != null) {
 				try {
 					context.parseCodeOfFunction((Function) dec, true);
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
 			}
-			// might be a variable called as a function (not after '->')
-			if (dec == null && p == null)
-				dec = script.findVariable(functionName, info);
 			if (dec != null) {
 				if (listToAddPotentialDeclarationsTo == null)
 					return dec;
@@ -369,7 +368,7 @@ public class CallFunc extends AccessDeclaration {
 			// find global function
 			Declaration declaration;
 			try {
-				declaration = context.containingScript().index().findGlobal(Function.class, functionName);
+				declaration = context.containingScript().index().findGlobal(Declaration.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context == null)
@@ -483,12 +482,11 @@ public class CallFunc extends AccessDeclaration {
 			
 			// variable as function
 			if (declaration instanceof Variable) {
-				if (params.length == 0) {
-					// no warning when in #strict mode
-					if (context.strictLevel() >= 2)
-						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name());
-				} else {
-					context.errorWithCode(ParserErrorCode.VariableCalled, this, C4ScriptParser.NO_THROW, declaration.name());
+				IType type = this.typeInContext(context);
+				// no warning when in #strict mode
+				if (context.strictLevel() >= 2) {
+					if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name(), type.typeName(false));
 				}
 			}
 			else if (declaration instanceof Function) {
