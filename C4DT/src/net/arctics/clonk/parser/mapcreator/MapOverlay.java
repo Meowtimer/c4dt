@@ -137,11 +137,6 @@ public class MapOverlay extends MapOverlayBase {
 	}
 	
 	@Override
-	public boolean hasSubDeclarationsInOutline() {
-		return this.subOverlays.size() > 0;
-	}
-	
-	@Override
 	public String typeName() {
 		MapOverlayBase t;
 		for (t = template; t != null && t.template() != null; t = t.template());

@@ -135,12 +135,7 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public Object[] subDeclarationsForOutline() {
-		return this.children();
-	}
-
-	@Override
-	public boolean hasSubDeclarationsInOutline() {
-		return hasChildren();
+		return hasChildren() ? this.children() : null;
 	}
 
 	@Override

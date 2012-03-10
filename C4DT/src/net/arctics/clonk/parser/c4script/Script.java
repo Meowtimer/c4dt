@@ -764,16 +764,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public INode[] subDeclarationsForOutline() {
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
-		all.addAll(functions());
-		all.addAll(variables());
-		all.addAll(directives());
+		for (IHasIncludes c : conglomerate()) {
+			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0)))
+				all.add(sd);
+		}
 		return all.toArray(new INode[all.size()]);
-	}
-
-	@Override
-	public boolean hasSubDeclarationsInOutline() {
-		requireLoaded();
-		return functions().size() > 0 || variables().size() > 0 || directives().size() > 0;
 	}
 
 	public void exportAsXML(Writer writer) throws IOException {

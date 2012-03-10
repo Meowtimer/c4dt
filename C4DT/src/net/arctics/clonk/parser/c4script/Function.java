@@ -464,11 +464,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public boolean hasSubDeclarationsInOutline() {
-		return otherDeclarations != null || (localVars() != null && localVars().size() > 0);
-	}
-
-	@Override
 	public Object[] subDeclarationsForOutline() {
 		return ArrayUtil.concat(localVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}

@@ -211,15 +211,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	public Object[] subDeclarationsForOutline() {
 		return null;
 	}
-	
-	/**
-	 * Returns whether this declaration has sub declarations
-	 * @return
-	 */
-	public boolean hasSubDeclarationsInOutline() {
-		return false;
-	}
-	
+
 	/**
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
 	 * @return The latest version of this declaration
@@ -581,6 +573,18 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			return String.format("%s::%s", parentDeclaration().qualifiedName(), this.name());
 		else
 			return name();
+	}
+	
+	/**
+	 * Whether this Declaration is contained in the given one.
+	 * @param parent The declaration to check for parentedness
+	 * @return true or false
+	 */
+	public boolean containedIn(Declaration parent) {
+		for (Declaration d = this.parentDeclaration(); d != null; d = d.parentDeclaration())
+			if (d == parent)
+				return true;
+		return false;
 	}
 	
 }

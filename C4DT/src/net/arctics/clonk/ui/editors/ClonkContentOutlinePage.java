@@ -1,7 +1,10 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -13,8 +16,12 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +40,20 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		return composite;
 	}
 
+	private void openForeignDeclarations() {
+		IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
+		for (IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
+			@Override
+			public IIndexEntity convert(Object from) {
+				return from instanceof Declaration ? ((Declaration)from).firstParentDeclarationOfType(IIndexEntity.class) : null;
+			}
+		})) {
+			if (entity != null) {
+				new ClonkHyperlink(null, entity).open();
+			}
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.views.contentoutline.ContentOutlinePage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
@@ -68,6 +89,24 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 				}
 			}
 		});
+		getTreeViewer().getTree().addKeyListener(new KeyListener() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.keyCode == SWT.CR) {
+					openForeignDeclarations();
+				}
+			}
+			@Override
+			public void keyPressed(KeyEvent e) {}
+		});
+		getTreeViewer().getTree().addMouseListener(new MouseListener() {
+			@Override
+			public void mouseUp(MouseEvent e) {}
+			@Override
+			public void mouseDown(MouseEvent e) {}
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {openForeignDeclarations();}
+		});
 		if (editor != null) {
 			Declaration topLevelDeclaration = getEditor().topLevelDeclaration();
 			if (topLevelDeclaration != null) {
@@ -77,10 +116,16 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		parent.layout();
 	}
 
-	private static final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
+	private final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
 		@Override
 		public int category(Object element) {
-			return ((Declaration)element).sortCategory();
+			int multiplier = 1;
+			if (element instanceof Declaration) {
+				Declaration d = (Declaration)element;
+				if (!d.containedIn(editor.topLevelDeclaration()))
+					multiplier = 1000;
+			}
+			return ((Declaration)element).sortCategory() * multiplier;
 		}
 	};
 	
@@ -104,7 +149,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			Declaration dec = (Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
 			dec = dec.latestVersion();
 			if (dec != null) {
-				editor.selectAndReveal(dec.location());
+				if (dec.containedIn(editor.topLevelDeclaration()))
+					editor.selectAndReveal(dec.location());
 			}
 		}
 	}
