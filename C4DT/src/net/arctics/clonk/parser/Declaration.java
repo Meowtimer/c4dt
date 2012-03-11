@@ -1,8 +1,6 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +9,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.Index.r;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -64,7 +61,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	/**
 	 * result to be returned of occurenceScope if there is no scope
 	 */
-	private static final Object[] EMPTY_SCOPE = new IResource[0];
+	//private static final Object[] EMPTY_SCOPE = new IResource[0];
 
 	/**
 	 * @return the name
@@ -246,7 +243,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		final Script script = script();
+		//final Script script = script();
+		return new Object[] {project.getProject()};
+		/*
 		if (isGlobal())
 			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 		final Set<Object> scope = new HashSet<Object>();
@@ -262,6 +261,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		});
 		return scope.toArray();
 		//return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
+		*/
 	}
 	
 	/**
