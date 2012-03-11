@@ -1,9 +1,15 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+
+import java.util.List;
+
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -49,7 +55,17 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			}
 		})) {
 			if (entity != null) {
-				new ClonkHyperlink(null, entity).open();
+				List<? extends IIndexEntity> entities;
+				if (entity instanceof Directive) {
+					Directive d = (Directive)entity;
+					Iterable<? extends Definition> defs = editor.topLevelDeclaration().index().definitionsWithID(d.contentAsID());
+					if (defs != null)
+						entities = ArrayUtil.list(defs);
+					else
+						entities = ArrayUtil.list(entity); 
+				} else
+					entities = ArrayUtil.list(entity);
+				new ClonkHyperlink(null, entities).open();
 			}
 		}
 	}

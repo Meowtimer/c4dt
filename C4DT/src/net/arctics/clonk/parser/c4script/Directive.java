@@ -64,8 +64,14 @@ public class Directive extends Declaration implements Serializable {
 
 	@Override
 	public String toString() {
-		if (content != "" && content != null) //$NON-NLS-1$
-			return "#" + type.toString() + " " + content; //$NON-NLS-1$ //$NON-NLS-2$
+		if (content != "" && content != null) { //$NON-NLS-1$
+			if (type == DirectiveType.APPENDTO || type == DirectiveType.INCLUDE) {
+				Definition d = this.index().anyDefinitionWithID(this.contentAsID());
+				if (d != null)
+					return String.format("#%s %s (%s)", type.toString(), content, d.name());
+			}
+			return String.format("#%s %s", type.toString(), content); //$NON-NLS-1$
+		}
 		return "#" + type.toString(); //$NON-NLS-1$
 	}
 	

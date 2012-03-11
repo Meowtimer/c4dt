@@ -6,7 +6,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
+import java.util.Collection;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.DocumentedFunction;
@@ -45,15 +45,15 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class ClonkHyperlink implements IHyperlink {
 
 	private final IRegion region;
-	protected Set<IIndexEntity> targets;
+	protected Collection<? extends IIndexEntity> targets;
 
 	public ClonkHyperlink(IRegion region, IIndexEntity target) {
 		super();
 		this.region = region;
-		this.targets = ArrayUtil.set(target);
+		this.targets = ArrayUtil.list(target);
 	}
 	
-	public ClonkHyperlink(IRegion region, Set<IIndexEntity> targets) {
+	public ClonkHyperlink(IRegion region, Collection<? extends IIndexEntity> targets) {
 		this.region = region;
 		this.targets = targets;
 	}
@@ -157,7 +157,7 @@ public class ClonkHyperlink implements IHyperlink {
 		return targets.iterator().next();
 	}
 	
-	public Set<IIndexEntity> targets() {
+	public Collection<? extends IIndexEntity> targets() {
 		return targets;
 	}
 
