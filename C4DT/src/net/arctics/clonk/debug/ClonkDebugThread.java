@@ -39,7 +39,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			return script;
 		alreadySearched.add(index);
 		if (index instanceof ProjectIndex) {
-			for (IProject proj : ((ProjectIndex) index).getProject().getReferencedProjects()) {
+			for (IProject proj : ((ProjectIndex) index).project().getReferencedProjects()) {
 				ProjectIndex projIndex = ProjectIndex.get(proj);
 				if (projIndex != null) {
 					Script _result = findScript(path, projIndex, alreadySearched);

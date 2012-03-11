@@ -152,7 +152,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										if (index instanceof ProjectIndex) {
 											ProjectIndex pi = (ProjectIndex) index;
 											try {
-												for (IResource res : pi.getProject().members()) {
+												for (IResource res : pi.project().members()) {
 													if (res instanceof IContainer && projIndex.engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
 														if (res.getName().equals(value)) {
 															return new IHyperlink[] {

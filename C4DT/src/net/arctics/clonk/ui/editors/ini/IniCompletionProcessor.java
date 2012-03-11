@@ -179,7 +179,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (Index index : indexes) {
 			if (index instanceof ProjectIndex) {
 				try {
-					for (IResource res : ((ProjectIndex)index).getProject().members()) {
+					for (IResource res : ((ProjectIndex)index).project().members()) {
 						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(prefix))
 								proposals.add(new CompletionProposal(res.getName(), wordOffset, prefix.length(), res.getName().length()));

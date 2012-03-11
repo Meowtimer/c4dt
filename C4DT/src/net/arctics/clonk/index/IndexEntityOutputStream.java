@@ -19,7 +19,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 	protected Object replaceObject(Object obj) throws IOException {
 		try {
 			if (obj instanceof IndexEntity)
-				return index.getSaveReplacementForEntity((IndexEntity)obj);
+				return index.saveReplacementForEntity((IndexEntity)obj);
 			else if (obj instanceof Declaration && !(obj instanceof Index))
 				return index.getSaveReplacementForEntityDeclaration((Declaration)obj);
 			else if (obj instanceof String)

@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
@@ -40,7 +41,7 @@ public class ProjectIndex extends Index {
 	}
 	
 	/**
-	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #getProject()})
+	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #project()})
 	 * @return The {@link ClonkProjectNature}
 	 */
 	public final ClonkProjectNature getNature() {
@@ -78,7 +79,7 @@ public class ProjectIndex extends Index {
 	 * Return the project the index belongs to.
 	 */
 	@Override
-	public IProject getProject() {
+	public IProject project() {
 		return project;
 	}
 
@@ -116,7 +117,7 @@ public class ProjectIndex extends Index {
 	 */
 	@Override
 	public Script findScriptByPath(String path) {
-		IResource res = getProject().findMember(new Path(path));
+		IResource res = project().findMember(new Path(path));
 		if (res != null) {
 			Script result;
 			try {
@@ -142,14 +143,14 @@ public class ProjectIndex extends Index {
 	}
 
 	@Override
-	public synchronized void refreshIndex() {
-		super.refreshIndex();
+	public synchronized void refreshIndex(boolean postLoad) {
+		super.refreshIndex(postLoad);
 		readVariablesFromPlayerControlsFile();
 	}
 
 	private void readVariablesFromPlayerControlsFile() {
 		try {
-			getProject().accept(new IResourceVisitor() {
+			project().accept(new IResourceVisitor() {
 				@Override
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource instanceof IContainer) {
@@ -192,7 +193,7 @@ public class ProjectIndex extends Index {
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {
-					((ProjectIndex)i).getProject().accept(finder);
+					((ProjectIndex)i).project().accept(finder);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					continue;

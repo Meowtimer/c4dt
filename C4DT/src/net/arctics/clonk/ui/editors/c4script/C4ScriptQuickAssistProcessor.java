@@ -575,7 +575,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
 										ClonkProjectNature nat = ClonkProjectNature.get(proj);
-										if (nat.index().getDefinitionsWithID(defId) != null)
+										if (nat.index().definitionsWithID(defId) != null)
 											replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
 												@Override
 												public void performAdditionalActionsBeforeDoingReplacements() {

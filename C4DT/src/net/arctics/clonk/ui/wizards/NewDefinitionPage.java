@@ -58,7 +58,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}
-			Iterable<? extends Definition> objects = nature.index().getDefinitionsWithID(ID.get(c4idText.getText()));
+			Iterable<? extends Definition> objects = nature.index().definitionsWithID(ID.get(c4idText.getText()));
 			if (objects != null) {
 				updateStatus(Messages.NewC4ObjectPage_IDAlreadyInUse);
 				return;

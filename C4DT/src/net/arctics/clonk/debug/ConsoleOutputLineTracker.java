@@ -54,7 +54,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		resourcesInRelevantProjects = getSubResourcesFromResourceCollection(ArrayUtil.map(nature.index().relevantIndexes(), new IConverter<Index, IResource>() {
 			@Override
 			public IResource convert(Index from) {
-				return from.getProject();
+				return from.project();
 			}
 		}), null);
 	}

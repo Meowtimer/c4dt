@@ -381,7 +381,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
 			return get((IResource)((IStructuredSelection)selection).getFirstElement());
 		else if (part instanceof ClonkTextEditor)
-			return ClonkProjectNature.get(((ClonkTextEditor)part).topLevelDeclaration().index().getProject());
+			return ClonkProjectNature.get(((ClonkTextEditor)part).topLevelDeclaration().index().project());
 		return null;
 	}
 

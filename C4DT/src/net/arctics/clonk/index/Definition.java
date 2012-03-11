@@ -422,7 +422,7 @@ public class Definition extends Script {
 	 * @return The Definition object
 	 */
 	public static Definition definitionCorrespondingToFolder(IContainer folder) {
-		Definition obj = (Utilities.indexFromResource(folder) != null) ? Utilities.indexFromResource(folder).getDefinition(folder) : null;
+		Definition obj = (Utilities.indexFromResource(folder) != null) ? Utilities.indexFromResource(folder).definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
 			obj.definitionFolder = folder;

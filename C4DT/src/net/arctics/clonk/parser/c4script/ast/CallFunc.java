@@ -485,7 +485,7 @@ public class CallFunc extends AccessDeclaration {
 				IType type = this.typeInContext(context);
 				// no warning when in #strict mode
 				if (context.strictLevel() >= 2) {
-					if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+					if (declaration != cachedFuncs(context).This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name(), type.typeName(false));
 				}
 			}

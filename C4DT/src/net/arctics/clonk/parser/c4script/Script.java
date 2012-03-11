@@ -240,7 +240,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
 					ID id = d.contentAsID();
 					for (Index in : contextIndex.relevantIndexes()) {
-						Iterable<? extends Definition> defs = in.getDefinitionsWithID(id);
+						Iterable<? extends Definition> defs = in.definitionsWithID(id);
 						if (defs != null) {
 							for (Definition def : defs) {
 								if ((options & GatherIncludesOptions.Recursive) == 0)

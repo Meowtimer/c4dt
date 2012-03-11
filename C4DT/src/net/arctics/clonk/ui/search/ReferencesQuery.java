@@ -202,13 +202,13 @@ public class ReferencesQuery extends SearchQueryBase {
 										}
 										else if (declaration instanceof Definition) {
 											if (entryClass == ID.class) {
-												if (script.index().getDefinitionFromEverywhere((ID) complex.extendedValue()) == declaration) {
+												if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration) {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
 											}
 											else if (entryClass == IDArray.class) {
 												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
-													Definition obj = script.index().getDefinitionFromEverywhere(pair.key());
+													Definition obj = script.index().anyDefinitionWithID(pair.key());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}

@@ -86,13 +86,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	private final List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	private final List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
+	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 	
 	protected File folder;
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
 	protected transient Map<String, List<Declaration>> declarationMap = new Hashtable<String, List<Declaration>>();
-	protected transient Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 	
 	public Index(File folder) {
 		this.folder = folder;
@@ -130,7 +130,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param id The id
 	 * @return The list
 	 */
-	public Iterable<? extends Definition> getDefinitionsWithID(ID id) {
+	public Iterable<? extends Definition> definitionsWithID(ID id) {
 		if (indexedDefinitions == null)
 			return null;
 		synchronized (indexedDefinitions) {
@@ -146,7 +146,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			e.index = this;
 			e.notFullyLoaded = true;
 		}
-		refreshIndex();
+		refreshIndex(true);
 	}
 	
 	/**
@@ -160,10 +160,10 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	/**
 	 * Return the object linked to the passed folder.
-	 * @param folder The folder to get the object for
-	 * @return The object or null if the folder is not linked to any object
+	 * @param folder The folder to get the {@link Definition} for
+	 * @return The definition or null if the folder is not linked to any object
 	 */
-	public Definition getDefinition(IContainer folder) {
+	public Definition definitionAt(IContainer folder) {
 		try {
 			// fetch from session cache
 			if (folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID) != null)
@@ -171,7 +171,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			
 			// create session cache
 			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			Iterable<? extends Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
+			Iterable<? extends Definition> objects = definitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for (Definition obj : objects) {
 					if ((obj instanceof Definition)) {
@@ -204,7 +204,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	public Script getScript(IFile file) {
+	/**
+	 * Return the script the given file represents.
+	 * @param file The file to get the script for
+	 * @return the {@link Script} or null if the file does not represent one.
+	 */
+	public Script scriptAt(IFile file) {
 		Script result = Script.get(file, true);
 		if (result == null) {
 			for (Script s : this.indexedScripts)
@@ -263,9 +268,17 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 * Call {@link #refreshIndex(boolean)} with false.
 	 */
-	public synchronized void refreshIndex() {
+	public void refreshIndex() {
+		refreshIndex(false);
+	}
+	
+	/**
+	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
+	 */
+	public synchronized void refreshIndex(boolean postLoad) {
 		relevantIndexes = null;
 		// delete old cache
 		if (globalFunctions == null)
@@ -279,7 +292,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
-		appendages.clear();
+		if (!postLoad)
+			appendages.clear();
 		
 		for (Script s : allScripts())
 			s.clearDependentScripts();
@@ -428,7 +442,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @return The 'last' {@link Definition} with that id
 	 */
 	public Definition lastDefinitionWithId(ID id) {
-		Iterable<? extends Definition> objs = getDefinitionsWithID(id);
+		Iterable<? extends Definition> objs = definitionsWithID(id);
 		if (objs != null) {
 			Definition result = null;
 			for (Definition def : objs)
@@ -443,7 +457,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			ProjectIndex projIndex = (ProjectIndex) index;
 			try {
 				List<Index> newOnes = new LinkedList<Index>();
-				for (IProject p : projIndex.getProject().getReferencedProjects()) {
+				for (IProject p : projIndex.project().getReferencedProjects()) {
 					ClonkProjectNature n = ClonkProjectNature.get(p);
 					if (n != null && n.index() != null && !result.contains(n.index()))
 						newOnes.add(n.index());
@@ -481,7 +495,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		Definition best = null;
 		for (Index index : relevantIndexes()) {
 			if (resource != null) {
-				Iterable<? extends Definition> objs = index.getDefinitionsWithID(id);
+				Iterable<? extends Definition> objs = index.definitionsWithID(id);
 				best = Utilities.pickNearest(objs, resource, null);
 			}
 			else
@@ -493,11 +507,11 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Like getLastObjectWithId, but falls back to ClonkCore.getDefault().getExternIndex() if there is no object in this index
-	 * @param id
-	 * @return The definition with a matching id. Undefined which one if there are more than one
+	 * Returns any {@link Definition} that satisfies the condition of having the specified {@link ID}.
+	 * @param id The ID
+	 * @return A definition with a matching id or null if not found. If there are multiple ones, it is not defined which one was returned.
 	 */
-	public Definition getDefinitionFromEverywhere(ID id) {
+	public Definition anyDefinitionWithID(ID id) {
 		return definitionNearestTo(null, id);
 	}
 
@@ -517,7 +531,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	/**
 	 * Find a global what-have-you (either {@link Function} or {@link Variable}) with the given name.
-	 * @param whatYouWant The class of global object
+	 * @param whatYouWant The {@link Declaration} class
 	 * @param name The name
 	 * @return The global object with a matching name or null.
 	 */
@@ -634,11 +648,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public List<Script> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		List<Script> list = appendages.get(definition.id());
-		if (list != null) {
-			return Collections.unmodifiableList(list); 
+		synchronized (saveSynchronizer) {
+			List<Script> a = appendages.get(definition.id());
+			if (a != null)
+				return new ArrayList<Script>(a);
+			else
+				return null;
 		}
-		return null;
 	}
 	
 	@Override
@@ -652,8 +668,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on a entity-by-entity basis. 
-	 * @param <T> ClonkIndex type requested.
+	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on an entity-by-entity basis. 
+	 * @param <T> {@link Index} class to return.
 	 * @param indexClass The class to instantiate
 	 * @param indexFolder File to load the index from
 	 * @param fallbackFileLocation Secondary file location to use if the first one does not exist
@@ -696,14 +712,14 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex#getProject()}.
+	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex#project()}.
 	 * @return The project
 	 */
-	public IProject getProject() {return null;}
+	public IProject project() {return null;}
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj == this || (obj instanceof Index && ((Index)obj).getProject() == this.getProject());
+		return obj == this || (obj instanceof Index && ((Index)obj).project() == this.project());
 	}
 	
 	/**
@@ -711,8 +727,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 */
 	@Override
 	public int hashCode() {
-		if (getProject() != null)
-			return getProject().getName().hashCode(); // project name should be unique
+		if (project() != null)
+			return project().getName().hashCode(); // project name should be unique
 		else
 			return super.hashCode();
 	}
@@ -840,7 +856,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 						}
 				}
 				if (result == null)
-					System.out.println(String.format("Couldn't find entity '%s' in '%s'", this.toString(), externalIndex.getProject().getName()));
+					System.out.println(String.format("Couldn't find entity '%s' in '%s'", this.toString(), externalIndex.project().getName()));
 			}
 			else
 				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s'", this.toString()));
@@ -904,11 +920,11 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Return an object that will be serialized instead of an entity. This will be either the id or a ImportedEntity object describing an entity in another {@link Index}
+	 * Return an object that will be serialized instead of an entity. It will implement {@link ISerializationResolvable}.
 	 * @param entity
 	 * @return
 	 */
-	public ISerializationResolvable getSaveReplacementForEntity(IndexEntity entity) {
+	public ISerializationResolvable saveReplacementForEntity(IndexEntity entity) {
 		if (entity == null)
 			return null;
 		if (entity instanceof Engine)

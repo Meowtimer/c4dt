@@ -207,7 +207,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		// add stuff from the project so Clonk does not fail to find them
 		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
-				IContainer projectLevel = ((ProjectIndex)index).getProject();
+				IContainer projectLevel = ((ProjectIndex)index).project();
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {
 					for (IResource res : c.members()) {
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
