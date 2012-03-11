@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -87,7 +88,7 @@ public class AccessVar extends AccessDeclaration {
 				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 				info.contextFunction = context.currentFunction();
 				info.searchOrigin = scriptToLookIn;
-				Variable v = scriptToLookIn.findVariable(declarationName, info);
+				Declaration v = scriptToLookIn.findDeclaration(declarationName, info);
 				if (v != null)
 					return v;
 			}
@@ -153,7 +154,9 @@ public class AccessVar extends AccessDeclaration {
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
-		if (d instanceof ITypeable)
+		if (d instanceof Function)
+			return new FunctionType((Function)d);
+		else if (d instanceof ITypeable)
 			return ((ITypeable) d).type();
 			//return new SameTypeAsSomeTypeable((ITypeable)d);
 		return PrimitiveType.UNKNOWN;

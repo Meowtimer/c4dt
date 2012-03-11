@@ -4,10 +4,10 @@ import java.util.Iterator;
 
 public class ConvertingIterable<From, To> implements Iterable<To> {
 
-	private IConverter<From, To> converter;
-	private Iterator<From> source;
+	private final IConverter<From, To> converter;
+	private final Iterator<? extends From> source;
 
-	public ConvertingIterable(IConverter<From, To> converter, Iterable<From> source) {
+	public ConvertingIterable(IConverter<From, To> converter, Iterable<? extends From> source) {
 		this.converter = converter;
 		this.source = source.iterator();
 	}

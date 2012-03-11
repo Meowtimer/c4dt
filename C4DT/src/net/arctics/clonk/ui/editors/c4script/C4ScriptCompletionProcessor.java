@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IType;
@@ -42,10 +43,10 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkContextInformation;
 import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.ArrayUtil;
@@ -627,16 +628,24 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 //				if (dec == null && funcCallInfo.locator != null)
 //					dec = funcCallInfo.locator.getDeclaration();
-				if (entity instanceof Function) {
-					if (entity instanceof IDocumentedDeclaration)
-						((IDocumentedDeclaration)entity).fetchDocumentation();
-					String parmString = ((Function)entity).longParameterString(false, false).trim();
+				Function function = null;
+				if (entity instanceof Function)
+					function = (Function)entity;
+				else if (entity instanceof Variable) {
+					IType type = ((Variable)entity).type();
+					if (type instanceof FunctionType)
+						function = ((FunctionType)type).prototype();
+				}
+				if (function != null) {
+					if (function instanceof IDocumentedDeclaration)
+						((IDocumentedDeclaration)function).fetchDocumentation();
+					String parmString = function.longParameterString(false, false).trim();
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 					info = new ClonkContextInformation(
-							entity.name() + "()", null, //$NON-NLS-1$
+							function.name() + "()", null, //$NON-NLS-1$
 							parmString,
-							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((Function)entity).numParameters()
+							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, function.numParameters()
 					);
 				}
 			}

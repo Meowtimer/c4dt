@@ -178,7 +178,7 @@ public class ArrayUtil {
 		return result;
 	}
 	
-	public static <From, To> Iterable<To> map(Iterable<From> source, IConverter<From, To> converter) {
+	public static <From, To> Iterable<To> map(Iterable<? extends From> source, IConverter<From, To> converter) {
 		return new ConvertingIterable<From, To>(converter, source);
 	}
 	
@@ -279,6 +279,13 @@ public class ArrayUtil {
 		else synchronized(list) {
 			return new ArrayList<T>(list);
 		}
+	}
+	
+	public static <T> List<T> list(Iterable<? extends T> iterable) {
+		List<T> result = new ArrayList<T>();
+		for (T i : iterable)
+			result.add(i);
+		return result;
 	}
 
 }
