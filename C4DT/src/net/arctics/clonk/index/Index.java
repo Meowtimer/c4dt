@@ -234,20 +234,22 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			addToDeclarationMap(v);
 	}
 
-	private void detectAppendages(Script script) {
-		for (Directive d : script.directives()) {
-			if (d.type() == DirectiveType.APPENDTO) {
-				List<Script> appendtoList = appendages.get(d.contentAsID());
-				if (appendtoList == null) {
-					appendtoList = new LinkedList<Script>();
-					appendages.put(d.contentAsID(), appendtoList);
+	private void detectAppendages(Script script, Map<ID, List<Script>> detectedAppendages) {
+		if (detectedAppendages != null) {
+			for (Directive d : script.directives()) {
+				if (d.type() == DirectiveType.APPENDTO) {
+					List<Script> appendtoList = detectedAppendages.get(d.contentAsID());
+					if (appendtoList == null) {
+						appendtoList = new LinkedList<Script>();
+						detectedAppendages.put(d.contentAsID(), appendtoList);
+					}
+					appendtoList.add(script);
 				}
-				appendtoList.add(script);
 			}
 		}
 	}
 	
-	protected <T extends Script> void addGlobalsFromScript(T script) {
+	protected <T extends Script> void addGlobalsFromScript(T script, Map<ID, List<Script>> detectedAppendages) {
 		for (Function func : script.functions()) {
 			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
@@ -261,7 +263,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				staticVariables.add(var);
 			addToDeclarationMap(var);
 		}
-		detectAppendages(script);
+		detectAppendages(script, detectedAppendages);
 		for (IHasIncludes s : script.includes(this, 0))
 			if (s instanceof Script)
 				((Script) s).addDependentScript(script);
@@ -292,15 +294,16 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
-		if (!postLoad)
-			appendages.clear();
 		
 		for (Script s : allScripts())
 			s.clearDependentScripts();
-		
+
+		Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
 		for (Script s : allScripts())
 			if (!s.notFullyLoaded)
-				addGlobalsFromScript(s);
+				addGlobalsFromScript(s, postLoad ? null : newAppendages);
+		if (!postLoad)
+			appendages = newAppendages;
 		
 		for (Script s : allScripts())
 			if (!s.notFullyLoaded)
@@ -648,13 +651,11 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public List<Script> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		synchronized (saveSynchronizer) {
-			List<Script> a = appendages.get(definition.id());
-			if (a != null)
-				return new ArrayList<Script>(a);
-			else
-				return null;
-		}
+		List<Script> a = appendages.get(definition.id());
+		if (a != null)
+			return new ArrayList<Script>(a);
+		else
+			return null;
 	}
 	
 	@Override
@@ -774,7 +775,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			}
 			entity.postLoad(this, this);
 			if (entity instanceof Script)
-				addGlobalsFromScript((Script)entity);
+				addGlobalsFromScript((Script)entity, appendages);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
