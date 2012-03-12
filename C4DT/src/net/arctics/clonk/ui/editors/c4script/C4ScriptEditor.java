@@ -30,8 +30,8 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.Statement;
@@ -691,20 +691,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	public static class FuncCallInfo {
-		public CallFunc callFunc;
+		public IFunctionCall callFunc;
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
 		public EntityLocator locator;
-		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, EntityLocator locator) {
-			this.callFunc = callFunc;
-			this.parmIndex = parm != null ? callFunc.indexOfParm(parm) : 0;
-			this.parmsStart = func.body().start()+callFunc.parmsStart();
-			this.parmsEnd = func.body().start()+callFunc.parmsEnd();
+		public FuncCallInfo(Function func, IFunctionCall callFunc2, ExprElm parm, EntityLocator locator) {
+			this.callFunc = callFunc2;
+			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
+			this.parmsStart = func.body().start()+callFunc2.parmsStart();
+			this.parmsEnd = func.body().start()+callFunc2.parmsEnd();
 			this.locator = locator;
 		}
 	}
 
-	public FuncCallInfo innermostCallFuncExprParmAtOffset(int offset) throws BadLocationException, ParsingException {
+	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ParsingException {
 		Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
@@ -718,11 +718,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			expr != null;
 			expr = expr.parent()
 		) {
-			 if (expr instanceof CallFunc && offset-bodyStart >= ((CallFunc)expr).parmsStart())
+			 if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
 				 break;
 		}
 		if (expr != null) {
-			CallFunc callFunc = (CallFunc) expr;
+			IFunctionCall callFunc = (IFunctionCall) expr;
 			ExprElm prev = null;
 			for (ExprElm parm : callFunc.params()) {
 				if (parm.end() > offset) {

@@ -87,7 +87,7 @@ public class BinaryOp extends OperatorExpression {
 			}
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
-				statements.add(new ReturnStatement(((CallFunc)rightSide()).soleParm().optimize(context)));
+				statements.add(new ReturnStatement(((CallDeclaration)rightSide()).soleParm().optimize(context)));
 			else
 				statements.add(new SimpleStatement(rightSide().optimize(context)));
 			return new Block(statements);

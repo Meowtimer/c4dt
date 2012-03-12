@@ -20,7 +20,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Statement;
@@ -86,14 +86,14 @@ public class C4ScriptToCPPConverter {
 					}
 					return true;
 				}
-				else if (elm instanceof CallFunc) {
-					CallFunc callFunc = (CallFunc) elm;
+				else if (elm instanceof CallDeclaration) {
+					CallDeclaration callFunc = (CallDeclaration) elm;
 					if (callFunc.declaration() instanceof Function) {
 						Function f = (Function) callFunc.declaration();
 						if (f.parentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.name()));
-							callFunc.printParmString(this, 0);
+							CallDeclaration.printParmString(this, callFunc.params(), 0);
 							return true;
 						}
 					}

@@ -44,7 +44,8 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
 import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallExpr;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
@@ -1720,26 +1721,24 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 	
-	private ExprElm parseExpressionWithoutOperators(boolean reportErrors) throws ParsingException {
-		int beforeWhitespaceStart = this.offset;
+	private ExprElm parseSequence(boolean reportErrors) throws ParsingException {
+		int sequenceParseStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;
 		Operator preop = parseOperator();
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
-			ExprElm followingExpr = parseExpressionWithoutOperators(reportErrors);
+			ExprElm followingExpr = parseSequence(reportErrors);
 			if (followingExpr == null) {
 				errorWithCode(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1);
 				followingExpr = placeholderExpression(offset);
 			}
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
-		} else
-			this.seek(sequenceStart); // don't skip operators that aren't prefixy
-		if (result != null) {
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
 			return result;
-		}
-		Vector<ExprElm> elements = new Vector<ExprElm>(5);
+		} else
+			this.seek(sequenceStart); // don't skip operators that aren't prefixy
+		ArrayList<ExprElm> elements = new ArrayList<ExprElm>(5);
 		ExprElm elm;
 		ExprElm prevElm = null;
 		int noWhitespaceEating = sequenceStart;
@@ -1785,6 +1784,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (elm == null) {
 				String word = readIdent();
 				if (word != null && word.length() > 0) {
+					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
 						ExprElm prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
@@ -1810,18 +1810,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						}
 					}
 					else {
-						int beforeSpace = this.offset;
-						eatWhitespace();
+						int beforeWhitespace = this.offset;
+						this.eatWhitespace();
 						if (read() == '(') {
 							int s = this.offset;
 							// function call
 							List<ExprElm> args = new LinkedList<ExprElm>();
 							parseRestOfTuple(args, reportErrors);
-							CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
+							CallDeclaration callFunc = new CallDeclaration(word, args.toArray(new ExprElm[args.size()]));
 							callFunc.setParmsRegion(s-bodyOffset(), this.offset-1-bodyOffset());
 							elm = callFunc;
 						} else {
-							this.seek(beforeSpace);
+							this.seek(beforeWhitespace);
 							// bool
 							if (word.equals(Keywords.True))
 								elm = new BoolLiteral(true);
@@ -1834,7 +1834,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					}
 				}
 			}
-
+			
 			// string
 			String s;
 			if (elm == null && (s = parseString()) != null)
@@ -1863,34 +1863,40 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					elm = new MemberOperator(currentFunctionContext.parsedMemberOperator.length() == 1, currentFunctionContext.parsedMemberOperator.length() == 3, currentFunctionContext.parsedID, idOffset);
 				}
 			}
-			
+
 			// (<expr>)
 			if (elm == null) {
 				int parenthStartPos = this.offset;
 				int c = read();
 				if (c == '(') {
-					ExprElm firstExpr = parseExpression(reportErrors);
-					if (firstExpr == null) {
-						firstExpr = ExprElm.nullExpr(this.offset, 0, this);
-						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
-					}
-					eatWhitespace();
-					c = read();
-					if (c == ')')
-						elm = new Parenthesized(firstExpr);
-					else if (c == ',') {
-						errorWithCode(ParserErrorCode.TuplesNotAllowed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
-						// tuple (just for multiple parameters for return)
+					if (prevElm != null) {
+						// CallExpr
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
-						tupleElms.add(firstExpr);
 						parseRestOfTuple(tupleElms, reportErrors);
-						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
-					} else
-						tokenExpectedError(")"); //$NON-NLS-1$
-				} else {
+						elm = new CallExpr(tupleElms.toArray(new ExprElm[tupleElms.size()]));
+					} else {
+						ExprElm firstExpr = parseExpression(reportErrors);
+						if (firstExpr == null) {
+							firstExpr = ExprElm.nullExpr(this.offset, 0, this);
+							// might be disabled
+							errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+						}
+						eatWhitespace();
+						c = read();
+						if (c == ')')
+							elm = new Parenthesized(firstExpr);
+						else if (c == ',') {
+							errorWithCode(ParserErrorCode.TuplesNotAllowed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
+							// tuple (just for multiple parameters for return)
+							List<ExprElm> tupleElms = new LinkedList<ExprElm>();
+							tupleElms.add(firstExpr);
+							parseRestOfTuple(tupleElms, reportErrors);
+							elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
+						} else
+							tokenExpectedError(")"); //$NON-NLS-1$
+					}
+				} else
 					unread();
-				}
 			}
 			
 			String placeholder;
@@ -1922,7 +1928,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		ExprElm lastElm;
 		if (elements.size() == 1) {
 			// no need for sequences containing one element
-			result = elements.elementAt(elements.size()-1);
+			result = elements.get(elements.size()-1);
 			lastElm = result;
 		} else if (elements.size() > 1) {
 			result = new Sequence(elements.toArray(new ExprElm[0]));
@@ -1954,7 +1960,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			}
 		} else {
-			this.seek(beforeWhitespaceStart);
+			this.seek(sequenceParseStart);
 		}
 		
 		return result;
@@ -2176,7 +2182,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				for (int state = START; state != DONE;) {
 					switch (state) {
 					case START:
-						root = parseExpressionWithoutOperators(reportErrors);
+						root = parseSequence(reportErrors);
 						if (root == null || root.isFinishedProperly()) {
 							current = root;
 							state = current != null ? OPERATOR : DONE;
@@ -2229,7 +2235,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						}
 						break;
 					case SECONDOPERAND:
-						ExprElm rightSide = parseExpressionWithoutOperators(reportErrors);
+						ExprElm rightSide = parseSequence(reportErrors);
 						if (rightSide == null) {
 							errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
 							rightSide = placeholderExpression(offset);

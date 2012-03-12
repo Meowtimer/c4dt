@@ -48,6 +48,7 @@ public class Messages extends NLS {
 	public static String InvalidExpression;
 	public static String NoInheritedFunction;
 	public static String FunctionRedeclared;
+	public static String FunctionRefNotAllowed;
 	public static String NeverReached;
 	public static String ObsoleteOperator;
 	public static String OnlyRefAllopwedAsReturnType;

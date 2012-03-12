@@ -79,7 +79,8 @@ public enum ParserErrorCode {
 	TypingJudgment("Typing judgment for '%s': %s", Messages.ParserErrorCode_Arg_Expression, Messages.ParserErrorCode_Arg_Type), //$NON-NLS-1$
 	NotSupported(Messages.NotSupported, Messages.ParserErrorCode_Arg_Feature),
 	MissingBrackets(Messages.MissingBrackets, Messages.ParserErrorCode_Arg_NumberOfMissingBrackets, Messages.ParserErrorCode_Arg_BracketType),
-	OnlyRefAllowedAsReturnType(Messages.OnlyRefAllopwedAsReturnType);
+	OnlyRefAllowedAsReturnType(Messages.OnlyRefAllopwedAsReturnType),
+	FunctionRefNotAllowed(Messages.FunctionRefNotAllowed, Messages.ParserErrorCode_Arg_FunctionName, Messages.ParserErrorCode_Arg_Engine);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

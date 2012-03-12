@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
@@ -40,17 +42,17 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.Region;
 
 /**
- * A function call.
+ * An identifier followed by parenthesized parameters. The {@link Declaration} being referenced will more likely be a {@link Function} but may also be a {@link Variable}
+ * in which case that variable will probably be typed as {@link FunctionType}/{@link PrimitiveType#FUNCTION}
  * @author madeen
  *
  */
-public class CallFunc extends AccessDeclaration {
+public class CallDeclaration extends AccessDeclaration implements IFunctionCall {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -75,8 +77,8 @@ public class CallFunc extends AccessDeclaration {
 		
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
-			if (expr instanceof CallFunc) {
-				CallFunc callFunc = (CallFunc) expr;
+			if (expr instanceof CallDeclaration) {
+				CallDeclaration callFunc = (CallDeclaration) expr;
 				if (callFunc.declaration() == this.function)
 					return true;
 			}
@@ -85,7 +87,7 @@ public class CallFunc extends AccessDeclaration {
 		
 		@Override
 		public boolean refersToSameExpression(IStoredTypeInformation other) {
-			return other instanceof CallFunc.FunctionReturnTypeInformation && ((CallFunc.FunctionReturnTypeInformation)other).function == this.function;
+			return other instanceof CallDeclaration.FunctionReturnTypeInformation && ((CallDeclaration.FunctionReturnTypeInformation)other).function == this.function;
 		}
 		
 		@Override
@@ -116,8 +118,8 @@ public class CallFunc extends AccessDeclaration {
 
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
-			if (expr instanceof CallFunc) {
-				CallFunc callFunc = (CallFunc) expr;
+			if (expr instanceof CallDeclaration) {
+				CallDeclaration callFunc = (CallDeclaration) expr;
 				Object ev;
 				return
 					callFunc.declaration() == varFunction &&
@@ -131,8 +133,8 @@ public class CallFunc extends AccessDeclaration {
 
 		@Override
 		public boolean refersToSameExpression(IStoredTypeInformation other) {
-			if (other.getClass() == CallFunc.VarFunctionsTypeInformation.class) {
-				CallFunc.VarFunctionsTypeInformation otherInfo = (CallFunc.VarFunctionsTypeInformation) other;
+			if (other.getClass() == CallDeclaration.VarFunctionsTypeInformation.class) {
+				CallDeclaration.VarFunctionsTypeInformation otherInfo = (CallDeclaration.VarFunctionsTypeInformation) other;
 				return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
 			}
 			else
@@ -172,6 +174,7 @@ public class CallFunc extends AccessDeclaration {
 	 * Return the start offset of the parameters region.
 	 * @return The start offset
 	 */
+	@Override
 	public int parmsStart() {
 		return parmsStart;
 	}
@@ -180,6 +183,7 @@ public class CallFunc extends AccessDeclaration {
 	 * Return the end offset of the parameters region.
 	 * @return The end offset
 	 */
+	@Override
 	public int parmsEnd() {
 		return parmsEnd;
 	}
@@ -189,7 +193,7 @@ public class CallFunc extends AccessDeclaration {
 	 * @param funcName The function name
 	 * @param parms Parameter expressions
 	 */
-	public CallFunc(String funcName, ExprElm... parms) {
+	public CallDeclaration(String funcName, ExprElm... parms) {
 		super(funcName);
 		params = parms;
 		assignParentToSubElements();
@@ -200,7 +204,7 @@ public class CallFunc extends AccessDeclaration {
 	 * @param function The {@link Function} the new CallFunc will refer to.
 	 * @param parms Parameter expressions
 	 */
-	public CallFunc(Function function, ExprElm... parms) {
+	public CallDeclaration(Function function, ExprElm... parms) {
 		this(function.name());
 		this.declaration = function;
 		assignParentToSubElements();
@@ -209,7 +213,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		super.doPrint(output, depth);
-		printParmString(output, depth);
+		printParmString(output, params, depth);
 	}
 
 	/**
@@ -217,7 +221,7 @@ public class CallFunc extends AccessDeclaration {
 	 * @param output Output to print to
 	 * @param depth Indentation level of parameter expressions.
 	 */
-	public void printParmString(ExprWriter output, int depth) {
+	public static void printParmString(ExprWriter output, ExprElm[] params, int depth) {
 		output.append("("); //$NON-NLS-1$
 		if (params != null) {
 			for (int i = 0; i < params.length; i++) {
@@ -229,6 +233,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		output.append(")"); //$NON-NLS-1$
 	}
+	
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		IType t = typeInContext(context);
@@ -240,10 +245,10 @@ public class CallFunc extends AccessDeclaration {
 	}
 	
 	/**
-	 * Return a {@link SpecialFuncRule} applying to {@link CallFunc}s with the same name as this one.
+	 * Return a {@link SpecialFuncRule} applying to {@link CallDeclaration}s with the same name as this one.
 	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialScriptRules()})
 	 * @param role Role mask passed to {@link SpecialScriptRules#funcRuleFor(String, int)}
-	 * @return The {@link SpecialFuncRule} applying to {@link CallFunc}s such as this one, or null.
+	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
 	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.containingScript().engine();
@@ -330,12 +335,12 @@ public class CallFunc extends AccessDeclaration {
 	}
 
 	/**
-	 * Find a {@link Function} for some hypothetical {@link CallFunc}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallFunc} in the {@link Sequence}.
-	 * @param p The predecessor of the hypothetical {@link CallFunc} ({@link ExprElm#predecessorInSequence()})
-	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallFunc}'s {@link #declarationName()}
+	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallDeclaration} in the {@link Sequence}.
+	 * @param p The predecessor of the hypothetical {@link CallDeclaration} ({@link ExprElm#predecessorInSequence()})
+	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
 	 * @param context Context to use for searching
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
-	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.
+	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.containingScript() : p.typeInContext(context);
@@ -482,7 +487,8 @@ public class CallFunc extends AccessDeclaration {
 			
 			// variable as function
 			if (declaration instanceof Variable) {
-				IType type = this.typeInContext(context);
+				((Variable)declaration).setUsed(true);
+				IType type = this.obtainType(context);
 				// no warning when in #strict mode
 				if (context.strictLevel() >= 2) {
 					if (declaration != cachedFuncs(context).This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
@@ -602,13 +608,13 @@ public class CallFunc extends AccessDeclaration {
 					? new Sequence(new ExprElm[] {
 							params[0].optimize(parser),
 							new MemberOperator(false, true, null, 0),
-							new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+							new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 					)
 					: new IfStatement(params[0].optimize(parser),
 							new SimpleStatement(new Sequence(new ExprElm[] {
 									params[0].optimize(parser),
 									new MemberOperator(false, true, null, 0),
-									new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+									new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 							)),
 							null
 					);
@@ -618,7 +624,7 @@ public class CallFunc extends AccessDeclaration {
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable) {
 			if (!parser.containingScript().engine().settings().proplistsSupported && predecessorInSequence() != null)
-				return new CallFunc("LocalN", new StringLiteral(declarationName));
+				return new CallDeclaration("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);
 		}
@@ -637,13 +643,13 @@ public class CallFunc extends AccessDeclaration {
 		
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
 		if (params.length == 2 && declaration != null && (declaration == cachedFuncs(parser).SetVar || declaration == cachedFuncs(parser).SetLocal || declaration == cachedFuncs(parser).AssignVar)) {
-			return new BinaryOp(Operator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 
 		// DecVar(0) -> Var(0)--
 		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar)) {
 			return new UnaryOp(declaration == cachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallFunc(cachedFuncs(parser).Var.name(), new ExprElm[] {
+					new CallDeclaration(cachedFuncs(parser).Var.name(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
 					})
 			);
@@ -656,7 +662,7 @@ public class CallFunc extends AccessDeclaration {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].optimize(parser);
-				return new CallFunc(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
+				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 			}
 		}
 
@@ -696,9 +702,11 @@ public class CallFunc extends AccessDeclaration {
 	public ControlFlow controlFlow() {
 		return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
+	@Override
 	public ExprElm[] params() {
 		return params;
 	}
+	@Override
 	public int indexOfParm(ExprElm parm) {
 		for (int i = 0; i < params.length; i++)
 			if (params[i] == parm)
@@ -717,7 +725,7 @@ public class CallFunc extends AccessDeclaration {
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = cachedFuncs(parser);
-		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
+		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null) {
 				if (ev instanceof Number) {
@@ -728,15 +736,16 @@ public class CallFunc extends AccessDeclaration {
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
-			if (f.typeIsInvariant()) {
+			if (f.typeIsInvariant())
 				return null;
-			}
 			IType retType = f.returnType();
 			if (retType == null || !retType.containsAnyTypeOf(PrimitiveType.ANY, PrimitiveType.REFERENCE))
 				return new FunctionReturnTypeInformation((Function)d);
 			if (d.isEngineDeclaration())
 				return null;
 		}
+		else if (d != null)
+			return new GenericStoredTypeInformation(this, parser);
 		return super.createStoredTypeInformation(parser);
 	}
 	
@@ -753,5 +762,16 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public Class<? extends Declaration> declarationClass() {
 		return Function.class;
+	}
+
+	@Override
+	public Function function(DeclarationObtainmentContext context) {
+		if (declaration instanceof Variable) {
+			for (IType type : ((Variable)declaration).type()) {
+				if (type instanceof FunctionType)
+					return ((FunctionType)type).prototype();
+			}
+		}
+		return as(declaration(), Function.class);
 	}
 }

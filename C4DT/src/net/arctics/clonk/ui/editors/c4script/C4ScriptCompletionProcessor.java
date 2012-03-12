@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
@@ -49,7 +51,6 @@ import net.arctics.clonk.ui.editors.ClonkContextInformation;
 import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Gen;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
@@ -298,7 +299,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
 		Sequence contextSequence = null;
-		CallFunc innermostCallFunc = null;
+		CallDeclaration innermostCallFunc = null;
 
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.body().start():0);
@@ -314,7 +315,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
-				innermostCallFunc = contextExpression.parentOfType(CallFunc.class);
+				innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
 				if (
 						contextExpression instanceof MemberOperator ||
 						(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
@@ -457,7 +458,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
-		StringUtil.writeBlock(builder, "(", ")", ", ", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		StringUtil.writeBlock(builder, "(", ")", ", ", arrayIterable(map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$
@@ -608,13 +609,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
-			FuncCallInfo funcCallInfo = editor.innermostCallFuncExprParmAtOffset(offset);
+			FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
-				IIndexEntity entity = funcCallInfo.callFunc.declaration();
+				IIndexEntity entity = funcCallInfo.callFunc.function(editor.functionAtCursor().declarationObtainmentContext());
 				if (entity == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().scriptBeingEdited(), new Region(offset, 1))) {
-						funcCallInfo.locator.initializeProposedDeclarations(editor().scriptBeingEdited(), d, null, funcCallInfo.callFunc);
+						funcCallInfo.locator.initializeProposedDeclarations(editor().scriptBeingEdited(), d, null, (ExprElm)funcCallInfo.callFunc);
 						if (funcCallInfo.locator.potentialEntities() != null)
 							for (IIndexEntity e : funcCallInfo.locator.potentialEntities()) {
 								if (entity == null)
@@ -626,8 +627,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 							}
 					}
 				}
-//				if (dec == null && funcCallInfo.locator != null)
-//					dec = funcCallInfo.locator.getDeclaration();
 				Function function = null;
 				if (entity instanceof Function)
 					function = (Function)entity;

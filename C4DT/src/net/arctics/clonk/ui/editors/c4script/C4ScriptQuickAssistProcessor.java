@@ -27,7 +27,7 @@ import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
@@ -459,10 +459,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
 				switch (errorCode) {
 				case VariableCalled:
-					assert(offendingExpression instanceof CallFunc);
+					assert(offendingExpression instanceof CallDeclaration);
 					replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).declarationName()), 0)
+							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).declarationName()), 0)
 					);
 					break;
 				case NeverReached: {
@@ -496,7 +496,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							);
 						}
 					}
-					if (offendingExpression instanceof CallFunc) {
+					if (offendingExpression instanceof CallDeclaration) {
 						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
 							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).getId(), 3);
 							opWithTilde.setExprRegion(offendingExpression.predecessorInSequence());
@@ -520,7 +520,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									ExprElm.NULL_EXPR
 							));
 						} else {
-							CallFunc callFunc = (CallFunc) accessDec;
+							CallDeclaration callFunc = (CallDeclaration) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
 									function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
@@ -560,8 +560,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						}
 						
 						// propose adding projects to the referenced projects which contain a definition with a matching name
-						if (accessDec.parent() instanceof CallFunc) {
-							Variable parm = ((CallFunc)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
+						if (accessDec.parent() instanceof CallDeclaration) {
+							Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
 							if (parm != null && parm.type().canBeAssignedFrom(PrimitiveType.ID)) {
 								final IProject p = marker.getResource().getProject();
 								IProject[] referencedProjects;
@@ -617,7 +617,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								new ReturnStatement((statement.expression()))
 						);
 						addRemoveReplacement(document, expressionRegion, replacements, func);
-						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
+						CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
 					}
 					break;
@@ -637,7 +637,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case NoInheritedFunction:
-					if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).declarationName().equals(Keywords.Inherited)) {
+					if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).declarationName().equals(Keywords.Inherited)) {
 						replacements.add(
 								String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 								identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),

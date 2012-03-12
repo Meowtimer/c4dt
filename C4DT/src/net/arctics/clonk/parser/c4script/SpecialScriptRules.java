@@ -32,7 +32,7 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -212,7 +212,7 @@ public class SpecialScriptRules {
 		 * @throws ParsingException 
 		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
+		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
 			return false;
 		}
 		/**
@@ -222,7 +222,7 @@ public class SpecialScriptRules {
 		 * @return Modified type or null, in which case the default type will be returned.
 		 */
 		@SignifiesRole(role=RETURNTYPE_MODIFIER)
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			return null;
 		}
 		/**
@@ -235,7 +235,7 @@ public class SpecialScriptRules {
 		 * @return Return null if no declaration could be found that is referred to.
 		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return null;
 		}
 		/**
@@ -266,7 +266,7 @@ public class SpecialScriptRules {
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {}
 		
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
-		public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
+		public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
 	}
 	
 	private final Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
@@ -346,7 +346,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"CreateObject", "CreateContents"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
 				IType t = callFunc.params()[0].typeInContext(context);
 				if (t instanceof IHasConstraint) {
@@ -371,7 +371,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GetID"})
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			Script script = null;
 			ConstraintKind constraintKind = null;
 			IType t;
@@ -400,7 +400,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"FindObjects"})
 	public final SpecialFuncRule criteriaSearchRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(context, callFunc, true);
 			if (t == null || t == PrimitiveType.UNKNOWN) {
 				t = PrimitiveType.OBJECT;
@@ -413,15 +413,15 @@ public class SpecialScriptRules {
 			return t;
 		}
 		
-		private IType searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallFunc callFunc, boolean topLevel) {
+		private IType searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallDeclaration callFunc, boolean topLevel) {
 			IType result = null;
 			String declarationName = callFunc.declarationName();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();
 				for (ExprElm parm : callFunc.params()) {
-					if (parm instanceof CallFunc) {
-						CallFunc call = (CallFunc)parm;
+					if (parm instanceof CallDeclaration) {
+						CallDeclaration call = (CallDeclaration)parm;
 						IType t = searchCriteriaAssumedResult(context, call, false);
 						if (t != null) for (IType ty : t) {
 							types.add(ty);
@@ -467,7 +467,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Schedule"})
 	public final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].typeInContext(parser) : parser.containerAsDefinition();
@@ -503,7 +503,7 @@ public class SpecialScriptRules {
 			return false; // don't stop regular parameter validating
 		};
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
@@ -523,7 +523,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.params()[0].typeInContext(parser);
@@ -543,7 +543,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"AddCommand", "AppendCommand", "SetCommand"})
 	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			Function f = callFunc.declaration() instanceof Function ? (Function)callFunc.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
@@ -575,7 +575,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Index index = parser.containingScript().index();
@@ -615,7 +615,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Function f = parser.containingScript().findFunction(lit.stringValue());
@@ -632,7 +632,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params()[0].guessObjectType(parser);
@@ -656,7 +656,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params().length > 1 ? callFunc.params()[1].guessObjectType(parser) : null;
@@ -680,7 +680,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GetPlrKnowledge", "GetPlrMagic"})
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 3) {
 				return PrimitiveType.ID;
 			} else {
@@ -692,7 +692,7 @@ public class SpecialScriptRules {
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
 		public abstract IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser);
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
 				String resourceName = (String)parmEv;
@@ -764,7 +764,7 @@ public class SpecialScriptRules {
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return getActionLinkForDefinition(parser.currentFunction(), parser.containerAsDefinition(), parmExpression);
 		}
 		protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
@@ -804,7 +804,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
@@ -829,7 +829,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"CreateArray"})
 	public final SpecialFuncRule createArrayTypingRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			int arrayLength = 0;
 			if (callFunc.params().length >= 1) {
 				Object ev = callFunc.params()[0].evaluateAtParseTime(context);

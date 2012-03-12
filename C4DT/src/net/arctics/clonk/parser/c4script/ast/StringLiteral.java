@@ -50,8 +50,8 @@ public final class StringLiteral extends Literal<String> {
 			return result;
 
 		// look whether some special linking rule can be applied to this literal
-		if (parent() instanceof CallFunc) {
-			CallFunc parentFunc = (CallFunc) parent();
+		if (parent() instanceof CallDeclaration) {
+			CallDeclaration parentFunc = (CallDeclaration) parent();
 			int myIndex = parentFunc.indexOfParm(this);
 
 			// delegate finding a link to special function rules

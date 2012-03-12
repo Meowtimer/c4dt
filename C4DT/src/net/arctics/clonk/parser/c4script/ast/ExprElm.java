@@ -586,9 +586,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericStoredTypeInformation.typeableFromExpression(this, parser);
-		if (d != null && !d.typeIsInvariant()) {
+		if (d != null && !d.typeIsInvariant())
 			return new GenericStoredTypeInformation(this, parser);
-		}
 		return null;
 	}
 	
@@ -832,6 +831,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+			if (expr instanceof AccessDeclaration && referenceElm instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)referenceElm).declaration())
+				return true;
 			ExprElm chainA, chainB;
 			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence()) {
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())

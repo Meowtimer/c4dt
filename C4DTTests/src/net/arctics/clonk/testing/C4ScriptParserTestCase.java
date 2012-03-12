@@ -35,7 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
 import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
@@ -160,7 +160,7 @@ public class C4ScriptParserTestCase {
 				new SimpleStatement(new UnaryOp(Operator.Increment,
 						Placement.Prefix, new AccessVar("i"))),
 				new WhileStatement(new BoolLiteral(true), new Block(
-						new SimpleStatement(new CallFunc("Log",
+						new SimpleStatement(new CallDeclaration("Log",
 								new StringLiteral("Test"))),
 						new BreakStatement())));
 		String ref = "{\n" + "\ti = 50;\n" + "\t++i;\n" + "\twhile (true)\n"
@@ -179,7 +179,7 @@ public class C4ScriptParserTestCase {
 						new NumberLiteral(100)), new UnaryOp(
 						Operator.Increment, Placement.Postfix, new AccessVar(
 								"i")), new Block(new SimpleStatement(
-						new CallFunc("Log", new StringLiteral("Hello"))))));
+						new CallDeclaration("Log", new StringLiteral("Hello"))))));
 		assertParsingYieldsCorrectAST(block);
 	}
 

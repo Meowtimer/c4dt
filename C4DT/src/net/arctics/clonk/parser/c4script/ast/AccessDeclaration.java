@@ -16,7 +16,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 /**
- * An expression referring to some {@link Declaration}. Derived classes represent access to {@link Variable}s ({@link AccessVar}) and {@link Function} calls ({@link CallFunc}).
+ * An expression referring to some {@link Declaration}. Derived classes represent access to {@link Variable}s ({@link AccessVar}) and {@link Function} calls ({@link CallDeclaration}).
  * @author madeen
  *
  */
@@ -140,11 +140,10 @@ public abstract class AccessDeclaration extends Value {
 	
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant()) {
+		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant())
 			return null;
-		} else {
+		else
 			return super.createStoredTypeInformation(parser);
-		}
 	}
 	
 	@Override

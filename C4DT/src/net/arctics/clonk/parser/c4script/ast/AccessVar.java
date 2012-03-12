@@ -131,6 +131,9 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 			}
+		} else if (declaration instanceof Function) {
+			if (!parser.script().engine().settings().supportsFunctionRefs)
+				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, declarationName, parser.script().engine().name());
 		}
 		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
 			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW, this.declarationName());
@@ -138,11 +141,10 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	public static IStoredTypeInformation createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
-		if (declaration != null) {
+		if (declaration != null)
 			return new GenericStoredTypeInformation(new AccessVar(declaration), parser);
-		} else {
+		else
 			return null;
-		}
 	}
 	
 	@Override

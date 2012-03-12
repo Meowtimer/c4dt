@@ -27,7 +27,7 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -111,12 +111,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return null;
 		};
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			Object parmEv;
 			if (callFunc.params().length >= 1 && (parmEv = callFunc.params()[0].evaluateAtParseTime(context.currentFunction())) instanceof String) {
 				String effectName = (String) parmEv;
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-					Declaration d = CallFunc.findFunctionUsingPredecessor(
+					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
 							callFunc.predecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()),
 							context, null
@@ -140,12 +140,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public EntityRegion locateEntityInParameter(
-				CallFunc callFunc, C4ScriptParser parser, int index,
+				CallDeclaration callFunc, C4ScriptParser parser, int index,
 				int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).getLiteral();
 				for (HardcodedCallbackType t : HardcodedCallbackType.values()) {
-					Declaration d = CallFunc.findFunctionUsingPredecessor(
+					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
 							callFunc.predecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
 							parser,
@@ -175,7 +175,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				return null;
 		};
 		@Override
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			if (arguments.length >= 2 && parser.currentFunction() instanceof DefinitionFunction) {
 				Object nameEv = arguments[0].evaluateAtParseTime(parser.currentFunction());
 				if (nameEv instanceof String) {
@@ -267,7 +267,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
 			ExprElm saved = parser.currentFunctionContext().expressionReportingErrors;			
 			try {
 				if (parmIndex+1 >= arguments.length) {
@@ -296,7 +296,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return false;
 		}
 		@Override
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
+		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.currentFunction())).evaluation instanceof String) {
@@ -366,7 +366,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				return null;
 			};
 			@Override
-			public EntityRegion locateEntityInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index != 0)
 					return null;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : null;
@@ -380,7 +380,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
+			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : parser.containingScript();

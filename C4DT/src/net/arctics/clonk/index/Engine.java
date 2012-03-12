@@ -135,6 +135,9 @@ public class Engine extends Script {
 		/** ';'-separated list of file extensions supported as sound files */
 		@IniField(category="Intrinsic")
 		public String supportedSoundFileExtensions;
+		/** Engine supports passing references to functions */
+		@IniField(category="Intrinsic")
+		public boolean supportsFunctionRefs;
 		
 		// Settings that are actually intended to be user-configurable
 		

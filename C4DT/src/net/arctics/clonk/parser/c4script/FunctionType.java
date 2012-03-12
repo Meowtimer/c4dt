@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
 
 import java.util.Iterator;
@@ -31,7 +32,7 @@ public class FunctionType implements IType {
 
 	@Override
 	public Iterator<IType> iterator() {
-		return PrimitiveType.FUNCTION.iterator();
+		return arrayIterable(this, PrimitiveType.FUNCTION).iterator();
 	}
 
 	@Override

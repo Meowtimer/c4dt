@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
@@ -64,8 +64,8 @@ public class ReferencesQuery extends SearchQueryBase {
 		private StringLiteral functionNameExpr;
 
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
-			if (expression instanceof CallFunc && expression.predecessorInSequence() instanceof MemberOperator) {
-				CallFunc callFunc = (CallFunc) expression;
+			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
+				CallDeclaration callFunc = (CallDeclaration) expression;
 				return callFunc.declarationName().equals(declaration.name());
 			}
 			return false;
@@ -73,8 +73,8 @@ public class ReferencesQuery extends SearchQueryBase {
 
 		private boolean potentiallyReferencedByCallFunction(AccessDeclaration expression, C4ScriptParser parser) {
 			functionNameExpr = null;
-			if (expression instanceof CallFunc) {
-				CallFunc callFunc = (CallFunc) expression;
+			if (expression instanceof CallDeclaration) {
+				CallDeclaration callFunc = (CallDeclaration) expression;
 				for (ExprElm e : callFunc.params()) {
 					// ask the string literals whether they might refer to a function
 					if (e instanceof StringLiteral) {
