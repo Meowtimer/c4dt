@@ -389,11 +389,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts);
 		
 		for (IHasSubDeclarations s : contextStructures) {
-			proposalsForStructure(s, prefix, offset, wordOffset, proposals, true, index, whatToDisplayFromScripts);
+			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			if (s instanceof IHasIncludes) {
 				Iterable<? extends IHasIncludes> includes = ((IHasIncludes)s).includes(index, GatherIncludesOptions.Recursive);
 				for (IHasIncludes inc : includes)
-					proposalsForStructure(inc, prefix, offset, wordOffset, proposals, true, index, whatToDisplayFromScripts);
+					proposalsForStructure(inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			}
 		}
 		
@@ -582,14 +582,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
-	private void proposalsForStructure(IHasSubDeclarations structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, Index index, int mask) {
+	private void proposalsForStructure(IHasSubDeclarations structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, Index index, int mask) {
 		for (Declaration dec : structure.subDeclarations(index, mask)) {
 			Function func = as(dec, Function.class);
 			Variable var = as(dec, Variable.class);
 			if (func != null) {
 				if (func.visibility() != FunctionScope.GLOBAL)
-					if (!noPrivateFuncs  || func.visibility() == FunctionScope.PUBLIC)
-						proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
+					proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
 			}
 			else if (var != null) {
 				if (var.scope() != Scope.STATIC && var.scope() != Scope.CONST)
