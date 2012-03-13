@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
@@ -87,6 +89,17 @@ public class CallExpr extends Value implements IFunctionCall {
 			if (params[i] == parm)
 				return i;
 		return -1;
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		if (!parser.script().engine().settings().supportsFunctionRefs)
+			parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
+		else {
+			IType type = predecessorInSequence().obtainType(parser);
+			if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+				parser.errorWithCode(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
+		}
 	}
 	
 }

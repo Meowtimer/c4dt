@@ -80,7 +80,8 @@ public enum ParserErrorCode {
 	NotSupported(Messages.NotSupported, Messages.ParserErrorCode_Arg_Feature),
 	MissingBrackets(Messages.MissingBrackets, Messages.ParserErrorCode_Arg_NumberOfMissingBrackets, Messages.ParserErrorCode_Arg_BracketType),
 	OnlyRefAllowedAsReturnType(Messages.OnlyRefAllopwedAsReturnType),
-	FunctionRefNotAllowed(Messages.FunctionRefNotAllowed, Messages.ParserErrorCode_Arg_FunctionName, Messages.ParserErrorCode_Arg_Engine);
+	FunctionRefNotAllowed(Messages.FunctionRefNotAllowed, Messages.ParserErrorCode_Arg_Engine),
+	CallingExpression("Calling expression which does not seem to be callable");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

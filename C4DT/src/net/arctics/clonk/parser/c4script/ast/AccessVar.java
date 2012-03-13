@@ -133,7 +133,7 @@ public class AccessVar extends AccessDeclaration {
 			}
 		} else if (declaration instanceof Function) {
 			if (!parser.script().engine().settings().supportsFunctionRefs)
-				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, declarationName, parser.script().engine().name());
+				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
 		}
 		/*
 		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
