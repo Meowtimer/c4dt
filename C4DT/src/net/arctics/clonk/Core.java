@@ -371,7 +371,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 			FileWriter writer = new FileWriter(engineXMLFile);
 			try {
-				this.getActiveEngine().exportAsXML(writer);
+				this.activeEngine().exportAsXML(writer);
 			} finally {
 				writer.close();
 			}
@@ -393,7 +393,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			FileOutputStream outputStream = new FileOutputStream(engineFile);
 			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			encoder.writeObject(getActiveEngine());
+			encoder.writeObject(activeEngine());
 			encoder.close();
 			loadedEngines.remove(engineName);
 		} catch (FileNotFoundException e) {
@@ -404,7 +404,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 	
 	public void saveActiveEngineInWorkspace() {
-		saveEngineInWorkspace(getActiveEngine().name());
+		saveEngineInWorkspace(activeEngine().name());
 	}
 
 	/*
@@ -572,7 +572,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/**
 	 * @return the engineObject
 	 */
-	public Engine getActiveEngine() {
+	public Engine activeEngine() {
 		return activeEngine;
 	}
 

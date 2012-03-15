@@ -99,7 +99,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 		engineEditor.store();
 		Engine engine = Core.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
 		if (fallbackToDefault && engine == null)
-			engine = Core.instance().getActiveEngine();
+			engine = Core.instance().activeEngine();
 		return engine;
 	}
 	

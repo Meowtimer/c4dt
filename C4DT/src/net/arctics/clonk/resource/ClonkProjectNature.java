@@ -68,7 +68,7 @@ public class ClonkProjectNature implements IProjectNature {
 				// engineName can be "" or null since that is handled by loadEngine
 				cachedEngine = Core.instance().loadEngine(engineName);
 				if (cachedEngine == null)
-					cachedEngine = Core.instance().getActiveEngine();
+					cachedEngine = Core.instance().activeEngine();
 			}
 			return cachedEngine;
 		}

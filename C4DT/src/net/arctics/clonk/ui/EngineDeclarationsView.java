@@ -356,7 +356,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	 * Refreshes this viewer completely with information freshly obtained from this viewer's model.
 	 */
 	public void refresh() {
-		viewer.setInput(Core.instance().getActiveEngine());
+		viewer.setInput(Core.instance().activeEngine());
 		//viewer.refresh();
 	}
 	
@@ -420,7 +420,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Window.OK) {
-					Core.instance().getActiveEngine().addDeclaration(func);
+					Core.instance().activeEngine().addDeclaration(func);
 				}
 				refresh();
 			}
@@ -437,7 +437,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Window.OK) {
-					Core.instance().getActiveEngine().addDeclaration(var);
+					Core.instance().activeEngine().addDeclaration(var);
 				}
 				refresh();
 			}
@@ -474,7 +474,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof Declaration) {
-							Core.instance().getActiveEngine().removeDeclaration((Declaration) selectedItem);
+							Core.instance().activeEngine().removeDeclaration((Declaration) selectedItem);
 						}
 					}
 					refresh();
@@ -489,7 +489,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			@Override
 			public void run() {
 				try {
-					Core.instance().getActiveEngine().writeEngineScript();
+					Core.instance().activeEngine().writeEngineScript();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -506,7 +506,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = Core.instance().getActiveEngine().settings().repositoryPath;
+					final String repo = Core.instance().activeEngine().settings().repositoryPath;
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
@@ -515,7 +515,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final Script engine = Core.instance().getActiveEngine();
+								final Script engine = Core.instance().activeEngine();
 								//engine.clearDeclarations();
 								CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);
@@ -553,7 +553,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				InputDialog dialog = new InputDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 						Messages.SpecifyEngineName, Messages.SpecifyEngineNameDesc,
-						Core.instance().getActiveEngine().name(),
+						Core.instance().activeEngine().name(),
 						null
 				);
 				switch (dialog.open()) {				

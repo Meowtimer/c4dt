@@ -660,7 +660,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	@Override
 	public Engine engine() {
-		return Core.instance().getActiveEngine();
+		return Core.instance().activeEngine();
 	}
 	
 	@Override

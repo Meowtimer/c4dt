@@ -127,7 +127,7 @@ public class Command {
 		@CommandFunction
 		public static void OpenDoc(Object context, String funcName) {
 			try {
-				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().getActiveEngine());
+				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -169,11 +169,11 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(Core.instance().getActiveEngine().settings(), name, value);
+			setFieldValue(Core.instance().activeEngine().settings(), name, value);
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
-			Engine engine = Core.instance().getActiveEngine();
+			Engine engine = Core.instance().activeEngine();
 			setFieldValue(
 					engine.intrinsicSettings(), name,
 					engine.settings().getClass().getField(name).get(engine.settings())

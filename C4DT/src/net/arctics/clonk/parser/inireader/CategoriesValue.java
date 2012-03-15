@@ -70,7 +70,7 @@ public class CategoriesValue {
 		}
 		else for (String part : parts) {
 			part = part.trim();
-			Variable var = Core.instance().getActiveEngine().findVariable(part);
+			Variable var = Core.instance().activeEngine().findVariable(part);
 			if (var == null) {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 			}
