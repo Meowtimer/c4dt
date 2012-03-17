@@ -17,7 +17,6 @@ public class Messages extends NLS {
 	public static String ConstrainedProplist_Including;
 	public static String ConstrainedProplist_ObjectOfCurrentType;
 	public static String ConstrainedProplist_CurrentType;
-	public static String ConstrainedType_DefinitionIncluding;
 	public static String ConstrainedProplist_ExactType;
 	public static String ImportingEngineFromXML;
 	public static String TokenStringOrIdentifier;

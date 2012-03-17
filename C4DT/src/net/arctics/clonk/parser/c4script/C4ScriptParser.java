@@ -1661,6 +1661,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private LinkedList<MarkerInfo> markers = new LinkedList<MarkerInfo>();
 	
 	private void deployMarkers() {
+		if (Core.instance().runsHeadless())
+			return;
 		final List<MarkerInfo> markersToDeploy = markers;
 		markers = new LinkedList<MarkerInfo>();
 		Display.getDefault().asyncExec(new Runnable() {
