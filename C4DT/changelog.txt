@@ -157,3 +157,8 @@ are then taken into account in various places
 -Outline view has filter box
 -Multicore-Clean-Build (?)
 -Link-clicking sound names in Sound(...) calls
+1.7.1:
+-Improved function reference support
+-Support new {...} expression
+-Show included/appended declarations in outline
+-Silliness
