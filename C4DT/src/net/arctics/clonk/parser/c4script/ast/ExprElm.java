@@ -490,7 +490,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public Comment commentedOut() {
 		String str = this.toString();
-		return new Comment(str, str.contains("\n")); //$NON-NLS-1$
+		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
 	}
 	
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {

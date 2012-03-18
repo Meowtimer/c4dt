@@ -19,22 +19,35 @@ public class CStyleScanner extends BufferedScanner {
 	}
 
 	protected Comment parseCommentObject() {
-		String sequence = this.readString(2);
-		if (sequence == null) {
+		int start = this.offset;
+		int a = this.read();
+		int b = this.read();
+		if (a == -1 || b == -1) {
+			this.seek(start);
 			return null;
-		}
-		else if (sequence.equals("//")) { //$NON-NLS-1$
+		} else if (a == '/' && b == '/') { //$NON-NLS-1$
+			boolean javadoc;
+			if (read() != '/') {
+				javadoc = false;
+				unread();
+			} else
+				javadoc = true;
 			String commentText = this.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			//fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
-			return new Comment(commentText, false);
-		}
-		else if (sequence.equals("/*")) { //$NON-NLS-1$
+			return new Comment(commentText, false, javadoc);
+		} else if (a == '/' && b == '*') { //$NON-NLS-1$
+			boolean javadoc;
+			if (read() != '*') {
+				javadoc = false;
+				unread();
+			} else
+				javadoc = true;
 			int startMultiline = this.tell();
 			while (!this.reachedEOF()) {
 				if (this.read() == '*') {
 					if (this.read() == '/') {
 						String commentText = this.readStringAt(startMultiline, this.tell()-2);
-						return new Comment(commentText, true); // genug gefressen
+						return new Comment(commentText, true, javadoc); // genug gefressen
 					}
 					else {
 						this.unread();
@@ -42,10 +55,9 @@ public class CStyleScanner extends BufferedScanner {
 				}
 			}
 			String commentText = this.readStringAt(startMultiline, this.tell());
-			return new Comment(commentText, true);
-		}
-		else {
-			this.move(-2);
+			return new Comment(commentText, true, javadoc);
+		} else {
+			this.seek(start);
 			return null;
 		}
 	}

@@ -469,7 +469,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					String s = topLevel.toString();
 					replacements.add(
 							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-							new Comment(topLevel.toString(), s.contains("\n")) //$NON-NLS-1$
+							new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
 					);
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;

@@ -844,7 +844,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (parseFunctionDeclaration(functionHeader))
 					return true;
 			}
-			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null)
+			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), textOfLastComment(startOfDeclaration)) != null)
 				return true;
 		}
 		this.seek(startOfDeclaration);
@@ -1072,7 +1072,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			
 			// look for comment following directly and decorate the newly created variables with it
-			String inlineComment = getTextOfInlineComment();
+			String inlineComment = textOfInlineComment();
 			if (inlineComment != null) {
 				inlineComment = inlineComment.trim();
 				for (VarInitialization v : createdVariables) {
@@ -1151,7 +1151,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean parseFunctionDeclaration(FunctionHeader header) throws ParsingException {
 		int endOfHeader;
-		String desc = getTextOfLastComment(header.start);
+		String desc = textOfLastComment(header.start);
 		eatWhitespace();
 		int startBody = 0, endBody = 0;
 		
@@ -1229,7 +1229,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						errorWithCode(ParserErrorCode.MissingBrackets, header.nameStart, header.nameStart+header.name.length(), NO_THROW, blockDepth+1, '}');
 					seek(offsetBeforeToken);
 				}
-				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), getTextOfLastComment(offsetBeforeToken)) != null)
+				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), textOfLastComment(offsetBeforeToken)) != null)
 					/* boy, am i glad to have parsed this variable declaration */;
 				else if (parseString() == null) {
 					int c = read();
@@ -1284,13 +1284,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	    return new Function();
     }
 
-	private String getTextOfLastComment(int absoluteOffset) {
+	private String textOfLastComment(int absoluteOffset) {
 		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer())) ? lastComment.text().trim() : null; 
 		lastComment = null;
 		return desc;
 	}
 	
-	private String getTextOfInlineComment() {
+	private String textOfInlineComment() {
 		int pos = this.offset;
 		this.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (this.eat(BufferedScanner.NEWLINE_CHARS) == 0) {

@@ -19,6 +19,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private String comment;
 	private boolean multiLine;
 	private boolean prependix;
+	private boolean javaDoc;
 	private int absoluteOffset;
 
 	/**
@@ -26,10 +27,11 @@ public class Comment extends Statement implements Statement.Attachment {
 	 * @param comment Content
 	 * @param multiLine Whether multiline
 	 */
-	public Comment(String comment, boolean multiLine) {
+	public Comment(String comment, boolean multiLine, boolean javadoc) {
 		super();
 		this.comment = comment;
 		this.multiLine = multiLine;
+		this.javaDoc = javadoc;
 	}
 
 	/**
@@ -52,11 +54,15 @@ public class Comment extends Statement implements Statement.Attachment {
 		String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
+			if (javaDoc)
+				builder.append('*');
 			builder.append(c);
 			builder.append("*/"); //$NON-NLS-1$
 		}
 		else {
 			builder.append("//"); //$NON-NLS-1$
+			if (javaDoc)
+				builder.append('/');
 			builder.append(c);
 		}
 	}
@@ -75,6 +81,14 @@ public class Comment extends Statement implements Statement.Attachment {
 	 */
 	public void setMultiLine(boolean multiLine) {
 		this.multiLine = multiLine;
+	}
+	
+	/**
+	 * Whether comment is a javadoc comment
+	 * @return Yes
+	 */
+	public boolean isJavaDoc() {
+		return javaDoc;
 	}
 
 	/**
