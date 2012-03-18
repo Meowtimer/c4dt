@@ -50,12 +50,12 @@
     </path>
     <path id="C4DT.classpath">
         <path refid="Plug-in Dependencies.libraryclasspath"/>
-        <pathelement location="bin"/>
+        <pathelement location="${user.dir}/bin"/>
         <pathelement location="lib/antlr-runtime-3.1.3.jar"/>
     </path>
     <target name="init">
-        <mkdir dir="bin"/>
-        <copy includeemptydirs="false" todir="bin">
+        <mkdir dir="${user.dir}/bin"/>
+        <copy includeemptydirs="false" todir="${user.dir}/bin">
             <fileset dir="src">
                 <exclude name="**/*.launch"/>
                 <exclude name="**/*.g"/>
@@ -64,14 +64,14 @@
         </copy>
     </target>
     <target name="clean">
-        <delete dir="bin"/>
+        <delete dir="${user.dir}/bin"/>
     </target>
     <target depends="clean" name="cleanall"/>
     <target depends="build-subprojects,build-project" name="build"/>
     <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}" encoding="UTF-8">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${user.dir}/bin" source="${source}" target="${target}" encoding="UTF-8">
             <src path="src"/>
             <classpath refid="C4DT.classpath"/>
         </javac>
