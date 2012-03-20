@@ -46,7 +46,7 @@ public class Definition extends Script {
 	/**
 	 * Template to construct the info text of an object definition from
 	 */
-	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_InfoTextTemplate;
+	public static final String INFO_TEXT_TEMPLATE = Messages.DefinitionInfoTextTemplate;
 
 	/**
 	 * localized name of the object; key is language code like "DE" and "US"
@@ -76,7 +76,7 @@ public class Definition extends Script {
 	}
 
 	public String infoTextIncludingIDAndName() {
-		return id() != null ? String.format(Messages.C4Object_IDWithName, name(), id().toString()) : name();
+		return id() != null ? String.format(Messages.DefinitionIDWithName, name(), id().toString()) : name();
 	}
 
 	/**

@@ -857,7 +857,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				}
 			}
 		}
-		return super.infoText();
+		return "";
 	}
 
 	@Override
