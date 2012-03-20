@@ -44,8 +44,8 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
 import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
-import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
+import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
@@ -792,11 +792,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 
-	private void addVarParmsParm(Function func) {
+	private Variable addVarParmsParm(Function func) {
 		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParentDeclaration(func);
 		v.setScope(Variable.Scope.VAR);
 		func.addParameter(v);
+		return v;
 	}
 
 	/**
@@ -1175,8 +1176,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} else {
 			// get parameters
 			do {
-				eatWhitespace();
-				parseParameter(currentFunc);
+				eat(WHITESPACE_CHARS);
+				Comment parameterComment = parseCommentObject();
+				eat(WHITESPACE_CHARS);
+				Variable parm = parseParameter(currentFunc);
+				if (parm != null && parameterComment != null)
+					parm.setUserDescription(parameterComment.text());
 				eatWhitespace();
 				int readByte = read();
 				if (readByte == ')')
@@ -3161,12 +3166,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return Whether parsing the parameter was successful
 	 * @throws ParsingException
 	 */
-	private boolean parseParameter(Function function) throws ParsingException {
+	private Variable parseParameter(Function function) throws ParsingException {
 		
-		if (isEngine && parseEllipsis()) {
-			addVarParmsParm(function);
-			return true;
-		}
+		if (isEngine && parseEllipsis())
+			return addVarParmsParm(function);
 		
 		int s = this.offset;
 		String firstWord = readIdent();
@@ -3175,7 +3178,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				firstWord = "&"; //$NON-NLS-1$
 			} else {
 				unread();
-				return false;
+				return null;
 			}
 		}
 		int e = this.offset;
@@ -3215,7 +3218,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		var.setLocation(new SourceLocation(s, e));
 		var.setParentDeclaration(function);
 		function.addParameter(var);
-		return true;
+		return var;
 	}
 	
 	private boolean testForString(String s) {
