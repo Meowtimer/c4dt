@@ -86,8 +86,10 @@ public class ClonkTextEditor extends TextEditor {
 	 * Refresh the outline so the new contents of the {@link #topLevelDeclaration()} will be shown.
 	 */
 	public void refreshOutline() {
-		if (outlinePage != null) // don't start lazy loading of outlinePage
-			outlinePage.refresh();
+		synchronized (topLevelDeclaration().index().saveSynchronizer()) {
+			if (outlinePage != null) // don't start lazy loading of outlinePage
+				outlinePage.refresh();
+		}
 	}
 	
 	/**
