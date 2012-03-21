@@ -23,6 +23,8 @@ public class Messages extends NLS {
 	public static String InternalError_WayTooMuch;
 	public static String InternalParserError;
 	public static String IType_ErroneousType;
+	public static String Parameters;
+	public static String Returns;
 	public static String This_Description;
 	static {
 		// initialize resource bundle

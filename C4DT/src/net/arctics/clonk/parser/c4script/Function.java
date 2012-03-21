@@ -366,22 +366,22 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			? script().resource().getProjectRelativePath().toOSString()
 			: script().name();
 		for (String line : new String[] {
-			"<i>"+scriptPath+"</i><br/>",
-			"<b>"+longParameterString(true, false)+"</b><br/>",
-			"<br/>",
-			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable,
-			"<br/>",
+			"<i>"+scriptPath+"</i><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			"<b>"+longParameterString(true, false)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			"<br/>", //$NON-NLS-1$
+			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
+			"<br/>", //$NON-NLS-1$
 		})
 			builder.append(line);
 		if (numParameters() > 0) {
-			builder.append("<br/><b>"+"Parameters"+"</b><br/>");
+			builder.append("<br/><b>"+Messages.Parameters+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
 			for (Variable p : parameters()) {
-				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>");
+				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
-			builder.append("<br/>");
+			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		if (returnType() != PrimitiveType.UNKNOWN) {
-			builder.append("<br/><b>"+"Returns"+"</b><br/>");
+			builder.append("<br/><b>"+Messages.Returns+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
 			builder.append(returnType().typeName(true));
 		}
 		return builder.toString();
@@ -484,7 +484,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Set<Function> alreadyVisited = new HashSet<Function>();
 		for (Function f = this; f != null; f = f.inheritedFunction()) {
 			if (alreadyVisited.contains(f)) {
-				System.out.println(String.format("%s causes inherited loop", f.qualifiedName()));
+				System.out.println(String.format("%s causes inherited loop", f.qualifiedName())); //$NON-NLS-1$
 				break;
 			}
 			result = f;
@@ -687,22 +687,22 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(visibility().toKeyword());
-		builder.append(" ");
+		builder.append(" "); //$NON-NLS-1$
 		builder.append(Keywords.Func);
-		builder.append(" ");
+		builder.append(" "); //$NON-NLS-1$
 		builder.append(longParameterString(true));
 		switch (Conf.braceStyle) {
 		case NewLine:
-			builder.append("\n{\n");
+			builder.append("\n{\n"); //$NON-NLS-1$
 			break;
 		case SameLine:
-			builder.append(" {\n");
+			builder.append(" {\n"); //$NON-NLS-1$
 			break;
 		}
 		if (cookie instanceof ExprElm) {
 			((ExprElm)cookie).print(builder, 1);
 		}
-		builder.append("\n}");
+		builder.append("\n}"); //$NON-NLS-1$
 	}
 
 	/**
