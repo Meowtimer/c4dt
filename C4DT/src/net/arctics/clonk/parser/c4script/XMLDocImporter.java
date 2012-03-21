@@ -281,7 +281,7 @@ public class XMLDocImporter {
 							Node n = parmNodes.item(i);
 							Node nameNode  = (Node) parmNameExpr.evaluate(n, XPathConstants.NODE);
 							Node typeNode  = (Node) parmTypeExpr.evaluate(n, XPathConstants.NODE);
-							Node descNode_ = (Node) parmDescExpr.evaluate(n, XPathConstants.NODE);
+							Node descNode_ = importDocumentation ? (Node) parmDescExpr.evaluate(n, XPathConstants.NODE) : null;
 							String typeStr = typeNode != null ? getTextIncludingTags(typeNode) : PrimitiveType.ANY.toString();
 							if (nameNode != null) {
 								Variable parm = new Variable(getTextIncludingTags(nameNode), PrimitiveType.makeType(typeStr));

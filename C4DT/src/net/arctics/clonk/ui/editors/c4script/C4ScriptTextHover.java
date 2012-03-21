@@ -1,9 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.Utilities;
@@ -31,16 +28,6 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 		StringBuilder messageBuilder = new StringBuilder();
 		if (entityLocator != null && entityLocator.entity() != null) {
 			messageBuilder.append(entityLocator.entity().infoText());
-			if (!(entityLocator.entity() instanceof Declaration && ((Declaration)entityLocator.entity()).isEngineDeclaration())) {
-				Engine engine = ClonkProjectNature.engineFromResource(scriptFile);
-				if (engine != null) {
-					Declaration engineDeclaration = engine.findDeclaration(entityLocator.entity().name());
-					if (engineDeclaration != null) {
-						messageBuilder.append("<br/><br/><b>"+"Engine:"+"</b><br/>");
-						messageBuilder.append(engineDeclaration.infoText());
-					}
-				}
-			}
 		}
 		else {
 			String superInfo = super.getHoverInfo(viewer, region);

@@ -27,7 +27,6 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -362,7 +361,38 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String infoText() {
 		String description = obtainUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "", StringUtil.htmlerize(longParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, script().toString()); //$NON-NLS-1$
+		StringBuilder builder = new StringBuilder();
+		String scriptPath = script().resource() != null
+			? script().resource().getProjectRelativePath().toOSString()
+			: script().name();
+		for (String line : new String[] {
+			"<i>"+scriptPath+"</i><br/>",
+			"<b>"+longParameterString(true, false)+"</b><br/>",
+			"<br/>",
+			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable,
+			"<br/>",
+		})
+			builder.append(line);
+		if (numParameters() > 0) {
+			builder.append("<br/><b>"+"Parameters"+"</b><br/>");
+			for (Variable p : parameters()) {
+				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>");
+			}
+			builder.append("<br/>");
+		}
+		if (returnType() != PrimitiveType.UNKNOWN) {
+			builder.append("<br/><b>"+"Returns"+"</b><br/>");
+			builder.append(returnType().typeName(true));
+		}
+		return builder.toString();
+		/*return String.format(
+			Messages.FunctionInfoTextTemplate,
+			returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "",
+			StringUtil.htmlerize(longParameterString(true, false)),
+			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable,
+			script().name()
+		); //$NON-NLS-1$
+		*/
 	}
 
 	@Override
