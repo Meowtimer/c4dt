@@ -10,8 +10,8 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 
 /**
  * Baseclass for statements.
@@ -34,7 +34,7 @@ public class Statement extends ExprElm implements Cloneable {
 
 		private static final long serialVersionUID = 1L;
 
-		private int num;
+		private final int num;
 		public int getNum() {
 			return num;
 		}
@@ -147,11 +147,6 @@ public class Statement extends ExprElm implements Cloneable {
 		if (!e.isFinishedProperly())
 			// don't traverse children - one not-finished error is enough
 			parser.errorWithCode(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
-		else for (ExprElm expr : e.subElements()) {
-			if (expr != null) {
-				notFinishedError(parser, expr);
-			}
-		}
 	}
 
 }
