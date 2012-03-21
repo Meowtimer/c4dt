@@ -429,7 +429,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		C4ScriptEditor editor = editorOrScript instanceof C4ScriptEditor ? (C4ScriptEditor)editorOrScript : null;
 		Script script = editorOrScript instanceof Script
 			? (Script)editorOrScript
-			: editor != null ? editor.scriptBeingEdited() : null;
+			: editor != null ? editor.script() : null;
 		Object needToDisconnect = null;
 		if (document == null) {
 			if (editor != null) {

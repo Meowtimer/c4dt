@@ -528,7 +528,6 @@ public class Engine extends Script {
 		if (settings().readDocumentationFromRepository) {
 			xmlDocImporter.setRepositoryPath(settings().repositoryPath);
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
-			
 			xmlDocImporter.initialize();
 			createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
 		}
@@ -537,7 +536,7 @@ public class Engine extends Script {
 	/**
 	 * Obtain a description for the specified declaration. From which source this description is lifted depends on settings
 	 * such as {@link EngineSettings#readDocumentationFromRepository}. If that setting is set attempts will be made to extract
-	 * the description from the <repository>/docs folder, with the fallback being descriptions<lang>.ini files in the res/engines/<engine> folder.
+	 * the description from the <code>repository</code>/docs folder, with the fallback being descriptions<code>lang</code>.ini files in the res/engines/<code>engine</code> folder.
 	 * @param declaration The declaration for which to obtain a description
 	 * @return The description or null if I don't know what went wrong
 	 */

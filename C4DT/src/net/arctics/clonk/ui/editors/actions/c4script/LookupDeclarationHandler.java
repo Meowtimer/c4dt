@@ -25,7 +25,7 @@ public class LookupDeclarationHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		if (part instanceof C4ScriptEditor) {
-			Script script = ((C4ScriptEditor)part).scriptBeingEdited();
+			Script script = ((C4ScriptEditor)part).script();
 			if (script != null) {
 				List<IHasIncludes> scripts = new ArrayList<IHasIncludes>();
 				script.gatherIncludes(script.index(), scripts, GatherIncludesOptions.Recursive);

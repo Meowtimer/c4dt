@@ -234,7 +234,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 
 		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
-			if (editor().scriptBeingEdited().index().engine() != null)
+			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
 		if (activeFunc == null)
@@ -613,8 +613,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				IIndexEntity entity = funcCallInfo.callFunc.function(editor.functionAtCursor().declarationObtainmentContext());
 				if (entity == null) {
 					RegionDescription d = new RegionDescription();
-					if (funcCallInfo.locator.initializeRegionDescription(d, editor().scriptBeingEdited(), new Region(offset, 1))) {
-						funcCallInfo.locator.initializeProposedDeclarations(editor().scriptBeingEdited(), d, null, (ExprElm)funcCallInfo.callFunc);
+					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {
+						funcCallInfo.locator.initializeProposedDeclarations(editor().script(), d, null, (ExprElm)funcCallInfo.callFunc);
 						if (funcCallInfo.locator.potentialEntities() != null)
 							for (IIndexEntity e : funcCallInfo.locator.potentialEntities()) {
 								if (entity == null)

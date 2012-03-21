@@ -57,7 +57,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 			e.printStackTrace();
 			return;
 		}
-		runOnDocument(editor.scriptBeingEdited(), selection, parser, document);
+		runOnDocument(editor.script(), selection, parser, document);
 	}
 
 	private static ExprElm codeFor(Declaration d) {

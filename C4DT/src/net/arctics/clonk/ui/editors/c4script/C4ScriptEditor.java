@@ -447,7 +447,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void editorSaved() {
 		if (textChangeListener != null)
 			textChangeListener.cancelReparsingTimer();
-		if (scriptBeingEdited() instanceof ScratchScript) {
+		if (script() instanceof ScratchScript) {
 			try {
 				reparseWithDocumentContents(null, false);
 			} catch (Exception e) {
@@ -474,7 +474,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		Script script = scriptBeingEdited();
+		Script script = script();
 		if (script != null && script.isEditable()) {
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		}
@@ -523,8 +523,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (scriptBeingEdited() != null) {
-			if (scriptBeingEdited().isEditable()) {
+		if (script() != null) {
+			if (script().isEditable()) {
 				addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 				addAction(menu, ClonkCommandIds.RENAME_DECLARATION);
 				addAction(menu, ClonkCommandIds.TOGGLE_COMMENT);
@@ -577,7 +577,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	private Script scratchScript;
 	
-	public Script scriptBeingEdited() {
+	public Script script() {
 		Script result = null;
 		
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
@@ -609,7 +609,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public Function functionAt(int offset) {
-		Script script = scriptBeingEdited();
+		Script script = script();
 		if (script != null) {
 			Function f = script.funcAt(offset);
 			return f;
@@ -622,10 +622,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(IScriptParserListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
-		if (scriptBeingEdited() == null)
+		if (script() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, scriptBeingEdited(), new Runnable() {
+		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, script(), new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
@@ -687,7 +687,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	@Override
 	public Script topLevelDeclaration() {
-		return scriptBeingEdited();
+		return script();
 	}
 	
 	public static class FuncCallInfo {

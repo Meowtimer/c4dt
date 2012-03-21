@@ -115,7 +115,7 @@ public abstract class Utilities {
 
 	public static Script scriptForEditor(IEditorPart editor) {
 		if (editor instanceof C4ScriptEditor)
-			return ((C4ScriptEditor) editor).scriptBeingEdited();
+			return ((C4ScriptEditor) editor).script();
 		else
 			return null;
 	}
