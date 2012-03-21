@@ -9,7 +9,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	private String contextDisplayString;
 	private Image image;
 	private String informationDisplayString;
-	private int parmIndex;
+	private final int parmIndex;
 	private int parmsStart, parmsEnd;
 	private int parmCount;
 	
@@ -20,7 +20,6 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	
 	@Override
 	public boolean equals(Object obj) {
-		//System.out.println("ClonkContextInformation.equals called");
 		if (obj instanceof ClonkContextInformation) {
 			ClonkContextInformation info = (ClonkContextInformation) obj;
 			return parmsStart == info.parmsStart; // similar enough :o
@@ -41,7 +40,6 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
     }
 
 	public boolean valid(int offset) {
-		//System.out.println(String.format("%d %d %d", parmsStart, offset, parmsEnd));
 		return parmIndex != -1 && offset >= parmsStart;// && offset <= parmsEnd; <- does the trick!1
 	}
 	

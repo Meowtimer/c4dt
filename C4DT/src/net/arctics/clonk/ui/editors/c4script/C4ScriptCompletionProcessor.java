@@ -54,6 +54,7 @@ import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.Gen;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -641,9 +642,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (parmString.length() == 0)
 						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 					info = new ClonkContextInformation(
-							function.name() + "()", null, //$NON-NLS-1$
-							parmString,
-							funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, function.numParameters()
+						function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
+						parmString,
+						funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, function.numParameters()
 					);
 				}
 			}
