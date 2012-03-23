@@ -3,19 +3,22 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.SameTypeAsSomeTypeable;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.util.ArrayUtil;
 
-public final class NumberLiteral extends Literal<Long> {
+/**
+ * A number literal representing either a float literal expressed as {@link Double} or an int literal expressed as {@link Long}.
+ * @author madeen
+ *
+ */
+public final class NumberLiteral extends Literal<Number> {
 
-	public static class ZeroType extends SameTypeAsSomeTypeable {
+	private static class ZeroType extends SameTypeAsSomeTypeable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		
 		public ZeroType() {
@@ -43,14 +46,26 @@ public final class NumberLiteral extends Literal<Long> {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	/**
+	 * A NumberLiteral representing '0'
+	 */
 	public static final NumberLiteral ZERO = new NumberLiteral(0);
-	public static final ZeroType ZERO_TYPE = new ZeroType();
 	
-	private boolean hex;
+	/**
+	 * Special type for '0' values. Used to make object and 0 compatible while avoiding general compatibility between numbers and object values.
+	 */
+	public static final IType ZERO_TYPE = new ZeroType();
+	
+	private final boolean hex;
 
-	public NumberLiteral(long value, boolean hex) {
-		super(Long.valueOf(value));
+	public NumberLiteral(Number value, boolean hex) {
+		super(value);
 		this.hex = hex;
+	}
+	
+	public NumberLiteral(Number value) {
+		super(value);
+		this.hex = false;
 	}
 
 	public NumberLiteral(long value) {
@@ -58,11 +73,15 @@ public final class NumberLiteral extends Literal<Long> {
 	}
 
 	public long longValue() {
-		return getLiteral().longValue();
+		return literal.longValue();
+	}
+	
+	public double doubleValue() {
+		return literal.doubleValue();
 	}
 
 	public int intValue() {
-		return (int)longValue();
+		return literal.intValue();
 	}
 
 	@Override
@@ -77,41 +96,30 @@ public final class NumberLiteral extends Literal<Long> {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		if (longValue() == 0 && context.containingScript().engine().settings().treatZeroAsAny)
+		if (literal instanceof Long && longValue() == 0 && context.containingScript().engine().settings().treatZeroAsAny)
 			return ZERO_TYPE;
-		else
-			return PrimitiveType.INT;
+		else {
+			if (literal instanceof Long)
+				return PrimitiveType.INT;
+			else if (literal instanceof Double)
+				return PrimitiveType.FLOAT;
+			else
+				return PrimitiveType.ANY;
+		}
 	}
 
 	@Override
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 0 is the NULL object or NULL string
-		return (longValue() == 0 && (otherType.canBeAssignedFrom(TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
+		return (obtainType(context) == ZERO_TYPE && (otherType.canBeAssignedFrom(TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
 	}
 
+	/**
+	 * Literal is expressed as hexadecimal value
+	 * @return That.
+	 */
 	public boolean isHex() {
 		return hex;
-	}
-
-	public void setHex(boolean hex) {
-		this.hex = hex;
-	}
-	
-	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
-		long val = longValue();
-		//ExprElm region;
-		if (parent() instanceof UnaryOp && ((UnaryOp)parent()).operator() == Operator.Subtract) {
-			val = -val;
-			//region = getParent();
-		}
-		/*else
-			region = this;
-		/* who needs it -.-
-		if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE)
-			parser.warningWithCode(ParserErrorCode.OutOfIntRange, region, String.valueOf(val));
-		*/
 	}
 
 }

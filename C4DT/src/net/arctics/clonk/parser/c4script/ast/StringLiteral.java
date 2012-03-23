@@ -27,7 +27,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	public String stringValue() {
-		return getLiteral();
+		return literal();
 	}
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
@@ -69,9 +69,9 @@ public final class StringLiteral extends Literal<String> {
 	
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
-		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), StringUtil.evaluateEscapes(getLiteral()), false);
+		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), StringUtil.evaluateEscapes(literal()), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
-		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
+		if (r.singleDeclarationRegionUsed != null && literal().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.region(), (IFile) r.singleDeclarationRegionUsed.entityAs(Declaration.class).resource());
 		else if (!r.anySubstitutionsApplied)
 			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().scriptFile());
@@ -83,8 +83,8 @@ public final class StringLiteral extends Literal<String> {
 		
 		// warn about overly long strings
 		long max = parser.containingScript().index().engine().settings().maxStringLen;
-		if (max != 0 && getLiteral().length() > max) {
-			parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
+		if (max != 0 && literal().length() > max) {
+			parser.warningWithCode(ParserErrorCode.StringTooLong, this, literal().length(), max);
 		}
 		
 		// stringtbl entries
@@ -92,7 +92,7 @@ public final class StringLiteral extends Literal<String> {
 		// and checking for the existence of the table entries there is overkill
 		if (parser.hasAppendTo() || parser.containingScript().resource() == null)
 			return;
-		String value = getLiteral();
+		String value = literal();
 		int valueLen = value.length();
 		// warn when using non-declared string tbl entries
 		for (int i = 0; i < valueLen;) {

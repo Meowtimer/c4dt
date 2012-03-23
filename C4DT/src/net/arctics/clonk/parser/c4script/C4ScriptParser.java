@@ -118,10 +118,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public Declaration currentDeclaration;
 		public ID parsedID;
 		public Variable parsedVariable;
-		public long parsedNumber;
+		public Number parsedNumber;
 		public String parsedMemberOperator;
 		public int parseExpressionRecursion;
 		public int parseStatementRecursion;
+
 		private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 		/**
 		 * Whether the current statement is not reached
@@ -1343,17 +1344,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private boolean parseNumber() throws ParsingException {
 		final int offset = this.offset;
 		int count = 0;
+		boolean floatingPoint = false;
 		do {
 			int readByte = read();
 			if ('0' <= readByte && readByte <= '9') {
 				count++;
 				continue;
 			}
+			else if (count > 0 && readByte == '.' && !floatingPoint) {
+				count++;
+				floatingPoint = true;
+				continue;
+			}
 			else {
 				unread();
-				if (count > 0) {
+				if (count > 0)
 					break;
-				} else {
+				else {
 					currentFunctionContext.parsedNumber = -1; // unlikely to be parsed
 					return false; // well, this seems not to be a number at all
 				} 
@@ -1361,11 +1368,20 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} while(!reachedEOF());
 		this.seek(offset);
 		String numberString = this.readString(count);
-		try {
-			currentFunctionContext.parsedNumber = Long.parseLong(numberString);
-		} catch (NumberFormatException e) {
-			currentFunctionContext.parsedNumber = Integer.MAX_VALUE;
-			errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
+		if (floatingPoint) {
+			try {
+				currentFunctionContext.parsedNumber = Double.parseDouble(numberString);
+			} catch (NumberFormatException e) {
+				currentFunctionContext.parsedNumber = Double.MAX_VALUE;
+				errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
+			}
+		} else {
+			try {
+				currentFunctionContext.parsedNumber = Long.parseLong(numberString);
+			} catch (NumberFormatException e) {
+				currentFunctionContext.parsedNumber = Integer.MAX_VALUE;
+				errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
+			}
 		}
 		this.seek(offset+count);
 		return true;

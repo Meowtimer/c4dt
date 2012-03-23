@@ -143,7 +143,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				CallDeclaration callFunc, C4ScriptParser parser, int index,
 				int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
-				String effectName = ((StringLiteral)parmExpression).getLiteral();
+				String effectName = ((StringLiteral)parmExpression).literal();
 				for (HardcodedCallbackType t : HardcodedCallbackType.values()) {
 					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
 							callFunc.predecessorInSequence(),

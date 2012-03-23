@@ -61,11 +61,11 @@ public class C4ScriptToCPPConverter {
 					return true;
 				}
 				else if (elm instanceof StringLiteral) {
-					append(String.format("C4Value(&%s)", regString(((StringLiteral) elm).getLiteral())));
+					append(String.format("C4Value(&%s)", regString(((StringLiteral) elm).literal())));
 					return true;
 				}
 				else if (elm instanceof NumberLiteral) {
-					append(String.format("C4Value(%d)", ((NumberLiteral)elm).getLiteral()));
+					append(String.format("C4Value(%d)", ((NumberLiteral)elm).literal()));
 					return true;
 				}
 				else if (elm instanceof VarDeclarationStatement) {

@@ -14,7 +14,7 @@ public final class BoolLiteral extends Literal<Boolean> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public boolean booleanValue() {
-		return getLiteral().booleanValue();
+		return literal().booleanValue();
 	}
 	public BoolLiteral(boolean value) {
 		super(Boolean.valueOf(value));

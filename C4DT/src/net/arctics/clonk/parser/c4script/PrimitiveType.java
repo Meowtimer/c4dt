@@ -27,7 +27,8 @@ public enum PrimitiveType implements IType {
 	OBJECT, 
 	REFERENCE,
 	PROPLIST,
-	FUNCTION;
+	FUNCTION,
+	FLOAT;
 	
 	private String lowercaseName;
 	

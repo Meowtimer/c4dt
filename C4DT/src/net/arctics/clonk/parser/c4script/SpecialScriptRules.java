@@ -508,7 +508,7 @@ public class SpecialScriptRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneStatement(lit.getLiteral(), parser.currentFunction(), locator, null);
+					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null);
 				} catch (ParsingException e) {}
 				if (locator.getExprAtRegion() != null) {
 					EntityRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
@@ -528,7 +528,7 @@ public class SpecialScriptRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.params()[0].typeInContext(parser);
 				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
-				Function func = scriptToLookIn.findFunction(lit.getLiteral());
+				Function func = scriptToLookIn.findFunction(lit.literal());
 				if (func != null) {
 					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
 				}
@@ -594,7 +594,7 @@ public class SpecialScriptRules {
 						@Override
 						public void run(Index index) {
 							for (Scenario s : index.indexedScenarios()) {
-								Function f = s.findLocalFunction(lit.getLiteral(), true);
+								Function f = s.findLocalFunction(lit.literal(), true);
 								if (f != null) {
 									decs.add(f);
 								}
@@ -811,7 +811,7 @@ public class SpecialScriptRules {
 				parser.containingScript().index().forAllRelevantIndexes(new Index.r() {
 					@Override
 					public void run(Index index) {
-						List<Declaration> decs = index.declarationMap().get(lit.getLiteral());
+						List<Declaration> decs = index.declarationMap().get(lit.literal());
 						if (decs != null)
 							matchingDecs.addAll(decs);
 					}

@@ -18,7 +18,7 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	public ID idValue() {
-		return getLiteral();
+		return literal();
 	}
 
 	@Override
