@@ -79,65 +79,70 @@ public class Engine extends Script {
 	 */
 	public static class EngineSettings extends SettingsBase {
 
+		private static final String SOURCE = "Source";
+		private static final String INTRINSIC = "Intrinsic";
+
 		/** Default strictness level applied to scripts with no explicit #strict line. */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public long strictDefaultLevel;
 		/** Maximum string length of string constants. */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public long maxStringLen;
 		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean colonIDSyntax;
 		/**
 		 * Whether declarations of static non-const variables are allowed to include an assignment. OC added support for this.
 		 */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean nonConstGlobalVarsAssignment;
 		/**
 		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
 		 * This toggle activates/deactivates this behavior.
 		 * */ 
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean definitionsHaveProxyVariables;
 		/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean supportsRefs;
 		/** Whether engine supports creating a debug connection and single-stepping through C4Script code */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean supportsDebugging;
 		/** Name of editor mode option (CR: console, OC: editor) */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String editorCmdLineOption;
 		/** Format for commandline options (ClonkRage: /%s vs OpenClonk: --%s) */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String cmdLineOptionFormat;
 		/** Format for commandline options that take an argument --%s=%s */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String cmdLineOptionWithArgumentFormat;
 		/** Whether engine supports -x <command> */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean supportsEmbeddedUtilities;
 		/** Whether engine parser allows obj-> ~DoSomething() */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean spaceAllowedBetweenArrowAndTilde;
 		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String fileExtensionToGroupTypeMapping;
 		/** Extension for material definition files */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String materialExtension;
 		/** Whether 0 is of type any */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean treatZeroAsAny;
 		/** Engine supports proplists (OC) */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean proplistsSupported;
 		/** ';'-separated list of file extensions supported as sound files */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public String supportedSoundFileExtensions;
 		/** Engine supports passing references to functions */
-		@IniField(category="Intrinsic")
+		@IniField(category=INTRINSIC)
 		public boolean supportsFunctionRefs;
+		@IniField(category=INTRINSIC)
+		public boolean supportsNumbers;
 		
 		// Settings that are actually intended to be user-configurable
 		
@@ -164,24 +169,24 @@ public class Engine extends Script {
 		
 		// Fields related to scanning cpp source files for built-in declarations. 
 		
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String initFunctionMapPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String constMapPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String fnMapPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String fnMapEntryPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String constMapEntryPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String addFuncPattern;
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String fnDeclarationPattern;
 		/**
 		 * List of cpp source file paths - relative to a repository - to import declarations from. Used by {@link CPPSourceDeclarationsImporter}
 		 */
-		@IniField(category="Source")
+		@IniField(category=SOURCE)
 		public String cppSources;
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
