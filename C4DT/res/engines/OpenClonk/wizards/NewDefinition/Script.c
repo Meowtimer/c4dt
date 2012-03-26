@@ -8,7 +8,6 @@
 local Name = "$Name$";
 local Description = "$Description$";
 
-public func Initialize()
+func Initialize()
 {
-	return true;
 }

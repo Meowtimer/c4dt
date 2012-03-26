@@ -4,7 +4,6 @@
 	@author $$Author$$
 */
 
-public func Initialize()
+func Initialize()
 {
-	return true;
 }
