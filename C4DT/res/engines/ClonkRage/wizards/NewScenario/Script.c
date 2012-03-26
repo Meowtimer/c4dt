@@ -4,5 +4,4 @@
 
 func Initialize()
 {
-	return 1;
 }
