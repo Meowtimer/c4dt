@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.navigator;
+package net.arctics.clonk.ui.editors;
 
 import java.util.HashSet;
 import java.util.Iterator;

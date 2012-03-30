@@ -455,8 +455,8 @@
 		
 		<command categoryId="net.arctics.clonk.commands"
             description="%FindDuplicates_Desc"
-            id="net.arctics.clonk.ui.navigator.actions.FindDuplicates"
-            defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
+            id="net.arctics.clonk.ui.editors.actions.FindDuplicates"
+            defaultHandler="net.arctics.clonk.ui.editors.FindDuplicatesHandler"
             name="%FindDuplicates_Name" />
 		
 		<command categoryId="net.arctics.clonk.commands"
