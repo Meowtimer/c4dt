@@ -88,6 +88,7 @@ public class AccessVar extends AccessDeclaration {
 				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 				info.contextFunction = context.currentFunction();
 				info.searchOrigin = scriptToLookIn;
+				info.findGlobals = sequencePredecessor == null;
 				Declaration v = scriptToLookIn.findDeclaration(declarationName, info);
 				if (v instanceof Definition)
 					v = ((Definition)v).proxyVar();

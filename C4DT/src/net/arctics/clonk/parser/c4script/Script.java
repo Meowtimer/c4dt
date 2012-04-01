@@ -459,7 +459,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				f = null;
 			}
 			// definition from extern index
-			if (engine().acceptsId(name)) {
+			if (info.findGlobals && engine().acceptsId(name)) {
 				f = info.index.definitionNearestTo(resource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
 					f = ((Definition)f).proxyVar();

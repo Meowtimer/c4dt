@@ -336,14 +336,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	/**
 	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallDeclaration} in the {@link Sequence}.
-	 * @param p The predecessor of the hypothetical {@link CallDeclaration} ({@link ExprElm#predecessorInSequence()})
+	 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ExprElm#predecessorInSequence()})
 	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
 	 * @param context Context to use for searching
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
-	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
-		IType lookIn = p == null ? context.containingScript() : p.typeInContext(context);
+	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
+		IType lookIn = pred == null ? context.containingScript() : pred.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof IHasConstraint))
 				continue;
@@ -353,6 +353,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 			info.searchOrigin = context.containingScript();
 			info.contextFunction = context.currentFunction();
+			info.findGlobals = pred == null;
 			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
 			if (dec instanceof Function && context.currentFunction() != null) {
@@ -369,7 +370,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					listToAddPotentialDeclarationsTo.add(dec);
 			}
 		}
-		if (p != null) {
+		if (pred != null) {
 			// find global function
 			Declaration declaration;
 			try {
@@ -404,7 +405,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					listToAddPotentialDeclarationsTo.add(declaration);
 			}
 		}
-		if ((p == null || !(p instanceof MemberOperator) || !((MemberOperator)p).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
+		if ((pred == null || !(pred instanceof MemberOperator) || !((MemberOperator)pred).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
 			for (Declaration d : ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class))
 				if (!d.isGlobal() && d instanceof Function && d.parentDeclaration() instanceof IHasIncludes)
@@ -413,7 +414,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, functionName));
 				if (context instanceof C4ScriptParser)
-					p.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
+					pred.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
 			}
 		}
 		if (listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0)
