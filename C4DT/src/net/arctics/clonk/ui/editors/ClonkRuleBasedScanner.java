@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
+
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
@@ -11,7 +13,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 	
 	protected static final class NumberRule implements IRule {
 
-		private IToken token;
+		private final IToken token;
 		
 		public NumberRule(IToken token) {
 			this.token = token;
@@ -97,6 +99,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 	}
 	
 	protected Token createToken(ColorManager manager, String colorPrefName) {
-		return new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor(colorPrefName))));//, manager.getColor(ClonkColorConstants.getColor("BACKGROUND")), SWT.NORMAL));
+		SyntaxElementStyle style = ColorManager.syntaxElementStyles.get(colorPrefName);
+		return new Token(new TextAttribute(manager.getColor(style.rgb()), null, style.style()));
 	}
 }

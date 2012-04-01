@@ -14,7 +14,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		// layout.addFastView("org.eclipse.ui.navigator.ProjectExplorer", (float) 0.2);
 		// layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");
 
-		layout.addActionSet(Core.id("ui.actionset")); //$NON-NLS-1$
+		//layout.addActionSet(Core.id("ui.actionset")); //$NON-NLS-1$
 		layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 
 		layout.addShowViewShortcut(Core.id("views.EngineDeclarationsView")); //$NON-NLS-1$
@@ -38,7 +38,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		// Bottom right: Task List view
 		layout.addView(IPageLayout.ID_PROBLEM_VIEW, IPageLayout.BOTTOM, 0.66f, editorArea);
 
-		layout.addNewWizardShortcut(Core.id("wizards.NewC4Object")); //$NON-NLS-1$
+		layout.addNewWizardShortcut(Core.id("wizards.NewDefinition")); //$NON-NLS-1$
 		layout.addNewWizardShortcut(Core.id("wizards.NewClonkProject")); //$NON-NLS-1$
 		layout.addNewWizardShortcut(Core.id("wizards.NewScenario")); //$NON-NLS-1$
 		layout.addNewWizardShortcut(Core.id("wizards.NewParticle")); //$NON-NLS-1$

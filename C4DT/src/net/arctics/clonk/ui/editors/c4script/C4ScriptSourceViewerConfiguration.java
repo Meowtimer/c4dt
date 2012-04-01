@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
@@ -81,7 +80,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			scanner.setDefaultReturnToken(
 					new Token(
 							new TextAttribute(
-									getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
+									getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
 		}
 		return scanner;
 	}
@@ -92,7 +91,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			commentScanner.setDefaultReturnToken(
 					new Token(
 							new TextAttribute(
-									getColorManager().getColor(ClonkColorConstants.getColor("COMMENT"))))); //$NON-NLS-1$
+									getColorManager().getColor(ColorManager.colorForSyntaxElement("COMMENT"))))); //$NON-NLS-1$
 		}
 		return commentScanner;
 	}
@@ -174,7 +173,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 //		NonRuleBasedDamagerRepairer ndr =
 //			new NonRuleBasedDamagerRepairer(
 //				new TextAttribute(
-//					colorManager.getColor(IClonkColorConstants.getColor("COMMENT"))));
+//					colorManager.getColor(IColorManager.getColor("COMMENT"))));
 //		
 //		reconciler.setDamager(ndr, ClonkPartitionScanner.C4S_COMMENT);
 //		reconciler.setRepairer(ndr, ClonkPartitionScanner.C4S_COMMENT);

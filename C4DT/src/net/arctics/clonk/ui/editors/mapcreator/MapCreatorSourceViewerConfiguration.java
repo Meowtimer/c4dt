@@ -2,11 +2,10 @@ package net.arctics.clonk.ui.editors.mapcreator;
 
 import net.arctics.clonk.parser.mapcreator.MapOverlay;
 import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
-import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.util.Utilities;
 
@@ -55,7 +54,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
+						getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
 		}
 		return scanner;
 	}
@@ -66,7 +65,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 			commentScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("COMMENT"))))); //$NON-NLS-1$
+						getColorManager().getColor(ColorManager.colorForSyntaxElement("COMMENT"))))); //$NON-NLS-1$
 		}
 		return commentScanner;
 	}
@@ -95,7 +94,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 //		NonRuleBasedDamagerRepairer ndr =
 //			new NonRuleBasedDamagerRepairer(
 //				new TextAttribute(
-//					colorManager.getColor(IClonkColorConstants.getColor("COMMENT"))));
+//					colorManager.getColor(IColorManager.getColor("COMMENT"))));
 //		
 //		reconciler.setDamager(ndr, ClonkPartitionScanner.C4S_COMMENT);
 //		reconciler.setRepairer(ndr, ClonkPartitionScanner.C4S_COMMENT);

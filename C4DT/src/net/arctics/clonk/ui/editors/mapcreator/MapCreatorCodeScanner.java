@@ -7,7 +7,6 @@ import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
 
@@ -79,7 +78,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 	public MapCreatorCodeScanner(ColorManager manager) {
 
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT")))); //$NON-NLS-1$
+		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ColorManager.colorForSyntaxElement("DEFAULT")))); //$NON-NLS-1$
 
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$

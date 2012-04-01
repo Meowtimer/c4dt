@@ -585,8 +585,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		if (result == null) {
-			IFile f;
-			if ((f = Utilities.fileBeingEditedBy(this)) != null) {
+			IFile f = Utilities.fileBeingEditedBy(this);
+			if (f != null) {
 				Script script = Script.get(f, true);
 				if (script != null)
 					result = script;

@@ -24,10 +24,9 @@ import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
-import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.util.Utilities;
 
@@ -243,7 +242,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
+						getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
 		}
 		return scanner;
 	}
