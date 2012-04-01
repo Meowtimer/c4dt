@@ -18,7 +18,7 @@ public class FindDeclarationInfo {
 	public Function contextFunction;
 	public Set<Script> alreadySearched;
 	public Script searchOrigin;
-	public boolean findGlobals = true;
+	public boolean findDefinitions = true;
 	
 	/**
 	 * Create an instance with a context index.
