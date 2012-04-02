@@ -57,7 +57,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 		return components;
 	}
 	
-	public ProplistDeclaration() {
+	private ProplistDeclaration() {
 		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
 

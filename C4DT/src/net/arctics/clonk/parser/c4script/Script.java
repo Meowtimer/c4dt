@@ -34,6 +34,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -463,6 +464,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				f = info.index.definitionNearestTo(resource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
 					f = ((Definition)f).proxyVar();
+				}
+				if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
+					Scenario scenario = Scenario.nearestScenario(this.resource());
+					if (scenario != null)
+						f = scenario.propList();
 				}
 			}
 			// global stuff defined in project

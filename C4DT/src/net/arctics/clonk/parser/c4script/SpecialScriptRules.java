@@ -579,11 +579,7 @@ public class SpecialScriptRules {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Index index = parser.containingScript().index();
-				Scenario scenario = null;
-				for (IResource r = parser.containingScript().resource().getParent(); scenario == null && r != null; r = r.getParent()) {
-					if (r instanceof IContainer)
-						scenario = Scenario.get((IContainer)r);
-				}
+				Scenario scenario = Scenario.nearestScenario(parser.containingScript().resource().getParent());
 				if (scenario != null) {
 					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)

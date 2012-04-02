@@ -11,6 +11,8 @@ import org.eclipse.jface.text.IRegion;
 public class SourceLocation implements IRegion, Serializable, Cloneable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
+	public static final SourceLocation ZERO = new SourceLocation(0, 0);
 	
 	private int start, end;
 	public SourceLocation(int start,int end) {
