@@ -142,7 +142,9 @@ public class Engine extends Script {
 		@IniField(category=INTRINSIC)
 		public boolean supportsFunctionRefs;
 		@IniField(category=INTRINSIC)
-		public boolean supportsNumbers;
+		public boolean supportsFloats;
+		@IniField(category=INTRINSIC)
+		public boolean supportsGlobalProplists;
 		
 		// Settings that are actually intended to be user-configurable
 		

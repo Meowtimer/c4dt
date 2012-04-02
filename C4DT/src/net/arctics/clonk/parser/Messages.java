@@ -28,6 +28,7 @@ public class Messages extends NLS {
 	public static String MissingFormatArg;
 	public static String MissingLocalizations;
 	public static String MissingStatement;
+	public static String CallingExpression;
 	public static String CallingMethodOnNonObject;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
@@ -47,6 +48,7 @@ public class Messages extends NLS {
 	public static String OutOfIntRange;
 	public static String InvalidExpression;
 	public static String NoInheritedFunction;
+	public static String FloatNumbersNotSupported;
 	public static String FunctionRedeclared;
 	public static String FunctionRefNotAllowed;
 	public static String NeverReached;

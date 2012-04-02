@@ -3,6 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
@@ -112,6 +114,13 @@ public final class NumberLiteral extends Literal<Number> {
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 0 is the NULL object or NULL string
 		return (obtainType(context) == ZERO_TYPE && (otherType.canBeAssignedFrom(TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		if (literal instanceof Double && !parser.script().engine().settings().supportsFloats)
+			parser.errorWithCode(ParserErrorCode.FloatNumbersNotSupported, this, C4ScriptParser.NO_THROW);
+		super.reportErrors(parser);
 	}
 
 	/**
