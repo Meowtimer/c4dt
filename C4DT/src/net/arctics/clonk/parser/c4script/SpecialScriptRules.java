@@ -510,8 +510,8 @@ public class SpecialScriptRules {
 				try {
 					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null);
 				} catch (ParsingException e) {}
-				if (locator.getExprAtRegion() != null) {
-					EntityRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
+				if (locator.expressionAtRegion() != null) {
+					EntityRegion reg = locator.expressionAtRegion().declarationAt(offsetInExpression, parser);
 					if (reg != null)
 						return reg.incrementRegionBy(lit.start()+1);
 				}

@@ -34,7 +34,7 @@ public class ExpressionLocator extends ScriptParserListener {
 		this(new Region(pos, 0));
 	}
 
-	public ExprElm getExprAtRegion() {
+	public ExprElm expressionAtRegion() {
 		return exprAtRegion;
 	}
 

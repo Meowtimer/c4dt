@@ -130,8 +130,8 @@ public class Comment extends Statement implements Statement.Attachment {
 			};
 			commentParser.parseStandaloneStatement(comment, parser.currentFunction(), locator);
 		} catch (ParsingException e) {}
-		if (locator.getExprAtRegion() != null) {
-			EntityRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
+		if (locator.expressionAtRegion() != null) {
+			EntityRegion reg = locator.expressionAtRegion().declarationAt(offset, parser);
 			if (reg != null)
 				return reg.incrementRegionBy(start()+2);
 			else

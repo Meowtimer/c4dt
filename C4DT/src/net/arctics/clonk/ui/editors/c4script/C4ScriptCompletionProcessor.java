@@ -308,7 +308,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,
 						null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
-				contextExpression = locator.getExprAtRegion();
+				contextExpression = locator.expressionAtRegion();
 				if (contextTypeInformation != null) {
 					parser.pushTypeInformationList(contextTypeInformation);
 					parser.applyStoredTypeInformationList(true);

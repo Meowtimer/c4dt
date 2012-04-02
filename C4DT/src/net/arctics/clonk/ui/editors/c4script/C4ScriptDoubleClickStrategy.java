@@ -41,9 +41,9 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		Script script = Utilities.scriptForEditor(configuration.editor());
 		Function func = script.funcAt(pos);
 		if (func != null) {
-			ExpressionLocator locator = new ExpressionLocator(pos-func.body().getOffset());
+			ExpressionLocator locator = new ExpressionLocator(pos-func.body().start());
 			C4ScriptParser.reportExpressionsAndStatements(viewer.getDocument(), script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
-			ExprElm expr = locator.getExprAtRegion();
+			ExprElm expr = locator.expressionAtRegion();
 			if (expr instanceof StringLiteral) {
 				viewer.setSelectedRange(func.body().getOffset()+expr.start()+1, expr.getLength()-2);
 				return;

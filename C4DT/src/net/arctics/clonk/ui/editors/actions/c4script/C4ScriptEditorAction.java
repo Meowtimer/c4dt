@@ -41,7 +41,7 @@ public abstract class C4ScriptEditorAction extends TextEditorAction {
 				getTextEditor(),
 				getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
 				r
-			).getExprAtRegion();
+			).expressionAtRegion();
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 			return null;

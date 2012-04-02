@@ -18,7 +18,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.jface.text.Region;
 
 /**
- * Either '->' or '.' operator. As a middelman, this operator delegates some of its operations to its predecssor, like
+ * Either '->' or '.' operator. As a middleman, this operator delegates some of its operations to its predecessor, like
  * type expectations ({@link #expectedToBeOfType(IType, C4ScriptParser, TypeExpectancyMode, ParserErrorCode)}) or obtainment of its own type ({@link #obtainType(DeclarationObtainmentContext)}).<br/>
  * Different typing assumptions are made based on the notation.
  * @author madeen

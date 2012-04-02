@@ -232,7 +232,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				if (originalBlock != null) {
 					ExpressionLocator locator = new ExpressionLocator(new Region(event.getOffset()-f.body().start(), event.getLength()));
 					originalBlock.traverse(locator);
-					ExprElm foundExpression = locator.getExprAtRegion();
+					ExprElm foundExpression = locator.expressionAtRegion();
 					if (foundExpression != null) {
 						final Statement originalStatement = foundExpression.parentOfType(Statement.class);
 						int absoluteOffsetToStatement = f.body().getOffset()+originalStatement.start();
@@ -714,7 +714,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		// cursor somewhere between parm expressions... locate CallFunc and search
 		int bodyStart = f.body().start();
 		for (
-			expr = locator.getExprAtRegion();
+			expr = locator.expressionAtRegion();
 			expr != null;
 			expr = expr.parent()
 		) {
