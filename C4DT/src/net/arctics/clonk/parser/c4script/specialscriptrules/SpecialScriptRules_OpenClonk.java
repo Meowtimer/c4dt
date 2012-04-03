@@ -85,7 +85,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					else
 						effectProplistType = createAdHocProplistDeclaration(fun, fun.parameter(1));
 				}
-				function.assignParameterTypes(PrimitiveType.OBJECT, effectProplistType);
+				function.assignParameterTypes(fun.hardcodedCallbackType().parameterTypes(effectProplistType));
 				return true;
 			}
 			return false;

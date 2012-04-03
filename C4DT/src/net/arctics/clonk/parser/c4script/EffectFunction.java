@@ -19,7 +19,8 @@ public class EffectFunction extends Function {
 	public enum HardcodedCallbackType {
 		Start,
 		Timer,
-		Stop;
+		Stop,
+		Effect;
 		
 		Pattern pattern;
 		
@@ -33,6 +34,17 @@ public class EffectFunction extends Function {
 		
 		public String nameForEffect(String effect) {
 			return String.format(FUNCTION_NAME_FORMAT, effect, name());
+		}
+		
+		public IType[] parameterTypes(IType effectProplistType) {
+			switch (this) {
+			case Start: case Timer: case Stop:
+				return new IType[] {PrimitiveType.OBJECT, effectProplistType};
+			case Effect:
+				return new IType[] {PrimitiveType.STRING, PrimitiveType.OBJECT, effectProplistType};
+			default:
+				return null;
+			}
 		}
 	}
 
