@@ -236,8 +236,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return false;
 		else
 			set.add(this);
-		if (definedDirectives != null) synchronized(definedDirectives) {
-			for (Directive d : definedDirectives) {
+		if (definedDirectives != null) {
+			List<Directive> directivesCopy;
+			synchronized(definedDirectives) {
+				directivesCopy = new ArrayList<Directive>(definedDirectives);
+			}
+			for (Directive d : directivesCopy) {
 				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
 					ID id = d.contentAsID();
 					for (Index in : contextIndex.relevantIndexes()) {
