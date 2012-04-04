@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.wizards;
 
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 

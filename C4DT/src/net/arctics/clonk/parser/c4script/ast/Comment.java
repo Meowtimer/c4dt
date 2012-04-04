@@ -1,11 +1,18 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.io.StringReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * A comment in the code. Instances of this class can be used as regular {@link ExprElm} objects or
@@ -187,6 +194,59 @@ public class Comment extends Statement implements Statement.Attachment {
 	 */
 	public void setPrependix(boolean prependix) {
 		this.prependix = prependix;
+	}
+	
+	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\*?\\s*@param ([^\\s]*) (.*)$");
+	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\*?\\s*@return (.*)$");
+	private static final Pattern TAGPATTERN = Pattern.compile("\\\\([cb]) ([^\\s]*)");
+	
+	/**
+	 * Apply documentation in this comment to the given {@link Function}.
+	 * \@param tags in javadoc comments are taken into account and applied to individual parameters of the function. 
+	 * @param function The function to apply the documentation to
+	 */
+	public void applyDocumentation(Function function) {
+		if (isJavaDoc()) {
+			String text = this.text().trim();
+			StringReader reader = new StringReader(text);
+			Matcher parmDescMatcher = PARAMDESCPATTERN.matcher("");
+			Matcher returnDescMatcher = RETURNDESCPATTERN.matcher("");
+			StringBuilder builder = new StringBuilder(text.length());
+			for (String line : StringUtil.lines(reader)) {
+				line = processTags(line);
+				if (parmDescMatcher.reset(line).matches()) {
+					String parmName = parmDescMatcher.group(1);
+					String parmDesc = parmDescMatcher.group(2);
+					Variable parm = function.findParameter(parmName);
+					if (parm != null)
+						parm.setUserDescription(parmDesc);
+				} else if (returnDescMatcher.reset(line).matches()) {
+					function.setReturnDescription(returnDescMatcher.group(1));
+				} else {
+					builder.append(line);
+					builder.append("\n");
+				}
+			}
+			function.setUserDescription(builder.toString());
+		} else {
+			function.setUserDescription(this.text().trim());
+		}
+	}
+
+	private static String processTags(String line) {
+		Matcher matcher = TAGPATTERN.matcher(line);
+		StringBuilder builder = new StringBuilder(line);
+		int shift = 0;
+		if (line.startsWith("* ")) {
+			builder.delete(0, 2);
+			shift -= 2;
+		}
+		while (matcher.find()) {
+			String replacement = "<b>"+matcher.group(2)+"</b>";
+			builder.replace(matcher.start()+shift, matcher.end()+shift, replacement);
+			shift += replacement.length()-matcher.end()+matcher.start();
+		}
+		return builder.toString();
 	}
 
 }

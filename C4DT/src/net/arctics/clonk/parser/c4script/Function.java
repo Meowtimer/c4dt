@@ -48,6 +48,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private List<Declaration> otherDeclarations;
 	private IType returnType;
 	private String description;
+	private String returnDescription;
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
@@ -210,6 +211,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public void setUserDescription(String description) {
 		this.description = description;
+	}
+	
+	public void setReturnDescription(String returnDescription) {
+		this.returnDescription = returnDescription;
+	}
+	
+	public String returnDescription() {
+		return returnDescription;
 	}
 
 	/**
@@ -381,8 +390,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		if (returnType() != PrimitiveType.UNKNOWN) {
-			builder.append("<br/><b>"+Messages.Returns+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
-			builder.append(returnType().typeName(true));
+			builder.append("<br/><b>"+Messages.Returns+ "</b> "+returnType().typeName(true)+"<br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+			if (returnDescription != null)
+				builder.append(returnDescription+"<br/>");
 		}
 		return builder.toString();
 		/*return String.format(
@@ -414,6 +424,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					return p;
 			}
 		}
+		return null;
+	}
+	
+	public Variable findParameter(String parameterName) {
+		for (Variable p : parameters())
+			if (p.name().equals(parameterName))
+				return p;
 		return null;
 	}
 	

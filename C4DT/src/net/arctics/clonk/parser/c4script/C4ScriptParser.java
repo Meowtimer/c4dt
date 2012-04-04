@@ -154,22 +154,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static final Set<ParserErrorCode> NO_DISABLED_ERRORS = Collections.unmodifiableSet(new HashSet<ParserErrorCode>());
 	
 	protected IScriptParserListener listener;
-
 	/**
 	 * Reference to project file the script was read from.
 	 */
 	protected IFile scriptFile;
-	
 	/**
 	 * Script container, the parsed declarations are put into
 	 */
 	protected Script container;
-	
 	/**
 	 * Cached strict level from #strict directive.
 	 */
 	protected int strictLevel;
-
 	/**
 	 * Whether the script contains an #appendto
 	 */
@@ -186,19 +182,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Cached set of errors disabled by project settings
 	 */
 	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
-	
 	private boolean allowInterleavedFunctionParsing;
-	
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
 	private Set<Function> parsedFunctions;
-
 	private SpecialScriptRules specialScriptRules;
 	private Engine engine;
-	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
-	
 	private ClonkBuilder builder;
 	
 	public SpecialScriptRules getSpecialScriptRules() {
@@ -220,7 +211,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
 	 * @return the expression listener
 	 */
-	public IScriptParserListener getListener() {
+	public IScriptParserListener listener() {
 		return listener;
 	}
 
@@ -846,7 +837,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (parseFunctionDeclaration(functionHeader))
 					return true;
 			}
-			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), textOfLastComment(startOfDeclaration)) != null)
+			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), collectPrecedingComment(startOfDeclaration)) != null)
 				return true;
 		}
 		this.seek(startOfDeclaration);
@@ -937,7 +928,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
-	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, String comment) throws ParsingException {
+	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ParsingException {
 		if (scope != null) {
 			
 			final int offset = this.offset;
@@ -1105,7 +1096,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	public Variable createVarInScope(String varName, Scope scope, int start, int end, String description) {
+	public Variable createVarInScope(String varName, Scope scope, int start, int end, Comment description) {
 		Variable result = findVar(varName, scope);
 		if (result != null)
 			return result;
@@ -1121,7 +1112,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			containingScript().addDeclaration(result);
 		}
 		result.setLocation(absoluteSourceLocation(start, end));
-		result.setUserDescription(description);
+		result.setUserDescription(description != null ? description.text().trim() : null);
 		return result;
 	}
 
@@ -1153,7 +1144,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean parseFunctionDeclaration(FunctionHeader header) throws ParsingException {
 		int endOfHeader;
-		String desc = textOfLastComment(header.start);
+		Comment desc = collectPrecedingComment(header.start);
 		eatWhitespace();
 		int startBody = 0, endBody = 0;
 		
@@ -1164,7 +1155,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunctionContext.currentDeclaration = currentFunc = newFunction(header.name);
 		header.apply(currentFunc);
 		currentFunc.setScript(container);
-		currentFunc.setUserDescription(desc);
+		if (desc != null)
+			desc.applyDocumentation(currentFunc);
 		if (header.scope == FunctionScope.GLOBAL)
 			container.containsGlobals = true;
 		eatWhitespace();
@@ -1235,7 +1227,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						errorWithCode(ParserErrorCode.MissingBrackets, header.nameStart, header.nameStart+header.name.length(), NO_THROW, blockDepth+1, '}');
 					seek(offsetBeforeToken);
 				}
-				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), textOfLastComment(offsetBeforeToken)) != null)
+				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), collectPrecedingComment(offsetBeforeToken)) != null)
 					/* boy, am i glad to have parsed this variable declaration */;
 				else if (parseString() == null) {
 					int c = read();
@@ -1290,10 +1282,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	    return new Function();
     }
 
-	private String textOfLastComment(int absoluteOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer())) ? lastComment.text().trim() : null; 
+	private Comment collectPrecedingComment(int absoluteOffset) {
+		Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer())) ? lastComment : null; 
 		lastComment = null;
-		return desc;
+		return c;
 	}
 	
 	private String textOfInlineComment() {
@@ -2892,7 +2884,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Parse a for statement. The result could be either a ForStatement or an IterateArrayStatement.
+	 * Parse a for statement. The result is either a {@link ForStatement} or an {@link IterateArrayStatement}.
 	 * @return The parsed for loop.
 	 * @throws ParsingException
 	 */

@@ -10,6 +10,7 @@ import java.util.Map;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -98,11 +99,8 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
 
-	private static final String RETURN= "return"; //$NON-NLS-1$
 
-	private static String[] fgConstants= { "false", "true" }; //$NON-NLS-2$ //$NON-NLS-1$
-	
-	private static String[] fgDirectives = {"include", "strict", "appendto"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	private static String[] fgConstants= { Keywords.False, Keywords.True }; //$NON-NLS-2$ //$NON-NLS-1$
 	
 	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
 	
@@ -155,7 +153,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		
 		// Add word rule for keyword 'return'.
 		CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
-		returnWordRule.addWord(RETURN, returnToken);  
+		returnWordRule.addWord(Keywords.Return, returnToken);  
 		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.
