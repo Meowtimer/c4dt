@@ -1,8 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -15,6 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -42,6 +42,7 @@ import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -686,17 +687,16 @@ public class SpecialScriptRules {
 	};
 	
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
-		public abstract IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser);
+		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser);
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
 				String resourceName = (String)parmEv;
 				ProjectIndex pi = (ProjectIndex)parser.containingScript().index();
-				IIndexEntity e = locateEntityByName(resourceName, pi, parser);
-				if (e != null) {
+				Set<IIndexEntity> e = locateEntitiesByName(callFunc, resourceName, pi, parser);
+				if (e != null)
 					return new EntityRegion(e, parmExpression);
-				}
 			}
 			return null;
 		}
@@ -708,8 +708,21 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
-		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
-			return pi.findPinnedStructure(ParticleUnit.class, name, parser.containingScript().resource(), true, "Particle.txt");
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
+			return ArrayUtil.set((IIndexEntity)pi.findPinnedStructure(ParticleUnit.class, name, parser.containingScript().resource(), true, "Particle.txt"));
+		}
+	};
+	
+	@AppliedTo(functions={"Format"})
+	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
+		@Override
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
+			if (callFunc.parent() instanceof CallDeclaration && ((CallDeclaration)callFunc.parent()).indexOfParm(callFunc) == 0) {
+				SpecialFuncRule rule = ((CallDeclaration)callFunc.parent()).specialRuleFromContext(parser, DECLARATION_LOCATOR);
+				if (rule instanceof LocateResourceByNameRule)
+					return ((LocateResourceByNameRule)rule).locateEntitiesByName(callFunc, name, pi, parser);
+			}
+			return null;
 		}
 	};
 	
@@ -718,38 +731,44 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Sound"})
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
-		protected ProjectResource soundResourceInFolder(String name, Engine engine, IContainer container, ProjectIndex pi) {
-			{
-				IResource res = findMemberCaseInsensitively(container, name);
-				if (res != null)
-					return new ProjectResource(pi, res);
+		protected void collectSoundResourcesInFolder(Set<IIndexEntity> set, Matcher nameMatcher, Engine engine, IContainer container, ProjectIndex pi) {
+			try {
+				for (IResource r : container.members()) {
+					if (nameMatcher.reset(r.getName()).matches())
+						set.add(new ProjectResource(pi, r));
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
 			}
-			for (String e : engine.settings().supportedSoundFileExtensions()) {
-				IResource res = findMemberCaseInsensitively(container, name+"."+e);
-				if (res != null)
-					return new ProjectResource(pi, res);
-			}
-			return null;
 		}
 		@Override
-		public IIndexEntity locateEntityByName(String name, ProjectIndex pi, C4ScriptParser parser) {
-			ProjectResource res;
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
 			Engine engine = parser.containingScript().engine();
+			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
+			HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
+			boolean extensionWildcardNeeded = true;
+			for (String e : engine.settings().supportedSoundFileExtensions()) {
+				if (name.endsWith("\\\\."+e)) {
+					extensionWildcardNeeded = false;
+					break;
+				}
+			}
+			if (extensionWildcardNeeded) {
+				name += "\\..*";
+			}
+			Matcher nameMatcher = Pattern.compile(name).matcher("");
 			String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
-			for (IContainer c = as(parser.containingScript().resource(), IContainer.class), d = c;
+			IResource r = parser.containingScript().resource();
+			for (
+				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = c;
 				c != null;
 				c = c.getParent(), d = c != null ? as(c.findMember(soundGroupName), IContainer.class) : null
 			) {
-				res = soundResourceInFolder(name, engine, c, pi);
-				if (res != null)
-					return res;
-				if (d != null) {
-					res = soundResourceInFolder(name, engine, d, pi);
-					if (res != null)
-						return res;
-				}
+				collectSoundResourcesInFolder(results, nameMatcher, engine, c, pi);
+				if (d != null)
+					collectSoundResourcesInFolder(results, nameMatcher, engine, d, pi);
 			}
-			return null;
+			return results;
 		}
 	};
 	

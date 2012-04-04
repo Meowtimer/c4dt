@@ -103,7 +103,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	public void create() { 
 		super.create();
 		if (entities != null && getInitialPattern() == null)
-			((Text)this.getPatternControl()).setText(entities.iterator().next().name());
+			((Text)this.getPatternControl()).setText(".*");
 	}
 
 	@Override

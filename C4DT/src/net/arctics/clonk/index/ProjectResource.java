@@ -46,5 +46,10 @@ public class ProjectResource implements IIndexEntity, IHasRelatedResource {
 	public String infoText() {
 		return name();
 	}
+	
+	@Override
+	public String toString() {
+		return name();
+	}
 
 }
