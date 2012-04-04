@@ -196,8 +196,8 @@ public class Comment extends Statement implements Statement.Attachment {
 		this.prependix = prependix;
 	}
 	
-	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\*?\\s*@param ([^\\s]*) (.*)$");
-	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\*?\\s*@return (.*)$");
+	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\s*\\*?\\s*@param ([^\\s]*) (.*)$");
+	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\s*?\\*?\\s*@return (.*)$");
 	private static final Pattern TAGPATTERN = Pattern.compile("\\\\([cb]) ([^\\s]*)");
 	
 	/**

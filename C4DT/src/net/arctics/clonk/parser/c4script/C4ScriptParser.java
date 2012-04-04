@@ -1155,8 +1155,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunctionContext.currentDeclaration = currentFunc = newFunction(header.name);
 		header.apply(currentFunc);
 		currentFunc.setScript(container);
-		if (desc != null)
-			desc.applyDocumentation(currentFunc);
 		if (header.scope == FunctionScope.GLOBAL)
 			container.containsGlobals = true;
 		eatWhitespace();
@@ -1251,11 +1249,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} else
 			currentFunc.setBody(null);
 		eatWhitespace();
-		// look for comment in the same line as the closing '}' which is common for functions packed into one line
-		// hopefully there won't be multi-line functions with such a comment attached at the end
-		Comment c = getCommentImmediatelyFollowing();
-		if (c != null)
-			currentFunc.setUserDescription(c.text());
+		if (desc != null)
+			desc.applyDocumentation(currentFunc);
+		else {
+			// look for comment in the same line as the closing '}' which is common for functions packed into one line
+			// hopefully there won't be multi-line functions with such a comment attached at the end
+			Comment c = getCommentImmediatelyFollowing();
+			if (c != null)
+				currentFunc.setUserDescription(c.text());
+		}
 
 		// finish up
 		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
