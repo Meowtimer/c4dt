@@ -22,7 +22,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -767,7 +768,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		//System.out.println("Load entity " + entity.toString());
 		try {
-			ObjectInputStream inputStream = getEntityInputStream(entity);
+			ObjectInputStream inputStream = newEntityInputStream(entity);
 			if (inputStream != null) try {
 				entity.load(inputStream);
 			} finally {
@@ -782,8 +783,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	};
 	
 	public void saveEntity(IndexEntity entity) throws IOException {
-//		System.out.println("Save entity " + entity.toString());
-		ObjectOutputStream s = getEntityOutputStream(entity);
+		ObjectOutputStream s = newEntityOutputStream(entity);
 		try {
 			entity.save(s);
 		} catch (Exception e) {
@@ -812,13 +812,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		return new File(folder, Long.toString(entity.entityId()));
 	}
 
-	public ObjectOutputStream getEntityOutputStream(IndexEntity entity) throws FileNotFoundException, IOException {
-		return new IndexEntityOutputStream(this, new FileOutputStream(entityFile(entity)));
+	public ObjectOutputStream newEntityOutputStream(IndexEntity entity) throws FileNotFoundException, IOException {
+		return new IndexEntityOutputStream(this, new GZIPOutputStream(new FileOutputStream(entityFile(entity))));
 	}
 	
-	public ObjectInputStream getEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
+	public ObjectInputStream newEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
 		try {
-			return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
+			return new IndexEntityInputStream(this, new GZIPInputStream(new FileInputStream(entityFile(entity))));
 		} catch (FileNotFoundException e) {
 			// might not be necessary to have an entity file
 			return null;
