@@ -26,7 +26,7 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 
 	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
-		return ClonkPartitionScanner.C4S_PARTITIONS;
+		return ClonkPartitionScanner.PARTITIONS;
 	}
 
 	public EditorType editor() {

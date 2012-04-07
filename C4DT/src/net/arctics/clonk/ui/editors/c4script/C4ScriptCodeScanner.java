@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.map;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
-import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
@@ -20,13 +16,9 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.PragmaRule;
 import net.arctics.clonk.ui.editors.WordScanner;
-import net.arctics.clonk.util.IConverter;
-
-import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
@@ -95,8 +87,6 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
 	
-	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
-	
 	public C4ScriptCodeScanner(ColorManager manager, Engine engine) {
 		commitRules(manager, engine);
 	}
@@ -115,17 +105,8 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
 		IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
 		IToken directive = createToken(manager, "DIRECTIVE"); //$NON-NLS-1$
-		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
-		IToken javaDocComment = createToken(manager, "JAVADOCCOMMENT"); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
-
-		rules.add(new EndOfLineRule("///", javaDocComment));
-		rules.add(new MultiLineRule("/**", "*/", javaDocComment));
-		
-		// comments
-		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
-		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// string
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
@@ -163,16 +144,8 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		
 		
 		combinedWordRule.addWordMatcher(wordRule);
-		
 		rules.add(combinedWordRule);
-		
-		rules.add(new PragmaRule(map(Directive.DirectiveType.values(), String.class, new IConverter<Directive.DirectiveType, String>() {
-			@Override
-			public String convert(DirectiveType from) {
-				return from.toString();
-			}
-		}), directive));
-		
+		rules.add(new PragmaRule(BuiltInDefinitions.DIRECTIVES, directive));
 		rules.add(new NumberRule(number));
 		
 		setRules(rules.toArray(new IRule[rules.size()]));

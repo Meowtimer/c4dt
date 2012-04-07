@@ -55,7 +55,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	}
 	
 	private C4ScriptCodeScanner scanner;
-	private ScriptCommentScanner commentScanner;
+	
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
 	public C4ScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, C4ScriptEditor textEditor) {
@@ -64,7 +64,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
-		return ClonkPartitionScanner.C4S_PARTITIONS;
+		return ClonkPartitionScanner.PARTITIONS;
 	}
 	
 	@Override
@@ -84,17 +84,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		}
 		return scanner;
 	}
-	
-	protected ScriptCommentScanner getClonkCommentScanner() {
-		if (commentScanner == null) {
-			commentScanner = new ScriptCommentScanner(getColorManager());
-			commentScanner.setDefaultReturnToken(
-					new Token(
-							new TextAttribute(
-									getColorManager().getColor(ColorManager.colorForSyntaxElement("COMMENT"))))); //$NON-NLS-1$
-		}
-		return commentScanner;
-	}
 
 	private ClonkContentAssistant assistant;
 	
@@ -104,10 +93,8 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			return assistant;
 		
 		assistant = new ClonkContentAssistant();
-//		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-//		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(),assistant);
-		for (String s : ClonkPartitionScanner.C4S_PARTITIONS)
+		for (String s : ClonkPartitionScanner.PARTITIONS)
 			assistant.setContentAssistProcessor(processor, s);
 		assistant.install(sourceViewer);
 		
@@ -149,34 +136,32 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
+		ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
+		
 		DefaultDamagerRepairer dr =
 			new DefaultDamagerRepairer(clonkScanner());
-		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_CODEBODY);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_CODEBODY);
+		reconciler.setDamager(dr, ClonkPartitionScanner.CODEBODY);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.CODEBODY);
 		
 		dr = new DefaultDamagerRepairer(clonkScanner());
-		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_STRING);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_STRING);
+		reconciler.setDamager(dr, ClonkPartitionScanner.STRING);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.STRING);
 		
 		dr = new DefaultDamagerRepairer(clonkScanner());
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
-		dr = new DefaultDamagerRepairer(getClonkCommentScanner());
-		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_COMMENT);
+		dr = new DefaultDamagerRepairer(new ScriptCommentScanner(getColorManager(), "JAVADOCCOMMENT"));
+		reconciler.setDamager(dr, ClonkPartitionScanner.JAVADOC_COMMENT);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.JAVADOC_COMMENT);
 		
-		dr = new DefaultDamagerRepairer(getClonkCommentScanner());
-		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_MULTI_LINE_COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_MULTI_LINE_COMMENT);
+		dr = new DefaultDamagerRepairer(commentScanner);
+		reconciler.setDamager(dr, ClonkPartitionScanner.COMMENT);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.COMMENT);
 		
-//		NonRuleBasedDamagerRepairer ndr =
-//			new NonRuleBasedDamagerRepairer(
-//				new TextAttribute(
-//					colorManager.getColor(IColorManager.getColor("COMMENT"))));
-//		
-//		reconciler.setDamager(ndr, ClonkPartitionScanner.C4S_COMMENT);
-//		reconciler.setRepairer(ndr, ClonkPartitionScanner.C4S_COMMENT);
+		dr = new DefaultDamagerRepairer(commentScanner);
+		reconciler.setDamager(dr, ClonkPartitionScanner.MULTI_LINE_COMMENT);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.MULTI_LINE_COMMENT);
 		
 		return reconciler;
 	}

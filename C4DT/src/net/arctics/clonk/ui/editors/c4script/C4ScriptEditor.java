@@ -436,7 +436,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			IDocumentPartitioner partitioner =
 				new FastPartitioner(
 					new ClonkPartitionScanner(),
-					ClonkPartitionScanner.C4S_PARTITIONS
+					ClonkPartitionScanner.PARTITIONS
 				);
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);

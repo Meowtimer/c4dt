@@ -28,7 +28,7 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 	public void reconcile(IRegion region) {
 
 		AbstractDocument document = (AbstractDocument) getDocument();
-		IDocumentPartitioner docPartitioner = document.getDocumentPartitioner(ClonkPartitionScanner.C4S_COMMENT);
+		IDocumentPartitioner docPartitioner = document.getDocumentPartitioner(ClonkPartitionScanner.COMMENT);
 
 		IAnnotationModel model = getAnnotationModel();
 		if (region.getOffset() == 0 && region.getLength() == document.getLength()) {
@@ -47,7 +47,7 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 					Position position = model.getPosition(spellingAnnotation);
 					String contentType = docPartitioner.getContentType(position.getOffset());
 
-					if (ClonkPartitionScanner.C4S_COMMENT.equalsIgnoreCase(contentType) ||ClonkPartitionScanner.C4S_MULTI_LINE_COMMENT.equalsIgnoreCase(contentType)) {
+					if (ClonkPartitionScanner.COMMENT.equalsIgnoreCase(contentType) ||ClonkPartitionScanner.MULTI_LINE_COMMENT.equalsIgnoreCase(contentType)) {
 						spellingErrors.put(spellingAnnotation, model.getPosition(annotation));
 					}
 				}
@@ -72,7 +72,7 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 	@SuppressWarnings("unchecked")
 	private void deleteUnwantedAnnotations() {
 		AbstractDocument document = (AbstractDocument) getDocument();
-		IDocumentPartitioner docPartitioner = document.getDocumentPartitioner(ClonkPartitionScanner.C4S_COMMENT);
+		IDocumentPartitioner docPartitioner = document.getDocumentPartitioner(ClonkPartitionScanner.COMMENT);
 		IAnnotationModel model = getAnnotationModel();
 		Iterator<Annotation> iter = model.getAnnotationIterator();
 
@@ -82,7 +82,7 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 				SpellingAnnotation spellingAnnotation = (SpellingAnnotation) annotation;
 				Position position = model.getPosition(spellingAnnotation);
 				String contentType = docPartitioner.getContentType(position.getOffset());
-				if (!(ClonkPartitionScanner.C4S_COMMENT.equalsIgnoreCase(contentType) || ClonkPartitionScanner.C4S_MULTI_LINE_COMMENT.equalsIgnoreCase(contentType))) {
+				if (!(ClonkPartitionScanner.COMMENT.equalsIgnoreCase(contentType) || ClonkPartitionScanner.MULTI_LINE_COMMENT.equalsIgnoreCase(contentType))) {
 					model.removeAnnotation(spellingAnnotation);
 				}
 			}
