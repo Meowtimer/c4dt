@@ -1,7 +1,10 @@
 package net.arctics.clonk.preferences;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.EditorUtil;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
 
 import org.eclipse.jface.preference.ColorFieldEditor;
@@ -20,7 +23,8 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 	@Override
 	protected void createFieldEditors() {
 		try {
-			for (SyntaxElementStyle syntaxElement : ColorManager.syntaxElementStyles.values()) {
+			ColorManager manager = ColorManager.instance();
+			for (SyntaxElementStyle syntaxElement : manager.syntaxElementStyles.values()) {
 				PreferenceConverter.setDefault(getPreferenceStore(),
 					syntaxElement.prefName(SyntaxElementStyle.RGB),
 					syntaxElement.defaultRGB
@@ -35,6 +39,17 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 
 	@Override
 	public void init(IWorkbench workbench) {
+	}
+	
+	@Override
+	public boolean performOk() {
+		if (super.performOk()) {
+			ScannerPerEngine.refreshScanners();
+			for (ClonkTextEditor part : EditorUtil.clonkTextEditors(ClonkTextEditor.class, false))
+				part.reconfigureSourceViewer();
+			return true;
+		} else
+			return false;
 	}
 
 }

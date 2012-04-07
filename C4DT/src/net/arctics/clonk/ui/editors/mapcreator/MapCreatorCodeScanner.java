@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.mapcreator;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
@@ -10,7 +11,6 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
 
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
@@ -77,8 +77,12 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 	private IRule[] currentRules;
 
 	public MapCreatorCodeScanner(ColorManager manager) {
+		super(manager, null);
+	}
 
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ColorManager.colorForSyntaxElement("DEFAULT")))); //$NON-NLS-1$
+	@Override
+	protected void commitRules(ColorManager manager, Engine engine) {
+		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$

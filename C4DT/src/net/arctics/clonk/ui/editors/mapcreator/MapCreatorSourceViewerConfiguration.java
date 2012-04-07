@@ -14,7 +14,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -22,9 +21,6 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.ITokenScanner;
-import org.eclipse.jface.text.rules.RuleBasedScanner;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
@@ -41,21 +37,10 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		}
 	}
 
-	private RuleBasedScanner scanner;
+	private MapCreatorCodeScanner scanner = new MapCreatorCodeScanner(ColorManager.instance());
 
 	public MapCreatorSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, MapCreatorEditor textEditor) {
 		super(store, colorManager, textEditor);
-	}
-	
-	protected ITokenScanner getClonkScanner() {
-		if (scanner == null) {
-			scanner = new MapCreatorCodeScanner(getColorManager());
-			scanner.setDefaultReturnToken(
-				new Token(
-					new TextAttribute(
-						getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
-		}
-		return scanner;
 	}
 	
 	@Override
@@ -65,15 +50,15 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT");
 		
 		DefaultDamagerRepairer dr =
-			new DefaultDamagerRepairer(getClonkScanner());
+			new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, ClonkPartitionScanner.CODEBODY);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.CODEBODY);
 		
-		dr = new DefaultDamagerRepairer(getClonkScanner());
+		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, ClonkPartitionScanner.STRING);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.STRING);
 		
-		dr = new DefaultDamagerRepairer(getClonkScanner());
+		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		

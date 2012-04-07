@@ -6,6 +6,7 @@ import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -17,7 +18,6 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -27,7 +27,6 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
 
@@ -54,7 +53,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		}
 	}
 	
-	private C4ScriptCodeScanner scanner;
+	private static ScannerPerEngine<C4ScriptCodeScanner> SCANNERS = new ScannerPerEngine<C4ScriptCodeScanner>(C4ScriptCodeScanner.class);
 	
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
@@ -72,17 +71,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		if (doubleClickStrategy == null)
 			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
 		return doubleClickStrategy;
-	}
-
-	protected C4ScriptCodeScanner clonkScanner() {
-		if (scanner == null) {
-			scanner = new C4ScriptCodeScanner(getColorManager(), editor().script().engine());
-			scanner.setDefaultReturnToken(
-					new Token(
-							new TextAttribute(
-									getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
-		}
-		return scanner;
 	}
 
 	private ClonkContentAssistant assistant;
@@ -138,16 +126,18 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		
 		ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
 		
+		C4ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
+		
 		DefaultDamagerRepairer dr =
-			new DefaultDamagerRepairer(clonkScanner());
+			new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, ClonkPartitionScanner.CODEBODY);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.CODEBODY);
 		
-		dr = new DefaultDamagerRepairer(clonkScanner());
+		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, ClonkPartitionScanner.STRING);
 		reconciler.setRepairer(dr, ClonkPartitionScanner.STRING);
 		
-		dr = new DefaultDamagerRepairer(clonkScanner());
+		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
@@ -190,11 +180,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	    if (hover == null)
 	    	hover = new C4ScriptTextHover(this);
 	    return hover;
-	}
-	
-	@Override
-	public void refreshSyntaxColoring() {
-		clonkScanner().commitRules(getColorManager(), editor().script().engine());
 	}
 
 }

@@ -72,7 +72,11 @@ public class IniScanner extends ClonkRuleBasedScanner {
 	}
 	
 	public IniScanner(ColorManager manager, Engine engine) {
-		
+		super(manager, engine, "DEFAULT");
+	}
+
+	@Override
+	protected void commitRules(ColorManager manager, Engine engine) {
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$

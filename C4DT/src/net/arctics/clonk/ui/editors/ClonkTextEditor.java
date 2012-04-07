@@ -25,6 +25,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -397,6 +398,17 @@ public class ClonkTextEditor extends TextEditor {
 	protected void initializeKeyBindingScopes() {
 		super.initializeKeyBindingScopes();
 		setKeyBindingScopes(new String[] { Core.CONTEXT_ID });
+	}
+	
+	public void reconfigureSourceViewer() {
+		ISourceViewer viewer= getSourceViewer();
+
+		if (!(viewer instanceof ISourceViewerExtension2))
+			return; // cannot unconfigure - do nothing
+
+		// XXX: this is pretty heavy-weight
+		((ISourceViewerExtension2)viewer).unconfigure();
+		viewer.configure(getSourceViewerConfiguration());
 	}
 	
 }

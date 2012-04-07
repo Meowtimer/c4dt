@@ -1,5 +1,12 @@
 package net.arctics.clonk.ui.editors;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
 
 import org.eclipse.jface.text.TextAttribute;
@@ -10,6 +17,39 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 
 public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
+	
+	public static class ScannerPerEngine<T extends ClonkRuleBasedScanner> {
+		private static final Class<?>[] CTOR_SIGNATURE = new Class<?>[] {ColorManager.class, Engine.class};
+		private static final List<ScannerPerEngine<?>> INSTANCES = new ArrayList<ScannerPerEngine<?>>();
+		private Map<String, T> scanners = new HashMap<String, T>();
+		private Class<T> scannerClass;
+		public static Iterable<ScannerPerEngine<?>> instances() {
+			return Collections.unmodifiableList(INSTANCES);
+		}
+		public ScannerPerEngine(Class<T> cls) {
+			scannerClass = cls; 
+			INSTANCES.add(this);
+		}
+		public T get(Engine engine) {
+			T scanner = scanners.get(engine.name());
+			if (scanner == null) {
+				try {
+					scanner = scannerClass.getConstructor(CTOR_SIGNATURE).newInstance(ColorManager.instance(), engine);
+					scanners.put(engine.name(), scanner);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+			return scanner;
+		}
+		public static void refreshScanners() {
+			for (ScannerPerEngine<?> i : INSTANCES) {
+				for (ClonkRuleBasedScanner s : i.scanners.values())
+					s.recommitRules();
+			}
+		}
+	}
 	
 	protected static final class NumberRule implements IRule {
 
@@ -98,8 +138,28 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		}
 	}
 	
+	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine) {
+		this(manager, engine, "DEFAULT");
+	}
+	
+	private ColorManager manager;
+	private Engine engine;
+	
+	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine, String returnTokenTag) {
+		this.manager = manager;
+		this.engine = engine;
+		commitRules(manager, engine);
+		setDefaultReturnToken(createToken(manager, returnTokenTag));
+	}
+	
+	public void recommitRules() {
+		this.commitRules(manager, engine);
+	}
+	
+	protected void commitRules(ColorManager manager, Engine engine) {}
+	
 	protected Token createToken(ColorManager manager, String colorPrefName) {
-		SyntaxElementStyle style = ColorManager.syntaxElementStyles.get(colorPrefName);
+		SyntaxElementStyle style = manager.syntaxElementStyles.get(colorPrefName);
 		return new Token(new TextAttribute(manager.getColor(style.rgb()), null, style.style()));
 	}
 }

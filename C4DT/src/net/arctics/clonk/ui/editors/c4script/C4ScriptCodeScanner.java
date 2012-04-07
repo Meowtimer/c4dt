@@ -16,6 +16,7 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.PragmaRule;
 import net.arctics.clonk.ui.editors.WordScanner;
+
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -88,10 +89,11 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
 	
 	public C4ScriptCodeScanner(ColorManager manager, Engine engine) {
-		commitRules(manager, engine);
+		super(manager, engine, "DEFAULT");
 	}
 	
-	public void commitRules(ColorManager manager, Engine engine) {
+	@Override
+	protected void commitRules(ColorManager manager, Engine engine) {
 		
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		

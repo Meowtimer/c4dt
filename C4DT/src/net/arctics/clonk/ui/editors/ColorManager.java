@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Display;
 
 public class ColorManager {
 
-	public static class SyntaxElementStyle {
+	public class SyntaxElementStyle {
 		
 		public static final String RGB = "rgb";
 		public static final String STYLE = "style";
@@ -57,9 +57,8 @@ public class ColorManager {
 		}
 	}
 	
-	public static final HashMap<String, SyntaxElementStyle> syntaxElementStyles = new HashMap<String, SyntaxElementStyle>();
-	
-	static {
+	public final HashMap<String, SyntaxElementStyle> syntaxElementStyles = new HashMap<String, SyntaxElementStyle>();
+	{
 		new SyntaxElementStyle("COMMENT", new RGB(128, 0, 0), 0);
 		new SyntaxElementStyle("JAVADOCCOMMENT", new RGB(120, 30, 0), 0);
 		new SyntaxElementStyle("PROC_INSTR", new RGB(128, 128, 128), 0);
@@ -76,7 +75,7 @@ public class ColorManager {
 		new SyntaxElementStyle("OBJ_CALLBACK", new RGB(0x5C,0xA,0x5C), 0);
 	}
 	
-	public static RGB defaultColorForSyntaxElement(String elementName) {
+	public RGB defaultColorForSyntaxElement(String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).defaultRGB;
 		} catch (Exception e) {
@@ -84,7 +83,7 @@ public class ColorManager {
 		}
 	}
 	
-	public static RGB colorForSyntaxElement(String elementName) {
+	public RGB colorForSyntaxElement(String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).rgb();
 		} catch (Exception e) {
@@ -109,4 +108,7 @@ public class ColorManager {
 		}
 		return color;
 	}
+	
+	private static final ColorManager instance = new ColorManager();
+	public static ColorManager instance() {return instance;}
 }

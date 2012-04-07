@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
@@ -28,6 +27,7 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -40,7 +40,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.DefaultHyperlinkPresenter;
@@ -50,7 +49,6 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.PlatformUI;
@@ -60,7 +58,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*"); //$NON-NLS-1$
 	
-	private IniScanner scanner;
+	private static final ScannerPerEngine<IniScanner> SCANNERS = new ScannerPerEngine<IniScanner>(IniScanner.class);
 	
 	private static class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
@@ -229,22 +227,11 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(editor().unit().engine()));
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(SCANNERS.get(editor().unit().engine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		return reconciler;
-	}
-	
-	protected IniScanner getDefCoreScanner(Engine engine) {
-		if (scanner == null) {
-			scanner = new IniScanner(getColorManager(), engine);
-			scanner.setDefaultReturnToken(
-				new Token(
-					new TextAttribute(
-						getColorManager().getColor(ColorManager.colorForSyntaxElement("DEFAULT"))))); //$NON-NLS-1$
-		}
-		return scanner;
 	}
 	
 	private ContentAssistant assistant;
