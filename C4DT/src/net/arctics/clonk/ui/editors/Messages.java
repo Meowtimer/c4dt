@@ -14,7 +14,6 @@ public class Messages extends NLS {
 	public static String ColorManager_NUMBER;
 	public static String ColorManager_OBJ_CALLBACK;
 	public static String ColorManager_OPERATOR;
-	public static String ColorManager_PROC_INSTR;
 	public static String ColorManager_RETURN;
 	public static String ColorManager_STRING;
 	public static String ColorManager_TYPE;

@@ -6,7 +6,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
@@ -36,9 +35,10 @@ public class ColorManager {
 		}
 		public int style() {
 			String prefName = prefName(STYLE);
-			return Core.instance().getPreferenceStore().isDefault(prefName)
-				? defaultStyle
-				: Core.instance().getPreferenceStore().getInt(prefName);
+			if (Core.instance().getPreferenceStore().isDefault(prefName)) {
+				Core.instance().getPreferenceStore().setValue(prefName, defaultStyle);
+			}
+			return Core.instance().getPreferenceStore().getInt(prefName);
 		}
 		public SyntaxElementStyle(String name, RGB rgb, int style) {
 			super();
@@ -61,10 +61,9 @@ public class ColorManager {
 	{
 		new SyntaxElementStyle("COMMENT", new RGB(128, 0, 0), 0);
 		new SyntaxElementStyle("JAVADOCCOMMENT", new RGB(120, 30, 0), 0);
-		new SyntaxElementStyle("PROC_INSTR", new RGB(128, 128, 128), 0);
 		new SyntaxElementStyle("DEFAULT", new RGB(0, 0, 0), 0);
 		new SyntaxElementStyle("STRING", new RGB(128, 128, 128), 0);
-		new SyntaxElementStyle("KEYWORD", new RGB(0x30,0,0xFF), SWT.BOLD);
+		new SyntaxElementStyle("KEYWORD", new RGB(0x30,0,0xFF), 0);
 		new SyntaxElementStyle("TYPE", new RGB(0,0,0xFF), 0);
 		new SyntaxElementStyle("OPERATOR", new RGB(0,0x99,0), 0);
 		new SyntaxElementStyle("ENGINE_FUNCTION", new RGB(0x80,0x80,0), 0);
