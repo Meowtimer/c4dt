@@ -33,10 +33,6 @@ import org.eclipse.jface.text.rules.WhitespaceRule;
 
 public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 
-	/**
-	 * Rule to detect clonk operators.
-	 *
-	 */
 	private static final class OperatorRule implements IRule {
 
 		/** Clonk operators */
@@ -98,13 +94,8 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	}
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
-
-
-	private static String[] fgConstants= { Keywords.False, Keywords.True }; //$NON-NLS-2$ //$NON-NLS-1$
 	
 	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
-	
-	private IRule[] currentRules;
 	
 	public C4ScriptCodeScanner(ColorManager manager, Engine engine) {
 		commitRules(manager, engine);
@@ -158,19 +149,17 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String c4keyword : BuiltInDefinitions.KEYWORDS)
-			wordRule.addWord(c4keyword.trim(), keyword);
-		for (String c4keyword : BuiltInDefinitions.DECLARATORS)
-			wordRule.addWord(c4keyword.trim(), keyword);
-		for (PrimitiveType c4type : PrimitiveType.values()) 
-			if (c4type != PrimitiveType.UNKNOWN)
-				wordRule.addWord(c4type.typeName(false).trim().toLowerCase(), type);
-		for (int i=0; i<fgConstants.length; i++)
-			wordRule.addWord(fgConstants[i], type);
+		for (String k : BuiltInDefinitions.KEYWORDS)
+			wordRule.addWord(k.trim(), keyword);
+		for (String k : BuiltInDefinitions.DECLARATORS)
+			wordRule.addWord(k.trim(), keyword);
+		for (PrimitiveType t : PrimitiveType.values()) 
+			if (t != PrimitiveType.UNKNOWN)
+				wordRule.addWord(t.typeName(false).trim().toLowerCase(), type);
 		for (Function func : engine.functions())
 			wordRule.addWord(func.name(), engineFunction);
-		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
-			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);
+		for (String c : engine.settings().callbackFunctions())
+			wordRule.addWord(c, objCallbackFunction);
 		
 		
 		combinedWordRule.addWordMatcher(wordRule);
@@ -186,8 +175,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		
 		rules.add(new NumberRule(number));
 		
-		currentRules = rules.toArray(new IRule[rules.size()]);
-		setRules(currentRules);
+		setRules(rules.toArray(new IRule[rules.size()]));
 	}
 
 }

@@ -190,6 +190,11 @@ public class Engine extends Script {
 		 */
 		@IniField(category=SOURCE)
 		public String cppSources;
+		/**
+		 * Functions defined by scripts, called by engine
+		 */
+		@IniField(category=SOURCE)
+		public String callbackFunctions;
 		
 		private transient Map<String, C4Group.GroupType> fetgtm;
 		private transient Map<C4Group.GroupType, String> rfetgtm;
@@ -263,6 +268,10 @@ public class Engine extends Script {
 				supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
 			}
 			return supportedSoundFileExtensions_;
+		}
+		
+		public String[] callbackFunctions() {
+			return callbackFunctions != null ? callbackFunctions.split(",") : new String[0];
 		}
 
 	}

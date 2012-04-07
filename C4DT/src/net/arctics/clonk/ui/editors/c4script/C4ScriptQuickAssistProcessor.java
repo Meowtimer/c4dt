@@ -236,9 +236,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		@Override
 		public void apply(IDocument document) {
 			replacement.performAdditionalActionsBeforeDoingReplacements();
-			ExprElm replacementExpr = replacement.getReplacementExpression();
+			ExprElm replacementExpr = replacement.replacementExpression();
 			if (replacementExpr != ExprElm.NULL_EXPR) {
-				for (ExprElm spec : replacement.getSpecifiable()) {
+				for (ExprElm spec : replacement.specifiable()) {
 					if (spec instanceof AccessDeclaration) {
 						AccessDeclaration accessDec = (AccessDeclaration) spec;
 						String s = UI.input(
@@ -262,7 +262,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 				}
 				try {
-					this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
+					this.replacementString = replacement.replacementExpression().optimize(parser).toString(tabIndentation+1);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
@@ -274,7 +274,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			cursorPosition = replacementString.length();
 			super.apply(document);
 			
-			for (Replacement.AdditionalDeclaration dec : replacement.getAdditionalDeclarations()) {
+			for (Replacement.AdditionalDeclaration dec : replacement.additionalDeclarations()) {
 				StringBuilder builder = new StringBuilder(50);
 				dec.declaration.sourceCodeRepresentation(builder, dec.code);
 				builder.append("\n"); //$NON-NLS-1$
@@ -336,19 +336,19 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.specifiable = specifiable;
 			this.regionToBeReplacedSpecifiedByReplacementExpression = !(replacementExpression instanceof Statement);
 		}
-		public String getTitle() {
+		public String title() {
 			return title;
 		}
 		public void setTitle(String title) {
 			this.title = title;
 		}
-		public ExprElm getReplacementExpression() {
+		public ExprElm replacementExpression() {
 			return replacementExpression;
 		}
-		public ExprElm[] getSpecifiable() {
+		public ExprElm[] specifiable() {
 			return specifiable;
 		}
-		public List<AdditionalDeclaration> getAdditionalDeclarations() {
+		public List<AdditionalDeclaration> additionalDeclarations() {
 			return additionalDeclarations;
 		}
 		@Override
@@ -513,7 +513,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								ExprElm.NULL_EXPR,
 								false
 						);
-						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.getAdditionalDeclarations();
+						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 						if (accessDec instanceof AccessVar) {
 							decs.add(new Replacement.AdditionalDeclaration(
 									new Variable(accessDec.declarationName(), Scope.LOCAL),
@@ -712,11 +712,11 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					int offset = func.body().getOffset();
 					int length;
 					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
-						offset += replacement.getReplacementExpression().start();
-						length = replacement.getReplacementExpression().getLength();
+						offset += replacement.replacementExpression().start();
+						length = replacement.replacementExpression().getLength();
 					} else {
 						offset += expressionRegion.getOffset();
-						if (replacement.getReplacementExpression() instanceof Statement) {
+						if (replacement.replacementExpression() instanceof Statement) {
 							// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
 							length = topLevel.getLength();
 						} else {
@@ -724,7 +724,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						}
 					}
 					proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
-							replacementAsString.length(), null, replacement.getTitle(), null, null, null, null,
+							replacementAsString.length(), null, replacement.title(), null, null, null, null,
 							replacement, tabIndentation, parser, func));
 				}
 			}

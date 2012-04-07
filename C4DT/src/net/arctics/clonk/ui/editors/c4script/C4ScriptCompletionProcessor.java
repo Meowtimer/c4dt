@@ -506,7 +506,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		if (!directiveExpectingObject) {
 			// propose creating functions for standard callbacks
-			for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
+			for(String callback : editor().script().engine().settings().callbackFunctions()) {
 				if (prefix != null) {
 					if (!callback.toLowerCase().startsWith(prefix))
 						continue;
