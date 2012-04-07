@@ -53,7 +53,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
 	 * @return Return the list of component variables this proplist declaration is made up of.
 	 */
-	public List<Variable> getComponents() {
+	public List<Variable> components() {
 		return components;
 	}
 	
@@ -122,7 +122,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		for (Variable v : getComponents()) {
+		for (Variable v : components()) {
 			if (v.name().equals(declarationName)) {
 				return v;
 			}
@@ -134,7 +134,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
-			its.add(getComponents());
+			its.add(components());
 			return new CompoundIterable<Declaration>(its);
 		}
 		else
@@ -282,6 +282,5 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 	}
-	
 
 }

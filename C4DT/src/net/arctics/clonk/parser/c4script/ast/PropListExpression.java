@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -27,7 +28,7 @@ public class PropListExpression extends Value {
 	}
 	
 	public List<Variable> components() {
-		return definedDeclaration.getComponents();
+		return definedDeclaration.components();
 	}
 	
 	public PropListExpression(ProplistDeclaration declaration) {
@@ -170,6 +171,16 @@ public class PropListExpression extends Value {
 	@Override
 	public void setParent(ExprElm parent) {
 		super.setParent(parent);
+	}
+	
+	@Override
+	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
+		for (Variable v : this.components()) {
+			if (v.isAt(absolute))
+				return new EntityRegion(v, v.location().relativeTo(parser.absoluteSourceLocation(0, 0)));
+		}
+		return super.declarationAt(offset, parser);
 	}
 	
 }

@@ -33,6 +33,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	 * Create new {@link Comment}, specifying content and whether it's a multi-line comment.
 	 * @param comment Content
 	 * @param multiLine Whether multiline
+	 * @param javadoc The comment is a javadoc-comment
 	 */
 	public Comment(String comment, boolean multiLine, boolean javadoc) {
 		super();
@@ -199,6 +200,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\s*\\*?\\s*@param ([^\\s]*) (.*)$");
 	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\s*?\\*?\\s*@return (.*)$");
 	private static final Pattern TAGPATTERN = Pattern.compile("\\\\([cb]) ([^\\s]*)");
+	private static final Pattern JAVADOCLINESTART = Pattern.compile("\\s*\\*");
 	
 	/**
 	 * Apply documentation in this comment to the given {@link Function}.
@@ -211,9 +213,10 @@ public class Comment extends Statement implements Statement.Attachment {
 			StringReader reader = new StringReader(text);
 			Matcher parmDescMatcher = PARAMDESCPATTERN.matcher("");
 			Matcher returnDescMatcher = RETURNDESCPATTERN.matcher("");
+			Matcher lineStartMatcher = JAVADOCLINESTART.matcher("");
 			StringBuilder builder = new StringBuilder(text.length());
 			for (String line : StringUtil.lines(reader)) {
-				line = processTags(line);
+				line = processTags(line, lineStartMatcher);
 				if (parmDescMatcher.reset(line).matches()) {
 					String parmName = parmDescMatcher.group(1);
 					String parmDesc = parmDescMatcher.group(2);
@@ -233,13 +236,13 @@ public class Comment extends Statement implements Statement.Attachment {
 		}
 	}
 
-	private static String processTags(String line) {
+	private static String processTags(String line, Matcher lineStartMatcher) {
 		Matcher matcher = TAGPATTERN.matcher(line);
 		StringBuilder builder = new StringBuilder(line);
 		int shift = 0;
-		if (line.startsWith("* ")) {
-			builder.delete(0, 2);
-			shift -= 2;
+		if (lineStartMatcher.reset(line).lookingAt()) {
+			builder.delete(0, lineStartMatcher.end());
+			shift -= lineStartMatcher.end();
 		}
 		while (matcher.find()) {
 			String replacement = "<b>"+matcher.group(2)+"</b>";

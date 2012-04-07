@@ -231,7 +231,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
 		indexedProplistDeclarations.add(proplistDeclaration);
-		for (Variable v : proplistDeclaration.getComponents())
+		for (Variable v : proplistDeclaration.components())
 			addToDeclarationMap(v);
 	}
 

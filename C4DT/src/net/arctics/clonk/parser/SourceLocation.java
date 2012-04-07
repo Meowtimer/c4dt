@@ -94,5 +94,9 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	public SourceLocation clone() throws CloneNotSupportedException {
 		return new SourceLocation(start, end);
 	}
+	
+	public SourceLocation relativeTo(IRegion other) {
+		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
+	}
 
 }
