@@ -351,6 +351,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	public SourceLocation wholeBody() {
+		if (body == null)
+			return null;
 		if (isOldStyle())
 			return body;
 		else
@@ -789,6 +791,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		codeBlock = block;
 		blockSourceHash = source.hashCode();
 		codeBlockDefrosted = true;
+		if (body != null)
+			codeBlock.setExprRegion(0, body.getLength());
 	}
 	
 	/**

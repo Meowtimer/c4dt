@@ -7,7 +7,7 @@ import net.arctics.clonk.Core;
 public class BunchOfStatements extends Block {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
+	
 	public BunchOfStatements(List<Statement> statements) {
 		super(statements);
 	}

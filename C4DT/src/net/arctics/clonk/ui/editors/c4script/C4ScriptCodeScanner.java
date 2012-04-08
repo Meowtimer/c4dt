@@ -7,8 +7,8 @@ import java.util.Map;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
-import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
@@ -66,7 +66,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 			if (character == '/') {
 				char peek = (char) scanner.read();
 				if (peek == '*' || peek == '/') {
-				scanner.unread();
+					scanner.unread();
 					scanner.unread();
 					return Token.UNDEFINED;
 				}

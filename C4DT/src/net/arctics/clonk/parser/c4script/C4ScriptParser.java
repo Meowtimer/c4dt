@@ -1269,7 +1269,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Create a new function. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
+	 * Create a new {@link Function}. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
@@ -2639,20 +2639,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				continue;
 			} else {
 				// garbage recognized before statement: Create a special garbage statement that will report itself
-				if (garbageStart != -1) {
+				if (garbageStart != -1)
 					garbageStart = maybeAddGarbageStatement(statements, garbageStart, potentialGarbageEnd);
-				}
 			}
 			statements.add(statement);
 			boolean statementIsComment = statement instanceof Comment;
-			if (reached) {
+			if (reached)
 				reached = statement.controlFlow() == ControlFlow.Continue;
-			}
 			// after first 'real' statement don't expect function description anymore
-			if (!statementIsComment) {
-				options.remove(ParseStatementOption.ExpectFuncDesc);				
-			}
-			//eatWhitespace();
+			if (!statementIsComment)
+				options.remove(ParseStatementOption.ExpectFuncDesc);
 		}
 		if (garbageStart != -1) {
 			// contains only garbage ... still add
@@ -2661,9 +2657,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (!done) {
 			if (this.offset < endOfFunc)
 				errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
-		} else {
+		} else
 			read(); // should be }
-		}
 		this.currentFunctionContext.statementReached = oldStatementReached;
 	}
 
