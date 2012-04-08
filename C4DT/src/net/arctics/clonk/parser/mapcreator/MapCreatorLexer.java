@@ -1,4 +1,4 @@
-// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2010-01-23 15:58:43
+// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2010-02-22 05:35:05
 package net.arctics.clonk.parser.mapcreator;
 
 import org.antlr.runtime.*;
@@ -37,15 +37,16 @@ public class MapCreatorLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
+    @Override
+	public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
         try {
             int _type = MAP;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:207:6: ( 'map' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:207:8: 'map'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:210:6: ( 'map' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:210:8: 'map'
             {
             match("map"); 
 
@@ -65,8 +66,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = OVERLAY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:208:10: ( 'overlay' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:208:12: 'overlay'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:211:10: ( 'overlay' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:211:12: 'overlay'
             {
             match("overlay"); 
 
@@ -86,8 +87,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = POINT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:209:8: ( 'point' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:209:10: 'point'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:8: ( 'point' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:10: 'point'
             {
             match("point"); 
 
@@ -105,7 +106,7 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:211:17: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:17: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             {
             if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
@@ -129,10 +130,10 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "UNIT"
     public final void mUNIT() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:15: ( ( 'px' | '%' ) )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:17: ( 'px' | '%' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:15: ( ( 'px' | '%' ) )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:17: ( 'px' | '%' )
             {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:17: ( 'px' | '%' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:17: ( 'px' | '%' )
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -150,7 +151,7 @@ public class MapCreatorLexer extends Lexer {
             }
             switch (alt1) {
                 case 1 :
-                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:18: 'px'
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:18: 'px'
                     {
                     match("px"); 
 
@@ -158,7 +159,7 @@ public class MapCreatorLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:212:23: '%'
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:23: '%'
                     {
                     match('%'); 
 
@@ -179,8 +180,8 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "DIGIT"
     public final void mDIGIT() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:213:16: ( '0' .. '9' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:213:18: '0' .. '9'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:216:16: ( '0' .. '9' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:216:18: '0' .. '9'
             {
             matchRange('0','9'); 
 
@@ -195,11 +196,11 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "WORD"
     public final void mWORD() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:15: ( LETTER ( LETTER | DIGIT )* )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:17: LETTER ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:217:15: ( LETTER ( LETTER | DIGIT )* )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:217:17: LETTER ( LETTER | DIGIT )*
             {
             mLETTER(); 
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:24: ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:217:24: ( LETTER | DIGIT )*
             loop2:
             do {
                 int alt2=2;
@@ -246,8 +247,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = MATCOMBO;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:216:10: ( WORD MINUS WORD )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:216:12: WORD MINUS WORD
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:10: ( WORD MINUS WORD )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:12: WORD MINUS WORD
             {
             mWORD(); 
             mMINUS(); 
@@ -268,8 +269,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = MINUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:217:8: ( '-' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:217:10: '-'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:220:8: ( '-' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:220:10: '-'
             {
             match('-'); 
 
@@ -288,8 +289,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = PLUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:218:7: ( '+' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:218:9: '+'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:221:7: ( '+' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:221:9: '+'
             {
             match('+'); 
 
@@ -308,10 +309,10 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = NUMBER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:9: ( ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )? )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:11: ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:9: ( ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )? )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:11: ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )?
             {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:11: ( PLUS | MINUS )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:11: ( PLUS | MINUS )?
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -337,7 +338,7 @@ public class MapCreatorLexer extends Lexer {
 
             }
 
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:25: ( DIGIT )+
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:25: ( DIGIT )+
             int cnt4=0;
             loop4:
             do {
@@ -351,7 +352,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt4) {
             	case 1 :
-            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:25: DIGIT
+            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:25: DIGIT
             	    {
             	    mDIGIT(); 
 
@@ -367,7 +368,7 @@ public class MapCreatorLexer extends Lexer {
                 cnt4++;
             } while (true);
 
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:31: ( UNIT )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:31: ( UNIT )?
             int alt5=2;
             int LA5_0 = input.LA(1);
 
@@ -376,7 +377,7 @@ public class MapCreatorLexer extends Lexer {
             }
             switch (alt5) {
                 case 1 :
-                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:219:31: UNIT
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:31: UNIT
                     {
                     mUNIT(); 
 
@@ -401,8 +402,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = NAME;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:220:7: ( WORD )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:220:9: WORD
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:7: ( WORD )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:9: WORD
             {
             mWORD(); 
 
@@ -421,10 +422,10 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:221:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:221:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:224:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:224:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
             {
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:221:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:224:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
             int cnt6=0;
             loop6:
             do {
@@ -479,12 +480,12 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = SLCOMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:11: ( '//' ( . )* '\\n' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:13: '//' ( . )* '\\n'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:11: ( '//' ( . )* '\\n' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:13: '//' ( . )* '\\n'
             {
             match("//"); 
 
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:18: ( . )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:18: ( . )*
             loop7:
             do {
                 int alt7=2;
@@ -500,7 +501,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt7) {
             	case 1 :
-            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:222:18: .
+            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:18: .
             	    {
             	    matchAny(); 
 
@@ -530,12 +531,12 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = MLCOMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:11: ( '/*' ( . )* '*/' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:13: '/*' ( . )* '*/'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:11: ( '/*' ( . )* '*/' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:13: '/*' ( . )* '*/'
             {
             match("/*"); 
 
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:18: ( . )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:18: ( . )*
             loop8:
             do {
                 int alt8=2;
@@ -560,7 +561,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt8) {
             	case 1 :
-            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:223:18: .
+            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:18: .
             	    {
             	    matchAny(); 
 
@@ -591,8 +592,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = ASSIGN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:224:9: ( '=' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:224:11: '='
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:227:9: ( '=' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:227:11: '='
             {
             match('='); 
 
@@ -611,8 +612,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = BLOCKOPEN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:11: ( '{' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:225:13: '{'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:228:11: ( '{' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:228:13: '{'
             {
             match('{'); 
 
@@ -631,8 +632,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = BLOCKCLOSE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:12: ( '}' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:226:14: '}'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:229:12: ( '}' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:229:14: '}'
             {
             match('}'); 
 
@@ -651,8 +652,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = STATEMENTEND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:227:14: ( ';' )
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:227:16: ';'
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:230:14: ( ';' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:230:16: ';'
             {
             match(';'); 
 
@@ -671,7 +672,7 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = OPERATOR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:228:11: ( '|' | '&' | '^' )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:231:11: ( '|' | '&' | '^' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             {
             if ( input.LA(1)=='&'||input.LA(1)=='^'||input.LA(1)=='|' ) {
@@ -694,7 +695,8 @@ public class MapCreatorLexer extends Lexer {
     }
     // $ANTLR end "OPERATOR"
 
-    public void mTokens() throws RecognitionException {
+    @Override
+	public void mTokens() throws RecognitionException {
         // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:8: ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR )
         int alt9=16;
         alt9 = dfa9.predict(input);
@@ -919,7 +921,8 @@ public class MapCreatorLexer extends Lexer {
             this.special = DFA9_special;
             this.transition = DFA9_transition;
         }
-        public String getDescription() {
+        @Override
+		public String getDescription() {
             return "1:1: Tokens : ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );";
         }
     }

@@ -17,6 +17,7 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 		this.editor = editor;
 	}
 
+	@Override
 	public ShowInContext getShowInContext() {
 		return new ShowInContext(null, null) {
 			@Override
@@ -32,6 +33,7 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 		};
 	}
 
+	@Override
 	public String[] getShowInTargetIds() {
 		return new String[] {
 			IPageLayout.ID_PROJECT_EXPLORER // "org.eclipse.ui.navigator.ProjectExplorer"

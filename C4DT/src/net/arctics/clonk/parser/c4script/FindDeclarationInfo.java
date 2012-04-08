@@ -1,62 +1,47 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.Declaration;
 
+/**
+ * Helper object containing context information when doing a search for a declaration.
+ * @author madeen
+ *
+ */
 public class FindDeclarationInfo {
-	public ClonkIndex index;
+	public Index index;
 	public int recursion;
-	public Class<? extends C4Declaration> declarationClass;
-	private C4Function contextFunction;
-	private Set<C4ScriptBase> alreadySearched;
-	private C4ScriptBase searchOrigin;
-	private List<ClonkIndex> relevantIndexes;
-
-	public FindDeclarationInfo(ClonkIndex clonkIndex) {
+	public Class<? extends Declaration> declarationClass;
+	public Function contextFunction;
+	public Set<Script> alreadySearched;
+	public Script searchOrigin;
+	public boolean findDefinitions = true;
+	
+	/**
+	 * Create an instance with a context index.
+	 */
+	public FindDeclarationInfo(Index clonkIndex) {
 		super();
 		index = clonkIndex;
-		alreadySearched = new HashSet<C4ScriptBase>();
+		alreadySearched = new HashSet<Script>();
 	}
-	public FindDeclarationInfo(ClonkIndex clonkIndex, C4Function ctx) {
+	/**
+	 * Create an instance with a context index and function.
+	 * @param clonkIndex
+	 * @param ctx
+	 */
+	public FindDeclarationInfo(Index clonkIndex, Function ctx) {
 		this(clonkIndex);
-		setContextFunction(ctx);
-	}
-	public Class<? extends C4Declaration> getDeclarationClass() {
-		return declarationClass;
-	}
-	public void setDeclarationClass(Class<?extends C4Declaration> declarationClass) {
-		this.declarationClass = declarationClass;
-	}
-	public void setContextFunction(C4Function ctx) {
 		contextFunction = ctx;
 	}
-	public C4Function getContextFunction() {
-		return contextFunction;
-	}
-	public Set<C4ScriptBase> getAlreadySearched() {
-		return alreadySearched;
-	}
-	public C4ScriptBase getSearchOrigin() {
-		return searchOrigin;
-	}
-	public void setSearchOrigin(C4ScriptBase searchOrigin) {
-		this.searchOrigin = searchOrigin;
-	}
+	/**
+	 * Reset state information, namely {@link #alreadySearched} and {@link #recursion}
+	 */
 	public void resetState() {
 		alreadySearched.clear();
 		recursion = 0;
-	}
-	public List<ClonkIndex> getAllRelevantIndexes() {
-		if (relevantIndexes == null) {
-			relevantIndexes = new ArrayList<ClonkIndex>(10);
-			relevantIndexes.add(index);
-			ClonkIndex.addIndexesFromReferencedProjects(relevantIndexes, index);
-		}
-		return relevantIndexes;
 	}
 }

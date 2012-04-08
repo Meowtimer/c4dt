@@ -20,6 +20,8 @@ public class Messages extends NLS {
 	public static String NewC4Object_Title;
 	public static String NewC4ObjectPage_Title;
 	public static String NewC4ObjectPage_Description;
+	public static String NewC4ObjectPage_DescriptionDefault;
+	public static String NewC4ObjectPage_DescriptionLabel;
 	public static String NewC4ObjectPage_ID;
 	public static String NewC4ObjectPage_BadID;
 	public static String NewC4ObjectPage_IDAlreadyInUse;
@@ -39,7 +41,13 @@ public class Messages extends NLS {
 	public static String NewClonkFolderWizardPage_ContainerDoesNotExist;
 	public static String NewClonkFolderWizardPage_ContainerMustBeWritable;
 	public static String NewClonkFolderWizardPage_NoFolderName;
+	public static String NewClonkProject_Engine;
+	public static String NewClonkProject_ImportGroups;
+	public static String NewClonkProject_ImportingTabTitle;
+	public static String NewClonkProject_LinkGroups;
+	public static String NewClonkProject_LinkingTabTitle;
 	public static String NewClonkProject_PageTitle;
+	public static String NewClonkProject_ProjectRefsTabTitle;
 	public static String NewClonkProject_WindowTitle;
 	public static String NewParticle_PageTitle;
 	public static String NewParticle_Description;

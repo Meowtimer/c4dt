@@ -6,7 +6,7 @@
 		<editor name="%C4ScriptEditor_Name" icon="icons/c4scriptIcon.png"
 			contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
 			class="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor" id="clonk.editors.C4ScriptEditor"
-			filenames="*.c, Script.c">
+			filenames="*.c, Script.c, *.c4script">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.c4script" />
 		</editor>
 
@@ -22,6 +22,12 @@
 			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
 		</editor>
 	</extension>
+	
+	<extension point="org.eclipse.ui.contexts">
+		<context id="net.arctics.clonk.context" name="Clonk Editing" parentId="org.eclipse.ui.textEditorScope">
+			
+    	</context>
+	</extension>
 
 	<extension point="org.eclipse.core.resources.natures" id="clonknature"
 		name="Clonk Nature">
@@ -31,15 +37,15 @@
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
 	
-	<extension point="org.eclipse.core.resources.natures" id="clonkdepsnature" name="Clonk Dependencies Nature">
+	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization" name="%C4DTCustomization_MenuTitle"> 
 		<runtime>
-			<run class="net.arctics.clonk.resource.DependenciesProjectNature" />
+			<run class="net.arctics.clonk.resource.CustomizationNature" />
 		</runtime>
 	</extension>
 
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 
-		<content-type id="net.arctics.clonk.c4files" name="%ClonkFiles_Name"
+		<content-type base-type="org.eclipse.core.runtime.text" id="net.arctics.clonk.c4files" name="%ClonkFiles_Name"
 			priority="normal" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
@@ -57,6 +63,14 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="DefCore.txt" id="net.arctics.clonk.defcore" name="%C4Object_DefCore_Name"
 			priority="high" />
+	
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="PlayerControls.txt" id="net.arctics.clonk.plrcontroldef" name="%PlayerControlDefinition_Name"
+			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="Teams.txt" id="net.arctics.clonk.teamsdef" name="%TeamsDefinition_Name"
+			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="%C4Object_ActMap_Name"
@@ -71,7 +85,11 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-extensions="c4m" id="net.arctics.clonk.material" name="%MaterialDefinition_Name"
+			file-extensions="c4m,ocm" id="net.arctics.clonk.material" name="%MaterialDefinition_Name"
+			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="FolderMap.txt" id="net.arctics.clonk.foldermap" name="%FolderMapDefinition_Name"
 			priority="high" />
 
 	</extension>
@@ -79,22 +97,20 @@
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective name="Clonk" icon="icons/Clonk_C4.png"
 			class="net.arctics.clonk.ui.ClonkPerspective" id="net.arctics.clonk.clonkPerspective" />
-		<perspective name="DefSelector" icon="icons/Clonk_C4.png"
-			class="net.arctics.clonk.ui.DefSelectorPerspective" id="net.arctics.clonk.defSelectorPerspective" />
 	</extension>
 
 	<extension point="org.eclipse.ui.ide.projectNatureImages">
 		<image icon="icons/projectNatureIcon.png" natureId="net.arctics.clonk.clonknature"
 			id="net.arctics.clonk.clonkNatureIcon" />
-
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">
 		<navigatorContent name="%ClonkResources_Name"
-			priority="low" icon="icons/Clonk_Object.ico" activeByDefault="true"
+			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
 			contentProvider="net.arctics.clonk.ui.navigator.ClonkNavigator"
 			labelProvider="net.arctics.clonk.ui.navigator.ClonkLabelProvider"
-			providesSaveables="false" id="net.arctics.clonk.navigator.resourceContent">
+			providesSaveables="false"
+			id="net.arctics.clonk.navigator.resourceContent">
 			
 			<!--
 			<override
@@ -113,7 +129,7 @@
 				<or>
 					<instanceof value="org.eclipse.core.resources.IResource" />
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
+					<instanceof value="net.arctics.clonk.parser.Declaration" />
 				</or>
 			</possibleChildren>
 
@@ -123,34 +139,53 @@
 			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter" id="clonkSorter">
 				<parentExpression>
 					<or>
-						<instanceof value="org.eclipse.core.resources.IResource" />
+						<adapt type="org.eclipse.core.resources.IResource">
+							<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature" />
+						</adapt>
 						<instanceof value="net.arctics.clonk.util.ITreeNode" />
-						<instanceof value="org.eclipse.core.resources.IResource" />
 					</or>
 				</parentExpression>
 			</commonSorter>
 			
 			<dropAssistant id="net.arctics.clonk.ui.navigator.dropAssistant" class="net.arctics.clonk.ui.navigator.DropAssistant">
 				<possibleDropTargets>
-					<instanceof value="org.eclipse.core.resources.IContainer" />
+					<adapt type="org.eclipse.core.resources.IResource">
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
+					</adapt>
 				</possibleDropTargets>
 			</dropAssistant>
 			
-			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewC4Object">
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewClonkProject">
 				<enablement>
-					<instanceof value="org.eclipse.core.resources.IContainer" />
+					<!--<adapt type="org.eclipse.core.expressions.IIterable">
+						<iterate ifEmpty="true">
+							<adapt type="org.eclipse.core.resources.IResource" />
+						</iterate>
+					</adapt>-->
+				</enablement>
+			</commonWizard>
+			
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewDefinition">
+				<enablement>
+					<adapt type="org.eclipse.core.resources.IResource">
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
+					</adapt>
 				</enablement>
 			</commonWizard>
 			
 			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewParticle">
 				<enablement>
-					<instanceof value="org.eclipse.core.resources.IContainer" />
+					<adapt type="org.eclipse.core.resources.IResource">
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
+					</adapt>
 				</enablement>
 			</commonWizard>
 			
 			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewScenario">
 				<enablement>
-					<instanceof value="org.eclipse.core.resources.IContainer" />
+					<adapt type="org.eclipse.core.resources.IResource">
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
+					</adapt>
 				</enablement>
 			</commonWizard>
 			
@@ -180,58 +215,29 @@
 
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
+		<category id="net.arctics.clonk.c4dtCustomization" name="%C4DTCustomization" />
 
 		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="%ClonkProject_Name"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
+			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
 			class="net.arctics.clonk.ui.wizards.NewClonkProject" project="true"
 			finalPerspective="net.arctics.clonk.clonkPerspective">
 			<description>
-				Create an empty Clonk project
+				%CreateEmptyClonkProject
 			</description>
-			<selection class="org.eclipse.core.resources.IWorkspaceRoot" />
 		</wizard>
 		
-		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
-			hasPages="true" icon="icons/C4Object.png" id="net.arctics.clonk.wizards.NewC4Object"
+		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewDefinition"
+			hasPages="true" icon="res/engines/OpenClonk/images/DefinitionGroup.png" id="net.arctics.clonk.wizards.NewDefinition"
 			name="%Definition_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewScenario"
-			hasPages="true" icon="icons/Clonk_scenario.png" id="net.arctics.clonk.wizards.NewScenario"
+			hasPages="true" icon="res/engines/OpenClonk/images/ScenarioGroup.png" id="net.arctics.clonk.wizards.NewScenario"
 			name="%Scenario_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewParticle"
-			hasPages="true" icon="icons/Clonk_Particle.png" id="net.arctics.clonk.wizards.NewParticle"
+			hasPages="true" icon="icons/particle.png" id="net.arctics.clonk.wizards.NewParticle"
 			name="%Particle_Name" project="false" />
 
-	</extension>
-
-	<extension point="org.eclipse.ui.importWizards">
-		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
-
-		<wizard id="net.arctics.clonk.importClonkData" name="Import c4d, c4f, etc to project"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
-			class="net.arctics.clonk.ui.wizards.ImportClonkFiles">
-			<description>
-				Import scenarios or object packs into the project.
-			</description>
-			<selection class="org.eclipse.core.resources.IResource" />
-		</wizard>
-	</extension>
-
-	<extension point="org.eclipse.ui.exportWizards">
-		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
-
-		<wizard id="net.arctics.clonk.exportClonkData" name="Export project item to Clonk dir"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
-			class="net.arctics.clonk.ui.wizards.ExportClonkFiles">
-			<description>
-				Exports the selected project item to your Clonk
-				directory. That is for
-				instance a scenario or an object of your
-				project. 
-			</description>
-			<selection class="org.eclipse.core.resources.IFolder" />
-		</wizard>
 	</extension>
 
 	<!--
@@ -250,8 +256,7 @@
 		</filter>
 	</extension>
 
-	<extension id="builder" name="C4 Builder"
-		point="org.eclipse.core.resources.builders">
+	<extension id="builder" name="C4DT Builder" point="org.eclipse.core.resources.builders">
 		<builder hasNature="true">
 			<run class="net.arctics.clonk.resource.ClonkBuilder" />
 		</builder>
@@ -260,8 +265,17 @@
 	<extension point="org.eclipse.ui.preferencePages">
 		<page class="net.arctics.clonk.preferences.ClonkPreferencePage"
 			id="net.arctics.clonk.preferences.ClonkPreferencePage" name="Clonk" />
-		<page class="net.arctics.clonk.preferences.ClonkSyntaxColoringPreferencePage"
-			id="net.arctics.clonk.preferences.ClonkSyntaxColoringPreferencePage" name="%ClonkSyntaxColoring"
+		<page class="net.arctics.clonk.preferences.SyntaxColoringPreferencePage"
+			id="net.arctics.clonk.preferences.SyntaxColoringPreferencePage" name="%SyntaxColoringPrefPage"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.TogglesPreferencePage"
+			id="net.arctics.clonk.preferences.TogglesPreferencePage" name="%TogglesPrefPage"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.EngineConfigurationPrefPage:OpenClonk" name="OpenClonk"
+			id="net.arctics.clonk.preferences.EngineConfPage_OpenClonk"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.EngineConfigurationPrefPage:ClonkRage" name="Clonk Rage"
+			id="net.arctics.clonk.preferences.EngineConfPage_ClonkRage"
 			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
 	</extension>
 
@@ -286,27 +300,65 @@
 			icon="icons/Clonk_C4.png"
 			name="%ClonkFolderView_Name" />
 		
-	</extension>
-
-	<extension id="net.arctics.clonk.externliberror" name="External library error"
-		point="org.eclipse.core.resources.markers">
-		<persistent value="true" />
-		<super type="org.eclipse.core.resources.problemmarker" />
-	</extension>
-	
-	<extension id="net.arctics.clonk.c4scripterror" name="C4Script error"
-		point="org.eclipse.core.resources.markers">
-		<persistent value="true" />
-		<super type="org.eclipse.core.resources.problemmarker" />
+		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.ClonkHierarchyView"
+			id="net.arctics.clonk.views.ClonkHierarchyView"
+			icon="icons/Clonk_C4.png"
+			name="%ClonkHierarchyView_Name" />
+		
 	</extension>
 	
-	<extension id="net.arctics.clonk.inierror" name="Configuration file error"
+	<extension point="org.eclipse.ui.ide.markerSupport">
+		<markerTypeCategory name="%ClonkLogErrors">
+			<markerTypeReference id="net.arctics.clonk.logerror" />
+		</markerTypeCategory>
+		
+		<markerGrouping
+			id="net.arctics.clonk.logErrorGrouping"
+			label="%ClonkLogErrors" />
+			
+		<markerGroupingEntry id="net.arctics.clonk.logErrorGroupingEntry"
+			label="%ClonkLogErrors"
+			markerGrouping="net.arctics.clonk.logErrorGrouping"
+			priority="100" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.c4scripterror" name="%C4ScriptError"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.c4scripterrorwhiletyping" name="%C4ScriptError"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
+		<super type="net.arctics.clonk.c4scripterror" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.logerror" name="%ClonkLogError"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.inierror" name="%ConfigurationFileError"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
 	</extension>
 	
 	<!-- Debugger Breakpoints !-->
+	
+	<extension point="org.eclipse.debug.core.watchExpressionDelegates">
+    	<watchExpressionDelegate
+    		debugModel="net.arctics.clonk.ui.debug.ClonkDebugModelPresentation"
+			delegateClass="net.arctics.clonk.debug.ClonkDebugWatchExpressionDelegate">
+    	</watchExpressionDelegate>
+	</extension>
 	
 	<extension id="net.arctics.clonk.breakpointMarker" name="Clonk Breakpoint Marker"
 		point="org.eclipse.core.resources.markers">
@@ -330,7 +382,24 @@
 		</factory>
 	</extension>
 
+	<!-- Commands accessible by menu items !-->
+
 	<extension point="org.eclipse.ui.commands">
+	
+		<category id="net.arctics.clonk.commands" name="%ClonkCommands_Name" description="%ClonkCommands_Description" />
+	
+		<command categoryId="net.arctics.clonk.commands"
+			description="%Meta_AboutDesc"
+			id="net.arctics.clonk.ui.About"
+			defaultHandler="net.arctics.clonk.ui.actions.AboutHandler"
+			name="%Meta_About" />
+		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%Meta_CreateCustomizationProject"
+			id="net.arctics.clonk.ui.CreateCustomizationProject"
+			defaultHandler="net.arctics.clonk.ui.actions.CreateCustomizationProjectHandler"
+			name="%Meta_CreateCustomizationProject" />
+	
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenObject_Desc"
 			id="net.arctics.clonk.ui.OpenObject"
@@ -342,6 +411,12 @@
 			id="net.arctics.clonk.ui.OpenLocalResource"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceHandler"
 			name="%OpenLocalResource_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="%LookupDeclaration_Desc"
+			id="net.arctics.clonk.ui.LookupDeclaration"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.LookupDeclarationHandler"
+			name="%LookupDeclaration_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%InvokeCommand_Desc"
@@ -360,51 +435,62 @@
 			id="net.arctics.clonk.ui.QuickImport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportHandler"
 			name="%QuickImport_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="%ConvertLinkedGroups_Desc"
+			id="net.arctics.clonk.ui.ConvertLinkedGroups"
+			defaultHandler="net.arctics.clonk.ui.navigator.ConvertLinkedGroupsHandler"
+			name="%ConvertLinkedGroups_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ConvertOldCodeToNewCode_Desc"
-			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
-			name="%ConvertOldCodeToNewCode_Desc" />
+		<command categoryId="net.arctics.clonk.commands"
+			description="%TidyUpCode_Desc"
+			id="net.arctics.clonk.ui.editors.actions.TidyUpCode"
+			name="%TidyUpCode_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ConvertOldCodeToNewCode_Desc"
-			id="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk"
-			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkHandler"
-			name="%ConvertOldCodeToNewCode_Desc" />
+		<command categoryId="net.arctics.clonk.commands"
+			description="%TidyUpCodeInBulk_Desc"
+			id="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk"
+			defaultHandler="net.arctics.clonk.ui.navigator.TidyUpCodeInBulkHandler"
+			name="%TidyUpCodeInBulk_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ImportExternalLib_Desc"
-			id="net.arctics.clonk.ui.navigator.actions.ImportExternalLib"
-			defaultHandler="net.arctics.clonk.ui.navigator.ImportExternalLibHandler"
-			name="%ImportExternalLib_Name" />
+		<command categoryId="net.arctics.clonk.commands"
+            description="%FindDuplicates_Desc"
+            id="net.arctics.clonk.ui.editors.actions.FindDuplicates"
+            defaultHandler="net.arctics.clonk.ui.editors.FindDuplicatesHandler"
+            name="%FindDuplicates_Name" />
 		
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%LinkC4GroupFile_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile"
 			defaultHandler="net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler"
 			name="%LinkC4GroupFile_Name"
 		/>
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%OpenDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			name="%OpenDeclaration_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%FindReferences_Desc"
 			id="net.arctics.clonk.ui.editors.actions.FindReferences"
 			name="%FindReferences_Name" />
 
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%RenameDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
 			name="%RenameDeclaration_Name" />
 		
 		<!-- FIXME: what was that supposed to do -->
-		<command categoryId="org.eclipse.ui.category.edit"
+		<command categoryId="net.arctics.clonk.commands"
 			description="%DeclarationFilter_Desc"
 			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
 			name="%DeclarationFilter_Name" />
+		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%ToggleComment_Desc"
+			id="net.arctics.clonk.ui.editors.actions.ToggleComment"
+			name="%ToggleComment_Name" />
 
 	</extension>
 
@@ -415,33 +501,38 @@
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="%OpenObject_Name" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="%OpenLocalResource_Name" />
+				<command commandId="net.arctics.clonk.ui.LookupDeclaration" label="%LookupDeclaration_Name" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IContainer">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IContainer" />
 						</iterate>
 					</visibleWhen>
 				</command>
 				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IContainer">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IContainer" />
 						</iterate>
 					</visibleWhen>
 				</command>
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
+				<command commandId="net.arctics.clonk.ui.CreateCustomizationProject" label="%Meta_CreateCustomizationProject" />
+				<command commandId="net.arctics.clonk.ui.About" label="%Meta_About" />
 			</menu>
 		</menuContribution>
 		
-		<!-- Project Explorer Menu !-->
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
-			<separator name="BeforeClonkMenu" visible="true" />
+			<!-- Project Explorer Menu for Clonk projects !-->
 			<menu label="Clonk">
-				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
+				<visibleWhen checkEnabled="false">
+					<iterate operator="and" ifEmpty="false"> 
+						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.clonknature" />
+					</iterate> 
+				</visibleWhen>
+                <command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IContainer">
@@ -457,24 +548,33 @@
 						</iterate>
 					</visibleWhen>
 				</command>
+				<command commandId="net.arctics.clonk.ui.ConvertLinkedGroups" label="%ConvertLinkedGroups_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer" />
+						</iterate>
+					</visibleWhen>
+				</command>
+				<separator name="AfterImportExport" visible="true" />
+				<menu label="%ColorTag_Name">
+					<dynamic id="net.arctics.clonk.ui.ColorTagging" class="net.arctics.clonk.ui.navigator.ColorTagging" />
+				</menu>
 				<separator name="AfterImportExportSeparator" visible="true" />
-				<command commandId="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
+				<command commandId="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk" label="%TidyUpCode_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IResource">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IResource" />
 						</iterate>
 					</visibleWhen>
 				</command>
+				<command commandId="net.arctics.clonk.ui.editors.actions.FindDuplicates" label="%FindDuplicates_Name">
+                    <visibleWhen checkEnabled="false">
+                        <iterate ifEmpty="false">
+                            <adapt type="org.eclipse.core.resources.IResource" />
+                        </iterate>
+                    </visibleWhen>
+                </command>
 				<separator name="AfterCodeConversionSeparator" visible="true" />
-				<command commandId="net.arctics.clonk.ui.navigator.actions.ImportExternalLib" label="%ImportExternalLib_Name">
-					<visibleWhen checkEnabled="false">
-						<iterate ifEmpty="false">
-							<adapt type="net.arctics.clonk.resource.ExternalLib">
-							</adapt>
-						</iterate>
-					</visibleWhen>
-				</command>
 				<command commandId="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile" label="%LinkC4GroupFile_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
@@ -483,20 +583,31 @@
 					</visibleWhen>
 				</command>
 			</menu>
-			<separator name="AfterClonkMenu" visible="true" />
+			
+			<!-- Project Explorer menu for C4DT customization projects !-->
+			<menu label="C4DT Customization">
+				<visibleWhen checkEnabled="false">
+					<iterate operator="and" ifEmpty="false"> 
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.c4dt_customization" /> 
+					</iterate> 
+				</visibleWhen>
+				<menu label="%CustomizeFile_Title">
+					<dynamic class="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" id="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" />
+				</menu>
+			</menu>
+			
 		</menuContribution>
 		
 	</extension>
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
-		<product application="org.eclipse.ui.ide.workbench" name="Eclipse SDK">
-			<property name="windowImages" value="icons/eclipse.gif,icons/eclipse32.gif,icons/eclipse48.png,icons/eclipse.png,icons/eclipse32.png" />
-			<property name="aboutText" value="%productBlurb" />
-			<property name="aboutImage" value="/Clonk/icons/eclipse_lg.gif" />
+		<product application="org.eclipse.ui.ide.workbench" name="Clonklipse">
+			<property name="windowImages" value="res/DistroIcon16x16.gif,res/DistroIcon32x32.gif,res/DistroIcon48x48.gif,res/DistroIcon64x64.gif" />
+			<property name="aboutText" value="Clonk Development Tools for Eclipse" />
 			<property name="startupForegroundColor" value="C8D5EA" />
 			<property name="startupProgressRect" value="0,280,455,15" />
 			<property name="startupMessageRect" value="7,220,441,20" />
-			<property name="appName" value="Eclipse SDK" />
+			<property name="appName" value="Clonklipse" />
 			<property name="preferenceCustomization" value="plugin_customization.ini" />
 		</product>
 	</extension>
@@ -519,7 +630,19 @@
 		<viewPage id="net.arctics.clonk.ui.ClonkSearchResultPage"
 			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage" />
+		<viewPage id="net.arctics.clonk.ui.FindDuplicatesSearchResultPage"
+			searchResultClass="net.arctics.clonk.ui.search.FindDuplicatesSearchResult"
+			class="net.arctics.clonk.ui.search.FindDuplicatesSearchResultPage" />
 	</extension>
+	
+	<!--
+	<extension point="org.eclipse.search.searchPages">
+		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
+    		id="net.arcitcs.clonk.ui.ClonkSearchPage"
+			label="%SearchPage_Title"
+			icon="icons/c4scriptIcon.png">
+		</page>
+	</extension> !-->
 	
 	<extension point="org.eclipse.debug.core.sourceLocators">
 	    <sourceLocator
@@ -556,7 +679,7 @@
 
 	<extension point="org.eclipse.core.expressions.propertyTesters">
 		<propertyTester id="net.arctics.clonk.resource.ResourceTester"
-			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject"
+			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject,isPackedGroup"
 			type="org.eclipse.core.resources.IResource" class="net.arctics.clonk.resource.ResourceTester" />
 
 		<propertyTester id="net.arctics.clonk.resource.ResourceTesterEditor"
@@ -578,14 +701,8 @@
 					-->
 					<count value="1" />
 					<with variable="selection">
-						<iterate>
-							<or>
-								<and>
-									<instanceof value="org.eclipse.core.resources.IResource" />
-									<test property="net.arctics.clonk.resource.isInScenario" />
-								</and>
-								<test property="net.arctics.clonk.resource.editor.isInScenario" />
-							</or>
+						<iterate ifEmpty="false" operator="or">
+							<test property="net.arctics.clonk.resource.isInScenario" />
 						</iterate>
 					</with>
 				</enablement>
@@ -600,7 +717,7 @@
 			<selectionEnablement>
 				<or>
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
+					<instanceof value="net.arctics.clonk.parser.Declaration" />
 				</or>
 			</selectionEnablement>
 			<editorInputEnablement>
@@ -609,12 +726,6 @@
 			</editorInputEnablement>
 		</linkHelper>
 	</extension>
-
-	<extension point="org.eclipse.ui.elementFactories">
-		<factory
-			class="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInputFactory"
-			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory" />
-	</extension>
 	
 	<extension point="org.eclipse.ui.ide.markerResolution">
 		<markerResolutionGenerator markerType="net.arctics.clonk.c4scripterror"
@@ -622,18 +733,26 @@
 		</markerResolutionGenerator>
 	</extension>
 	
-	<extension point="org.eclipse.ui.navigator.viewer">
-		<dragAssistant class="net.arctics.clonk.ui.navigator.DragExternalDefsAssistant"
-			viewerId="org.eclipse.ui.navigator.ProjectExplorer"/>
-	</extension>
-	
 	<extension point="org.eclipse.core.filesystem.filesystems">
     	<filesystem scheme="c4group">
-			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
+			<run class="net.arctics.clonk.resource.c4group.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
+	
+	<extension point="org.eclipse.debug.ui.consoleLineTrackers">
+		<consoleLineTracker
+			class="net.arctics.clonk.debug.ConsoleOutputLineTracker"
+			id="net.arctics.clonk.debug.ConsoleOutputLineTracker"
+			processType="clonkEngine">
+		</consoleLineTracker>
+	</extension>
+	<extension id="net.arctics.clonk.cli.CLI" point="org.eclipse.core.runtime.applications">
+		<application cardinality="singleton-global" thread="main" visible="true">
+			<run class="net.arctics.clonk.cli.CLI"/>
+		</application>
+	</extension>
 
-	<!--	
+	<!--
 	<extension point="org.eclipse.ui.popupMenus">
 		<viewerContribution
         	id="clonk.editors.C4ScriptEditor.popupMenuContributions"

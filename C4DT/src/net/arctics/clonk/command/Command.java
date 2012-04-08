@@ -1,168 +1,66 @@
 package net.arctics.clonk.command;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.List;
 
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4Scenario;
-import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
+/**
+ * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
+ *
+ */
 public class Command {
-	public static final C4ScriptBase COMMAND_BASESCRIPT;
-	
-	public static class C4CommandScript extends C4ScriptBase {
-		
-		private static class C4CommandFunction extends C4Function {
-            private static final long serialVersionUID = 1L;
-            
-			private transient Statement[] statements;
-			
-			@Override
-			public Object invoke(Object... args) {
-			    for (Statement s : statements) {
-			    	s.evaluate();
-			    }
-			    // FIXME
-			    return null;
-			}
-		}
+	public static final Script COMMAND_BASESCRIPT;
+	public static final Index COMMANDS_INDEX = new Index();
+	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 
-        private static final long serialVersionUID = 1L;
-        
-		private String script;
-		private C4CommandFunction main;
-		
-		@Override
-        public ClonkIndex getIndex() {
-	        return ClonkCore.getDefault().getExternIndex();
-        }
-
-		@Override
-		public String getScriptText() {
-			return script;
-		}
-		
-		@Override
-        public Object getScriptFile() {
-			try {
-	            return new SimpleScriptStorage(getName(), script);
-            } catch (UnsupportedEncodingException e) {
-	            e.printStackTrace();
-	            return null;
-            }
-        }
-		
-		public C4CommandScript(String name, String script) {
-			super();
-			setName(name);
-			this.script = script;
-			C4ScriptParser parser = new C4ScriptParser(script, this) {
-				@Override
-				protected C4Function newFunction() {
-				    return new C4CommandFunction();
-				}
-				@Override
-				public void parseCodeOfFunction(C4Function function) throws ParsingException {
-				    if (function.getName().equals("Main")) { //$NON-NLS-1$
-				    	main = (C4CommandFunction)function;
-				    }
-				    final List<Statement> statements = new LinkedList<Statement>();
-				    this.setExpressionListener(new IExpressionListener() {
-						@Override
-						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							if (expression instanceof Statement)
-								statements.add((Statement)expression);
-							return TraversalContinuation.Continue;
-						}
-					});
-				    super.parseCodeOfFunction(function);
-				    ((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
-				    this.setExpressionListener(null);
-				}
-			};
-			try {
-	            parser.parse();
-            } catch (ParsingException e) {
-	            e.printStackTrace();
-            }
-		}
-		
-		@Override
-		public C4ScriptBase[] getIncludes(ClonkIndex index) {
-			return new C4ScriptBase[] {
-				COMMAND_BASESCRIPT
-			};
-		}
-		
-		public C4CommandFunction getMain() {
-			return main;
-		}
-		
-		public Object invoke(Object... args) {
-			return main.invoke(args);
-		}
-		
-	}
-	
 	static {
-		COMMAND_BASESCRIPT = new C4ScriptBase() {
-            private static final long serialVersionUID = 1L;
-            
+		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public ClonkIndex getIndex() {
-			    return ClonkCore.getDefault().getExternIndex();
+			public IStorage scriptStorage() {
+				try {
+					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
+				} catch (UnsupportedEncodingException e) {
+					return null;
+				}
 			}
 			@Override
-			public Object getScriptFile() {
-			    try {
-	                return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-                } catch (UnsupportedEncodingException e) {
-	                return null;
-                }
-			}
-			
-			@Override
-			public String getName() {
+			public String name() {
 				return "CommandBaseScript"; //$NON-NLS-1$
 			};
-			
 			@Override
-			public String getNodeName() {
-				return getName();
+			public String nodeName() {
+				return name();
 			};
-			
 		};
-		
-		registerCommandsFromClass(Command.class);
-		registerCommandsFromClass(DebugCommands.class);
-		registerCommandsFromClass(CodeConversionCommands.class);
-		registerCommandsFromClass(EngineConfiguration.class);
-		registerCommandsFromClass(Diagnostics.class);
+
+		for (Class<?> c : Command.class.getDeclaredClasses())
+			registerCommandsFromClass(c);
+	}
+	
+	public static ExecutableScript executableScriptFromCommand(String command) {
+		return new ExecutableScript("command", String.format(Command.COMMAND_SCRIPT_TEMPLATE, command), Command.COMMANDS_INDEX);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
@@ -171,34 +69,34 @@ public class Command {
 				addCommand(m);
 		}
 	}
-	
-	private static class C4CommandFunction extends C4Function {
 
-        private static final long serialVersionUID = 1L;
-        
-        private final transient Method method;
-        
-        @Override
-        public Object invoke(Object... args) {
-        	try {
-	            return method.invoke(null, Utilities.concat(this, args));
-            } catch (Exception e) {
-	            e.printStackTrace();
-	            return null;
-            }
-        }
-        
-        public C4CommandFunction(C4ScriptBase parent, Method method) {
-        	super(method.getName(), parent, C4FunctionScope.FUNC_PUBLIC);
-        	this.method = method;
-        }
-		
+	private static class NativeCommandFunction extends Function {
+
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
+		private final transient Method method;
+
+		@Override
+		public Object invoke(Object... args) {
+			try {
+				return method.invoke(null, ArrayUtil.concat(this, args));
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		public NativeCommandFunction(Script parent, Method method) {
+			super(method.getName(), parent, FunctionScope.PUBLIC);
+			this.method = method;
+		}
+
 	}
-	
+
 	public static void addCommand(Method method) {
-		COMMAND_BASESCRIPT.addDeclaration(new C4CommandFunction(COMMAND_BASESCRIPT, method));
+		COMMAND_BASESCRIPT.addDeclaration(new NativeCommandFunction(COMMAND_BASESCRIPT, method));
 	}
-	
+
 	public static void setFieldValue(Object obj, String name, Object value) {
 		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
@@ -214,120 +112,95 @@ public class Command {
 			e.printStackTrace();
 		}
 	}
-	
-	@CommandFunction
-	public static void Log(Object context, String message) {
-		System.out.println(message);
-	}
-	
-	@CommandFunction
-	public static String Format(Object context, String format, Object... args) {
-		return String.format(format, args);
-	}
-	
-	@CommandFunction
-	public static void OpenDoc(Object context, String funcName) {
-		try {
-			ClonkHyperlink.openDocumentationForFunction(funcName);
-		} catch (Exception e) {
-			e.printStackTrace();
+
+	public static class BaseCommands {
+		@CommandFunction
+		public static void Log(Object context, String message) {
+			System.out.println(message);
+		}
+
+		@CommandFunction
+		public static String Format(Object context, String format, Object... args) {
+			return String.format(format, args);
+		}
+
+		@CommandFunction
+		public static void OpenDoc(Object context, String funcName) {
+			try {
+				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
-	
+
 	public static class CodeConversionCommands {
 		@CommandFunction
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
-			setFieldValue(C4ScriptExprTree.class, option, value);
+			setFieldValue(Conf.class, option, value);
+		}
+		@CommandFunction
+		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
+			Engine engine = Core.instance().loadEngine(engineName);
+			FileOutputStream stream = new FileOutputStream(fileName);
+			Writer writer = new OutputStreamWriter(stream);
+			engine.writeEngineScript(writer);
+			writer.flush();
+			writer.close();
+			stream.close();
+		}
+		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
+			writer.append("[Descriptions]\n"); //$NON-NLS-1$
+			for (Function f : engine.functions()) {
+				String escaped = f.obtainUserDescription() != null ? f.obtainUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				writer.append(String.format("%s=%s\n", f.name(), escaped)); //$NON-NLS-1$
+			}
+			writer.close();
+		}
+		@CommandFunction
+		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
+			Engine engine = Core.instance().loadEngine(engineName);
+			if (engine != null)
+				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 	}
-	
-	public static class DebugCommands {
 
-		private static Socket debugSocket;
-		private static PrintWriter debugSocketWriter;
-		private static BufferedReader debugSocketReader;
-
-		@CommandFunction
-		public static void ConnectToDebugSocket(Object context, long port) {
-			try {
-				debugSocket = new Socket("localhost", (int) port); //$NON-NLS-1$
-				debugSocketWriter = new PrintWriter(debugSocket.getOutputStream());
-				debugSocketReader = new BufferedReader(new InputStreamReader(debugSocket.getInputStream()));
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		@CommandFunction
-		public static void CloseDebugSocket(Object context) {
-			if (debugSocket != null)
-				try {
-					debugSocketReader.close();
-					debugSocketReader = null;
-					debugSocketWriter.close();
-					debugSocketWriter = null;
-					debugSocket.close();
-					debugSocket = null;
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-
-		@CommandFunction
-		public static void SendToDebugSocket(Object context, String command) {
-			if (debugSocketWriter != null) {
-				debugSocketWriter.println(command);
-				debugSocketWriter.flush();
-			}
-			String line;
-			try {
-				if ((line = debugSocketReader.readLine()) != null)
-					System.out.println(line);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		@CommandFunction
-		public static void Testing(Object context, String value) {
-			for (int i = 0; i < value.length(); i++)
-				System.out.println((int)value.charAt(i));
-			System.out.println(Integer.parseInt(value));
-		}
-
-	}
-	
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(ClonkCore.getDefault().getActiveEngine(), name, value);
+			setFieldValue(Core.instance().activeEngine().settings(), name, value);
+		}
+		@CommandFunction
+		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
+			Engine engine = Core.instance().activeEngine();
+			setFieldValue(
+					engine.intrinsicSettings(), name,
+					engine.settings().getClass().getField(name).get(engine.settings())
+			);
 		}
 	}
-	
+
 	public static class Diagnostics {
 		@CommandFunction
 		public static void ReadIndex(Object context, String path) {
-			ClonkIndex index = ClonkIndex.load(ClonkIndex.class, new File(path), null);
+			Index index = Index.loadShallow(Index.class, new File(path), null);
 			try {
-				index.postSerialize();
+				index.postLoad();
 			} catch (CoreException e) {
 				e.printStackTrace();
 				return;
 			}
 			System.out.println("===Objects==="); //$NON-NLS-1$
-			for (C4Object obj : index) {
+			for (Definition obj : index) {
 				System.out.println(obj.toString());
 			}
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (C4ScriptBase script : index.getIndexedScripts()) {
+			for (Script script : index.indexedScripts()) {
 				System.out.println(script.toString());
 			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (C4Scenario scen : index.getIndexedScenarios()) {
+			for (Scenario scen : index.indexedScenarios()) {
 				System.out.println(scen.toString());
 			}
 		}
@@ -335,6 +208,13 @@ public class Command {
 		public static void GC(Object context) {
 			System.gc();
 		}
+		@CommandFunction
+		public static void ReloadIndex(Object context, String projectName) {
+			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+			if (nature != null) {
+				nature.reloadIndex();
+			}
+		}
 	}
-	
+
 }

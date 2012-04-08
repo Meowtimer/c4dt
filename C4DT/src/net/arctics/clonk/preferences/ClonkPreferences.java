@@ -4,34 +4,40 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * Constant definitions for clonk preferences
  */
 public class ClonkPreferences {
-	public static final String GAME_PATH = "gamePath"; //$NON-NLS-1$
-	public static final String STANDARD_EXT_LIBS = "standardExtLibs"; //$NON-NLS-1$
-	public static final String C4GROUP_EXECUTABLE = "c4groupExecutable"; //$NON-NLS-1$
-	public static final String SHOW_EXPORT_LOG = "showExportLog"; //$NON-NLS-1$
-	public static final String PREFERRED_LANGID = "preferredLangID"; //$NON-NLS-1$
-	public static final String ENGINE_EXECUTABLE = "engineExecutable";	 //$NON-NLS-1$
-	public static final String OPENCLONK_REPO = "openClonkRepo"; //$NON-NLS-1$
+	
+	// options that will be stored in engine configuration ini files
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
-	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
 	
-	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1"; //$NON-NLS-1$
+	// options that are actually stored in the default pref store
+	public static final String SHOW_EXPORT_LOG = "showExportLog"; //$NON-NLS-1$
+	public static final String PREFERRED_LANGID = "preferredLangID"; //$NON-NLS-1$
+	public static final String OPEN_EXTERNAL_BROWSER = "openExternalBrowser"; //$NON-NLS-1$
+	public static final String SHOW_ERRORS_WHILE_TYPING = "showErrorsWhileTyping";
+	public static final String STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER = "showOutlinesInProjectExplorer";
+	public static final String NO_AUTOBRACKETPAIRS = "noAutoBracketPairs";
+	public static final String AUTHOR = "author";
+	public static final String IGNORE_SIMPLE_FUNCTION_DUPES = "ignoreSimpleFunctionDupes"; //$NON-NLS-1$
+	
+	// defaults
 	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
 	public static final String PREFERRED_LANGID_DEFAULT = "DE"; //$NON-NLS-1$
+	public static final String AUTHOR_DEFAULT = "<Insert Author>";
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
-	public static String getPreferenceOrDefault(String prefName) {
+	public static String valueOrDefault(String prefName) {
 		String def;
 		try {
 			Field prefField = valueFieldMapping.get(prefName);
@@ -51,24 +57,39 @@ public class ClonkPreferences {
         } catch (Exception e) {
 	        def = null;
         }
-        return getPreference(prefName, def, null);
+        return value(prefName, def, null);
 	}
 	
-	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
-		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+	public static String value(String prefName, String def, IScopeContext[] contexts) {
+		try {
+			return Platform.getPreferencesService().getString(Core.PLUGIN_ID, prefName, def, contexts);
+		} catch (Exception e) {
+			return def;
+		}
 	}
 	
-	public static String getPreference(String prefName) {
-		return getPreference(prefName, null, null);
+	public static String value(String prefName) {
+		return value(prefName, null, null);
 	}
 	
-	public static String getLanguagePref() {
-		return getPreferenceOrDefault(PREFERRED_LANGID);
+	public static boolean toggle(String toggleName, boolean defaultValue) {
+		return Platform.getPreferencesService().getBoolean(Core.PLUGIN_ID, toggleName, defaultValue, null);
 	}
 	
-	public static String[] getExternalLibNames() {
-		String optionString = getPreference(STANDARD_EXT_LIBS);
-		return optionString.split("<>"); //$NON-NLS-1$
+	public static String languagePref() {
+		return valueOrDefault(PREFERRED_LANGID);
+	}
+	
+	public static String getLanguagePrefForDocumentation() {
+		String pref = languagePref();
+		return pref.equals("DE") ? "de" : "en";
+	}
+	
+	public static void commitDefaultsToPrefStore(IPreferenceStore store) {
+		store.setDefault(DOC_URL_TEMPLATE, DOC_URL_TEMPLATE_DEFAULT);
+		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
+		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
+		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
 	}
 	
 }

@@ -21,10 +21,12 @@ public class ResourceContentProvider implements ITreeContentProvider {
 		this.resourceTypes = resourceTypes;
 	}
 	
+	@Override
 	public Object[] getChildren(Object parentElement) {
 		return getElements(parentElement);
 	}
 
+	@Override
 	public Object getParent(Object element) {
 		if (element instanceof IResource) {
 			return ((IResource)element).getParent();
@@ -32,6 +34,7 @@ public class ResourceContentProvider implements ITreeContentProvider {
 		return null;
 	}
 
+	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof IContainer) {
 			try {
@@ -49,6 +52,7 @@ public class ResourceContentProvider implements ITreeContentProvider {
 		return false;
 	}
 
+	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IContainer) {
 			try {
@@ -68,9 +72,11 @@ public class ResourceContentProvider implements ITreeContentProvider {
 		return null;
 	}
 
+	@Override
 	public void dispose() {
 	}
 
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		if (newInput instanceof IResource) {
 		}

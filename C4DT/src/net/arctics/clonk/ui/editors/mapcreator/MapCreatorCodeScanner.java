@@ -3,15 +3,14 @@ package net.arctics.clonk.ui.editors.mapcreator;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
+import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
-import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
-import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
@@ -56,6 +55,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 		/*
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 
 			int character= scanner.read();
@@ -77,8 +77,12 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 	private IRule[] currentRules;
 
 	public MapCreatorCodeScanner(ColorManager manager) {
+		super(manager, null);
+	}
 
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT")))); //$NON-NLS-1$
+	@Override
+	protected void commitRules(ColorManager manager, Engine engine) {
+		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
@@ -88,8 +92,8 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		List<IRule> rules = new ArrayList<IRule>();
 		
-		rules.add(new EndOfLineRule("//", comment));
-		rules.add(new MultiLineRule("/*", "*/", comment));
+		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
+		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
@@ -107,13 +111,13 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String mapGenKeyword : C4MapOverlayBase.DEFAULT_CLASS.keySet())
+		for (String mapGenKeyword : MapOverlayBase.DEFAULT_CLASS.keySet())
 			wordRule.addWord(mapGenKeyword, keyword);
 
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
 
-		currentRules = (IRule[])rules.toArray(new IRule[0]);
+		currentRules = rules.toArray(new IRule[0]);
 		setRules(currentRules);
 	}
 

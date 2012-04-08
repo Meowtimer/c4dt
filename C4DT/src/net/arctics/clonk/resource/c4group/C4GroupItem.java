@@ -8,32 +8,34 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.arctics.clonk.filesystem.C4GroupFileSystem;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.INodeWithPath;
+import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
-	public static final HeaderFilterBase ACCEPT_EVERYTHING = new HeaderFilterBase() {
+	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4EntryHeader header, C4Group context) {
+		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 			return true;
 		}
 	};
 	
-	public static final HeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new HeaderFilterBase() {
+	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4EntryHeader header, C4Group context) {
+		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 			return true;
 		};
 		@Override
-		public int getFlags(C4GroupEntry entry) {
+		public int flagsForEntry(C4GroupFile entry) {
 			return DONTREADINTOMEMORY;
 		};
 	};
@@ -45,18 +47,12 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	public abstract boolean hasChildren();
 	
 	/**
-	 * Is this item completely read from disk?
-	 * @return
-	 */
-	public abstract boolean isCompleted();
-	
-	/**
 	 * Read this item
-	 * @throws InvalidDataException
+	 * @throws C4GroupInvalidDataException
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public abstract void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException;
+	public abstract void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream
@@ -69,6 +65,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * The entry name
 	 * @return
 	 */
+	@Override
 	public abstract String getName();
 	
 	/**
@@ -87,22 +84,17 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * Returns the entry header
 	 * @return
 	 */
-	public abstract C4EntryHeader getEntryHeader();
+	public abstract C4GroupEntryHeader getEntryHeader();
 	
 	/**
 	 * Extracts this file to disk
 	 */
-	public abstract void extractToFilesystem(IContainer internPath) throws CoreException;
+	public abstract void extractToFileSystem(IContainer internPath) throws CoreException;
 	
 	/**
 	 * Extracts this file to disk with the given progress monitor
 	 */
-	public abstract void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
-	
-	/**
-	 * recursively call visitor.visit for all items in this group (including the group itself)
-	 */
-	public abstract void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
+	public abstract void extractToFileSystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
 	
 	/**
 	 * release data stored in memory to preserve space
@@ -115,11 +107,11 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		File origin = masterGroup.getOrigin();
 		if (origin != null) {
 			try {
-				String path = new Path(origin.getParent()).append(getPath().toString()).toPortableString();
-				if (!path.startsWith("/"))
-					path = "/"+path;
+				String path = new Path(origin.getParent()).append(path().toString()).toPortableString();
+				if (!path.startsWith("/")) //$NON-NLS-1$
+					path = "/"+path; //$NON-NLS-1$
 				path = C4GroupFileSystem.replaceSpecialChars(path);
-				URI uri = new URI("c4group", path, null);
+				URI uri = new URI("c4group", path, null); //$NON-NLS-1$
 				return uri;
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
@@ -136,8 +128,18 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	}
 	
 	@Override
-	public INodeWithPath getParentNode() {
+	public INodeWithPath parentNode() {
 		return getParentGroup();
+	}
+	
+	public static C4GroupItem getGroupItemBackingResource(IResource resource) {
+		URI uri = resource.getLocationURI();
+		try {
+			IFileStore fileStore = EFS.getStore(uri);
+			return Utilities.as(fileStore, C4GroupItem.class);
+		} catch (CoreException e) {
+			return null;
+		}
 	}
 	
 }

@@ -22,7 +22,7 @@ public class ClonkDebugSourceLookupDirector extends AbstractSourceLookupDirector
 	@Override
 	public void initializeDefaults(ILaunchConfiguration configuration) throws CoreException {
 		super.initializeDefaults(configuration);
-		String projName = configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "");
+		String projName = configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
 		if (proj != null) {
 			this.setSourceContainers(new ISourceContainer[] {

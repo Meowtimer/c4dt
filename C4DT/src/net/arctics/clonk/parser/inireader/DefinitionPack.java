@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
  * @author madeen
  *
  */
-public class DefinitionPack implements IIniEntryValue {
+public class DefinitionPack extends IniEntryValueBase {
 
 	private String value;
 	
@@ -16,7 +16,8 @@ public class DefinitionPack implements IIniEntryValue {
 		return value;
 	}
 	
-	public void setInput(String value, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 

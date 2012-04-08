@@ -1,32 +1,17 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
-import org.eclipse.core.resources.IFile;
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.Core;
 
 public class MaterialUnit extends IniUnit {
 
-	private static final long serialVersionUID = 1L;
-	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Material.txt"); //$NON-NLS-1$
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
+	public String configurationName() {
+		return "Material.txt"; //$NON-NLS-1$
 	}
 	
-	public MaterialUnit(IFile file) {
-		super(file);
-	}
-	
-	public MaterialUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public MaterialUnit(String text) {
-		super(text);
+	public MaterialUnit(Object input) {
+		super(input);
 	}
 }

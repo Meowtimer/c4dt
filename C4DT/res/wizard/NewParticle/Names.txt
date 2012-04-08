@@ -1,2 +1,0 @@
-DE:$Name$
-US:$Name$

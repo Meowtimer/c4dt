@@ -1,20 +1,99 @@
 package net.arctics.clonk.ui.editors.ini;
 
-import net.arctics.clonk.parser.C4Declaration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.inireader.IniItem;
+import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.TextChangeListenerBase;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
+import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
+import org.eclipse.jface.text.source.projection.ProjectionSupport;
+import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 public class IniTextEditor extends ClonkTextEditor {
 	
-	private IniUnit unit;
-	private boolean unitParsed;
-	private int unitLocked;
+	public static final class TextChangeListener extends TextChangeListenerBase<IniTextEditor, IniUnit> {
+		
+		private static final Map<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>> listeners = new HashMap<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>>();
+
+		private boolean unitParsed;
+		public int unitLocked;
+		
+		private final Timer reparseTimer = new Timer("Reparse Timer");
+		private TimerTask reparseTask;
+		
+		public TextChangeListener() {
+			super();
+		}
+		
+		@Override
+		public void documentChanged(DocumentEvent event) {
+			super.documentChanged(event);
+			forgetUnitParsed();
+			reparseTask = cancelTimerTask(reparseTask);
+			reparseTimer.schedule(reparseTask = new TimerTask() {
+				@Override
+				public void run() {
+					boolean foundClient = false;
+					for (final IniTextEditor ed : clients) {
+						if (!foundClient) {
+							foundClient = true;
+							ensureIniUnitUpToDate(ed);
+						}
+						Display.getDefault().asyncExec(new Runnable() {
+							@Override
+							public void run() {
+								ed.updateFoldingStructure();								
+							}
+						});
+					}
+				}
+			}, 700);
+		}
+		public static TextChangeListener addTo(IDocument document, IniUnit unit, IniTextEditor client)  {
+			try {
+				return addTo(listeners, TextChangeListener.class, document, unit, client);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		public void forgetUnitParsed() {
+			if (unitLocked == 0)
+				unitParsed = false;
+		}
+		public boolean ensureIniUnitUpToDate(IniTextEditor editor) {
+			if (!unitParsed) {
+				unitParsed = true;
+				String newDocumentString = editor != null ? editor.getSourceViewer().getDocument().get() : document.get();
+				structure.parser().reset(newDocumentString);
+				structure.parser().parse(false, false);
+			}
+			return true;
+		}
+	}
 	
 	public IniTextEditor() {
 		super();
@@ -23,60 +102,113 @@ public class IniTextEditor extends ClonkTextEditor {
 	
 	@Override
 	public void refreshOutline() {
-		forgetUnitParsed();
+		textChangeListener.forgetUnitParsed();
 		if (outlinePage != null)
-			outlinePage.setInput(getIniUnit());
-	}
-	
-	public boolean ensureIniUnitUpToDate() {
-		if (!unitParsed) {
-			unitParsed = true;
-			try {
-				unit = IniUnit.createAdequateIniUnit(Utilities.getEditingFile(this), getDocumentProvider().getDocument(getEditorInput()).get());
-				unit.parse(false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return unit != null;
+			outlinePage.setInput(unit());
 	}
 	
 	@Override
-	public C4Declaration getTopLevelDeclaration() {
-		return getIniUnit(); 
+	public Declaration topLevelDeclaration() {
+		return unit(); 
 	}
 
-	public void forgetUnitParsed() {
-		if (unitLocked == 0)
-			unitParsed = false;
-	}
-
-	public IniUnit getIniUnit() {
-		ensureIniUnitUpToDate();
+	public IniUnit unit() {
+		IniUnit unit = null;
+		try {
+			unit = (IniUnit) Structure.pinned(Utilities.fileBeingEditedBy(this), true, false);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		if (textChangeListener == null && unit != null && unit.isEditable()) {
+			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
+		}
+		else if (textChangeListener != null)
+			textChangeListener.ensureIniUnitUpToDate(this);
 		return unit;
 	}
 	
 	public void lockUnit() {
-		unitLocked++;
+		textChangeListener.unitLocked++;
 	}
 	
 	public void unlockUnit() {
-		unitLocked--;
+		textChangeListener.unitLocked--;
+	}
+	
+	private TextChangeListener textChangeListener;
+	
+	// projection support
+	private ProjectionSupport projectionSupport;
+	private ProjectionAnnotationModel projectionAnnotationModel;
+	private Annotation[] oldAnnotations;
+	
+	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
+		if (item.childCollection() != null) {
+			for (INode i : item.childCollection()) {
+				if (i instanceof IniItem) { 
+					if (i instanceof IniSection) {
+						IniSection sec = (IniSection) i;
+						positions.add(new Position(sec.location().getOffset(), sec.sectionEnd()-sec.location().getOffset()));
+					}
+					collectAnnotationPositions((IniItem) i, positions);
+				}
+			}
+		}
+	}
+	
+	public void updateFoldingStructure() {
+		List<Position> positions = new ArrayList<Position>(20);
+		collectAnnotationPositions(unit(), positions);
+		Annotation[] annotations = new Annotation[positions.size()];
+		
+		// this will hold the new annotations along with their corresponding positions
+		HashMap<Annotation, Position> newAnnotations = new HashMap<Annotation, Position>();
+		
+		for(int i =0;i<positions.size();i++) {
+			ProjectionAnnotation annotation = new ProjectionAnnotation();
+			newAnnotations.put(annotation,positions.get(i));
+			annotations[i] = annotation;
+		}
+		projectionAnnotationModel.modifyAnnotations(oldAnnotations, newAnnotations, null);
+		oldAnnotations = annotations;
 	}
 	
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
+		ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
+		projectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(), getSharedColors());
+		projectionSupport.install();
+		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
+		projectionAnnotationModel = projectionViewer.getProjectionAnnotationModel();
+		
+		unit();
+		updateFoldingStructure();
+	}
 
-			public void documentAboutToBeChanged(DocumentEvent event) {
-			}
+	public boolean ensureIniUnitUpToDate() {
+		return textChangeListener.ensureIniUnitUpToDate(this);
+	}
 
-			public void documentChanged(DocumentEvent event) {
-				forgetUnitParsed();
-			}
-			
-		});
+	public void forgetUnitParsed() {
+		textChangeListener.forgetUnitParsed();
+	}
+	
+	@Override
+	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		getSourceViewerDecorationSupport(viewer);
+		return viewer;
+	}
+	
+	@Override
+	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+		return textChangeListener;
+	}
+	
+	@Override
+	protected void editorSaved() {
+		super.editorSaved();
 	}
 	
 }

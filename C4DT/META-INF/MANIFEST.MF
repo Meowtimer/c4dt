@@ -2,28 +2,27 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: C4DT
 Bundle-SymbolicName: net.arctics.clonk;singleton:=true
-Bundle-Version: 1.5.3.v20100131
-Bundle-Activator: net.arctics.clonk.ClonkCore
+Bundle-Version: 1.7.1.qualifier
+Bundle-Activator: net.arctics.clonk.Core
 Bundle-Localization: res/plugin
 Require-Bundle: org.eclipse.core.databinding;bundle-version="[1.2,2.0)",
- org.eclipse.core.expressions;bundle-version="[3.4.100,3.7.0)",
- org.eclipse.core.resources;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.core.runtime;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.debug.core;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.debug.ui;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.jface.text;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ltk.core.refactoring;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ltk.ui.refactoring;bundle-version="[3.4.100,3.7.0)",
- org.eclipse.osgi.services;bundle-version="[3.2.0,3.7.0)",
- org.eclipse.search;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ui;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ui.console;bundle-version="[3.4.0,3.7.0)",
- org.eclipse.ui.editors;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ui.forms;bundle-version="[3.4.0,3.7.0)",
- org.eclipse.ui.ide;bundle-version="[3.5.0,3.7.0)",
- org.eclipse.ui.navigator;bundle-version="[3.4.0,3.7.0)",
- org.eclipse.ui.views;bundle-version="[3.4.0,3.7.0)",
- org.eclipse.swt;bundle-version="[3.4.0,3.7.0)"
+ org.eclipse.core.expressions;bundle-version="[3.4.100,4.5.0)",
+ org.eclipse.core.resources;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.core.runtime;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.debug.core;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.debug.ui;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.jface.text;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ltk.core.refactoring;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ltk.ui.refactoring;bundle-version="[3.4.100,4.5.0)",
+ org.eclipse.search;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ui;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ui.console;bundle-version="[3.4.0,4.5.0)",
+ org.eclipse.ui.editors;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ui.forms;bundle-version="[3.4.0,4.5.0)",
+ org.eclipse.ui.ide;bundle-version="[3.5.0,4.5.0)",
+ org.eclipse.ui.navigator;bundle-version="[3.4.0,4.5.0)",
+ org.eclipse.ui.views;bundle-version="[3.4.0,4.5.0)",
+ org.eclipse.swt;bundle-version="[3.4.0,4.5.0)"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: org.eclipse.core.filesystem,
@@ -35,6 +34,11 @@ Import-Package: org.eclipse.core.filesystem,
  org.eclipse.ui.texteditor.spelling
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
+ net.arctics.clonk.parser.c4script,
+ net.arctics.clonk.parser.c4script.ast,
+ net.arctics.clonk.index,
+ net.arctics.clonk.debug,
+ net.arctics.clonk.parser.mapcreator,
  net.arctics.clonk.preferences,
  net.arctics.clonk.resource,
  net.arctics.clonk.resource.c4group,

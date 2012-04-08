@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import org.eclipse.search.ui.text.Match;
 
 public class ClonkSearchMatch extends Match {
@@ -22,13 +22,17 @@ public class ClonkSearchMatch extends Match {
 		this.potential = potential;
 		this.indirect = indirect;
 	}
-
+	
 	public String getLine() {
 		return line;
 	}
 
-	public C4Structure getStructure() {
-		return (C4Structure) getElement();
+	public Structure getStructure() {
+		Structure s = (Structure) getElement();
+		if (s != null)
+			return (Structure) s.latestVersion();
+		else
+			return null;
 	}
 
 	public int getLineOffset() {

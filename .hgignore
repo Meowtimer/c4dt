@@ -17,3 +17,11 @@ l10n_template/*
 copy_engine_to_res
 C4DTMapeNative/*
 C4DTMape/*
+glob:*.savedSearch
+glob:*.orig
+glob:C4DT/.settings/org.eclipse.core.resources.prefs
+glob:net.arctics.clonk
+C4DT/doc/*
+snippets/*
+glob:*.settings/*
+C4DTBuild

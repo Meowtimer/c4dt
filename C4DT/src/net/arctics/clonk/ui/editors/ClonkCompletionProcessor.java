@@ -3,19 +3,22 @@ package net.arctics.clonk.ui.editors;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Variable;
+
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
 
-	public EditorType getEditor() {
+	public EditorType editor() {
 		return editor;
 	}
 
@@ -25,82 +28,73 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		this.editor = editor;
 	}
 	
-	protected void proposalForObject(C4Object obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
+	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		try {
-			if (obj == null || obj.getId() == null)
+			if (def == null || def.id() == null)
 				return;
-			
-			// skip external objects from ignored libs
-			/*
-			if (obj instanceof C4ObjectExtern) {
-				C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
-				if (script != null && script.getIndex() != null && !script.getIndex().acceptsFromExternalLib(((C4ObjectExtern)obj).getExternalLib()))
-					return;
-			}*/
 
 			if (prefix != null) {
 				if (!(
-					obj.getName().toLowerCase().contains(prefix) ||
-					obj.getId().getName().toLowerCase().contains(prefix) ||
+					def.name().toLowerCase().contains(prefix) ||
+					def.id().stringValue().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().contains(prefix))
+					(def instanceof Definition && def.definitionFolder() != null && def.definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}
-			String displayString = obj.getName();
-			int replacementLength = prefix != null ? prefix.length() : 0;
+			String displayString = def.name();
+			int replacementLength = prefix != null ? prefix.length() : 0; 
 
-			// no need for context information
-//			String contextInfoString = obj.getName();
-//			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
-
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName(), getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
+				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
+			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(obj.toString());
+			System.out.println(def.toString());
 		}
 	}
 	
-	protected void proposalsForIndexedObjects(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (C4Object obj : index.objectsIgnoringRemoteDuplicates(((IFileEditorInput)editor.getEditorInput()).getFile())) {
-			proposalForObject(obj, prefix, wordOffset, proposals);
+	protected IFile pivotFile() {
+		return ((IFileEditorInput)editor.getEditorInput()).getFile();
+	}
+	
+	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
+		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
+			proposalForDefinition(obj, prefix, wordOffset, proposals);
 		}
 	}
 	
-	protected void proposalForFunc(C4Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
+	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
 		if (prefix != null) {
-			if (!func.getName().toLowerCase().startsWith(prefix))
+			if (!func.name().toLowerCase().startsWith(prefix))
 				return;
 		}
-		String displayString = func.getLongParameterString(true);
-		int replacementLength = 0;
-		if (prefix != null) replacementLength = prefix.length();
-		
-		/*String contextInfoString = func.getLongParameterString(false);
-		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
-		
-		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, func.getInfoText()," - " + parentName, getEditor()); //$NON-NLS-1$
+		int replacementLength = prefix != null ? prefix.length() : 0;
+
+		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			func, replacement, offset, replacementLength,
+			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
+		);
+		prop.setCategory(Category.Functions);
 		proposals.add(prop);
 	}
 	
-	protected ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
-		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
+	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
+		if (prefix != null && !var.name().toLowerCase().contains(prefix))
 			return null;
-		if (var.getScript() == null)
-			return null;
-		String displayString = var.getName();
+		String displayString = var.name();
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			var.getName(), offset, replacementLength, var.getName().length(), UI.getIconForVariable(var), displayString, 
-			null, var.getInfoText(), " - " + var.getScript().getName(), //$NON-NLS-1$
-			getEditor()
+			var,
+			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
+			null, var.infoText(), " - " + (var.script() != null ? var.script().name() : "<adhoc>"), //$NON-NLS-1$
+			editor()
 		);
+		prop.setCategory(Category.Variables);
 		proposals.add(prop);
 		return prop;
 	}
@@ -108,24 +102,18 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
 		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
-			public int compare(ICompletionProposal propA, ICompletionProposal propB) {
-				String dispA = propA.getDisplayString(), dispB = propB.getDisplayString();
-				if (dispA.startsWith("[")) { //$NON-NLS-1$
-					if (!dispB.startsWith("[")) { //$NON-NLS-1$
-						return 1;
-					}
+			@Override
+			public int compare(ICompletionProposal a, ICompletionProposal b) {
+				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal) {
+					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
 				}
-				else if (dispB.startsWith("[")) { //$NON-NLS-1$
-					if (!dispA.startsWith("[")) { //$NON-NLS-1$
-						return -1;
-					}
-				}
-				return dispA.compareToIgnoreCase(dispB);
+				return 1;
 			}
 		});
 		return arr;
 	}
 	
+	@Override
 	public String getErrorMessage() {
 		return null;
 	}

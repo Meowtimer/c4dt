@@ -1,15 +1,8 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
 package net.arctics.clonk.ui.refactoring;
 
+import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
+
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -20,12 +13,17 @@ import org.eclipse.swt.widgets.Text;
 
 class ClonkRenameInputWizardPage extends UserInputWizardPage {
 
-	protected ClonkRenameInputWizardPage(String name) {
+	private RenameDeclarationProcessor processor;
+	private Text newNameText;
+	
+	protected ClonkRenameInputWizardPage(String name, RenameDeclarationProcessor processor) {
 		super(name);
+		this.processor = processor;
 		setTitle(Messages.ClonkRenameInputWizardPage_SupplyTheName);
 		setDescription(Messages.ClonkRenameInputWizardPage_SupplyTheNameDesc);
 	}
 
+	@Override
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		setControl(container);
@@ -33,9 +31,26 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 		container.setLayout(layout);
 		Label labelObj = new Label(container, SWT.NULL);
 		labelObj.setText(Messages.ClonkRenameInputWizardPage_NewName);
-		Text result = new Text(container, SWT.BORDER | SWT.SINGLE);
+		newNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		result.setLayoutData(gd);
+		newNameText.setLayoutData(gd);
+		newNameText.setText(processor.getNewName());
+	}
+	
+	@Override
+	public IWizardPage getNextPage() {
+		commitConfigurationToProcessor();
+		return super.getNextPage();
+	}
+
+	protected void commitConfigurationToProcessor() {
+		processor.setNewName(newNameText.getText());
+	}
+	
+	@Override
+	protected boolean performFinish() {
+		commitConfigurationToProcessor();
+		return super.performFinish();
 	}
 
 }

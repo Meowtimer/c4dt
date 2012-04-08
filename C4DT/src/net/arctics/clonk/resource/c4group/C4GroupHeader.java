@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
+import net.arctics.clonk.Core;
+
 /**
  * The header of a C4Group group
  * @author ZokRadonh
@@ -13,7 +15,7 @@ import java.io.UnsupportedEncodingException;
  */
 public class C4GroupHeader implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final int STORED_SIZE = 204;
 	
     private String id;
@@ -66,7 +68,7 @@ public class C4GroupHeader implements Serializable {
     	}
     }
     
-	public static C4GroupHeader createFromStream(InputStream stream) throws InvalidDataException, IOException {
+	public static C4GroupHeader createFromStream(InputStream stream) throws C4GroupInvalidDataException, IOException {
     	C4GroupHeader result = new C4GroupHeader();
     	
     	// read header
@@ -86,20 +88,20 @@ public class C4GroupHeader implements Serializable {
     	int compare = result.id.compareTo("RedWolf Design GrpFolder"); //$NON-NLS-1$
     	if (compare > 0) {
     		C4Group.MemScramble(buffer, STORED_SIZE);
-    		throw new InvalidDataException("Header id is invalid ('" + result.id + "')"); //$NON-NLS-1$ //$NON-NLS-2$
+    		throw new C4GroupInvalidDataException("Header id is invalid ('" + result.id + "')"); //$NON-NLS-1$ //$NON-NLS-2$
     		
     	}
     	result.ver1 = byteToInt32(buffer,28);
     	if (result.ver1 != 1) {
-    		throw new InvalidDataException(Messages.C4GroupHeaderInvalid_1);
+    		throw new C4GroupInvalidDataException(Messages.C4GroupHeaderInvalid_1);
     	}
     	result.ver2 = byteToInt32(buffer,32);
     	if (result.ver2 != 2) {
-    		throw new InvalidDataException(Messages.C4GroupHeaderInvalid_2);
+    		throw new C4GroupInvalidDataException(Messages.C4GroupHeaderInvalid_2);
     	}
     	result.entries = byteToInt32(buffer, 36);
     	if (result.entries > 1000) {
-    		throw new InvalidDataException(Messages.C4GroupHeaderSuspicious);
+    		throw new C4GroupInvalidDataException(Messages.C4GroupHeaderSuspicious);
     	}
     	result.maker = byteToString(buffer, 40, 30).trim();
     	result.password = byteToString(buffer, 72, 30).trim();

@@ -104,3 +104,61 @@ are then taken into account in various places
 -Make plugin compatible to Saros
 -Multiple editors for the same file update instantly
 -Some encoding issues fixed
+1.5.3:
+-Support linking of C4Group files (use the Clonk Folder View for this)
+-Set engine for each project so one can share OC and CR projects in the same workspace
+-Fixes
+-Probably more bugs
+1.5.4:
+-Profit!
+1.5.5:
+-Change type system so that variables can have multiple potential types leading to everything being more complicated and probably bug-prone
+-When determining that some variable will refer to an object of a certain type, that type will be shown in info hovers
+1.5.6:
+-Allow long-id constants (see Trajectory in OpenClonk)
+-Preserve empty lines when tidying up code
+-Fixes
+-Show errors and warnings immediately without needing to save a script
+-Return types of functions get shown in outline view
+1.5.7:
+-Tweak type inference system
+-Support for initializing non-const variables in their declaration
+-Improved OpenClonk compatibility
+-Only automatically insert closing brackets when writing a function call or inserting a completion (write 'Log(', get 'Log()')
+-Support links to packets in ini files (Scenario.txt: Definition1=Objects.c4d <- Objects.c4d can be ctrl-clicked)
+-Refine completion proposal showing
+-Refined script parser error messages
+-When editing inside functions in scripts, parser errors will be shown in near-realtime
+-Line endings in Clonk files can be converted using File -> Convert Line Delimiters To
+-Bugfixes
+1.5.8:
+-Bugfixes
+-Probably more new bugs introduced
+-Quick fix support (invoked via Ctrl+1)
+-IniTextEditor supports collapsing and expanding sections (amazing!)
+-Improved OpenClonk compatibility
+-If Documentation browser  tab is left open, no new ones will be created when link-clicking other engine functions
+1.5.9:
+-Per-project setting to disable script parser warnings/error
+-Bugfixes and introduction of new bugs
+-Packed c4groups inside projects are treated as regular folders except that they are read-only (but explodable)
+-OC: Templates for new objects/scenarios improved
+-OC: Improved proplist support (links to effect vars in respective effect functions)
+-Customizable templates by creating a "C4DT Customization" Project (accessible through Clonk menu)
+	-Copies of built-in template files can be created using the "C4DT Customization" submenu in the Project Explorer popup menu
+-Reorganize/rename some classes + add documentation
+1.6.0:
+-More aggressive type inference
+-Bugs fixed/New bugs introduced
+1.7.0:
+-OC: Read documentation/definitions from repository (optional)
+	-This is a combination of reading *.xml files from docs and extracting declarations from C4Script.cpp/C4ObjectScript.cpp/C4GameScript.cpp via pattern matching
+-Bugs fixed/New bugs introduced
+-Outline view has filter box
+-Multicore-Clean-Build (?)
+-Link-clicking sound names in Sound(...) calls
+1.7.1:
+-Improved function reference support
+-Support new {...} expression
+-Show included/appended declarations in outline
+-Silliness

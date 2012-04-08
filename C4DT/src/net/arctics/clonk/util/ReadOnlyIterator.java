@@ -10,14 +10,17 @@ public class ReadOnlyIterator<T> implements Iterator<T> {
 		this.wrapped = wrapped;
 	}
 	
+	@Override
 	public boolean hasNext() {
 		return wrapped.hasNext();
 	}
 
+	@Override
 	public T next() {
 		return wrapped.next();
 	}
 
+	@Override
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}

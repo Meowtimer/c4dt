@@ -1,7 +1,10 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import java.util.LinkedList;
+import java.util.List;
+
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -12,12 +15,21 @@ import org.eclipse.debug.core.model.IThread;
 
 public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFrame {
 
-	private static final String NAME_FORMAT = "%s::%s line: %d";
+	private static final String NAME_FORMAT = Messages.ClonkDebugStackFrame_StackFrameMessage;
 	
 	private int line;
 	private Object function;
 	private ClonkDebugThread thread;
 	private ClonkDebugVariable[] variables;
+	
+	public int index() throws DebugException {
+		IStackFrame[] frames = thread.getStackFrames();
+		for (int i = 0; i < frames.length; i++) {
+			if (frames[i] == this)
+				return i;
+		}
+		return -1; 
+	}
 	
 	public ClonkDebugStackFrame(ClonkDebugThread thread, Object function, int line) {
 		super(thread.getTarget());
@@ -28,24 +40,21 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 
 	private void setVariables() {
-		if (function instanceof C4Function) {
-			C4Function f = (C4Function) function;
-			variables = new ClonkDebugVariable[f.getParameters().size()+f.getLocalVars().size()];
-			int i = 0;
-			for (C4Variable parm : f.getParameters()) {
-				variables[i++] = new ClonkDebugVariable(this, parm);
+		if (function instanceof Function) {
+			Function f = (Function) function;
+			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
+			for (Variable parm : f.parameters()) {
+				if (parm.isActualParm())
+					l.add(new ClonkDebugVariable(this, parm));
 			}
-			for (C4Variable local : f.getLocalVars()) {
-				variables[i++] = new ClonkDebugVariable(this, local);
+			for (Variable local : f.localVars()) {
+				l.add(new ClonkDebugVariable(this, local));
 			}
+			variables = l.toArray(new ClonkDebugVariable[l.size()]);
 		}
 		else {
 			variables = NO_VARIABLES;
 		}
-	}
-
-	public int getLine() {
-		return line;
 	}
 
 	public void setLine(int line) {
@@ -77,8 +86,8 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public String getName() throws DebugException {
-		if (function instanceof C4Function)
-			return String.format(NAME_FORMAT, ((C4Function)function).getScript().toString(), ((C4Function) function).getLongParameterString(true), line);
+		if (function instanceof Function)
+			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).longParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else
@@ -186,11 +195,11 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 	
 	public String getSourcePath() {
-		if (function instanceof C4Function) {
-			C4Function f = (C4Function) function;
-			IResource r = f.getScript().getResource();
+		if (function instanceof Function) {
+			Function f = (Function) function;
+			IResource r = f.script().resource();
 			if (r instanceof IContainer)
-				return r.getProjectRelativePath().append("Script.c").toOSString();
+				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$
 			else if (r != null)
 				return r.getProjectRelativePath().toOSString();
 		}

@@ -1,11 +1,10 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
-import net.arctics.clonk.preferences.ClonkPreferences;
+
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupImporter;
-import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -27,20 +26,14 @@ public class QuickImportHandler extends ClonkResourceHandler {
 	public void addHandlerListener(IHandlerListener handlerListener) {}
 	
 	public static File[] selectFiles(String title, IContainer container, boolean noMulti) {
-		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+(noMulti?0:SWT.MULTI));
-		fileDialog.setFilterPath(ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH));
+		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+(noMulti?0:SWT.MULTI));
+		fileDialog.setFilterPath(ClonkProjectNature.engineFromResource(container).settings().gamePath);
 		fileDialog.setText(String.format(title, container.getName()));
-		fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
-		if (fileDialog.open() != null) {
-			return Utilities.map(fileDialog.getFileNames(), File.class, new IConverter<String, File>() { 
-				@Override
-				public File convert(String fileName) {
-					return new File(fileDialog.getFilterPath()+"/"+fileName); //$NON-NLS-1$
-				}
-			});
-		} else {
-			return null;
-		}
+		fileDialog.setFilterExtensions(new String[] {ClonkProjectNature.engineFromResource(container).settings().fileDialogFilterForGroupFiles(), "*.*"}); //$NON-NLS-1$
+		if (fileDialog.open() != null)
+			return ArrayUtil.map(fileDialog.getFileNames(), File.class, new FullPathConverter(fileDialog));
+		else
+			return new File[0];
 	}
 
 	@Override
@@ -56,9 +49,10 @@ public class QuickImportHandler extends ClonkResourceHandler {
 					return;
 				IContainer container = (IContainer) ssel.getFirstElement();
 				
-				File[] files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
+				File[] files;
+				files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
 				if (files != null) {
-					importFiles(HandlerUtil.getActiveWorkbenchWindow(event).getShell(), container, files);
+					importFiles(HandlerUtil.getActiveShell(event), container, files);
 				}
 			}
 		});

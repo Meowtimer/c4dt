@@ -2,6 +2,10 @@ package net.arctics.clonk.ui.wizards;
 
 import java.lang.reflect.Field;
 
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -9,6 +13,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -35,11 +40,25 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected ISelection selection;
 	protected IProject project;
 	
+	/**
+	 * Return group type. Used for setting a fitting icon for the page.
+	 * @return
+	 */
+	protected GroupType groupType() {
+		return null;
+	}
+	
 	public NewClonkFolderWizardPage(ISelection selection) {
 		super("wizardPage"); //$NON-NLS-1$
 		setTitle(Messages.NewClonkFolderWizardPage_Title);
 		setDescription(Messages.NewClonkFolderWizardPage_Description);
 		this.selection = selection;
+		GroupType groupType = this.groupType();
+		if (groupType != null) {
+			Engine engine = ClonkProjectNature.engineFromSelection(selection);
+			if (engine != null)
+				setImageDescriptor(engine.imageDescriptor(groupType.name()+"Big"));
+		}
 	}
 	
 	public Text addTextField(String label) {
@@ -58,6 +77,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		result.setLayoutData(gd);
 		result.addModifyListener(new ModifyListener() {
+			@Override
 			public void modifyText(ModifyEvent event) {
 				if (context != null && property != null) {
 					try {
@@ -79,7 +99,14 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		return result;
 	}
 	
+	@Override
 	public void createControl(Composite parent) {
+		actuallyCreateControl(parent);
+		initialize();
+		dialogChanged();
+	}
+
+	protected void actuallyCreateControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		setControl(container);
 		GridLayout layout = new GridLayout();
@@ -88,10 +115,12 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		layout.verticalSpacing = 9;
 		
 		containerText = addTextField(Messages.NewClonkFolderWizardPage_ContainerText, new IAdditionToTextField() {
+			@Override
 			public void fill(Composite container, Text textField) {
 				Button button = new Button(container, SWT.PUSH);
 				button.setText(Messages.NewClonkFolderWizardPage_BrowseContainer);
 				button.addSelectionListener(new SelectionAdapter() {
+					@Override
 					public void widgetSelected(SelectionEvent e) {
 						handleBrowse();
 					}
@@ -99,17 +128,11 @@ public class NewClonkFolderWizardPage extends WizardPage {
 			}
 		});
 		fileText = addTextField(Messages.NewClonkFolderWizardPage_FolderText);
-		
-		if (getClass() == NewClonkFolderWizardPage.class) {
-			initialize();
-			dialogChanged();
-		}
 	}
 	
 	/**
 	 * Ensures that both text fields are set.
 	 */
-	
 	protected void dialogChanged() {
 		IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(getContainerName()));
 		String fileName = getFileName();
@@ -151,7 +174,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
 				Messages.NewClonkFolderWizardPage_SelectContainerTitle);
-		if (dialog.open() == ContainerSelectionDialog.OK) {
+		if (dialog.open() == Window.OK) {
 			Object[] result = dialog.getResult();
 			if (result.length == 1) {
 				containerText.setText(((Path) result[0]).toString());
@@ -162,7 +185,6 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	/**
 	 * Tests if the current workbench selection is a suitable container to use.
 	 */
-
 	protected void initialize() {
 		if (selection != null && selection.isEmpty() == false && selection instanceof IStructuredSelection) {
 			IStructuredSelection ssel = (IStructuredSelection) selection;
@@ -187,7 +209,14 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 	
 	public String getFileName() {
-		return fileText.getText() + getFolderExtension();
+		if (fileText.getText().equals("") || folderExtension == null)
+			return "";
+		StringBuilder builder = new StringBuilder(fileText.getText().length()+1+folderExtension.length());
+		builder.append(fileText.getText());
+		if (!folderExtension.startsWith("."))
+			builder.append(".");
+		builder.append(folderExtension);
+		return builder.toString();
 	}
 	
 	public String getFolderExtension() {

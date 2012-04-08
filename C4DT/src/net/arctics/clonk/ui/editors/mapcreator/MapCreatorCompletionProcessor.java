@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
+import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -31,10 +31,11 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		super(editor);
 	}
 
+	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		
 		try {
-			getEditor().silentReparse();
+			editor().silentReparse();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -62,8 +63,8 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		C4MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(offset);
-		if (overlay == getEditor().getMapCreator())
+		MapOverlayBase overlay = editor().mapCreator().overlayAt(offset);
+		if (overlay == editor().mapCreator())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
 
@@ -99,7 +100,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 				}
 			}
 			
-			for (String keyword : C4MapOverlayBase.DEFAULT_CLASS.keySet()) {
+			for (String keyword : MapOverlayBase.DEFAULT_CLASS.keySet()) {
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
 			}
@@ -108,19 +109,23 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		return sortProposals(proposals);
 	}
 
+	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
 		return null;
 	}
 
+	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		return null;
 	}

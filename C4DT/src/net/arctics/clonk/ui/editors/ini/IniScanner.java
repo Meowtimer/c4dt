@@ -3,14 +3,14 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
+import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
-import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
-import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
@@ -55,8 +55,8 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		/*
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
+		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
-
 			int character= scanner.read();
 			if (isOperator((char) character)) {
 				do {
@@ -71,15 +71,19 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		}
 	}
 	
-	public IniScanner(ColorManager manager) {
-		
+	public IniScanner(ColorManager manager, Engine engine) {
+		super(manager, engine, "DEFAULT");
+	}
+
+	@Override
+	protected void commitRules(ColorManager manager, Engine engine) {
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		IToken section = createToken(manager, "KEYWORD"); //$NON-NLS-1$
 		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		IToken constant = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
-		IToken comment = createToken(manager, "COMMENT");
+		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		
@@ -99,9 +103,11 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
-		for(C4Variable var : ClonkCore.getDefault().getActiveEngine().variables()) {
-			if (var.getScope() == C4VariableScope.VAR_CONST)
-				wordRule.addWord(var.getName(), constant);
+		if (engine != null) {
+			for (Variable var : engine.variables()) {
+				if (var.scope() == Scope.CONST)
+					wordRule.addWord(var.name(), constant);
+			}
 		}
 		
 		combinedWordRule.addWordMatcher(wordRule);

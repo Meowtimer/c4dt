@@ -4,71 +4,87 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.IPath;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.EntrySubItem;
 
 public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext, ITreeNode {
+
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public KeyValuePair(First first, Second second) {
 		super(first, second);
 	}
 
-	public First getKey() {
-		return getFirst();
+	@Override
+	public First key() {
+		return first();
 	}
 
-	public Second getValue() {
-		return  getSecond();
+	@Override
+	public Second stringValue() {
+		return  second();
 	}
 
-	public void setValue(Second value) {
+	@Override
+	public void setStringValue(Second value, Object context) {
 		setSecond(value);
 	}
 	
 	@Override
 	public String toString() {
-		return getKey().toString()+"="+getValue().toString(); //$NON-NLS-1$
+		return key().toString()+"="+stringValue().toString(); //$NON-NLS-1$
 	}
 
-	public Object getChildValue(int index) {
-		return index == 0 ? getKey() : getValue(); 
+	@Override
+	public Object valueOfChildAt(int index) {
+		return index == 0 ? key() : stringValue(); 
 	}
 
-	public IHasContext[] getChildren(Object context) {
+	@Override
+	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[2];
 		for (int i = 0; i < 2; i++)
 			result[i] = new EntrySubItem<KeyValuePair<First, Second>>(this, context, i);
 		return result;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return true;
 	}
 
-	public void setChildValue(int index, Object value) {
+	@Override
+	public void setValueOfChildAt(int index, Object value) {
 		
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public Collection<? extends ITreeNode> getChildCollection() {
+	@Override
+	public Collection<? extends ITreeNode> childCollection() {
 		return null;
 	}
 
-	public String getNodeName() {
-		return (String) getKey();
+	@Override
+	public String nodeName() {
+		return (String) key();
 	}
 
-	public ITreeNode getParentNode() {
+	@Override
+	public ITreeNode parentNode() {
 		return null;
 	}
 
-	public IPath getPath() {
+	@Override
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}

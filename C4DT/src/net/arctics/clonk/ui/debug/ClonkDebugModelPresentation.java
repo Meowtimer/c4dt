@@ -4,15 +4,11 @@ import net.arctics.clonk.debug.ClonkDebugLineBreakpoint;
 import net.arctics.clonk.debug.ClonkDebugStackFrame;
 import net.arctics.clonk.debug.ClonkDebugTarget;
 import net.arctics.clonk.debug.ClonkDebugThread;
-import net.arctics.clonk.index.IExternalScript;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.model.IWatchExpression;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -25,8 +21,13 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public void computeDetail(IValue value, IValueDetailListener listener) {
-		// TODO Auto-generated method stub
-		
+		try {
+			String val = value.getValueString();
+			listener.detailComputed(value, val);
+		} catch (DebugException e) {
+			e.printStackTrace();
+			listener.detailComputed(value, "Fail"); //$NON-NLS-1$
+		}
 	}
 
 	@Override
@@ -37,18 +38,17 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
-		if (element instanceof IFile && Utilities.getScriptForFile((IFile) element) != null)
-			return "clonk.editors.C4ScriptEditor";
-		else
-			return null;
+		return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
 	}
 
 	@Override
 	public IEditorInput getEditorInput(Object element) {
 		if (element instanceof IFile)
 			return new FileEditorInput((IFile) element);
-		else if (element instanceof IExternalScript)
-			return new ScriptWithStorageEditorInput((C4ScriptBase)element);
+		else if (element instanceof ClonkDebugLineBreakpoint) {
+			ClonkDebugLineBreakpoint breakpoint = (ClonkDebugLineBreakpoint) element;
+			return getEditorInput(breakpoint.getMarker().getResource());
+		}
 		return null;
 	}
 	
@@ -62,12 +62,16 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 			else if (element instanceof ClonkDebugTarget)
 				return ((ClonkDebugTarget) element).getName();
 			else if (element instanceof ClonkDebugLineBreakpoint)
-				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint");
+				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
+			else if (element instanceof IWatchExpression) {
+				IWatchExpression expr = (IWatchExpression) element;
+				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
 			else
-				return "Empty";
+				return "Empty"; //$NON-NLS-1$
 		} catch (DebugException e) {
 			e.printStackTrace();
-			return "Fail";
+			return "Fail"; //$NON-NLS-1$
 		}
 	}
 

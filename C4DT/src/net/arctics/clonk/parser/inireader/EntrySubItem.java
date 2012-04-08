@@ -23,38 +23,46 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	private Object context;
 	private int index;
 
+	@Override
 	public Object context() {
 		return context;
 	}
 
-	public String getKey() {
+	@Override
+	public String key() {
 		return "["+String.valueOf(index)+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	public String getValue() {
-		return entry.getChildValue(index).toString();
+	@Override
+	public String stringValue() {
+		return entry.valueOfChildAt(index).toString();
 	}
 
-	public void setValue(String value) {
-		entry.setChildValue(index, value);
+	@Override
+	public void setStringValue(String value, Object context) {
+		entry.setValueOfChildAt(index, value);
 	}
 
-	public Object getChildValue(int index) {
+	@Override
+	public Object valueOfChildAt(int index) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public IHasContext[] getChildren(Object context) {
+	@Override
+	public IHasContext[] children(Object context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	public void setChildValue(int index, Object value) {
+	@Override
+	public void setValueOfChildAt(int index, Object value) {
 		// TODO Auto-generated method stub
 		
 	}

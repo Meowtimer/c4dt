@@ -1,0 +1,5 @@
+{
+	"d11n": "Documentation",
+	"ulvasir": "Use local var as interim result",
+	"NC": "Null Check"
+}

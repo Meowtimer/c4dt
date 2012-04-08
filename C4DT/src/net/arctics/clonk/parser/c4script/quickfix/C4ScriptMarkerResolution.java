@@ -1,14 +1,12 @@
 package net.arctics.clonk.parser.c4script.quickfix;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
-import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
@@ -33,15 +31,17 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 		this.region = new Region(charStart, charEnd-charStart);
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
 
+	@Override
 	public void run(IMarker marker) {
-		C4ScriptBase script = Utilities.getScriptForFile((IFile) marker.getResource());
-		C4Function func = script.funcAt(region.getOffset()); 
-		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
-		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
+		Script script = Script.get(marker.getResource(), true);
+		Function func = script.funcAt(region.getOffset()); 
+		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.body().getOffset());
+		TextFileDocumentProvider provider = Core.instance().getTextFileDocumentProvider();
 		IDocument doc = null;
 		try {
 			provider.connect(marker.getResource());
@@ -53,7 +53,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			doc = provider.getDocument(marker.getResource());
 			C4ScriptParser parser;
 			try {
-				parser = C4ScriptParser.reportExpressionsAndStatements(doc, func.getBody(), script, func, locator);
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;
@@ -61,7 +61,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			ExprElm expr = locator.getTopLevelInRegion();
 			if (expr != null) {
 				try {
-					doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveNewStyleReplacement(parser).toString());
+					doc.replace(expr.getOffset()+func.body().getOffset(), expr.getLength(), expr.exhaustiveOptimize(parser).toString());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -71,10 +71,12 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 		}
 	}
 
+	@Override
 	public String getDescription() {
 		return description;
 	}
 
+	@Override
 	public Image getImage() {
 		return null;
 	}

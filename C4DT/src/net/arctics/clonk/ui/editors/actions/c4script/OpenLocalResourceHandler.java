@@ -10,6 +10,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 import org.eclipse.ui.dialogs.FilteredResourcesSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -22,6 +23,8 @@ public class OpenLocalResourceHandler extends AbstractHandler {
 		if (page != null && page.getActiveEditor() != null && page.getActiveEditor().getEditorInput() instanceof FileEditorInput) {
 			IContainer container = ((FileEditorInput)page.getActiveEditor().getEditorInput()).getFile().getParent();
 			FilteredResourcesSelectionDialog dialog = new FilteredResourcesSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), true, container, IResource.FILE);
+			dialog.setTitle(String.format(Messages.OpenLocalResourceHandler_OpenResourceInside, container.getProjectRelativePath().toOSString()));
+			dialog.setInitialPattern("*.*", FilteredItemsSelectionDialog.FULL_SELECTION);
 			switch (dialog.open()) {
 			case Window.OK:
 				for (Object f : dialog.getResult()) {

@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -38,8 +38,7 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Project selection widgets */
-	private Text fProjText;
-	private Button fProjButton;
+	private UI.ProjectSelectionBlock projectEditor;
 	
 	/** Scenario selection widgets */
 	private Text fScenText;
@@ -53,16 +52,16 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Listener used to track changes in widgets */
 	private class WidgetListener implements ModifyListener, SelectionListener {
-
+		@Override
 		public void modifyText(ModifyEvent e) {
 			updateLaunchConfigurationDialog();
 		}
-
+		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 		}
-
+		@Override
 		public void widgetSelected(SelectionEvent e) {
-			if(e.getSource() == fProjButton)
+			if(e.getSource() == projectEditor.addButton)
 				chooseClonkProject();
 			else if(e.getSource() == fScenButton)
 				chooseScenario();
@@ -75,6 +74,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	WidgetListener fListener = new WidgetListener();
 	
 	/** Places all needed widgets into the tab */
+	@Override
 	public void createControl(Composite parent) {
 
 		// Create top-level composite
@@ -96,24 +96,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	 */
 	private void createProjectEditor(Composite parent)
 	{
-		
-		// Create widget group
-		Group grp = new Group(parent, SWT.NONE);
-		grp.setText(Messages.LaunchMainTab_ProjectTitle);
-		grp.setLayout(new GridLayout(2, false));
-		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		grp.setFont(parent.getFont());
-		
-		// Text plus button
-		fProjText = new Text(grp, SWT.SINGLE | SWT.BORDER);
-		fProjText.setFont(parent.getFont());
-		fProjText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fProjButton = createPushButton(grp, Messages.LaunchMainTab_Browse, null);
-		
-		// Install listener
-		fProjText.addModifyListener(fListener);
-		fProjButton.addSelectionListener(fListener);
-		
+		projectEditor = new UI.ProjectSelectionBlock(parent, fListener, fListener, null, Messages.LaunchMainTab_ProjectTitle);
 	}
 	
 	
@@ -182,16 +165,18 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 	
 	/** The name of the tab */
+	@Override
 	public String getName() {
 		return Messages.LaunchMainTab_Main;
 	}
 	
+	@Override
 	public void initializeFrom(ILaunchConfiguration conf) {
 		
 		try {
 
 			// Read attributes
-			fProjText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
+			projectEditor.text.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
 			fScenText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "")); //$NON-NLS-1$
 			fFullscreenButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false));
 			fConsoleButton.setSelection(!fFullscreenButton.getSelection());
@@ -203,7 +188,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			
 			// Set defaults
 			fScenText.setText("");	 //$NON-NLS-1$
-			fProjText.setText(""); //$NON-NLS-1$
+			projectEditor.text.setText(""); //$NON-NLS-1$
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
@@ -212,18 +197,20 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 	}
 
+	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy wc) {
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, fProjText.getText());
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.text.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, fFullscreenButton.getSelection());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, fRecordButton.getSelection());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, fCustomOptions.getText());
 	}
 
+	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // FIXME: Mac Clonk crashes when run with /console but has windowed mode
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // Clonk Rage for Mac will crash when passing /console
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false);
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, ""); //$NON-NLS-1$
 	}
@@ -231,7 +218,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public IProject validateProject() {
 		
 		// Must be a valid path segment
-		String projectName = fProjText.getText();
+		String projectName = projectEditor.text.getText();
 		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
 			setErrorMessage(Messages.LaunchMainTab_InvalidProjectName);
 			return null;
@@ -259,14 +246,12 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Must be a valid scenario file name
 		String scenName = fScenText.getText();
-		if(C4Group.getGroupType(scenName) != C4Group.C4GroupType.ScenarioGroup) {
+		if (getEngine().groupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
 		
 		// Must exist in project
-		// TODO: Allow plain files, too? Launch should not be a problem, at least
-		//       until we do more magic with the scenario's innards.
 		IResource scenFile = project.getFolder(scenName);
 		if(!scenFile.exists()) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioDoesNotExist);
@@ -295,12 +280,15 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	public void chooseClonkProject() {
-		
-		IProject project = Utilities.clonkProjectSelectionDialog(validateProject());
+		IProject project = UI.selectClonkProject(validateProject());
 		if (project != null) {
-			fProjText.setText(project.getName());
+			projectEditor.text.setText(project.getName());
 		}
-
+	}
+	
+	public Engine getEngine() {
+		ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
+		return nat != null ? nat.index().engine() : null;
 	}
 	
 	public void chooseScenario() {
@@ -311,20 +299,20 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		//       But it's the way Eclipse's built-in tabs work, so whatever...
 		final Collection<IResource> scenarios = new LinkedList<IResource>();
 		IResourceVisitor scenCollector = new IResourceVisitor() {
+			@Override
 			public boolean visit(IResource res) throws CoreException {
 				// Top-level
 				if(res instanceof IProject)
 					return true;
 				// Type lookup
-				C4Group.C4GroupType type = 
-					C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(res.getFileExtension());
-				if(type == C4Group.C4GroupType.ScenarioGroup)
+				C4Group.GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
+				if(type == C4Group.GroupType.ScenarioGroup)
 					scenarios.add(res);
 				// Only recurse into scenario folders
-				return type == C4Group.C4GroupType.FolderGroup;
+				return type == C4Group.GroupType.FolderGroup;
 			}
 		};
-		for(IProject proj : Utilities.getClonkProjects())
+		for(IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 			try {
 				proj.accept(scenCollector);
 			} catch (CoreException e) {}
@@ -339,7 +327,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Show
 		if(dialog.open() == Window.OK) {
 			IResource scen = (IResource) dialog.getFirstResult();
-			fProjText.setText(scen.getProject().getName());
+			projectEditor.text.setText(scen.getProject().getName());
 			fScenText.setText(scen.getProjectRelativePath().toString());
 		}
 		

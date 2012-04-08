@@ -4,8 +4,13 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ide.IDEEncoding;
 import org.eclipse.ui.ide.dialogs.AbstractEncodingFieldEditor;
+import org.eclipse.ui.ide.dialogs.EncodingFieldEditor;
 
-// copypasta'd because EncodingFieldEditor doesn't play well with FieldEditorPreferencePage
+/**
+ * Class copypasta'd from {@link EncodingFieldEditor}, adjusted to be more forgiving when used in the context of Clonk preference pages.
+ * @author madeen
+ *
+ */
 public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEditor {
 	
 	/**
@@ -47,6 +52,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.internal.ide.dialogs.AbstractEncodingFieldEditor#getStoredValue()
 	 */
+	@Override
 	protected String getStoredValue() {
 		String val = getPreferenceStore().getString(getPreferenceName());
 		// return null if equal to default so AbstractEncodingFieldEditor will reflect that
@@ -59,6 +65,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.FieldEditor#doStore()
 	 */
+	@Override
 	protected void doStore() {
 		String encoding = getSelectedEncoding();
 		

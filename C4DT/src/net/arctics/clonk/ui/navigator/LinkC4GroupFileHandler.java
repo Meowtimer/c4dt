@@ -4,8 +4,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
-import net.arctics.clonk.filesystem.C4GroupFileSystem;
-import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.c4group.C4GroupFileSystem;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -17,8 +16,6 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -31,11 +28,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 			Object obj = ((IStructuredSelection)sel).getFirstElement();
 			if (obj instanceof IProject) {
 				IProject proj = (IProject) obj;
-				FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
-				fileDialog.setFilterPath(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH));
-				String filePath;
-				if ((filePath = fileDialog.open()) != null) {
-					File f = new File(filePath);
+				for (File f : QuickImportHandler.selectFiles("Select C4Group files", proj, false)) {
 					linkC4GroupFile(proj, f);
 				}
 			}
@@ -51,7 +44,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						linkedFolder.createLink(new URI("c4group", C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
+						linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

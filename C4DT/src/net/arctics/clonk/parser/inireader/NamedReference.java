@@ -2,11 +2,12 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
-public class NamedReference implements IIniEntryValue {
+public class NamedReference extends IniEntryValueBase {
 
 	private String value;
 	
-	public void setInput(String value, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 	

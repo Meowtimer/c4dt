@@ -1,35 +1,33 @@
 package net.arctics.clonk.ui.editors.ini;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
-import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IconSpec;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ExternalLib;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -61,6 +59,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		super(editor);
 	}
 
+	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		Collection<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 
@@ -69,7 +68,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		int lineStart;
 		try {
 			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
-			line = doc.get(lineRegion.getOffset(), lineRegion.getLength()).trim();
+			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
 		} catch (BadLocationException e) {
 			line = ""; //$NON-NLS-1$
@@ -91,53 +90,64 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
 		}
-		prefix = prefix.toLowerCase();
+		prefix = prefix.toLowerCase();	
 
-		section = getEditor().getIniUnit().sectionAtOffset(lineStart, line.length());
+		editor().ensureIniUnitUpToDate();
+		section = editor().unit().sectionAtOffset(offset);
 
 		if (!assignment) {
 			if (section != null) {
-				IniSectionData d = section.getSectionData();
+				IniDataSection d = section.sectionData();
 				if (d != null) {
 					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
-				// also propose new sections
-				IniUnit unit = getEditor().getIniUnit();
-				proposalsForIniUnit(proposals, prefix, wordOffset, unit);
+				if (section.parentSection() != null && section.parentSection().sectionData() != null) {
+					// also propose new sections
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().sectionData().getEntries().values());
+				} else if (section.parentDeclaration() instanceof IniUnit) {
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.parentDeclaration()).configuration().getSections().values());
+				}
+				int indentation = editor().unit().parser().indentationAt(offset);
+				if (indentation == section.indentation()+1) {
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.sectionData().getEntries().values());
+				}
 			}
 		}
 		else if (assignment && section != null) {
-			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
-			Class<?> entryClass = entryDef.getEntryClass();
-			if (entryClass == C4ID.class) {
-				proposalsForIndex(offset, proposals, prefix, wordOffset);
-			}
-			else if (entryClass == String.class) {
-				proposalsForStringEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
-				proposalsForIntegerEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == Function.class) {
-				proposalsForFunctionEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == IDArray.class) {
-				int lastDelim = prefix.lastIndexOf(';');
-				prefix = prefix.substring(lastDelim+1);
-				wordOffset += lastDelim+1;
-				proposalsForIndex(offset, proposals, prefix, wordOffset);
-			}
-			else if (entryClass == Boolean.class) {
-				proposalsForBooleanEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == DefinitionPack.class) {
-				proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == CategoriesArray.class) {
-				int lastDelim = prefix.lastIndexOf('|');
-				prefix = prefix.substring(lastDelim+1);
-				wordOffset += lastDelim+1;
-				proposalsForCategoriesArray(proposals, prefix, wordOffset, entryDef);
+			IniDataBase itemData = section.sectionData().getEntry(entryName);
+			if (itemData instanceof IniDataEntry) {
+				IniDataEntry entryDef = (IniDataEntry) itemData;
+				Class<?> entryClass = entryDef.entryClass();
+				if (entryClass == ID.class || entryClass == IconSpec.class) {
+					proposalsForIndex(offset, proposals, prefix, wordOffset);
+				}
+				else if (entryClass == String.class) {
+					proposalsForStringEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
+					proposalsForIntegerEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == FunctionEntry.class) {
+					proposalsForFunctionEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == IDArray.class) {
+					int lastDelim = prefix.lastIndexOf(';');
+					prefix = prefix.substring(lastDelim+1);
+					wordOffset += lastDelim+1;
+					proposalsForIndex(offset, proposals, prefix, wordOffset);
+				}
+				else if (entryClass == Boolean.class) {
+					proposalsForBooleanEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == DefinitionPack.class) {
+					proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == CategoriesArray.class) {
+					int lastDelim = prefix.lastIndexOf('|');
+					prefix = prefix.substring(lastDelim+1);
+					wordOffset += lastDelim+1;
+					proposalsForCategoriesArray(proposals, prefix, wordOffset, entryDef);
+				}
 			}
 		}
 
@@ -145,15 +155,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
-		if (entryDef.getFlags() != null) {
-			for (String flag : entryDef.getFlags()) {
-				if (flag.toLowerCase().contains(prefix))
-					proposals.add(new CompletionProposal(flag, wordOffset, prefix.length(), flag.length()));
-			}
-		}
-		else {
-			for (C4Variable v : ClonkCore.getDefault().getActiveEngine().variables()) {
-				if (v.getScope() == C4VariableScope.VAR_CONST) {
+		if (prefix != null) {
+			for (Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix())) {
+				if (v.scope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
 			}
@@ -161,31 +165,22 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		proposalsForIndexedObjects(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
-		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
-		if (index != null)
-			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
+		Index index = Utilities.indexFromResource(editor().unit().iniFile());
+		if (index != null) {
+			for (Index i : index.relevantIndexes()) {
+				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
+			}
+		}
 	}
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.getTopLevelDeclaration().getResource().getProject());
-		List<ClonkIndex> indexes = new ArrayList<ClonkIndex>(10);
-		indexes.add(ClonkCore.getDefault().getExternIndex());
-		indexes.addAll(nature.getIndex().relevantIndexes());
-		for (ClonkIndex index : indexes) {
-			if (index instanceof ExternIndex) {
-				for (ExternalLib lib : ((ExternIndex)index).getLibs()) {
-					if (!lib.getNodeName().toLowerCase().contains(prefix))
-						continue;
-					if (C4Group.getGroupType(lib.getNodeName()) != C4GroupType.DefinitionGroup)
-						continue;
-					proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
-				}
-			}
+		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.topLevelDeclaration().resource().getProject());
+		List<Index> indexes = nature.index().relevantIndexes();
+		for (Index index : indexes) {
 			if (index instanceof ProjectIndex) {
 				try {
-					for (IResource res : ((ProjectIndex)index).getProject().members()) {
-						if (res instanceof IContainer && C4Group.getGroupType(res.getName()) == C4GroupType.DefinitionGroup)
+					for (IResource res : ((ProjectIndex)index).project().members()) {
+						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(prefix))
 								proposals.add(new CompletionProposal(res.getName(), wordOffset, prefix.length(), res.getName().length()));
 					}
@@ -196,29 +191,38 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniUnit unit) {
-		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
-			if (sec.getSectionName().toLowerCase().contains(prefix)) {
-				String secString = "["+sec.getSectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+	private void proposalsForIniDataEntries(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, Iterable<? extends IniDataBase> sectionData) {
+		for (IniDataBase sec : sectionData) {
+			if (sec instanceof IniDataSection && ((IniDataSection) sec).getSectionName().toLowerCase().contains(prefix)) {
+				String secString = "["+((IniDataSection) sec).getSectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length(), null, null, null, "ugh")); //$NON-NLS-1$
 			}
 		}
 	}
 
-	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniSectionData sectionData) {
-		for (IniDataEntry entry : sectionData.getEntries().values()) {
-			if (!entry.getEntryName().toLowerCase().contains(prefix))
-				continue;
-			proposals.add(new CompletionProposal(entry.getEntryName(), wordOffset, prefix.length(), entry.getEntryName().length(), null, entry.getEntryName(), null, entry.getDescription()));
+	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataSection sectionData) {
+		for (IniDataBase entry : sectionData.getEntries().values()) {
+			if (entry instanceof IniDataEntry) {
+				IniDataEntry e = (IniDataEntry) entry;
+				if (!e.entryName().toLowerCase().contains(prefix))
+					continue;
+				proposals.add(new CompletionProposal(e.entryName(), wordOffset, prefix.length(), e.entryName().length(), null, e.entryName(), null, e.description()));
+			}
+			else if (entry instanceof IniDataSection) {
+				// FIXME
+			}
 		}
 	}
 
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(editor).getParent());
+		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor).getParent());
 		if (obj != null) {
-			for (C4ScriptBase script : obj.conglomerate()) {
-				for (C4Function f : script.functions()) {
-					proposalForFunc(f, prefix, wordOffset, proposals, script.getName(), false);
+			for (IHasIncludes include : obj.conglomerate()) {
+				Script script = Utilities.as(include, Script.class);
+				if (script == null)
+					continue;
+				for (Function f : script.functions()) {
+					proposalForFunc(f, prefix, wordOffset, proposals, script.name(), false);
 				}
 			}
 		}
@@ -246,35 +250,42 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		//			proposals.add(new CompletionProposal(awesomeProposal, wordOffset, prefix.length(), awesomeProposal.length()));
 	}
 
+	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		return null;
 	}
 
+	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return new char[] {'='};
 	}
 
+	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return null;
 	}
 
+	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		return null;
 	}
 
+	@Override
 	public void assistSessionEnded(ContentAssistEvent event) {
-		getEditor().unlockUnit();
+		editor().unlockUnit();
 	}
 
+	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
-			getEditor().forgetUnitParsed();
-			getEditor().lockUnit();
+			editor().forgetUnitParsed();
+			editor().lockUnit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 	}
 

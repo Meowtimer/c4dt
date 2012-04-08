@@ -1,25 +1,28 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
+import net.arctics.clonk.parser.mapcreator.MapCreator;
+import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
+import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
+import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.navigator.ClonkPreviewView;
+import net.arctics.clonk.util.UI;
+import net.arctics.clonk.util.Utilities;
+
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
-
-import net.arctics.clonk.parser.mapcreator.C4MapCreator;
-import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
-import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
-import net.arctics.clonk.util.Utilities;
 
 
 public class MapCreatorEditor extends ClonkTextEditor {
 	
-	private C4MapCreator mapCreator;
+	private MapCreator mapCreator;
 	private boolean parsed;
 	
 	public MapCreatorEditor() {
@@ -39,38 +42,53 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			mapCreator.clear();
 			parser.parse();
 			parsed = true;
+			try {
+				ClonkPreviewView view = (ClonkPreviewView) UI.findViewInActivePage(getSite(), ClonkPreviewView.ID);
+				if (view != null) {
+					IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
+					IFile file = Utilities.fileBeingEditedBy(this);
+					if (
+							mapCreator != null && mapCreator.engine() != null && mapCreator.engine().settings().supportsEmbeddedUtilities &&
+							sel != null && sel.getFirstElement().equals(file)
+					) {
+						view.schedulePreviewUpdaterJob();
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
-	public C4MapCreator getMapCreator() {
+	public MapCreator mapCreator() {
 		if (mapCreator == null)
-			mapCreator = new C4MapCreator(Utilities.getEditingFile(this));
+			mapCreator = new MapCreator(Utilities.fileBeingEditedBy(this));
 		return mapCreator;
 		
 	}
 	
 	@Override
-	public C4MapCreator getTopLevelDeclaration() {
-		C4MapCreator result = getMapCreator();
+	public MapCreator topLevelDeclaration() {
+		MapCreator result = mapCreator();
 		reparse();
 		return result;
 	}
 	
 	public void silentReparse() {
-		IFile file = getMapCreator().getFile();
-		getMapCreator().setFile(null);
+		IFile file = mapCreator().file();
+		mapCreator().setFile(null);
 		try {
 			reparse();
 		}
 		finally {
-			getMapCreator().setFile(file);
+			mapCreator().setFile(file);
 		}
 	}
 	
 	@Override
 	public void refreshOutline() {
 		if (outlinePage != null) {
-			outlinePage.setInput(getTopLevelDeclaration());
+			outlinePage.setInput(topLevelDeclaration());
 			super.refreshOutline();
 		}
 	}
@@ -78,7 +96,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	@Override
 	public ClonkContentOutlinePage getOutlinePage() {
 		if (outlinePage == null) {
-			outlinePage = new MapCreatorOutlinePage();
+			outlinePage = new ClonkContentOutlinePage();
 			outlinePage.setEditor(this);
 		}
 		return super.getOutlinePage();
@@ -89,9 +107,11 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		super.createPartControl(parent);
 		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
 
+			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
 			}
 
+			@Override
 			public void documentChanged(DocumentEvent event) {
 				parsed = false;
 			}

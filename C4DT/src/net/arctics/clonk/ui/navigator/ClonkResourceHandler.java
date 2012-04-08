@@ -10,7 +10,7 @@ public abstract class ClonkResourceHandler extends AbstractHandler implements IW
 	
 	public ClonkResourceHandler() {
 		super();
-		//Utilities.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
+		//UI.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
 	}
 	
 	@Override

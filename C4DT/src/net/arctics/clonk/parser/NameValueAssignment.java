@@ -2,17 +2,23 @@ package net.arctics.clonk.parser;
 
 import java.util.Collection;
 
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
-
+import net.arctics.clonk.Core;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
-public class NameValueAssignment extends C4Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
-	private static final long serialVersionUID = 1L;
+/**
+ * Declaration of some kind consisting basically of a {@link #name()} being assigned a {@link #stringValue()}.
+ * @author madeen
+ *
+ */
+public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private String value;
 	
@@ -21,74 +27,85 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 		this.name = k;
 		value = v;
 	}
-
-	public int getStartPos() {
-		return location.getStart();
+	
+	public int start() {
+		return location().start();
 	}
 	
-	public int getEndPos() {
-		return location.getEnd();
+	public int end() {
+		return location().end();
 	}
 
-	public String getKey() {
+	@Override
+	public String key() {
 		return name;
 	}
 
-	public String getValue() {
+	@Override
+	public String stringValue() {
 		return value;
 	}
 	
 	@Override
 	public String toString() {
-		return getKey() + "=" + getValue(); //$NON-NLS-1$
+		return key() + "=" + stringValue(); //$NON-NLS-1$
 	}
 
-	public void setValue(String value) {
+	@Override
+	public void setStringValue(String value, Object context) {
 		this.value = value;
 	}
 
+	@Override
 	public int getLength() {
-		return getEndPos() - getStartPos();
+		return location().getLength();
 	}
 
+	@Override
 	public int getOffset() {
-		return getStartPos();
+		return location().getOffset();
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 	}
 
-	public Collection<? extends INode> getChildCollection() {
+	@Override
+	public Collection<? extends INode> childCollection() {
 		return null;
 	}
 
-	public String getNodeName() {
-		return getKey();
+	@Override
+	public String nodeName() {
+		return key();
 	}
 
-	public ITreeNode getParentNode() {
+	@Override
+	public ITreeNode parentNode() {
 		if (parentDeclaration instanceof ITreeNode)
 			return (ITreeNode) parentDeclaration;
 		return null;
 	}
 
-	public IPath getPath() {
+	@Override
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 	
 	@Override
-	public IRegion getRegionToSelect() {
-		SourceLocation loc = getLocation();
+	public IRegion regionToSelect() {
+		SourceLocation loc = location();
 		return new Region(loc.getOffset()+loc.getLength()-value.length(), value.length());
 	}
 	
 	@Override
-	public String getInfoText() {
-	    return getKey() + "=" + getValue(); //$NON-NLS-1$
+	public String infoText() {
+	    return key() + "=" + stringValue(); //$NON-NLS-1$
 	}
 
 }

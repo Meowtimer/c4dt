@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.util.Collection;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
@@ -11,7 +12,7 @@ import net.arctics.clonk.util.ITreeNode;
 
 public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Object extendedValue;
 	private IniDataEntry entryConfig;
@@ -19,47 +20,51 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	protected ComplexIniEntry(int pos, int endPos, String key, String value) {
 		super(pos,endPos, key,value);
 	}
-	
+
 	public ComplexIniEntry(int pos, int endPos, String key, Object value) {
 		super(pos,endPos, key,null);
 		extendedValue = value;
 	}
 	
-	public Object getExtendedValue() {
+	public Object extendedValue() {
 		return extendedValue;
 	}
 	
-	public IniDataEntry getEntryConfig() {
+	public void setEntryConfig(IniDataEntry entryConfig) {
+		this.entryConfig = entryConfig;
+	}
+	
+	public IniDataEntry entryConfig() {
 		return entryConfig;
 	}
 	
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniDataEntry config, boolean createErrorMarkers) {
-		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.getKey(), entry.getValue());
+		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
-		cmpl.setParentDeclaration(entry.getParentDeclaration());
+		cmpl.setParentDeclaration(entry.parentDeclaration());
 		return cmpl;
 	}
 	
-	public IniUnit getIniUnit() {
-		return this.getTopLevelParentDeclarationOfType(IniUnit.class);
+	public IniUnit iniUnit() {
+		return this.topLevelParentDeclarationOfType(IniUnit.class);
 	}
 	
 	@Override
-	public String getValue() {
+	public String stringValue() {
 		return extendedValue.toString();
 	}
 	
 	@Override
-	public Object getValueObject() {
+	public Object value() {
 		return extendedValue;
 	}
 	
 	@Override
-	public void setValue(String value) {
+	public void setStringValue(String value, Object context) {
 		if (extendedValue instanceof IIniEntryValue) {
 			try {
-				((IIniEntryValue)extendedValue).setInput(value, entryConfig);
+				((IIniEntryValue)extendedValue).setInput(value, entryConfig, (IniUnit) context);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}
@@ -69,30 +74,39 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		}
 	}
 
-	public Object[] getChildren() {
+	@Override
+	public Object[] children() {
 		if (extendedValue instanceof IHasChildrenWithContext)
-			return ((IHasChildrenWithContext)extendedValue).getChildren(this);
+			return ((IHasChildrenWithContext)extendedValue).children(this);
 		else if (extendedValue instanceof IHasChildren)
-			return ((IHasChildren)extendedValue).getChildren();
+			return ((IHasChildren)extendedValue).children();
 		return null;
 	}
 
 	@Override
-	public Collection<? extends INode> getChildCollection() {
+	public Collection<? extends INode> childCollection() {
 		if (extendedValue instanceof ITreeNode) {
-			return ((ITreeNode) extendedValue).getChildCollection();
+			return ((ITreeNode) extendedValue).childCollection();
 		}
 		return null;
 	}
 	
+	@Override
 	public boolean hasChildren() {
 		return
 			(extendedValue instanceof IHasChildren && ((IHasChildren)extendedValue).hasChildren()) ||
 			(extendedValue instanceof IHasChildrenWithContext && ((IHasChildrenWithContext)extendedValue).hasChildren());
 	}
 
+	@Override
 	public Object context() {
 		return this; // is it's own context; over-abstraction is awesome -.-
+	}
+	
+	@Override
+	public void validate() {
+		if (extendedValue() instanceof IComplainingIniEntryValue)
+			((IComplainingIniEntryValue)extendedValue()).complain(this);
 	}
 	
 }

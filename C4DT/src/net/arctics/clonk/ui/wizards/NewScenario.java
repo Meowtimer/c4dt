@@ -9,7 +9,7 @@ import org.eclipse.ui.IWorkbench;
  * Wizard to create a new scenario
  */
 
-public class NewScenario extends NewClonkFolderWizard {
+public class NewScenario extends NewClonkFolderWizard<NewScenarioPage> {
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
@@ -23,7 +23,7 @@ public class NewScenario extends NewClonkFolderWizard {
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$Title$", ((NewScenarioPage)page).getTitle()); //$NON-NLS-1$
+		result.put("$$Title$$", page.getTitle()); //$NON-NLS-1$
 		return result;
 	}
 }

@@ -5,39 +5,60 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
 import org.eclipse.core.resources.IMarker;
 
-public class SignedInteger implements IIniEntryValue {
+public class SignedInteger extends IniEntryValueBase implements IConvertibleToPrimitive {
 
-	private int x;
+	protected long number;
 	
 	public SignedInteger(int i) {
-		x = i;
+		number = i;
 	}
 	
 	public SignedInteger() {
 	}
 	
 	public String getStringRepresentation() {
-		return Integer.toString(x);
+		return Long.toString(number);
 	}
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
+			int inlineCommentStart = input.indexOf(';');
+			if (inlineCommentStart != -1)
+				input = input.substring(0, inlineCommentStart).trim();
 			if (input.equals("")) //$NON-NLS-1$
-				x = 0;
+				number = 0;
 			else
-				x = Integer.parseInt(input.trim());
+				setNumberFromStringValue(input, entryData, context);
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); //$NON-NLS-2$
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); 
 			exp.setInnerException(e);
 			throw exp;
 		}
 	}
+
+	protected void setNumberFromStringValue(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+		setNumber(Long.parseLong(input));
+	}
 	
 	@Override
 	public String toString() {
-		return String.valueOf(x);
+		return String.valueOf(number);
+	}
+
+	@Override
+	public Object convertToPrimitive() {
+		return number;
+	}
+	
+	public long getNumber() {
+		return number;
+	}
+	
+	public void setNumber(long number) throws IniParserException {
+		this.number = number;
 	}
 
 }

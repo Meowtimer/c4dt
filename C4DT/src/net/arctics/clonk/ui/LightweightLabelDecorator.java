@@ -1,9 +1,10 @@
 package net.arctics.clonk.ui;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -15,65 +16,34 @@ import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
-import org.eclipse.ui.PlatformUI;
 
 public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 
+	@Override
 	public void decorate(Object element, IDecoration decoration) {
 		DecorationContext context = null;
 		if (decoration.getDecorationContext() instanceof DecorationContext) {
 			context = ((DecorationContext)decoration.getDecorationContext());
 			context.putProperty(IDecoration.ENABLE_REPLACE, Boolean.TRUE);
 		}
-		if (PlatformUI.getWorkbench() == null) {
-			System.out.println("no workbench"); //$NON-NLS-1$
-		}
-		else if (PlatformUI.getWorkbench().getDecoratorManager() == null) {
-			System.out.println("no decmgr"); //$NON-NLS-1$
-		}
-		else if (PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator() == null) {
-			System.out.println("no labeldec"); //$NON-NLS-1$
-		}
 		if (element instanceof IResource) {
 			IResource res = (IResource) element;
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
-				C4GroupType groupType = C4Group.groupTypeFromFolderName(res.getName());
-				
-				if (groupType == C4GroupType.FolderGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == C4GroupType.DefinitionGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == C4GroupType.ScenarioGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == C4GroupType.ResourceGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
+				Engine engine = ClonkProjectNature.engineFromResource(res);
+				if (engine != null) {
+					GroupType groupType = engine.groupTypeForFileName(res.getName());
+					ImageDescriptor imgDesc = engine.imageDescriptor(groupType);
+					if (imgDesc != null)
+						decoration.addOverlay(imgDesc, IDecoration.REPLACE);
 				}
 			}
 			try {
 				int severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-				if (severity == IMarker.SEVERITY_WARNING) decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
-				else if (severity == IMarker.SEVERITY_ERROR) decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
-//				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-//				if (markers.length > 0) {
-//					int severity = 0;
-//					for(IMarker marker : markers) {
-//						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-//							severity = 2;
-////							decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
-////							decoration.addOverlay(UI.getIconDescriptor("icons/error_co.gif"),IDecoration.BOTTOM_LEFT);
-//							break;
-//						}
-//						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-//							if (severity < 2) severity = 1;
-////							decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
-//						}
-//					}
-//					
-//				}
+				if (severity == IMarker.SEVERITY_WARNING)
+					decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
+				else if (severity == IMarker.SEVERITY_ERROR)
+					decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -84,28 +54,32 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 	}
 
 	private ImageDescriptor getIcon(String name) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		ImageRegistry reg = Core.instance().getImageRegistry();
 		if (reg.get(name) == null) {
-			reg.put(name, UI.getIconDescriptor("icons/" + name)); //$NON-NLS-1$
+			reg.put(name, UI.imageDescriptorForPath("icons/" + name)); //$NON-NLS-1$
 		}
 		return reg.getDescriptor(name);
 	}
 	
+	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 
 	}
 
+	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 
 	}
 
+	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 

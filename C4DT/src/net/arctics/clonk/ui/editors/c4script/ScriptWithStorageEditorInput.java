@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.lang.ref.WeakReference;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IStorage;
@@ -19,47 +19,54 @@ import org.eclipse.ui.IStorageEditorInput;
 
 public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
-	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
+	private static final String FACTORY_ID = Core.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
-	private WeakReference<C4ScriptBase> script;
+	private WeakReference<Script> script;
 	
-	public ScriptWithStorageEditorInput(C4ScriptBase script) {
+	public ScriptWithStorageEditorInput(Script script) {
 		super();
 		
-		if (!(script.getScriptFile() instanceof IStorage))
+		if (!(script.scriptStorage() instanceof IStorage))
 			throw new IllegalArgumentException("script"); //$NON-NLS-1$
-		this.script = new WeakReference<C4ScriptBase>(script);
+		this.script = new WeakReference<Script>(script);
 	}
 
+	@Override
 	public boolean exists() {
 		return script != null && script.get() != null;
 	}
 
+	@Override
 	public ImageDescriptor getImageDescriptor() {
-		return ClonkCore.getDefault().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
+		return Core.instance().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
 	}
 
+	@Override
 	public String getName() {
-		return "[" + getScript().getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return "[" + script().name() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
+	@Override
 	public IPersistableElement getPersistable() {
 		return this;
 	}
 
+	@Override
 	public String getToolTipText() {
-		return ((ITreeNode)getScript()).getPath().toOSString();
+		return ((ITreeNode)script()).path().toOSString();
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class cls) {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		try {
 			if (script instanceof ITreeNode)
-				return ((ITreeNode)script).getPath();
+				return ((ITreeNode)script).path();
 			return getStorage().getFullPath();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -69,21 +76,24 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).getScript() == getScript());
+		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script() == script());
 	}
 
+	@Override
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)getScript().getScriptFile();
+		return script().scriptStorage();
 	}
 
-	public C4ScriptBase getScript() {
+	public Script script() {
 		return script.get();
 	}
 
+	@Override
 	public String getFactoryId() {
 		return FACTORY_ID;
 	}
 
+	@Override
 	public void saveState(IMemento memento) {
 		memento.putString("path", getPath().toPortableString()); //$NON-NLS-1$
 	}

@@ -1,19 +1,24 @@
 package net.arctics.clonk.parser;
 
-import java.io.IOException;
 import java.io.InputStream;
-import net.arctics.clonk.util.Utilities;
+import java.io.Reader;
+import java.util.regex.Pattern;
+
+import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.rules.ICharacterScanner;
 
 /**
  * Scanner operating on a string stored in memory. Can be created from a file, an input stream or a raw string
  */
-public class BufferedScanner {
+public class BufferedScanner implements ICharacterScanner {
 
+	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
+	public static final Pattern NUMERAL_PATTERN = Pattern.compile("[0-9]+");
+	
 	/**
 	 * characters that represent whitespace
 	 */
@@ -32,62 +37,55 @@ public class BufferedScanner {
 	/**
 	 * The buffer
 	 */
-	private String buffer;
+	protected String buffer;
 	
 	/**
 	 * Size of the buffer
 	 */
-	private int size;
+	protected int size;
 	
 	/**
 	 * Current offset
 	 */
-	private int offset;
-
-	/**
-	 * Create a new scanner that scans the contents of a text file
-	 * @param file the text file
-	 */
-	public BufferedScanner(IFile file) {
-		try {
-			offset = 0;
-			buffer = Utilities.stringFromFile(file);
-			size = buffer.length();
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Create a new scanner that scans the contents of a stream
-	 * @param stream the input stream
-	 */
-	public BufferedScanner(InputStream stream) {
-		try {
-			offset = 0;
-			buffer = Utilities.stringFromInputStream(stream);
-			size = buffer.length();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	protected int offset;
 
 	/**
 	 * Create a new scanner that scans a string
 	 * @param withString
 	 */
 	public BufferedScanner(String withString) {
+		initScanner(withString);
+	}
+	
+	protected void initScanner(String withString) {
 		offset = 0;
 		buffer = withString;
 		size = buffer.length();
+	}
+
+	public BufferedScanner(Object source) {
+		this(stringFromSource(source));
+	}
+	
+	private static String stringFromSource(Object source) {
+		if (source instanceof IFile) {
+			return StreamUtil.stringFromFileDocument((IFile) source);
+		} else if (source instanceof Reader) {
+			return StreamUtil.stringFromReader((Reader)source);
+		} else if (source instanceof InputStream) {
+			return StreamUtil.stringFromInputStream((InputStream)source);
+		} else if (source instanceof String) {
+			return (String)source;
+		} else {
+			return "";
+		}
 	}
 
 	/**
 	 * Read the next character in the buffer
 	 * @return the character (can be cast to char) or -1 if the current offset exceeds the size of the buffer
 	 */
+	@Override
 	public int read() {
 		if (offset >= size) {
 			offset++; // increment anyway so unread works as expected
@@ -100,9 +98,9 @@ public class BufferedScanner {
 	 * Reverts the last read() call
 	 * @return
 	 */
-	public boolean unread() {
+	@Override
+	public void unread() {
 		offset--;
-		return true;
 	}
 
 	/**
@@ -111,7 +109,7 @@ public class BufferedScanner {
 	 * @return the read string
 	 */
 	public String readString(int length) {
-		if (offset+length > size) 
+		if (offset+length > size)
 			return null;
 		String result = buffer.substring(offset, offset+length);
 		offset += length;
@@ -132,7 +130,7 @@ public class BufferedScanner {
 	
 	public static boolean isUmlaut(char character) {
 		character = Character.toLowerCase(character);
-	    return character == 'ß' || character == 'ä' || character == 'ü' || character == 'ö';
+	    return character == 'Ã¤' || character == 'Ã¶' || character == 'Ã¼' || character == 'ÃŸ';
     }
 	
 	public static boolean isWordStart(int character) {
@@ -148,7 +146,10 @@ public class BufferedScanner {
 		int length = 0;
 		do {
 			int readByte = read();
-			if (isWordPart(readByte)) {
+			boolean win = offset == start+1
+				? isWordStart(readByte)
+				: isWordPart(readByte);
+			if (win) {
 				length++;
 			}
 			else {
@@ -166,20 +167,46 @@ public class BufferedScanner {
 	 */
 	public String readStringUntil(char ...delimiters) {
 		int start = offset;
-		int i = 0;
 		int subtract = 0;
 		Outer: do {
 			int readByte = read();
-			for(i = 0; i < delimiters.length;i++) {
+			for (int i = 0; i < delimiters.length; i++) {
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
 			}
 		} while(!reachedEOF());
-		i = offset - start - subtract; // variable reuse
+		int stringLength = offset - start - subtract;
 		seek(start);
-		return readString(i);
+		return readString(stringLength);
+	}
+	
+	public int skipUntil(char... delimiters) {
+		int subtract = 0;
+		int len;
+		Outer: for (len = 0; !reachedEOF(); len++) {
+			int readByte = read();
+			for(int i = 0; i < delimiters.length;i++) {
+				if (readByte == delimiters[i]) {
+					subtract = 1;
+					break Outer;
+				}
+			}
+		}
+		seek(this.offset-subtract);
+		return len;
+	}
+	
+	public boolean skipSingleLineEnding() {
+		if (read() == '\r') {
+			if (read() != '\n')
+				unread();
+			return true;
+		} else {
+			unread();
+			return false;
+		}
 	}
 	
 	/**
@@ -279,6 +306,27 @@ public class BufferedScanner {
 	public int eatWhitespace() {
 		return eat(WHITESPACE_CHARS);
 	}
+	
+	public static int indentationOfStringAtPos(String s, int pos) {
+		if (pos >= s.length())
+			pos = s.length();
+		int tabs = 0;
+		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--) {
+			if (pos < s.length() && s.charAt(pos) == '\t')
+				tabs++;
+			else
+				tabs = 0; // don't count tabs not at the start of the line
+		}
+		return tabs;
+	}
+	
+	public int indentationAt(int offset) {
+		return indentationOfStringAtPos(buffer, offset);
+	}
+	
+	public int currentIndentation() {
+		return indentationOfStringAtPos(buffer, tell());
+	}
 
 	/**
 	 * Absolute offset manipulation
@@ -289,6 +337,15 @@ public class BufferedScanner {
 		offset = newPos;
 		//if (offset >= size) offset = size - 1;
 		return offset;
+	}
+	
+	/**
+	 * Advance the current position by the given delta.
+	 * @param delta The delta to advance the current position by
+	 * @return The new position
+	 */
+	public final int advance(int delta) {
+		return offset += delta;
 	}
 
 	/**
@@ -303,18 +360,18 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * If end of file reached
+	 * True if {@link #tell()} >= {@link #bufferSize()}
 	 * @return whether eof reached
 	 */
-	public boolean reachedEOF() {
-		return (offset >= size);
+	public final boolean reachedEOF() {
+		return offset >= size;
 	}
 
 	/**
 	 * Current offset
 	 * @return offset
 	 */
-	public int getPosition() {
+	public final int tell() {
 		return offset;
 	}
 
@@ -327,13 +384,102 @@ public class BufferedScanner {
 	public String readStringAt(int start, int end) {
 		if (start == end)
 			return ""; //$NON-NLS-1$
-		int p = getPosition();
+		int p = tell();
 		seek(start);
 		String result = readString(end-start);
 		seek(p);
 		return result;
 	}
+	
+	/**
+	 * Returns whether c is a line delimiter char
+	 * @param c the char
+	 * @return true if it is one, false if not
+	 */
+	public static boolean isLineDelimiterChar(char c) {
+		return c == '\n' || c == '\r';
+	}
+	
+	/**
+	 * Returns whether is whitespace but not a line delimiter (' ', '\t')
+	 * @param c the character
+	 * @return see above
+	 */
+	public static boolean isWhiteSpaceButNotLineDelimiterChar(char c) {
+		return c == ' '	|| c == '\t';
+	}
+	
+	public static boolean isWhiteSpace(char c) {
+		return isLineDelimiterChar(c) || isWhiteSpaceButNotLineDelimiterChar(c);
+	}
 
+	/**
+	 * Returns the line region is contained in as a string
+	 * @param region the region
+	 * @return the line string
+	 */
+	public String lineAtRegion(IRegion region) {
+		IRegion lineRegion = regionOfLineContainingRegion(region);
+		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
+	}
+	
+	/**
+	 * Returns a substring of the script denoted by a region
+	 * @param region the region
+	 * @return the substring
+	 */
+	public String bufferSubstringAtRegion(IRegion region) {
+		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
+	}
+	
+	/**
+	 * Returns the line region is contained in as a region
+	 * @param text the string to look for the line in
+	 * @param regionInLine the region
+	 * @return the line region
+	 */
+	public static IRegion regionOfLineContainingRegion(String text, IRegion regionInLine) {
+		int start, end;
+		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
+		return new Region(start, end-start);
+	}
+	
+	public IRegion regionOfLineContainingRegion(IRegion regionInLine) {
+		return regionOfLineContainingRegion(this.buffer, regionInLine);
+	}
+
+	/**
+	 * returns the size of the buffer 
+	 * @return the buffer size
+	 */
+	public int bufferSize() {
+		return size;
+	}
+	
+	/**
+	 * Return the buffer the scanner operates on
+	 * @return the buffer
+	 */
+	public String buffer() {
+		return buffer;
+	}
+	
+	@Override
+	public String toString() {
+		return "offset: " + tell() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Return the next-to-be-read char without modifying the scanner position
+	 * @return the next char
+	 */
+	public int peek() {
+		int p = read();
+		unread();
+		return p;
+	}
+	
 	/**
 	 * Returns the first character from the current offset that is not whitespace. This method does not alter the current offset
 	 * @return
@@ -346,83 +492,37 @@ public class BufferedScanner {
 		return result;
 	}
 	
-	/**
-	 * Returns whether c is a line delimiter char
-	 * @param c the char
-	 * @return true if it is one, false if not
-	 */
-	public static boolean isLineDelimiterChar(char c) {
-		for (int i = 0; i < NEWLINE_CHARS.length; i++)
-			if (NEWLINE_CHARS[i] == c)
-				return true;
-		return false;
+	public String peekString(int length) {
+		int pos = offset;
+		String result = readString(Math.min(length, size-offset));
+		seek(pos);
+		return result;
 	}
 	
-	/**
-	 * Returns whether is whitespace but not a line delimiter (' ', '\t')
-	 * @param c the character
-	 * @return see above
-	 */
-	public static boolean isWhiteSpaceButNotLineDelimiterChar(char c) {
-		return c == ' '	|| c == '\t';
+	public String stringAtRegion(IRegion region) {
+		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
+	}
+	
+	public final void reset(String text) {
+		if (text == null)
+			text = "";
+		buffer = text;
+		offset = 0;
+		size = buffer.length();
+	}
+	
+	public void reset() {
+		offset = 0;
 	}
 
-	/**
-	 * Returns the line region is contained in as a string
-	 * @param region the region
-	 * @return the line string
-	 */
-	public String getLineAt(IRegion region) {
-		IRegion lineRegion = getLineRegion(region);
-		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
-	}
-	
-	/**
-	 * Returns the line region is contained in as a region
-	 * @param text the string to look for the line in
-	 * @param regionInLine the region
-	 * @return the line region
-	 */
-	public static IRegion getLineRegion(String text, IRegion regionInLine) {
-		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(text.charAt(start-1)); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
-		return new Region(start, end-start);
-	}
-	
-	public IRegion getLineRegion(IRegion regionInLine) {
-		return getLineRegion(this.buffer, regionInLine);
-	}
-
-	/**
-	 * returns the length of the buffer 
-	 * @return the buffer length
-	 */
-	public int getBufferLength() {
-		return buffer.length();
-	}
-	
-	/**
-	 * Return the buffer the scanner operates on
-	 * @return the buffer
-	 */
-	public CharSequence getBuffer() {
-		return buffer;
-	}
-	
 	@Override
-	public String toString() {
-		return "offset: " + getPosition() + "; next: " + (char)peek(); //$NON-NLS-1$ //$NON-NLS-2$
+	public char[][] getLegalLineDelimiters() {
+		return new char[][] {{'\n'}, {'\r', '\n'}};
 	}
 
-	/**
-	 * Return the next-to-be-read char without modifiying the scanner position
-	 * @return the next char
-	 */
-	public int peek() {
-		int p = read();
-		unread();
-		return p;
+	@Override
+	public int getColumn() {
+		return indentationAt(offset);
 	}
 	
 }

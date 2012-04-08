@@ -1,0 +1,8 @@
+func TypeInference()
+{
+	var x = 123;
+	if (Random(2))
+		x = "ugh";
+	else if (Random(3))
+		x = true;
+}

@@ -1,33 +1,26 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
-import org.eclipse.core.resources.IFile;
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.Core;
 
 public class ParticleUnit extends IniUnit {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ParticleUnit(IFile file) {
-		super(file);
+	public ParticleUnit(Object input) {
+		super(input);
 	}
-	
-	public ParticleUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public ParticleUnit(String text) {
-		super(text);
-	}
-	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Particle.txt"); //$NON-NLS-1$
 	
 	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
+	protected String configurationName() {
+		return "Particle.txt"; //$NON-NLS-1$
+	}
+	
+	@Override
+	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
+		if (section.name().equals("Particle") && entry.name().equals("Name")) {
+			setName(entry.stringValue());
+		}
+		return super.validateEntry(entry, section, modifyMarkers);
 	}
 
 }

@@ -1,46 +1,31 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
-import org.eclipse.core.resources.IFile;
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
 public class ScenarioUnit extends IniUnit {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private final static IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Scenario.txt"); //$NON-NLS-1$
-	
-	public ScenarioUnit(IFile file) {
-		super(file);
+	@Override
+	protected String configurationName() {
+		return "Scenario.txt"; //$NON-NLS-1$
 	}
 	
-	public ScenarioUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public ScenarioUnit(String text) {
-		super(text);
+	public ScenarioUnit(Object input) {
+		super(input);
 	}
 	
 	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
+	protected IniDataSection sectionDataFor(IniSection section, IniSection parentSection) {
+		if (section.name().startsWith("Player")) //$NON-NLS-1$
+			return configuration().getSections().get("Player"); //$NON-NLS-1$
+		return super.sectionDataFor(section, parentSection);
 	}
 	
 	@Override
-	protected IniSectionData getSectionDataFor(IniSection section) {
-		if (section.getName().startsWith("Player")) //$NON-NLS-1$
-			return configuration.getSections().get("Player"); //$NON-NLS-1$
-		return super.getSectionDataFor(section);
-	}
-	
-	@Override
-	protected boolean isSectionNameValid(String name) {
-		return name.matches("Player[1234]") || super.isSectionNameValid(name); //$NON-NLS-1$
+	protected boolean isSectionNameValid(String name, IniSection parentSection) {
+		return (parentSection == null && name.matches("Player[1234]")) || super.isSectionNameValid(name, parentSection); //$NON-NLS-1$
 	}
 
 }

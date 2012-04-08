@@ -1,62 +1,55 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.Iterator;
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.filter;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.util.Utilities;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.IPredicate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 
 public class EditorUtil {
-	public static Iterable<IEditorPart> editorPartsToBeSaved() {
-		return new Iterable<IEditorPart>() {
-			@Override
-			public Iterator<IEditorPart> iterator() {
-				return new Iterator<IEditorPart>() {
-
-					private int index = -1;
-					private IEditorReference[] refs = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-					private IEditorPart next;
-					
-					@Override
-					public boolean hasNext() {
-						if (next == null) {
-							for (int i = index+1; i < refs.length; i++) {
-								IEditorPart part = refs[i].getEditor(true);
-								IFile file = Utilities.getEditingFile(part);
-								try {
-									if (file != null && file.getProject().hasNature(ClonkCore.CLONK_NATURE_ID)) {
-										if (part.isDirty()) {
-											next = part;
-											index = i;
-											break;
-										}
-									}
-								} catch (CoreException e) {
-									continue;
-								}
-							}
+	public static Iterable<IEditorPart> clonkTextEditors(boolean restore) {
+		return clonkTextEditors(IEditorPart.class, restore);
+	}
+	@SuppressWarnings("unchecked")
+	public static <T extends IEditorPart> Iterable<T> clonkTextEditors(Class<T> c, boolean restore) {
+		List<T> editors = new ArrayList<T>();
+		for (IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (IWorkbenchPage p : w.getPages()) {
+				for (IEditorReference e : p.getEditorReferences()) {
+					FileEditorInput input;
+					try {
+						input = as(e.getEditorInput(), FileEditorInput.class);
+					} catch (PartInitException e1) {
+						e1.printStackTrace();
+						continue;
+					}
+					if (input != null && ClonkProjectNature.get(input.getFile()) != null) {
+						IEditorPart part = e.getEditor(restore);
+						if (c.isInstance(part)) {
+							editors.add((T)part);
 						}
-						return next != null;
 					}
-
-					@Override
-					public IEditorPart next() {
-						IEditorPart result = next;
-						next = null;
-						return result;
-					}
-
-					@Override
-					public void remove() {
-						// nope
-					}
-				};
+				}
 			}
-		};
+		}
+		return editors;
+	}
+	public static Iterable<IEditorPart> editorPartsToBeSaved() {
+		return filter(clonkTextEditors(false), new IPredicate<IEditorPart>() {
+			@Override
+			public boolean test(IEditorPart item) {
+				return item.isDirty();
+			}
+		});
 	}
 }

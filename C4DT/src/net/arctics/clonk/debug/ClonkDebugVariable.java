@@ -1,6 +1,6 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
@@ -9,14 +9,18 @@ import org.eclipse.debug.core.model.IVariable;
 public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	private ClonkDebugStackFrame stackFrame;
-	private C4Variable variable;
-	private ClonkDebugValue value;
+	private Variable variable;
+	private ClonkDebugVariableValue value;
 	
-	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, C4Variable variable) {
+	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, Variable variable) {
 		super(stackFrame.getTarget());
 		this.stackFrame = stackFrame;
 		this.variable = variable;
-		this.value = new ClonkDebugValue(this);
+		this.value = new ClonkDebugVariableValue(this);
+	}
+	
+	public Variable getVariable() {
+		return variable;
 	}
 
 	public ClonkDebugStackFrame getStackFrame() {
@@ -25,16 +29,16 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	@Override
 	public String getName() throws DebugException {
-		return variable.getName();
+		return variable.name();
 	}
 
 	@Override
 	public String getReferenceTypeName() throws DebugException {
-		return variable.getType().toString();
+		return variable.type().toString();
 	}
 
 	@Override
-	public ClonkDebugValue getValue() throws DebugException {
+	public ClonkDebugVariableValue getValue() throws DebugException {
 		return value;
 	}
 
@@ -60,12 +64,12 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	@Override
 	public boolean verifyValue(String expression) throws DebugException {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean verifyValue(IValue value) throws DebugException {
-		return false;
+		return true;
 	}
 
 }

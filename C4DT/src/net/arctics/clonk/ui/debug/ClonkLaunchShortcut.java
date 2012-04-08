@@ -25,6 +25,7 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 	 * Create launch from a selection. In practice, this should be a selection
 	 * of resources.
 	 */
+	@Override
 	public void launch(ISelection sel, String mode) {
 		if (sel instanceof IStructuredSelection)
 			// Note: The selection will only have one element because this was
@@ -37,6 +38,7 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 	/**
 	 * Create launch from an open editor tab.
 	 */
+	@Override
 	public void launch(IEditorPart editor, String mode) {
 		// Note: This is also guaranteed to work because of prior checks
 		IResource res = (IResource) editor.getEditorInput().getAdapter(IResource.class);

@@ -19,15 +19,15 @@ public class IniParserException extends Exception {
 		this.endOffset = endOffset;
 	}
 	
-	public int getSeverity() {
+	public int severity() {
 		return severity;
 	}
 
-	public int getOffset() {
+	public int offset() {
 		return offset;
 	}
 
-	public int getEndOffset() {
+	public int endOffset() {
 		return endOffset;
 	}
 
@@ -39,7 +39,7 @@ public class IniParserException extends Exception {
 		this.endOffset = endOffset;
 	}
 
-	public Exception getInnerException() {
+	public Exception innerException() {
 		return innerException;
 	}
 

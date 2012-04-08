@@ -1,12 +1,12 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.ui.OverlayIcon;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -15,19 +15,22 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 
-public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
+public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider, IColorProvider {
 	
 	public ClonkLabelProvider() {
 	}
 	
+	@Override
 	public Image getImage(Object element) {
 		if (element instanceof IProject) {
 			return super.getImage(element);
@@ -39,30 +42,23 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (element.toString().endsWith(".txt")) { //$NON-NLS-1$
 				return UI.TEXT_ICON;
 			}
-			if (element.toString().endsWith(".c4m")) { //$NON-NLS-1$
-				return UI.MATERIAL_ICON;
+			Engine engine = ClonkProjectNature.engineFromResource((IFile)element);
+			if (engine != null) {
+				if (element.toString().endsWith(engine.settings().materialExtension))
+					return engine.image("material");
 			}
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
-			
-			if (groupType == C4GroupType.FolderGroup) {
-				return UI.FOLDER_ICON;
-			}
-			else if (groupType == C4GroupType.DefinitionGroup) {
-				return UI.GENERAL_OBJECT_ICON;
-			}
-			else if (groupType == C4GroupType.ScenarioGroup) {
-				return UI.SCENARIO_ICON;
-			}
-			else if (groupType == C4GroupType.ResourceGroup) {
-				return UI.GROUP_ICON;
+			Engine engine = ClonkProjectNature.engineFromResource(folder);
+			if (engine != null) {
+				return engine.image(engine.groupTypeForFileName(folder.getName()));
 			}
 		}
-		return UI.getIconForObject(element);
+		return UI.iconFor(element);
 	}
 
+	@Override
 	public String getText(Object element) {
 		if (element instanceof IProject) {
 			return ((IProject)element).getName();
@@ -77,30 +73,31 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
 	}
 	
+	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
-			if (groupType == C4GroupType.DefinitionGroup) {
+			GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
+			if (groupType == GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {
-					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
+					String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
 					return getIDText(folder.getName(), c4id, false);
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
 			}
-			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
+			if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
 			return new StyledString(((IFolder)element).getName());
 		}
 		else if (element instanceof IResource) {
 			return new StyledString(((IResource)element).getName());
 		}
-		else if (element instanceof C4Object) {
-			C4Object obj = (C4Object) element;
-			String c4id = obj.getId().toString();
-			return getIDText(obj.getNodeName(), c4id, true);
+		else if (element instanceof Definition) {
+			Definition obj = (Definition) element;
+			String c4id = obj.id().toString();
+			return getIDText(obj.nodeName(), c4id, true);
 		}
 		else if (element instanceof INode) {
 			return new StyledString(element.toString(), StyledString.COUNTER_STYLER);
@@ -122,11 +119,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return buf;
 	}
 	
-	protected static ImageDescriptor decorateImage(ImageDescriptor input,
-			Object element) {
-		return new OverlayIcon(input,computeOverlays(element),new Point(22,16));
-	}
-	
 	protected static ImageDescriptor[][] computeOverlays(Object element) {
 		ImageDescriptor[][] result = new ImageDescriptor[4][1];
 		if (element instanceof IResource) {
@@ -136,11 +128,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				if (markers.length > 0) {
 					for(IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-							result[2][0] = UI.getIconDescriptor("icons/error_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.imageDescriptorForPath("icons/error_co.gif"); //$NON-NLS-1$
 							break;
 						}
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-							result[2][0] = UI.getIconDescriptor("icons/warning_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.imageDescriptorForPath("icons/warning_co.gif"); //$NON-NLS-1$
 						}
 					}
 				}
@@ -151,45 +143,29 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		return result;
 	}
-//
-//
-//	protected String decorateText(String input, Object element) {
-//		if (element instanceof IProject) {
-//			return ((IProject)element).getName();
-//		}
-//		else if (element instanceof IFile) {
-//			return ((IFile)element).getName();
-//		}
-//		return super.decorateText(input, element);
-//	}
-
-	public void dispose() {
-		super.dispose();
-	}
-
-	public boolean isLabelProperty(Object element, String property) {
-		// TODO Auto-generated method stub
-		return true;
-	}
 	
 	public void testRefresh() {
 		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
 	}
-	
-//	public static ClonkLabelProvider instance;
-//
-//	public static ClonkLabelProvider getInstance() {
-//		return instance;
-//	}
-	
-	public void addListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
-		
+
+	@Override
+	public Color getForeground(Object element) {
+		return null;
 	}
 
-	public void removeListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
-		
+	@Override
+	public Color getBackground(Object element) {
+		try {
+			if (element instanceof IResource) {
+				for (IResource resource = (IResource)element; resource != null; resource = resource.getParent()) {
+					RGB rgb = ColorTagging.rgbForResource(resource);
+					if (rgb != null)
+						return new Color(Display.getCurrent(), rgb);
+				}
+			}
+		} catch (Exception e) {
+		}
+		return null;
 	}
 	
 }

@@ -1,16 +1,20 @@
 package net.arctics.clonk.ui.wizards;
 
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.operation.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,10 +31,12 @@ import org.eclipse.ui.*;
  * Base class for wizards creating all kinds of Clonk folders
  */
 
-public abstract class NewClonkFolderWizard extends Wizard implements INewWizard {
-	protected NewClonkFolderWizardPage page;
+public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizardPage> extends Wizard implements INewWizard {
+	protected PageClass page;
 	protected ISelection selection;
-	private Map<String, String> templateReplacements; 
+	private Map<String, String> templateReplacements;
+	
+	private IWorkbenchWindow workbenchWindow;
 
 	/**
 	 * Constructor for NewC4Object.
@@ -42,7 +48,8 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = new HashMap<String, String>();
-		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
+		result.put("$$Name$$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
+		result.put("$$Author$$", ClonkPreferences.valueOrDefault(ClonkPreferences.AUTHOR));
 		return result;
 	}
 	
@@ -51,11 +58,13 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 	 * the wizard. We will create an operation and run it
 	 * using wizard as execution context.
 	 */
+	@Override
 	public boolean performFinish() {
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		templateReplacements = initTemplateReplacements();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
+			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
 					doFinish(containerName, fileName, monitor);
@@ -89,7 +98,8 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 		String fileName,
 		IProgressMonitor monitor)
 		throws CoreException {
-		// create a sample file
+
+		monitor = new NullProgressMonitor(); // srsly, for creating some files...
 		monitor.beginTask(String.format(Messages.NewClonkFolderWizard_CreatingFolder, fileName), 1);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
@@ -97,45 +107,43 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 			throwCoreException(String.format(Messages.NewClonkFolderWizard_FolderDoesNotExist, containerName));
 		}
 		IContainer container = (IContainer) resource;
-		final IFolder subContainer = container.getFolder(new Path(fileName));
-		if (!subContainer.exists()) {
-			subContainer.create(IResource.NONE,true,monitor);
+		final IFolder newFolder = container.getFolder(new Path(fileName));
+		if (!newFolder.exists()) {
+			newFolder.create(IResource.NONE,true,monitor);
 		}
 		try {
-			Enumeration<URL> templates = getTemplateFiles();
-			while (templates.hasMoreElements()) {
-				URL template = templates.nextElement();
-				String templateFile = new Path(template.getFile()).lastSegment();
-				if (templateFile.startsWith(".")) //$NON-NLS-1$
-					continue;
-				InputStream stream = getTemplateStream(template, templateFile);
-				try {
-					subContainer.getFile(templateFile).create(stream, true, monitor);
-				} finally {
-					stream.close();
+			Iterable<URL> templates = getTemplateFiles();
+			if (templates != null) {
+				for (URL template : templates) {
+					String templateFile = new Path(template.getFile()).lastSegment();
+					if (templateFile.startsWith(".")) //$NON-NLS-1$
+						continue;
+					InputStream stream = getTemplateStream(template, templateFile);
+					try {
+						newFolder.getFile(templateFile).create(stream, true, monitor);
+					} finally {
+						stream.close();
+					}
 				}
 			}
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
+				}
+			});
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		monitor.worked(1);
-//		monitor.setTaskName("Opening file for editing...");
-//		getShell().getDisplay().asyncExec(new Runnable() {
-//			public void run() {
-//				IWorkbenchPage page =
-//					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-//				try {
-//					IDE.openEditor(page, file, true);
-//				} catch (PartInitException e) {
-//				}
-//			}
-//		});
-//		monitor.worked(1);
 	}
 	
-	@SuppressWarnings("unchecked")
-	protected Enumeration<URL> getTemplateFiles() {
-		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
+	protected Iterable<URL> getTemplateFiles() {
+		try {
+			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
+			return nature.index().engine().getURLsOfStorageLocationPath("wizards/"+getClass().getSimpleName(), false); //$NON-NLS-1$
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	
 	protected Map<String, String> getTemplateReplacements() {
@@ -168,7 +176,7 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 	
 	protected void throwCoreException(String message) throws CoreException {
 		IStatus status =
-			new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, IStatus.OK, message, null);
+			new Status(IStatus.ERROR, Core.PLUGIN_ID, IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
 
@@ -177,7 +185,9 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 	 * we can initialize from it.
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
+		this.workbenchWindow = workbench.getActiveWorkbenchWindow();
 	}
 }

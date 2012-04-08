@@ -1,28 +1,38 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
-import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.DefinitionPack;
+import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
-import net.arctics.clonk.parser.inireader.IniEntry;
-import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IconSpec;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
+import net.arctics.clonk.parser.inireader.IntegerArray;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
-import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.ui.editors.HyperlinkToResource;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -30,7 +40,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.DefaultHyperlinkPresenter;
@@ -40,16 +49,16 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.ui.PlatformUI;
 
 public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
 	
 	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*"); //$NON-NLS-1$
 	
-	private IniScanner scanner;
+	private static final ScannerPerEngine<IniScanner> SCANNERS = new ScannerPerEngine<IniScanner>(IniScanner.class);
 	
 	private static class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
@@ -76,15 +85,16 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	
 	private class IniSourceHyperlinkDetector implements IHyperlinkDetector {
 		
+		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
-			if (!getEditor().ensureIniUnitUpToDate())
+			if (!editor().ensureIniUnitUpToDate())
 				return null;
 			try {
 				IRegion lineRegion = textViewer.getDocument().getLineInformationOfOffset(region.getOffset());
 				String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
 				Matcher m;
-				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset(), 0);
-				if (section != null) {
+				IniSection section = editor().unit().sectionAtOffset(region.getOffset());
+				if (section != null && section.sectionData() != null) {
 					int relativeOffset = region.getOffset()-lineRegion.getOffset();
 					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
 						boolean hoverOverAttrib = relativeOffset < m.start(2);
@@ -92,46 +102,80 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
-							IniDataEntry entry = section.getSectionData().getEntry(attrib);
+							IniDataBase dataItem = section.sectionData().getEntry(attrib);
 							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
-							if (entry != null) {
-								Class<?> entryClass = entry.getEntryClass();
-								C4Declaration declaration = null;
-								if (entryClass == C4ID.class) {
-									IResource r = Utilities.getEditingFile(getEditor());
-									ClonkIndex index = Utilities.getIndex(r);
-									declaration = index.getObjectNearestTo(r, C4ID.getID(value));
+							if (dataItem instanceof IniDataEntry) {
+								IniDataEntry entry = (IniDataEntry) dataItem;
+								Class<?> entryClass = entry.entryClass();
+								Declaration declaration = null;
+								if (entryClass == ID.class) {
+									IResource r = Utilities.fileBeingEditedBy(editor());
+									Index index = Utilities.indexFromResource(r);
+									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
-								else if (entryClass == Function.class) {
-									C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
+								else if (entryClass == FunctionEntry.class) {
+									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);
 									}
 								}
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
-									if (idRegion.getLength() == 4) {
-										IResource r = Utilities.getEditingFile(getEditor());
-										ClonkIndex index = Utilities.getIndex(r);
-										declaration = index.getObjectNearestTo(r, C4ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
+									IResource r = Utilities.fileBeingEditedBy(editor());
+									Index index = Utilities.indexFromResource(r);
+									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
+									if (index.engine() != null && index.engine().acceptsId(id)) {
+										declaration = index.definitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
 								}
 								else if (entryClass == Action.class) {
-									declaration = getEditor().getIniUnit().sectionMatching(new IPredicate<IniSection>() {
-										public boolean test(IniSection object) {
-											IniEntry entry = object.getEntry("Name"); //$NON-NLS-1$
-											return (entry != null && entry.getValue().equals(value));
-										}
-									});
+									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) editor().unit();
+									declaration = iniUnit.sectionMatching(iniUnit.nameMatcherPredicate(value));
 								}
-								else if (entryClass == CategoriesArray.class) {
+								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
-										declaration = ClonkCore.getDefault().getActiveEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										declaration = editor().unit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
+									}
+								}
+								else if (entryClass == DefinitionPack.class) {
+									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent()).index();
+									List<Index> indexes = projIndex.relevantIndexes();
+									for (Index index : indexes) {
+										if (index instanceof ProjectIndex) {
+											ProjectIndex pi = (ProjectIndex) index;
+											try {
+												for (IResource res : pi.project().members()) {
+													if (res instanceof IContainer && projIndex.engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
+														if (res.getName().equals(value)) {
+															return new IHyperlink[] {
+																new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
+															};
+														}
+													}
+												}
+											} catch (CoreException e) {
+												e.printStackTrace();
+											}	
+										}
+									}
+								}
+								else if (entryClass == IconSpec.class) {
+									String firstPart = value.split(":")[0];
+									IResource r = Utilities.fileBeingEditedBy(editor());
+									Index index = Utilities.indexFromResource(r);
+									declaration = index.definitionNearestTo(r, ID.get(firstPart));
+								}
+								else if (entryClass == String.class) {
+									EntityRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);
+									if (reg != null) {
+										declaration = reg.entityAs(Declaration.class);
+										linkStart += reg.region().getOffset();
+										linkLen = reg.region().getLength();
 									}
 								}
 								
@@ -146,7 +190,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				}
 				return null;
 			} catch (BadLocationException e) {
-				//e.printStackTrace(); oh well
+				//e.printStackTrace(); oh well, happens
+				return null;
+			} catch (NullPointerException e) {
+				// ignore, due to file being at unusual location
 				return null;
 			}
 		}
@@ -177,36 +224,25 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	}
 
 	@Override
-	public IPresentationReconciler getPresentationReconciler(
-			ISourceViewer sourceViewer) {
+	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner());
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(SCANNERS.get(editor().unit().engine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		return reconciler;
 	}
 	
-	protected IniScanner getDefCoreScanner() {
-		if (scanner == null) {
-			scanner = new IniScanner(getColorManager());
-			scanner.setDefaultReturnToken(
-				new Token(
-					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
-		}
-		return scanner;
-	}
-	
 	private ContentAssistant assistant;
 	
+	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		if (assistant != null)
 			return assistant;
 		
 		assistant = new ContentAssistant();
-		IniCompletionProcessor processor = new IniCompletionProcessor(getEditor(), assistant);
+		IniCompletionProcessor processor = new IniCompletionProcessor(editor(), assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.addCompletionListener(processor);
 		assistant.install(sourceViewer);
@@ -214,7 +250,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals"); //$NON-NLS-1$
+		assistant.setStatusMessage(Utilities.fileBeingEditedBy(editor()).getName() + " proposals"); //$NON-NLS-1$
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

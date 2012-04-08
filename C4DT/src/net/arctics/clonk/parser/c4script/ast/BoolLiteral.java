@@ -1,0 +1,38 @@
+package net.arctics.clonk.parser.c4script.ast;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.Keywords;
+
+public final class BoolLiteral extends Literal<Boolean> {
+
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	public boolean booleanValue() {
+		return literal().booleanValue();
+	}
+	public BoolLiteral(boolean value) {
+		super(Boolean.valueOf(value));
+	}
+	@Override
+	protected IType obtainType(DeclarationObtainmentContext context) {
+		return PrimitiveType.BOOL;
+	}
+	@Override
+	public void doPrint(ExprWriter output, int depth) {
+		output.append(booleanValue() ? Keywords.True : Keywords.False);
+	}
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		if (parent() instanceof BinaryOp) {
+			Operator op = ((BinaryOp) parent()).operator();
+			if (op == Operator.And || op == Operator.Or)
+				parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
+		}
+	}
+}

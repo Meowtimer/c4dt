@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildrenWithContext;
@@ -12,11 +11,13 @@ import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.KeyValuePair;
 
-public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntryValue, IHasChildrenWithContext, ITreeNode {
+import org.eclipse.core.runtime.IPath;
+
+public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryValueBase implements IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
-	public KeyValueArrayEntry(String value, IniDataEntry entryData) throws IniParserException {
-		setInput(value, entryData);
+	public KeyValueArrayEntry(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+		setInput(value, entryData, context);
 	}
 	
 	public KeyValueArrayEntry() {
@@ -26,10 +27,11 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 		components.add(new KeyValuePair<KeyType, ValueType>(id,num));
 	}
 
-	public List<KeyValuePair<KeyType, ValueType>> getComponents() {
+	public List<KeyValuePair<KeyType, ValueType>> components() {
 		return components;
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(components.size() * 7); // MYID=1;
 		Iterator<KeyValuePair<KeyType, ValueType>> it = components.iterator();
@@ -43,11 +45,14 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 	
 	public abstract KeyValuePair<KeyType, ValueType> singleComponentFromString(String s);
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		// CLNK=1;STIN=10;
 		components.clear();
 		String[] parts = input.split(";|,"); //$NON-NLS-1$
 		for(String part : parts) {
+			if (!part.contains("="))
+				part += "=1";
 			if (part.contains("=")) { //$NON-NLS-1$
 				KeyValuePair<KeyType, ValueType> kv = singleComponentFromString(part);
 				if (kv != null)
@@ -56,7 +61,8 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 		}
 	}
 
-	public IHasContext[] getChildren(Object context) {
+	@Override
+	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[components.size()];
 		for (int i = 0; i < components.size(); i++) {
 			result[i] = new EntrySubItem<KeyValueArrayEntry<KeyType, ValueType>>(this, context, i);
@@ -64,16 +70,19 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 		return result;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return components.size() > 0;
 	}
 
-	public Object getChildValue(int index) {
+	@Override
+	public Object valueOfChildAt(int index) {
 		return components.get(index);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void setChildValue(int index, Object value) {
+	@Override
+	@SuppressWarnings({ "unchecked" })
+	public void setValueOfChildAt(int index, Object value) {
 		KeyValuePair<KeyType, ValueType> kv;
 		if (value instanceof KeyValuePair)
 			kv = (KeyValuePair<KeyType, ValueType>) value;
@@ -85,26 +94,32 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 			components.set(index, kv);
 	}
 	
-	public Collection<? extends ITreeNode> getChildCollection() {
+	@Override
+	public Collection<? extends ITreeNode> childCollection() {
 		return components;
 	}
 	
-	public String getNodeName() {
+	@Override
+	public String nodeName() {
 		return null;
 	}
 	
+	@Override
 	public void addChild(ITreeNode node) {
 		
 	}
 	
-	public ITreeNode getParentNode() {
+	@Override
+	public ITreeNode parentNode() {
 		return null;
 	}
 	
-	public IPath getPath() {
+	@Override
+	public IPath path() {
 		return ITreeNode.Default.getPath(this);
 	}
 	
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}

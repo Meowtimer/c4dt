@@ -4,16 +4,16 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 
 /**
  * Helper class for obtaining the expression at a specified region
  * @author madeen
  *
  */
-public class ExpressionLocator implements IExpressionListener {
+public class ExpressionLocator extends ScriptParserListener {
 	
 	protected ExprElm exprAtRegion;
 	protected ExprElm topLevelInRegion;
@@ -34,14 +34,16 @@ public class ExpressionLocator implements IExpressionListener {
 		this(new Region(pos, 0));
 	}
 
-	public ExprElm getExprAtRegion() {
+	public ExprElm expressionAtRegion() {
 		return exprAtRegion;
 	}
 
+	@Override
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-		expression.traverse(new IExpressionListener() {
+		expression.traverse(new ScriptParserListener() {
+			@Override
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
+				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
 					if (topLevelInRegion == null)
 						topLevelInRegion = expression;
 					exprAtRegion = expression;
