@@ -74,7 +74,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
-	public Sequence sequenceWithElementsRemovedFrom(ExprElm elm) {
+	public Sequence subSequenceUpTo(ExprElm elm) {
 		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
 		for (ExprElm e : elements) {
 			if (e == elm)

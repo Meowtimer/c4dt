@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
@@ -928,13 +930,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 					break;
 			}
 			return elms.size() == 1 ? this : new Sequence(elms);
-		} else {
+		} else
 			return this;
-		}
 	}
 
 	private Sequence sequence() {
-		return parent() instanceof Sequence ? (Sequence)parent() : null;
+		return as(parent(), Sequence.class);
 	}
 
 	@Override

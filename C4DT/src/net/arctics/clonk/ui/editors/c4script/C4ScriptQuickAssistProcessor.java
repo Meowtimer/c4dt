@@ -537,7 +537,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						ExprElm expr;
 						if (offendingExpression.parent() instanceof Sequence) {
 							Sequence sequence = (Sequence) offendingExpression.parent();
-							expr = sequence.sequenceWithElementsRemovedFrom(offendingExpression); 
+							expr = sequence.subSequenceUpTo(offendingExpression); 
 						} else
 							expr = null;
 						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression(
