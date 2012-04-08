@@ -44,7 +44,10 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			ExpressionLocator locator = new ExpressionLocator(pos-func.body().start());
 			C4ScriptParser.reportExpressionsAndStatements(viewer.getDocument(), script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 			ExprElm expr = locator.expressionAtRegion();
-			if (expr instanceof StringLiteral) {
+			if (expr == null) {
+				viewer.setSelectedRange(func.wholeBody().getOffset(), func.wholeBody().getLength());
+				return;
+			} else if (expr instanceof StringLiteral) {
 				viewer.setSelectedRange(func.body().getOffset()+expr.start()+1, expr.getLength()-2);
 				return;
 			} else if (expr instanceof AccessDeclaration) {

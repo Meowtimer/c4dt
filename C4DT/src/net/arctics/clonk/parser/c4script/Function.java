@@ -350,6 +350,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return body;
 	}
 	
+	public SourceLocation wholeBody() {
+		if (isOldStyle())
+			return body;
+		else
+			return new SourceLocation(body.start()-1, body.end()+1);
+	}
+	
 	@Override
 	public int sortCategory() {
 		return Variable.Scope.values().length + visibility.ordinal();
