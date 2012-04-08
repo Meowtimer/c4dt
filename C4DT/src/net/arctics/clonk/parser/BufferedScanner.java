@@ -9,11 +9,12 @@ import net.arctics.clonk.util.StreamUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.rules.ICharacterScanner;
 
 /**
  * Scanner operating on a string stored in memory. Can be created from a file, an input stream or a raw string
  */
-public class BufferedScanner {
+public class BufferedScanner implements ICharacterScanner {
 
 	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 	public static final Pattern NUMERAL_PATTERN = Pattern.compile("[0-9]+");
@@ -84,6 +85,7 @@ public class BufferedScanner {
 	 * Read the next character in the buffer
 	 * @return the character (can be cast to char) or -1 if the current offset exceeds the size of the buffer
 	 */
+	@Override
 	public int read() {
 		if (offset >= size) {
 			offset++; // increment anyway so unread works as expected
@@ -96,9 +98,9 @@ public class BufferedScanner {
 	 * Reverts the last read() call
 	 * @return
 	 */
-	public boolean unread() {
+	@Override
+	public void unread() {
 		offset--;
-		return true;
 	}
 
 	/**
@@ -310,11 +312,10 @@ public class BufferedScanner {
 			pos = s.length();
 		int tabs = 0;
 		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--) {
-			if (pos < s.length() && s.charAt(pos) == '\t') {
+			if (pos < s.length() && s.charAt(pos) == '\t')
 				tabs++;
-			} else {
+			else
 				tabs = 0; // don't count tabs not at the start of the line
-			}
 		}
 		return tabs;
 	}
@@ -512,6 +513,16 @@ public class BufferedScanner {
 	
 	public void reset() {
 		offset = 0;
+	}
+
+	@Override
+	public char[][] getLegalLineDelimiters() {
+		return new char[][] {{'\n'}, {'\r', '\n'}};
+	}
+
+	@Override
+	public int getColumn() {
+		return indentationAt(offset);
 	}
 	
 }
