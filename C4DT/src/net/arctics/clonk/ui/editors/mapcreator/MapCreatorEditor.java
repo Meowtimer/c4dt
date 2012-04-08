@@ -60,7 +60,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		}
 	}
 	
-	public MapCreator getMapCreator() {
+	public MapCreator mapCreator() {
 		if (mapCreator == null)
 			mapCreator = new MapCreator(Utilities.fileBeingEditedBy(this));
 		return mapCreator;
@@ -69,19 +69,19 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	
 	@Override
 	public MapCreator topLevelDeclaration() {
-		MapCreator result = getMapCreator();
+		MapCreator result = mapCreator();
 		reparse();
 		return result;
 	}
 	
 	public void silentReparse() {
-		IFile file = getMapCreator().file();
-		getMapCreator().setFile(null);
+		IFile file = mapCreator().file();
+		mapCreator().setFile(null);
 		try {
 			reparse();
 		}
 		finally {
-			getMapCreator().setFile(file);
+			mapCreator().setFile(file);
 		}
 	}
 	
