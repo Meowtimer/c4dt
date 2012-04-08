@@ -53,12 +53,7 @@ public class C4ScriptToCPPConverter {
 			public boolean doCustomPrinting(ExprElm elm, int depth) {
 				if (prelude && elm instanceof Block) {
 					prelude = false;
-					Block block = (Block) elm;
-					Statement[] statements = new Statement[1+block.statements().length];
-					statements[0] = new ReplacementStatement("FindEngineFunctions();");
-					System.arraycopy(block.statements(), 0, statements, 1, block.statements().length);
-					Block.printBlock(statements, this, depth);
-					return true;
+					return writePrelude(elm, depth);
 				}
 				else if (elm instanceof StringLiteral) {
 					append(String.format("C4Value(&%s)", regString(((StringLiteral) elm).literal())));
@@ -99,6 +94,15 @@ public class C4ScriptToCPPConverter {
 					}
 				}
 				return false;
+			}
+
+			private boolean writePrelude(ExprElm elm, int depth) {
+				Block block = (Block) elm;
+				Statement[] statements = new Statement[1+block.statements().length];
+				statements[0] = new ReplacementStatement("FindEngineFunctions();");
+				System.arraycopy(block.statements(), 0, statements, 1, block.statements().length);
+				Block.printBlock(statements, this, depth);
+				return true;
 			}
 		}, depth);
 	}
@@ -168,17 +172,18 @@ public class C4ScriptToCPPConverter {
 	}
 	
 	public static void main(String[] args) throws IOException, ParsingException {
-		if (args.length < 2) {
+		if (args.length < 3) {
 			help();
 			return;
 		}
 		String engineConfigurationFolder = args[0];
-		File scriptToConvert = new File(args[1]);
+		String engine = args[1];
+		File scriptToConvert = new File(args[2]);
 		if (!scriptToConvert.exists()) {
 			System.out.println(String.format("File %s does not exist", args[0]));
 			return;
 		}
-		Core.headlessInitialize(engineConfigurationFolder, "OpenClonk");
+		Core.headlessInitialize(engineConfigurationFolder, engine);
 		InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
 		String script = StreamUtil.stringFromReader(reader);
 		Index dummyIndex = new Index();
@@ -191,6 +196,7 @@ public class C4ScriptToCPPConverter {
 	private static void help() {
 		System.out.println("Parameters");
 		System.out.println("1: Engine configuration folder");
-		System.out.println("2: Script file to be converted");
+		System.out.println("2: Name of engine to use");
+		System.out.println("3: Script file to be converted");
 	}
 }
