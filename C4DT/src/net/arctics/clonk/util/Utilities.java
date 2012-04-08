@@ -325,7 +325,7 @@ public abstract class Utilities {
 	 * @param predicate predicate
 	 * @return see above
 	 */
-	public static <T> boolean any(Iterable<T> items, IPredicate<T> predicate) {
+	public static <T> boolean any(Iterable<? extends T> items, IPredicate<T> predicate) {
 		for (T item : items)
 			if (predicate.test(item))
 				return true;

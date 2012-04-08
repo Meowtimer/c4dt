@@ -46,7 +46,7 @@ public class EntityLocator extends ExpressionLocator {
 	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
 	 * @return Set of potential entities
 	 */
-	public Set<IIndexEntity> potentialEntities() {
+	public Set<? extends IIndexEntity> potentialEntities() {
 		return potentialEntities;
 	}
 

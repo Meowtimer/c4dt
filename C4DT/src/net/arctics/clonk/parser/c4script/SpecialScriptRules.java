@@ -227,7 +227,9 @@ public class SpecialScriptRules {
 			return null;
 		}
 		/**
-		 * Provide DeclarationRegion for an AST expression at a certain offset. Used for making stuff link-clickable.
+		 * Provide an {@link EntityRegion} for an AST expression at a certain offset. Used for making stuff link-clickable.
+		 * Actually only called for {@link StringLiteral}s since other kinds of expressions don't lend themselves to refer to
+		 * something only in special contexts.
 		 * @param callFunc Function call the passed expression is a parameter of
 		 * @param parser context
 		 * @param index parameter index

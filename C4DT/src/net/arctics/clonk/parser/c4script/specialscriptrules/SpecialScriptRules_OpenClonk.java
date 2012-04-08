@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,7 @@ import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.EffectPropListDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
@@ -141,21 +144,24 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public EntityRegion locateEntityInParameter(
-				CallDeclaration callFunc, C4ScriptParser parser, int index,
-				int offsetInExpression, ExprElm parmExpression) {
+			CallDeclaration callFunc, C4ScriptParser parser, int index,
+			int offsetInExpression, ExprElm parmExpression
+		) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).literal();
+				Set<IIndexEntity> functions = new HashSet<IIndexEntity>(HardcodedCallbackType.values().length);
 				for (HardcodedCallbackType t : HardcodedCallbackType.values()) {
 					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
-							callFunc.predecessorInSequence(),
-							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
-							parser,
-							null
+						callFunc.predecessorInSequence(),
+						String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
+						parser,
+						null
 					);
-					if (d instanceof EffectFunction) {
-						return new EntityRegion(d, new Region(parmExpression.start()+1, parmExpression.getLength()-2));
-					}
+					if (d instanceof EffectFunction)
+						functions.add(d);
 				}
+				if (functions.size() > 0)
+					return new EntityRegion(functions, new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
 			return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 		}
