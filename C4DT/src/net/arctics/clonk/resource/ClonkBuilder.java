@@ -192,10 +192,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						IContainer folder = delta.getResource().getParent();
 						DefinitionParser objParser;
 						// script in a resource group
-						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) //$NON-NLS-1$ //$NON-NLS-2$
+						if (delta.getResource().getName().toLowerCase().endsWith(".c") && index().engine().groupTypeForFileName(folder.getName()) == GroupType.ResourceGroup) //$NON-NLS-1$ //$NON-NLS-2$
 							script = new SystemScript(null, file);
 						// object script
-						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, getIndex())) != null) //$NON-NLS-1$
+						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, index())) != null) //$NON-NLS-1$
 							script = objParser.createDefinition();
 						// some other file but a script is still needed so get the definition for the folder
 						else
@@ -256,7 +256,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
 						return false;
-				DefinitionParser parser = DefinitionParser.create((IContainer) resource, getIndex());
+				DefinitionParser parser = DefinitionParser.create((IContainer) resource, index());
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
 					Definition object = parser.createDefinition();
 					if (object != null) {
@@ -275,7 +275,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				) {
 					Script script = SystemScript.pinnedScript(file, true);
 					if (script == null) {
-						script = new SystemScript(getIndex(), file);
+						script = new SystemScript(index(), file);
 					}
 					queueScript(script);
 					return true;
@@ -331,7 +331,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 */
 	private final Set<Pair<Definition, ID>> renamedDefinitions = Collections.synchronizedSet(new HashSet<Pair<Definition, ID>>());
 
-	private Index getIndex() {
+	private Index index() {
 		return ClonkProjectNature.get(getProject()).index();
 	}
 	
