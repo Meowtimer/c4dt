@@ -93,7 +93,7 @@ public class C4GroupFileSystem extends FileSystem {
 	 * @param group The group to delete
 	 */
 	public void removeGroupFromRegistry(C4Group group) {
-		rootGroups.remove(group.getOrigin());
+		rootGroups.remove(group.origin());
 	}
 
 	private void purgeDeadEntries() {

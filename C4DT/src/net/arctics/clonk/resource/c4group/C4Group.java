@@ -54,7 +54,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
-		getParentGroup().readFromStream(whoWantsThat, pos, callback);
+		parentGroup().readFromStream(whoWantsThat, pos, callback);
 	}
 	
 	/**
@@ -64,7 +64,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @throws IOException
 	 */
 	public InputStream requireStream() throws FileNotFoundException, IOException {
-		return getParentGroup().requireStream();
+		return parentGroup().requireStream();
 	}
 	
 	/**
@@ -72,7 +72,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @throws IOException
 	 */
 	public void releaseStream() throws IOException {
-		getParentGroup().releaseStream();
+		parentGroup().releaseStream();
 	}
 	
 	private final String entryName;
@@ -89,13 +89,13 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	
 	public int baseOffset() {
 		int result = 0;
-		if (getParentGroup() != null)
-			result += getParentGroup().baseOffset();
+		if (parentGroup() != null)
+			result += parentGroup().baseOffset();
 		result += offset + C4GroupHeader.STORED_SIZE + C4GroupEntryHeader.STORED_SIZE * header.getEntries();
 		return result;
 	}
 	
-	public File getOrigin() {
+	public File origin() {
 		return origin;
 	}
 	
@@ -212,7 +212,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
 
 		if (stream == null)
-			stream = getStream();
+			stream = stream();
 		
 		String[] files;
 		
@@ -244,8 +244,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					else {
 						C4GroupItem entry;
 						if (entryHeader.isGroup()) {
-							C4Group group = new C4Group(this, entryHeader.getEntryName(), null); // a group does not need all header information
-							group.offset = entryHeader.getOffset();
+							C4Group group = new C4Group(this, entryHeader.entryName(), null); // a group does not need all header information
+							group.offset = entryHeader.offset();
 							entry = group;
 						}
 						else {
@@ -319,13 +319,13 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 	
 	/**
-	 * Like {@link #readIntoMemory(boolean, C4GroupHeaderFilterBase, InputStream)}, but with the stream parameter set to {@link #getStream()}.
+	 * Like {@link #readIntoMemory(boolean, C4GroupHeaderFilterBase, InputStream)}, but with the stream parameter set to {@link #stream()}.
 	 * @throws C4GroupInvalidDataException
 	 * @throws IOException
 	 * @throws CoreException
 	 */
 	public final void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter) throws C4GroupInvalidDataException, IOException, CoreException {
-		readIntoMemory(recursively, filter, getStream());
+		readIntoMemory(recursively, filter, stream());
 	}
 
 	/**
@@ -362,7 +362,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-    	for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+    	for (C4GroupItem item = this; item != null; item = item.parentGroup()) {
     		builder.insert(0, item.getName());
     		builder.insert(0, '/');
     	}
@@ -380,14 +380,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * @return the stream the group is read from
 	 */
-	public InputStream getStream() {
-		return getParentGroup().getStream();
+	public InputStream stream() {
+		return parentGroup().stream();
 	}
 	
 	/**
 	 * @return the childEntries
 	 */
-	public List<C4GroupItem> getChildren() {
+	public List<C4GroupItem> children() {
 		if (childEntries == null) {
 			try {
 				if (origin != null)
@@ -395,7 +395,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				if (origin != null && origin.isDirectory())
 					readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, null);
 				else {
-					readFromStream(this, (getParentGroup() != null ? getParentGroup().baseOffset() : 0) + offset, new StreamReadCallback() {
+					readFromStream(this, (parentGroup() != null ? parentGroup().baseOffset() : 0) + offset, new StreamReadCallback() {
 						@Override
 						public void readStream(InputStream stream) {
 							try {
@@ -420,17 +420,17 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * @return the header
 	 */
-	public C4GroupHeader getHeader() {
+	public C4GroupHeader header() {
 		return header;
 	}
 
 	@Override
-	public C4Group getParentGroup() {
+	public C4Group parentGroup() {
 		return parentGroup;
 	}
 	
 	public C4GroupItem findChild(String itemName) {
-		for (C4GroupItem item : getChildren()) {
+		for (C4GroupItem item : children()) {
 			if (item.getName().equalsIgnoreCase(itemName))
 				return item;
 		}
@@ -472,11 +472,11 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			}
 			return size;
 		}
-		else return entryHeader.getSize();
+		else return entryHeader.size();
 	}
 
 	@Override
-	public C4GroupEntryHeader getEntryHeader() {
+	public C4GroupEntryHeader entryHeader() {
 		return entryHeader;
 	}
 
@@ -485,7 +485,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		try {
 			header.writeTo(stream); // group header
 			for(C4GroupItem item : childEntries) { // write index
-				item.getEntryHeader().writeTo(stream); 
+				item.entryHeader().writeTo(stream); 
 			}
 			for(C4GroupItem item : childEntries) { // write data
 				item.writeTo(stream);
@@ -506,12 +506,12 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public Collection<? extends INode> childCollection() {
-		return this.getChildren();
+		return this.children();
 	}
 
 	@Override
 	public ITreeNode parentNode() {
-		return getParentGroup();
+		return parentGroup();
 	}
 
 	@Override
@@ -529,9 +529,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		return getName();
 	}
 
-	public C4Group getMasterGroup() {
+	public C4Group masterGroup() {
 		C4Group result;
-		for (result = this; result.getParentGroup() != null; result = result.getParentGroup());
+		for (result = this; result.parentGroup() != null; result = result.parentGroup());
 		return result;
 	}
 
@@ -549,7 +549,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			childEntries = null; // force refresh
 			loaded = false;
 		}
-		List<C4GroupItem> childEntries = this.getChildren();
+		List<C4GroupItem> childEntries = this.children();
 		String[] result = new String[childEntries.size()];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = childEntries.get(i).getName();
@@ -575,7 +575,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public IFileStore getParent() {
-		return getParentGroup();
+		return parentGroup();
 	}
 
 	@Override
@@ -586,8 +586,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public long lastModified() {
 		if (origin != null)
 			return origin.lastModified();
-		else if (getParentGroup() != null)
-			return getParentGroup().lastModified();
+		else if (parentGroup() != null)
+			return parentGroup().lastModified();
 		else
 			return EFS.NONE;
 	}
@@ -595,7 +595,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	@Override
 	protected void copyDirectory(IFileInfo sourceInfo, IFileStore destination, int options, IProgressMonitor monitor) throws CoreException {
 		
-		boolean needsToReleaseStream = getStream() == null;
+		boolean needsToReleaseStream = stream() == null;
 		try {
 			if (needsToReleaseStream)
 				requireStream();

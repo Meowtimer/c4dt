@@ -44,7 +44,7 @@ public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 								list = new LinkedList<File>();
 								filesToReimport.put(parent, list);
 							}
-							list.add(group.getOrigin());
+							list.add(group.origin());
 							container.delete(true, new NullProgressMonitor());
 						}
 					}

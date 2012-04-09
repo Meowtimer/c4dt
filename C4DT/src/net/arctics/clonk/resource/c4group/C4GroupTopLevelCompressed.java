@@ -45,9 +45,9 @@ public class C4GroupTopLevelCompressed extends C4Group {
 		streamPos = 0;
 		if (stream != null)
 			releaseStream();
-		stream = getGroupFileStream(new FileInputStream(getOrigin()));
+		stream = createGroupFileStream(new FileInputStream(origin()));
 		if (stream == null) {
-			System.out.println("Failed to create stream for " + getOrigin());
+			System.out.println("Failed to create stream for " + origin());
 			return null;
 		} else
 			return stream;
@@ -120,7 +120,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 //				((C4Group)item).releaseStream();
 	}
 
-	private static InputStream getGroupFileStream(final InputStream stream) throws IOException {
+	private static InputStream createGroupFileStream(final InputStream stream) throws IOException {
 		try {
 			return new GZIPInputStream(new InputStream() {
 				private int timesRead = 0;
@@ -185,7 +185,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	}
 	
 	@Override
-	public InputStream getStream() {
+	public InputStream stream() {
 		return stream;
 	}
 	
@@ -202,7 +202,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	
 	@Override
 	public boolean existsOnDisk() {
-		File origin = getOrigin();
+		File origin = origin();
 		return origin != null && origin.exists();
 	}
 

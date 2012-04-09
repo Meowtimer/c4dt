@@ -140,7 +140,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	public ByteArrayInputStream getContents() throws CoreException {
 		if (contents == null) {
 			try {
-				getParentGroup().readFromStream(this, getParentGroup().baseOffset() + header.getOffset(), new StreamReadCallback() {
+				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), new StreamReadCallback() {
 					@Override
 					public void readStream(InputStream stream) {
 						fetchContents(stream);
@@ -162,7 +162,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+		for (C4GroupItem item = this; item != null; item = item.parentGroup()) {
 			builder.insert(0, item.getName());
 			builder.insert(0, '/');
 		}
@@ -173,7 +173,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	 * @return the entryName
 	 */
 	public String getEntryName() {
-		return header.getEntryName();
+		return header.entryName();
 	}
 
 	/**
@@ -195,28 +195,28 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	 * @return the size
 	 */
 	public int getSize() {
-		return header.getSize();
+		return header.size();
 	}
 
 	/**
 	 * @return the entrySize
 	 */
 	public int getEntrySize() {
-		return header.getEntrySize();
+		return header.entrySize();
 	}
 
 	/**
 	 * @return the offset
 	 */
 	public int getOffset() {
-		return header.getOffset();
+		return header.offset();
 	}
 
 	/**
 	 * @return the time
 	 */
 	public int getTime() {
-		return header.getTime();
+		return header.time();
 	}
 
 	/**
@@ -224,13 +224,6 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	 */
 	public boolean hasCRC() {
 		return header.hasCRC();
-	}
-
-	/**
-	 * @return the crc
-	 */
-	public int getCrc() {
-		return header.getCrc();
 	}
 
 	/**
@@ -250,11 +243,11 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	public String getName() {
-		return header.getEntryName();
+		return header.entryName();
 	}
 
 	@Override
-	public C4Group getParentGroup() {
+	public C4Group parentGroup() {
 		return parentGroup;
 	}
 
@@ -299,11 +292,11 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		if (completed)
 			return contents.length;
 		else
-			return header.getSize();
+			return header.size();
 	}
 
 	@Override
-	public C4GroupEntryHeader getEntryHeader() {
+	public C4GroupEntryHeader entryHeader() {
 		return header;
 	}
 
@@ -362,7 +355,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
-		fileInfo.setLastModified(getParentGroup().lastModified());
+		fileInfo.setLastModified(parentGroup().lastModified());
 		return fileInfo;
 	}
 
@@ -373,7 +366,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	public IFileStore getParent() {
-		return getParentGroup();
+		return parentGroup();
 	}
 
 	@Override

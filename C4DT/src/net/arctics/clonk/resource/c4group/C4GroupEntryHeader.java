@@ -102,14 +102,14 @@ public class C4GroupEntryHeader implements Serializable {
 			throw new IOException("skipData for groups not implemented"); //$NON-NLS-1$
 		}
 		else {
-			stream.skip(getSize());
+			stream.skip(size());
 		}
 	}
     
     /**
 	 * @return the entryName
 	 */
-	public String getEntryName() {
+	public String entryName() {
 		return entryName;
 	}
 	/**
@@ -121,25 +121,25 @@ public class C4GroupEntryHeader implements Serializable {
 	/**
 	 * @return the size
 	 */
-	public int getSize() {
+	public int size() {
 		return size;
 	}
 	/**
 	 * @return the entrySize
 	 */
-	public int getEntrySize() {
+	public int entrySize() {
 		return entrySize;
 	}
 	/**
 	 * @return the offset
 	 */
-	public int getOffset() {
+	public int offset() {
 		return offset;
 	}
 	/**
 	 * @return the time
 	 */
-	public int getTime() {
+	public int time() {
 		return time;
 	}
 	/**
@@ -147,12 +147,6 @@ public class C4GroupEntryHeader implements Serializable {
 	 */
 	public boolean hasCRC() {
 		return hasCRC;
-	}
-	/**
-	 * @return the crc
-	 */
-	public int getCrc() {
-		return crc;
 	}
 
 	/**

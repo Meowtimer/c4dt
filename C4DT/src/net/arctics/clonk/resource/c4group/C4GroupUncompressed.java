@@ -21,7 +21,7 @@ public class C4GroupUncompressed extends C4Group {
 	}
 	
 	@Override
-	public InputStream getStream() {
+	public InputStream stream() {
 		return null;
 	}
 	
@@ -37,7 +37,7 @@ public class C4GroupUncompressed extends C4Group {
 	@Override
 	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
 		// create stream from uncompressed file
-		IPath path = new Path(getOrigin().toString()).append(ITreeNode.Default.relativePath(whoWantsThat, this));
+		IPath path = new Path(origin().toString()).append(ITreeNode.Default.relativePath(whoWantsThat, this));
 		File fileToReadFrom = path.toFile();
 		if (fileToReadFrom.isFile()) {
 			FileInputStream stream = new FileInputStream(fileToReadFrom);

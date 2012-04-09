@@ -81,7 +81,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 
 						@Override
 						public void processGroupItem(C4GroupItem item) throws CoreException {
-							for (; currentGroup != item.getParentGroup(); currentGroup = currentGroup.getParentGroup(), currentContainer = currentContainer.getParent());
+							for (; currentGroup != item.parentGroup(); currentGroup = currentGroup.parentGroup(), currentContainer = currentContainer.getParent());
 							if (item instanceof C4Group) {
 								C4Group group = (C4Group)item;
 								/*if (group.getParentGroup() == null)

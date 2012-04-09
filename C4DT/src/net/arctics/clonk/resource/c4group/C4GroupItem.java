@@ -78,13 +78,13 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * The parent group this item is a child of
 	 * @return
 	 */
-	public abstract C4Group getParentGroup();
+	public abstract C4Group parentGroup();
 	
 	/**
 	 * Returns the entry header
 	 * @return
 	 */
-	public abstract C4GroupEntryHeader getEntryHeader();
+	public abstract C4GroupEntryHeader entryHeader();
 	
 	/**
 	 * Extracts this file to disk
@@ -103,8 +103,8 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	@Override
 	public URI toURI() {
-		C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : getParentGroup()).getMasterGroup();
-		File origin = masterGroup.getOrigin();
+		C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : parentGroup()).masterGroup();
+		File origin = masterGroup.origin();
 		if (origin != null) {
 			try {
 				String path = new Path(origin.getParent()).append(path().toString()).toPortableString();
@@ -129,7 +129,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	@Override
 	public INodeWithPath parentNode() {
-		return getParentGroup();
+		return parentGroup();
 	}
 	
 	public static C4GroupItem getGroupItemBackingResource(IResource resource) {
