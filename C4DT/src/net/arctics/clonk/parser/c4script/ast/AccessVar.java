@@ -177,7 +177,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void inferTypeFromAssignment(ExprElm expression, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm expression, DeclarationObtainmentContext context) {
 		if (declaration() == Variable.THIS)
 			return;
 		if (declaration() == null) {
@@ -205,7 +205,7 @@ public class AccessVar extends AccessDeclaration {
 				}
 			}
 		}
-		super.inferTypeFromAssignment(expression, context);
+		super.assignment(expression, context);
 	}
 	
 	private static Definition definitionProxiedBy(Variable var) {

@@ -1,13 +1,12 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -18,6 +17,7 @@ import net.arctics.clonk.util.ArrayUtil;
  */
 public class ArrayType implements IType {
 
+	public static final int NO_PRESUMED_LENGTH = -1;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private IType generalElementType;
@@ -29,7 +29,7 @@ public class ArrayType implements IType {
 	 * @param elmType The element type. When providing specific element types, this parameter should be null
 	 * @param knownTypesForSpecificElements Specific types for elements. The index of the type in this array corresponds to the index in the array instances of this type.
 	 */
-	public ArrayType(IType elmType, IType[] knownTypesForSpecificElements) {
+	public ArrayType(IType elmType, IType... knownTypesForSpecificElements) {
 		this(elmType, knownTypesForSpecificElements != null ? knownTypesForSpecificElements.length : 0);
 		int i = 0;
 		if (knownTypesForSpecificElements != null)
@@ -42,12 +42,18 @@ public class ArrayType implements IType {
 		this.presumedLength = presumedLength;
 		elementTypeMapping = new HashMap<Integer, IType>();
 	}
+	
+	public ArrayType(IType generalElementType, int presumedLength, Map<Integer, IType> typeMapping) {
+		this.generalElementType = generalElementType;
+		this.presumedLength = presumedLength;
+		elementTypeMapping = new HashMap<Integer, IType>(typeMapping);
+	}
 
 	/**
 	 * Get the general element type. If the general element type is not set a type set consisting of the specific element types will be returned.
 	 * @return
 	 */
-	public IType getGeneralElementType() {
+	public IType generalElementType() {
 		return generalElementType != null ? generalElementType : TypeSet.create(elementTypeMapping.values().toArray(new IType[elementTypeMapping.size()]));
 	}
 	
@@ -55,11 +61,11 @@ public class ArrayType implements IType {
 	 * Return element index -> type map
 	 * @return
 	 */
-	public Map<Integer, IType> getElementTypeMapping() {
+	public Map<Integer, IType> elementTypeMapping() {
 		return elementTypeMapping;
 	}
 	
-	public int getPresumedLength() {
+	public int presumedLength() {
 		return presumedLength;
 	}
 	
@@ -75,7 +81,7 @@ public class ArrayType implements IType {
 		else if (other instanceof ArrayType) {
 			ArrayType otherArrayType = (ArrayType) other;
 			for (Map.Entry<Integer, IType> elmType : elementTypeMapping.entrySet()) {
-				IType otherElmType = otherArrayType.getElementTypeMapping().get(elmType.getKey());
+				IType otherElmType = otherArrayType.elementTypeMapping().get(elmType.getKey());
 				if (otherElmType != null && !elmType.getValue().canBeAssignedFrom(otherElmType))
 					return false;
 			}
@@ -120,7 +126,11 @@ public class ArrayType implements IType {
 					old = i;
 				}
 			}
-			
+			if (presumedLength == NO_PRESUMED_LENGTH) {
+				if (hadCluster)
+					builder.append(", ");
+				builder.append("...");
+			}
 			builder.append(']');
 			return builder.toString();
 		} else if (generalElementType != null)
@@ -183,7 +193,7 @@ public class ArrayType implements IType {
 		if (evaluateIndexExpression instanceof Number)
 			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());;
 		if (t == null)
-			t = getGeneralElementType();
+			t = generalElementType();
 		if (t == null)
 			t = PrimitiveType.ANY;
 		return t;
@@ -201,50 +211,89 @@ public class ArrayType implements IType {
 		}
 	}
 
-	public ITypeable indexedElementAsTypeable(final Object evaluatedIndexExpression, final Index index) {
-		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
-		return new ITypeable() {
-			@Override
-			public String name() {
-				return String.format("Element %s of %s", evaluatedIndexExpression, ArrayType.this);
+	/**
+	 * Return a type for a slice of an array of this type
+	 * @param loEv Lower boundary of slice
+	 * @param hiEv Upper boundary of slice
+	 * @return A type representing slices of the specified range.
+	 */
+	public IType typeForSlice(Object loEv, Object hiEv) {
+		
+		int lo, hi;
+		if (loEv == null)
+			lo = 0;
+		else if (loEv instanceof Number)
+			lo = ((Number)loEv).intValue();
+		else
+			return PrimitiveType.ARRAY;
+		if (hiEv == null)
+			hi = presumedLength;
+		else if (hiEv instanceof Number)
+			hi = ((Number)hiEv).intValue();
+		else
+			return PrimitiveType.ARRAY;
+		
+		if (elementTypeMapping.size() > 0) {
+			ArrayType sliceType = new ArrayType(generalElementType, presumedLength);
+			for (int i = lo; i < hi; i++) {
+				IType t = this.elementTypeMapping.get(i);
+				if (t != null)
+					sliceType.elementTypeMapping.put(i-lo, t);
 			}
-
-			@Override
-			public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
-				elementTypeHint(concreteIndex, t, mode);
+			return sliceType;
+		} else
+			return new ArrayType(generalElementType, this.presumedLength-(hi-lo));
+	}
+	
+	/**
+	 * Return a type representing this type after a slice assignment.
+	 * @param loEv Slice lower bound
+	 * @param hiEv Slice upper bound
+	 * @param sliceType Type of right side of assignment
+	 * @return The after-slice type
+	 */
+	public IType modifiedBySliceAssignment(Object loEv, Object hiEv, IType sliceType) {
+		
+		ArrayType sat = as(sliceType, ArrayType.class);
+		if (sat == null)
+			return PrimitiveType.ARRAY;
+		
+		if (sat.presumedLength() == NO_PRESUMED_LENGTH)
+			return new ArrayType(TypeSet.create(this.generalElementType(), sat.generalElementType()), NO_PRESUMED_LENGTH);
+		
+		int lo, hi;
+		if (loEv == null)
+			lo = 0;
+		else if (loEv instanceof Number)
+			lo = ((Number)loEv).intValue();
+		else
+			return PrimitiveType.ARRAY;
+		if (hiEv == null)
+			hi = presumedLength;
+		else if (hiEv instanceof Number)
+			hi = ((Number)hiEv).intValue();
+		else
+			return PrimitiveType.ARRAY;
+		
+		if (elementTypeMapping.size() > 0 || sat.elementTypeMapping().size() > 0) {
+			ArrayType result = new ArrayType(generalElementType, presumedLength);
+			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet()) {
+				if (t.getKey() < lo)
+					result.elementTypeMapping.put(t.getKey(), t.getValue());
+				else if (t.getKey() >= hi)
+					result.elementTypeMapping.put(t.getKey()-(hi-lo)+sat.presumedLength(), t.getValue());
 			}
-
-			@Override
-			public IType type() {
-				return typeForElementWithIndex(evaluatedIndexExpression);
+			if (sat.elementTypeMapping().size() > 0) {
+				for (Map.Entry<Integer, IType> t : sat.elementTypeMapping().entrySet())
+					result.elementTypeMapping.put(t.getKey()+lo, t.getValue());
+			} else {
+				for (int i = lo; i < hi; i++)
+					result.elementTypeMapping.put(i, sat.generalElementType());
 			}
-
-			@Override
-			public void forceType(IType type) {
-				elementTypeHint(concreteIndex, type, TypeExpectancyMode.Force);
-			}
-
-			@Override
-			public boolean typeIsInvariant() {
-				return false;
-			}
-			
-			@Override
-			public Index index() {
-				return index;
-			}
-
-			@Override
-			public boolean matchedBy(Matcher matcher) {
-				return matcher.reset(name()).matches();
-			}
-
-			@Override
-			public String infoText() {
-				return toString();
-			}
-			
-		};
+			return result;
+		} else
+			return new ArrayType(generalElementType,
+				this.presumedLength == NO_PRESUMED_LENGTH ? NO_PRESUMED_LENGTH : this.presumedLength-(hi-lo)+sat.presumedLength());
 	}
 	
 	@Override

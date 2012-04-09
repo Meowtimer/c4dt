@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -54,13 +55,27 @@ public class ArraySliceExpression extends ArrayElementExpression {
 	}
 	
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return false;
-	}
-	
-	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		return PrimitiveType.ARRAY;
+		ArrayType arrayType = arrayType(context);
+		if (arrayType != null)
+			return arrayType.typeForSlice(
+				evaluateAtParseTime(argument, context),
+				evaluateAtParseTime(argument2, context)
+			);
+		else
+			return PrimitiveType.ARRAY;
+	}
+
+	@Override
+	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+		ArrayType arrayType = arrayType(context);
+		IType sliceType = rightSide.obtainType(context);
+		if (arrayType != null)
+			context.storeTypeInformation(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
+				evaluateAtParseTime(argument, context),
+				evaluateAtParseTime(argument2, context),
+				sliceType
+			));
 	}
 	
 }

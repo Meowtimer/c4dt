@@ -1,0 +1,1 @@
+java -classpath bin:${ECLIPSE_HOME}/plugins/* net.arctics.clonk.parser.c4script.C4ScriptToCPPConverter $*

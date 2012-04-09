@@ -57,12 +57,13 @@ public enum PrimitiveType implements IType {
 		"long", PrimitiveType.INT,
 		"int", PrimitiveType.INT,
 		"bool", PrimitiveType.BOOL,
-		"C4ID", PrimitiveType.ID,
-		"C4Object", PrimitiveType.OBJECT,
-		"C4PropList", PrimitiveType.PROPLIST,
+		"C4Def*", PrimitiveType.ID,
+		"C4Object*", PrimitiveType.OBJECT,
+		"C4PropList*", PrimitiveType.PROPLIST,
 		"C4Value", PrimitiveType.ANY,
-		"C4String", PrimitiveType.STRING,
-		"C4Void", PrimitiveType.UNKNOWN
+		"C4String*", PrimitiveType.STRING,
+		"C4Void*", PrimitiveType.UNKNOWN,
+		"C4AulFunc*", PrimitiveType.FUNCTION
 	);
 	
 	/**

@@ -196,7 +196,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					initializationClone.incrementLocation(parser.bodyOffset());
 					var.setInitializationExpression(initializationClone);
 					var.forceType(arguments[1].typeInContext(parser));
-					new AccessVar(var).inferTypeFromAssignment(arguments[1], parser);
+					new AccessVar(var).assignment(arguments[1], parser);
 					var.setParentDeclaration(parser.currentFunction());
 					//parser.getContainer().addDeclaration(var);
 				}

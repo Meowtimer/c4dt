@@ -330,7 +330,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				for (int i = contextSequence.subElements().length-1; i >= 0; i--) {
 					if (contextSequence.subElements()[i] instanceof MemberOperator) {
 						if (i < contextSequence.subElements().length-1)
-							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.subElements()[i+1]);
+							contextSequence = contextSequence.subSequenceUpTo(contextSequence.subElements()[i+1]);
 						break;
 					}
 				}

@@ -17,7 +17,7 @@ public class ExprElmWithSubElementsArray extends Value {
 	public void setSubElements(ExprElm[] elms) {
 		elements = elms;
 	}
-	public ExprElm getLastElement() {
+	public ExprElm lastElement() {
 		return elements != null && elements.length > 1 ? elements[elements.length-1] : null;
 	}
 }

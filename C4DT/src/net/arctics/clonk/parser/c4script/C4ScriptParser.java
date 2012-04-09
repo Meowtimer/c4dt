@@ -2970,7 +2970,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), PrimitiveType.ARRAY.toString());
 				if (loopVariable != null && t instanceof ArrayType) {
 					ArrayType arrayType = (ArrayType) t;
-					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getGeneralElementType(), this, TypeExpectancyMode.Force);
+					new AccessVar(loopVariable).expectedToBeOfType(arrayType.generalElementType(), this, TypeExpectancyMode.Force);
 				}
 			}
 			condition = null;

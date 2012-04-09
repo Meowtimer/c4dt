@@ -847,7 +847,7 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule createArrayTypingRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
-			int arrayLength = 0;
+			int arrayLength = ArrayType.NO_PRESUMED_LENGTH;
 			if (callFunc.params().length >= 1) {
 				Object ev = callFunc.params()[0].evaluateAtParseTime(context);
 				if (ev instanceof Number)

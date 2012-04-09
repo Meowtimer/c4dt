@@ -201,7 +201,7 @@ public class BinaryOp extends OperatorExpression {
 			rightSide().expectedToBeOfType(expectedRight, context);
 
 		if (operator() == Operator.Assign) {
-			leftSide().inferTypeFromAssignment(rightSide(), context);
+			leftSide().assignment(rightSide(), context);
 		}
 	}
 	
@@ -209,7 +209,7 @@ public class BinaryOp extends OperatorExpression {
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		if (operator() == Operator.Assign) {
-			leftSide().inferTypeFromAssignment(rightSide(), root);
+			leftSide().assignment(rightSide(), root);
 		}
 	}
 

@@ -47,8 +47,8 @@ public class MemberOperator extends ExprElm {
 	public static boolean endsWithDot(ExprElm expression) {
 		return
 			expression instanceof Sequence &&
-			((Sequence)expression).getLastElement() instanceof MemberOperator &&
-			((MemberOperator)((Sequence)expression).getLastElement()).dotNotation;
+			((Sequence)expression).lastElement() instanceof MemberOperator &&
+			((MemberOperator)((Sequence)expression).lastElement()).dotNotation;
 	}
 
 	/**

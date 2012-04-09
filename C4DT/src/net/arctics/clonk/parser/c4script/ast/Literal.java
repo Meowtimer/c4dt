@@ -26,7 +26,7 @@ public class Literal<T> extends Value {
 	}
 
 	@Override
-	public void inferTypeFromAssignment(ExprElm arg0, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm arg0, DeclarationObtainmentContext context) {
 		// don't care
 	}
 

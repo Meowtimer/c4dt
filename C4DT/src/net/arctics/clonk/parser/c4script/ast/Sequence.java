@@ -74,7 +74,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
-	public Sequence sequenceWithElementsRemovedFrom(ExprElm elm) {
+	public Sequence subSequenceUpTo(ExprElm elm) {
 		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
 		for (ExprElm e : elements) {
 			if (e == elm)
@@ -85,8 +85,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
 	@Override
-	public void inferTypeFromAssignment(ExprElm rightSide, DeclarationObtainmentContext context) {
-		getLastElement().inferTypeFromAssignment(rightSide, context);
+	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+		lastElement().assignment(rightSide, context);
 	}
 	public ExprElm successorOfSubElement(ExprElm element) {
 		for (int i = 0; i < elements.length; i++)

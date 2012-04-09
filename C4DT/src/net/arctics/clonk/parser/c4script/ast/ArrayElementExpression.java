@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -79,16 +79,23 @@ public class ArrayElementExpression extends Value {
 		return argument;
 	}
 	
+	protected ArrayType arrayType(DeclarationObtainmentContext context) {
+		return predecessorInSequence() != null ? as(predecessorInSequence().obtainType(context), ArrayType.class) : null;
+	}
+	
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
-		if (predecessorInSequence() != null) {
-			IType t = predecessorInSequence().typeInContext(parser);
-			if (t instanceof ArrayType)
-				return new EntityRegion(
-					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.containingScript().index())
-				);
+	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+		ArrayType arrayType = arrayType(context);
+		IType rightSideType = rightSide.obtainType(context);
+		if (arrayType != null) {
+			Object argEv = evaluateAtParseTime(argument, context);
+			if (argEv instanceof Number)
+				context.storeTypeInformation(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
+					argEv,
+					((Number)argEv).intValue()+1,
+					new ArrayType(rightSideType, rightSideType)
+				));
 		}
-		return super.declarationAt(offset, parser);
 	}
 
 }
