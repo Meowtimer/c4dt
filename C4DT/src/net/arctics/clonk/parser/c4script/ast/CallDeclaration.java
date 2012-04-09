@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script.ast;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -309,7 +308,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
-		List<IIndexEntity> decs = new LinkedList<IIndexEntity>();
+		Set<IIndexEntity> decs = new HashSet<IIndexEntity>();
 		_obtainDeclaration(decs, context);
 		for (IIndexEntity e : decs)
 			if (e instanceof Declaration)
@@ -317,7 +316,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return null;
 	}
 
-	protected void _obtainDeclaration(Collection<IIndexEntity> list, DeclarationObtainmentContext context) {
+	protected void _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
 			return;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
@@ -342,7 +341,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
-	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Collection<IIndexEntity> listToAddPotentialDeclarationsTo) {
+	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
 		IType lookIn = pred == null ? context.containingScript() : pred.typeInContext(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof IHasConstraint))
