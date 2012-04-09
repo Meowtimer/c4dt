@@ -53,6 +53,15 @@ public class Scenario extends Definition {
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 	
+	public static Scenario getAscending(IResource res) {
+		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
+			Scenario s = get(c);
+			if (s != null)
+				return s;
+		}
+		return null;
+	}
+	
 	public static Scenario nearestScenario(IResource resource) {
 		Scenario scenario;
 		for (scenario = null; scenario == null && resource != null; resource = resource.getParent()) {

@@ -117,44 +117,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		childEntries = new LinkedList<C4GroupItem>();
 		this.header = header;
 	}
-	
-	/*
-	protected static C4Group makeGroup(IFolder folder) {
-		try {
-			String groupName = folder.getName();
-			IResource[] children = folder.members();
-			int entryCount = children.length;
-			C4Group group = new C4Group(groupName, C4GroupHeader.createHeader(entryCount, "C4DT C4ScriptEditor"));// TODO implement new project option for "maker" string
-			int groupSize = 0;
-			for (int i = 0; i < entryCount;i++) {
-				String entryName = children[i].getName();
-				if (children[i] instanceof IFolder) {
-					C4Group subGroup = makeGroup((IFolder)children[i]);
-					subGroup.entryHeader.setOffset(groupSize);
-					group.getChildEntries().add(subGroup);
-				}
-				else if (children[i] instanceof IFile) {
-					File file = new File(((IFile)children[i]).getRawLocationURI());
-					int size = (int)file.length();
-					C4GroupEntry entry = C4GroupEntry.makeEntry(group, C4EntryHeader.createHeader(entryName, false, false, size, 0, 0, (int) GregorianCalendar.getInstance().getTimeInMillis()),file);
-					entry.getEntryHeader().setOffset(groupSize);
-					group.getChildEntries().add(entry);
-				}
-				else {
-					System.out.println("Don't know how to treat resource " + children[i].getName() + " of class " + children[i].getClass().getName());
-					continue;
-				}
-				groupSize += group.getChildEntries().get(group.getChildEntries().size()).computeSize();
-			}
-			groupSize += C4GroupHeader.STORED_SIZE; // group header
-			groupSize += C4GroupEntry.STORED_SIZE * entryCount; // entry headers
-			group.entryHeader = C4EntryHeader.createHeader(groupName, false, true, groupSize, 0, 0, (int) GregorianCalendar.getInstance().getTimeInMillis());
-			return group;
-		} catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}*/
 
 	public static C4Group openDirectory(File file) {
 		return new C4GroupTopLevelCompressed(file);

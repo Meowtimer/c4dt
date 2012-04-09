@@ -465,6 +465,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			}
 			// definition from extern index
 			if (info.findDefinitions && engine().acceptsId(name)) {
+				if (name.equals("StoneDoor"))
+					System.out.println("bla");
 				f = info.index.definitionNearestTo(resource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof Definition) {
 					f = ((Definition)f).proxyVar();

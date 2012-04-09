@@ -35,7 +35,7 @@ public class Statement extends ExprElm implements Cloneable {
 		private static final long serialVersionUID = 1L;
 
 		private final int num;
-		public int getNum() {
+		public int num() {
 			return num;
 		}
 		public EmptyLinesAttachment(int num) {

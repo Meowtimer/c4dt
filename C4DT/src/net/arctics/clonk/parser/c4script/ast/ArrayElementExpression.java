@@ -58,8 +58,6 @@ public class ArrayElementExpression extends Value {
 		ExprElm arg = getArgument();
 		if (arg != null)
 			arg.reportErrors(parser);
-		else
-			parser.warningWithCode(ParserErrorCode.MissingExpression, this);
 	}
 
 	@Override

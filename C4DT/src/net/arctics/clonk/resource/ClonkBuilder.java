@@ -1,6 +1,8 @@
 package net.arctics.clonk.resource;
 
 import static net.arctics.clonk.util.ArrayUtil.listFromIterable;
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,9 +19,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.DefinitionParser;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -30,6 +32,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -175,6 +178,29 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 	
 	public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
+		public Definition createDefinition(IContainer folder) {
+			IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
+			IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class);
+			if (defCore == null && scenario == null)
+				return null;
+			try {
+				Definition def = Definition.definitionCorrespondingToFolder(folder);
+				if (defCore != null) {
+					DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
+					if (def == null)
+						def = new Definition(index(), defCoreWrapper.definitionID(), defCoreWrapper.name(), folder);
+					else {
+						def.setId(defCoreWrapper.definitionID());
+						def.setName(defCoreWrapper.name(), false);
+					}
+				} else if (scenario != null)
+					def = new Scenario(index(), folder.getName(), folder);
+				return def;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
 		@Override
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			if (delta == null) 
@@ -189,31 +215,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					script = Script.get(file, true);
 					if (script == null) {
 						// create if new file
-						IContainer folder = delta.getResource().getParent();
-						DefinitionParser objParser;
-						// script in a resource group
-						if (delta.getResource().getName().toLowerCase().endsWith(".c") && index().engine().groupTypeForFileName(folder.getName()) == GroupType.ResourceGroup) //$NON-NLS-1$ //$NON-NLS-2$
+						// script in a system group
+						if (isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
 							script = new SystemScript(null, file);
 						// object script
-						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, index())) != null) //$NON-NLS-1$
-							script = objParser.createDefinition();
-						// some other file but a script is still needed so get the definition for the folder
 						else
-							script = Definition.definitionCorrespondingToFolder(folder);
+							script = createDefinition(delta.getResource().getParent());
 					}
-					if (script != null && delta.getResource().equals(script.scriptStorage())) {
+					if (script != null && delta.getResource().equals(script.scriptStorage()))
 						queueScript(script);
-					} else
+					else
 						processAuxiliaryFiles(file, script);
-					// packed file
-					//				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
-					//					try {
-					//						C4Group g = C4Group.openFile(file);
-					//						g.explode();
-					//					} catch (IOException e) {
-					//						e.printStackTrace();
-					//					}
-					//				}
 					break;
 				case IResourceDelta.REMOVED:
 					script = SystemScript.scriptCorrespondingTo(file);
@@ -223,24 +235,29 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				success = true;
 			}
 			else if (delta.getResource() instanceof IContainer) {
+				IContainer container = (IContainer)delta.getResource();
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
 						success = false;
 						break If;
 					}
 				// make sure the object has a reference to its folder (not to some obsolete deleted one)
-				Definition object;
+				Definition definition;
 				switch (delta.getKind()) {
 				case IResourceDelta.ADDED:
-					object = Definition.definitionCorrespondingToFolder((IContainer)delta.getResource());
-					if (object != null)
-						object.setDefinitionFolder((IContainer) delta.getResource());
+					definition = Definition.definitionCorrespondingToFolder(container);
+					if (definition != null)
+						definition.setDefinitionFolder(container);
+					else if (isSystemGroup(container))
+						for (IResource res : container.members())
+							if (isSystemScript(res))
+								queueScript(new SystemScript(index(), (IFile)res));
 					break;
 				case IResourceDelta.REMOVED:
 					// remove object when folder is removed
-					object = Definition.definitionCorrespondingToFolder((IContainer)delta.getResource());
-					if (object != null)
-						object.index().removeDefinition(object);
+					definition = Definition.definitionCorrespondingToFolder(container);
+					if (definition != null)
+						definition.index().removeDefinition(definition);
 					break;
 				}
 				success = true;
@@ -256,27 +273,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
 						return false;
-				DefinitionParser parser = DefinitionParser.create((IContainer) resource, index());
-				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
-					Definition object = parser.createDefinition();
-					if (object != null) {
-						queueScript(object);
-					}
-				}
+				Definition definition = createDefinition((IContainer) resource);
+				if (definition != null)
+					queueScript(definition);
 				return true;
 			}
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
 				// only create standalone-scripts for *.c files residing in System groups
-				String systemName = nature.index().engine().groupName("System", GroupType.ResourceGroup); //$NON-NLS-1$
-				if (
-					resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
-					systemName.equals(resource.getParent().getName())
-				) {
+				if (isSystemScript(resource)) {
 					Script script = SystemScript.pinnedScript(file, true);
-					if (script == null) {
+					if (script == null)
 						script = new SystemScript(index(), file);
-					}
 					queueScript(script);
 					return true;
 				}
@@ -333,6 +341,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private Index index() {
 		return ClonkProjectNature.get(getProject()).index();
+	}
+	
+	public boolean isSystemScript(IResource resource) {
+		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent());
+	}
+
+	private boolean isSystemGroup(IContainer container) {
+		return index().engine().groupName("System", GroupType.ResourceGroup).equals(container.getName());
 	}
 	
 	private static String buildTask(String text, IProject project) {

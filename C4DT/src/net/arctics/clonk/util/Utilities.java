@@ -150,19 +150,19 @@ public abstract class Utilities {
 	 * @return The distance to a container that both a and b are contained in
 	 */
 	public static int distanceToCommonContainer(IResource a, IResource b) {
-		return Math.max(_distanceToCommonContainer(a, b), _distanceToCommonContainer(b, a));
-	}
-	
-	private static int _distanceToCommonContainer(IResource a, IResource b) {
 		IContainer c;
 		int dist = 0;
 		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
 			if (resourceInside(b, c))
 				break;
-			if (Scenario.get(c) != null)
-				dist += 100; // scenario boundary - when looking for a definition, always prefer the one not contained in a scenario if the search starts from elsewhere than that scenario
-			else
-				dist++;
+			dist++;
+		}
+		Scenario aScenario = Scenario.getAscending(a);
+		Scenario bScenario = Scenario.getAscending(b);
+		if (aScenario != bScenario) {
+			dist += 500; // penalty for scenario boundary
+			if (aScenario != null && bScenario != null)
+				dist += 500; // double penalty for different scenarios
 		}
 		return dist;
 	}
@@ -176,7 +176,7 @@ public abstract class Utilities {
 	 * @return The item 'nearest' to resource
 	 */
 	public static <T extends IHasRelatedResource> T pickNearest(Iterable<T> fromList, IResource resource, IPredicate<T> filter) {
-		int bestDist = 1000;
+		int bestDist = Integer.MAX_VALUE;
 		T best = null;
 		if (fromList != null) {
 			for (T o : fromList) {
@@ -185,7 +185,7 @@ public abstract class Utilities {
 				IResource res = o.resource();
 				int newDist = res != null
 					? distanceToCommonContainer(resource, res)
-					: 100;
+					: 10000;
 				if (best == null || newDist < bestDist) {
 					best = o;
 					bestDist = newDist;
