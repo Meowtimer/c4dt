@@ -23,7 +23,7 @@ public class ArrayElementExpression extends Value {
 		if (predecessorInSequence() != null) {
 			t = predecessorInSequence().typeInContext(context);
 			if (t instanceof ArrayType)
-				return ((ArrayType)t).typeForElementWithIndex(argument.evaluateAtParseTime(context));
+				return ((ArrayType)t).typeForElementWithIndex(evaluateAtParseTime(argument, context));
 		}
 		return PrimitiveType.ANY;
 	}
@@ -58,6 +58,8 @@ public class ArrayElementExpression extends Value {
 		ExprElm arg = getArgument();
 		if (arg != null)
 			arg.reportErrors(parser);
+		else
+			parser.warningWithCode(ParserErrorCode.MissingExpression, this);
 	}
 
 	@Override
@@ -89,12 +91,13 @@ public class ArrayElementExpression extends Value {
 		IType rightSideType = rightSide.obtainType(context);
 		if (arrayType != null) {
 			Object argEv = evaluateAtParseTime(argument, context);
-			if (argEv instanceof Number)
+			if (argEv instanceof Number) {
 				context.storeTypeInformation(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
 					argEv,
 					((Number)argEv).intValue()+1,
 					new ArrayType(rightSideType, rightSideType)
 				));
+			}
 		}
 	}
 
