@@ -334,7 +334,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						break;
 					}
 				}
-				for (IType t : contextSequence.typeInContext(parser)) {
+				for (IType t : contextSequence.type(parser)) {
 					IHasSubDeclarations structure;
 					if (t instanceof IHasSubDeclarations)
 						structure = (IHasSubDeclarations) t;

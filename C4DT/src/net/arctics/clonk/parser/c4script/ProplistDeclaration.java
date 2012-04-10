@@ -209,7 +209,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 		if (prototypeExpr == null)	
 			prototypeExpr = implicitPrototype;
 		if (prototypeExpr != null) {
-			IType t = prototypeExpr.typeInContext(declarationObtainmentContext());
+			IType t = prototypeExpr.type(declarationObtainmentContext());
 			if (t != null)
 				for (IType ty : t)
 					if (ty instanceof ProplistDeclaration)

@@ -194,7 +194,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					ExprElm initializationClone = arguments[1].clone();
 					initializationClone.incrementLocation(parser.bodyOffset());
 					var.setInitializationExpression(initializationClone);
-					var.forceType(arguments[1].typeInContext(parser));
+					var.forceType(arguments[1].type(parser));
 					new AccessVar(var).assignment(arguments[1], parser);
 					var.setParentDeclaration(parser.currentFunction());
 					//parser.getContainer().addDeclaration(var);
@@ -289,12 +289,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 					}
 				}
-				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].typeInContext(parser))) {
+				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
 						return true;
 					parser.currentFunctionContext().expressionReportingErrors = arguments[parmIndex+1];
 					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
-						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].typeInContext(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
 				parser.currentFunctionContext().expressionReportingErrors = saved;
@@ -375,7 +375,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index != 0)
 					return null;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : null;
+				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : null;
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
 						EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
@@ -389,7 +389,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().typeInContext(parser) : parser.containingScript();
+				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.containingScript();
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;

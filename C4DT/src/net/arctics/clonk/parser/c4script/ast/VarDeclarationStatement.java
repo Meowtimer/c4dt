@@ -170,7 +170,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		super.reportErrors(parser);
 		for (VarInitialization initialization : varInitializations) {
 			if (initialization.variableBeingInitialized != null && initialization.expression != null) {
-				new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType(initialization.expression.typeInContext(parser), parser, TypeExpectancyMode.Force);
+				new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType(initialization.expression.type(parser), parser, TypeExpectancyMode.Force);
 			}
 		}
 	}

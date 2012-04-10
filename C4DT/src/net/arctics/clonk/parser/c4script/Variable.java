@@ -98,7 +98,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public Variable(String name, ExprElm expr, C4ScriptParser context) {
-		this(name, expr.typeInContext(context));
+		this(name, expr.type(context));
 		scope = Scope.VAR;
 		setInitializationExpression(expr);
 	}
@@ -288,9 +288,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	public void setInitializationExpression(ExprElm initializationExpression) {
 		this.initializationExpression = initializationExpression;
-		if (initializationExpression != null) {
+		if (initializationExpression != null)
 			initializationExpression.setAssociatedDeclaration(this);
-		}
 	}
 
 	@Override
@@ -448,6 +447,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		clone.scope = this.scope;
 		clone.type = this.type;
 		return clone;
+	}
+
+	public void initializeFromAssignment(ExprElm referee, ExprElm expression, DeclarationObtainmentContext context) {
+		IType type = expression.type(context);
+		expectedToBeOfType(type, TypeExpectancyMode.Expect);
+		setLocation(context.absoluteSourceLocationFromExpr(referee));
+		forceType(type);
+		setInitializationExpression(expression);
 	}
 	
 }

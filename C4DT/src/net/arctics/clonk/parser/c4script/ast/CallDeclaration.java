@@ -123,7 +123,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return
 					callFunc.declaration() == varFunction &&
 					callFunc.params().length == 1 && // don't bother with more complex cases
-					callFunc.params()[0].typeInContext(parser) == PrimitiveType.INT &&
+					callFunc.params()[0].type(parser) == PrimitiveType.INT &&
 					((ev = callFunc.params()[0].evaluateAtParseTime(parser.currentFunction())) != null) &&
 					ev.equals(varIndex);
 			}
@@ -235,7 +235,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
-		IType t = typeInContext(context);
+		IType t = type(context);
 		return t.canBeAssignedFrom(TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
 	}
 	@Override
@@ -261,7 +261,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	protected IType callerType(DeclarationObtainmentContext context) {
 		if (predecessorInSequence() != null)
-			return predecessorInSequence().typeInContext(context);
+			return predecessorInSequence().type(context);
 		else
 			return super.callerType(context);
 	}
@@ -334,7 +334,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	/**
-	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ExprElm#typeInContext(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallDeclaration} in the {@link Sequence}.
+	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ExprElm#type(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallDeclaration} in the {@link Sequence}.
 	 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ExprElm#predecessorInSequence()})
 	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
 	 * @param context Context to use for searching
@@ -342,7 +342,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
-		IType lookIn = pred == null ? context.containingScript() : pred.typeInContext(context);
+		IType lookIn = pred == null ? context.containingScript() : pred.type(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof IHasConstraint))
 				continue;
@@ -427,7 +427,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		if (pred == null)
 			return true;
 		// not typed? weird
-		IType predType = pred.typeInContext(parser);
+		IType predType = pred.type(parser);
 		if (predType == null)
 			return false;
 		// called via ~? ok
@@ -516,7 +516,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						if (given == null)
 							continue;
 						if (!given.validForType(parm.type(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.type().typeName(false), given.typeInContext(context).typeName(false));
+							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.type().typeName(false), given.type(context).typeName(false));
 						else
 							given.expectedToBeOfType(parm.type(), context);
 					}

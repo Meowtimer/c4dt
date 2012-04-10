@@ -22,7 +22,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 			@Override
 			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index == 1 && callFunc.declarationName().equals("ObjectSetAction")) {
-					IType t = callFunc.params()[0].typeInContext(parser);
+					IType t = callFunc.params()[0].type(parser);
 					if (t != null) for (IType ty : t) {
 						if (ty instanceof Definition) {
 							Definition def = (Definition)ty;

@@ -34,7 +34,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 	}
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].typeInContext(context);
+		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].type(context);
 	}
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {

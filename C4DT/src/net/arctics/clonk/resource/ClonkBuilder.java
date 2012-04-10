@@ -533,6 +533,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			newlyEnqueuedParsers.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
+				phase = 1;
 				final ExecutorService phaseOnePool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 				for (final Script script : newlyEnqueuedParsers.keySet()) {
 					if (monitor.isCanceled())
@@ -579,6 +580,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			for (Script s : scripts)
 				s.generateFindDeclarationCache();
+			phase = 2;
 			final ExecutorService phaseTwoPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 			for (final Script script : scripts) {
 				if (monitor.isCanceled())
@@ -737,13 +739,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
+	private int phase;
+	
 	/**
 	 * Parse function code/validate variable initialization code.
 	 * An attempt is made to parse included scripts before the passed one.
 	 * @param script The script to parse
 	 */
-	private void performBuildPhaseTwo(Script script) {
+	public void performBuildPhaseTwo(Script script) {
 		C4ScriptParser parser;
+		if (phase != 2)
+			return;
 		synchronized (parserMap) {
 			parser = parserMap.containsKey(script) ? parserMap.remove(script) : null;
 		}
@@ -754,11 +760,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (include instanceof Script)
 						performBuildPhaseTwo((Script) include);
 				}
-				//System.out.print("-");
-				//long s = System.currentTimeMillis();
 				parser.parseCodeOfFunctionsAndValidate();
-				/*System.out.print(System.currentTimeMillis()-s);
-					System.out.print("-");*/
 			} catch (ParsingException e) {
 				e.printStackTrace();
 			}

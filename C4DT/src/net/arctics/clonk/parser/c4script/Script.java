@@ -497,23 +497,29 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		declaration.setScript(this);
 		if (declaration instanceof Function) {
-			if (definedFunctions == null)
-				definedFunctions = new ArrayList<Function>(5);
-			synchronized (definedFunctions) {
+			synchronized (this) {
+				if (definedFunctions == null)
+					definedFunctions = new ArrayList<Function>(5);
 				definedFunctions.add((Function)declaration);
+				// function added after generating cache? put it
+				if (cachedFunctionMap != null)
+					cachedFunctionMap.put(declaration.name(), (Function) declaration);
 			}
 		}
 		else if (declaration instanceof Variable) {
-			if (definedVariables == null)
-				definedVariables = new ArrayList<Variable>(5);
-			synchronized (definedVariables) {
+			synchronized (this) {
+				if (definedVariables == null)
+					definedVariables = new ArrayList<Variable>(5);
 				definedVariables.add((Variable)declaration);
+				// variable added after generating cache? put it
+				if (cachedVariableMap != null)
+					cachedVariableMap.put(declaration.name(), (Variable) declaration);
 			}
 		}
 		else if (declaration instanceof Directive) {
-			if (definedDirectives == null)
-				definedDirectives = new ArrayList<Directive>(5);
-			synchronized (definedDirectives) {
+			synchronized (this) {
+				if (definedDirectives == null)
+					definedDirectives = new ArrayList<Directive>(5);
 				definedDirectives.add((Directive)declaration);
 			}
 		}

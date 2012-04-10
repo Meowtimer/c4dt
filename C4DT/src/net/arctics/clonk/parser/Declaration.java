@@ -515,6 +515,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public Object valueForVariable(String varName) {
 				return null;
 			}
+
+			@Override
+			public void performParsingPhaseTwo(Script script) {
+				// nah
+			}
 		};
 	}
 

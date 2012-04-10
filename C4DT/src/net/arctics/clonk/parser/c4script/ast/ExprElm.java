@@ -226,7 +226,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	public final IType typeInContext(DeclarationObtainmentContext context) {
+	public final IType type(DeclarationObtainmentContext context) {
 		return IResolvableType._.resolve(obtainType(context), context, callerType(context));
 	}
 
@@ -252,7 +252,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public final Definition guessObjectType(DeclarationObtainmentContext context) {
-		return Utilities.as(Definition.scriptFrom(typeInContext(context)), Definition.class);
+		return Utilities.as(Definition.scriptFrom(type(context)), Definition.class);
 	}
 
 	public boolean isModifiable(C4ScriptParser context) {
@@ -382,13 +382,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return typeInContext(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
+		return type(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
 	}
 
 	public boolean validForType(IType t, C4ScriptParser context) {
 		if (t == null)
 			return true;
-		IType myType = typeInContext(context);
+		IType myType = type(context);
 		return t.canBeAssignedFrom(myType) || myType.containsType(t) || canBeConvertedTo(t, context);
 	}
 
@@ -453,7 +453,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	private static final ExprElm[] exprElmsForTypes = new ExprElm[PrimitiveType.values().length];
 
 	/**
-	 * Returns a canonical {@link ExprElm} object for the given type such that its {@link #typeInContext(DeclarationObtainmentContext)} returns the given type
+	 * Returns a canonical {@link ExprElm} object for the given type such that its {@link #type(DeclarationObtainmentContext)} returns the given type
 	 * @param type the type to return a canonical ExprElm of
 	 * @return the canonical {@link ExprElm} object
 	 */
@@ -526,7 +526,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
-		context.storeTypeInformation(this, rightSide.typeInContext(context));
+		context.storeTypeInformation(this, rightSide.type(context));
 	}
 
 	public ControlFlow controlFlow() {
@@ -968,11 +968,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public IType predecessorType(DeclarationObtainmentContext context) {
-		return predecessorInSequence != null ? predecessorInSequence.obtainType(context) : null;
+		return predecessorInSequence != null ? predecessorInSequence.type(context) : null;
 	}
 	
 	public <T extends IType> T predecessorTypeAs(Class<T> cls, DeclarationObtainmentContext context) {
-		return predecessorInSequence != null ? as(predecessorInSequence.obtainType(context), cls) : null;
+		return predecessorInSequence != null ? as(predecessorInSequence.type(context), cls) : null;
 	}
 
 }

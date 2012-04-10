@@ -22,14 +22,14 @@ public class BinaryOp extends OperatorExpression {
 		switch (operator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or:
-			IType leftSideType = leftSide().typeInContext(context);
-			IType rightSideType = rightSide().typeInContext(context);
+			IType leftSideType = leftSide().type(context);
+			IType rightSideType = rightSide().type(context);
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
 				return PrimitiveType.ANY;
 		case Assign:
-			return rightSide().typeInContext(context);
+			return rightSide().type(context);
 		default:
 			return super.obtainType(context);
 		}
@@ -181,9 +181,9 @@ public class BinaryOp extends OperatorExpression {
 		}
 		// wrong parameter types
 		if (!leftSide().validForType(operator().firstArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().firstArgType(), leftSide().typeInContext(context));
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().firstArgType(), leftSide().type(context));
 		if (!rightSide().validForType(operator().secondArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().secondArgType(), rightSide().typeInContext(context));
+			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().secondArgType(), rightSide().type(context));
 
 		IType expectedLeft, expectedRight;
 		switch (operator()) {

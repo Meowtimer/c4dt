@@ -129,7 +129,7 @@ public class MemberOperator extends ExprElm {
 			return context.containingScript().nearestDefinitionWithId(id);
 		}
 		// stuff before -> decides
-		return predecessorInSequence() != null ? predecessorInSequence().typeInContext(context) : super.obtainType(context);
+		return predecessorInSequence() != null ? predecessorInSequence().type(context) : super.obtainType(context);
 	}
 	
 	/**

@@ -529,7 +529,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
 							for (ExprElm parm : callFunc.params())
-								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.typeInContext(parser)));
+								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.type(parser)));
 							function.setParameters(parms);
 						}
 

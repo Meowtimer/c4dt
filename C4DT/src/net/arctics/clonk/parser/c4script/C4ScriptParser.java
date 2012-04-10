@@ -741,6 +741,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		}
 	}
+	
+	@Override
+	public void performParsingPhaseTwo(Script script) {
+		if (builder != null)
+			builder.performBuildPhaseTwo(script);
+	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
 		if (specialScriptRules != null) {
@@ -1020,7 +1026,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								typeOfNewVar = initializationExpression instanceof IType
 									? (IType)initializationExpression
 										: initializationExpression != null
-										? initializationExpression.typeInContext(this)
+										? initializationExpression.type(this)
 											: PrimitiveType.UNKNOWN;
 							} else {
 								if (scope == Scope.CONST && !isEngine)
@@ -1959,7 +1965,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result.setFinishedProperly(proper);
 
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
-			if (result.typeInContext(this) == null) {
+			if (result.type(this) == null) {
 				errorWithCode(ParserErrorCode.InvalidExpression, result, NO_THROW);
 			}
 
@@ -2043,7 +2049,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 									value = placeholderExpression(offset);
 								}
 								v.setInitializationExpression(value);
-								v.forceType(value.typeInContext(this));
+								v.forceType(value.type(this));
 							} finally {
 								currentFunctionContext.currentDeclaration = outerDec;
 							}
@@ -2965,7 +2971,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (arrayExpr == null)
 				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
 			else {
-				IType t = arrayExpr.typeInContext(this);
+				IType t = arrayExpr.type(this);
 				if (!t.canBeAssignedFrom(PrimitiveType.ARRAY))
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), PrimitiveType.ARRAY.toString());
 				if (loopVariable != null && t instanceof ArrayType) {

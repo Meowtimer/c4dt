@@ -38,11 +38,10 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		ExprElm pred = predecessorInSequence();
-		if (pred == null) {
+		if (pred == null)
 			return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
-		} else {
+		else
 			return true; // you can never be so sure 
-		}
 	}
 
 	public AccessVar(String varName) {
@@ -65,6 +64,7 @@ public class AccessVar extends AccessDeclaration {
 			// the StartOfFuncName; statement be replaced by the function call which will then have no
 			// parameter information since the function only exists in the definition of obj that is not
 			// consulted in that case, the '.' rule is enforced not here but in reportErrors (!!1)
+			// and anyways, everything is different now that function values are possible yadda
 			predecessor instanceof MemberOperator;
 	}
 
@@ -74,7 +74,7 @@ public class AccessVar extends AccessDeclaration {
 		ExprElm sequencePredecessor = predecessorInSequence();
 		IType type = context.containingScript();
 		if (sequencePredecessor != null)
-			type = sequencePredecessor.typeInContext(context);
+			type = sequencePredecessor.type(context);
 		if (type != null) for (IType t : type) {
 			Script scriptToLookIn;
 			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
@@ -86,12 +86,14 @@ public class AccessVar extends AccessDeclaration {
 				}
 			} else {
 				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
-				info.contextFunction = context.currentFunction();
+				info.contextFunction = sequencePredecessor == null ? context.currentFunction() : null;
 				info.searchOrigin = scriptToLookIn;
 				info.findDefinitions = sequencePredecessor == null;
 				Declaration v = scriptToLookIn.findDeclaration(declarationName, info);
-				if (v instanceof Definition)
+				if (v instanceof Definition) {
+				//	context.performParsingPhaseTwo((Definition)v);
 					v = ((Definition)v).proxyVar();
+				}
 				if (v != null)
 					return v;
 			}
@@ -181,26 +183,23 @@ public class AccessVar extends AccessDeclaration {
 		if (declaration() == Variable.THIS)
 			return;
 		if (declaration() == null) {
-			IType predType = predecessorInSequence() != null ? predecessorInSequence().typeInContext(context) : null;
+			IType predType = predecessorType(context);
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
 				if (predType instanceof ProplistDeclaration) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
-						Variable var = new Variable(declarationName(), Variable.Scope.VAR) {
-							private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-							@Override
-							public String infoText() {
-								String sup = super.infoText();
-								sup += String.format("<br/><b>Effect: '%s'</b>", this.parentDeclaration().name());
-								return sup;
-							}
-						};
-						var.expectedToBeOfType(expression.typeInContext(context), TypeExpectancyMode.Expect);
-						var.setLocation(context.absoluteSourceLocationFromExpr(this));
-						var.forceType(expression.typeInContext(context));
-						var.setInitializationExpression(expression);
+						Variable var = new Variable(declarationName(), Variable.Scope.VAR);
+						var.initializeFromAssignment(this, expression, context);
 						proplDecl.addComponent(var);
+						declaration = var;
+					}
+				} else for (IType t : predType) {
+					if (t == context.script()) {
+						Variable var = new Variable(declarationName(), Variable.Scope.LOCAL);
+						var.initializeFromAssignment(this, expression, context);
+						context.script().addDeclaration(var);
+						declaration = var;
+						break;
 					}
 				}
 			}

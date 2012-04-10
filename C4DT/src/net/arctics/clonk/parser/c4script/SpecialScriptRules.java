@@ -351,7 +351,7 @@ public class SpecialScriptRules {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
-				IType t = callFunc.params()[0].typeInContext(context);
+				IType t = callFunc.params()[0].type(context);
 				if (t instanceof IHasConstraint) {
 					IHasConstraint ct = (IHasConstraint) t;
 					switch (ct.constraintKind()) {
@@ -379,9 +379,9 @@ public class SpecialScriptRules {
 			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.params().length > 0) {
-				t = callFunc.params()[0].typeInContext(context);
+				t = callFunc.params()[0].type(context);
 			} else if (callFunc.predecessorInSequence() != null) {
-				t = callFunc.predecessorInSequence().typeInContext(context);
+				t = callFunc.predecessorInSequence().type(context);
 			} else {
 				constraintKind = ConstraintKind.CallerType;
 				script = context.containingScript();
@@ -473,7 +473,7 @@ public class SpecialScriptRules {
 		public boolean validateArguments(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
-			IType objType = arguments.length >= 4 ? arguments[3].typeInContext(parser) : parser.containerAsDefinition();
+			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.containerAsDefinition();
 			Script script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.containingScript(); // fallback
@@ -529,7 +529,7 @@ public class SpecialScriptRules {
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
-				IType t = callFunc.params()[0].typeInContext(parser);
+				IType t = callFunc.params()[0].type(parser);
 				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
 				Function func = scriptToLookIn.findFunction(lit.literal());
 				if (func != null) {
@@ -561,7 +561,7 @@ public class SpecialScriptRules {
 							continue;
 						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						if (!given.validForType(parmType, parser))
-							parser.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.typeInContext(parser));
+							parser.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.type(parser));
 						else
 							given.expectedToBeOfType(parmType, parser);
 					}
