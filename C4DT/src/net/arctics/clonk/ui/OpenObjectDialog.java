@@ -7,6 +7,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -72,14 +73,19 @@ public class OpenObjectDialog extends EntityChooser {
 		}
 	}
 
-	private void fillWithIndexContents(AbstractContentProvider contentProvider,
-			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
-			Index index) {
+	private void fillWithIndexContents(
+		final AbstractContentProvider contentProvider,
+		final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor,
+		Index index
+	) {
 		progressMonitor.beginTask(Messages.OpenObjectDialog_Searching, index.numUniqueIds());
-		for(Definition object : index) {
-			contentProvider.add(object, itemsFilter);
-			progressMonitor.worked(1);
-		}
+		index.allDefinitions(new Sink<Definition>() {
+			@Override
+			public void receivedObject(Definition item) {
+				contentProvider.add(item, itemsFilter);
+				progressMonitor.worked(1);
+			}
+		});
 		progressMonitor.done();
 	}
 

@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Sink;
 
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
@@ -192,9 +193,12 @@ public class Command {
 				return;
 			}
 			System.out.println("===Objects==="); //$NON-NLS-1$
-			for (Definition obj : index) {
-				System.out.println(obj.toString());
-			}
+			index.allDefinitions(new Sink<Definition>() {
+				@Override
+				public void receivedObject(Definition item) {
+					System.out.println(item.toString());
+				}
+			});
 			System.out.println("===Scripts==="); //$NON-NLS-1$
 			for (Script script : index.indexedScripts()) {
 				System.out.println(script.toString());

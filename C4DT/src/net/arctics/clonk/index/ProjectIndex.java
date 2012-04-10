@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ObjectFinderVisitor;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -86,10 +87,17 @@ public class ProjectIndex extends Index {
 	@Override
 	public void postLoad() throws CoreException {
 		if (project != null) {
-			List<Script> stuffToBeRemoved = new LinkedList<Script>();
-			for (Definition object : this)
-				if ((object instanceof Definition) && !object.refreshDefinitionFolderReference(project))
-					stuffToBeRemoved.add(object);
+			final List<Script> stuffToBeRemoved = new LinkedList<Script>();
+			allDefinitions(new Sink<Definition>() {
+				@Override
+				public void receivedObject(Definition item) {
+					stuffToBeRemoved.add(item);
+				}
+				@Override
+				public boolean filter(Definition item) {
+					return !item.refreshDefinitionFolderReference(project);
+				}
+			});
 			for (Scenario scenario : indexedScenarios())
 				if (!scenario.refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(scenario);

@@ -45,7 +45,6 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
@@ -371,14 +370,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
-		List<Iterable<? extends Declaration>> its = new ArrayList<Iterable<? extends Declaration>>(4);
+		ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & FUNCTIONS) != 0)
-			its.add(functions());
+			decs.addAll(functions());
 		if ((mask & VARIABLES) != 0)
-			its.add(variables());
+			decs.addAll(variables());
 		if ((mask & DIRECTIVES) != 0)
-			its.add(directives());
-		return new CompoundIterable<Declaration>(its);
+			decs.addAll(directives());
+		return decs;
 	}
 
 	/**

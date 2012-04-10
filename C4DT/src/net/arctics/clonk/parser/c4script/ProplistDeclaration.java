@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,7 +16,6 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -132,11 +132,8 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if ((mask & VARIABLES) != 0) {
-			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
-			its.add(components());
-			return new CompoundIterable<Declaration>(its);
-		}
+		if ((mask & VARIABLES) != 0)
+			return Collections.unmodifiableCollection(components);
 		else
 			return NO_SUB_DECLARATIONS;
 	}

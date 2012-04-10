@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +40,10 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.ConvertingIterable;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -67,7 +66,7 @@ import org.eclipse.core.runtime.CoreException;
  * @author madeen
  *
  */
-public class Index extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
+public class Index extends Declaration implements Serializable, ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -150,13 +149,22 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		refreshIndex(true);
 	}
 	
-	/**
-	 * Return an {@link Iterable} to iterate over all {@link Script} objects managed by this index.
-	 * @return The iterable.
-	 */
-	@SuppressWarnings("unchecked")
-	public Iterable<Script> allScripts() {
-		return new CompoundIterable<Script>(this, indexedScripts, indexedScenarios);
+	public void allScripts(Sink<Script> sink) {
+		for (List<Definition> e : indexedDefinitions.values()) {
+			for (Definition d : e)
+				sink.elutriated(d);
+		}
+		for (Script s : indexedScripts)
+			sink.elutriated(s);
+		for (Script s : indexedScenarios)
+			sink.elutriated(s);
+	}
+	
+	public void allDefinitions(Sink<Definition> sink) {
+		for (List<Definition> e : indexedDefinitions.values()) {
+			for (Definition d : e)
+				sink.elutriated(d);
+		}
 	}
 	
 	/**
@@ -281,7 +289,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
-	public synchronized void refreshIndex(boolean postLoad) {
+	public synchronized void refreshIndex(final boolean postLoad) {
 		relevantIndexes = null;
 		// delete old cache
 		if (globalFunctions == null)
@@ -296,19 +304,37 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		staticVariables.clear();
 		declarationMap.clear();
 		
-		for (Script s : allScripts())
-			s.clearDependentScripts();
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				item.clearDependentScripts();
+			}
+		});
 
-		Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
-		for (Script s : allScripts())
-			if (!s.notFullyLoaded)
-				addGlobalsFromScript(s, postLoad ? null : newAppendages);
+		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				addGlobalsFromScript(item, postLoad ? null : newAppendages);
+			}
+			@Override
+			public boolean filter(Script item) {
+				return !item.notFullyLoaded;
+			}
+		});
 		if (!postLoad)
 			appendages = newAppendages;
 		
-		for (Script s : allScripts())
-			if (!s.notFullyLoaded)
-				s.postLoad(this, this);
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				item.postLoad(Index.this, null);
+			}
+			@Override
+			public boolean filter(Script item) {
+				return !item.notFullyLoaded;
+			}
+		});
 	}
 	
 	/**
@@ -380,11 +406,18 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
-	private void scriptRemoved(Script script) {
+	private void scriptRemoved(final Script script) {
 		entities.remove(script.entityId());
-		for (Script s : allScripts())
-			if (!s.notFullyLoaded)
-				s.scriptRemovedFromIndex(script);
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				item.scriptRemovedFromIndex(script);
+			}
+			@Override
+			public boolean filter(Script item) {
+				return !item.notFullyLoaded;
+			}
+		});
 	}
 	
 	/**
@@ -587,49 +620,6 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			entityFile(e).delete();
 	}
 	
-	private class ObjectIterator implements Iterator<Definition> {
-
-		private Iterator<List<Definition>> valuesIterator;
-		private Iterator<Definition> listIterator;
-		
-		public ObjectIterator() {
-			synchronized (indexedDefinitions) {
-				valuesIterator = indexedDefinitions.values().iterator();
-			}
-		}
-		
-		@Override
-		public boolean hasNext() {
-			synchronized (indexedDefinitions) {
-				return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
-			}
-		}
-
-		@Override
-		public Definition next() {
-			synchronized (indexedDefinitions) {
-				while (listIterator == null || !listIterator.hasNext()) {
-					listIterator = null;
-					if (!valuesIterator.hasNext())
-						return null;
-					listIterator = valuesIterator.next().iterator();
-				}
-				return listIterator.next();
-			}
-		}
-
-		@Override
-		public void remove() {
-			// pff
-		}
-		
-	}
-
-	@Override
-	public Iterator<Definition> iterator() {
-		return new ObjectIterator();
-	}
-	
 	/**
 	 * Return an {@link Iterable} to iterate over all {@link Definition}s managed by this index, but in the case of multiple {@link Definition}s with the same name yielding only the one nearest to pivot.
 	 * @param pivot The pivot dictating the perspective of the call
@@ -736,19 +726,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * It's runnable and it takes an index as the only argument!
-	 * @author madeen
-	 *
-	 */
-	public interface r {void run(Index index);}
-	
-	/**
 	 * Call some runnable ({@link r}) for all indexes yielded by {@link #relevantIndexes()}
 	 * @param r The runnable
 	 */
-	public void forAllRelevantIndexes(Index.r r) {
+	public void forAllRelevantIndexes(Sink<Index> sink) {
 		for (Index index : relevantIndexes())
-			r.run(index);
+			sink.elutriated(index);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -837,13 +820,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		public String toString() {
 			return String.format("(%d, %s)", referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
 		}
-		protected Index getIndex(Index context) {
+		protected Index index(Index context) {
 			return context; // ;>
 		}
 		@Override
 		public IndexEntity resolve(Index index) {
 			IndexEntity result = null;
-			Index externalIndex = getIndex(index);
+			Index externalIndex = index(index);
 			if (externalIndex != null) {
 				result = externalIndex.entityWithId(referencedEntityId);
 				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken)) {
@@ -874,7 +857,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				referencedProjectName = referencedEntity.index().name();
 		}
 		@Override
-		protected Index getIndex(Index context) {
+		protected Index index(Index context) {
 			if (referencedProjectName != null) {
 				ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
 				return nat != null ? nat.index() : null;
@@ -950,6 +933,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 		try {
 			FileOutputStream out = new FileOutputStream(indexFile);
+			removeNullsInScriptLists();
 			try {
 				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
 					@Override
@@ -969,6 +953,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void removeNullsInScriptLists() {
+		if (indexedScripts.removeAll(Collections.singleton(null)))
+			System.out.println("There were nulls in indexedScripts");
+		if (indexedScenarios.removeAll(Collections.singleton(null)))
+			System.out.println("There were nulls in indexedScenarios");
 	}
 
 	protected void purgeUnusedIndexFiles(File indexFile) {
@@ -1011,11 +1002,17 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			return new EntityDeclaration(obj);
 	}
 	
-	public void loadScriptsContainingDeclarationsNamed(String name) {
-		for (Script s : allScripts()) {
-			if (s.dictionary() != null && s.dictionary().contains(name))
-				s.requireLoaded();
-		}
+	public void loadScriptsContainingDeclarationsNamed(final String name) {
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				item.requireLoaded();
+			}
+			@Override
+			public boolean filter(Script s) {
+				return s.dictionary() != null && s.dictionary().contains(name);
+			}
+		});
 	}
 
 	/**

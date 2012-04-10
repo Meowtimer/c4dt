@@ -26,8 +26,6 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.CompoundIterable;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
@@ -661,14 +659,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@Override
 	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
-		List<Iterable<? extends Declaration>> l = new ArrayList<Iterable<? extends Declaration>>(3);
+		ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & VARIABLES) != 0) {
-			l.add(localVars);
-			l.add(parameters);
+			decs.addAll(localVars);
+			decs.addAll(parameters);
 		}
-		if ((mask & OTHER) != 0)
-			l.add(otherDeclarations);
-		return new CompoundIterable<Declaration>(l);
+		if ((mask & OTHER) != 0 && otherDeclarations != null)
+			decs.addAll(otherDeclarations);
+		return decs;
 	}
 	
 	@Override

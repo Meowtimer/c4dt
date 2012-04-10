@@ -176,6 +176,8 @@ public class Definition extends Script {
 		if (!super.gatherIncludes(contextIndex, set, options))
 			return false;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
+			if (contextIndex == null)
+				System.out.println("D:");
 			for (Index i : contextIndex.relevantIndexes()) {
 				List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)
@@ -433,14 +435,18 @@ public class Definition extends Script {
 	 * Give the definition a chance to refresh its folder reference after having been loaded or some such.
 	 * @param project The project passed to the method so the definition has some context from where to get the folder reference
 	 * @return Whether refreshing the folder reference was successful
-	 * @throws CoreException
 	 */
-	public boolean refreshDefinitionFolderReference(IProject project) throws CoreException {
+	public boolean refreshDefinitionFolderReference(IProject project) {
 		Path path = new Path(this.relativePath);
 		IPath projectPath = path.removeFirstSegments(1);
 		IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
-			this.setDefinitionFolder((IContainer)res);
+			try {
+				this.setDefinitionFolder((IContainer)res);
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return false;
+			}
 			return true;
 		}
 		else

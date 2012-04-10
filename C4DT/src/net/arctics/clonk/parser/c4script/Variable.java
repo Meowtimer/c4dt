@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -293,21 +294,26 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object[] occurenceScope(ClonkProjectNature project) {
+	public Object[] occurenceScope(final ClonkProjectNature project) {
 		if (parentDeclaration instanceof Function)
 			return new Object[] {parentDeclaration};
 		if (!isGloballyAccessible() && parentDeclaration instanceof Definition) {
-			Definition obj = (Definition) parentDeclaration;
-			Index index = obj.index();
-			Set<Object> result = new HashSet<Object>();
-			result.add(obj);
-			for (Definition o : index) {
-				if (o.doesInclude(project.index(), obj)) {
-					result.add(o);
+			final Definition def = (Definition) parentDeclaration;
+			Index index = def.index();
+			final Set<Object> result = new HashSet<Object>();
+			result.add(def);
+			index.allDefinitions(new Sink<Definition>() {
+				@Override
+				public void receivedObject(Definition item) {
+					result.add(item);
 				}
-			}
+				@Override
+				public boolean filter(Definition item) {
+					return item.doesInclude(project.index(), def);
+				}
+			});
 			for (Script script : index.indexedScripts()) {
-				if (script.doesInclude(project.index(), obj)) {
+				if (script.doesInclude(project.index(), def)) {
 					result.add(script);
 				}
 			}

@@ -19,6 +19,7 @@ import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasRelatedResource;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.CoreException;
@@ -134,31 +135,34 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			}
 		};
 		if (index != null)
-			index.forAllRelevantIndexes(new Index.r() {
+			index.forAllRelevantIndexes(new Sink<Index>() {
 				@Override
-				public void run(Index index) {
-					int declarationsBatchSize = 0;
-					MainLoop: for (Script s : index.allScripts()) {
-						if (s.dictionary() != null) {
-							for (String str : s.dictionary()) {
-								for (Pattern ps : patternStrings) {
-									Matcher matcher = ps.matcher(str);
-									if (matcher.lookingAt()) {
-										s.requireLoaded();
-										for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
-											if (d.matchedBy(matcher)) {
-												contentProvider.add(d, itemsFilter);
-												if (++declarationsBatchSize == 5) {
-													Display.getDefault().asyncExec(refreshListRunnable);
-													declarationsBatchSize = 0;
+				public void receivedObject(Index index) {
+					index.allScripts(new Sink<Script>() {
+						int declarationsBatchSize = 0;
+						@Override
+						public void receivedObject(Script s) {
+							if (s.dictionary() != null) {
+								for (String str : s.dictionary()) {
+									for (Pattern ps : patternStrings) {
+										Matcher matcher = ps.matcher(str);
+										if (matcher.lookingAt()) {
+											s.requireLoaded();
+											for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
+												if (d.matchedBy(matcher)) {
+													contentProvider.add(d, itemsFilter);
+													if (++declarationsBatchSize == 5) {
+														Display.getDefault().asyncExec(refreshListRunnable);
+														declarationsBatchSize = 0;
+													}
 												}
-											}
-										continue MainLoop;
+											return;
+										}
 									}
 								}
 							}
 						}
-					}
+					});
 				}
 			});
 		if (entities != null)

@@ -43,6 +43,7 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -589,9 +590,9 @@ public class SpecialScriptRules {
 						return new EntityRegion(scenFunc, lit.identifierRegion());
 				} else {
 					final List<Declaration> decs = new LinkedList<Declaration>();
-					index.forAllRelevantIndexes(new Index.r() {
+					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
-						public void run(Index index) {
+						public void receivedObject(Index index) {
 							for (Scenario s : index.indexedScenarios()) {
 								Function f = s.findLocalFunction(lit.literal(), true);
 								if (f != null) {
@@ -825,9 +826,9 @@ public class SpecialScriptRules {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
-				parser.containingScript().index().forAllRelevantIndexes(new Index.r() {
+				parser.containingScript().index().forAllRelevantIndexes(new Sink<Index>() {
 					@Override
-					public void run(Index index) {
+					public void receivedObject(Index index) {
 						List<Declaration> decs = index.declarationMap().get(lit.literal());
 						if (decs != null)
 							matchingDecs.addAll(decs);

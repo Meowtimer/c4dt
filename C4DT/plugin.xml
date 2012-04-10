@@ -299,12 +299,6 @@
 			id="net.arctics.clonk.views.ClonkFolderView"
 			icon="icons/Clonk_C4.png"
 			name="%ClonkFolderView_Name" />
-		
-		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.ClonkHierarchyView"
-			id="net.arctics.clonk.views.ClonkHierarchyView"
-			icon="icons/Clonk_C4.png"
-			name="%ClonkHierarchyView_Name" />
-		
 	</extension>
 	
 	<extension point="org.eclipse.ui.ide.markerSupport">
