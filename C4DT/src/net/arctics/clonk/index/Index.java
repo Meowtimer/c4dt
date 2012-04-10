@@ -289,7 +289,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		if (staticVariables == null)
 			staticVariables = new LinkedList<Variable>();
 		if (declarationMap == null)
-			declarationMap = new Hashtable<String, List<Declaration>>();
+			declarationMap = new HashMap<String, List<Declaration>>();
 		if (appendages == null)
 			appendages = new HashMap<ID, List<Script>>();
 		globalFunctions.clear();
@@ -571,7 +571,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	/**
 	 * Clear the index so it won't manage any objects after this call.
 	 */
-	public void clear() {
+	public synchronized void clear() {
 		indexedDefinitions.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
@@ -800,7 +800,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param entity
 	 * @return The id of the entity. Is supposed to be unique.
 	 */
-	protected long addEntityReturningId(IndexEntity entity) {
+	protected synchronized long addEntityReturningId(IndexEntity entity) {
 		long id = entityIdCounter++;
 		this.entities.put(id, entity);
 		if (newEntities != null)

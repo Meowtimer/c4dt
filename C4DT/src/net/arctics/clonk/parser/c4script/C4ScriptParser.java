@@ -3294,11 +3294,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return source code
 	 */
 	protected String functionSource(Function function) {
-		if (function == null) {
+		if (function == null)
 			return null;
-		} else {
+		else
 			return buffer.substring(function.body().start(), function.body().end());
-		}
 	}
 	
 	/**

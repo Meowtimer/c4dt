@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.InvalidParameterException;
 
 import net.arctics.clonk.parser.Structure;
 
@@ -49,6 +50,8 @@ public abstract class IndexEntity extends Structure {
 		this.index = index;
 		if (index != null)
 			entityId = index.addEntityReturningId(this);
+		else
+			throw new InvalidParameterException("index");
 	}
 	
 	@Override

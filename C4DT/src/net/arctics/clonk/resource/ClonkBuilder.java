@@ -39,6 +39,7 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.filesystem.EFS;
@@ -217,7 +218,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						// create if new file
 						// script in a system group
 						if (isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
-							script = new SystemScript(null, file);
+							script = new SystemScript(index(), file);
 						// object script
 						else
 							script = createDefinition(delta.getResource().getParent());
@@ -248,10 +249,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					definition = Definition.definitionCorrespondingToFolder(container);
 					if (definition != null)
 						definition.setDefinitionFolder(container);
-					else if (isSystemGroup(container))
-						for (IResource res : container.members())
-							if (isSystemScript(res))
-								queueScript(new SystemScript(index(), (IFile)res));
+//					else if (isSystemGroup(container))
+//						for (IResource res : container.members())
+//							if (isSystemScript(res))
+//								queueScript(new SystemScript(index(), (IFile)res));
 					break;
 				case IResourceDelta.REMOVED:
 					// remove object when folder is removed
@@ -446,12 +447,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			});
 		}
 	}
+	
+	
 
-	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T ultimateVisit0r) throws CoreException {
+	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T visitor) throws CoreException {
 		if (delta != null)
-			delta.accept(ultimateVisit0r);
+			delta.accept(visitor);
 		else
-			proj.accept(ultimateVisit0r);
+			proj.accept(visitor);
 	}
 	
 	private static class SaveScriptsJob extends Job {
