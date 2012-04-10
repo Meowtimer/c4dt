@@ -332,7 +332,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				item.postLoad(Index.this, null);
+				item.postLoad(Index.this, Index.this);
 			}
 			@Override
 			public boolean filter(Script item) {

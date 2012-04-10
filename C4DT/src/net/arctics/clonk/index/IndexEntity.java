@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.InvalidParameterException;
 
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 
 /**
@@ -154,6 +155,12 @@ public abstract class IndexEntity extends Structure {
 	 */
 	public boolean saveCalledByIndex() {
 		return false;
+	}
+	
+	@Override
+	public void postLoad(Declaration parent, Index root) {
+		this.index = root;
+		super.postLoad(parent, root);
 	}
 	
 }
