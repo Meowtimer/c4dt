@@ -128,10 +128,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (d instanceof EffectFunction) {
 						EffectFunction effFun = (EffectFunction)d;
 						// parse Start function of effect so ad-hoc variables are known
-						if (!(context.currentFunction() instanceof EffectFunction)) {
-							EffectFunction f = effFun.startFunction() != null ? effFun.startFunction() : effFun;
+						if (t == HardcodedCallbackType.Start && !(context.currentFunction() instanceof EffectFunction)) {
 							try {
-								context.parseCodeOfFunction(f, false);
+								context.parseCodeOfFunction(effFun, false);
 							} catch (ParsingException e) {
 								// e.printStackTrace();
 							}
