@@ -14,6 +14,8 @@ import net.arctics.clonk.parser.Structure;
  *
  */
 public abstract class IndexEntity extends Structure {
+	
+	public interface TopLevelEntity {}
 
 	private static final long serialVersionUID = 1L;
 
@@ -50,7 +52,7 @@ public abstract class IndexEntity extends Structure {
 		this.index = index;
 		if (index != null)
 			entityId = index.addEntityReturningId(this);
-		else
+		else if (!(this instanceof TopLevelEntity))
 			throw new InvalidParameterException("index");
 	}
 	

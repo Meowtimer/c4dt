@@ -31,15 +31,11 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Pair;
-import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.filesystem.EFS;
@@ -423,7 +419,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void handleDefinitionRenaming() {
-		for (Pair<Definition, ID> rnd : renamedDefinitions) {
+		// let's just... not do that here
+		/*for (Pair<Definition, ID> rnd : renamedDefinitions) {
 			final Definition def = rnd.first();
 			final ID newID = rnd.second();
 			final ID oldID = def.id();
@@ -445,7 +442,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					def.setId(newID); 
 				}
 			});
-		}
+		}*/
 	}
 	
 	

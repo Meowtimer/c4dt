@@ -67,7 +67,7 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
  * @author Madeen
  *
  */
-public class Engine extends Script {
+public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
