@@ -85,7 +85,7 @@ public class EngineLogParser implements IPatternMatchListener {
 						break;
 					}
 				}
-				sink.receivedObject(new EngineError(stackTrace, msg));
+				sink.elutriate(new EngineError(stackTrace, msg));
 			}
 			if (readLine == null)
 				readLine = logReader.readLine();

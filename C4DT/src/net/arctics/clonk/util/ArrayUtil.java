@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.util.Sink.Decision;
+
 public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
@@ -286,6 +288,14 @@ public class ArrayUtil {
 		for (T i : iterable)
 			result.add(i);
 		return result;
+	}
+	
+	public static <T> void sink(Iterable<? extends T> iterable, Sink<T> sink) {
+		Iterator<? extends T> it = iterable.iterator();
+		while (it.hasNext()) {
+			if (sink.elutriate(it.next()) == Decision.Purge)
+				it.remove();
+		}
 	}
 
 }

@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import net.arctics.clonk.util.ConvertingIterable;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.Sink.Decision;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -150,20 +152,22 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	public void allScripts(Sink<Script> sink) {
-		for (List<Definition> e : indexedDefinitions.values()) {
-			for (Definition d : e)
-				sink.elutriated(d);
-		}
-		for (Script s : indexedScripts)
-			sink.elutriated(s);
-		for (Script s : indexedScenarios)
-			sink.elutriated(s);
+		allDefinitions(sink);
+		ArrayUtil.sink(indexedScripts, sink);
+		ArrayUtil.sink(indexedScenarios, sink);
 	}
 	
-	public void allDefinitions(Sink<Definition> sink) {
-		for (List<Definition> e : indexedDefinitions.values()) {
-			for (Definition d : e)
-				sink.elutriated(d);
+	@SuppressWarnings("unchecked")
+	public <T> void allDefinitions(Sink<T> sink) {
+		Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
+		while (defsIt.hasNext()) {
+			List<Definition> list = defsIt.next();
+			Iterator<Definition> defIt = list.iterator();
+			while (defIt.hasNext())
+				if (sink.elutriate((T)defIt.next()) == Decision.Purge)
+					defIt.remove();
+			if (list.size() == 0)
+				defsIt.remove();
 		}
 	}
 	
@@ -731,7 +735,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public void forAllRelevantIndexes(Sink<Index> sink) {
 		for (Index index : relevantIndexes())
-			sink.elutriated(index);
+			sink.elutriate(index);
 	}
 
 	@SuppressWarnings("unchecked")

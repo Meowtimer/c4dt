@@ -158,12 +158,9 @@ public class Wildcard extends PropListExpression {
 			}
 		};
 		if (body.compare(template, d).isEqual())
-			sink.receivedObject(s);
-		else {
-			for (ExprElm e : body.subElements()) {
-				matchWildcards(template, e, sink);
-			}
-		}
+			sink.elutriate(s);
+		else for (ExprElm e : body.subElements())
+			matchWildcards(template, e, sink);
 	}
 	
 	public static ExprElm generateReplacement(ExprElm original, ExprElm topLevel, WildcardMatchingSuccess wildcardReplacements) throws CloneNotSupportedException {
