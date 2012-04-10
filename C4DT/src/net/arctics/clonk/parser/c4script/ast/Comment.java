@@ -170,7 +170,9 @@ public class Comment extends Statement implements Statement.Attachment {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		// uh oh.. no
+		String s = text();
+		if (s.contains("TODO"))
+			parser.todo(s, start(), end());
 	}
 
 	/**

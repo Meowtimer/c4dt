@@ -1728,6 +1728,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				: new ParsingException(problem);
 	}
 	
+	public IMarker todo(String todoText, int markerStart, int markerEnd) {
+		if (scriptFile != null) {
+			try {
+				IMarker marker = scriptFile.createMarker(IMarker.TASK);
+				marker.setAttribute(IMarker.CHAR_START, markerStart+bodyOffset());
+				marker.setAttribute(IMarker.CHAR_END, markerEnd+bodyOffset());
+				marker.setAttribute(IMarker.MESSAGE, todoText);
+				marker.setAttribute(IMarker.LOCATION, currentDeclaration() != null ? currentDeclaration().qualifiedName() : "");
+				return marker;
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else
+			return null;
+	}
+	
 	private void tokenExpectedError(String token) throws ParsingException {
 		int off = this.offset;
 		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
@@ -3259,8 +3276,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void clean() {
 		synchronized (container) {
 			try {
-				if (scriptFile != null)
+				if (scriptFile != null) {
 					scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+					scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
+				}
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}

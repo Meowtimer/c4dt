@@ -730,8 +730,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	/**
-	 * Call some runnable ({@link r}) for all indexes yielded by {@link #relevantIndexes()}
-	 * @param r The runnable
+	 * Sink all {@link #relevantIndexes()} into some {@link Sink}
+	 * @param The {@link Sink}
 	 */
 	public void forAllRelevantIndexes(Sink<Index> sink) {
 		for (Index index : relevantIndexes())
