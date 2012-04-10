@@ -605,9 +605,9 @@
 				description="0 oder 1. Gibt an, ob Landscape.bmp eine tatsächliche Spiellandschaft ist." />
 			<entry name="Gravity" class="IntegerArray"
 				description="10-200: Gravitation. 100 ist Standard." />
-			<entry name="NoScan" class="SignedInteger"
+			<entry name="NoScan" class="Boolean"
 				description="0 oder 1. Bei 1 werden keine Überprüfungen innerhalb der Landschaft durchgeführt, wie beispielsweise Schneeschmelze oder Festwerden von Lava in Vulkanen." />
-			<entry name="KeepMapCreator" class="SignedInteger"
+			<entry name="KeepMapCreator" class="Boolean"
 				description="0 oder 1. Bei 1 wird der interne MapCreator nicht nach dem Start entladen, so dass Befehle wie DrawDefMap zur Verfügung stehen." />
 			<entry name="SkyScrollMode" class="SignedInteger"
 				description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax." />

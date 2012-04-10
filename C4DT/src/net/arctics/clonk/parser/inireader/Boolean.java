@@ -13,13 +13,12 @@ public class Boolean extends UnsignedInteger {
 	}
 	@Override
 	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
-		if (input.equals(Keywords.True)) {
+		if (input.equals(Keywords.True))
 			setNumber(1);
-		} else if (input.equals(Keywords.False)) {
+		else if (input.equals(Keywords.False))
 			setNumber(0);
-		} else {
+		else
 			super.setInput(input, entryData, context);
-		}
 	}
 	public Boolean() {}
 	public Boolean(boolean value) throws IniParserException {
