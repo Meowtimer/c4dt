@@ -21,7 +21,7 @@ public class ArrayType implements IType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private IType generalElementType;
-	private final int presumedLength;
+	private int presumedLength;
 	private final Map<Integer, IType> elementTypeMapping;
 	
 	/**
@@ -46,7 +46,7 @@ public class ArrayType implements IType {
 	public ArrayType(IType generalElementType, int presumedLength, Map<Integer, IType> typeMapping) {
 		this.generalElementType = generalElementType;
 		this.presumedLength = presumedLength;
-		elementTypeMapping = new HashMap<Integer, IType>(typeMapping);
+		this.elementTypeMapping = new HashMap<Integer, IType>(typeMapping);
 	}
 
 	/**
@@ -298,5 +298,15 @@ public class ArrayType implements IType {
 	
 	@Override
 	public void setTypeDescription(String description) {}
+
+	/**
+	 * Return a type equivalent to this one, except {@link #presumedLength()} is set to {@link #NO_PRESUMED_LENGTH}
+	 * @return The type.
+	 */
+	public IType unknownLength() {
+		//return new ArrayType(generalElementType, NO_PRESUMED_LENGTH, elementTypeMapping);
+		this.presumedLength = NO_PRESUMED_LENGTH;
+		return this;
+	}
 
 }

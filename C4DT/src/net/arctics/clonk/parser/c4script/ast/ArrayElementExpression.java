@@ -83,13 +83,16 @@ public class ArrayElementExpression extends Value {
 		IType rightSideType = rightSide.obtainType(context);
 		if (arrayType != null) {
 			Object argEv = evaluateAtParseTime(argument, context);
+			IType mutation;
 			if (argEv instanceof Number) {
-				context.storeTypeInformation(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
+				mutation = arrayType.modifiedBySliceAssignment(
 					argEv,
 					((Number)argEv).intValue()+1,
 					new ArrayType(rightSideType, rightSideType)
-				));
-			}
+				);
+			} else
+				mutation = arrayType.unknownLength();
+			context.storeTypeInformation(predecessorInSequence(), mutation); 
 		}
 	}
 
