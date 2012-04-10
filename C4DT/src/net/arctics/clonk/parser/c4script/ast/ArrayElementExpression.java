@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -21,9 +20,9 @@ public class ArrayElementExpression extends Value {
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
 		if (predecessorInSequence() != null) {
-			t = predecessorInSequence().typeInContext(context);
-			if (t instanceof ArrayType)
-				return ((ArrayType)t).typeForElementWithIndex(evaluateAtParseTime(argument, context));
+			ArrayType at = predecessorTypeAs(ArrayType.class, context);
+			if (at != null)
+				return at.typeForElementWithIndex(evaluateAtParseTime(argument, context));
 		}
 		return PrimitiveType.ANY;
 	}
@@ -37,7 +36,7 @@ public class ArrayElementExpression extends Value {
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append("["); //$NON-NLS-1$
-		getArgument().print(output, depth+1);
+		argument().print(output, depth+1);
 		output.append("]"); //$NON-NLS-1$
 	}
 
@@ -48,16 +47,15 @@ public class ArrayElementExpression extends Value {
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		ExprElm predecessor = predecessorInSequence();
-		if (predecessor != null) {
-			IType type = predecessor.typeInContext(parser);
-			if (type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST)) {
-				parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessor);
-			}
-		}
-		ExprElm arg = getArgument();
+		super.reportErrors(parser);
+		IType type = predecessorType(parser);
+		if (type != null && type != PrimitiveType.UNKNOWN && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST))
+			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
+		ExprElm arg = argument();
 		if (arg != null)
 			arg.reportErrors(parser);
+		else
+			parser.warningWithCode(ParserErrorCode.MissingExpression, this);
 	}
 
 	@Override
@@ -75,17 +73,13 @@ public class ArrayElementExpression extends Value {
 		return true;
 	}
 
-	public ExprElm getArgument() {
+	public ExprElm argument() {
 		return argument;
-	}
-	
-	protected ArrayType arrayType(DeclarationObtainmentContext context) {
-		return predecessorInSequence() != null ? as(predecessorInSequence().obtainType(context), ArrayType.class) : null;
 	}
 	
 	@Override
 	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
-		ArrayType arrayType = arrayType(context);
+		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
 		IType rightSideType = rightSide.obtainType(context);
 		if (arrayType != null) {
 			Object argEv = evaluateAtParseTime(argument, context);

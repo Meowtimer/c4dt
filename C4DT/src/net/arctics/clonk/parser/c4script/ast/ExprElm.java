@@ -966,5 +966,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public static Object evaluateAtParseTime(ExprElm element, IEvaluationContext context) {
 		return element != null ? element.evaluateAtParseTime(context) : null;
 	}
+	
+	public IType predecessorType(DeclarationObtainmentContext context) {
+		return predecessorInSequence != null ? predecessorInSequence.obtainType(context) : null;
+	}
+	
+	public <T extends IType> T predecessorTypeAs(Class<T> cls, DeclarationObtainmentContext context) {
+		return predecessorInSequence != null ? as(predecessorInSequence.obtainType(context), cls) : null;
+	}
 
 }

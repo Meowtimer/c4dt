@@ -233,10 +233,11 @@ public enum PrimitiveType implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		IType staticType = type.staticType();
-		if (staticType == this) {
+		if (this == REFERENCE || this == ANY)
 			return true;
-		}
+		IType staticType = type.staticType();
+		if (staticType == this)
+			return true;
 		if (staticType instanceof PrimitiveType) {
 			switch ((PrimitiveType)staticType) {
 			case ANY:
@@ -246,13 +247,13 @@ public enum PrimitiveType implements IType {
 			case OBJECT:
 			case INT:
 			case STRING:
-				return this == ANY || this == REFERENCE;
+				return false;
 			case PROPLIST:
 				return this == OBJECT || this == ID;
 			case BOOL:
 				return this == INT;
 			case REFERENCE:
-				return this == ANY || this == REFERENCE;
+				return false;
 			}
 		}
 		return false;
