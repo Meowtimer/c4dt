@@ -16,8 +16,6 @@ public final class DocumentedFunction extends Function implements IDocumentedDec
 	
 	public void setOriginInfo(String originInfo) {
 		this.originInfo = originInfo;
-		if (originInfo != null)
-			System.out.println(name());
 	}
 
 	public DocumentedFunction(String name, IType returnType) {

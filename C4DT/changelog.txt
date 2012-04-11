@@ -162,3 +162,12 @@ are then taken into account in various places
 -Support new {...} expression
 -Show included/appended declarations in outline
 -Silliness
+1.7.2:
+-Improved syntax coloring options (bold, italic, live-update)
+-TODO detection in c4script comments
+-Hopefully better support for array expressions, including slices
+-this.<var> assignments shown in outline and link-click navigable
+-C4ScriptEditor: Double clicking inside blocks selects the block
+-ClonkBuilder: Hopefully some improvements so that refreshing after repository update doesn't produce as many false errors
+-Javadoc comments picked up (@param, @return)
+-Remove silly refactoring prompt after DefCore.txt ID changed
