@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
+import net.arctics.clonk.parser.c4script.ast.Literal;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.util.Utilities;
@@ -39,6 +40,8 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			else for (; expr != null; expr = expr.parent()) {
 				if (expr instanceof StringLiteral)
 					return new Region(func.body().getOffset()+expr.start()+1, expr.getLength()-2);
+				else if (expr instanceof Literal)
+					return new Region(func.body().getOffset()+expr.start(), expr.getLength());
 				else if (expr instanceof AccessDeclaration) {
 					AccessDeclaration accessDec = (AccessDeclaration) expr;
 					return new Region(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());

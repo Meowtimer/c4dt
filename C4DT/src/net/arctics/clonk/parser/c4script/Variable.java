@@ -140,11 +140,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return Some {@link Definition} contained in this variable's {@link #type()}
 	 */
 	public Definition objectType() {
-		for (IType t : type) {
-			if (t instanceof Definition) {
-				return (Definition)t;
-			}
-		}
+		for (IType t : type)
+			return (Definition)t;
 		return null;
 	}
 
@@ -337,11 +334,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public boolean isAt(int offset) {
-		return offset >= location().start() && offset <= location().end();
-	}
-
-	public boolean isTypeLocked() {
-		return typeLocked;
+		return location() != null && offset >= location().start() && offset <= location().end();
 	}
 	
 	private void ensureTypeLockedIfPredefined(Declaration declaration) {

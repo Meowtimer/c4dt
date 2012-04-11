@@ -6,11 +6,12 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
+
 import org.eclipse.jface.text.Region;
 
 /**
@@ -106,7 +107,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private VarInitialization[] varInitializations;
-	private Scope scope;
+	private final Scope scope;
 
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
 		super();
@@ -153,7 +154,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		Function activeFunc = parser.currentFunction();
-		if (activeFunc != null) {				
+		if (activeFunc != null) {
 			int addToMakeAbsolute = activeFunc.body().start() + this.start();
 			offset += addToMakeAbsolute;
 			for (VarInitialization pair : varInitializations) {
