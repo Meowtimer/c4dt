@@ -207,7 +207,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		IDocument doc = viewer.getDocument();
 		String prefix = null;
 		try {
-			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || BufferedScanner.isUmlaut(doc.getChar(wordOffset))) {
+			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || Character.isLetter(doc.getChar(wordOffset))) {
 				wordOffset--;
 			}
 			wordOffset++;

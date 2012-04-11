@@ -128,11 +128,6 @@ public class BufferedScanner implements ICharacterScanner {
 		(/*length > 0 &&*/ '0' <= character && character <= '9');
 	}
 	
-	public static boolean isUmlaut(char character) {
-		character = Character.toLowerCase(character);
-	    return character == 'ä' || character == 'ö' || character == 'ü' || character == 'ß';
-    }
-	
 	public static boolean isWordStart(int character) {
 		return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
 	}
