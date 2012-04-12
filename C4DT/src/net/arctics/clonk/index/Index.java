@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -675,7 +677,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
-			InputStream in = new FileInputStream(new File(indexFolder, "index"));
+			InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
 			T index;
 			try {
 				ObjectInputStream objStream = new IndexEntityInputStream(null, in);
@@ -936,7 +938,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			return;
 		}
 		try {
-			FileOutputStream out = new FileOutputStream(indexFile);
+			OutputStream out = new GZIPOutputStream(new FileOutputStream(indexFile));
 			removeNullsInScriptLists();
 			try {
 				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
