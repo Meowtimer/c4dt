@@ -377,12 +377,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	/**
 	 * Returns whether the expression can be converted to the given type
-	 * @param otherType the type to test convertability to
+	 * @param otherType the type to test convertibility to
 	 * @return true if conversion is possible or false if not
 	 */
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return type(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
+		return type(context) == PrimitiveType.INT && otherType == PrimitiveType.ID;
 	}
 
 	public boolean validForType(IType t, C4ScriptParser context) {

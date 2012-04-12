@@ -611,7 +611,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						);
 					}
 					if (
-						(t == PrimitiveType.OBJECT || t == PrimitiveType.STRING || t == PrimitiveType.ARRAY) &&
+						(t == PrimitiveType.OBJECT || t == PrimitiveType.STRING || t == PrimitiveType.ARRAY || t == PrimitiveType.PROPLIST) &&
 						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
 					) {
 						replacements.add(

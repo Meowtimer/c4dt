@@ -119,12 +119,15 @@ public enum PrimitiveType implements IType {
 					case INT:
 						if (other == BOOL)
 							return true;
+						break;
 					case PROPLIST:
 						if (t == ID || t == OBJECT)
 							return true;
+						break;
 					case OBJECT:
 						if (t == PROPLIST)
 							return true;
+						break;
 					}
 				}
 			}
