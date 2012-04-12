@@ -30,6 +30,7 @@ import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
@@ -186,10 +187,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 
 		private boolean relevant(IMarker marker) {
-			if (marker.getResource().equals(originalMarker.getResource())) {
-				return false;
-			}
-			return ParserErrorCode.getErrorCode(marker) == ParserErrorCode.getErrorCode(originalMarker);
+			return
+				ParserErrorCode.getErrorCode(marker) == ParserErrorCode.getErrorCode(originalMarker);
 		}
 		
 		@Override
@@ -292,11 +291,13 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 		}
 
-		public void runOnMarker(IMarker marker) {
+		public void runOnMarker(final IMarker marker) {
 			try {
 				Core.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
+						replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
+						replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
 						apply(document);
 						return null;
 					}
@@ -601,11 +602,22 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					if (PrimitiveType.makeType(ParserErrorCode.getArg(marker, 0), true) == PrimitiveType.STRING) {
+					PrimitiveType t = PrimitiveType.makeType(ParserErrorCode.getArg(marker, 0), true);
+					if (t == PrimitiveType.STRING) {
 						replacements.add(
-								Messages.ClonkQuickAssistProcessor_QuoteExpression,
-								new StringLiteral(offendingExpression.toString()),
-								false
+							Messages.ClonkQuickAssistProcessor_QuoteExpression,
+							new StringLiteral(offendingExpression.toString()),
+							false
+						);
+					}
+					if (
+						(t == PrimitiveType.OBJECT || t == PrimitiveType.STRING || t == PrimitiveType.ARRAY) &&
+						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
+					) {
+						replacements.add(
+							"Replace 0 with nil",
+							new AccessVar(Keywords.Nil),
+							false
 						);
 					}
 					break;
