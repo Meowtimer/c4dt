@@ -101,14 +101,14 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param postInfo information that is appended to displayString
 	 */
 	public ClonkCompletionProposal(
-			Declaration declaration,
-			String replacementString,
-			int replacementOffset, int replacementLength, int cursorPosition,
-			Image image,
-			String displayString,
-			IContextInformation contextInformation,
-			String additionalProposalInfo, String postInfo,
-			ClonkTextEditor editor
+		Declaration declaration,
+		String replacementString,
+		int replacementOffset, int replacementLength, int cursorPosition,
+		Image image,
+		String displayString,
+		IContextInformation contextInformation,
+		String additionalProposalInfo, String postInfo,
+		ClonkTextEditor editor
 	) {
 //		Assert.isNotNull(replacementString);
 //		Assert.isTrue(replacementOffset >= 0);
@@ -139,7 +139,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	) {
 		this(
 			declaration, replacementString, replacementOffset, replacementLength,
-			declaration.name().length(), image, declaration.displayString(), contextInformation, additionalProposalInfo, postInfo, editor
+			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, editor
 		);
 		displayStringRecomputationNecessary = true;
 	}
@@ -233,8 +233,6 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 		StyledString result = new StyledString(displayString);
 		result.append(postInfo, StyledString.QUALIFIER_STYLER);
-//		result.setStyle(fDisplayString.length(), fPostInfo.length(), StyledString.createColorRegistryStyler(JFacePreferences.DECORATIONS_COLOR,JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR) );
-		
 		return result;
 	}
 	
@@ -262,7 +260,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			return dispA.compareToIgnoreCase(dispB);
 	}
 	
-	public int getCursorPosition() {
+	public int cursorPosition() {
 		return cursorPosition;
 	}
 	

@@ -295,7 +295,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		AutoInsertedRegion newOne = null;
-		if (proposal.getReplacementString().endsWith(")") && proposal.getCursorPosition() < proposal.getReplacementString().length()) { //$NON-NLS-1$
+		if (proposal.getReplacementString().endsWith(")") && proposal.cursorPosition() < proposal.getReplacementString().length()) { //$NON-NLS-1$
 			overrideRegions.add(newOne = new AutoInsertedRegion(
 				proposal.getReplacementOffset()+proposal.getReplacementString().length()-1, 1,
 				new MutableRegion(proposal.getReplacementOffset()+proposal.getReplacementString().length()-2, proposal.getReplacementLength())

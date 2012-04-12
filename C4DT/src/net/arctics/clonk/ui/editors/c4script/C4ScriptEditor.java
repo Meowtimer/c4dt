@@ -100,19 +100,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		public void mouseDown(MouseEvent e) {}
 
-		private void showContentAssistance() {
-			// show parameter help
-			ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
-			try {
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
-					if (!getContentAssistant().isProposalPopupActive())
-						if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-							opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
-			} catch (NullPointerException nullP) {
-				// might just be not that much of an issue
-			}
-		}
-
 		@Override
 		public void keyReleased(KeyEvent e) {
 			showContentAssistance();
@@ -416,6 +403,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		//setDocumentProvider(new ClonkDocumentProvider(this));
 	}
+	
+	public void showContentAssistance() {
+		// show parameter help
+		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
+		try {
+			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
+				if (!getContentAssistant().isProposalPopupActive())
+					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		} catch (NullPointerException nullP) {
+			// might just be not that much of an issue
+		}
+	}
 
 	@Override
 	protected void setDocumentProvider(IEditorInput input) {
@@ -534,7 +534,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 	
-	private int cursorPos() {
+	public int cursorPos() {
 		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
 	}
 	
@@ -568,6 +568,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
+		Display.getCurrent().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				showContentAssistance();
+			}
+		});
 		super.completionProposalApplied(proposal);
 	}
 
