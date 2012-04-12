@@ -1729,7 +1729,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				: new ParsingException(problem);
 	}
 	
-	public IMarker todo(String todoText, int markerStart, int markerEnd) {
+	public IMarker todo(String todoText, int markerStart, int markerEnd, int priority) {
 		if (scriptFile != null) {
 			try {
 				IMarker marker = scriptFile.createMarker(IMarker.TASK);
@@ -1737,6 +1737,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				marker.setAttribute(IMarker.CHAR_END, markerEnd+bodyOffset());
 				marker.setAttribute(IMarker.MESSAGE, todoText);
 				marker.setAttribute(IMarker.LOCATION, currentDeclaration() != null ? currentDeclaration().qualifiedName() : "");
+				marker.setAttribute(IMarker.PRIORITY, priority);
 				return marker;
 			} catch (CoreException e) {
 				e.printStackTrace();

@@ -14,6 +14,8 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.core.resources.IMarker;
+
 /**
  * A comment in the code. Instances of this class can be used as regular {@link ExprElm} objects or
  * be attached to {@link Statement}s as {@link Attachment}.
@@ -26,7 +28,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private String comment;
 	private boolean multiLine;
 	private boolean prependix;
-	private boolean javaDoc;
+	private final boolean javaDoc;
 	private int absoluteOffset;
 
 	/**
@@ -172,7 +174,9 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		String s = text();
 		if (s.contains("TODO"))
-			parser.todo(s, start(), end());
+			parser.todo(s, start(), end(), IMarker.PRIORITY_NORMAL);
+		else if (s.contains("FIXME"))
+			parser.todo(s, start(), end(), IMarker.PRIORITY_HIGH);
 	}
 
 	/**
