@@ -464,7 +464,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				context.unnamedParamaterUsed(params[0]);
 			}
 			else
-				context.unnamedParamaterUsed(NumberLiteral.ZERO);
+				context.unnamedParamaterUsed(LongLiteral.ZERO);
 		}
 		// return as function
 		else if (declarationName.equals(Keywords.Return)) {
@@ -587,7 +587,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
 			if (replOperator.numArgs() == 2)
-				return new BinaryOp(replOperator, params[0].optimize(parser), NumberLiteral.ZERO);
+				return new BinaryOp(replOperator, params[0].optimize(parser), LongLiteral.ZERO);
 			ExprElm n = params[0].optimize(parser);
 			if (n instanceof BinaryOp)
 				n = new Parenthesized(n);
@@ -632,8 +632,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 		
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == cachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
-			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
+		if (params.length <= 1 && declaration != null && declaration == cachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof LongLiteral)) {
+			LongLiteral number = params.length > 0 ? (LongLiteral) params[0] : LongLiteral.ZERO;
 			Function activeFunc = parser.currentFunction();
 			if (activeFunc != null) {
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
@@ -650,7 +650,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar)) {
 			return new UnaryOp(declaration == cachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
 					new CallDeclaration(cachedFuncs(parser).Var.name(), new ExprElm[] {
-						params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
+						params.length == 1 ? params[0].optimize(parser) : LongLiteral.ZERO
 					})
 			);
 		}

@@ -15,10 +15,9 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
  *
  * @param <T> The type of value this literal represents
  */
-public class Literal<T> extends Value {
+public abstract class Literal<T> extends Value {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected final T literal;
 
 	@Override
 	public void expectedToBeOfType(IType type, C4ScriptParser parser, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
@@ -30,13 +29,9 @@ public class Literal<T> extends Value {
 		// don't care
 	}
 
-	public Literal(T literal) {
-		super();
-		this.literal = literal;
-	}
-
-	public T literal() {
-		return literal;
+	public abstract T literal();
+	public boolean literalsEqual(Literal<?> other) {
+		return other.literal().equals(this.literal());
 	}
 
 	@Override
@@ -57,12 +52,12 @@ public class Literal<T> extends Value {
 	@Override
 	public T evaluateAtParseTime(IEvaluationContext context) {
 		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().scriptFile());
-		return literal;
+		return literal();
 	}
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) {
-	    return literal;
+	    return literal();
 	}
 	
 	@Override
@@ -75,7 +70,7 @@ public class Literal<T> extends Value {
 		DifferenceHandling handling = super.compare(other, listener);
 		if (handling != DifferenceHandling.Equal)
 			return handling;
-		if (!literal.equals(((Literal<?>)other).literal))
+		if (!literalsEqual((Literal<?>)other))
 			return listener.differs(this, other, "literal");
 		else
 			return DifferenceHandling.Equal;

@@ -39,7 +39,7 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
-import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
+import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
@@ -156,7 +156,7 @@ public class C4ScriptParserTestCase {
 	@Test
 	public void testASTPrinting() {
 		Block b = new Block(new SimpleStatement(new BinaryOp(Operator.Assign,
-				new AccessVar("i"), new NumberLiteral(50))),
+				new AccessVar("i"), new LongLiteral(50))),
 				new SimpleStatement(new UnaryOp(Operator.Increment,
 						Placement.Prefix, new AccessVar("i"))),
 				new WhileStatement(new BoolLiteral(true), new Block(
@@ -174,9 +174,9 @@ public class C4ScriptParserTestCase {
 		final Block block = new BunchOfStatements(new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
 						new VarDeclarationStatement.VarInitialization("i",
-								NumberLiteral.ZERO, 0)), new BinaryOp(
+								LongLiteral.ZERO, 0)), new BinaryOp(
 						Operator.Smaller, new AccessVar("i"),
-						new NumberLiteral(100)), new UnaryOp(
+						new LongLiteral(100)), new UnaryOp(
 						Operator.Increment, Placement.Postfix, new AccessVar(
 								"i")), new Block(new SimpleStatement(
 						new CallDeclaration("Log", new StringLiteral("Hello"))))));

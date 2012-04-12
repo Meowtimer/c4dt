@@ -13,11 +13,17 @@ import net.arctics.clonk.parser.c4script.Keywords;
 public final class BoolLiteral extends Literal<Boolean> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	private boolean literal;
+	
 	public boolean booleanValue() {
-		return literal().booleanValue();
+		return literal;
+	}
+	@Override
+	public Boolean literal() {
+		return literal;
 	}
 	public BoolLiteral(boolean value) {
-		super(Boolean.valueOf(value));
+		this.literal = value;
 	}
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {

@@ -62,6 +62,7 @@ import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
+import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.MissingStatement;
 import net.arctics.clonk.parser.c4script.ast.NewProplist;
@@ -1807,7 +1808,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (elm == null && parseHexNumber()) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
-				elm = new NumberLiteral(currentFunctionContext.parsedNumber, true);
+				elm = new LongLiteral(currentFunctionContext.parsedNumber.longValue(), true);
 			}
 			
 			// id
@@ -1817,7 +1818,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			
 			// number
 			if (elm == null && parseNumber()) {
-				elm = new NumberLiteral(currentFunctionContext.parsedNumber);
+				elm = NumberLiteral.from(currentFunctionContext.parsedNumber);
 			}
 			
 			// variable or function

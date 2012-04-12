@@ -12,13 +12,19 @@ import net.arctics.clonk.parser.c4script.IType;
 public final class IDLiteral extends Literal<ID> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
+	private ID literal;
+	
 	public IDLiteral(ID literal) {
-		super(literal);
+		this.literal = literal;
+	}
+	
+	@Override
+	public ID literal() {
+		return literal;
 	}
 
 	public ID idValue() {
-		return literal();
+		return literal;
 	}
 
 	@Override

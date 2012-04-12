@@ -21,13 +21,17 @@ import org.eclipse.core.resources.IFile;
 public final class StringLiteral extends Literal<String> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
+	private String literal;
+	
 	public StringLiteral(String literal) {
-		super(literal != null ? literal : ""); //$NON-NLS-1$
+		this.literal =literal != null ? literal : ""; //$NON-NLS-1$
 	}
-
+	@Override
+	public String literal() {
+		return literal;
+	}
 	public String stringValue() {
-		return literal();
+		return literal;
 	}
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
