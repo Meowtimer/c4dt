@@ -188,6 +188,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 		private boolean relevant(IMarker marker) {
 			return
+				!marker.equals(this.originalMarker) &&
 				ParserErrorCode.getErrorCode(marker) == ParserErrorCode.getErrorCode(originalMarker);
 		}
 		
