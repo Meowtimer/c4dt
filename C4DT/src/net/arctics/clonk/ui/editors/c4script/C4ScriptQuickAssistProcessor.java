@@ -615,7 +615,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
 					) {
 						replacements.add(
-							"Replace 0 with nil",
+							Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
 							new AccessVar(Keywords.Nil),
 							false
 						);
