@@ -129,9 +129,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		/** Extension for material definition files */
 		@IniField(category=INTRINSIC)
 		public String materialExtension;
-		/** Whether 0 is of type any */
-		@IniField(category=INTRINSIC)
-		public boolean treatZeroAsAny;
 		/** Engine supports proplists (OC) */
 		@IniField(category=INTRINSIC)
 		public boolean proplistsSupported;

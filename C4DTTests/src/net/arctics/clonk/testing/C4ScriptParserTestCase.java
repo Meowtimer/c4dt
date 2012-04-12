@@ -117,7 +117,6 @@ public class C4ScriptParserTestCase {
 							settings.proplistsSupported = true;
 							settings.strictDefaultLevel = 3;
 							settings.supportsRefs = false;
-							settings.treatZeroAsAny = true;
 						}
 						return settings;
 					};
