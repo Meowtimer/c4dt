@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -164,6 +165,12 @@ public enum ParserErrorCode {
 	
 	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
+		if (expressionRegion instanceof ExprElm)
+			try {
+				marker.setAttribute(IMarker.LOCATION, expressionRegion.toString());
+			} catch (CoreException e1) {
+				e1.printStackTrace();
+			}
 		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
 			try {
 				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : ""); //$NON-NLS-1$
