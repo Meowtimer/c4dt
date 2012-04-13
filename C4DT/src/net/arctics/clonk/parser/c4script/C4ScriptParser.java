@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -664,7 +665,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (function.isOldStyle() && statements.size() > 0)
 					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
 				reportErrorsOf(statements);
-				warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 				function.storeBlock(bunch, functionSource(function));
 				if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 					function.createParameters(currentFunctionContext.numUnnamedParameters);
@@ -715,28 +715,30 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param func The function the block belongs to.
 	 * @param block The {@link Block}
 	 */
-	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, Block block) {
+	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, List<Statement> list) {
 		if (func == null)
 			return;
 		for (Variable v : func.localVars()) {
-			/*if (!v.isUsed())
-				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());*/
+			if (!v.isUsed())
+				createWarningAtDeclarationOfVariable(list, v, ParserErrorCode.Unused, v.name());
 			Variable shadowed = containingScript().findVariable(v.name());
 			// ignore those pesky static variables from scenario scripts
 			if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario)) 
-				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
+				createWarningAtDeclarationOfVariable(list, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
 		}
 	}
 
-	private boolean createWarningAtDeclarationOfVariable(Block block, Variable variable, ParserErrorCode code, Object... formatArguments) {
-		for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
-			for (VarInitialization initialization : decl.variableInitializations()) {
-				if (initialization.variable == variable) {
-					ExprElm old = currentFunctionContext.expressionReportingErrors;
-					currentFunctionContext.expressionReportingErrors = decl;
-					warningWithCode(code, initialization, formatArguments);
-					currentFunctionContext.expressionReportingErrors = old;
-					return true;
+	private boolean createWarningAtDeclarationOfVariable(List<Statement> statements, Variable variable, ParserErrorCode code, Object... warningArguments) {
+		for (Statement s : statements) {
+			for (VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class)) {
+				for (VarInitialization initialization : decl.variableInitializations()) {
+					if (initialization.variable == variable) {
+						ExprElm old = currentFunctionContext.expressionReportingErrors;
+						currentFunctionContext.expressionReportingErrors = decl;
+						warningWithCode(code, initialization, warningArguments);
+						currentFunctionContext.expressionReportingErrors = old;
+						return true;
+					}
 				}
 			}
 		}
@@ -2347,6 +2349,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			reportErrorsOf(s, true, functionLevelTypeInfos);
 		if (scriptLevelTypeInfos != null)
 			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
+		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
@@ -3295,7 +3298,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				cachedBlock = new BunchOfStatements(statements);
 				if (func != null) {
 					reportErrorsOf(statements);
-					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
 					func.storeBlock(cachedBlock, functionSource);
 				}
 			}
@@ -3324,7 +3326,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							return listener.minimumParsingRecursion();
 						}
 					}, this, listener != null ? listener.minimumParsingRecursion() : 1);
-					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
+					warnAboutPossibleProblemsWithFunctionLocalVariables(func, Arrays.asList(cachedBlock.statements()));
 				} else {
 					// just traverse... this should be faster than reparsing -.-
 					cachedBlock.traverse(listener, this, listener.minimumParsingRecursion());

@@ -172,8 +172,10 @@ public class VarDeclarationStatement extends KeywordStatement {
 		for (VarInitialization initialization : varInitializations)
 			if (initialization.variable != null) {
 				if (initialization.expression != null)
-					new AccessVar(initialization.variable).expectedToBeOfType
-						(initialization.expression.type(parser), parser, TypeExpectancyMode.Force);
+					parser.storeTypeInformation(
+						new AccessVar(initialization.variable),
+						initialization.expression.type(parser)
+					);
 			}
 	}
 }

@@ -917,17 +917,16 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	@SuppressWarnings("unchecked")
 	protected <T extends ExprElm> void collectExpressionsOfType(List<T> list, Class<T> type) {
+		if (type.isInstance(this))
+			list.add((T) this);
 		for (ExprElm e : subElements()) {
 			if (e == null)
 				continue;
-			if (type.isAssignableFrom(e.getClass())) {
-				list.add((T) e);
-			}
 			e.collectExpressionsOfType(list, type);
 		}
 	}
 	
-	public <T extends ExprElm> Iterable<T> allSubExpressionsOfType(Class<T> cls) {
+	public <T extends ExprElm> Iterable<T> collectionExpressionsOfType(Class<T> cls) {
 		List<T> l = new LinkedList<T>();
 		collectExpressionsOfType(l, cls);
 		return l;
