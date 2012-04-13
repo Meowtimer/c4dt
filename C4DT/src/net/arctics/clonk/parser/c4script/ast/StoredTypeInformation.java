@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
-public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
+public abstract class StoredTypeInformation implements ITypeInfo, Cloneable {
 
 	protected IType type = PrimitiveType.UNKNOWN;
 
@@ -38,7 +38,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	}
 	
 	@Override
-	public void merge(IStoredTypeInformation other) {
+	public void merge(ITypeInfo other) {
 		if (type() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
 			storeType(type);

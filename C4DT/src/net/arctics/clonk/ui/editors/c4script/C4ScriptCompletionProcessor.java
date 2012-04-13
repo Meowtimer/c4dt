@@ -39,7 +39,6 @@ import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -144,7 +143,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private final ContentAssistant assistant;
 	private ExprElm contextExpression;
-	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
 	private String untamperedPrefix;
@@ -289,10 +287,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private Script _currentEditorScript;
 
 	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
-			IDocument doc, String prefix, List<ICompletionProposal> proposals,
-			Index index, final Function activeFunc,
-			Script editorScript,
-			C4ScriptParser parser) {
+		IDocument doc, String prefix, List<ICompletionProposal> proposals,
+		Index index, final Function activeFunc,
+		Script editorScript,
+		C4ScriptParser parser
+	) {
 
 		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
 		contextStructures.add(editorScript);
@@ -309,10 +308,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,
 						null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				contextExpression = locator.expressionAtRegion();
-				if (contextTypeInformation != null) {
-					parser.pushTypeInformationList(contextTypeInformation);
-					parser.applyStoredTypeInformationList(true);
-				}
 			}
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
@@ -352,7 +347,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (!contextStructuresChanged)
 					contextSequence = null;
 			}
-			parser.endTypeInferenceBlock();
 		}
 
 		if (proposalCycle == ProposalCycle.ALL) {

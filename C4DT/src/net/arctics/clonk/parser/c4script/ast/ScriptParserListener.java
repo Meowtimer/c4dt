@@ -5,7 +5,7 @@ import java.util.List;
 
 public abstract class ScriptParserListener implements IScriptParserListener {
 	@Override
-	public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
+	public void endTypeInferenceBlock(List<ITypeInfo> typeInfos) {
 		// don't care
 	}
 	@Override

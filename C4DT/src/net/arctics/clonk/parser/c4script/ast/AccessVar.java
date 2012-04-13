@@ -129,7 +129,7 @@ public class AccessVar extends AccessDeclaration {
 					parser.containingScript().addUsedScript(var.script());
 					break;
 				case VAR:
-					if (var.location() != null && parser.currentFunction() != null && var.function() == parser.currentFunction()) {
+					if (var.location() != null && parser.currentFunction() != null && var.parentDeclaration() == parser.currentFunction()) {
 						int locationUsed = parser.currentFunction().body().getOffset()+this.start();
 						if (locationUsed < var.location().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
@@ -147,7 +147,7 @@ public class AccessVar extends AccessDeclaration {
 		*/
 	}
 
-	public static IStoredTypeInformation createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
+	public static ITypeInfo createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
 		if (declaration != null)
 			return new GenericStoredTypeInformation(new AccessVar(declaration), parser);
 		else

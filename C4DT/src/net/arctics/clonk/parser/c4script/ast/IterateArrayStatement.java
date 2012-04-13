@@ -1,6 +1,9 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
@@ -71,6 +74,18 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		elementExpr = elms[0];
 		arrayExpr   = elms[1];
 		body        = elms[2];
+	}
+	
+	@Override
+	public boolean skipReportingErrorsForSubElements() {return true;}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		parser.reportErrorsOf(elementExpr, true, null);
+		parser.reportErrorsOf(arrayExpr, true, null);
+		TypeInfoList bodyTyping = new TypeInfoList();
+		parser.reportErrorsOf(body, true, bodyTyping);
+		parser.injectTypeInfos(bodyTyping);
 	}
 
 }

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -41,13 +40,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return elements != null && elements.length > 0 && elements[elements.length-1].isModifiable(context);
 	}
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		for (ExprElm e : elements)
-			e.reportErrors(parser);
-		super.reportErrors(parser);
-	}
-	@Override
-	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		return super.createStoredTypeInformation(parser);
 		/*ExprElm last = getLastElement();
 		if (last != null)

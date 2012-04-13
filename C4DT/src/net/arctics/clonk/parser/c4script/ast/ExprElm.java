@@ -161,6 +161,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param parser The parser used to create the warning marker if conditions are met (!{@link #hasSideEffects()})
 	 */
 	public void warnIfNoSideEffects(C4ScriptParser parser) {
+		if (parent() instanceof IterateArrayStatement && ((IterateArrayStatement)parent()).elementExpr() == this)
+			return;
 		if (!hasSideEffects())
 			parser.warningWithCode(ParserErrorCode.NoSideEffects, this);
 	}
@@ -308,10 +310,21 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public void setExprRegion(IRegion r) {
 		this.setExprRegion(r.getOffset(), r.getOffset()+r.getLength());
 	}
-
+	
+	/**
+	 * Give ExprElm a chance to complain about things.
+	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#markerWithCode(ParserErrorCode, int, int, int, int, Object...)}
+	 * @throws ParsingException
+	 */
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		// i'm totally error-free
 	}
+	
+	/**
+	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportErrors(C4ScriptParser)} on {@link #subElements()} 
+	 * @return Do you just show up, play the music,
+	 */
+	public boolean skipReportingErrorsForSubElements() {return false;}
 
 	public void setPredecessorInSequence(ExprElm p) {
 		predecessorInSequence = p;
@@ -328,13 +341,23 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			return null;
 	}
 
+	/**
+	 * Return the sub elements of this {@link ExprElm}.
+	 * The resulting array may contain nulls since the order of elements in the array is always the same but some expressions may allow leaving out some elements.
+	 * A {@link ForStatement} does not require a condition, for example. 
+	 * @return The array of sub elements
+	 */
 	public ExprElm[] subElements() {
 		return EMPTY_EXPR_ARRAY;
 	}
 
+	/**
+	 * Set the sub elements. The passed arrays must contain elements in the same order as returned by {@link #subElements()}.
+	 * @param elms The array of elements to assign to this element as sub elements
+	 */
 	public void setSubElements(ExprElm[] elms) {
 		if (subElements().length > 0)
-			System.out.println("setSubElements should be implemented when getSubElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -499,7 +522,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		/*if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
 			return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			*/
-		IStoredTypeInformation info = context.requestStoredTypeInformation(this);
+		ITypeInfo info = context.requestStoredTypeInformation(this);
 		if (info != null) {
 			switch (mode) {
 			case Expect:
@@ -586,7 +609,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return offset >= start() && offset <= end();
 	}
 
-	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericStoredTypeInformation.typeableFromExpression(this, parser);
 		if (d != null && !d.typeIsInvariant())
 			return new GenericStoredTypeInformation(this, parser);
@@ -844,7 +867,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 
 		@Override
-		public boolean refersToSameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(ITypeInfo other) {
 			if (other instanceof GenericStoredTypeInformation)
 				return ((GenericStoredTypeInformation)other).referenceElm.equals(referenceElm);
 			else

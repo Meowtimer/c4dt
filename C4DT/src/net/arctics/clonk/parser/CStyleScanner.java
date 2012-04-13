@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.c4script.ast.Comment;
@@ -90,19 +91,21 @@ public class CStyleScanner extends BufferedScanner {
 		return offset-pos;
 	}
 	
-	public int eatWhitespaceReportingComments(List<Comment> commentSink) {
-		int start = offset;
+	public List<Comment> collectComments() {
+		List<Comment> result = null;
 		while (true) {
 			if (super.eatWhitespace() > 0)
 				continue;
 			Comment c = parseCommentObject();
 			if (c != null) {
 				c.setPrependix(true);
-				commentSink.add(c);
+				if (result == null)
+					result = new ArrayList<Comment>(3);
+				result.add(c);
 				continue;
 			}
 			break;
 		}
-		return offset-start;
+		return result;
 	}
 }

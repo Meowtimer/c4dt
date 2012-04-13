@@ -169,10 +169,11 @@ public class VarDeclarationStatement extends KeywordStatement {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		for (VarInitialization initialization : varInitializations) {
-			if (initialization.variableBeingInitialized != null && initialization.expression != null) {
-				new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType(initialization.expression.type(parser), parser, TypeExpectancyMode.Force);
+		for (VarInitialization initialization : varInitializations)
+			if (initialization.variableBeingInitialized != null) {
+				if (initialization.expression != null)
+					new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType
+						(initialization.expression.type(parser), parser, TypeExpectancyMode.Force);
 			}
-		}
 	}
 }

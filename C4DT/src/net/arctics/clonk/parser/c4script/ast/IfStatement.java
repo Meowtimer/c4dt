@@ -3,6 +3,9 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -83,6 +86,21 @@ public class IfStatement extends ConditionalStatement {
 			return elseExpr.evaluate(context);
 		else
 			return null;
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		parser.reportErrorsOf(condition, true, null);
+		// use two separate typeinfo lists for if and else statement, merging
+		// gathered information afterwards
+		TypeInfoList bodyTyping = new TypeInfoList(3);
+		parser.reportErrorsOf(body, true, bodyTyping);
+		if (elseExpr != null) {
+			TypeInfoList elseTyping = new TypeInfoList(3);
+			parser.reportErrorsOf(elseExpr, true, elseTyping);
+			bodyTyping.inject(elseTyping);
+		}
+		parser.injectTypeInfos(bodyTyping);
 	}
 
 }

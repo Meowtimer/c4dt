@@ -52,9 +52,7 @@ public class ArrayElementExpression extends Value {
 		if (type != null && type != PrimitiveType.UNKNOWN && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST))
 			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
 		ExprElm arg = argument();
-		if (arg != null)
-			arg.reportErrors(parser);
-		else
+		if (arg == null)
 			parser.warningWithCode(ParserErrorCode.MissingExpression, this);
 	}
 

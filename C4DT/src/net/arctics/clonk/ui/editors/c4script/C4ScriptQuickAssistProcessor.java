@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
@@ -12,17 +14,17 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.MutableRegion;
-import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.MutableRegion;
+import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
@@ -52,7 +54,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
-
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -68,9 +69,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.views.markers.WorkbenchMarkerResolution;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Offers various quick assists/fixes for C4Script source files
@@ -158,8 +156,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
 
-		private ParameterizedProposal proposal;
-		private IMarker originalMarker;
+		private final ParameterizedProposal proposal;
+		private final IMarker originalMarker;
 		
 		public ParameterizedProposalMarkerResolution(ParameterizedProposal proposal, IMarker originalMarker) {
 			this.proposal = proposal;
@@ -209,7 +207,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final C4ScriptParser parser;
-		private Function func;
+		private final Function func;
 
 		private ParameterizedProposal(Declaration declaration,
 				String replacementString, int replacementOffset,
@@ -326,9 +324,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 		
 		private String title;
-		private ExprElm replacementExpression;
-		private ExprElm[] specifiable;
-		private List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
+		private final ExprElm replacementExpression;
+		private final ExprElm[] specifiable;
+		private final List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
 		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
 		
 		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
@@ -376,8 +374,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		private ExprElm offending;
-		private List<ICompletionProposal> existingList;
+		private final ExprElm offending;
+		private final List<ICompletionProposal> existingList;
 		public ReplacementsList(ExprElm offending, List<ICompletionProposal> existingList) {
 			super();
 			this.offending = offending;

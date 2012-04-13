@@ -139,7 +139,7 @@ public abstract class AccessDeclaration extends Value {
 	}
 	
 	@Override
-	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant())
 			return null;
 		else

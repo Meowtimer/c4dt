@@ -1,6 +1,9 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 
 public abstract class ConditionalStatement extends KeywordStatement {
 
@@ -47,6 +50,17 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	@Override
 	public ExprElm[] subElements() {
 		return new ExprElm[] {condition, body};
+	}
+	
+	@Override
+	public boolean skipReportingErrorsForSubElements() {return true;}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		parser.reportErrorsOf(condition, true, null);
+		TypeInfoList bodyTyping = new TypeInfoList(3);
+		parser.reportErrorsOf(body, true, bodyTyping);
+		parser.injectTypeInfos(bodyTyping);
 	}
 
 	@Override

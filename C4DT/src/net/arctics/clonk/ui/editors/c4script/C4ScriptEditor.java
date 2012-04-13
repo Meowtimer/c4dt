@@ -29,12 +29,10 @@ import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
-import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
-import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -150,37 +148,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
 		
-		/**
-		 * Parser responsible for parsing the edited statement that will then be inserted into
-		 * the existing cached function code block. Avoiding reparsing the whole function code
-		 * every time the function code is changed should help performance with large scripts.
-		 * @author madeen
-		 *
-		 */
-		private static class PatchParser extends C4ScriptParser {
-			public PatchParser(Script script) {
-				super(script);
-			}
-			@Override
-			public int bodyOffset() {
-				return -offsetOfScriptFragment; // add original statement start so warnings like VarUsedBeforeItsDeclaration won't fire
-			};
-			@Override
-			public boolean errorEnabled(ParserErrorCode error) {
-				return false;
-			}
-			public void setStatementStart(int start) {
-				offsetOfScriptFragment = start;
-			}
-		}
-		
 		private static final int REPARSE_DELAY = 700;
-
 		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,Script>>();
 		
 		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
-		private PatchParser patchParser;
 		
 		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
 			try {
@@ -190,55 +162,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				return null;
 			}
 		}
-		
-		@Override
-		protected void added() {
-			super.added();
-			try {
-				patchParser = null;// new PatchParser(structure);
-			} catch (Exception e) {
-				// ignore
-			}
-		}
 
 		@Override
 		public void documentAboutToBeChanged(DocumentEvent event) {
-			try {
-				patchFuncBlockAccordingToDocumentChange(event);
-			} catch (Exception e) {
-				// pfft, have fun reparsing, comput0r
-			}
-		}
-		
-		private void patchFuncBlockAccordingToDocumentChange(DocumentEvent event) throws BadLocationException, ParsingException {
-			if (patchParser == null)
-				return;
-			Function f = structure.funcAt(event.getOffset());
-			if (f != null) {
-				Block originalBlock = f.codeBlock();
-				if (originalBlock != null) {
-					ExpressionLocator locator = new ExpressionLocator(new Region(event.getOffset()-f.body().start(), event.getLength()));
-					originalBlock.traverse(locator);
-					ExprElm foundExpression = locator.expressionAtRegion();
-					if (foundExpression != null) {
-						final Statement originalStatement = foundExpression.parentOfType(Statement.class);
-						int absoluteOffsetToStatement = f.body().getOffset()+originalStatement.start();
-						String originalStatementText = event.getDocument().get(absoluteOffsetToStatement, originalStatement.getLength());
-						StringBuilder patchStatementTextBuilder = new StringBuilder(originalStatementText);
-						patchStatementTextBuilder.delete(event.getOffset()-absoluteOffsetToStatement, event.getOffset()-absoluteOffsetToStatement+event.getLength());
-						patchStatementTextBuilder.insert(event.getOffset()-absoluteOffsetToStatement, event.getText());
-						String patchStatementText = patchStatementTextBuilder.toString();
-						patchParser.setStatementStart(originalStatement.start());
-						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
-						if (patchStatement != null) {
-							originalStatement.parent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
-							StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.body().start(), f.body().getLength()));
-							wholeFuncBodyBuilder.replace(originalStatement.start(), originalStatement.end(), patchStatementText);
-							f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
-						}
-					}
-				}
-			}
 		}
 		
 		@Override
@@ -663,13 +589,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		if (parser == null)
 			throw new InvalidParameterException("document");
-		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
+		List<ITypeInfo> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			// when only parsing declarations store type information for variables declared in the script
 			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
-			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
+			storedLocalsTypeInformation = new LinkedList<ITypeInfo>();
 			for (Variable v : script.variables()) {
-				IStoredTypeInformation info = v.type() != null || v.objectType() != null ? AccessVar.createStoredTypeInformation(v, parser) : null;
+				ITypeInfo info = v.type() != null || v.objectType() != null ? AccessVar.createStoredTypeInformation(v, parser) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);
 			}
@@ -681,7 +607,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		//if (!onlyDeclarations)
 			parser.parseCodeOfFunctionsAndValidate();
 		if (storedLocalsTypeInformation != null) {
-			for (IStoredTypeInformation info : storedLocalsTypeInformation) {
+			for (ITypeInfo info : storedLocalsTypeInformation) {
 				info.apply(false, parser);
 			}
 		}

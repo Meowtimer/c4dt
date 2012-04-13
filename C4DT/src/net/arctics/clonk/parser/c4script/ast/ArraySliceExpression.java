@@ -55,10 +55,6 @@ public class ArraySliceExpression extends Value {
 		IType type = predecessorType(parser);
 		if (type != null && type != PrimitiveType.UNKNOWN && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST))
 			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
-		if (lo != null)
-			lo.reportErrors(parser);
-		if (hi != null)
-			hi.reportErrors(parser);
 	}
 	
 	@Override

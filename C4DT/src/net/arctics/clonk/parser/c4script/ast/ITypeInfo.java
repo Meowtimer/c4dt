@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.Variable;
  * @author madeen
  *
  */
-public interface IStoredTypeInformation {
+public interface ITypeInfo {
 	/**
 	 * Type stored for the expression.
 	 * @return The type.
@@ -23,7 +23,7 @@ public interface IStoredTypeInformation {
 	 */
 	void storeType(IType type);
 	/**
-	 * Hint that the expression this {@link IStoredTypeInformation} was created might be of the given type.
+	 * Hint that the expression this {@link ITypeInfo} was created might be of the given type.
 	 * @param type The type to hint at
 	 * @return Return true if hinting resulted in changing the type or if the already-set type intersects with the new one. 
 	 */
@@ -36,11 +36,11 @@ public interface IStoredTypeInformation {
 	 */
 	boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser);
 	/**
-	 * Return whether another {@link IStoredTypeInformation} refers to the same expression as this one.
+	 * Return whether another {@link ITypeInfo} refers to the same expression as this one.
 	 * @param other The other stored type information
 	 * @return True, if same expression, false if not.
 	 */
-	boolean refersToSameExpression(IStoredTypeInformation other);
+	boolean refersToSameExpression(ITypeInfo other);
 	/**
 	 * Apply this stored type information so the underlying {@link ITypeable} ({@link Variable}, {@link Function} etc) will have its type set.
 	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied. 
@@ -51,7 +51,7 @@ public interface IStoredTypeInformation {
 	 * Merge type information with another one which is refering to the same expression.
 	 * @param other The other type information
 	 */
-	void merge(IStoredTypeInformation other);
+	void merge(ITypeInfo other);
 	/**
 	 * Declare here since Cloneable clone is seemingly magic.
 	 * @return The clone

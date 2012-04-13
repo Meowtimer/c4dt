@@ -85,7 +85,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		
 		@Override
-		public boolean refersToSameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(ITypeInfo other) {
 			return other instanceof CallDeclaration.FunctionReturnTypeInformation && ((CallDeclaration.FunctionReturnTypeInformation)other).function == this.function;
 		}
 		
@@ -131,7 +131,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 
 		@Override
-		public boolean refersToSameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(ITypeInfo other) {
 			if (other.getClass() == CallDeclaration.VarFunctionsTypeInformation.class) {
 				CallDeclaration.VarFunctionsTypeInformation otherInfo = (CallDeclaration.VarFunctionsTypeInformation) other;
 				return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
@@ -722,7 +722,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return null;
 	}
 	@Override
-	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = cachedFuncs(parser);
 		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {

@@ -110,9 +110,6 @@ public class Statement extends ExprElm implements Cloneable {
 		warnIfNoSideEffects(parser);
 		if (!flagsEnabled(STATEMENT_REACHED))
 			parser.warningWithCode(ParserErrorCode.NeverReached, this);
-		//			for (ExprElm elm : getSubElements())
-		//				if (elm != null)
-		//					elm.reportErrors(parser);
 		notFinishedError(parser, this);
 	}
 

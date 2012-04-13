@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 import java.util.Vector;
 
 import net.arctics.clonk.Core;
@@ -58,7 +57,7 @@ import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
-import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
@@ -109,6 +108,34 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private static final boolean DEBUG = false;
 	
+	public static class TypeInfoList extends ArrayList<ITypeInfo> {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public TypeInfoList up;
+		public TypeInfoList() {
+			super();
+		}
+		public TypeInfoList(int capacity) {
+			super(capacity);
+		}
+		public TypeInfoList inject(TypeInfoList other) {
+			for (ITypeInfo info : this) {
+				for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {
+					ITypeInfo info2 = it.next();
+					if (info2.refersToSameExpression(info)) {
+						info.merge(info2);
+						it.remove();
+					}
+				}
+			}
+			this.addAll(other);
+			return this;
+		}
+		public void apply(C4ScriptParser parser, boolean soft) {
+			for (ITypeInfo info : this)
+				info.apply(soft, parser);
+		}
+	}
+	
 	/**
 	 * Context for parsing a single {@link Function}. There is only one current function context at a time for one parser but
 	 * parsing of functions may happen interleaved, for example when during parsing of one function it is decided that another one needs to be parsed before continuing. 
@@ -123,6 +150,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public String parsedMemberOperator;
 		public int parseExpressionRecursion;
 		public int parseStatementRecursion;
+		public TypeInfoList typeInfos;
 
 		private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 		/**
@@ -138,10 +166,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 		 */
 		public int numUnnamedParameters;
-		/**
-		 * Stack of type information lists.
-		 */
-		public Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
 		public ExprElm expressionReportingErrors;
 		public void initialize() {
 			statementReached = true;
@@ -190,7 +214,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Set<Function> parsedFunctions;
 	private SpecialScriptRules specialScriptRules;
 	private Engine engine;
-	private TypeInformationMerger scriptLevelTypeInformationMerger;
+	private TypeInfoList scriptLevelTypeInfos;
 	private ClonkBuilder builder;
 	
 	public SpecialScriptRules getSpecialScriptRules() {
@@ -248,52 +272,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Push a new type information list onto the stack.
-	 * @return The newly created and pushed type information list.
-	 */
-	public List<IStoredTypeInformation> beginTypeInferenceBlock() {
-		List<IStoredTypeInformation> result = new LinkedList<IStoredTypeInformation>();
-		currentFunctionContext.storedTypeInformationListStack.push(result);
-		return result;
-	}
-	
-	/**
-	 * Pop the current type information list from the sack.
-	 * @return The popped list.
-	 */
-	public List<IStoredTypeInformation> endTypeInferenceBlock() {
-		return !currentFunctionContext.storedTypeInformationListStack.isEmpty() ? currentFunctionContext.storedTypeInformationListStack.pop() : null;
-	}
-	
-	/**
-	 * Store given type information in the associated C4Declaration objects so this information
-	 * will be permanent. 
-	 * @param list The type information list to apply.
-	 * @param soft Whether to only store the types in function-local variables.
-	 */
-	private final void applyStoredTypeInformationList(List<IStoredTypeInformation> list, boolean soft) {
-		if (list == null)
-			return;
-		for (IStoredTypeInformation info : list) {
-			info.apply(soft, this);
-		}
-	}
-	
-	/**
-	 * Store current type information in the associated C4Declaration objects so this information
-	 * will be permanent. 
-	 * @param soft Whether to only store the types in function-local variables.
-	 */
-	public void applyStoredTypeInformationList(boolean soft) {
-		applyStoredTypeInformationList(currentFunctionContext.storedTypeInformationListStack.peek(), soft);
-	}
-	
-	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
 	@Override
 	public void storeTypeInformation(ExprElm expression, IType type) {
-		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
+		ITypeInfo requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
 			if (DEBUG)
 				warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
@@ -307,13 +290,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
-	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
-		if (currentFunctionContext.storedTypeInformationListStack.isEmpty())
+	public ITypeInfo requestStoredTypeInformation(ExprElm expression) {
+		if (currentFunctionContext.typeInfos == null)
 			return null;
 		boolean topMostLayer = true;
-		IStoredTypeInformation base = null;
-		for (int i = currentFunctionContext.storedTypeInformationListStack.size()-1; i >= 0; i--) {
-			for (IStoredTypeInformation info : currentFunctionContext.storedTypeInformationListStack.get(i)) {
+		ITypeInfo base = null;
+		for (TypeInfoList list = currentFunctionContext.typeInfos; list != null; list = list.up) {
+			for (ITypeInfo info : list) {
 				if (info.storesTypeInformationFor(expression, this)) {
 					if (!topMostLayer) {
 						base = info;
@@ -325,11 +308,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			topMostLayer = false;
 		}
-		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
+		ITypeInfo newlyCreated = expression.createStoredTypeInformation(this);
 		if (newlyCreated != null) {
 			if (base != null)
 				newlyCreated.merge(base);
-			currentFunctionContext.storedTypeInformationListStack.peek().add(newlyCreated);
+			currentFunctionContext.typeInfos.add(newlyCreated);
 		}
 		return newlyCreated;
 	}
@@ -338,12 +321,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Return a copy of the current type information list.
 	 * @return The copied list
 	 */
-	public List<IStoredTypeInformation> copyCurrentTypeInformationList() {
+	public List<ITypeInfo> copyCurrentTypeInformationList() {
 		try {
-			List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(currentFunctionContext.storedTypeInformationListStack.peek().size());
-			for (IStoredTypeInformation info : currentFunctionContext.storedTypeInformationListStack.peek()) {
-				list.add((IStoredTypeInformation) info.clone());
-			}
+			TypeInfoList list = new TypeInfoList(currentFunctionContext.typeInfos.size());
+			for (ITypeInfo info : currentFunctionContext.typeInfos)
+				list.add((ITypeInfo) info.clone());
 			return list;
 		} catch (CloneNotSupportedException e) {
 			return null;
@@ -351,23 +333,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Push a new type information list on the type information list stack.
-	 * @param list
-	 */
-	public void pushTypeInformationList(List<IStoredTypeInformation> list) {
-		currentFunctionContext.storedTypeInformationListStack.push(list);
-	}
-	
-	/**
 	 * Query the type of an arbitrary expression. With some luck the parser will be able to give an answer.
 	 * @param expression the expression to query the type of
 	 * @return
 	 */
-	public IStoredTypeInformation queryStoredTypeInformation(ExprElm expression) {
-		if (currentFunctionContext.storedTypeInformationListStack.isEmpty())
+	public ITypeInfo queryStoredTypeInformation(ExprElm expression) {
+		if (currentFunctionContext.typeInfos == null)
 			return null;
-		for (int i = currentFunctionContext.storedTypeInformationListStack.size()-1; i >= 0; i--) {
-			for (IStoredTypeInformation info : currentFunctionContext.storedTypeInformationListStack.get(i)) {
+		for (TypeInfoList list = currentFunctionContext.typeInfos; list != null; list = list.up) {
+			for (ITypeInfo info : list) {
 				if (info.storesTypeInformationFor(expression, this))
 					return info;
 			}
@@ -384,7 +358,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
-		IStoredTypeInformation info = queryStoredTypeInformation(expression);
+		ITypeInfo info = queryStoredTypeInformation(expression);
 		return info != null ? info.type() : defaultType;
 	}
 	
@@ -593,8 +567,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			synchronized (parsedFunctions) {
 				parsedFunctions = null;
 			}
-			applyStoredTypeInformationList(scriptLevelTypeInformationMerger.getResult(), false);
-			scriptLevelTypeInformationMerger = null;
+			scriptLevelTypeInfos.apply(this, false);
+			scriptLevelTypeInfos = null;
 			currentFunctionContext.currentDeclaration = null;
 
 			for (Directive directive : container.directives())
@@ -608,7 +582,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (variable.scope() == Scope.CONST && !initialization.isConstant()) {
 						errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
 					}
-					initialization.reportErrors(this);
 					currentFunctionContext.expressionReportingErrors = old;
 				}
 			}
@@ -621,7 +594,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void prepareForFunctionParsing() {
 		if (parsedFunctions == null) {
 			strictLevel = container.strictLevel();
-			scriptLevelTypeInformationMerger = new TypeInformationMerger();
+			scriptLevelTypeInfos = new TypeInfoList(10);
 			parsedFunctions = new HashSet<Function>();
 		}
 	}
@@ -697,7 +670,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				assignDefaultParmTypesToFunction(function);
 				// reset local vars
 				function.resetLocalVarTypes();
-				beginTypeInferenceBlock();
 				this.seek(function.body().start());
 				// parse code block
 				int endOfFunc = function.body().end();
@@ -707,13 +679,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				BunchOfStatements bunch = new BunchOfStatements(statements);
 				if (function.isOldStyle() && statements.size() > 0)
 					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
+				reportErrorsOf(statements);
 				warnAboutPossibleProblemsWithFunctionLocalVariables(function, bunch);
 				function.storeBlock(bunch, functionSource(function));
-				applyStoredTypeInformationList(false); // apply short-term inference information
-				List<IStoredTypeInformation> block = endTypeInferenceBlock();
-				if (scriptLevelTypeInformationMerger != null) {
-					scriptLevelTypeInformationMerger.inject(block); // collect information from all functions and apply that after having parsed them all
-				}
 				if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 					function.createParameters(currentFunctionContext.numUnnamedParameters);
 				}
@@ -767,8 +735,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (func == null)
 			return;
 		for (Variable v : func.localVars()) {
-			if (!v.isUsed())
-				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());
+			/*if (!v.isUsed())
+				createWarningAtDeclarationOfVariable(block, v, ParserErrorCode.Unused, v.name());*/
 			Variable shadowed = containingScript().findVariable(v.name());
 			// ignore those pesky static variables from scenario scripts
 			if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario)) 
@@ -2346,6 +2314,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
+	private <T extends ExprElm> T reportErrorsOf(T expression) throws ParsingException {return expression;}
+	
 	/**
 	 * Let an expression report errors. Calling {@link ExprElm#reportErrors(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
@@ -2353,15 +2323,39 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 * @return The expression parameter is returned to allow for expression chaining. 
 	 */
-	private <T extends ExprElm> T reportErrorsOf(T expression) throws ParsingException {
+	public <T extends ExprElm> T reportErrorsOf(T expression, boolean recursive, TypeInfoList typeInfos) {
 		ExprElm saved = currentFunctionContext.expressionReportingErrors;
+		if (typeInfos != null) {
+			typeInfos.up = currentFunctionContext.typeInfos;
+			currentFunctionContext.typeInfos = typeInfos;
+		}
 		currentFunctionContext.expressionReportingErrors = expression;
 		try {
-			expression.reportErrors(this);
+			if (recursive && !expression.skipReportingErrorsForSubElements())
+				for (ExprElm e : expression.subElements())
+					if (e != null)
+						reportErrorsOf(e, true, null);
+			try {
+				expression.reportErrors(this);
+			} catch (SilentParsingException s) {
+				// silent
+			} catch (ParsingException e1) {
+				e1.printStackTrace();
+			}
 		} finally {
 			currentFunctionContext.expressionReportingErrors = saved;
+			if (typeInfos != null)
+				currentFunctionContext.typeInfos = typeInfos.up;
 		}
 		return expression;
+	}
+	
+	private void reportErrorsOf(List<Statement> statements) throws ParsingException {
+		TypeInfoList functionLevelTypeInfos = new TypeInfoList(5); 
+		for (Statement s : statements)
+			reportErrorsOf(s, true, functionLevelTypeInfos);
+		if (scriptLevelTypeInfos != null)
+			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
@@ -2476,29 +2470,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Statement parseStatement() throws ParsingException {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
-	
-	/**
-	 * Parse a statement with its own type inference block, which will be merged into the passed merger object.
-	 * @param merger The merger helper object to merge the exclusively created type information block into.
-	 * @return The parsed statement or null if parsing was unsuccessful. 
-	 * @throws ParsingException
-	 */
-	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
+
+	private Statement parseStatementWithPrependedComments() throws ParsingException {
 		// parse comments and attach them to the statement so the comments won't be removed by code reformatting
-		List<Comment> prependedComments = new ArrayList<Comment>(3);
-		eatWhitespaceReportingComments(prependedComments);
-		List<IStoredTypeInformation> block = beginTypeInferenceBlock();
-		try {
-			Statement s = parseStatement();
-			if (s != null)
-				s.addAttachments(prependedComments);
-			return s;
-		} finally {
-			block = endTypeInferenceBlock();
-			if (listener != null)
-				listener.endTypeInferenceBlock(block);
-			merger.inject(block);
-		}
+		List<Comment> prependedComments = collectComments();
+		Statement s = parseStatement();
+		if (s != null && prependedComments != null)
+			s.addAttachments(prependedComments);
+		return s;
 	}
 	
 	/**
@@ -2622,7 +2601,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private void handleStatementCreated(Statement statement) throws ParsingException {
 		statement.setNestingDepth(currentFunctionContext.parseStatementRecursion);
 		statement.setFlagsEnabled(ExprElm.STATEMENT_REACHED, currentFunctionContext.statementReached);
-		reportErrorsOf(statement);
 		if (currentFunctionContext.parseStatementRecursion == 1) {
 			if (listener != null) {
 				switch (listener.expressionDetected(statement, this)) {
@@ -2652,7 +2630,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.currentFunctionContext.statementReached = reached;
 			int potentialGarbageEnd = offset;
 			//eatWhitespace();
-			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
+			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements
+				? parseStatement(options)
+				: SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
 				done = currentFunction().isOldStyle() || peek() == '}';
 				if (done)
@@ -2722,63 +2702,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
-	/**
-	 * Helper class to manage merging type information lists.
-	 * @author madeen
-	 *
-	 */
-	public static class TypeInformationMerger {
-		
-		/**
-		 * The result of the merger.
-		 */
-		private List<IStoredTypeInformation> merged;
-		
-		private static List<IStoredTypeInformation> mergeTypeInformationLists(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
-			for (IStoredTypeInformation info : first) {
-				for (Iterator<IStoredTypeInformation> it = second.iterator(); it.hasNext();) {
-					IStoredTypeInformation info2 = it.next();
-					if (info2.refersToSameExpression(info)) {
-						info.merge(info2);
-						it.remove();
-					}
-				}
-			}
-			first.addAll(second);
-			return first;
-		}
-		
-		/**
-		 * Inject the given list of type information into the type information list managed by this object.
-		 * @param infos The type information to merge in
-		 * @return The merged type information list managed by this object.
-		 */
-		public List<IStoredTypeInformation> inject(List<IStoredTypeInformation> infos) {
-			if (merged == null)
-				return merged = infos;
-			return merged = mergeTypeInformationLists(merged, infos);
-		}
-
-		/**
-		 * Finish this merger, returning the resulting type information list.
-		 * @param finalList The last type information list to merge in. This might also be the result if no other lists have been committed to this object.
-		 * @return The resulting list of type information
-		 */
-		public List<IStoredTypeInformation> finish(List<IStoredTypeInformation> finalList) {
-			if (merged == null)
-				return finalList;
-			return mergeTypeInformationLists(finalList, merged);
-		}
-		
-		/**
-		 * Get the result of the merger til now.
-		 * @return The merger result
-		 */
-		public List<IStoredTypeInformation> getResult() {
-			return merged;
-		}
-	}
-	
 	/**
 	 * Expect a certain character.
 	 * @param expected The character expected
@@ -2943,11 +2866,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
-					boolean wasEnabled = enableError(ParserErrorCode.NoSideEffects, false);
 					currentFunctionContext.parseStatementRecursion++;
 					handleStatementCreated(initialization);
 					currentFunctionContext.parseStatementRecursion--;
-					enableError(ParserErrorCode.NoSideEffects, wasEnabled);
 				} else {
 					w = null;
 				}
@@ -2955,9 +2876,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (w == null) {
 				// regularly parse initialization statement
 				seek(pos);
-				boolean noSideEffectsWasEnabled = enableError(ParserErrorCode.NoSideEffects, false);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
-				enableError(ParserErrorCode.NoSideEffects, noSideEffectsWasEnabled);
 				if (initialization == null) {
 					errorWithCode(ParserErrorCode.ExpectedCode, this.offset, this.offset+1);
 				} else if (initialization instanceof VarDeclarationStatement) {
@@ -3122,16 +3041,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			condition = ExprElm.nullExpr(this.offset, 0, this); // if () is valid
 		eatWhitespace();
 		expect(')');
-		TypeInformationMerger merger = new TypeInformationMerger();
 		int offsetBeforeWhitespace = this.offset;
-		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithOwnTypeInferenceBlock(merger));
+		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithPrependedComments());
 		int beforeElse = this.offset;
 		eatWhitespace();
 		int o = this.offset;
 		String nextWord = readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
-			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger);
+			elseStatement = parseStatementWithPrependedComments();
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, o, o+Keywords.Else.length());
 			}
@@ -3140,8 +3058,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
 			elseStatement = null;
 		}
-		// merge gathered type information with current list
-		currentFunctionContext.storedTypeInformationListStack.push(merger.finish(currentFunctionContext.storedTypeInformationListStack.pop()));
 		
 		if (!containsConst(condition)) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(currentFunction()));
@@ -3398,52 +3314,47 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					ParserErrorCode.NotAllowedHere
 				), false);
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-				beginTypeInferenceBlock();
 				LinkedList<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
 				cachedBlock = new BunchOfStatements(statements);
 				if (func != null) {
+					reportErrorsOf(statements);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
 					func.storeBlock(cachedBlock, functionSource);
 				}
-				applyStoredTypeInformationList(true);
 			}
 			// traverse block using the listener
 			if (cachedBlock != null) {
 				if (reportErrors) {
 					func.resetLocalVarTypes();
-					beginTypeInferenceBlock();
 					// traverse with new listener that re-reports errors in addition to forwarding notifications to the actual listener
 					// so clients expecting report... to cause marker creation won't be disappoint
 					cachedBlock.traverse(new IScriptParserListener() {
 						@Override
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							try {
-								parser.reportErrorsOf(expression);
-							} catch (ParsingException e) {}
-							return listener != null ? listener.expressionDetected(expression, parser) : TraversalContinuation.Continue;
+							parser.reportErrorsOf(expression, false, null);
+							return listener != null
+								? listener.expressionDetected(expression, parser)
+								: TraversalContinuation.Continue;
 						}
-
 						@Override
-						public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
+						public void endTypeInferenceBlock(List<ITypeInfo> typeInfos) {
 							if (listener != null) {
 								listener.endTypeInferenceBlock(typeInfos);
 							}
 						}
-						
 						@Override
 						public int minimumParsingRecursion() {
 							return listener.minimumParsingRecursion();
 						}
 					}, this, listener != null ? listener.minimumParsingRecursion() : 1);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(func, cachedBlock);
-					applyStoredTypeInformationList(true);
 				} else {
 					// just traverse... this should be faster than reparsing -.-
 					cachedBlock.traverse(listener, this, listener.minimumParsingRecursion());
 				}
 			}
-		} 
+		}
 		catch (ParsingException e) {
 			//e.printStackTrace();
 		}
@@ -3598,7 +3509,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		initScanner(statementText);
 		setListener(listener);
 		setCurrentFunc(context);
-		beginTypeInferenceBlock();
 		enableError(ParserErrorCode.NotFinished, false);
 		
 		List<Statement> statements = new LinkedList<Statement>();
@@ -3610,6 +3520,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			else
 				break;
 		} while (true);
+		reportErrorsOf(statements);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 
@@ -3645,6 +3556,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	public FunctionContext currentFunctionContext() {
 		return currentFunctionContext;
+	}
+
+	public void injectTypeInfos(TypeInfoList list) {
+		if (currentFunctionContext != null && currentFunctionContext.typeInfos != null)
+			currentFunctionContext.typeInfos.inject(list);
 	}
 	
 }

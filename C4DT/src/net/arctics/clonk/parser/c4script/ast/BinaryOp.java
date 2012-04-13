@@ -167,18 +167,14 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	public void reportErrors(C4ScriptParser context) throws ParsingException {
-		leftSide().reportErrors(context);
-		rightSide().reportErrors(context);
 		// sanity
 		setExprRegion(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C
-		if (operator().modifiesArgument() && !leftSide().isModifiable(context)) {
+		if (operator().modifiesArgument() && !leftSide().isModifiable(context))
 			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
-		}
 		// obsolete operators in #strict 2
-		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2)) {
+		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2))
 			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().operatorName());
-		}
 		// wrong parameter types
 		if (!leftSide().validForType(operator().firstArgType(), context))
 			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().firstArgType(), leftSide().type(context));
@@ -191,7 +187,7 @@ public class BinaryOp extends OperatorExpression {
 			expectedLeft = expectedRight = null;
 			break;
 		default:
-			expectedLeft = operator().firstArgType();
+			expectedLeft  = operator().firstArgType();
 			expectedRight = operator().secondArgType();
 		}
 		
@@ -200,17 +196,15 @@ public class BinaryOp extends OperatorExpression {
 		if (expectedRight != null)
 			rightSide().expectedToBeOfType(expectedRight, context);
 
-		if (operator() == Operator.Assign) {
+		if (operator() == Operator.Assign)
 			leftSide().assignment(rightSide(), context);
-		}
 	}
 	
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
-		if (operator() == Operator.Assign) {
+		if (operator() == Operator.Assign)
 			leftSide().assignment(rightSide(), root);
-		}
 	}
 
 	@Override
