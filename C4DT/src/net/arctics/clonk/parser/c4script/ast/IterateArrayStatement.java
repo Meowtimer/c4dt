@@ -97,8 +97,11 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
 		ArrayType at = as(type, ArrayType.class);
-		if (loopVariable != null && at != null)
-			parser.storeTypeInformation(new AccessVar(loopVariable), at.generalElementType());
+		if (loopVariable != null) {
+			if (at != null)
+				parser.storeTypeInformation(new AccessVar(loopVariable), at.generalElementType());
+			loopVariable.setUsed(true);
+		}
 		
 		TypeInfoList bodyTyping = parser.typeInfoList();
 		parser.reportErrorsOf(body, true, bodyTyping);

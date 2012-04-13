@@ -2306,6 +2306,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The expression parameter is returned to allow for expression chaining. 
 	 */
 	public <T extends ExprElm> T reportErrorsOf(T expression, boolean recursive, TypeInfoList typeInfos) {
+		if (expression == null)
+			return null;
 		ExprElm saved = currentFunctionContext.expressionReportingErrors;
 		if (typeInfos != null) {
 			typeInfos.up = currentFunctionContext.typeInfos;
@@ -2319,10 +2321,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						reportErrorsOf(e, true, null);
 			try {
 				expression.reportErrors(this);
-			} catch (SilentParsingException s) {
+			} catch (Exception s) {
 				// silent
-			} catch (ParsingException e1) {
-				e1.printStackTrace();
 			}
 		} finally {
 			currentFunctionContext.expressionReportingErrors = saved;
@@ -2895,7 +2895,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			eatWhitespace();
 			arrayExpr = parseExpression();
 			if (arrayExpr == null)
-				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset, ABSOLUTE_MARKER_LOCATION);
 			condition = null;
 			increment = null;
 		} else {
@@ -2910,7 +2910,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				unread();
 				condition = parseExpression();
 				if (condition == null) {
-					errorWithCode(ParserErrorCode.ConditionExpected, savedOffset, this.offset);
+					errorWithCode(ParserErrorCode.ConditionExpected, savedOffset, this.offset, ABSOLUTE_MARKER_LOCATION);
 				}
 			}
 			eatWhitespace();
