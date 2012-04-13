@@ -76,7 +76,6 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
@@ -315,21 +314,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			currentFunctionContext.typeInfos.add(newlyCreated);
 		}
 		return newlyCreated;
-	}
-
-	/**
-	 * Return a copy of the current type information list.
-	 * @return The copied list
-	 */
-	public List<ITypeInfo> copyCurrentTypeInformationList() {
-		try {
-			TypeInfoList list = new TypeInfoList(currentFunctionContext.typeInfos.size());
-			for (ITypeInfo info : currentFunctionContext.typeInfos)
-				list.add((ITypeInfo) info.clone());
-			return list;
-		} catch (CloneNotSupportedException e) {
-			return null;
-		}
 	}
 	
 	/**
@@ -747,7 +731,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private boolean createWarningAtDeclarationOfVariable(Block block, Variable variable, ParserErrorCode code, Object... formatArguments) {
 		for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
 			for (VarInitialization initialization : decl.variableInitializations()) {
-				if (initialization.variableBeingInitialized == variable) {
+				if (initialization.variable == variable) {
 					ExprElm old = currentFunctionContext.expressionReportingErrors;
 					currentFunctionContext.expressionReportingErrors = decl;
 					warningWithCode(code, initialization, formatArguments);
@@ -1012,7 +996,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								container.containsGlobals = true;
 							case LOCAL:
 								if (currentFunc == null) {
-									varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
+									varInitialization.variable.forceType(typeOfNewVar);
 									break;
 								}
 								break;
@@ -1044,7 +1028,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (inlineComment != null) {
 				inlineComment = inlineComment.trim();
 				for (VarInitialization v : createdVariables) {
-					v.variableBeingInitialized.setUserDescription(inlineComment);
+					v.variable.setUserDescription(inlineComment);
 				}
 			}
 			
@@ -1952,10 +1936,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result.setFinishedProperly(proper);
 
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
-			if (result.type(this) == null) {
-				errorWithCode(ParserErrorCode.InvalidExpression, result, NO_THROW);
-			}
-
 			if (proper) {
 				int saved = this.offset;
 				eatWhitespace();
@@ -2350,8 +2330,19 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return expression;
 	}
 	
+	public void injectTypeInfos(TypeInfoList list) {
+		if (currentFunctionContext != null && currentFunctionContext.typeInfos != null)
+			currentFunctionContext.typeInfos.inject(list);
+	}
+	
+	public TypeInfoList typeInfoList() {
+		TypeInfoList l = new TypeInfoList();
+		l.up = currentFunctionContext != null ? currentFunctionContext.typeInfos : scriptLevelTypeInfos;
+		return l;
+	}
+	
 	private void reportErrorsOf(List<Statement> statements) throws ParsingException {
-		TypeInfoList functionLevelTypeInfos = new TypeInfoList(5); 
+		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportErrorsOf(s, true, functionLevelTypeInfos);
 		if (scriptLevelTypeInfos != null)
@@ -2542,7 +2533,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if ((scope = Scope.makeScope(readWord)) != null) {
 					List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
 					if (initializations != null) {
-						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.scope());
+						result = new VarDeclarationStatement(initializations, initializations.get(0).variable.scope());
 						if (!options.contains(ParseStatementOption.InitializationStatement)) {
 							if (read() != ';') {
 								unread();
@@ -2843,7 +2834,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 		// initialization
 		savedOffset = this.offset;
-		Variable loopVariable = null;
 		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
 		String w = null;
@@ -2862,27 +2852,22 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					// too much manual setting of stuff
 					AccessVar accessVar = new AccessVar(varName);
 					setExprRegionRelativeToFuncBody(accessVar, pos, pos+varName.length());
-					loopVariable = createVarInScope(varName, Scope.VAR, pos, pos+varName.length(), null);
+					createVarInScope(varName, Scope.VAR, pos, pos+varName.length(), null);
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
 					currentFunctionContext.parseStatementRecursion++;
 					handleStatementCreated(initialization);
 					currentFunctionContext.parseStatementRecursion--;
-				} else {
+				} else
 					w = null;
-				}
 			}
 			if (w == null) {
 				// regularly parse initialization statement
 				seek(pos);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
-				if (initialization == null) {
+				if (initialization == null)
 					errorWithCode(ParserErrorCode.ExpectedCode, this.offset, this.offset+1);
-				} else if (initialization instanceof VarDeclarationStatement) {
-					VarDeclarationStatement decStatement = (VarDeclarationStatement) initialization;
-					loopVariable = decStatement.variableInitializations()[0].variableBeingInitialized;
-				}
 			}
 		}
 
@@ -2908,15 +2893,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			arrayExpr = parseExpression();
 			if (arrayExpr == null)
 				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
-			else {
-				IType t = arrayExpr.type(this);
-				if (!t.canBeAssignedFrom(PrimitiveType.ARRAY))
-					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), PrimitiveType.ARRAY.toString());
-				if (loopVariable != null && t instanceof ArrayType) {
-					ArrayType arrayType = (ArrayType) t;
-					new AccessVar(loopVariable).expectedToBeOfType(arrayType.generalElementType(), this, TypeExpectancyMode.Force);
-				}
-			}
 			condition = null;
 			increment = null;
 		} else {
@@ -3556,11 +3532,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	public FunctionContext currentFunctionContext() {
 		return currentFunctionContext;
-	}
-
-	public void injectTypeInfos(TypeInfoList list) {
-		if (currentFunctionContext != null && currentFunctionContext.typeInfos != null)
-			currentFunctionContext.typeInfos.inject(list);
 	}
 	
 }

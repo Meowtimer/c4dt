@@ -521,22 +521,20 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 		/*if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
 			return; // expecting it to be of any or unknown type? come back when you can be more specific please
-			*/
-		ITypeInfo info = context.requestStoredTypeInformation(this);
-		if (info != null) {
-			switch (mode) {
-			case Expect:
-				if (info.type() == PrimitiveType.UNKNOWN)
+		 */
+		ITypeInfo info;
+		switch (mode) {
+		case Expect: case Force:
+			info = context.requestStoredTypeInformation(this);
+			if (info != null)
+				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN)
 					info.storeType(type);
-				break;
-			case Force:
-				info.storeType(type);
-				break;
-			case Hint:
-				if (!info.generalTypeHint(type) && errorWhenFailed != null)
-					context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
-				break;
-			}
+			break;
+		case Hint:
+			info = context.queryStoredTypeInformation(this);
+			if (info != null && !info.generalTypeHint(type) && errorWhenFailed != null)
+				context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
+			break;
 		}
 	}
 	

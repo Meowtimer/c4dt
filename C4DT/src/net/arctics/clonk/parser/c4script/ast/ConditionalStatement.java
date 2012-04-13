@@ -58,7 +58,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		parser.reportErrorsOf(condition, true, null);
-		TypeInfoList bodyTyping = new TypeInfoList(3);
+		TypeInfoList bodyTyping = parser.typeInfoList();
 		parser.reportErrorsOf(body, true, bodyTyping);
 		parser.injectTypeInfos(bodyTyping);
 	}

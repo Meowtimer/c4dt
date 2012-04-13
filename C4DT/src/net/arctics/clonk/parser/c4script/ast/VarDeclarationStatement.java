@@ -42,7 +42,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		/**
 		 * Object representing variable. Does not need to be set.
 		 */
-		public Variable variableBeingInitialized;
+		public Variable variable;
 		/**
 		 * Create a new {@link VarInitialization}.
 		 * @param name Name of variable
@@ -57,15 +57,15 @@ public class VarDeclarationStatement extends KeywordStatement {
 			assignParentToSubElements();
 		}
 		/**
-		 * Creat a new {@link VarInitialization}. Calls {@link VarInitialization#VarInitialization(String, ExprElm, int)}, additionally assigning {@link #variableBeingInitialized} the passed var.
+		 * Creat a new {@link VarInitialization}. Calls {@link VarInitialization#VarInitialization(String, ExprElm, int)}, additionally assigning {@link #variable} the passed var.
 		 * @param name Name of variable
 		 * @param expression Expression. Can be null.
 		 * @param namePos Position of name. Used for setting the region of this expression ({@link #setExprRegion(int, int)}})
-		 * @param var Variable to assign to {@link #variableBeingInitialized}
+		 * @param var Variable to assign to {@link #variable}
 		 */
 		public VarInitialization(String name, ExprElm expression, int namePos, Variable var) {
 			this(name, expression, namePos);
-			this.variableBeingInitialized = var;
+			this.variable = var;
 		}
 		@Override
 		public ExprElm[] subElements() {
@@ -101,7 +101,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 		@Override
 		public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
-			return new EntityRegion(variableBeingInitialized, this);
+			return new EntityRegion(variable, this);
 		}
 	}
 	
@@ -170,9 +170,9 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		for (VarInitialization initialization : varInitializations)
-			if (initialization.variableBeingInitialized != null) {
+			if (initialization.variable != null) {
 				if (initialization.expression != null)
-					new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType
+					new AccessVar(initialization.variable).expectedToBeOfType
 						(initialization.expression.type(parser), parser, TypeExpectancyMode.Force);
 			}
 	}

@@ -26,6 +26,8 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.StringUtil;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
@@ -397,9 +399,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		if (returnType() != PrimitiveType.UNKNOWN) {
-			builder.append("<br/><b>"+Messages.Returns+ "</b> "+returnType().typeName(true)+"<br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+			builder.append("<br/><b>"+Messages.Returns+ "</b> "+StringUtil.htmlerize(returnType().typeName(true))+"<br/>"); //$NON-NLS-1$ //$NON-NLS-3$
 			if (returnDescription != null)
-				builder.append(returnDescription+"<br/>");
+				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
 		}
 		return builder.toString();
 		/*return String.format(

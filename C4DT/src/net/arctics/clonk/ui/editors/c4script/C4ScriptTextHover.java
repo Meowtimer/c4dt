@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -49,7 +50,9 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ 
 						foundSomeMarkers = true;
 					}
-					messageBuilder.append(m.getAttribute(IMarker.MESSAGE));
+					String msg = m.getAttribute(IMarker.MESSAGE).toString();
+					msg = StringUtil.htmlerize(msg);
+					messageBuilder.append(msg);
 					messageBuilder.append("<br/>"); //$NON-NLS-1$
 				}
 			}

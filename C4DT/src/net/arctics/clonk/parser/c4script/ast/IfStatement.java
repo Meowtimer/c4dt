@@ -93,10 +93,10 @@ public class IfStatement extends ConditionalStatement {
 		parser.reportErrorsOf(condition, true, null);
 		// use two separate typeinfo lists for if and else statement, merging
 		// gathered information afterwards
-		TypeInfoList bodyTyping = new TypeInfoList(3);
+		TypeInfoList bodyTyping = parser.typeInfoList();
 		parser.reportErrorsOf(body, true, bodyTyping);
 		if (elseExpr != null) {
-			TypeInfoList elseTyping = new TypeInfoList(3);
+			TypeInfoList elseTyping = parser.typeInfoList();
 			parser.reportErrorsOf(elseExpr, true, elseTyping);
 			bodyTyping.inject(elseTyping);
 		}

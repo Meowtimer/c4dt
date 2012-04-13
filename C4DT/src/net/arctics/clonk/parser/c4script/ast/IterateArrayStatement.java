@@ -1,10 +1,16 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
@@ -83,7 +89,18 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		parser.reportErrorsOf(elementExpr, true, null);
 		parser.reportErrorsOf(arrayExpr, true, null);
-		TypeInfoList bodyTyping = new TypeInfoList();
+		
+		Variable loopVariable = elementExpr instanceof VarDeclarationStatement
+			? ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable
+			: null;
+		IType type = arrayExpr.type(parser);
+		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
+			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
+		ArrayType at = as(type, ArrayType.class);
+		if (loopVariable != null && at != null)
+			parser.storeTypeInformation(new AccessVar(loopVariable), at.generalElementType());
+		
+		TypeInfoList bodyTyping = parser.typeInfoList();
 		parser.reportErrorsOf(body, true, bodyTyping);
 		parser.injectTypeInfos(bodyTyping);
 	}

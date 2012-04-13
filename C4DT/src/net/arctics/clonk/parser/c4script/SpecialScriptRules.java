@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -402,7 +403,7 @@ public class SpecialScriptRules {
 	 *  It's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 	 */
 	@AppliedTo(functions={"FindObjects"})
-	public final SpecialFuncRule criteriaSearchRule = new SpecialFuncRule() {
+	public final SpecialFuncRule criteriaSearchRule = new SearchCriteriaRuleBase() {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(context, callFunc, true);
@@ -442,7 +443,21 @@ public class SpecialScriptRules {
 			else if (declarationName.equals("Find_Func") && callFunc.params().length >= 1) {
 				Object ev = callFunc.params()[0].evaluateAtParseTime(context.currentFunction());
 				if (ev instanceof String) {
-					List<IType> types = new LinkedList<IType>();
+					List<Declaration> functions = functionsNamed(context, (String)ev);
+					List<IType> types = new ArrayList<IType>(functions.size());
+					for (Declaration f : functions) {
+						if (f.script() instanceof Definition) {
+							types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
+						}
+						else for (Directive directive : f.script().directives()) {
+							if (directive.type() == DirectiveType.APPENDTO) {
+								Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
+								if (def != null) {
+									types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
+								}
+							}
+						}
+					}
 					for (Index index : context.containingScript().index().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
 							if (f.script() instanceof Definition) {
@@ -816,24 +831,40 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"SetAction"})
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
 	
+	private abstract class SearchCriteriaRuleBase extends SpecialFuncRule {
+		protected List<Declaration> functionsNamed(DeclarationObtainmentContext context, final String name) {
+			final List<Declaration> matchingDecs = new LinkedList<Declaration>();
+			final Sink<Script> scriptSink = new Sink<Script>() {
+				@Override
+				public void receivedObject(Script item) {
+					if (item.dictionary() != null && item.dictionary().contains(name)) {
+						item.requireLoaded();
+						Function f = item.findFunction(name);
+						if (f != null)
+							matchingDecs.add(f);
+					}
+				}
+			};
+			context.containingScript().index().forAllRelevantIndexes(new Sink<Index>() {
+				@Override
+				public void receivedObject(Index index) {
+					index.allScripts(scriptSink);
+				}
+			});
+			return matchingDecs;
+		}
+	}
+	
 	/**
 	 * Rule to make function names inside Find_Func link-clickable (will open DeclarationChooser).
 	 */
 	@AppliedTo(functions={"Find_Func"})
-	public final SpecialFuncRule findFuncRule = new SpecialFuncRule() {
+	public final SpecialFuncRule findFuncRule = new SearchCriteriaRuleBase() {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
-				parser.containingScript().index().forAllRelevantIndexes(new Sink<Index>() {
-					@Override
-					public void receivedObject(Index index) {
-						List<Declaration> decs = index.declarationMap().get(lit.literal());
-						if (decs != null)
-							matchingDecs.addAll(decs);
-					}
-				});
+				final List<Declaration> matchingDecs = functionsNamed(parser, lit.stringValue());
 				if (matchingDecs.size() > 0)
 					return new EntityRegion(new HashSet<IIndexEntity>(matchingDecs), lit.identifierRegion());
 			}
