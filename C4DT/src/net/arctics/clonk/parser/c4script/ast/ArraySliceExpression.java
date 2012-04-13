@@ -61,7 +61,7 @@ public class ArraySliceExpression extends Value {
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
 		if (arrayType != null)
-			return arrayType.typeForSlice(
+			return lo == null && hi == null ? arrayType : arrayType.typeForSlice(
 				evaluateAtParseTime(lo, context),
 				evaluateAtParseTime(hi, context)
 			);
