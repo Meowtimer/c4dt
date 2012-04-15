@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -157,20 +158,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allDefinitions(sink);
 		ArrayUtil.sink(indexedScripts, sink);
 		ArrayUtil.sink(indexedScenarios, sink);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public <T> void allDefinitions(Sink<T> sink) {
-		Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
-		while (defsIt.hasNext()) {
-			List<Definition> list = defsIt.next();
-			Iterator<Definition> defIt = list.iterator();
-			while (defIt.hasNext())
-				if (sink.elutriate((T)defIt.next()) == Decision.Purge)
-					defIt.remove();
-			if (list.size() == 0)
-				defsIt.remove();
-		}
 	}
 	
 	/**
@@ -351,16 +338,60 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void addDefinition(Definition definition) {
 		if (definition.id() == null)
 			return;
-		synchronized (indexedDefinitions) {
-			List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
-			if (alreadyDefinedObjects == null) {
-				alreadyDefinedObjects = new LinkedList<Definition>();
-				indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
-			} else {
-				if (alreadyDefinedObjects.contains(definition))
-					return;
+		synchronized (pendingDefinitionAdds) {
+			if (pendingDefinitionIterations > 0) {
+				pendingDefinitionAdds.add(definition);
+				return;
 			}
-			alreadyDefinedObjects.add(definition);
+			synchronized (indexedDefinitions) {
+				List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+				if (alreadyDefinedObjects == null) {
+					alreadyDefinedObjects = new LinkedList<Definition>();
+					indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
+				} else {
+					if (alreadyDefinedObjects.contains(definition))
+						return;
+				}
+				alreadyDefinedObjects.add(definition);
+			}
+		}
+	}
+	
+	private int pendingDefinitionIterations;
+	private final Queue<Definition> pendingDefinitionAdds = new LinkedList<Definition>();
+	
+	private void startDefinitionIteration() {
+		synchronized (pendingDefinitionAdds) {
+			pendingDefinitionIterations++;
+		}
+	}
+	
+	private <T> void endDefinitionIteration() {
+		synchronized (pendingDefinitionAdds) {
+			if (--pendingDefinitionIterations == 0) {
+				Definition d;
+				while ((d = pendingDefinitionAdds.poll()) != null)
+					addDefinition(d);
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> void allDefinitions(Sink<T> sink) {
+		startDefinitionIteration();
+		try {
+			Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
+			while (defsIt.hasNext()) {
+				List<Definition> list = defsIt.next();
+				Iterator<Definition> defIt = list.iterator();
+				while (defIt.hasNext())
+					if (sink.elutriate((T)defIt.next()) == Decision.Purge)
+						defIt.remove();
+				if (list.size() == 0)
+					defsIt.remove();
+			}
+		} finally {
+			endDefinitionIteration();
 		}
 	}
 	
@@ -445,14 +476,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			if (!indexedScripts.contains(script))
 				indexedScripts.add(script);
 		}
-	}
-	
-	/**
-	 * Returns true if the index does not manage any scripts or definitions.
-	 * @return see above
-	 */
-	public boolean isEmpty() {
-		return indexedDefinitions.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
 	}
 	
 	public List<Scenario> indexedScenarios() {
@@ -611,7 +634,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Clear the index so it won't manage any objects after this call.
 	 */
 	public synchronized void clear() {
-		indexedDefinitions.clear();
+		synchronized(indexedDefinitions) {
+			indexedDefinitions.clear();
+		}
 		indexedScripts.clear();
 		indexedScenarios.clear();
 		indexedProplistDeclarations.clear();

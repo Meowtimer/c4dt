@@ -172,31 +172,29 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	 * @param flags Flags indicating what kind of proposals should be included. {@link IHasSubDeclarations#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 */
 	private void proposalsForIndex(Index index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags) {
-		if (!index.isEmpty()) {
-			if (_activeFunc != null) {
-				Scenario s2 = _activeFunc.scenario();
-				if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
-					for (Function func : index.globalFunctions()) {
-						if (func == null) {
-							System.out.println("D:");
-							continue;
-						}
-						Scenario s1 = func.scenario();
-						if (s1 != null && s2 != null && s1 != s2)
-							continue;
-						proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
+		if (_activeFunc != null) {
+			Scenario s2 = _activeFunc.scenario();
+			if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
+				for (Function func : index.globalFunctions()) {
+					if (func == null) {
+						System.out.println("D:");
+						continue;
 					}
-				if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
-					for (Variable var : index.staticVariables()) {
-						Scenario s1 = var.scenario();
-						if (s1 != null && s1 != s2)
-							continue;
-						proposalForVar(var,prefix,offset,proposals);
-					}
-			}
+					Scenario s1 = func.scenario();
+					if (s1 != null && s2 != null && s1 != s2)
+						continue;
+					proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
+				}
 			if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
-				proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
+				for (Variable var : index.staticVariables()) {
+					Scenario s1 = var.scenario();
+					if (s1 != null && s1 != s2)
+						continue;
+					proposalForVar(var,prefix,offset,proposals);
+				}
 		}
+		if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
+			proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 	}
 
 	@Override
