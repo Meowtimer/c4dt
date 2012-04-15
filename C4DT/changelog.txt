@@ -171,3 +171,4 @@ are then taken into account in various places
 -ClonkBuilder: Hopefully some improvements so that refreshing after repository update doesn't produce as many false errors
 -Javadoc comments picked up (@param, @return)
 -Remove silly refactoring prompt after DefCore.txt ID changed
+-TODO/FIXME markers comments containing those words
