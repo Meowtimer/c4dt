@@ -510,31 +510,29 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
 	 */
 	public void parseDeclarations() {
-		synchronized (container) {
-			strictLevel = container.strictLevel();
-			int offset = 0;
-			this.seek(offset);
-			setAllowInterleavedFunctionParsing(true);
-			enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
-			try {
-				eatWhitespace();
-				while(!reachedEOF()) {
-					if (!parseDeclaration()) {
-						eatWhitespace();
-						if (!reachedEOF()) {
-							int start = this.offset;
-							String tokenText = parseTokenAndReturnAsString();
-							errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
-						}
-					}
+		strictLevel = container.strictLevel();
+		int offset = 0;
+		this.seek(offset);
+		setAllowInterleavedFunctionParsing(true);
+		enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
+		try {
+			eatWhitespace();
+			while(!reachedEOF()) {
+				if (!parseDeclaration()) {
 					eatWhitespace();
+					if (!reachedEOF()) {
+						int start = this.offset;
+						String tokenText = parseTokenAndReturnAsString();
+						errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
+					}
 				}
+				eatWhitespace();
 			}
-			catch (ParsingException e) {
-				return;
-			}
-			enableError(ParserErrorCode.StringNotClosed, true);
 		}
+		catch (ParsingException e) {
+			return;
+		}
+		enableError(ParserErrorCode.StringNotClosed, true);
 		deployMarkers();
 	}
 	
@@ -545,34 +543,32 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
-		synchronized (container) {
-			prepareForFunctionParsing();
-			for (Function function : container.functions())
-				parseCodeOfFunction(function, false);
-			synchronized (parsedFunctions) {
-				parsedFunctions = null;
-			}
-			scriptLevelTypeInfos.apply(this, false);
-			scriptLevelTypeInfos = null;
-			currentFunctionContext.currentDeclaration = null;
-
-			for (Directive directive : container.directives())
-				directive.validate(this);
-
-			for (Variable variable : container.variables()) {
-				ExprElm initialization = variable.initializationExpression();
-				if (initialization != null) {
-					ExprElm old = currentFunctionContext.expressionReportingErrors;
-					currentFunctionContext.expressionReportingErrors = initialization;
-					if (variable.scope() == Scope.CONST && !initialization.isConstant()) {
-						errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
-					}
-					currentFunctionContext.expressionReportingErrors = old;
-				}
-			}
-			container.notDirty();
-			distillAdditionalInformation();
+		prepareForFunctionParsing();
+		for (Function function : container.functions())
+			parseCodeOfFunction(function, false);
+		synchronized (parsedFunctions) {
+			parsedFunctions = null;
 		}
+		scriptLevelTypeInfos.apply(this, false);
+		scriptLevelTypeInfos = null;
+		currentFunctionContext.currentDeclaration = null;
+
+		for (Directive directive : container.directives())
+			directive.validate(this);
+
+		for (Variable variable : container.variables()) {
+			ExprElm initialization = variable.initializationExpression();
+			if (initialization != null) {
+				ExprElm old = currentFunctionContext.expressionReportingErrors;
+				currentFunctionContext.expressionReportingErrors = initialization;
+				if (variable.scope() == Scope.CONST && !initialization.isConstant()) {
+					errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
+				}
+				currentFunctionContext.expressionReportingErrors = old;
+			}
+		}
+		container.notDirty();
+		distillAdditionalInformation();
 		deployMarkers();
 	}
 
@@ -1965,7 +1961,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			ExprElm elm = new PropListExpression(proplDec);
 			if (currentFunction() != null)
 				currentFunction().addOtherDeclaration(proplDec);
-			proplDec.setName(elm.toString());
+			//proplDec.setName(elm.toString());
 			return elm;
 		}
 		return null;
@@ -3171,17 +3167,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Delete declarations inside the script container assigned to the parser and remove markers.
 	 */
 	public void clean() {
-		synchronized (container) {
-			try {
-				if (scriptFile != null) {
-					scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-					scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
-				}
-			} catch (CoreException e1) {
-				e1.printStackTrace();
+		try {
+			if (scriptFile != null) {
+				scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+				scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
 			}
-			container.clearDeclarations();
+		} catch (CoreException e1) {
+			e1.printStackTrace();
 		}
+		container.clearDeclarations();
 	}
 	
 	/** 

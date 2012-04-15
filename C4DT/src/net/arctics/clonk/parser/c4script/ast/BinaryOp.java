@@ -199,13 +199,6 @@ public class BinaryOp extends OperatorExpression {
 		if (operator() == Operator.Assign)
 			leftSide().assignment(rightSide(), context);
 	}
-	
-	@Override
-	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
-		super.postLoad(parent, root);
-		if (operator() == Operator.Assign)
-			leftSide().assignment(rightSide(), root);
-	}
 
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {

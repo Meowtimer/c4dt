@@ -55,10 +55,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private final static class FunctionReturnTypeInformation extends StoredTypeInformation {
+	private final static class FunctionReturnTypeInfo extends TypeInfo {
 		private Function function;
 
-		public FunctionReturnTypeInformation(Function function) {
+		public FunctionReturnTypeInfo(Function function) {
 			super();
 			this.function = function;
 			if (function != null)
@@ -86,7 +86,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
-			return other instanceof CallDeclaration.FunctionReturnTypeInformation && ((CallDeclaration.FunctionReturnTypeInformation)other).function == this.function;
+			return other instanceof CallDeclaration.FunctionReturnTypeInfo && ((CallDeclaration.FunctionReturnTypeInfo)other).function == this.function;
 		}
 		
 		@Override
@@ -106,11 +106,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 	}
 	
-	private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
+	private final static class VarFunctionsTypeInfo extends TypeInfo {
 		private final Function varFunction;
 		private final long varIndex;
 
-		private VarFunctionsTypeInformation(Function function, long val) {
+		private VarFunctionsTypeInfo(Function function, long val) {
 			varFunction = function;
 			varIndex = val;
 		}
@@ -126,14 +126,20 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					callFunc.params()[0].type(parser) == PrimitiveType.INT &&
 					((ev = callFunc.params()[0].evaluateAtParseTime(parser.currentFunction())) != null) &&
 					ev.equals(varIndex);
+			} else if (expr instanceof AccessVar) {
+				AccessVar accessVar = (AccessVar) expr;
+				return
+					accessVar.declaration() instanceof Variable &&
+					parser.currentFunction().localVars() != null &&
+					parser.currentFunction().localVars().indexOf(accessVar.declaration) == varIndex;
 			}
 			return false;
 		}
 
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
-			if (other.getClass() == CallDeclaration.VarFunctionsTypeInformation.class) {
-				CallDeclaration.VarFunctionsTypeInformation otherInfo = (CallDeclaration.VarFunctionsTypeInformation) other;
+			if (other.getClass() == CallDeclaration.VarFunctionsTypeInfo.class) {
+				CallDeclaration.VarFunctionsTypeInfo otherInfo = (CallDeclaration.VarFunctionsTypeInfo) other;
 				return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
 			}
 			else
@@ -730,7 +736,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null) {
 				if (ev instanceof Number) {
 					// Var() with a sane constant number
-					return new VarFunctionsTypeInformation((Function) d, ((Number)ev).intValue());
+					return new VarFunctionsTypeInfo((Function) d, ((Number)ev).intValue());
 				}
 			}
 		}
@@ -739,13 +745,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (f.typeIsInvariant())
 				return null;
 			IType retType = f.returnType();
-			if (retType == null || !retType.containsAnyTypeOf(PrimitiveType.ANY, PrimitiveType.REFERENCE))
-				return new FunctionReturnTypeInformation((Function)d);
+			if (retType == null || !retType.subsetOfAny(PrimitiveType.ANY, PrimitiveType.REFERENCE))
+				return new FunctionReturnTypeInfo((Function)d);
 			if (d.isEngineDeclaration())
 				return null;
 		}
 		else if (d != null)
-			return new GenericStoredTypeInformation(this, parser);
+			return new GenericStoredTypeInfo(this, parser);
 		return super.createStoredTypeInformation(parser);
 	}
 	

@@ -38,13 +38,16 @@ public class SameTypeAsSomeTypeable implements IType {
 	}
 
 	@Override
-	public boolean containsType(IType type) {
-		return actualType().containsType(type);
+	public boolean subsetOf(IType type) {
+		return actualType().subsetOf(type);
 	}
+	
+	@Override
+	public IType eat(IType other) {return this;}
 
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
-		return actualType().containsAnyTypeOf(types);
+	public boolean subsetOfAny(IType... types) {
+		return actualType().subsetOfAny(types);
 	}
 
 	@Override

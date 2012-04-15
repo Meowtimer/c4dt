@@ -412,7 +412,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (t == null)
 			return true;
 		IType myType = type(context);
-		return t.canBeAssignedFrom(myType) || myType.containsType(t) || canBeConvertedTo(t, context);
+		return t.canBeAssignedFrom(myType) || myType.subsetOf(t) || canBeConvertedTo(t, context);
 	}
 
 	public TraversalContinuation traverse(IScriptParserListener listener, int minimumParseRecursion) {
@@ -527,7 +527,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		case Expect: case Force:
 			info = context.requestStoredTypeInformation(this);
 			if (info != null)
-				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN)
+				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY)
 					info.storeType(type);
 			break;
 		case Hint:
@@ -546,7 +546,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		expectedToBeOfType(type, context, TypeExpectancyMode.Expect, null);
 	}
 
-	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		context.storeTypeInformation(this, rightSide.type(context));
 	}
 
@@ -608,9 +608,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		ITypeable d = GenericStoredTypeInformation.typeableFromExpression(this, parser);
+		ITypeable d = GenericStoredTypeInfo.typeableFromExpression(this, parser);
 		if (d != null && !d.typeIsInvariant())
-			return new GenericStoredTypeInformation(this, parser);
+			return new GenericStoredTypeInfo(this, parser);
 		return null;
 	}
 	
@@ -818,10 +818,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @author madeen
 	 *
 	 */
-	protected static final class GenericStoredTypeInformation extends StoredTypeInformation {
+	protected static final class GenericStoredTypeInfo extends TypeInfo {
 		private final ExprElm referenceElm;
 		
-		public GenericStoredTypeInformation(ExprElm referenceElm, C4ScriptParser parser) {
+		public GenericStoredTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
 			this.referenceElm = referenceElm;
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
@@ -866,8 +866,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
-			if (other instanceof GenericStoredTypeInformation)
-				return ((GenericStoredTypeInformation)other).referenceElm.equals(referenceElm);
+			if (other instanceof GenericStoredTypeInfo)
+				return ((GenericStoredTypeInfo)other).referenceElm.equals(referenceElm);
 			else
 				return false;
 		}

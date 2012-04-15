@@ -235,16 +235,12 @@ public enum PrimitiveType implements IType {
 	}
 
 	@Override
-	public boolean containsType(IType type) {
-		if (this == REFERENCE || this == ANY)
-			return true;
+	public boolean subsetOf(IType type) {
 		IType staticType = type.staticType();
 		if (staticType == this)
 			return true;
 		if (staticType instanceof PrimitiveType) {
 			switch ((PrimitiveType)staticType) {
-			case ANY:
-			case UNKNOWN:
 			case ARRAY:
 			case ID:
 			case OBJECT:
@@ -255,17 +251,20 @@ public enum PrimitiveType implements IType {
 				return this == OBJECT || this == ID;
 			case BOOL:
 				return this == INT;
-			case REFERENCE:
-				return false;
+			case REFERENCE: case ANY: case UNKNOWN:
+				return true;
 			}
 		}
 		return false;
 	}
 	
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public IType eat(IType other) {return this;}
+	
+	@Override
+	public boolean subsetOfAny(IType... types) {
 		for (IType t : types)
-			if (containsType(t))
+			if (subsetOf(t))
 				return true;
 		return false;
 	}

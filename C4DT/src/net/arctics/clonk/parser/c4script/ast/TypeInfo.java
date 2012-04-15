@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
-public abstract class StoredTypeInformation implements ITypeInfo, Cloneable {
+public abstract class TypeInfo implements ITypeInfo, Cloneable {
 
 	protected IType type = PrimitiveType.UNKNOWN;
 

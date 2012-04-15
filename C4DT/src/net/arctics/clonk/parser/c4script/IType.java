@@ -27,24 +27,24 @@ public interface IType extends Iterable<IType>, Serializable {
 	
 	/**
 	 * Return whether there is an intersection between this type and the other one.
-	 * @param typeSet The other type or set of types to check intersection of
+	 * @param type The other type or set of types to check intersection of
 	 * @return True or false
 	 */
-	boolean intersects(IType typeSet);
+	boolean intersects(IType type);
 	
 	/**
-	 * Return whether instances of the other type are a subset of the instances of this type.
+	 * Return whether instances of this type are a subset of the other one.
 	 * @param type The type
 	 * @return True or false.
 	 */
-	boolean containsType(IType type);
+	boolean subsetOf(IType type);
 	
 	/**
 	 * Return whether any type in the given array of types is contained in this one.
 	 * @param types The other types
 	 * @return True or false.
 	 */
-	boolean containsAnyTypeOf(IType... types);
+	boolean subsetOfAny(IType... types);
 	
 	/**
 	 * Return an integer signifying the level of specificness. Actual C4Script definitions are supposed to be more specific than {@link PrimitiveType#OBJECT} for example.
@@ -62,6 +62,12 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @param description The description explaining how this type was constructed
 	 */
 	void setTypeDescription(String description);
+	/**
+	 * Let this type eat another one of less {@link #specificness()} and return the result of the combination.
+	 * @param other The other type to be eaten
+	 * @return Combination of both types
+	 */
+	IType eat(IType other);
 	
 	/**
 	 * Helper class defining some default implementations implementors can call.
@@ -71,7 +77,7 @@ public interface IType extends Iterable<IType>, Serializable {
 	public abstract class Default {
 		public static boolean containsAnyTypeOf(IType instance, IType... types) {
 			for (IType t : types)
-				if (instance.containsType(t))
+				if (instance.subsetOf(t))
 					return true;
 			return false;
 		}

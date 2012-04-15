@@ -149,7 +149,7 @@ public class AccessVar extends AccessDeclaration {
 
 	public static ITypeInfo createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
 		if (declaration != null)
-			return new GenericStoredTypeInformation(new AccessVar(declaration), parser);
+			return new GenericStoredTypeInfo(new AccessVar(declaration), parser);
 		else
 			return null;
 	}
@@ -179,7 +179,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void assignment(ExprElm expression, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm expression, C4ScriptParser context) {
 		if (declaration() == Variable.THIS)
 			return;
 		if (declaration() == null) {

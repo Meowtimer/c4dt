@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -8,6 +9,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.TypeSet;
 
 public class ArrayElementExpression extends Value {
 
@@ -20,9 +22,11 @@ public class ArrayElementExpression extends Value {
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
 		if (predecessorInSequence() != null) {
-			ArrayType at = predecessorTypeAs(ArrayType.class, context);
-			if (at != null)
-				return at.typeForElementWithIndex(evaluateAtParseTime(argument, context));
+			for (IType ty : predecessorInSequence().type(context)) {
+				ArrayType at = as(ty, ArrayType.class);
+				if (at != null)
+					return at.typeForElementWithIndex(evaluateAtParseTime(argument, context));
+			}
 		}
 		return PrimitiveType.ANY;
 	}
@@ -49,7 +53,7 @@ public class ArrayElementExpression extends Value {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		IType type = predecessorType(parser);
-		if (type != null && type != PrimitiveType.UNKNOWN && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST))
+		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
 			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
 		ExprElm arg = argument();
 		if (arg == null)
@@ -76,21 +80,35 @@ public class ArrayElementExpression extends Value {
 	}
 	
 	@Override
-	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
-		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
-		IType rightSideType = rightSide.obtainType(context);
-		if (arrayType != null) {
-			Object argEv = evaluateAtParseTime(argument, context);
-			IType mutation;
-			if (argEv instanceof Number) {
-				mutation = arrayType.modifiedBySliceAssignment(
-					argEv,
-					((Number)argEv).intValue()+1,
-					new ArrayType(rightSideType, rightSideType)
+	public void assignment(ExprElm rightSide, C4ScriptParser context) {
+		IType predType_ = predecessorType(context);
+		for (IType predType : predType_) {
+			ArrayType arrayType = as(predType, ArrayType.class);
+			IType rightSideType = rightSide.type(context);
+			if (arrayType != null) {
+				Object argEv = evaluateAtParseTime(argument, context);
+				IType mutation;
+				if (argEv instanceof Number) {
+					mutation = arrayType.modifiedBySliceAssignment(
+						argEv,
+						((Number)argEv).intValue()+1,
+						new ArrayType(rightSideType, rightSideType)
+					);
+				} else {
+					mutation = new ArrayType(
+						TypeSet.create(rightSideType, arrayType.generalElementType()),
+						ArrayType.NO_PRESUMED_LENGTH
+					);
+				}
+				context.storeTypeInformation(predecessorInSequence(), mutation);
+				break;
+			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY) {
+				predecessorInSequence().expectedToBeOfType(
+					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
+					context,
+					TypeExpectancyMode.Force
 				);
-			} else
-				mutation = arrayType.unknownLength();
-			context.storeTypeInformation(predecessorInSequence(), mutation); 
+			}
 		}
 	}
 

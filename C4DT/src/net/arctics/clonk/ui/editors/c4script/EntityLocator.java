@@ -96,23 +96,21 @@ public class EntityLocator extends ExpressionLocator {
 		final Script script = Utilities.scriptForEditor(editor);
 		if (script == null)
 			return;
-		synchronized (script) {
-			RegionDescription d = new RegionDescription();
-			if (!initializeRegionDescription(d, script, region)) {
-				simpleFindDeclaration(doc, region, script, null);
-				return;
-			}
-			if (region.getOffset() >= d.bodyStart) {
-				exprRegion = new Region(region.getOffset()-d.bodyStart,0);
-				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
-				if (exprAtRegion != null) {
-					EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
-					initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
-				}
-			}
-			else
-				simpleFindDeclaration(doc, region, script, d.func);
+		RegionDescription d = new RegionDescription();
+		if (!initializeRegionDescription(d, script, region)) {
+			simpleFindDeclaration(doc, region, script, null);
+			return;
 		}
+		if (region.getOffset() >= d.bodyStart) {
+			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
+			parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
+			if (exprAtRegion != null) {
+				EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
+				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
+			}
+		}
+		else
+			simpleFindDeclaration(doc, region, script, d.func);
 	}
 
 	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, EntityRegion declRegion, ExprElm exprAtRegion) {

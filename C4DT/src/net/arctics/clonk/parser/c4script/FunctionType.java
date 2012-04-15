@@ -59,12 +59,15 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public boolean containsType(IType type) {
+	public boolean subsetOf(IType type) {
 		return type == PrimitiveType.FUNCTION;
 	}
+	
+	@Override
+	public IType eat(IType other) {return this;}
 
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public boolean subsetOfAny(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
 	}
 

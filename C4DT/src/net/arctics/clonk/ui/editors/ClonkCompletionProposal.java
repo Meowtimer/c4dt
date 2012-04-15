@@ -110,11 +110,6 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		String additionalProposalInfo, String postInfo,
 		ClonkTextEditor editor
 	) {
-//		Assert.isNotNull(replacementString);
-//		Assert.isTrue(replacementOffset >= 0);
-//		Assert.isTrue(replacementLength >= 0);
-//		Assert.isTrue(cursorPosition >= 0);
-
 		this.declaration = declaration;
 		this.replacementString= replacementString;
 		this.replacementOffset= replacementOffset;
@@ -127,7 +122,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.postInfo = postInfo;
 		this.setEditor(editor);
 	}
-	
+
 	public ClonkCompletionProposal(
 		Declaration declaration,
 		String replacementString,

@@ -304,9 +304,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	public void addDependentScript(Script s) {
 		requireLoaded();
-		if (dependentScripts == null)
-			dependentScripts = new HashSet<Script>();
-		dependentScripts.add(s);
+		synchronized (this) {
+			if (dependentScripts == null)
+				dependentScripts = new HashSet<Script>();
+			dependentScripts.add(s);
+		}
 	}
 
 	/**
@@ -545,7 +547,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 	}
 
-	public void clearDeclarations() {
+	public synchronized void clearDeclarations() {
 		notFullyLoaded = false;
 		usedScripts = null;
 		definedDirectives = null;
@@ -982,7 +984,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public boolean containsType(IType type) {
+	public boolean subsetOf(IType type) {
 		return
 			type == PrimitiveType.OBJECT ||
 			type == PrimitiveType.PROPLIST ||
@@ -992,7 +994,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public IType eat(IType other) {return this;}
+	
+	@Override
+	public boolean subsetOfAny(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
 	}
 

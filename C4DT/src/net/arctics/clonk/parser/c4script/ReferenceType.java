@@ -48,12 +48,15 @@ public class ReferenceType implements IType {
 	}
 
 	@Override
-	public boolean containsType(IType type) {
-		return type.equals(this) || type.containsType(type) || PrimitiveType.REFERENCE.containsType(type);
+	public boolean subsetOf(IType type) {
+		return type.equals(this) || this.type.subsetOf(type) || type == PrimitiveType.REFERENCE;
 	}
+	
+	@Override
+	public IType eat(IType other) {return this;}
 
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public boolean subsetOfAny(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
 	}
 

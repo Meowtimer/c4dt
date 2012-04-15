@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,6 +11,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * Array type where either general element type or the types for specific elements is known.
@@ -71,7 +74,7 @@ public class ArrayType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return PrimitiveType.ARRAY.iterator();
+		return arrayIterable(PrimitiveType.ARRAY, this).iterator();
 	}
 
 	@Override
@@ -145,13 +148,55 @@ public class ArrayType implements IType {
 	}
 
 	@Override
-	public boolean containsType(IType type) {
-		return type == PrimitiveType.ARRAY;
+	public boolean subsetOf(IType type) {
+		if (type == PrimitiveType.ARRAY)
+			return true;
+		else if (type instanceof ArrayType) {
+			ArrayType other = (ArrayType)type;
+			for (Map.Entry<Integer, IType> e : elementTypeMapping.entrySet()) {
+				IType o = other.elementTypeMapping.get(e.getKey());
+				if (o != null && !e.getValue().subsetOf(o))
+					return false;
+			}
+			if (generalElementType != null && other.generalElementType != null)
+				if (!generalElementType.subsetOf(other.generalElementType))
+					return false;
+			return true;
+		} else
+			return false;
+	}
+	
+	@Override
+	public IType eat(IType other) {
+		ArrayType at = as(other, ArrayType.class);
+		if (at != null) {
+			ArrayType result = this;
+			if (at.generalElementType != null && !objectsEqual(this.generalElementType, at.generalElementType)) {
+				result = new ArrayType(TypeSet.create(this.generalElementType,
+					at.generalElementType), presumedLength, this.elementTypeMapping);
+			}
+			for (Map.Entry<Integer, IType> e : at.elementTypeMapping.entrySet()) {
+				IType my = this.elementTypeMapping.get(e.getKey());
+				if (!objectsEqual(my, e.getValue())) {
+					if (result == this)
+						result = new ArrayType(this.generalElementType, presumedLength, this.elementTypeMapping);
+					result.elementTypeMapping.put(e.getKey(), TypeSet.create(my, e.getValue()));
+				}
+			}
+			return result;
+		}
+		else
+			return this;
 	}
 
 	@Override
 	public int specificness() {
-		return PrimitiveType.ARRAY.specificness()+1;
+		int s = PrimitiveType.ARRAY.specificness()+1;
+		if (generalElementType != null)
+			s += generalElementType.specificness();
+		for (IType t : elementTypeMapping.values())
+			s += t.specificness();
+		return s;
 	}
 
 	@Override
@@ -160,7 +205,7 @@ public class ArrayType implements IType {
 	}
 
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public boolean subsetOfAny(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
 	}
 	
@@ -173,9 +218,7 @@ public class ArrayType implements IType {
 	public boolean equals(Object obj) {
 		if (obj instanceof ArrayType) {
 			ArrayType otherArrType = (ArrayType) obj;
-			if (otherArrType.generalElementType == null && this.generalElementType != null)
-				return false;
-			if (this.generalElementType != null && !otherArrType.generalElementType.equals(this.generalElementType))
+			if (!Utilities.objectsEqual(this.generalElementType, otherArrType.generalElementType))
 				return false;
 			return otherArrType.elementTypeMapping.equals(elementTypeMapping);
 		} else

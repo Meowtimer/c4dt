@@ -258,7 +258,7 @@ public class C4ScriptParserTestCase {
 		IType t = setup.script.findFunction("TypeInference").findVariable("x").type();
 		assertTrue(t instanceof TypeSet);
 		TypeSet ty = (TypeSet)t;
-		assertTrue(ty.size() == 3 && ty.types().contains(PrimitiveType.STRING) && ty.types().contains(PrimitiveType.BOOL) && ty.types().contains(PrimitiveType.INT));
+		assertTrue(ty.size() == 3 && ty.containsType(PrimitiveType.STRING) && ty.containsType(PrimitiveType.BOOL) && ty.containsType(PrimitiveType.INT));
 	}
 	
 	

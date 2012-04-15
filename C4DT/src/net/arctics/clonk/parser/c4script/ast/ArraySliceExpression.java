@@ -53,7 +53,7 @@ public class ArraySliceExpression extends Value {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		IType type = predecessorType(parser);
-		if (type != null && type != PrimitiveType.UNKNOWN && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST))
+		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
 			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
 	}
 	
@@ -70,7 +70,7 @@ public class ArraySliceExpression extends Value {
 	}
 
 	@Override
-	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
 		IType sliceType = rightSide.obtainType(context);
 		if (arrayType != null)

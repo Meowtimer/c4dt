@@ -144,7 +144,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public boolean containsType(IType type) {
+	public boolean subsetOf(IType type) {
 		if (type == PrimitiveType.PROPLIST)
 			return true;
 		if (isObject && type == PrimitiveType.OBJECT)
@@ -159,9 +159,12 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 		}
 		return false;
 	}
+	
+	@Override
+	public IType eat(IType other) {return this;}
 
 	@Override
-	public boolean containsAnyTypeOf(IType... types) {
+	public boolean subsetOfAny(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
 	}
 

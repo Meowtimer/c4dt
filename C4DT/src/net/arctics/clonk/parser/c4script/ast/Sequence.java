@@ -78,7 +78,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
 	@Override
-	public void assignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		lastElement().assignment(rightSide, context);
 	}
 	public ExprElm successorOfSubElement(ExprElm element) {
