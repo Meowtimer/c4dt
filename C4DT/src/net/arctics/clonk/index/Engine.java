@@ -647,7 +647,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							}
 							System.out.println(String.format(
 								"%s @(%d, %d)",
-								code.getErrorString(args),
+								code.makeErrorString(args),
 								lno.obtainLineNumber(errorStart),
 								lno.obtainCharNumberInObtainedLine()
 							));

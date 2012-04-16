@@ -1670,7 +1670,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		Function cf = currentFunction();
 		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().end()+1);
-		String problem = code.getErrorString(args);
+		String problem = code.makeErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo)
 			markers.add(new MarkerInfo(this, code, markerStart, markerEnd, severity, args));
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)

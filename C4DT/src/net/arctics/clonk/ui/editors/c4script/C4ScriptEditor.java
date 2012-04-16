@@ -236,7 +236,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					for (IMarker m : markers) {
 						
 						// delete markers that are explicitly marked as being caused by parsing the function
-						if (func.makeNameUniqueToParent().equals(ParserErrorCode.getDeclarationTag(m))) {
+						if (func.makeNameUniqueToParent().equals(ParserErrorCode.declarationTag(m))) {
 							m.delete();
 							continue;
 						}

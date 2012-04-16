@@ -110,19 +110,19 @@ public enum ParserErrorCode {
 		this.formatArgumentDescriptions = formatArgumentDescriptions;
 	}
 	
-	public String getErrorString(Object... format) {
+	public String makeErrorString(Object... format) {
 		return String.format(message, format);
 	}
 
-	public String getMessage() {
+	public String message() {
 		return message;
 	}
 	
-	public String[] getFormatArgumentDescriptions() {
+	public String[] formatArgumentDescriptions() {
 		return formatArgumentDescriptions;
 	}
 	
-	public static ParserErrorCode getErrorCode(IMarker marker) {
+	public static ParserErrorCode errorCode(IMarker marker) {
 		try {
 			return values()[marker.getAttribute(MARKER_ERRORCODE, -1)];
 		} catch (ArrayIndexOutOfBoundsException e) {
@@ -130,7 +130,7 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public static IRegion getExpressionLocation(IMarker marker) {
+	public static IRegion expressionLocation(IMarker marker) {
 		return new SourceLocation(marker.getAttribute(MARKER_EXPRESSIONSTART, -1), marker.getAttribute(MARKER_EXPRESSIONEND, -1));
 	}
 	
@@ -143,7 +143,7 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public static String getArg(IMarker marker, int index) {
+	public static String arg(IMarker marker, int index) {
 		return marker.getAttribute(String.format(MARKER_ARGS[index], index), ""); //$NON-NLS-1$
 	}
 	
@@ -164,7 +164,7 @@ public enum ParserErrorCode {
 	}
 	
 	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
-		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
+		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, makeErrorString(args));
 		if (expressionRegion instanceof ExprElm)
 			try {
 				marker.setAttribute(IMarker.LOCATION, expressionRegion.toString());
@@ -192,12 +192,12 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public static String getDeclarationTag(IMarker marker) {
+	public static String declarationTag(IMarker marker) {
 		return marker.getAttribute(MARKER_DECLARATIONTAG, ""); //$NON-NLS-1$
 	}
 
-	public String getMessageWithFormatArgumentDescriptions() {
-		String msg = getMessage();
+	public String messageWithFormatArgumentDescriptions() {
+		String msg = message();
 		if (formatArgumentDescriptions != null)
 			try {
 				msg = String.format(msg, (Object[])formatArgumentDescriptions);

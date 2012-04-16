@@ -114,7 +114,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 							Arrays.sort(elms, new Comparator<ParserErrorCode>() {
 								@Override
 								public int compare(ParserErrorCode o1, ParserErrorCode o2) {
-									return o1.getMessageWithFormatArgumentDescriptions().compareTo(o2.getMessageWithFormatArgumentDescriptions());
+									return o1.messageWithFormatArgumentDescriptions().compareTo(o2.messageWithFormatArgumentDescriptions());
 								}
 							});
 							return elms;
@@ -125,7 +125,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.setLabelProvider(new LabelProvider() {
 					@Override
 					public String getText(Object element) {
-						return ((ParserErrorCode)element).getMessageWithFormatArgumentDescriptions();
+						return ((ParserErrorCode)element).messageWithFormatArgumentDescriptions();
 					}
 				});
 				tableViewer.addCheckStateListener(this);

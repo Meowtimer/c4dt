@@ -180,7 +180,7 @@ public class MapCreatorParser extends Parser {
     */
 
     private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
-    	String problem = code.getErrorString(args);
+    	String problem = code.makeErrorString(args);
     	createErrorMarker(errorStart, errorEnd, problem);    	
     }
 

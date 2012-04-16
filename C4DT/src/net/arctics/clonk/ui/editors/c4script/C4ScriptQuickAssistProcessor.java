@@ -123,7 +123,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				return false;
 			}
 			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING)) {
-				return fixableParserErrorCodes.contains(ParserErrorCode.getErrorCode(ma.getMarker()));
+				return fixableParserErrorCodes.contains(ParserErrorCode.errorCode(ma.getMarker()));
 			}
 		}
 		return false;
@@ -187,7 +187,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private boolean relevant(IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
-				ParserErrorCode.getErrorCode(marker) == ParserErrorCode.getErrorCode(originalMarker);
+				ParserErrorCode.errorCode(marker) == ParserErrorCode.errorCode(originalMarker);
 		}
 		
 		@Override
@@ -422,8 +422,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Object editorOrScript) {
 
-		ParserErrorCode errorCode = ParserErrorCode.getErrorCode(marker);
-		final IRegion expressionRegion = ParserErrorCode.getExpressionLocation(marker);
+		ParserErrorCode errorCode = ParserErrorCode.errorCode(marker);
+		final IRegion expressionRegion = ParserErrorCode.expressionLocation(marker);
 		if (expressionRegion.getOffset() == -1)
 			return;
 		C4ScriptEditor editor = editorOrScript instanceof C4ScriptEditor ? (C4ScriptEditor)editorOrScript : null;
@@ -601,7 +601,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					PrimitiveType t = PrimitiveType.makeType(ParserErrorCode.getArg(marker, 0), true);
+					PrimitiveType t = PrimitiveType.makeType(ParserErrorCode.arg(marker, 0), true);
 					if (t == PrimitiveType.STRING) {
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_QuoteExpression,
