@@ -154,12 +154,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		refreshIndex(true);
 	}
 	
-	public void allScripts(Sink<Script> sink) {
-		allDefinitions(sink);
-		ArrayUtil.sink(indexedScripts, sink);
-		ArrayUtil.sink(indexedScenarios, sink);
-	}
-	
 	/**
 	 * Return the object linked to the passed folder.
 	 * @param folder The folder to get the {@link Definition} for
@@ -330,6 +324,32 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		});
 	}
 	
+	private int pendingScriptIterations;
+	private final Queue<Script> pendingScriptAdds = new LinkedList<Script>();
+	
+	/**
+	 * Add some {@link Script} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
+	 * @param script The script to add to the index
+	 */
+	public void addScript(Script script) {
+		if (script == null)
+			return;
+		synchronized (pendingScriptAdds) {
+			if (pendingScriptIterations > 0) {
+				pendingScriptAdds.add(script);
+				return;
+			}
+			if (script instanceof Scenario) {
+				if (!indexedScenarios.contains(script))
+					indexedScenarios.add((Scenario) script);
+			}
+			else if (script instanceof Definition)
+				addDefinition((Definition)script);
+			else if (!indexedScripts.contains(script))
+				indexedScripts.add(script);
+		}
+	}
+	
 	/**
 	 * Add an {@link Definition} to the index.<br>
 	 * {@link #refreshIndex()} will need to be called manually after this.
@@ -338,60 +358,70 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void addDefinition(Definition definition) {
 		if (definition.id() == null)
 			return;
-		synchronized (pendingDefinitionAdds) {
-			if (pendingDefinitionIterations > 0) {
-				pendingDefinitionAdds.add(definition);
+		synchronized (pendingScriptAdds) {
+			if (pendingScriptIterations > 0) {
+				pendingScriptAdds.add(definition);
 				return;
 			}
-			synchronized (indexedDefinitions) {
-				List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
-				if (alreadyDefinedObjects == null) {
-					alreadyDefinedObjects = new LinkedList<Definition>();
-					indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
-				} else {
-					if (alreadyDefinedObjects.contains(definition))
-						return;
-				}
-				alreadyDefinedObjects.add(definition);
+			List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+			if (alreadyDefinedObjects == null) {
+				alreadyDefinedObjects = new LinkedList<Definition>();
+				indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
+			} else {
+				if (alreadyDefinedObjects.contains(definition))
+					return;
+			}
+			alreadyDefinedObjects.add(definition);
+		}
+	}
+	
+	private void startScriptIteration() {
+		synchronized (pendingScriptAdds) {
+			pendingScriptIterations++;
+		}
+	}
+	
+	private <T> void endScriptIteration() {
+		synchronized (pendingScriptAdds) {
+			if (--pendingScriptIterations == 0) {
+				Script s;
+				while ((s = pendingScriptAdds.poll()) != null)
+					addScript(s);
 			}
 		}
 	}
 	
-	private int pendingDefinitionIterations;
-	private final Queue<Definition> pendingDefinitionAdds = new LinkedList<Definition>();
-	
-	private void startDefinitionIteration() {
-		synchronized (pendingDefinitionAdds) {
-			pendingDefinitionIterations++;
-		}
-	}
-	
-	private <T> void endDefinitionIteration() {
-		synchronized (pendingDefinitionAdds) {
-			if (--pendingDefinitionIterations == 0) {
-				Definition d;
-				while ((d = pendingDefinitionAdds.poll()) != null)
-					addDefinition(d);
-			}
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
 	public <T> void allDefinitions(Sink<T> sink) {
-		startDefinitionIteration();
+		startScriptIteration();
 		try {
-			Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
-			while (defsIt.hasNext()) {
-				List<Definition> list = defsIt.next();
-				Iterator<Definition> defIt = list.iterator();
-				while (defIt.hasNext())
-					if (sink.elutriate((T)defIt.next()) == Decision.Purge)
-						defIt.remove();
-				if (list.size() == 0)
-					defsIt.remove();
-			}
+			allDefinitionsInternal(sink);
 		} finally {
-			endDefinitionIteration();
+			endScriptIteration();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> void allDefinitionsInternal(Sink<T> sink) {
+		Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
+		while (defsIt.hasNext()) {
+			List<Definition> list = defsIt.next();
+			Iterator<Definition> defIt = list.iterator();
+			while (defIt.hasNext())
+				if (sink.elutriate((T)defIt.next()) == Decision.Purge)
+					defIt.remove();
+			if (list.size() == 0)
+				defsIt.remove();
+		}
+	}
+
+	public void allScripts(Sink<Script> sink) {
+		startScriptIteration();
+		try {
+			allDefinitionsInternal(sink);
+			ArrayUtil.sink(indexedScripts, sink);
+			ArrayUtil.sink(indexedScenarios, sink);
+		} finally {
+			endScriptIteration();
 		}
 	}
 	
@@ -455,27 +485,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				return !item.notFullyLoaded;
 			}
 		});
-	}
-	
-	/**
-	 * Add some {@link Script} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
-	 * @param script The script to add to the index
-	 */
-	public void addScript(Script script) {
-		if (script == null)
-			return;
-		if (script instanceof Scenario) {
-			synchronized (indexedScenarios) {
-				if (!indexedScenarios.contains(script))
-					indexedScenarios.add((Scenario) script);
-			}
-		}
-		else if (script instanceof Definition)
-			addDefinition((Definition)script);
-		else synchronized (indexedScripts) {
-			if (!indexedScripts.contains(script))
-				indexedScripts.add(script);
-		}
 	}
 	
 	public List<Scenario> indexedScenarios() {
