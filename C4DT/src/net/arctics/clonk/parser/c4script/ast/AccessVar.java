@@ -13,10 +13,10 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
+import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -79,8 +79,8 @@ public class AccessVar extends AccessDeclaration {
 			Script scriptToLookIn;
 			if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 				// find pseudo-variable from proplist expression
-				if (t instanceof ProplistDeclaration) {
-					Variable proplistComponent = ((ProplistDeclaration)t).findComponent(declarationName());
+				if (t instanceof IProplistDeclaration) {
+					Variable proplistComponent = ((IProplistDeclaration)t).findComponent(declarationName());
 					if (proplistComponent != null)
 						return proplistComponent;
 				}
@@ -185,8 +185,8 @@ public class AccessVar extends AccessDeclaration {
 		if (declaration() == null) {
 			IType predType = predecessorType(context);
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
-				if (predType instanceof ProplistDeclaration) {
-					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
+				if (predType instanceof IProplistDeclaration) {
+					IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(declarationName(), Variable.Scope.VAR);
 						var.initializeFromAssignment(this, expression, context);

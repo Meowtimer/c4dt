@@ -15,11 +15,13 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -41,7 +43,7 @@ import org.eclipse.swt.graphics.Image;
  * @author madeen
  *
  */
-public class Definition extends Script {
+public class Definition extends Script implements IProplistDeclaration {
 
 	/**
 	 * Template to construct the info text of an object definition from
@@ -483,6 +485,40 @@ public class Definition extends Script {
 		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
 			setCachedPicture(null); // obsolete
 		}
+	}
+
+	@Override
+	public ExprElm implicitPrototype() {
+		return null;
+	}
+
+	@Override
+	public boolean isAdHoc() {
+		return false;
+	}
+
+	@Override
+	public List<Variable> components() {
+		return this.definedVariables;
+	}
+
+	@Override
+	public Variable addComponent(Variable variable) {
+		Variable v = this.findVariable(variable.name());
+		if (v != null)
+			return v;
+		addDeclaration(variable);
+		return variable;
+	}
+
+	@Override
+	public Variable findComponent(String declarationName) {
+		return findVariable(declarationName);
+	}
+
+	@Override
+	public IProplistDeclaration prototype() {
+		return null;
 	}
 
 }

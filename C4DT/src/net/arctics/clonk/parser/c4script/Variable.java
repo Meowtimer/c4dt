@@ -330,7 +330,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return The above
 	 */
 	public boolean isGloballyAccessible() {
-		return scope == Scope.LOCAL || parentDeclaration instanceof ProplistDeclaration || isGlobal();
+		return scope == Scope.LOCAL || parentDeclaration instanceof IProplistDeclaration || isGlobal();
 	}
 
 	public boolean isAt(int offset) {

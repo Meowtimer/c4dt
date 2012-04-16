@@ -8,7 +8,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
@@ -109,7 +109,7 @@ public abstract class UI {
 			return MAPOVERLAY_ICON;
 		else if (element instanceof Script)
 			return SCRIPT_ICON;
-		else if (element instanceof ProplistDeclaration)
+		else if (element instanceof IProplistDeclaration)
 			return PROPLIST_ICON;
 		else if (element instanceof Directive)
 			return DIRECTIVE_ICON;

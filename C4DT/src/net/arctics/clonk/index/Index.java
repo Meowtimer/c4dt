@@ -37,6 +37,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
@@ -250,7 +251,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
 			for (Declaration otherDec : func.otherDeclarations())
-				if (otherDec instanceof ProplistDeclaration)
+				if (otherDec instanceof IProplistDeclaration)
 					addToProplistDeclarations((ProplistDeclaration) otherDec);
 			addToDeclarationMap(func);
 		}

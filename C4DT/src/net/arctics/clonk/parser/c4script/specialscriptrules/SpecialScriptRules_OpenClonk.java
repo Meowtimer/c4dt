@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.EffectPropListDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IIndexEntity;
+import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
@@ -361,8 +362,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
 					if (actMapLocal != null && actMapLocal.type() != null) {
-						for (IType ty : actMapLocal.type()) if (ty instanceof ProplistDeclaration) {
-							ProplistDeclaration proplDecl = (ProplistDeclaration) ty;
+						for (IType ty : actMapLocal.type()) if (ty instanceof IProplistDeclaration) {
+							IProplistDeclaration proplDecl = (IProplistDeclaration) ty;
 							Variable action = proplDecl.findComponent((String)parmEv);
 							if (action != null)
 								return new EntityRegion(action, parmExpression);
@@ -396,8 +397,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
 						if (actMapLocal != null && actMapLocal.type() != null) {
 							for (IType a : actMapLocal.type()) {
-								if (a instanceof ProplistDeclaration) {
-									ProplistDeclaration proplDecl = (ProplistDeclaration) a;
+								if (a instanceof IProplistDeclaration) {
+									IProplistDeclaration proplDecl = (IProplistDeclaration) a;
 									for (Variable comp : proplDecl.components()) {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
