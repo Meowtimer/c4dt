@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
@@ -93,7 +94,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 	
 	public static SystemScript scriptCorrespondingTo(IFile file) {
-		Script script = Utilities.indexFromResource(file) != null ? Utilities.indexFromResource(file).scriptAt(file) : null;
+		Script script = ProjectIndex.fromResource(file) != null ? ProjectIndex.fromResource(file).scriptAt(file) : null;
 		return script instanceof SystemScript ? (SystemScript)script : null;
 	}
 	

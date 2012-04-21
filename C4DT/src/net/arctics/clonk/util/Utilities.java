@@ -6,11 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
@@ -86,15 +84,6 @@ public abstract class Utilities {
 				}
 			}
 		});
-	}
-	
-	public static Index indexFromResource(IResource res) {
-		if (res != null) {
-			ClonkProjectNature nature = ClonkProjectNature.get(res);
-			if (nature != null)
-				return nature.index();
-		}
-		return null;
 	}
 	
 	public static IFile fileBeingEditedBy(IEditorPart editor) {

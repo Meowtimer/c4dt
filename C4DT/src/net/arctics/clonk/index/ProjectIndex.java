@@ -214,4 +214,13 @@ public class ProjectIndex extends Index {
 		return Utilities.pickNearest(r, pivot, null);
 	}
 
+	public static ProjectIndex fromResource(IResource res) {
+		if (res != null) {
+			ClonkProjectNature nature = ClonkProjectNature.get(res);
+			if (nature != null)
+				return nature.index();
+		}
+		return null;
+	}
+
 }

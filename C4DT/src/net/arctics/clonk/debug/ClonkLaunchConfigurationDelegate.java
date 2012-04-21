@@ -142,7 +142,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		Index index = Utilities.indexFromResource(scenario);
+		Index index = ProjectIndex.fromResource(scenario);
 		String gamePath = index != null ? index.engine().settings().gamePath : null;
 
 		File enginePath = new File("Unspecified");

@@ -110,7 +110,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								Declaration declaration = null;
 								if (entryClass == ID.class) {
 									IResource r = Utilities.fileBeingEditedBy(editor());
-									Index index = Utilities.indexFromResource(r);
+									Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FunctionEntry.class) {
@@ -122,7 +122,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									IResource r = Utilities.fileBeingEditedBy(editor());
-									Index index = Utilities.indexFromResource(r);
+									Index index = ProjectIndex.fromResource(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.engine() != null && index.engine().acceptsId(id)) {
 										declaration = index.definitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
@@ -143,7 +143,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent()).index();
+									Index projIndex = ProjectIndex.fromResource(Utilities.fileBeingEditedBy(editor()).getParent()).index();
 									List<Index> indexes = projIndex.relevantIndexes();
 									for (Index index : indexes) {
 										if (index instanceof ProjectIndex) {
@@ -167,7 +167,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == IconSpec.class) {
 									String firstPart = value.split(":")[0];
 									IResource r = Utilities.fileBeingEditedBy(editor());
-									Index index = Utilities.indexFromResource(r);
+									Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {

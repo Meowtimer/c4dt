@@ -165,7 +165,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Index index = Utilities.indexFromResource(editor().unit().iniFile());
+		Index index = ProjectIndex.fromResource(editor().unit().iniFile());
 		if (index != null) {
 			for (Index i : index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
