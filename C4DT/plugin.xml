@@ -413,6 +413,12 @@
 			name="%LookupDeclaration_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
+			description="%LookupLocalDeclaration_Desc"
+			id="net.arctics.clonk.ui.LookupLocalDeclaration"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.LookupLocalDeclarationHandler"
+			name="%LookupLocalDeclaration_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%InvokeCommand_Desc"
 			id="net.arctics.clonk.ui.InvokeCommand"
 			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandHandler"
@@ -496,6 +502,7 @@
 				<command commandId="net.arctics.clonk.ui.OpenDefinition" label="%OpenDefinition_Name" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="%OpenLocalResource_Name" />
 				<command commandId="net.arctics.clonk.ui.LookupDeclaration" label="%LookupDeclaration_Name" />
+				<command commandId="net.arctics.clonk.ui.LookupLocalDeclaration" label="%LookupLocalDeclaration_Name" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
 					<visibleWhen checkEnabled="false">
