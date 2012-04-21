@@ -31,8 +31,8 @@ public class Messages extends NLS {
 	public static String EngineDeclarationsView_ExportToXML;
 	public static String SpecifyEngineName;
 	public static String SpecifyEngineNameDesc;
-	public static String OpenObjectDialog_Empty;
-	public static String OpenObjectDialog_Searching;
+	public static String OpenDefinitionDialog_Empty;
+	public static String OpenDefinitionDialog_Searching;
 	public static String Engine_ConfirmDeletion;
 	static {
 		// initialize resource bundle

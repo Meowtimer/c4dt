@@ -27,17 +27,17 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
-public class OpenObjectDialog extends EntityChooser {
+public class OpenDefinitionDialog extends EntityChooser {
 	
-	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
+	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
 	
 	private ISelection selection;
 	
-	private static class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
+	private static class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element == null)
-				return new StyledString(Messages.OpenObjectDialog_Empty);
+				return new StyledString(Messages.OpenDefinitionDialog_Empty);
 			if (!(element instanceof Definition)) return new StyledString(element.toString());
 			Definition obj = (Definition) element;
 			StyledString buf = new StyledString(obj.name());
@@ -47,10 +47,10 @@ public class OpenObjectDialog extends EntityChooser {
 		}
 	}
 	
-	public OpenObjectDialog(Shell shell) {
+	public OpenDefinitionDialog(Shell shell) {
 		super(shell, (Index)null);
 		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
-		setListLabelProvider(new OpenObjectLabelProvider());
+		setListLabelProvider(new OpenDefinitionLabelProvider());
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class OpenObjectDialog extends EntityChooser {
 		final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor,
 		Index index
 	) {
-		progressMonitor.beginTask(Messages.OpenObjectDialog_Searching, index.numUniqueIds());
+		progressMonitor.beginTask(Messages.OpenDefinitionDialog_Searching, index.numUniqueIds());
 		index.allDefinitions(new Sink<Definition>() {
 			@Override
 			public void receivedObject(Definition item) {

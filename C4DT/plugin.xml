@@ -395,10 +395,10 @@
 			name="%Meta_CreateCustomizationProject" />
 	
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="%OpenObject_Desc"
-			id="net.arctics.clonk.ui.OpenObject"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectHandler"
-			name="%OpenObject_Name" />
+			description="%OpenDefinition_Desc"
+			id="net.arctics.clonk.ui.OpenDefinition"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenDefinitionHandler"
+			name="%OpenDefinition_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenLocalResource_Desc"
@@ -493,7 +493,7 @@
 		<!-- Main menu !-->
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
-				<command commandId="net.arctics.clonk.ui.OpenObject" label="%OpenObject_Name" />
+				<command commandId="net.arctics.clonk.ui.OpenDefinition" label="%OpenDefinition_Name" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="%OpenLocalResource_Name" />
 				<command commandId="net.arctics.clonk.ui.LookupDeclaration" label="%LookupDeclaration_Name" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
