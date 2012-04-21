@@ -86,6 +86,7 @@ public class ProjectIndex extends Index {
 
 	@Override
 	public void postLoad() throws CoreException {
+		super.postLoad();
 		if (project != null) {
 			final List<Script> stuffToBeRemoved = new LinkedList<Script>();
 			allDefinitions(new Sink<Definition>() {
@@ -112,7 +113,6 @@ public class ProjectIndex extends Index {
 			for (Script s : stuffToBeRemoved)
 				this.removeScript(s);
 		}
-		super.postLoad();
 	}
 	
 	@Override

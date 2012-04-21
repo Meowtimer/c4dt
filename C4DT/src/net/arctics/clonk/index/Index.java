@@ -146,6 +146,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	public void postLoad() throws CoreException {
+		if (pendingScriptAdds == null)
+			pendingScriptAdds = new LinkedList<Script>();
 		if (saveSynchronizer == null)
 			saveSynchronizer = new Object();
 		for (IndexEntity e : entities()) {
@@ -326,7 +328,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	private int pendingScriptIterations;
-	private final Queue<Script> pendingScriptAdds = new LinkedList<Script>();
+	private Queue<Script> pendingScriptAdds = new LinkedList<Script>();
 	
 	/**
 	 * Add some {@link Script} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
