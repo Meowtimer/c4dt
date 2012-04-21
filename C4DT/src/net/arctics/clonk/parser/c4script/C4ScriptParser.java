@@ -772,7 +772,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			DirectiveType type = DirectiveType.makeType(directiveName);
 			if (type == null) {
-				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0));
+				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0), 0);
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
 				return true;
 			}
@@ -1219,6 +1219,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// finish up
 		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
+		if (container.findLocalFunction(currentFunc.name(), false) != null)
+			warningWithCode(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
 		container.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
 			currentFunctionContext.currentDeclaration = null; // to not suppress errors in-between functions
@@ -1557,16 +1559,21 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
-			markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_WARNING, args);
+			markerWithCode(code, errorStart, errorEnd, flags|NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (ParsingException e) {
-			// ignore
+			// won't happen
 		}
 	}
-	
+	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) {
+		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
+	}
 	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
-		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
+		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), 0, args);
+	}
+	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+		warningWithCode(code, errorStart, errorEnd, 0, args);
 	}
 	
 	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
@@ -3130,7 +3137,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			else {
 				// type is name
-				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
+				warningWithCode(ParserErrorCode.TypeAsName, 0, s, e, firstWord);
 				var.forceType(PrimitiveType.ANY, typeLocked);
 				var.setName(firstWord);
 				this.seek(e);

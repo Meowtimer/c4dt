@@ -175,9 +175,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
 		@Override
 		public Function newFunction(String name) {
-			if (name.equals(DEFINITION_FUNCTION)) { //$NON-NLS-1$
+			if (name.equals(DEFINITION_FUNCTION))
 				return new DefinitionFunction();
-			}
 			else
 				return null;
 		};

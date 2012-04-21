@@ -664,25 +664,27 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public Variable findLocalVariable(String name, boolean includeIncludes) {
-		return findLocalVariable(name, includeIncludes, new HashSet<Script>());
+		return findLocalVariable(name, includeIncludes ? new HashSet<Script>() : null);
 	}
 
 	public Function findLocalFunction(String name, boolean includeIncludes) {
-		return findLocalFunction(name, includeIncludes, new HashSet<Script>());
+		return findLocalFunction(name, includeIncludes ? new HashSet<Script>() : null);
 	}
 
-	public Function findLocalFunction(String name, boolean includeIncludes, HashSet<Script> alreadySearched) {
+	public Function findLocalFunction(String name, HashSet<Script> alreadySearched) {
 		requireLoaded();
-		if (alreadySearched.contains(this))
-			return null;
-		alreadySearched.add(this);
+		if (alreadySearched != null) {
+			if (alreadySearched.contains(this))
+				return null;
+			alreadySearched.add(this);
+		}
 		for (Function func: functions()) {
 			if (func.name().equals(name))
 				return func;
 		}
-		if (includeIncludes) {
+		if (alreadySearched != null) {
 			for (Script script : filteredIterable(includes(0), Script.class)) {
-				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
+				Function func = script.findLocalFunction(name, alreadySearched);
 				if (func != null)
 					return func;
 			}
@@ -690,18 +692,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return null;
 	}
 
-	public Variable findLocalVariable(String name, boolean includeIncludes, HashSet<Script> alreadySearched) {
+	public Variable findLocalVariable(String name, HashSet<Script> alreadySearched) {
 		requireLoaded();
-		if (alreadySearched.contains(this))
-			return null;
-		alreadySearched.add(this);
+		if (alreadySearched != null) {
+			if (alreadySearched.contains(this))
+				return null;
+			alreadySearched.add(this);
+		}
 		for (Variable var : variables()) {
 			if (var.name().equals(name))
 				return var;
 		}
-		if (includeIncludes) {
+		if (alreadySearched != null) {
 			for (Script script : filteredIterable(includes(0), Script.class)) {
-				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
+				Variable var = script.findLocalVariable(name, alreadySearched);
 				if (var != null)
 					return var;
 			}

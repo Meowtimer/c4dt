@@ -84,7 +84,7 @@ public enum ParserErrorCode {
 	FunctionRefNotAllowed(Messages.FunctionRefNotAllowed, Messages.ParserErrorCode_Arg_Engine),
 	CallingExpression(Messages.CallingExpression),
 	FloatNumbersNotSupported(Messages.FloatNumbersNotSupported),
-	DuplicateDefinition("Duplicate declaration of '%s'", "Declaration name");
+	DuplicateDeclaration(Messages.DuplicateDeclaration, Messages.DuplicateDeclarationName);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
