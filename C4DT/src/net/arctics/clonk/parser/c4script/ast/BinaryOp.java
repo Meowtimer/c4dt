@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class BinaryOp extends OperatorExpression {
@@ -21,13 +21,13 @@ public class BinaryOp extends OperatorExpression {
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		switch (operator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
-		case And: case Or:
+		case And: case Or: case JumpNotNil:
 			IType leftSideType = leftSide().type(context);
 			IType rightSideType = rightSide().type(context);
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
-				return PrimitiveType.ANY;
+				return TypeSet.create(leftSideType, rightSideType);
 		case Assign:
 			return rightSide().type(context);
 		default:

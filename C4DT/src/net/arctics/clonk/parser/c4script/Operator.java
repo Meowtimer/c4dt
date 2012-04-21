@@ -38,6 +38,7 @@ public enum Operator {
 	Increment(PrimitiveType.INT, null, PrimitiveType.INT, "++", 15, "Inc", 1/*RETURNS_REF*/), //$NON-NLS-1$ //$NON-NLS-2$
 	ShiftLeft(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "<<", 11), //$NON-NLS-1$
 	ShiftRight(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, ">>", 11), //$NON-NLS-1$
+	JumpNotNil(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "??", 3, null),
 	Assign(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignAdd(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "+=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignSubtract(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "-=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
