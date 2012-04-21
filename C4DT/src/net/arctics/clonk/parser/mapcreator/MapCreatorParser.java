@@ -72,7 +72,7 @@ public class MapCreatorParser extends Parser {
     public MapCreatorParser(MapCreator mapCreator, TokenStream input) {
     	this(input);
     	this.mapCreator = mapCreator;
-    	createMarkers = mapCreator.resource() == null || C4GroupItem.getGroupItemBackingResource(mapCreator.resource()) == null;
+    	createMarkers = mapCreator.resource() == null || C4GroupItem.groupItemBackingResource(mapCreator.resource()) == null;
     	this.current = mapCreator;
     }
 

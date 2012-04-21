@@ -441,7 +441,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		currentFunctionContext.initialize();
 		if (scriptFile != null)
-			allErrorsDisabled = C4GroupItem.getGroupItemBackingResource(scriptFile) != null;
+			allErrorsDisabled = C4GroupItem.groupItemBackingResource(scriptFile) != null;
 	}
 
 	/**

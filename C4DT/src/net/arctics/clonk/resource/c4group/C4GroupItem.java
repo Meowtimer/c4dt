@@ -132,7 +132,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		return parentGroup();
 	}
 	
-	public static C4GroupItem getGroupItemBackingResource(IResource resource) {
+	public static C4GroupItem groupItemBackingResource(IResource resource) {
 		URI uri = resource.getLocationURI();
 		try {
 			IFileStore fileStore = EFS.getStore(uri);

@@ -196,7 +196,6 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 						IASTComparisonDelegate proxy = new IASTComparisonDelegate() {
 							@Override
 							public DifferenceHandling differs(ExprElm _a, ExprElm _b, Object what) {
-								// fuck off, recursion
 								if (_a == aCounterpart || _a == bCounterpart)
 									return DifferenceHandling.Differs;
 								return DuplicatesQuery.this.differs(_a, _b, what);

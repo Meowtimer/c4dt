@@ -89,7 +89,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 				if (res instanceof IFile && engine.groupTypeForFileName(res.getName()) != GroupType.OtherGroup) {
 					if (mon == null)
 						mon = new NullProgressMonitor();
-					groupItem = C4GroupItem.getGroupItemBackingResource(res);
+					groupItem = C4GroupItem.groupItemBackingResource(res);
 					if (groupItem == null) {
 						// not linked to C4Group but some other thingie? - ignore
 						if (res.isLinked())
@@ -111,7 +111,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 							0, mon
 						);
 					}
-				} else if (res instanceof IFolder && (groupItem = C4GroupItem.getGroupItemBackingResource(res)) instanceof C4Group) {
+				} else if (res instanceof IFolder && (groupItem = C4GroupItem.groupItemBackingResource(res)) instanceof C4Group) {
 					if (!((C4Group)groupItem).existsOnDisk()) {
 						res.delete(true, mon);
 					}

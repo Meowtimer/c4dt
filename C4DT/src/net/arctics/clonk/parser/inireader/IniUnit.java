@@ -335,12 +335,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					try {
 						iniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 						// deactivate creating markers if it's contained in a linked group
-						modifyMarkers = C4GroupItem.getGroupItemBackingResource(iniFile()) == null;
+						modifyMarkers = C4GroupItem.groupItemBackingResource(iniFile()) == null;
 					} catch (CoreException e) {
 						e.printStackTrace();
 					}
 				}
-				IniUnit.this.clear();
+				clear();
 				seek(0);
 				IniSection section;
 				while ((section = parseSection(modifyMarkers, null)) != null) {
@@ -620,7 +620,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	@Override
 	public void validate() {
 		// don't bother letting items complain if errors shouldn't be shown anyway (in linked groups)
-		if (C4GroupItem.getGroupItemBackingResource(iniFile) != null)
+		if (C4GroupItem.groupItemBackingResource(iniFile) != null)
 			return;
 		try {
 			iniFile.deleteMarkers(Core.MARKER_C4SCRIPT_ERROR, true, 0);

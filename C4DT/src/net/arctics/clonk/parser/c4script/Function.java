@@ -808,9 +808,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					codeBlock.postLoad(null, declarationObtainmentContext());
 			}
 			return codeBlock;
-		} else {
+		} else
 			return codeBlock = null;
-		}
 	}
 	
 	/**
