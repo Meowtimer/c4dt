@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
@@ -15,6 +16,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -33,7 +35,10 @@ public class LookupLocalDeclarationHandler extends AbstractHandler {
 					if (s instanceof Script)
 						for (Declaration d : ((Script)s).accessibleDeclarations(IHasSubDeclarations.ALL))
 							declarations.add(d);
-				EntityChooser chooser = new EntityChooser(HandlerUtil.getActiveShell(event), declarations);
+				EntityChooser chooser = new EntityChooser(
+					Platform.getResourceString(Core.instance().getBundle(), "%LookupLocalDeclaration_Name"),
+					HandlerUtil.getActiveShell(event), declarations
+				);
 				chooser.setInitialPattern(".*");
 				chooser.run();
 			}

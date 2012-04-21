@@ -85,19 +85,19 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	private final Set<? extends IIndexEntity> entities;
 	private Index index;
 
-	public EntityChooser(Shell shell, Set<? extends IIndexEntity> entities) {
+	public EntityChooser(String title, Shell shell, Set<? extends IIndexEntity> entities) {
 		super(shell);
 		this.entities = entities;
+		setTitle(title);
 		setListLabelProvider(new LabelProvider());
-		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
-	public EntityChooser(Shell shell, Iterable<? extends IIndexEntity> declarations) {
-		this(shell, setFromIterable(declarations));
+	public EntityChooser(String title, Shell shell, Iterable<? extends IIndexEntity> declarations) {
+		this(title, shell, setFromIterable(declarations));
 	}
 	
-	public EntityChooser(Shell shell, Index index) {
-		this(shell, (Set<? extends IIndexEntity>)null);
+	public EntityChooser(String title, Shell shell, Index index) {
+		this(title, shell, (Set<? extends IIndexEntity>)null);
 		this.index = index;
 	}
 

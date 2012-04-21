@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
@@ -48,7 +49,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	}
 	
 	public OpenDefinitionDialog(Shell shell) {
-		super(shell, (Index)null);
+		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), shell, (Index)null); //$NON-NLS-1$
 		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
 		setListLabelProvider(new OpenDefinitionLabelProvider());
 	}

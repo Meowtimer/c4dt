@@ -67,7 +67,7 @@ public class ClonkHyperlink implements IHyperlink {
 	public String getHyperlinkText() {
 		for (IIndexEntity t : targets)
 			return t.name();
-		return "hyperlink to ?";
+		return "hyperlink to ?"; //$NON-NLS-1$
 	}
 
 	@Override
@@ -85,7 +85,7 @@ public class ClonkHyperlink implements IHyperlink {
 	}
 
 	private void chooseDeclarations() {
-		EntityChooser chooser = new EntityChooser(Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
+		EntityChooser chooser = new EntityChooser(Messages.ClonkHyperlink_ChooseLinkTargetTitle, Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
 		chooser.run();
 	}
 

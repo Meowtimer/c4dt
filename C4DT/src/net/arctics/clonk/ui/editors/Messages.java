@@ -17,6 +17,7 @@ public class Messages extends NLS {
 	public static String ColorManager_RETURN;
 	public static String ColorManager_STRING;
 	public static String ColorManager_TYPE;
+	public static String ClonkHyperlink_ChooseLinkTargetTitle;
 	public static String ClonkHyperlink_Label;
 	static {
 		// initialize resource bundle
