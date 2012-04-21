@@ -7,6 +7,10 @@ import java.util.Iterator;
 import net.arctics.clonk.Core;
 
 public class NillableType implements IType {
+	
+	public static IType unwrap(IType type) {
+		return type instanceof NillableType ? ((NillableType)type).baseType : type;
+	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	

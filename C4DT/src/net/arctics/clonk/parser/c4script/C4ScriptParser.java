@@ -544,8 +544,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		prepareForFunctionParsing();
-		for (Function function : container.functions())
+		for (Function function : container.functions()) {
+			scriptLevelTypeInfos.apply(this, false);
 			parseCodeOfFunction(function, false);
+		}
 		synchronized (parsedFunctions) {
 			parsedFunctions = null;
 		}

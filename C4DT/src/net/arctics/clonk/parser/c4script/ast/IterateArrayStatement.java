@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -96,14 +95,13 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		IType type = arrayExpr.type(parser);
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
-		ArrayType at = as(type, ArrayType.class);
+		IType elmType = ArrayType.elementTypeSet(type);
+		TypeInfoList bodyTyping = parser.typeInfoList();
 		if (loopVariable != null) {
-			if (at != null)
-				parser.storeTypeInformation(new AccessVar(loopVariable), at.generalElementType());
+			if (elmType != null)
+				new AccessVar(loopVariable).expectedToBeOfType(elmType, parser);
 			loopVariable.setUsed(true);
 		}
-		
-		TypeInfoList bodyTyping = parser.typeInfoList();
 		parser.reportErrorsOf(body, true, bodyTyping);
 		parser.injectTypeInfos(bodyTyping);
 	}

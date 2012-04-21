@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -149,6 +150,7 @@ public class ArrayType implements IType {
 
 	@Override
 	public boolean subsetOf(IType type) {
+		type = NillableType.unwrap(type);
 		if (type == PrimitiveType.ARRAY)
 			return true;
 		else if (type instanceof ArrayType) {
@@ -350,6 +352,19 @@ public class ArrayType implements IType {
 		//return new ArrayType(generalElementType, NO_PRESUMED_LENGTH, elementTypeMapping);
 		this.presumedLength = NO_PRESUMED_LENGTH;
 		return this;
+	}
+	
+	public static IType elementTypeSet(IType arrayTypes) {
+		List<IType> elementTypes = null;
+		for (IType t : arrayTypes) {
+			ArrayType at = as(t, ArrayType.class);
+			if (at != null) {
+				if (elementTypes == null)
+					elementTypes = new ArrayList<IType>();
+				elementTypes.add(at.generalElementType());
+			}
+		}
+		return elementTypes != null ? TypeSet.create(elementTypes) : null;
 	}
 
 }

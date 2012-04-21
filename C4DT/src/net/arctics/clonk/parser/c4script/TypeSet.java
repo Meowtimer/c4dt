@@ -88,25 +88,21 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	private static IType[] flatten(IType[] types) {
 		int newCount = types.length;
-		for (IType t : types) {
+		for (IType t : types)
 			if (t == null)
 				newCount--;
-			else if (t instanceof TypeSet) {
+			else if ((t=NillableType.unwrap(t)) instanceof TypeSet)
 				newCount += ((TypeSet)t).size() - 1;
-			}
-		}
 		IType[] newArray = newCount == types.length ? types : new IType[newCount];
 		int i = 0;
-		for (IType t : types) {
+		for (IType t : types)
 			if (t == null)
 				continue;
-			else if (t instanceof TypeSet) {
-				for (IType t2 : ((TypeSet)t)) {
+			else if ((t=NillableType.unwrap(t)) instanceof TypeSet) {
+				for (IType t2 : ((TypeSet)t))
 					newArray[i++] = t2;
-				}
 			} else
 				newArray[i++] = t;
-		}
 		return newArray;
 	}
 	
@@ -115,7 +111,6 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	}
 	
 	public static IType create(IType... ingredients) {
-		
 		if (ingredients.length == 0)
 			return PrimitiveType.ANY;
 		
@@ -139,7 +134,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 						ingredients[z-1] = ingredients[z];
 					actualCount--;
 				}
-				else if (other.equals(t) || (t.specificness() >= other.specificness() && t.subsetOf(other))) {
+				else if (other.equals(t) || (t.specificness() >= other.specificness() && (t.subsetOf(other) || other.subsetOf(t)))) {
 					ingredients[i] = ingredients[i].eat(other);
 					for (int z = actualCount-1; z > j; z--)
 						ingredients[z-1] = ingredients[z];
