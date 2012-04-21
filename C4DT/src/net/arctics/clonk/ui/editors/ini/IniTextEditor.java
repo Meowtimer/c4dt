@@ -26,8 +26,6 @@ import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
-import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
-import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -137,11 +135,6 @@ public class IniTextEditor extends ClonkTextEditor {
 	
 	private TextChangeListener textChangeListener;
 	
-	// projection support
-	private ProjectionSupport projectionSupport;
-	private ProjectionAnnotationModel projectionAnnotationModel;
-	private Annotation[] oldAnnotations;
-	
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
 		if (item.childCollection() != null) {
 			for (INode i : item.childCollection()) {
@@ -176,12 +169,6 @@ public class IniTextEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
-		projectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(), getSharedColors());
-		projectionSupport.install();
-		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
-		projectionAnnotationModel = projectionViewer.getProjectionAnnotationModel();
-		
 		unit();
 		updateFoldingStructure();
 	}

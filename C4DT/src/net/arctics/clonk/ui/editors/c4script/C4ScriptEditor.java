@@ -355,8 +355,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
-		
-		// set partitioner (FIXME: remove again?)
 		IDocument document = getDocumentProvider().getDocument(input);
 		if (document.getDocumentPartitioner() == null) {
 			IDocumentPartitioner partitioner =
@@ -401,9 +399,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 		Script script = script();
-		if (script != null && script.isEditable()) {
+		if (script != null && script.isEditable())
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
-		}
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
 	}

@@ -24,8 +24,14 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
+import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
+import org.eclipse.jface.text.source.projection.ProjectionSupport;
+import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -406,9 +412,34 @@ public class ClonkTextEditor extends TextEditor {
 		if (!(viewer instanceof ISourceViewerExtension2))
 			return; // cannot unconfigure - do nothing
 
-		// XXX: this is pretty heavy-weight
 		((ISourceViewerExtension2)viewer).unconfigure();
 		viewer.configure(getSourceViewerConfiguration());
+	}
+	
+	// projection support
+	protected ProjectionSupport projectionSupport;
+	protected ProjectionAnnotationModel projectionAnnotationModel;
+	protected Annotation[] oldAnnotations;
+	
+	protected void initializeProjectionSupport() {
+		ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
+		projectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(), getSharedColors());
+		projectionSupport.install();
+		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
+		projectionAnnotationModel = projectionViewer.getProjectionAnnotationModel();
+	}
+	
+	@Override
+	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		getSourceViewerDecorationSupport(viewer);
+		return viewer;
+	}
+	
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		initializeProjectionSupport();
 	}
 	
 }
