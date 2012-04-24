@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.isAnyOf;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -122,9 +124,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				e.printStackTrace();
 				return false;
 			}
-			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING)) {
+			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))
 				return fixableParserErrorCodes.contains(ParserErrorCode.errorCode(ma.getMarker()));
-			}
 		}
 		return false;
 	}
@@ -146,9 +147,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			Annotation annotation = (Annotation)iter.next();
 			if (canFix(annotation)) {
 				Position pos = model.getPosition(annotation);
-				if (isAtPosition(offset, pos)) {
+				if (isAtPosition(offset, pos))
 					collectProposals(((MarkerAnnotation) annotation).getMarker(), pos, proposals, null, ClonkTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class));
-				}
 			}
 		}
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -210,17 +210,18 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private final Function func;
 
 		private ParameterizedProposal(Declaration declaration,
-				String replacementString, int replacementOffset,
-				int replacementLength, int cursorPosition, Image image,
-				String displayString, IContextInformation contextInformation,
-				String additionalProposalInfo, String postInfo,
-				ClonkTextEditor editor,
-				Replacement replacement, int tabIndentation,
-				C4ScriptParser parser, Function func) {
+			String replacementString, int replacementOffset,
+			int replacementLength, int cursorPosition, Image image,
+			String displayString, IContextInformation contextInformation,
+			String additionalProposalInfo, String postInfo,
+			ClonkTextEditor editor,
+			Replacement replacement, int tabIndentation,
+			C4ScriptParser parser, Function func
+		) {
 			super(declaration, replacementString, replacementOffset,
-					replacementLength, cursorPosition, image, displayString,
-					contextInformation, additionalProposalInfo, postInfo,
-					editor);
+				replacementLength, cursorPosition, image, displayString,
+				contextInformation, additionalProposalInfo, postInfo,
+				editor);
 			this.replacement = replacement;
 			this.tabIndentation = tabIndentation;
 			this.parser = parser;
@@ -285,9 +286,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 			
 			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.listenerFor(document);
-			if (listener != null) {
+			if (listener != null)
 				listener.scheduleReparsing(false);
-			}
 		}
 
 		public void runOnMarker(final IMarker marker) {
@@ -312,7 +312,6 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	private static class Replacement {
-		
 		public static class AdditionalDeclaration {
 			public Declaration declaration;
 			public ExprElm code;
@@ -322,13 +321,11 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				this.code = code;
 			}
 		}
-		
 		private String title;
 		private final ExprElm replacementExpression;
 		private final ExprElm[] specifiable;
 		private final List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
 		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
-		
 		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
 			super();
 			this.title = title;
@@ -356,9 +353,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (other instanceof Replacement) {
 				Replacement otherR = (Replacement) other;
 				return otherR.title.equals(title) && otherR.replacementExpression.equals(replacementExpression);
-			} else {
+			} else
 				return false;
-			}
 		}
 		@Override
 		public String toString() {
@@ -367,9 +363,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		/**
 		 * Method to override if performing additional actions apart from replacing code segments is desired.
 		 */
-		public void performAdditionalActionsBeforeDoingReplacements() {
-			
-		}
+		public void performAdditionalActionsBeforeDoingReplacements() {}
 	}
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
@@ -413,11 +407,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private static String parmNameFromExpression(ExprElm expression, int index) {
 		String exprString = expression.toString();
 		Matcher m = validIdentifierPattern.matcher(exprString);
-		if (m.matches()) {
+		if (m.matches())
 			return m.group();
-		} else {
+		else
 			return "par"+index; //$NON-NLS-1$
-		}
 	}
 	
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Object editorOrScript) {
@@ -432,9 +425,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			: editor != null ? editor.script() : null;
 		Object needToDisconnect = null;
 		if (document == null) {
-			if (editor != null) {
+			if (editor != null)
 				document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			} else if (script != null && script.scriptStorage() instanceof IFile) {
+			else if (script != null && script.scriptStorage() instanceof IFile) {
 				needToDisconnect = script.scriptStorage();
 				try {
 					Core.instance().getTextFileDocumentProvider().connect(needToDisconnect);
@@ -461,15 +454,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				case VariableCalled:
 					assert(offendingExpression instanceof CallDeclaration);
 					replacements.add(
-							Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).declarationName()), 0)
+						Messages.ClonkQuickAssistProcessor_RemoveBrackets,
+						topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).declarationName()), 0)
 					);
 					break;
 				case NeverReached: {
 					String s = topLevel.toString();
 					replacements.add(
-							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-							new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
+						Messages.ClonkQuickAssistProcessor_CommentOutStatement,
+						new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
 					);
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
@@ -480,8 +473,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				case NotFinished:
 					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).expression())) {
 						replacements.add(
-								Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-								topLevel // will be added by converting topLevel to string
+							Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+							topLevel // will be added by converting topLevel to string
 						);
 					}
 					break;
@@ -491,8 +484,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						BinaryOp op = (BinaryOp) offendingExpression.parent();
 						if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression) {
 							replacements.add(
-									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-									new VarDeclarationStatement(var.declarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+								Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
+								new VarDeclarationStatement(var.declarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
 						}
 					}
@@ -509,22 +502,22 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 						// create new variable or function
 						Replacement createNewDeclarationReplacement = replacements.add(
-								String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
-								ExprElm.NULL_EXPR,
-								false
+							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
+							ExprElm.NULL_EXPR,
+							false
 						);
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 						if (accessDec instanceof AccessVar) {
 							decs.add(new Replacement.AdditionalDeclaration(
-									new Variable(accessDec.declarationName(), Scope.LOCAL),
-									ExprElm.NULL_EXPR
+								new Variable(accessDec.declarationName(), Scope.LOCAL),
+								ExprElm.NULL_EXPR
 							));
 						} else {
 							CallDeclaration callFunc = (CallDeclaration) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
-									function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
-									ExprElm.NULL_EXPR
+								function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
+								ExprElm.NULL_EXPR
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
@@ -540,9 +533,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							expr = sequence.subSequenceUpTo(offendingExpression); 
 						} else
 							expr = null;
-						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression(
-								expr, func, parser, document
-						);
+						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression
+							(expr, func, parser, document);
 						for (ICompletionProposal p : possible) {
 							if (p instanceof ClonkCompletionProposal) {
 								ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
@@ -575,7 +567,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
 										ClonkProjectNature nat = ClonkProjectNature.get(proj);
-										if (nat.index().definitionsWithID(defId) != null)
+										if (nat.index().definitionsWithID(defId) != null) {
 											replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
 												@Override
 												public void performAdditionalActionsBeforeDoingReplacements() {
@@ -594,6 +586,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 													}
 												}
 											});
+										}
 									}
 								}
 							}
@@ -610,7 +603,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						);
 					}
 					if (
-						(t == PrimitiveType.OBJECT || t == PrimitiveType.STRING || t == PrimitiveType.ARRAY || t == PrimitiveType.PROPLIST) &&
+						isAnyOf(t, PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST) &&
 						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
 					) {
 						replacements.add(
@@ -624,8 +617,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					if (topLevel instanceof SimpleStatement) {
 						SimpleStatement statement = (SimpleStatement) topLevel;
 						replacements.add(
-								Messages.ClonkQuickAssistProcessor_ConvertToReturn,
-								new ReturnStatement((statement.expression()))
+							Messages.ClonkQuickAssistProcessor_ConvertToReturn,
+							new ReturnStatement((statement.expression()))
 						);
 						addRemoveReplacement(document, expressionRegion, replacements, func);
 						CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
@@ -650,9 +643,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				case NoInheritedFunction:
 					if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).declarationName().equals(Keywords.Inherited)) {
 						replacements.add(
-								String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
-								identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
-								false
+							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
+							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
+							false
 						);
 					}
 					break;
@@ -664,10 +657,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							ExprElm returnExpr = elms[0];
 							ExprElm[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ExprElm.class);
 							replacements.add(
-									Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
-									new BunchOfStatements(
-											ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
-									)
+								Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
+								new BunchOfStatements(
+									ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
+								)
 							);
 						}
 					}
@@ -684,16 +677,14 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								// removing last initialization -> change ',' before it to ';'
 								parser.seek(previous.end());
 								parser.eatWhitespace();
-								if (parser.peek() == ',') {
+								if (parser.peek() == ',')
 									regionToDelete.setStartAndEnd(parser.tell(), cur.end());
-								}
 							} else {
 								addRemoveReplacement(document, expressionRegion, replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
 								break;
 							}
-						} else {
+						} else
 							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
-						}
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
 							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.body().getOffset())

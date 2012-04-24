@@ -544,10 +544,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		prepareForFunctionParsing();
-		for (Function function : container.functions()) {
-			scriptLevelTypeInfos.apply(this, false);
+		for (Function function : container.functions())
 			parseCodeOfFunction(function, false);
-		}
 		synchronized (parsedFunctions) {
 			parsedFunctions = null;
 		}
@@ -2352,6 +2350,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportErrorsOf(s, true, functionLevelTypeInfos);
+		functionLevelTypeInfos.apply(this, false);
 		if (scriptLevelTypeInfos != null)
 			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
