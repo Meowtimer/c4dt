@@ -20,7 +20,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public abstract class AccessDeclaration extends Value {
+public abstract class AccessDeclaration extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected transient Declaration declaration;

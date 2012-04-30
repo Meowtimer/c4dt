@@ -23,5 +23,10 @@ public class Ellipsis extends ExprElm {
 		super.reportErrors(parser);
 		parser.unnamedParamaterUsed(this); // it's kinda sound...
 	}
+	
+	@Override
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return false;
+	}
 
 }

@@ -117,6 +117,11 @@ public class MemberOperator extends ExprElm {
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return false;
+	}
 
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.

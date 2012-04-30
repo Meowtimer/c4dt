@@ -220,7 +220,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
-		return false;
+		return true;
 	}
 	
 	/**

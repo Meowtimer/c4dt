@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
  *
  * @param <T> The type of value this literal represents
  */
-public abstract class Literal<T> extends Value {
+public abstract class Literal<T> extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 

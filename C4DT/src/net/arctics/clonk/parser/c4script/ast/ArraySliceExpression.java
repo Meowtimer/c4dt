@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
-public class ArraySliceExpression extends Value {
+public class ArraySliceExpression extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ExprElm lo, hi;

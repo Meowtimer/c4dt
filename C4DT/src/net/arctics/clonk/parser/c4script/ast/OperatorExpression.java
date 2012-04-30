@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 
-public class OperatorExpression extends Value {
+public class OperatorExpression extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Operator operator;

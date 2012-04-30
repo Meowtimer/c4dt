@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 
-public class ArrayElementExpression extends Value {
+public class ArrayElementExpression extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected ExprElm argument;

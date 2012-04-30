@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
-public class PropListExpression extends Value {
+public class PropListExpression extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	

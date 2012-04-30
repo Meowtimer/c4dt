@@ -1939,7 +1939,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (result != null) {
 			proper &= lastElm == null || lastElm.isValidAtEndOfSequence(this);
 			result.setFinishedProperly(proper);
-
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
 			if (proper) {
 				int saved = this.offset;

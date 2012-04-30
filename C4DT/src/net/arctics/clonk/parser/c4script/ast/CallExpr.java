@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
  * @author madeen
  *
  */
-public class CallExpr extends Value implements IFunctionCall {
+public class CallExpr extends ExprElm implements IFunctionCall {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	

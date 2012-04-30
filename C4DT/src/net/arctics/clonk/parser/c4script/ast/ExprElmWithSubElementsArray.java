@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 
-public class ExprElmWithSubElementsArray extends Value {
+public class ExprElmWithSubElementsArray extends ExprElm {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected ExprElm[] elements;
 	public ExprElmWithSubElementsArray(ExprElm... elms) {
