@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -174,20 +175,23 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 	
 	@Override
-	public  boolean gatherIncludes(Index contextIndex, final List<IHasIncludes> set, final int options) {
-		if (!super.gatherIncludes(contextIndex, set, options))
+	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final List<IHasIncludes> set, final int options) {
+		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
+		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.getAscending(((IHasRelatedResource)origin).resource()) : null;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
-			if (contextIndex == null)
-				System.out.println("D:");
 			for (Index i : contextIndex.relevantIndexes()) {
 				List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)
-					for (Script s : appendages)
+					for (Script s : appendages) {
+						Scenario scriptScenario = s.scenario();
+						if (scriptScenario != null && originScenario != scriptScenario)
+							continue;// scenario boundary; ignore
 						if ((options & GatherIncludesOptions.Recursive) == 0)
 							set.add(s);
 						else
-							s.gatherIncludes(i, set, options | GatherIncludesOptions.NoAppendages);
+							s.gatherIncludes(i, origin, set, options | GatherIncludesOptions.NoAppendages);
+					}
 			}
 		}
 		return true;

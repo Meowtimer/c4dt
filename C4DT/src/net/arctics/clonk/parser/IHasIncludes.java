@@ -21,7 +21,7 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 		public static final int NoAppendages = 2;
 	}
 	
-	Collection<? extends IHasIncludes> includes(Index contextIndex, int options);
+	Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes origin, int options);
 	/**
 	 * Return whether this type includes another one.
 	 * @param other The other type
@@ -36,7 +36,7 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
 	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head. 
 	 */
-	boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options);
+	boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options);
 	
 	/**
 	 * Empty list representing "no includes".
@@ -56,9 +56,9 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 		 * @param recursive The recursive parameter to pass to {@link IHasIncludes#gatherIncludes(Set, Index, boolean)}
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */
-		public static Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes instance, int options) {
+		public static Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes instance, IHasIncludes origin, int options) {
 			List<IHasIncludes> result = new ArrayList<IHasIncludes>(10);
-			instance.gatherIncludes(contextIndex, result, options);
+			instance.gatherIncludes(contextIndex, origin, result, options);
 			result.remove(instance);
 			return result;
 		}

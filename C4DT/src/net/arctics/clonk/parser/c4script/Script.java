@@ -45,6 +45,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
@@ -229,7 +230,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
 		requireLoaded();
 		if (set.contains(this))
 			return false;
@@ -252,7 +253,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 								else {
 									if (d.type() == DirectiveType.INCLUDE)
 										options &= ~GatherIncludesOptions.NoAppendages;
-									def.gatherIncludes(contextIndex, set, options);
+									def.gatherIncludes(contextIndex, origin, set, options);
 								}
 							}
 						}
@@ -272,7 +273,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (index() == null)
 			return NO_INCLUDES;
 		else
-			return includes(index(), options);
+			return includes(index(), this, options);
 	}
 	
 	/**
@@ -282,12 +283,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	 * @return The includes
 	 */
 	@Override
-	public Collection<? extends IHasIncludes> includes(Index index, int options) {
+	public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
 		requireLoaded();
-		if (includes != null && (options & GatherIncludesOptions.Recursive) == 0 && index == this.index())
+		if (
+			includes != null &&
+			(options & GatherIncludesOptions.Recursive) == 0 &&
+			origin instanceof IHasRelatedResource &&
+			Scenario.getAscending(((IHasRelatedResource)origin).resource()) == this.scenario() &&
+			index == this.index()
+		)
 			return includes;
 		else
-			return IHasIncludes.Default.includes(index, this, options);
+			return IHasIncludes.Default.includes(index, this, origin, options);
 	}
 
 	public Iterable<Script> dependentScripts() {
@@ -441,15 +448,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				for (Variable v : variables())
 					if (v.name().equals(name))
 						return v;
-
-			info.recursion++;
-			for (IHasIncludes o : includes(info.index, 0)) {
-				Declaration result = o.findDeclaration(name, info);
-				if (result != null)
-					return result;
-			}
-			info.recursion--;
 		}
+		
+		info.recursion++;
+		for (IHasIncludes o : includes(info.index, info.searchOrigin, 0)) {
+			Declaration result = o.findDeclaration(name, info);
+			if (result != null)
+				return result;
+		}
+		info.recursion--;
 
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
@@ -777,7 +784,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public List<IHasIncludes> conglomerate() {
 		requireLoaded();
 		List<IHasIncludes> s = new ArrayList<IHasIncludes>(10);
-		gatherIncludes(index(), s, GatherIncludesOptions.Recursive);
+		gatherIncludes(index(), this, s, GatherIncludesOptions.Recursive);
 		return s;
 	}
 
@@ -1107,6 +1114,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 		else
 			return resource().getProjectRelativePath().toOSString();
+	}
+	
+	/**
+	 * Return the {@link Scenario} the {@link Script} is contained in.
+	 */
+	public Scenario scenario() {
+		IResource res = resource();
+		return res != null ? Scenario.getAscending(res) : null;
 	}
 
 }

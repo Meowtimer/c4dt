@@ -263,7 +263,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			addToDeclarationMap(var);
 		}
 		detectAppendages(script, detectedAppendages);
-		for (IHasIncludes s : script.includes(this, 0))
+		for (IHasIncludes s : script.includes(this, script, 0))
 			if (s instanceof Script)
 				((Script) s).addDependentScript(script);
 	}

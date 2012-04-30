@@ -231,8 +231,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> includes(Index contextIndex, int options) {
-		return constraint.includes(contextIndex, options);
+	public Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes origin, int options) {
+		return constraint.includes(contextIndex, origin, options);
 	}
 
 	@Override
@@ -240,9 +240,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 		return constraint.doesInclude(contextIndex, other);
 	}
 
-	@Override
-	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
-		return constraint.gatherIncludes(contextIndex, set, options);
+	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
+		return constraint.gatherIncludes(contextIndex, origin, set, options);
 	}
 
 }

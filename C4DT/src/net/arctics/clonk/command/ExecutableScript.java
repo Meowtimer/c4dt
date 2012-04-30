@@ -20,7 +20,7 @@ public class ExecutableScript extends SelfContainedScript {
 	}
 
 	@Override
-	public Collection<IHasIncludes> includes(Index index, int options) {
+	public Collection<IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
 		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 

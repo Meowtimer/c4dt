@@ -756,7 +756,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parser != null) {
 			try {
 				// parse #included scripts before this one
-				for (IHasIncludes include : script.includes(nature.index(), 0)) {
+				for (IHasIncludes include : script.includes(nature.index(), script, 0)) {
 					if (include instanceof Script)
 						performBuildPhaseTwo((Script) include);
 				}

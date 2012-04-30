@@ -29,7 +29,7 @@ public class LookupLocalDeclarationHandler extends AbstractHandler {
 			Script script = ((C4ScriptEditor)part).script();
 			if (script != null) {
 				List<IHasIncludes> scripts = new ArrayList<IHasIncludes>();
-				script.gatherIncludes(script.index(), scripts, GatherIncludesOptions.Recursive);
+				script.gatherIncludes(script.index(), script, scripts, GatherIncludesOptions.Recursive);
 				Set<Declaration> declarations = new HashSet<Declaration>();
 				for (IHasIncludes s : scripts)
 					if (s instanceof Script)

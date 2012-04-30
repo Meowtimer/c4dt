@@ -219,19 +219,19 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> includes(Index contextIndex, int options) {
-		return IHasIncludes.Default.includes(contextIndex, this, options);
+	public Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes origin, int options) {
+		return IHasIncludes.Default.includes(contextIndex, this, origin, options);
 	}
 
 	@Override
 	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
 		List<IHasIncludes> includes = new ArrayList<IHasIncludes>(10);
-		gatherIncludes(contextIndex, includes, GatherIncludesOptions.Recursive);
+		gatherIncludes(contextIndex, this, includes, GatherIncludesOptions.Recursive);
 		return includes.contains(other);
 	}
 	
 	@Override
-	public boolean gatherIncludes(Index contextIndex, List<IHasIncludes> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
 		if (set.contains(this))
 			return false;
 		else
@@ -241,7 +241,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 			if ((options & GatherIncludesOptions.Recursive) == 0)
 				set.add(proto);
 			else
-				proto.gatherIncludes(contextIndex, set, options);
+				proto.gatherIncludes(contextIndex, origin, set, options);
 		return true;
 	}
 	
