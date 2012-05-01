@@ -54,6 +54,8 @@ public class Scenario extends Definition {
 	}
 	
 	public static Scenario getAscending(IResource res) {
+		if (res == null)
+			return null;
 		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
 			Scenario s = get(c);
 			if (s != null)
@@ -64,10 +66,9 @@ public class Scenario extends Definition {
 	
 	public static Scenario nearestScenario(IResource resource) {
 		Scenario scenario;
-		for (scenario = null; scenario == null && resource != null; resource = resource.getParent()) {
+		for (scenario = null; scenario == null && resource != null; resource = resource.getParent())
 			if (resource instanceof IContainer)
 				scenario = get((IContainer)resource);
-		}
 		return scenario;
 	}
 
