@@ -65,6 +65,7 @@ public enum ParserErrorCode {
 	NotAProplist(Messages.NotAProplist),
 	UnknownSection(Messages.UnknownSection, Messages.ParserErrorCode_Arg_SectionName),
 	Unused(Messages.Unused, Messages.ParserErrorCode_Arg_Variable),
+	UnusedParameter(Messages.UnusedParameter, Messages.ParserErrorCode_Parameter_Name),
 	NotAnArrayOrProplist(Messages.NotAnArrayOrProplist),
 	VarOutsideFunction(Messages.VarOutsideFunction, Keywords.VarNamed, Keywords.GlobalNamed, Keywords.LocalNamed),
 	Garbage(Messages.Garbage, Messages.ParserErrorCode_Arg_Garbage),
@@ -172,16 +173,14 @@ public enum ParserErrorCode {
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
-		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
+		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++)
 			try {
 				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : ""); //$NON-NLS-1$
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
-		}
-		if (expressionRegion != null) {
+		if (expressionRegion != null)
 			setExpressionLocation(marker, expressionRegion);
-		}
 		return marker;
 	}
 

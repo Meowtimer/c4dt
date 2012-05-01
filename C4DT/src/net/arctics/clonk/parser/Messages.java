@@ -74,6 +74,7 @@ public class Messages extends NLS {
 	public static String ExpressionExpected;
 	public static String UnexpectedEnd;
 	public static String Unused;
+	public static String UnusedParameter;
 	public static String VarUsedBeforeItsDeclaration;
 	public static String NameExpected;
 	public static String ReturnAsFunction;
@@ -118,6 +119,7 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_Arg_Variable;
 	public static String ParserErrorCode_Arg_VariableType;
 	public static String ParserErrorCode_Arg_WeirdoNumber;
+	public static String ParserErrorCode_Parameter_Name;
 	public static String TooManyParameters;
 	static {
 		// initialize resource bundle
