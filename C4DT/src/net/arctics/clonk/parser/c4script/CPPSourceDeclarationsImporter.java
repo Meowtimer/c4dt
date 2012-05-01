@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 /**
  * Helper to import declarations from source files. Geared towards OpenClonk source.
@@ -34,9 +35,14 @@ public class CPPSourceDeclarationsImporter {
 	 * @param monitor Monitor used to monitor the progress of the operation.
 	 */
 	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) {
-		// also import from fn list in C4Script.cpp
-		for (String sourceFile : importsContainer.engine().settings().cppSources.split(","))
-			readDeclarationsFromSource(importsContainer, repository, sourceFile);
+		File pony = new Path(repository).append("scriptdefinitionsources.txt").toFile();
+		String[] sourceFiles;
+		if (pony.exists())
+			sourceFiles = StreamUtil.stringFromFile(pony).split("\n");
+		else
+			sourceFiles = importsContainer.engine().settings().cppSources.split(",");
+		for (String sourceFile : sourceFiles)
+			readDeclarationsFromSource(importsContainer, repository, sourceFile.trim());
 		if (monitor != null)
 			monitor.done();
 	}
@@ -50,10 +56,9 @@ public class CPPSourceDeclarationsImporter {
 		final int SECTION_C4ScriptConstMap = 2;
 		final int SECTION_C4ScriptFnMap = 3;
 
-		String c4ScriptFilePath = repository + sourceFilePath; //$NON-NLS-1$
-		File c4ScriptFile;
+		File c4ScriptFile = new Path(repository).append(sourceFilePath).toFile();
 		EngineSettings settings = importsContainer.engine().settings();
-		if ((c4ScriptFile = new File(c4ScriptFilePath)).exists()) {
+		if (c4ScriptFile.exists()) {
 			Matcher[] sectionStartMatchers = new Matcher[] {
 				Pattern.compile(settings.initFunctionMapPattern).matcher(""),
 				Pattern.compile(settings.constMapPattern).matcher(""),
@@ -131,9 +136,8 @@ public class CPPSourceDeclarationsImporter {
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 								String[] p = parms.split(","); //$NON-NLS-1$
 								List<Variable> parList = new ArrayList<Variable>(p.length);
-								for (String pa : p) {
+								for (String pa : p)
 									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
-								}
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
 							}
@@ -147,9 +151,8 @@ public class CPPSourceDeclarationsImporter {
 						String returnType = fnDeclarationMatcher.group(i++);
 						String name = fnDeclarationMatcher.group(i++);
 						// some functions to be ignored
-						if (name.equals("_goto") || name.equals("_this")) {
+						if (name.equals("_goto") || name.equals("_this"))
 							continue;
-						}
 						i++; // optional Object in C4AulContext
 						i++; // optional actual parameters with preceding comma
 						String parms = fnDeclarationMatcher.group(i++);
@@ -159,7 +162,7 @@ public class CPPSourceDeclarationsImporter {
 							fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 							String[] parmStrings = parms != null ? parms.split("\\,") : null;
 							List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
-							if (parmStrings != null) {
+							if (parmStrings != null)
 								for (String parm : parmStrings) {
 									int x;
 									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
@@ -167,7 +170,6 @@ public class CPPSourceDeclarationsImporter {
 									String type = parm.substring(0, x+1).trim();
 									parList.add(new Variable(pname, PrimitiveType.typeFromCPPType(type)));
 								}
-							}
 							fun.setParameters(parList);
 							importsContainer.addDeclaration(fun);
 						}
@@ -176,6 +178,7 @@ public class CPPSourceDeclarationsImporter {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
+		} else
+			System.out.println("c4");
 	}
 }
