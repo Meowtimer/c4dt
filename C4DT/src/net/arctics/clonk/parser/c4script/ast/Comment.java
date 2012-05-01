@@ -203,8 +203,8 @@ public class Comment extends Statement implements Statement.Attachment {
 		this.prependix = prependix;
 	}
 	
-	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\s*\\*?\\s*@param ([^\\s]*) (.*)$");
-	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\s*?\\*?\\s*@return (.*)$");
+	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\s*\\*?\\s*@param\\s*([^\\s:]*):? (.*)$");
+	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\s*?\\*?\\s*@return\\s*:? (.*)$");
 	private static final Pattern TAGPATTERN = Pattern.compile("\\\\([cb]) ([^\\s]*)");
 	private static final Pattern JAVADOCLINESTART = Pattern.compile("\\s*\\*");
 	
@@ -229,17 +229,16 @@ public class Comment extends Statement implements Statement.Attachment {
 					Variable parm = function.findParameter(parmName);
 					if (parm != null)
 						parm.setUserDescription(parmDesc);
-				} else if (returnDescMatcher.reset(line).matches()) {
+				} else if (returnDescMatcher.reset(line).matches())
 					function.setReturnDescription(returnDescMatcher.group(1));
-				} else {
+				else {
 					builder.append(line);
 					builder.append("\n");
 				}
 			}
 			function.setUserDescription(builder.toString());
-		} else {
+		} else
 			function.setUserDescription(this.text().trim());
-		}
 	}
 
 	private static String processTags(String line, Matcher lineStartMatcher) {
