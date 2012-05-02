@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.Literal;
@@ -37,17 +38,8 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			ExprElm expr = locator.expressionAtRegion();
 			if (expr == null)
 				return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());
-			else for (; expr != null; expr = expr.parent()) {
-				if (expr instanceof StringLiteral)
-					return new Region(func.body().getOffset()+expr.start()+1, expr.getLength()-2);
-				else if (expr instanceof Literal)
-					return new Region(func.body().getOffset()+expr.start(), expr.getLength());
-				else if (expr instanceof AccessDeclaration) {
-					AccessDeclaration accessDec = (AccessDeclaration) expr;
-					return new Region(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
-				} else if (expr instanceof PropListExpression || expr instanceof Block)
-					return new Region(expr.start()+func.body().getOffset(), expr.getLength());
-				else if (expr instanceof KeywordStatement) {
+			else for (; expr != null; expr = expr.parent())
+				if (expr instanceof KeywordStatement || expr instanceof Comment || expr instanceof StringLiteral) {
 					IRegion word = findWord(document, pos);
 					try {
 						if (word != null && !document.get(word.getOffset(), word.getLength()).equals("\t"))
@@ -57,8 +49,13 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 					} catch (BadLocationException e) {
 						continue;
 					}
-				}
-			}
+				} else if (expr instanceof Literal)
+					return new Region(func.body().getOffset()+expr.start(), expr.getLength());
+				else if (expr instanceof AccessDeclaration) {
+					AccessDeclaration accessDec = (AccessDeclaration) expr;
+					return new Region(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
+				} else if (expr instanceof PropListExpression || expr instanceof Block)
+					return new Region(expr.start()+func.body().getOffset(), expr.getLength());
 		}
 		return null;
 	}
