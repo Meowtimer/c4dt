@@ -1,7 +1,9 @@
 package net.arctics.clonk.parser;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
+import java.security.InvalidParameterException;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.util.StreamUtil;
@@ -68,17 +70,18 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 	
 	private static String stringFromSource(Object source) {
-		if (source instanceof IFile) {
+		if (source instanceof IFile)
 			return StreamUtil.stringFromFileDocument((IFile) source);
-		} else if (source instanceof Reader) {
+		else if (source instanceof Reader)
 			return StreamUtil.stringFromReader((Reader)source);
-		} else if (source instanceof InputStream) {
+		else if (source instanceof InputStream)
 			return StreamUtil.stringFromInputStream((InputStream)source);
-		} else if (source instanceof String) {
+		else if (source instanceof String)
 			return (String)source;
-		} else {
-			return "";
-		}
+		else if (source instanceof File)
+			return StreamUtil.stringFromFile((File) source);
+		else
+			throw new InvalidParameterException("source");
 	}
 
 	/**
@@ -144,9 +147,8 @@ public class BufferedScanner implements ICharacterScanner {
 			boolean win = offset == start+1
 				? isWordStart(readByte)
 				: isWordPart(readByte);
-			if (win) {
+			if (win)
 				length++;
-			}
 			else {
 				seek(start);
 				return readString(length);
@@ -165,12 +167,11 @@ public class BufferedScanner implements ICharacterScanner {
 		int subtract = 0;
 		Outer: do {
 			int readByte = read();
-			for (int i = 0; i < delimiters.length; i++) {
+			for (int i = 0; i < delimiters.length; i++)
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
-			}
 		} while(!reachedEOF());
 		int stringLength = offset - start - subtract;
 		seek(start);
@@ -182,12 +183,11 @@ public class BufferedScanner implements ICharacterScanner {
 		int len;
 		Outer: for (len = 0; !reachedEOF(); len++) {
 			int readByte = read();
-			for(int i = 0; i < delimiters.length;i++) {
+			for(int i = 0; i < delimiters.length;i++)
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
-			}
 		}
 		seek(this.offset-subtract);
 		return len;
@@ -212,9 +212,8 @@ public class BufferedScanner implements ICharacterScanner {
 	public String readLine() {
 		int start = offset;
 		String line = readStringUntil(NEWLINE_CHARS);
-		if (line == null) {
+		if (line == null)
 			return readStringAt(start, offset);
-		}
 		if (read() == '\r') {
 			if (read() != '\n')
 				unread();
@@ -238,11 +237,9 @@ public class BufferedScanner implements ICharacterScanner {
 	public void moveUntil(char[] delimiters) {
 		do {
 			int readByte = read();
-			for(int i = 0; i < delimiters.length;i++) {
-				if (readByte == delimiters[i]) {
+			for(int i = 0; i < delimiters.length;i++)
+				if (readByte == delimiters[i])
 					return;
-				}
-			}
 		} while(!reachedEOF());
 	}
 
@@ -257,13 +254,12 @@ public class BufferedScanner implements ICharacterScanner {
 		do {
 			int readByte = read();
 			boolean doEat = false;
-			for (int i = 0; i < charsToEat.length;i++) {
+			for (int i = 0; i < charsToEat.length;i++)
 				if (readByte == charsToEat[i]) {
 					doEat = true;
 					result++;
 					break;
 				}
-			}
 			if (!doEat) {
 				unread();
 				return result;
@@ -279,13 +275,12 @@ public class BufferedScanner implements ICharacterScanner {
 		do {
 			int readByte = read();
 			boolean isDelimiter = false;
-			for (int i = 0; i < delimiters.length;i++) {
+			for (int i = 0; i < delimiters.length;i++)
 				if (readByte == delimiters[i]) {
 					isDelimiter = true;
 					result++;
 					break;
 				}
-			}
 			if (isDelimiter) {
 				unread();
 				return result;
@@ -306,12 +301,11 @@ public class BufferedScanner implements ICharacterScanner {
 		if (pos >= s.length())
 			pos = s.length();
 		int tabs = 0;
-		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--) {
+		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
 			if (pos < s.length() && s.charAt(pos) == '\t')
 				tabs++;
 			else
 				tabs = 0; // don't count tabs not at the start of the line
-		}
 		return tabs;
 	}
 	

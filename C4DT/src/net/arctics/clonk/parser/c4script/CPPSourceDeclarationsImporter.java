@@ -56,9 +56,9 @@ public class CPPSourceDeclarationsImporter {
 		final int SECTION_C4ScriptConstMap = 2;
 		final int SECTION_C4ScriptFnMap = 3;
 
-		File c4ScriptFile = new Path(repository).append(sourceFilePath).toFile();
+		File sourceFile = new Path(repository).append(sourceFilePath).toFile();
 		EngineSettings settings = importsContainer.engine().settings();
-		if (c4ScriptFile.exists()) {
+		if (sourceFile.exists()) {
 			Matcher[] sectionStartMatchers = new Matcher[] {
 				Pattern.compile(settings.initFunctionMapPattern).matcher(""),
 				Pattern.compile(settings.constMapPattern).matcher(""),
@@ -70,8 +70,7 @@ public class CPPSourceDeclarationsImporter {
 			Matcher fnDeclarationMatcher = Pattern.compile(settings.fnDeclarationPattern).matcher("");
 
 			try {
-				String sourceContents = StreamUtil.stringFromFile(c4ScriptFile);
-				BufferedScanner scanner = new BufferedScanner(sourceContents);
+				BufferedScanner scanner = new BufferedScanner(sourceFile);
 				int section = SECTION_None;
 				int lineOffset = 0;
 				Outer: for (String line = scanner.readLine(); !scanner.reachedEOF(); lineOffset = scanner.tell(), line = scanner.readLine()) {
@@ -179,6 +178,6 @@ public class CPPSourceDeclarationsImporter {
 				e.printStackTrace();
 			}
 		} else
-			System.out.println("c4");
+			System.out.println("Missing source file " + sourceFilePath);
 	}
 }
