@@ -1,9 +1,10 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.convertArray;
-import static net.arctics.clonk.util.ArrayUtil.setFromIterable;
 
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,22 +84,16 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
 	private final Set<? extends IIndexEntity> entities;
-	private Index index;
 
-	public EntityChooser(String title, Shell shell, Set<? extends IIndexEntity> entities) {
+	public EntityChooser(String title, Shell shell, Collection<? extends IIndexEntity> entities) {
 		super(shell);
-		this.entities = entities;
+		this.entities = entities != null ? new HashSet<IIndexEntity>(entities) : null;
 		setTitle(title);
 		setListLabelProvider(new LabelProvider());
 	}
 	
-	public EntityChooser(String title, Shell shell, Iterable<? extends IIndexEntity> declarations) {
-		this(title, shell, setFromIterable(declarations));
-	}
-	
-	public EntityChooser(String title, Shell shell, Index index) {
-		this(title, shell, (Set<? extends IIndexEntity>)null);
-		this.index = index;
+	public EntityChooser(String title, Shell shell) {
+		this(title, shell, null);
 	}
 
 	@Override
@@ -126,7 +121,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	}
 	
 	@Override
-	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
+	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
 		final Pattern[] patternStrings = ((Filter)itemsFilter).getPatterns();
 		final Runnable refreshListRunnable = new Runnable() {
@@ -135,48 +130,49 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 				refresh();
 			}
 		};
-		if (index != null)
-			index.forAllRelevantIndexes(new Sink<Index>() {
-				@Override
-				public void receivedObject(Index index) {
-					index.allScripts(new Sink<Script>() {
-						int declarationsBatchSize = 0;
-						@Override
-						public void receivedObject(Script s) {
-							if (s.dictionary() != null) {
-								for (String str : s.dictionary()) {
-									for (Pattern ps : patternStrings) {
-										Matcher matcher = ps.matcher(str);
-										if (matcher.lookingAt()) {
-											s.requireLoaded();
-											for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
-												if (!(d instanceof Directive) && d.matchedBy(matcher)) {
-													contentProvider.add(d, itemsFilter);
-													if (++declarationsBatchSize == 5) {
-														Display.getDefault().asyncExec(refreshListRunnable);
-														declarationsBatchSize = 0;
-													}
-												}
-											return;
-										}
-									}
-								}
-							}
-						}
-					});
-				}
-			});
 		if (entities != null)
 			for (IIndexEntity d : entities)
-				contentProvider.add(d, itemsFilter);
+				if (d instanceof Index) {
+					Index index = (Index)d;
+					index.forAllRelevantIndexes(new Sink<Index>() {
+						@Override
+						public void receivedObject(Index index) {
+							index.allScripts(new Sink<Script>() {
+								int declarationsBatchSize = 0;
+								@Override
+								public void receivedObject(Script s) {
+									if (progressMonitor.isCanceled())
+										return;
+									if (s.dictionary() != null)
+										for (String str : s.dictionary())
+											for (Pattern ps : patternStrings) {
+												Matcher matcher = ps.matcher(str);
+												if (matcher.lookingAt()) {
+													s.requireLoaded();
+													for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
+														if (!(d instanceof Directive) && d.matchedBy(matcher)) {
+															contentProvider.add(d, itemsFilter);
+															if (++declarationsBatchSize == 5) {
+																Display.getDefault().asyncExec(refreshListRunnable);
+																declarationsBatchSize = 0;
+															}
+														}
+													return;
+												}
+											}
+								}
+							});
+						}
+					});
+				} else
+					contentProvider.add(d, itemsFilter);
 	}
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
 		IDialogSettings settings = Core.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
-		if (settings == null) {
+		if (settings == null)
 			settings = Core.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
-		}
 		return settings;
 	}
 

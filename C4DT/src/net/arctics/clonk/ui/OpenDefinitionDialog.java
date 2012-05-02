@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -10,6 +11,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -18,11 +20,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -32,7 +34,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	
 	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
 	
-	private ISelection selection;
+	private final ISelection selection;
 	
 	private static class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
@@ -49,7 +51,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	}
 	
 	public OpenDefinitionDialog(Shell shell) {
-		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), shell, (Index)null); //$NON-NLS-1$
+		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), shell); //$NON-NLS-1$
 		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
 		setListLabelProvider(new OpenDefinitionLabelProvider());
 	}
@@ -67,11 +69,9 @@ public class OpenDefinitionDialog extends EntityChooser {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			ClonkProjectNature nat = ClonkProjectNature.get(proj);
-			if (nat != null && nat.index() != null) {
-				for (Index index : nat.index().relevantIndexes()) {
+			if (nat != null && nat.index() != null)
+				for (Index index : nat.index().relevantIndexes())
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
-				}
-			}
 		}
 	}
 
@@ -88,9 +88,8 @@ public class OpenDefinitionDialog extends EntityChooser {
 				progressMonitor.worked(1);
 			}
 		});
-		for (Scenario s : index.indexedScenarios()) {
+		for (Scenario s : index.indexedScenarios())
 			contentProvider.add(s, itemsFilter);
-		}
 		progressMonitor.done();
 	}
 
