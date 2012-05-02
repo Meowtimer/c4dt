@@ -172,3 +172,5 @@ are then taken into account in various places
 -Javadoc comments picked up (@param, @return)
 -Remove silly refactoring prompt after DefCore.txt ID changed
 -TODO/FIXME markers comments containing those words
+-Fix issues with C4DT not finding the cpp source files to read OC definitions from
+-Add some more logic to prevent scenario-local #appendtos from bleeding over to other regions of a project outside of that scenario
