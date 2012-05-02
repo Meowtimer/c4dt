@@ -358,7 +358,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 			info.searchOrigin = context.containingScript();
 			info.contextFunction = context.currentFunction();
-			info.findDefinitions = pred == null;
+			info.findGlobalVariables = pred == null;
 			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
 			if (dec instanceof Function && context.currentFunction() != null) {

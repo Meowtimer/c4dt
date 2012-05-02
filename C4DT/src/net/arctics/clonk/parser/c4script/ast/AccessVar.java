@@ -88,12 +88,11 @@ public class AccessVar extends AccessDeclaration {
 				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
 				info.contextFunction = sequencePredecessor == null ? context.currentFunction() : null;
 				info.searchOrigin = scriptToLookIn;
-				info.findDefinitions = sequencePredecessor == null;
+				info.findGlobalVariables = sequencePredecessor == null;
 				Declaration v = scriptToLookIn.findDeclaration(declarationName, info);
-				if (v instanceof Definition) {
-				//	context.performParsingPhaseTwo((Definition)v);
+				if (v instanceof Definition)
+					//	context.performParsingPhaseTwo((Definition)v);
 					v = ((Definition)v).proxyVar();
-				}
 				if (v != null)
 					return v;
 			}
@@ -120,9 +119,8 @@ public class AccessVar extends AccessDeclaration {
 						if (
 							(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.scope() != Scope.LOCAL)
-						) {
+						)
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
-						}
 					}
 					break;
 				case STATIC: case CONST:
@@ -136,15 +134,9 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 			}
-		} else if (declaration instanceof Function) {
+		} else if (declaration instanceof Function)
 			if (!parser.script().engine().settings().supportsFunctionRefs)
 				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
-		}
-		/*
-		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
-			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW, this.declarationName());
-		}
-		*/
 	}
 
 	public static ITypeInfo createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
@@ -184,7 +176,7 @@ public class AccessVar extends AccessDeclaration {
 			return;
 		if (declaration() == null) {
 			IType predType = predecessorType(context);
-			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
+			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST))
 				if (predType instanceof IProplistDeclaration) {
 					IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
@@ -193,7 +185,7 @@ public class AccessVar extends AccessDeclaration {
 						proplDecl.addComponent(var);
 						declaration = var;
 					}
-				} else for (IType t : predType) {
+				} else for (IType t : predType)
 					if (t == context.script()) {
 						Variable var = new Variable(declarationName(), Variable.Scope.LOCAL);
 						var.initializeFromAssignment(this, expression, context);
@@ -201,8 +193,6 @@ public class AccessVar extends AccessDeclaration {
 						declaration = var;
 						break;
 					}
-				}
-			}
 		}
 		super.assignment(expression, context);
 	}
@@ -234,9 +224,8 @@ public class AccessVar extends AccessDeclaration {
 					val = 1337; // awesome fallback
 				return val;
 			}
-			else if ((obj = definitionProxiedBy(var)) != null) {
+			else if ((obj = definitionProxiedBy(var)) != null)
 				return obj.id(); // just return the id
-			}
 		}
 		return super.evaluateAtParseTime(context);
 	}
