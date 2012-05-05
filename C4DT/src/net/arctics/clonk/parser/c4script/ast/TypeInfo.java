@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class TypeInfo implements ITypeInfo, Cloneable {
 
@@ -27,7 +27,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 			type = TypeSet.create(type, hint);
 		else
 			// false -> wrong hint
-			// true -> type is at least contained in the hint so it is somewhat correct   
+			// true -> hinted type and current type intersect so it is somewhat correct   
 			return type.intersects(hint);
 		return true;
 	}

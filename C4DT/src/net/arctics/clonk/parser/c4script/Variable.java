@@ -269,11 +269,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	public IRegion initializationExpressionLocation() {
-		if (initializationExpression instanceof ExprElm) {
+		if (initializationExpression instanceof ExprElm)
 			return initializationExpression;
-		} else {
+		else
 			return null; // const value not sufficient
-		}
 	}
 	
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
@@ -309,11 +308,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 					return item.doesInclude(project.index(), def);
 				}
 			});
-			for (Script script : index.indexedScripts()) {
-				if (script.doesInclude(project.index(), def)) {
+			for (Script script : index.indexedScripts())
+				if (script.doesInclude(project.index(), def))
 					result.add(script);
-				}
-			}
 			// scenarios... unlikely
 			return result.toArray();
 		}
@@ -352,12 +349,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
-		if (initializationExpression instanceof IPostLoadable) {
+		if (initializationExpression instanceof IPostLoadable)
 			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, declarationObtainmentContext());
-		}
-		if (initializationExpression instanceof PropListExpression) {
+		if (initializationExpression instanceof PropListExpression)
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
-		}
 	}
 
 	/**
@@ -378,11 +373,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if (initializationExpression instanceof IHasSubDeclarations) {
+		if (initializationExpression instanceof IHasSubDeclarations)
 			return ((IHasSubDeclarations)initializationExpression).subDeclarations(contextIndex, mask);
-		} else {
+		else
 			return super.subDeclarations(contextIndex, mask);
-		}
 	}
 	
 	/**

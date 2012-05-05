@@ -168,15 +168,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public Scenario scenario() {
 		Object file = script() != null ? script().scriptStorage() : null;
-		if (file instanceof IResource) {
-			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
+		if (file instanceof IResource)
+			for (IResource r = (IResource) file; r != null; r = r.getParent())
 				if (r instanceof IContainer) {
 					Scenario s = Scenario.get((IContainer) r);
 					if (s != null)
 						return s;
 				}
-			}
-		}
 		return null;
 	}
 	
@@ -370,17 +368,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		boolean underscore = false;
 		for (int i = 0; i < name.length(); i++) {
 			char c = name.charAt(i);
-			if (i > 0 && c == '_') {
+			if (i > 0 && c == '_')
 				if (!underscore)
 					underscore = true;
 				else
 					return false;
-			}
-			if (!underscore) {
-				if (Character.toUpperCase(c) != c) {
+			if (!underscore)
+				if (Character.toUpperCase(c) != c)
 					return false;
-				}
-			}
 		}
 		return underscore || name.equals(name.toUpperCase());
 	}
@@ -413,9 +408,8 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @param declaration
 	 */
 	public void absorb(Declaration declaration) {
-		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription) {
+		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription)
 			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).obtainUserDescription());
-		}
 	}
 	
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
@@ -536,14 +530,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	public String makeNameUniqueToParent() {
 		int othersWithSameName = 0;
 		int ownIndex = -1;
-		for (Declaration d : parentDeclaration().accessibleDeclarations(ALL|OTHER)) {
+		for (Declaration d : parentDeclaration().accessibleDeclarations(ALL|OTHER))
 			if (d == this) {
 				ownIndex = othersWithSameName++;
 				continue;
 			}
 			else if (d.name().equals(this.name()))
 				othersWithSameName++;
-		}
 		if (othersWithSameName == 1)
 			return name();
 		else
@@ -557,7 +550,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public String pathRelativeToIndexEntity() {
 		StringBuilder builder = new StringBuilder();
-		for (Declaration d = this; d != null; d = d.parentDeclaration()) {
+		for (Declaration d = this; d != null; d = d.parentDeclaration())
 			if (d instanceof IndexEntity)
 				break;
 			else {
@@ -565,7 +558,6 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 					builder.insert(0, '.');
 				builder.insert(0, d.name());
 			}
-		}
 		return builder.toString();
 	}
 	

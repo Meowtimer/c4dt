@@ -28,7 +28,8 @@ public enum PrimitiveType implements IType {
 	REFERENCE,
 	PROPLIST,
 	FUNCTION,
-	FLOAT;
+	FLOAT,
+	NUM;
 	
 	private String lowercaseName;
 	
@@ -41,9 +42,8 @@ public enum PrimitiveType implements IType {
 	public String typeName(boolean special) {
 		if (!special && this == REFERENCE)
 			return "&"; //$NON-NLS-1$
-		if (lowercaseName == null) {
+		if (lowercaseName == null)
 			lowercaseName = super.toString().toLowerCase();
-		}
 		return lowercaseName;
 	}
 
@@ -82,17 +82,15 @@ public enum PrimitiveType implements IType {
 	public static PrimitiveType typeFromCPPType(String type) {
 		Matcher m;
 		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
-		if (ty != null) {
+		if (ty != null)
 			return ty;
-		}
-		if ((m = nillablePattern.matcher(type)).matches()) {
+		if ((m = nillablePattern.matcher(type)).matches())
 			return typeFromCPPType(m.group(1));
-		} else if ((m = pointerTypePattern.matcher(type)).matches()) {
+		else if ((m = pointerTypePattern.matcher(type)).matches()) {
 			String t = m.group(1);
 			ty = typeFromCPPType(t);
-			if (ty != null) {
+			if (ty != null)
 				return ty;
-			}
 		}
 		return PrimitiveType.UNKNOWN; 
 	}
@@ -106,18 +104,22 @@ public enum PrimitiveType implements IType {
 	public boolean canBeAssignedFrom(IType other) {
 		if (other != null) for (IType t : other) {
 			t = t.staticType();
-			if (t == this)
+			if (t == this || t == UNKNOWN || t == REFERENCE || t == ANY)
 				return true;
-			if (t.getClass() == PrimitiveType.class) {
-				switch ((PrimitiveType)t) {
+			if (t instanceof PrimitiveType)
+				switch (this) {
 				case UNKNOWN: case ANY: case REFERENCE:
 					return true;
 				default:
 					switch (this) {
-					case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+					case BOOL:
 						return true;
 					case INT:
-						if (other == BOOL)
+						if (t == BOOL)
+							return true;
+						break;
+					case NUM:
+						if (t == INT || t == FLOAT)
 							return true;
 						break;
 					case PROPLIST:
@@ -126,11 +128,9 @@ public enum PrimitiveType implements IType {
 						break;
 					case OBJECT:
 						if (t == PROPLIST)
-							return true;
-						break;
+							return true; // nya nya
 					}
 				}
-			}
 		}
 		return false;
 	}
@@ -225,12 +225,10 @@ public enum PrimitiveType implements IType {
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet) {
-			for (IType t2 : this) {
+		for (IType t : typeSet)
+			for (IType t2 : this)
 				if (t.canBeAssignedFrom(t2) || t2.canBeAssignedFrom(t))
 					return true;
-			}
-		}
 		return false;
 	}
 
@@ -239,7 +237,7 @@ public enum PrimitiveType implements IType {
 		IType staticType = type.staticType();
 		if (staticType == this)
 			return true;
-		if (staticType instanceof PrimitiveType) {
+		if (staticType instanceof PrimitiveType)
 			switch ((PrimitiveType)staticType) {
 			case ARRAY:
 			case ID:
@@ -254,7 +252,6 @@ public enum PrimitiveType implements IType {
 			case REFERENCE: case ANY: case UNKNOWN:
 				return true;
 			}
-		}
 		return false;
 	}
 	
