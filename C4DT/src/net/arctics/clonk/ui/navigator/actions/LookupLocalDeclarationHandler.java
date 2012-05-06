@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.actions.c4script;
+package net.arctics.clonk.ui.navigator.actions;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.core.commands.AbstractHandler;

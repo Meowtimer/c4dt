@@ -7,6 +7,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -15,6 +16,7 @@ import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 

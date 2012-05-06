@@ -4,11 +4,11 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -117,9 +117,8 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
-		if (IContentOutlinePage.class.equals(adapter)) {
+		if (IContentOutlinePage.class.equals(adapter))
 			return getOutlinePage();
-		}
 		if (IShowInSource.class.equals(adapter) || IShowInTargetList.class.equals(adapter)) {
 			if (showInAdapter == null)
 				showInAdapter = new ShowInAdapter(this);
@@ -138,35 +137,34 @@ public class ClonkTextEditor extends TextEditor {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		Structure structure = target.topLevelStructure();
-		if (structure instanceof IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) {
-			IEditorPart ed = ((IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) structure).getEditor();
+		if (structure instanceof IHasEditorPart) {
+			IEditorPart ed = ((IHasEditorPart) structure).editorPart();
 			revealInEditor(target, structure, ed);
 			return ed;
 		}
 		if (structure != null) {
 			IEditorInput input = structure.makeEditorInput();
-			if (input != null) {
+			if (input != null)
 				try {
 					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
-					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor";  //$NON-NLS-1$
-					IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
-					revealInEditor(target, structure, editor);
-					return editor;
+					if (descriptor != null) {
+						IEditorPart editor = IDE.openEditor(workbenchPage, input, descriptor.getId(), activate);
+						revealInEditor(target, structure, editor);
+						return editor;
+					} else
+						return null;
 				} catch (PartInitException e) {
 					e.printStackTrace();
 				}
-			}
-			// if a definition has no script fall back to opening DefCore.txt
 			else if (structure instanceof Definition) {
 				Definition obj = (Definition) structure;
 				IFile defCore = obj.defCoreFile();
-				if (defCore != null) {
+				if (defCore != null)
 					try {
 						IDE.openEditor(workbenchPage, defCore);
 					} catch (PartInitException e) {
 						e.printStackTrace();
 					}
-				}
 			}
 		}
 		return null;
@@ -196,17 +194,23 @@ public class ClonkTextEditor extends TextEditor {
 			}
 			else if (location.resource() instanceof IContainer) {
 				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.resource());
-				if (def != null) {
+				if (def != null)
 					ed = openDeclaration(def);
-				}
 			}
-			if (ed instanceof ClonkTextEditor) {
+			if (ed instanceof ClonkTextEditor)
 				((ClonkTextEditor) ed).selectAndReveal(location.location());
-			}
 			return ed;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return null;
+	}
+	
+	protected void refreshStructure() {
+
+	}
+
+	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion r) {
 		return null;
 	}
 
@@ -220,13 +224,8 @@ public class ClonkTextEditor extends TextEditor {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure && target.location() != null) {
-				if (structure.isDirty() && clonkTextEditor instanceof C4ScriptEditor) {
-					try {
-						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
+				if (structure.isDirty())
+					clonkTextEditor.refreshStructure();
 				Declaration old = target;
 				target = target.latestVersion();
 				if (target == null)
@@ -308,9 +307,8 @@ public class ClonkTextEditor extends TextEditor {
 		super.doSetInput(input);
 		// set part name to reflect the folder the file is in
 		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
-		if (res != null && res.getParent() != null) {
+		if (res != null && res.getParent() != null)
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
-		}
 	}
 
 	@Override
@@ -338,18 +336,14 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-			for (IWorkbenchPage page : window.getPages()) {
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (IWorkbenchPage page : window.getPages())
 				for (IEditorReference reference : page.getEditorReferences()) {
 					IEditorPart editor = reference.getEditor(false);
-					if (editor != null && cls.isAssignableFrom(editor.getClass())) {
-						if (((ClonkTextEditor) editor).getSourceViewer().equals(sourceViewer)) {
+					if (editor != null && cls.isAssignableFrom(editor.getClass()))
+						if (((ClonkTextEditor) editor).getSourceViewer().equals(sourceViewer))
 							return (T) editor;
-						}
-					}
 				}
-			}
-		}
 		return null;
 	}
 	
@@ -362,18 +356,14 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-			for (IWorkbenchPage page : window.getPages()) {
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (IWorkbenchPage page : window.getPages())
 				for (IEditorReference reference : page.getEditorReferences()) {
 					IEditorPart editor = reference.getEditor(false);
-					if (editor != null && cls.isAssignableFrom(editor.getClass())) {
-						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource)) {
+					if (editor != null && cls.isAssignableFrom(editor.getClass()))
+						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource))
 							return (T) editor;
-						}
-					}
 				}
-			}
-		}
 		return null;
 	}
 	

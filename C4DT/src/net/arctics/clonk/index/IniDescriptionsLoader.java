@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.arctics.clonk.parser.c4script.IHasName;
-import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -21,6 +20,7 @@ import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
 
 public class IniDescriptionsLoader {

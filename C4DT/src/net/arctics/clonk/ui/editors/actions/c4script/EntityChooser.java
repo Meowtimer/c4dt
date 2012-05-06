@@ -10,11 +10,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Directive;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
-import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;

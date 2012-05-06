@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;

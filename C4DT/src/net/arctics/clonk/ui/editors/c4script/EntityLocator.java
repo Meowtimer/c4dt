@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
@@ -15,7 +16,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;

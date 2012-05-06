@@ -3,8 +3,8 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;

@@ -397,25 +397,25 @@
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenDefinition_Desc"
 			id="net.arctics.clonk.ui.OpenDefinition"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenDefinitionHandler"
+			defaultHandler="net.arctics.clonk.ui.navigator.actions.OpenDefinitionHandler"
 			name="%OpenDefinition_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenLocalResource_Desc"
 			id="net.arctics.clonk.ui.OpenLocalResource"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceHandler"
+			defaultHandler="net.arctics.clonk.ui.navigator.actions.OpenLocalResourceHandler"
 			name="%OpenLocalResource_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%LookupDeclaration_Desc"
 			id="net.arctics.clonk.ui.LookupDeclaration"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.LookupDeclarationHandler"
+			defaultHandler="net.arctics.clonk.ui.navigator.actions.LookupDeclarationHandler"
 			name="%LookupDeclaration_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%LookupLocalDeclaration_Desc"
 			id="net.arctics.clonk.ui.LookupLocalDeclaration"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.LookupLocalDeclarationHandler"
+			defaultHandler="net.arctics.clonk.ui.navigator.actions.LookupLocalDeclarationHandler"
 			name="%LookupLocalDeclaration_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"

@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;

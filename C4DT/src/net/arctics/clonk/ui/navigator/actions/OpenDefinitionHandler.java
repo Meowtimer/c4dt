@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.actions.c4script;
+package net.arctics.clonk.ui.navigator.actions;
 
 import net.arctics.clonk.Core;
 

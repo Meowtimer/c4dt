@@ -21,13 +21,6 @@ public class FunctionType implements IType {
 	
 	public FunctionType(Function function) {
 		this.prototype = function;
-		/*new Function(function.name(), FunctionScope.PUBLIC);
-		this.prototype.setParameters(list(map(function.parameters(), new IConverter<Variable, Variable>() {
-			@Override
-			public Variable convert(Variable from) {
-				return new Variable(from.name(), from.type());
-			}
-		}))); */
 	}
 
 	@Override

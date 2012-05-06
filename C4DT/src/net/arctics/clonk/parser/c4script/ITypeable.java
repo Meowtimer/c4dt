@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 
 /**

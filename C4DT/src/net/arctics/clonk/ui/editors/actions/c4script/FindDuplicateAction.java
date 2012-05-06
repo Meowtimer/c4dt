@@ -7,13 +7,14 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.search.DuplicatesQuery;
 
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class FindDuplicateAction extends C4ScriptEditorAction {
+public class FindDuplicateAction extends ClonkTextEditorAction {
 	public FindDuplicateAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor, ClonkCommandIds.FIND_DUPLICATES);
 	}

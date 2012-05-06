@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.preferences.ClonkPreferences;

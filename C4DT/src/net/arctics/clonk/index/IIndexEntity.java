@@ -1,8 +1,7 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.index;
 
 import java.util.regex.Matcher;
 
-import net.arctics.clonk.index.Index;
 
 /**
  * Some named or describable entity contained in a {@link Index}

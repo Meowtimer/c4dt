@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Script;
 

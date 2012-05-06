@@ -1,7 +1,11 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.index;
 
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasName;
+import net.arctics.clonk.parser.c4script.Variable;
 
 /**
  * Declaration that has sub declarations. 

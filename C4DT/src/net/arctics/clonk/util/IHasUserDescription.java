@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.util;
 
 public interface IHasUserDescription {
 	String obtainUserDescription();

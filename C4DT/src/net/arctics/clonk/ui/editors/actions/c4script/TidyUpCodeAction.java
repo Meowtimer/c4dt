@@ -8,10 +8,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;

@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -21,7 +22,6 @@ import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.EffectPropListDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;

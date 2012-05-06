@@ -2,7 +2,6 @@ package net.arctics.clonk.index;
 
 import java.util.regex.Matcher;
 
-import net.arctics.clonk.parser.c4script.IIndexEntity;
 import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;

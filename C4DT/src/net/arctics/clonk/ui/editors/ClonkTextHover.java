@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.parser.c4script.IIndexEntity;
+import net.arctics.clonk.index.IIndexEntity;
 
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;

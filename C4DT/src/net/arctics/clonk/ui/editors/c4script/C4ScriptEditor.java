@@ -15,6 +15,8 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -25,7 +27,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -42,13 +43,13 @@ import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
-import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
+import net.arctics.clonk.ui.editors.IHasEditorPart;
 import net.arctics.clonk.ui.editors.TextChangeListenerBase;
-import net.arctics.clonk.ui.editors.actions.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
+import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -63,6 +64,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
@@ -114,7 +116,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @author madeen
 	 *
 	 */
-	private static final class ScratchScript extends Script implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
+	private static final class ScratchScript extends Script implements IHasEditorPart {
 		private transient final C4ScriptEditor editor;
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -136,7 +138,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public ITextEditor getEditor() {
+		public ITextEditor editorPart() {
 			return editor;
 		}
 	}
@@ -171,25 +173,22 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public void documentChanged(DocumentEvent event) {
 			super.documentChanged(event);
 			final Function f = structure.funcAt(event.getOffset());
-			if (f != null && !f.isOldStyle()) {
+			if (f != null && !f.isOldStyle())
 				// editing inside new-style function: adjust locations of declarations without complete reparse
 				// only recheck the function and display problems after delay
 				scheduleReparsingOfFunction(f);
-			} else {
+			else
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing(true);
-			}
 		}
 		
 		@Override
 		protected void adjustDec(Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
-			if (declaration instanceof Function) {
+			if (declaration instanceof Function)
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).body(), offset, add);
-			}
-			for (Declaration v : declaration.subDeclarations(declaration.index(), IHasSubDeclarations.ALL)) {
+			for (Declaration v : declaration.subDeclarations(declaration.index(), IHasSubDeclarations.ALL))
 				adjustDec(v, offset, add);
-			}
 		}
 
 		public void scheduleReparsing(final boolean onlyDeclarations) {
@@ -223,13 +222,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		public static void removeMarkers(Function func, Script script) {
-			if (script != null && script.resource() != null) {
+			if (script != null && script.resource() != null)
 				try {
 					// delete all "while typing" errors
 					IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
-					for (IMarker m : markers) {
+					for (IMarker m : markers)
 						m.delete();
-					}
 					// delete regular markers that are in the region of interest
 					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.body() : null;
@@ -252,7 +250,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-			}
 		}
 		
 		private void scheduleReparsingOfFunction(final Function fn) {
@@ -272,10 +269,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									int severity, Object... args) {
 								if (!parser.errorEnabled(code))
 									return WhatToDo.DropCharges;
-								if (structure.scriptStorage() instanceof IFile) {
+								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
-								}
 								return WhatToDo.PassThrough;
 							}
 						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
@@ -345,11 +341,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected void setDocumentProvider(IEditorInput input) {
-		if (input instanceof ScriptWithStorageEditorInput) {
+		if (input instanceof ScriptWithStorageEditorInput)
 			setDocumentProvider(new ExternalScriptsDocumentProvider(this));
-		} else {
+		else
 			super.setDocumentProvider(input);
-		}
 	}
 	
 	@Override
@@ -368,16 +363,42 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
+	protected void refreshStructure() {
+		try {
+			reparseWithDocumentContents(null, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion region) {
+		try {
+			EntityLocator info = new EntityLocator(
+				this,
+				this.getDocumentProvider().getDocument(this.getEditorInput()),
+				region
+				);
+			if (info.entity() != null)
+				return info.entity();
+			else if (fallbackToCurrentFunction)
+				return functionAt(region.getOffset());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@Override
 	protected void editorSaved() {
 		if (textChangeListener != null)
 			textChangeListener.cancelReparsingTimer();
-		if (script() instanceof ScratchScript) {
+		if (script() instanceof ScratchScript)
 			try {
 				reparseWithDocumentContents(null, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
 		super.editorSaved();
 	}
 
@@ -509,9 +530,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public Script script() {
 		Script result = null;
 		
-		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
+		if (getEditorInput() instanceof ScriptWithStorageEditorInput)
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
-		}
 
 		if (result == null) {
 			IFile f = Utilities.fileBeingEditedBy(this);
@@ -570,9 +590,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
 		C4ScriptParser parser = null;
-		if (document instanceof IDocument) {
+		if (document instanceof IDocument)
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
-		} else if (document instanceof IFile) {
+		else if (document instanceof IFile)
 			try {
 				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
 					@Override
@@ -583,7 +603,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
-		}
 		if (parser == null)
 			throw new InvalidParameterException("document");
 		List<ITypeInfo> storedLocalsTypeInformation = null;
@@ -603,11 +622,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.script().generateFindDeclarationCache();
 		//if (!onlyDeclarations)
 			parser.parseCodeOfFunctionsAndValidate();
-		if (storedLocalsTypeInformation != null) {
-			for (ITypeInfo info : storedLocalsTypeInformation) {
+		if (storedLocalsTypeInformation != null)
+			for (ITypeInfo info : storedLocalsTypeInformation)
 				info.apply(false, parser);
-			}
-		}
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
@@ -646,10 +663,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			expr = locator.expressionAtRegion();
 			expr != null;
 			expr = expr.parent()
-		) {
-			 if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
+		)
+			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
 				 break;
-		}
 		if (expr != null) {
 			IFunctionCall callFunc = (IFunctionCall) expr;
 			ExprElm prev = null;
@@ -671,9 +687,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void initializeEditor() {
 		IFile file = fileBeingEditedBy(this);
-		if (file != null) {
+		if (file != null)
 			ClonkProjectNature.get(file).index();
-		}
 		super.initializeEditor();
 	}
 

@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;

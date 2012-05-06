@@ -5,7 +5,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Set;
 
-import net.arctics.clonk.parser.c4script.IIndexEntity;
+import net.arctics.clonk.index.IIndexEntity;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
