@@ -3055,7 +3055,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			else {
 				// type is name
-				warningWithCode(ParserErrorCode.TypeAsName, 0, s, e, firstWord);
+				warningWithCode(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
 				var.forceType(PrimitiveType.ANY, typeLocked);
 				var.setName(firstWord);
 				this.seek(e);
