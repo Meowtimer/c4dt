@@ -61,30 +61,10 @@ public class ReferencesQuery extends SearchQueryBase {
 	
 	private class UltimateListener extends ScriptParserListener implements IResourceVisitor {
 
-		private StringLiteral functionNameExpr;
-
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;
 				return callFunc.declarationName().equals(declaration.name());
-			}
-			return false;
-		}
-
-		private boolean potentiallyReferencedByCallFunction(AccessDeclaration expression, C4ScriptParser parser) {
-			functionNameExpr = null;
-			if (expression instanceof CallDeclaration) {
-				CallDeclaration callFunc = (CallDeclaration) expression;
-				for (ExprElm e : callFunc.params()) {
-					// ask the string literals whether they might refer to a function
-					if (e instanceof StringLiteral) {
-						functionNameExpr = (StringLiteral) e;
-						EntityRegion decRegion = e.declarationAt(0, parser);
-						if (decRegion != null)
-							return decRegion.entityAs(Declaration.class) == declaration;
-						break;
-					}
-				}
 			}
 			return false;
 		}
@@ -96,9 +76,6 @@ public class ReferencesQuery extends SearchQueryBase {
 				Declaration dec = accessDeclExpr.declarationFromContext(parser);
 				if (dec != null && dec.latestVersion() == declaration)
 					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-				else if (Utilities.isAnyOf(accessDeclExpr.declaration(), expression.cachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
-					result.addMatch(functionNameExpr, parser, true, true);
-				}
 				else if (potentiallyReferencedByObjectCall(expression)) {
 					Function otherFunc = (Function) accessDeclExpr.declaration();
 					boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
@@ -108,6 +85,11 @@ public class ReferencesQuery extends SearchQueryBase {
 			else if (expression instanceof IDLiteral && declaration instanceof Script) {
 				if (expression.guessObjectType(parser) == declaration)
 					result.addMatch(expression, parser, false, false);
+			}
+			else if (expression instanceof StringLiteral) {
+				EntityRegion decRegion = expression.declarationAt(0, parser);
+				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
+					result.addMatch(expression, parser, true, true);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -121,9 +103,8 @@ public class ReferencesQuery extends SearchQueryBase {
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
 				Script script = Script.get(resource, true);
-				if (script != null) {
+				if (script != null)
 					searchScript(resource, script);
-				}
 			}
 			return true;
 		}
@@ -155,10 +136,9 @@ public class ReferencesQuery extends SearchQueryBase {
 		getSearchResult(); // make sure we have one
 		UltimateListener listener = new UltimateListener();
 		try {
-			for (Object scope : this.scope) {
-				if (scope instanceof IContainer) {
+			for (Object scope : this.scope)
+				if (scope instanceof IContainer)
 					((IContainer)scope).accept(listener);
-				}
 				else if (scope instanceof Script) {
 					Script script = (Script) scope;
 					listener.searchScript((IResource) script.scriptStorage(), script);
@@ -169,7 +149,6 @@ public class ReferencesQuery extends SearchQueryBase {
 					parser.setCurrentFunc(func);
 					parser.reportExpressionsAndStatements(func, listener, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				}
-			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -180,14 +159,14 @@ public class ReferencesQuery extends SearchQueryBase {
 	private void searchScriptRelatedFiles(Script script) throws CoreException {
 		if (script instanceof Definition) {
 			IContainer objectFolder = ((Definition)script).scriptStorage().getParent();
-			for (IResource res : objectFolder.members()) {
+			for (IResource res : objectFolder.members())
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;
 					Structure pinned = Structure.pinned(file, true, false);
 					if (pinned instanceof IniUnit) {
 						IniUnit iniUnit = (IniUnit) pinned;
-						for (IniSection sec : iniUnit) {
-							for (IniItem entry : sec) {
+						for (IniSection sec : iniUnit)
+							for (IniItem entry : sec)
 								if (entry instanceof ComplexIniEntry) {
 									ComplexIniEntry complex = (ComplexIniEntry) entry;
 									if (complex.entryConfig() != null) {
@@ -200,27 +179,21 @@ public class ReferencesQuery extends SearchQueryBase {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
 										}
-										else if (declaration instanceof Definition) {
+										else if (declaration instanceof Definition)
 											if (entryClass == ID.class) {
-												if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration) {
+												if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
-												}
 											}
-											else if (entryClass == IDArray.class) {
+											else if (entryClass == IDArray.class)
 												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
 													Definition obj = script.index().anyDefinitionWithID(pair.key());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
-											}
-										}
 									}
 								}
-							}
-						}
 					}
 				}
-			}
 		}
 	}
 	
