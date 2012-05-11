@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 /**
  * A {} block
@@ -69,18 +70,16 @@ public class Block extends Statement {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
-		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
+		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements))
 			return new BunchOfStatements(statements);
-		}
 		// uncomment never-reached statements
 		boolean notReached = false;
 		Statement[] commentedOutList = null;
 		for (int i = 0; i < statements.length; i++) {
 			Statement s = statements[i];
 			if (notReached) {
-				if (commentedOutList != null) {
+				if (commentedOutList != null)
 					commentedOutList[i] = s instanceof Comment ? s : s.commentedOut();
-				}
 				else if (!(s instanceof Comment)) {
 					commentedOutList = new Statement[statements.length];
 					System.arraycopy(statements, 0, commentedOutList, 0, i);
@@ -118,6 +117,14 @@ public class Block extends Statement {
 			result.addAll(cfs);
 		}
 		return result;
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		for (ExprElm s : subElements())
+			if (s != null)
+				s.evaluate(context);
+		return null;
 	}
 
 }

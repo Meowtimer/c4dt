@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -315,11 +316,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					output.append(' ');
 				}
 			}
-			if (output.length() > 0) {
-				if (output.charAt(output.length() - 1) == ' ') {
+			if (output.length() > 0)
+				if (output.charAt(output.length() - 1) == ' ')
 					output.delete(output.length() - 2,output.length());
-				}
-			}
 		}
 	}
 
@@ -394,9 +393,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append(line);
 		if (numParameters() > 0) {
 			builder.append("<br/><b>"+Messages.Parameters+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
-			for (Variable p : parameters()) {
+			for (Variable p : parameters())
 				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			}
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		if (returnType() != PrimitiveType.UNKNOWN) {
@@ -425,14 +423,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (declarationClass.isAssignableFrom(Variable.class)) {
 			if (declarationName.equals(Variable.THIS.name()))
 				return Variable.THIS;
-			for (Variable v : localVars) {
+			for (Variable v : localVars)
 				if (v.name().equals(declarationName))
 					return v;
-			}
-			for (Variable p : parameters) {
+			for (Variable p : parameters)
 				if (p.name().equals(declarationName))
 					return p;
-			}
 		}
 		return null;
 	}
@@ -530,9 +526,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param num Number of parameters to create
 	 */
 	public void createParameters(int num) {
-		for (int i = parameters.size(); i < num; i++) {
+		for (int i = parameters.size(); i < num; i++)
 			parameters.add(new Variable("par"+i, Scope.VAR)); //$NON-NLS-1$
-		}
 	}
 
 	/**
@@ -601,9 +596,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
-		if (mode == TypeExpectancyMode.Force) {
+		if (mode == TypeExpectancyMode.Force)
 			ITypeable.Default.expectedToBeOfType(this, t);
-		}
 	}
 
 	@Override
@@ -696,7 +690,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return the result
 	 */
 	public Object invoke(Object... args) {
-		return null;
+		try {
+			return codeBlock != null ? codeBlock.evaluate(this) : null;
+		} catch (ControlFlowException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	@Override
@@ -726,9 +725,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append(" {\n"); //$NON-NLS-1$
 			break;
 		}
-		if (cookie instanceof ExprElm) {
+		if (cookie instanceof ExprElm)
 			((ExprElm)cookie).print(builder, 1);
-		}
 		builder.append("\n}"); //$NON-NLS-1$
 	}
 
@@ -737,9 +735,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public void clearLocalVars() {
 		localVars().clear();
-		if (otherDeclarations != null) {
+		if (otherDeclarations != null)
 			otherDeclarations.clear();
-		}
 	}
 	
 	/**
@@ -750,7 +747,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Declaration addOtherDeclaration(Declaration d) {
 		if (otherDeclarations == null)
 			otherDeclarations = new ArrayList<Declaration>(3);
-		else {
+		else
 			for (Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
 				Declaration existing = it.next();
 				if (existing.location().equals(d.location())) {
@@ -758,7 +755,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					break;
 				}
 			}
-		}
 		otherDeclarations.add(d);
 		return d;
 	}
@@ -770,11 +766,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The list of other declarations. Will not be null, even if there are not other declarations.
 	 */
 	public List<Declaration> otherDeclarations() {
-		if (otherDeclarations == null) {
+		if (otherDeclarations == null)
 			return NO_OTHER_DECLARATIONS;
-		} else {
+		else
 			return otherDeclarations;
-		}
 	}
 	
 	@Override
@@ -783,9 +778,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public void resetLocalVarTypes() {
-		for (Variable v : localVars()) {
+		for (Variable v : localVars())
 			v.forceType(PrimitiveType.UNKNOWN);
-		}
 	}
 	
 	public void storeBlock(Block block, String source) {
@@ -834,15 +828,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
-		if (from instanceof Variable) {
+		if (from instanceof Variable)
 			return super.latestVersionOf(from);
-		} else {
+		else {
 			if (otherDeclarations == null)
 				return null;
-			for (Declaration other : otherDeclarations) {
+			for (Declaration other : otherDeclarations)
 				if (other.getClass() == from.getClass() && other.location() == from.location())
 					return (T) other;
-			}
 		}
 		return null;
 	};
