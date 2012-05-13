@@ -110,9 +110,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				e.setParent(this);
 			}
 		}
-		if (modified) {
+		if (modified)
 			setSubElements(subElms);
-		}
 	}
 
 	@Override
@@ -126,9 +125,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		ExprElm[] clonedElms = ArrayUtil.map(subElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
-				if (from == null) {
+				if (from == null)
 					return null;
-				}
 				return from.clone();
 			}
 		});
@@ -263,12 +261,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	public boolean hasSideEffects() {
 		ExprElm[] subElms = subElements();
-		if (subElms != null) {
-			for (ExprElm e : subElms) {
+		if (subElms != null)
+			for (ExprElm e : subElms)
 				if (e != null && e.hasSideEffects())
 					return true;
-			}
-		}
 		return false;
 	}
 
@@ -309,6 +305,17 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public void setExprRegion(IRegion r) {
 		this.setExprRegion(r.getOffset(), r.getOffset()+r.getLength());
+	}
+	
+	/**
+	 * Reset some cached state so {@link #reportErrors(C4ScriptParser)} is more likely to not report on errors that have since been fixed.
+	 * Also called recursively on {@link #subElements()}.
+	 * @param parser context
+	 */
+	public void reconsider(C4ScriptParser parser) {
+		for (ExprElm e : this.subElements())
+			if (e != null)
+				e.reconsider(parser);
 	}
 	
 	/**
@@ -481,7 +488,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return the canonical {@link ExprElm} object
 	 */
 	public static ExprElm exprElmForPrimitiveType(final PrimitiveType type) {
-		if (exprElmsForTypes[type.ordinal()] == null) {
+		if (exprElmsForTypes[type.ordinal()] == null)
 			exprElmsForTypes[type.ordinal()] = new ExprElm() {
 				/**
 				 * 
@@ -493,7 +500,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 					return type;
 				}
 			};
-		}
 		return exprElmsForTypes[type.ordinal()];
 	}
 
@@ -586,12 +592,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return Sub element containing elm or null.
 	 */
 	public ExprElm findSubElementContaining(ExprElm elm) {
-		for (ExprElm subElm : subElements()) {
-			if (subElm != null) {
+		for (ExprElm subElm : subElements())
+			if (subElm != null)
 				if (elm.containedIn(subElm))
 					return subElm;
-			}
-		}
 		return null;
 	}
 
@@ -666,25 +670,21 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (elm == null)
 			return;
 		elm.offsetExprRegion(diff, true, true);
-		for (ExprElm e : elm.subElements()) {
+		for (ExprElm e : elm.subElements())
 			offsetExprRegionRecursively(e, diff);
-		}
 	}
 	
 	private void offsetExprRegionRecursivelyStartingAt(ExprElm elm, int diff) {
 		boolean started = false;
 		ExprElm[] elms = subElements();
-		for (ExprElm e : elms) {
-			if (e == elm) {
+		for (ExprElm e : elms)
+			if (e == elm)
 				started = true;
-			} else if (started) {
+			else if (started)
 				offsetExprRegionRecursively(e, diff);
-			}
-		}
 		offsetExprRegion(diff, false, true);
-		if (parent() != null) {
+		if (parent() != null)
 			parent().offsetExprRegionRecursivelyStartingAt(this, diff);
-		}
 	}
 	
 	/**
@@ -700,34 +700,29 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		assert(element != null);
 		assert(with != null);
 		
-		if (diff == 0) {
+		if (diff == 0)
 			diff = with.getLength();
-		}
 
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
-		for (int i = 0; i < subElms.length; i++) {
+		for (int i = 0; i < subElms.length; i++)
 			if (subElms[i] == element) {
 				newSubElms[i] = with;
 				differentSubElms = true;
 			} else {
 				newSubElms[i] = subElms[i];
-				if (differentSubElms) {
+				if (differentSubElms)
 					offsetExprRegionRecursively(subElms[i], diff);
-				}
 			}
-		}
 		if (differentSubElms) {
 			setSubElements(newSubElms);
 			with.setParent(this);
 			offsetExprRegion(diff, false, true);
-			if (parent() != null) {
+			if (parent() != null)
 				parent().offsetExprRegionRecursivelyStartingAt(this, diff);
-			}
-		} else {
+		} else
 			throw new InvalidParameterException("element must actually be a subelement of this");
-		}
 		return this;
 	}
 	
@@ -763,14 +758,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (other.getClass() == this.getClass()) {
 			ExprElm[] mySubElements = this.subElements();
 			ExprElm[] otherSubElements = other.subElements();
-			if (mySubElements.length != otherSubElements.length) {
+			if (mySubElements.length != otherSubElements.length)
 				switch (listener.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
 				case IgnoreLeftSide: case IgnoreRightSide:
 					break;
 				default:
 					return DifferenceHandling.Differs;
 				}
-			}
 
 			int myIndex, otherIndex;
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
@@ -807,10 +801,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				return DifferenceHandling.Equal;
 			else
 				return DifferenceHandling.Differs;
-		}
-		else {
+		} else
 			return listener.differs(this, other, other);
-		}
 	}
 	
 	/**
@@ -857,10 +849,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (expr instanceof AccessDeclaration && referenceElm instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)referenceElm).declaration())
 				return true;
 			ExprElm chainA, chainB;
-			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence()) {
+			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
 					return false;
-			}
 			return chainA == null || chainB == null;
 		}
 
@@ -933,11 +924,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public void setAssociatedDeclaration(Declaration declaration) {
-		for (ExprElm s : subElements()) {
-			if (s != null) {
+		for (ExprElm s : subElements())
+			if (s != null)
 				s.setAssociatedDeclaration(declaration);
-			}
-		}
 	}
 
 	public ExprElm sequenceTilMe() {
@@ -960,11 +949,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
-		for (ExprElm e : subElements()) {
-			if (e != null) {
+		for (ExprElm e : subElements())
+			if (e != null)
 				e.postLoad(this, root);
-			}
-		}
 	}
 	
 	protected final void missing(C4ScriptParser parser) throws ParsingException {

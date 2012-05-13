@@ -1,5 +1,7 @@
 package net.arctics.clonk.command;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -9,15 +11,20 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.Conf;
@@ -25,6 +32,12 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
+
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
@@ -65,10 +78,9 @@ public class Command {
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
-		for (Method m : classs.getMethods()) {
+		for (Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
 				addCommand(m);
-		}
 	}
 
 	private static class NativeCommandFunction extends Function {
@@ -102,12 +114,10 @@ public class Command {
 		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
 			Field f = c.getField(name);
-			if (value instanceof Long && f.getType() == Integer.TYPE) {
+			if (value instanceof Long && f.getType() == Integer.TYPE)
 				value = ((Long)value).intValue();
-			}
-			else if (value instanceof String && f.getType().getSuperclass() == Enum.class) {
+			else if (value instanceof String && f.getType().getSuperclass() == Enum.class)
 				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value); //$NON-NLS-1$
-			}
 			f.set(obj, value);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -200,13 +210,11 @@ public class Command {
 				}
 			});
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (Script script : index.indexedScripts()) {
+			for (Script script : index.indexedScripts())
 				System.out.println(script.toString());
-			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (Scenario scen : index.indexedScenarios()) {
+			for (Scenario scen : index.indexedScenarios())
 				System.out.println(scen.toString());
-			}
 		}
 		@CommandFunction
 		public static void GC(Object context) {
@@ -215,8 +223,44 @@ public class Command {
 		@CommandFunction
 		public static void ReloadIndex(Object context, String projectName) {
 			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
-			if (nature != null) {
+			if (nature != null)
 				nature.reloadIndex();
+		}
+		@CommandFunction
+		public static void ReconsiderProblems(Object context) {
+			try {
+				Set<Function> reporters = new HashSet<Function>();
+				Map<Script, C4ScriptParser> parsers = new HashMap<Script, C4ScriptParser>();
+				for (IMarker m : ResourcesPlugin.getWorkspace().getRoot().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_INFINITE)) {
+					Script script = Script.get(m.getResource(), true);
+					if (script != null) {
+						Function f = script.funcAt(m.getAttribute(IMarker.CHAR_START, 0));
+						if (f != null) {
+							reporters.add(f);
+							m.delete();
+						}
+					}
+				}
+				Markers markers = new Markers();
+				for (Function f : reporters)
+					try {
+						C4ScriptParser parser = parsers.get(f.script());
+						if (parser == null) {
+							parser = new C4ScriptParser(f.script());
+							parser.setMarkers(markers);
+							parsers.put(f.script(), parser);
+						}
+						parser.setCurrentFunc(f);
+						f.codeBlock().reconsider(parser);
+						parser.reportErrorsOf(iterable(f.codeBlock().statements()));
+						f.codeBlock().reportErrors(parser);
+					} catch (ParsingException e) {
+						e.printStackTrace();
+					}
+				markers.deploy();
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}

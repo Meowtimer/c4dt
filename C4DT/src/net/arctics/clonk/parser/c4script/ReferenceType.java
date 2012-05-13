@@ -24,7 +24,7 @@ public class ReferenceType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(PrimitiveType.REFERENCE, type).iterator();
+		return ArrayUtil.iterable(PrimitiveType.REFERENCE, type).iterator();
 	}
 
 	@Override

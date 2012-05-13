@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -186,7 +185,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Script container, the parsed declarations are put into
 	 */
-	protected Script container;
+	protected Script script;
 	/**
 	 * Cached strict level from #strict directive.
 	 */
@@ -394,7 +393,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public final Script containingScript() {
-		return container;
+		return script;
 	}
 	
 	/**
@@ -403,8 +402,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public Definition containerAsDefinition() {
-		if (container instanceof Definition)
-			return (Definition) container;
+		if (script instanceof Definition)
+			return (Definition) script;
 		return null;
 	}
 	
@@ -420,19 +419,19 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
 	 */
 	protected void initialize() {
-		if (container != null) {
-			engine = container.engine();
-			specialScriptRules = engine != null ? container.engine().specialScriptRules() : null;
+		if (script != null) {
+			engine = script.engine();
+			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
 
-			if (container.index() instanceof ProjectIndex) {
-				ProjectIndex projIndex = (ProjectIndex) container.index();
+			if (script.index() instanceof ProjectIndex) {
+				ProjectIndex projIndex = (ProjectIndex) script.index();
 				ClonkProjectNature nature = projIndex.getNature();
 				if (nature != null)
 					errorsDisabledByProjectSettings = nature.settings().getDisabledErrorsSet();
 			}
 
-			strictLevel = container.strictLevel();
-			container.containsGlobals = false;
+			strictLevel = script.strictLevel();
+			script.containsGlobals = false;
 		}
 		currentFunctionContext.initialize();
 		if (scriptFile != null)
@@ -448,7 +447,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public C4ScriptParser(IFile scriptFile, Script script) {
 		super(scriptFile);
 		this.scriptFile = scriptFile;
-		container = script;
+		this.script = script;
 		initialize();
 	}
 
@@ -461,8 +460,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public C4ScriptParser(InputStream stream, Script script) {
 		super(stream);
-		scriptFile = null;
-		container = script;
+		this.scriptFile = null;
+		this.script = script;
 		initialize();
 	}
 	
@@ -474,8 +473,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public C4ScriptParser(String withString, Script script, IFile scriptFile) {
 		super(withString);
 		this.scriptFile = scriptFile;
-		container = script;
-		isEngine = container instanceof Engine;
+		this.script = script;
+		this.isEngine = script instanceof Engine;
 		initialize();
 	}
 	
@@ -505,7 +504,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
 	 */
 	public void parseDeclarations() {
-		strictLevel = container.strictLevel();
+		strictLevel = script.strictLevel();
 		int offset = 0;
 		this.seek(offset);
 		setAllowInterleavedFunctionParsing(true);
@@ -528,7 +527,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		}
 		enableError(ParserErrorCode.StringNotClosed, true);
-		deployMarkers();
+		if (markers != null)
+			markers.deploy();
 	}
 	
 	/**
@@ -539,7 +539,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		prepareForFunctionParsing();
-		for (Function function : container.functions())
+		for (Function function : script.functions())
 			parseCodeOfFunction(function, false);
 		synchronized (parsedFunctions) {
 			parsedFunctions = null;
@@ -548,10 +548,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		scriptLevelTypeInfos = null;
 		currentFunctionContext.currentDeclaration = null;
 
-		for (Directive directive : container.directives())
+		for (Directive directive : script.directives())
 			directive.validate(this);
 
-		for (Variable variable : container.variables()) {
+		for (Variable variable : script.variables()) {
 			ExprElm initialization = variable.initializationExpression();
 			if (initialization != null) {
 				ExprElm old = currentFunctionContext.expressionReportingErrors;
@@ -561,14 +561,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				currentFunctionContext.expressionReportingErrors = old;
 			}
 		}
-		container.notDirty();
+		script.notDirty();
 		distillAdditionalInformation();
-		deployMarkers();
+		if (markers != null)
+			markers.deploy();
 	}
 
 	public void prepareForFunctionParsing() {
 		if (parsedFunctions == null) {
-			strictLevel = container.strictLevel();
+			strictLevel = script.strictLevel();
 			scriptLevelTypeInfos = new TypeInfoList(10);
 			parsedFunctions = new HashSet<Function>();
 		}
@@ -578,13 +579,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * OC: Get information out of the script that was previously to be found in additional files (like the name of the {@link Definition}). Specifically, parse the Definition() function.
 	 */
 	public void distillAdditionalInformation() {
-		if (container instanceof Definition) {
+		if (script instanceof Definition) {
 			
-			final Definition obj = (Definition) container;
+			final Definition obj = (Definition) script;
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
 			
 			// local Name = "Exploder";
-			Variable nameLocal = container.findLocalVariable("Name", false); //$NON-NLS-1$
+			Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
 				ExprElm expr = nameLocal.initializationExpression();
 				if (expr != null)
@@ -612,7 +613,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// function is weird or does not belong here - ignore
 			if (function.body() == null)
 				return;
-			if (function.script() != container) {
+			if (function.script() != script) {
 				if (builder != null)
 					builder.parseFunction(function);
 				return;
@@ -699,7 +700,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param func The function the block belongs to.
 	 * @param block The {@link Block}
 	 */
-	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, List<Statement> list) {
+	public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, Iterable<Statement> statements) {
 		if (func == null)
 			return;
 		if (UNUSEDPARMWARNING)
@@ -708,22 +709,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					warningWithCode(ParserErrorCode.UnusedParameter, p.location(), ABSOLUTE_MARKER_LOCATION, p.name());
 		for (Variable v : func.localVars()) {
 			if (!v.isUsed())
-				createWarningAtDeclarationOfVariable(list, v, ParserErrorCode.Unused, v.name());
+				createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.Unused, v.name());
 			Variable shadowed = containingScript().findVariable(v.name());
 			// ignore those pesky static variables from scenario scripts
 			if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario)) 
-				createWarningAtDeclarationOfVariable(list, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
+				createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
 		}
 	}
 
-	private boolean createWarningAtDeclarationOfVariable(List<Statement> statements, Variable variable, ParserErrorCode code, Object... warningArguments) {
+	private boolean createWarningAtDeclarationOfVariable(
+		Iterable<Statement> statements,
+		Variable variable,
+		ParserErrorCode code,
+		Object... args
+	) {
 		for (Statement s : statements)
 			for (VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class))
 				for (VarInitialization initialization : decl.variableInitializations())
 					if (initialization.variable == variable) {
 						ExprElm old = currentFunctionContext.expressionReportingErrors;
 						currentFunctionContext.expressionReportingErrors = decl;
-						warningWithCode(code, initialization, warningArguments);
+						warningWithCode(code, initialization, args);
 						currentFunctionContext.expressionReportingErrors = old;
 						return true;
 					}
@@ -769,7 +775,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				String content = parseDirectiveParms();
 				Directive directive = new Directive(type, content);
 				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
-				container.addDeclaration(directive);
+				script.addDeclaration(directive);
 				if (type == DirectiveType.APPENDTO)
 					appendTo = true;
 				return true;
@@ -971,7 +977,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (typeOfNewVar != null)
 							switch (scope) {
 							case CONST: case STATIC:
-								container.containsGlobals = true;
+								script.containsGlobals = true;
 							case LOCAL:
 								if (currentFunc == null) {
 									varInitialization.variable.forceType(typeOfNewVar);
@@ -1055,8 +1061,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		String str;
 		if (peek() == '&') {
-			if (!container.engine().settings().supportsRefs)
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.engine().name());
+			if (!script.engine().settings().supportsRefs)
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, script.engine().name());
 			read();
 			return PrimitiveType.REFERENCE;
 		}
@@ -1087,9 +1093,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Function currentFunc;
 		currentFunctionContext.currentDeclaration = currentFunc = newFunction(header.name);
 		header.apply(currentFunc);
-		currentFunc.setScript(container);
+		currentFunc.setScript(script);
 		if (header.scope == FunctionScope.GLOBAL)
-			container.containsGlobals = true;
+			script.containsGlobals = true;
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
@@ -1193,9 +1199,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// finish up
 		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
-		if (container.findLocalFunction(currentFunc.name(), false) != null)
+		if (script.findLocalFunction(currentFunc.name(), false) != null)
 			warningWithCode(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
-		container.addDeclaration(currentFunc);
+		script.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
 			currentFunctionContext.currentDeclaration = null; // to not suppress errors in-between functions
 		return true;
@@ -1453,79 +1459,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return !(allErrorsDisabled || currentFunctionContext.disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error));
 	}
 	
-	private static class LatentMarker {
-		public ParserErrorCode code;
-		public int start, end;
-		public int severity;
-		public Object[] args;
-		public Object cookie;
-		public LatentMarker(ParserErrorCode code, int start, int end, int severity, Object[] args, Object cookie) {
-			super();
-			this.code = code;
-			this.start = start;
-			this.end = end;
-			this.severity = severity;
-			this.args = args;
-			this.cookie = cookie;
-		}
-		public boolean stillApplies(C4ScriptParser parser) {
-			switch (code) {
-			case TooManyParameters:
-				return ((Function)cookie).tooManyParameters((Integer)args[1]);
-			default:
-				return false;
-			}
-		}
-		public void apply(C4ScriptParser parser) throws ParsingException {
-			parser.markerWithCode(code, start, end, NO_THROW, severity, args);
-		}
-	}
-	
-	private Collection<LatentMarker> latentMarkers;
-	
-	/**
-	 * Make a note of some potential marker that will or will not be created after having parsed declarations and function code.
-	 * Currently, this is only used for {@link ParserErrorCode#TooManyParameters}. When deciding whether to actually add the marker,
-	 * the function in question (which might have gotten its parameter list added to) is checked again.
-	 * @param code The parser error code
-	 * @param region The region
-	 * @param severity The severity
-	 * @param cookie Cookie consulted when deciding whether to create the marker after parsing function code
-	 * @param args Format arguments for the error code message
-	 */
-	public void addLatentMarker(ParserErrorCode code, IRegion region, int severity, Object cookie, Object... args) {
-		addLatentMarker(code, region.getOffset(), region.getOffset()+region.getLength(), severity, cookie, args);
-	}
-	
-	/**
-	 * Adds a marker that is not yet sure to apply
-	 * @param code parser error code
-	 * @param start start of marked region
-	 * @param end end of marked region
-	 * @param severity severity as IMarker constant
-	 * @param cookie additional information (a function or something)
-	 * @param args format arguments
-	 */
-	public void addLatentMarker(ParserErrorCode code, int start, int end, int severity, Object cookie, Object... args) {
-		if (latentMarkers == null)
-			latentMarkers = new LinkedList<LatentMarker>();
-		LatentMarker marker = new LatentMarker(code, start, end, severity, args, cookie);
-		latentMarkers.add(marker);
-	}
-	
-	/**
-	 * Applies latent markers added as of yet
-	 */
-	public void applyLatentMarkers() {
-		if (latentMarkers != null) {
-			for (LatentMarker marker : latentMarkers)
-				if (marker.stillApplies(this)) try {
-					marker.apply(this);
-				} catch (ParsingException e) { /* does not happen */ }
-			latentMarkers = null;
-		}
-	}
-	
 	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			markerWithCode(code, errorStart, errorEnd, flags|NO_THROW, IMarker.SEVERITY_WARNING, args);
@@ -1562,7 +1495,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public static final int NO_THROW = 1;
 	public static final int ABSOLUTE_MARKER_LOCATION = 2;
 	
-	private static class MarkerInfo {
+	public static class Marker {
 		public ParserErrorCode code;
 		public int start, end;
 		public int severity;
@@ -1574,7 +1507,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		private final IFile scriptFile;
 		private final Script container;
 		
-		public MarkerInfo(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
+		public Marker(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
 			super();
 			this.code = code;
 			this.start = start;
@@ -1604,22 +1537,45 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	private LinkedList<MarkerInfo> markers = new LinkedList<MarkerInfo>();
-	
-	private void deployMarkers() {
-		if (Core.instance().runsHeadless())
-			return;
-		final List<MarkerInfo> markersToDeploy = markers;
-		markers = new LinkedList<MarkerInfo>();
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				synchronized (markers) {
-					for (MarkerInfo m : markersToDeploy)
+	public static class Markers extends LinkedList<Marker> {
+		private static final long serialVersionUID = 1L;
+		public void deploy() {
+			if (Core.instance().runsHeadless())
+				return;
+			final List<Marker> markersToDeploy;
+			synchronized (this) {
+				markersToDeploy = new ArrayList<Marker>(this);
+				this.clear();
+			}
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					for (Marker m : markersToDeploy)
 						m.deploy();
 				}
+			});
+		}
+		@Override
+		public boolean add(Marker e) {
+			synchronized (this) {
+				return super.add(e);
 			}
-		});
+		}
+	}
+	
+	private Markers markers;
+	
+	public void setMarkers(Markers markers) {
+		this.markers = markers;
+	}
+	
+	public Markers markers() {
+		if (markers != null)
+			return markers;
+		else if (builder != null)
+			return builder.markers();
+		else
+			return markers = new Markers();
 	}
 	
 	/**
@@ -1630,7 +1586,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param noThrow true means that no exception will be thrown after creating the marker.
 	 * @param severity IMarker severity value
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
-	 * @return The created marker or null if for some reason it was decided to not create a marker.
 	 * @throws ParsingException
 	 */
 	public void markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
@@ -1645,7 +1600,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().end()+1);
 		String problem = code.makeErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo)
-			markers.add(new MarkerInfo(this, code, markerStart, markerEnd, severity, args));
+			markers().add(new Marker(this, code, markerStart, markerEnd, severity, args));
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw misplacedErrorOrNoFileToAttachMarkerTo
 				? new SilentParsingException(Reason.SilenceRequested, problem)
@@ -1936,7 +1891,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int c = read();
 		if (c == '{') {
 			ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
-			proplistDeclaration.setParentDeclaration(currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration : container);
+			proplistDeclaration.setParentDeclaration(currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration : script);
 			Declaration oldDec = currentFunctionContext.currentDeclaration;
 			currentFunctionContext.currentDeclaration = proplistDeclaration;
 			try {
@@ -2291,7 +2246,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return l;
 	}
 	
-	private void reportErrorsOf(List<Statement> statements) throws ParsingException {
+	public void reportErrorsOf(Iterable<Statement> statements) throws ParsingException {
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportErrorsOf(s, true, functionLevelTypeInfos);
@@ -3032,8 +2987,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int e = this.offset;
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
-		if (type == PrimitiveType.REFERENCE && !container.engine().settings().supportsRefs)
-			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.engine().name());
+		if (type == PrimitiveType.REFERENCE && !script.engine().settings().supportsRefs)
+			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, script.engine().name());
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
 		if (type == PrimitiveType.UNKNOWN)
@@ -3100,7 +3055,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
-		container.clearDeclarations();
+		script.clearDeclarations();
 	}
 	
 	/** 

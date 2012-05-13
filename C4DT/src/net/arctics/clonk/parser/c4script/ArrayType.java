@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
@@ -75,7 +75,7 @@ public class ArrayType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return arrayIterable(PrimitiveType.ARRAY, this).iterator();
+		return iterable(PrimitiveType.ARRAY, this).iterator();
 	}
 
 	@Override

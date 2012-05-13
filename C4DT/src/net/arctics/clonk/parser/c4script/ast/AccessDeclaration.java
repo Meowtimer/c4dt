@@ -32,9 +32,8 @@ public abstract class AccessDeclaration extends ExprElm {
 	 * @return The declaration or null if a declaration could not be found.
 	 */
 	public Declaration declarationFromContext(DeclarationObtainmentContext context) {
-		if (declaration == null) {
+		if (declaration == null)
 			declaration = obtainDeclaration(context);
-		}
 		return declaration;
 	}
 
@@ -59,6 +58,12 @@ public abstract class AccessDeclaration extends ExprElm {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
+	}
+	
+	@Override
+	public void reconsider(C4ScriptParser parser) {
+		this.declaration = null;
+		super.reconsider(parser);
 	}
 
 	/**
@@ -119,14 +124,10 @@ public abstract class AccessDeclaration extends ExprElm {
 			return handling;
 		AccessDeclaration otherDec = (AccessDeclaration) other;
 		if (!listener.optionEnabled(Option.CheckForIdentity)) {
-			if (!declarationName.equals(otherDec.declarationName)) {
+			if (!declarationName.equals(otherDec.declarationName))
 				return listener.differs(this, other, "declarationName"); //$NON-NLS-1$
-			}
-		} else {
-			if (declaration != otherDec.declaration) {
-				return listener.differs(this, other, "declaration"); //$NON-NLS-1$
-			}
-		}
+		} else if (declaration != otherDec.declaration)
+			return listener.differs(this, other, "declaration"); //$NON-NLS-1$
 		return DifferenceHandling.Equal;
 	}
 

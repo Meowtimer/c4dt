@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 
 import java.util.Iterator;
 
@@ -26,7 +26,7 @@ public class NillableType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return arrayIterable(baseType, PrimitiveType.ANY).iterator(); 
+		return iterable(baseType, PrimitiveType.ANY).iterator(); 
 	}
 
 	@Override

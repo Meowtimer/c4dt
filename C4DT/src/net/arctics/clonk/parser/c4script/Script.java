@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
@@ -293,7 +293,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Iterable<Script> dependentScripts() {
 		requireLoaded();
 		if (dependentScripts == null)
-			return arrayIterable();
+			return iterable();
 		else
 			return dependentScripts;
 	}
@@ -998,7 +998,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public Iterator<IType> iterator() {
-		return arrayIterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
+		return iterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
 	}
 
 	@Override

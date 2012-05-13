@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -451,7 +451,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
-		StringUtil.writeBlock(builder, "(", ")", ", ", arrayIterable(map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		StringUtil.writeBlock(builder, "(", ")", ", ", iterable(map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$

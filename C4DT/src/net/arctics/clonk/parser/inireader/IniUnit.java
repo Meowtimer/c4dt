@@ -513,7 +513,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.sections()) : parent.sections()) {
+		for (IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
 			int start = sec.location().start();
 			if (start > offset) {
 				break;

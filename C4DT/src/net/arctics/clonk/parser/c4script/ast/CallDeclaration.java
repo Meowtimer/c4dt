@@ -42,7 +42,6 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.Region;
 
 /**
@@ -99,9 +98,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (function == null)
 				return;
 			function = (Function) function.latestVersion();
-			if (!soft && !function.isEngineDeclaration()) {
+			if (!soft && !function.isEngineDeclaration())
 				function.forceType(type());
-			}
 		}
 		
 	}
@@ -228,14 +226,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 */
 	public static void printParmString(ExprWriter output, ExprElm[] params, int depth) {
 		output.append("("); //$NON-NLS-1$
-		if (params != null) {
+		if (params != null)
 			for (int i = 0; i < params.length; i++) {
 				if (params[i] != null)
 					params[i].print(output, depth);
 				if (i < params.length-1)
 					output.append(", "); //$NON-NLS-1$
 			}
-		}
 		output.append(")"); //$NON-NLS-1$
 	}
 	
@@ -257,11 +254,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 */
 	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.containingScript().engine();
-		if (engine != null && engine.specialScriptRules() != null) {
+		if (engine != null && engine.specialScriptRules() != null)
 			return engine.specialScriptRules().funcRuleFor(declarationName, role);
-		} else {
+		else
 			return null;
-		}
 	}
 	
 	@Override
@@ -292,9 +288,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 		if (rule != null) {
 			IType returnType = rule.returnType(context, this);
-			if (returnType != null) {
+			if (returnType != null)
 				return returnType;
-			}
 		}
 		
 		if (d instanceof Function)
@@ -361,19 +356,17 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			info.findGlobalVariables = pred == null;
 			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
-			if (dec instanceof Function && context.currentFunction() != null) {
+			if (dec instanceof Function && context.currentFunction() != null)
 				try {
 					context.parseCodeOfFunction((Function) dec, true);
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
-			}
-			if (dec != null) {
+			if (dec != null)
 				if (listToAddPotentialDeclarationsTo == null)
 					return dec;
 				else
 					listToAddPotentialDeclarationsTo.add(dec);
-			}
 		}
 		if (pred != null) {
 			// find global function
@@ -403,12 +396,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				numCandidates++;
 			
 			// only return found global function if it's the only choice 
-			if (declaration != null && numCandidates == 1) {
+			if (declaration != null && numCandidates == 1)
 				if (listToAddPotentialDeclarationsTo == null)
 					return declaration;
 				else
 					listToAddPotentialDeclarationsTo.add(declaration);
-			}
 		}
 		if ((pred == null || !(pred instanceof MemberOperator) || !((MemberOperator)pred).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
@@ -466,9 +458,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		// notify parser about unnamed parameter usage
 		if (declaration == cachedFuncs(context).Par) {
-			if (params.length > 0) {
+			if (params.length > 0)
 				context.unnamedParamaterUsed(params[0]);
-			}
 			else
 				context.unnamedParamaterUsed(LongLiteral.ZERO);
 		}
@@ -482,11 +473,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		else {
 			
 			// inherited/_inherited not allowed in non-strict mode
-			if (context.strictLevel() <= 0) {
-				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
+			if (context.strictLevel() <= 0)
+				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited))
 					context.errorWithCode(ParserErrorCode.InheritedDisabledInStrict0, this);
-				}
-			}
 			
 			if (multiplePotentialDeclarations)
 				return; // pfft, no checking
@@ -496,10 +485,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				((Variable)declaration).setUsed(true);
 				IType type = this.obtainType(context);
 				// no warning when in #strict mode
-				if (context.strictLevel() >= 2) {
+				if (context.strictLevel() >= 2)
 					if (declaration != cachedFuncs(context).This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name(), type.typeName(false));
-				}
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
@@ -508,9 +496,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
-				if (rule != null) {
+				if (rule != null)
 					specialCaseHandled = rule.validateArguments(this, params, context);
-				}
 				
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
@@ -526,17 +513,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						else
 							given.expectedToBeOfType(parm.type(), context);
 					}
-				}
-				
-				// warn about too many parameters
-				// try again, but only for engine functions
-				if (f.isEngineDeclaration() && !declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
-					context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.numParameters(), actualParmsNum(), f.name());
-				}
-				
+				}				
 			}
-			else if (declaration == null) {
-				if (unknownFunctionShouldBeError(context)) {
+			else if (declaration == null)
+				if (unknownFunctionShouldBeError(context))
 					if (declarationName.equals(Keywords.Inherited)) {
 						Function activeFunc = context.currentFunction();
 						if (activeFunc != null)
@@ -547,8 +527,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited))
 						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
-					}
-				}
 		}
 	}
 	public int actualParmsNum() {
@@ -573,9 +551,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			ExprElm two = i+1 < parms.length ? parms[i+1] : null;
 			if (op.leftSide() == null)
 				op.setLeftSide(one);
-			else if (two == null) {
+			else if (two == null)
 				op.setRightSide(one);
-			}
 			else {
 				BinaryOp nu = new BinaryOp(operator);
 				op.setRightSide(nu);
@@ -599,9 +576,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				n = new Parenthesized(n);
 			return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
 		}
-		if (replOperator != null && params.length >= 2) {
+		if (replOperator != null && params.length >= 2)
 			return applyOperatorTo(parser, params, replOperator);
-		}
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
 		if (params.length >= 2 && declaration == cachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
@@ -609,7 +585,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = params[i+2].optimize(parser);
 			String lit = ((StringLiteral)params[1]).stringValue();
-			if (lit.length() > 0 && lit.charAt(0) != '~') {
+			if (lit.length() > 0 && lit.charAt(0) != '~')
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ExprElm[] {
 							params[0].optimize(parser),
@@ -624,16 +600,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 							)),
 							null
 					);
-			}
 		}
 
 		// OCF_Awesome() -> OCF_Awesome
-		if (params.length == 0 && declaration instanceof Variable) {
+		if (params.length == 0 && declaration instanceof Variable)
 			if (!parser.containingScript().engine().settings().proplistsSupported && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);
-		}
 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 		
@@ -641,25 +615,22 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		if (params.length <= 1 && declaration != null && declaration == cachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof LongLiteral)) {
 			LongLiteral number = params.length > 0 ? (LongLiteral) params[0] : LongLiteral.ZERO;
 			Function activeFunc = parser.currentFunction();
-			if (activeFunc != null) {
+			if (activeFunc != null)
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
 					return new AccessVar(parser.currentFunction().parameter(number.intValue()).name());
-			}
 		}
 		
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == cachedFuncs(parser).SetVar || declaration == cachedFuncs(parser).SetLocal || declaration == cachedFuncs(parser).AssignVar)) {
+		if (params.length == 2 && declaration != null && (declaration == cachedFuncs(parser).SetVar || declaration == cachedFuncs(parser).SetLocal || declaration == cachedFuncs(parser).AssignVar))
 			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		}
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar)) {
+		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar))
 			return new UnaryOp(declaration == cachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
 					new CallDeclaration(cachedFuncs(parser).Var.name(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : LongLiteral.ZERO
 					})
 			);
-		}
 
 		// Call("Func", 5, 5) -> Func(5, 5)
 		if (params.length >= 1 && declaration != null && declaration == cachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
@@ -733,12 +704,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		CachedEngineDeclarations cache = cachedFuncs(parser);
 		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
-			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null) {
-				if (ev instanceof Number) {
+			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
+				if (ev instanceof Number)
 					// Var() with a sane constant number
 					return new VarFunctionsTypeInfo((Function) d, ((Number)ev).intValue());
-				}
-			}
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
@@ -772,12 +741,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	@Override
 	public Function function(DeclarationObtainmentContext context) {
-		if (declaration instanceof Variable) {
-			for (IType type : ((Variable)declaration).type()) {
+		if (declaration instanceof Variable)
+			for (IType type : ((Variable)declaration).type())
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
-			}
-		}
 		return as(declaration(), Function.class);
 	}
 }

@@ -88,7 +88,7 @@ public class ArrayUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
 		try {
-			List<T> list = Utilities.filter(arrayIterable(array), filter);
+			List<T> list = Utilities.filter(iterable(array), filter);
 			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -118,7 +118,7 @@ public class ArrayUtil {
 		return items.toArray((B[]) Array.newInstance(cls, items.size()));
 	}
 
-	public static <T> Iterable<T> arrayIterable(final T... items) {
+	public static <T> Iterable<T> iterable(final T... items) {
 		return new Iterable<T>() {
 			@Override
 			public Iterator<T> iterator() {

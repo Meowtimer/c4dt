@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,7 +150,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return arrayIterable(PrimitiveType.PROPLIST, this).iterator();
+		return iterable(PrimitiveType.PROPLIST, this).iterator();
 	}
 
 	@Override

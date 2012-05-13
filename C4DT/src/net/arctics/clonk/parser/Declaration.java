@@ -278,7 +278,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return parentDeclaration;
 	}
 	
-	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
+	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.iterable();
 	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.

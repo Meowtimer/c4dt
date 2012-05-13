@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.arrayIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -194,7 +194,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return arrayIterable(types).iterator();
+		return iterable(types).iterator();
 	}
 
 	@Override
