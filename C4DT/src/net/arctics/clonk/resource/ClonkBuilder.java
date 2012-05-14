@@ -573,6 +573,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private Script[] phaseTwo(Script[] scripts) {
+		errorReportingOrder.clear();
 		for (C4ScriptParser parser : parserMap.values())
 			if (parser != null)
 				parser.prepareForFunctionParsing();
@@ -600,9 +601,29 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		markers.deploy();
-		Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
+		reportProblems(scripts);
 		return scripts;
+	}
+
+	private void reportProblems(final Script[] scripts) {
+		new Job("Reporting problems") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				monitor.subTask("Reporting problems");
+				synchronized (errorReportingOrder) {
+					for (C4ScriptParser p : errorReportingOrder) {
+						if (monitor.isCanceled())
+							return Status.CANCEL_STATUS;
+						p.reportErrors();
+						monitor.worked(1);
+					}
+					errorReportingOrder.clear();
+					markers.deploy();
+					Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
+				}
+				return Status.OK_STATUS;
+			}
+		}.run(monitor);
 	}
 
 	private void clearState() {
@@ -757,6 +778,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 */
 	public void queueDefinitionRenaming(Definition def, ID newID) {
 		renamedDefinitions.add(new Pair<Definition, ID>(def, newID));
+	}
+	
+	private final List<C4ScriptParser> errorReportingOrder = new LinkedList<C4ScriptParser>();
+
+	public void scheduleErrorReporting(C4ScriptParser parser) {
+		synchronized (errorReportingOrder) {
+			errorReportingOrder.add(parser);
+		}
 	}
 
 }

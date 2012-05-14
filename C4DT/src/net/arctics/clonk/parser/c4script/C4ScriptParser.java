@@ -113,6 +113,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	);
 	private static final boolean DEBUG = false;
 	private static final boolean UNUSEDPARMWARNING = false;
+	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
+	private static final char[] OPENING_BLOCK_BRACKET_DELIMITER = new char[] { '{' };
+	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
+	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 	
 	public static class TypeInfoList extends ArrayList<ITypeInfo> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -544,15 +548,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
+		System.out.println("Parsing functions of " + script.name());
 		prepareForFunctionParsing();
 		for (Function function : script.functions())
 			parseCodeOfFunction(function, false);
 		synchronized (parsedFunctions) {
 			parsedFunctions = null;
 		}
-		scriptLevelTypeInfos.apply(this, false);
-		scriptLevelTypeInfos = null;
 		currentFunctionContext.currentDeclaration = null;
+		if (builder != null)
+			builder.scheduleErrorReporting(this);
 
 		for (Directive directive : script.directives())
 			directive.validate(this);
@@ -576,7 +581,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void prepareForFunctionParsing() {
 		if (parsedFunctions == null) {
 			strictLevel = script.strictLevel();
-			scriptLevelTypeInfos = new TypeInfoList(10);
 			parsedFunctions = new HashSet<Function>();
 		}
 	}
@@ -659,7 +663,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				BunchOfStatements bunch = new BunchOfStatements(statements);
 				if (function.isOldStyle() && statements.size() > 0)
 					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
-				reportErrorsOf(statements);
+				if (builder == null)
+					reportErrorsOf(statements);
 				function.storeBlock(bunch, functionSource(function));
 				if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM)
 					function.createParameters(currentFunctionContext.numUnnamedParameters);
@@ -1718,10 +1723,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							prototype.setFinishedProperly(true); // :/
 							eatWhitespace();
 							ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
-							if (proplDec != null) {
-								reportErrorsOf(prototype);
+							if (proplDec != null)
 								elm = new NewProplist(proplDec, prototype);
-							} else
+							else
 								treatNewAsVarName = true;
 						}
 						if (treatNewAsVarName) {
@@ -2198,14 +2202,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
 		root.setAssociatedDeclaration(currentFunctionContext.currentDeclaration);
 		root.setFlagsEnabled(ExprElm.STATEMENT_REACHED, currentFunctionContext.statementReached);
-		if (reportErrors)
-			reportErrorsOf(root);
 		if (listener != null && currentFunctionContext.parseExpressionRecursion <= 1)
 			listener.visitExpression(root, this);
 	}
 
-	private <T extends ExprElm> T reportErrorsOf(T expression) throws ParsingException {return expression;}
-	
 	/**
 	 * Let an expression report errors. Calling {@link ExprElm#reportErrors(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
@@ -2250,8 +2250,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		l.up = currentFunctionContext != null ? currentFunctionContext.typeInfos : scriptLevelTypeInfos;
 		return l;
 	}
-	
-	public void reportErrorsOf(Iterable<Statement> statements) throws ParsingException {
+
+	public void reportErrorsOf(Iterable<Statement> statements) {
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportErrorsOf(s, true, functionLevelTypeInfos);
@@ -2261,10 +2261,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
-	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
-	private static final char[] OPENING_BLOCK_BRACKET_DELIMITER = new char[] { '{' };
-	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
-	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
+	public void reportErrors() {
+		scriptLevelTypeInfos = new TypeInfoList(10);
+		for (Function f : script.functions()) {
+			setCurrentFunction(f);
+			reportErrorsOf(iterable(f.codeBlock().statements()));
+		}
+		scriptLevelTypeInfos.apply(this, false);
+	}
 	
 	private ExprElm parseExpression(boolean reportErrors) throws ParsingException {
 		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
@@ -2935,7 +2939,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ParsingException {
 		return statement != null
 			? statement
-			: reportErrorsOf(new MissingStatement(offsetWhereExpected-bodyOffset()));
+			: new MissingStatement(offsetWhereExpected-bodyOffset());
 	}
 
 	/**
@@ -3381,5 +3385,5 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public FunctionContext currentFunctionContext() {
 		return currentFunctionContext;
 	}
-	
+
 }

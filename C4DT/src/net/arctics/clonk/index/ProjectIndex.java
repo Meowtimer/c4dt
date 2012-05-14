@@ -105,9 +105,8 @@ public class ProjectIndex extends Index {
 			for (Script script : indexedScripts())
 				if (script instanceof SystemScript) {
 					SystemScript standalone = (SystemScript) script;
-					if (!standalone.refreshFileReference(project)) {
+					if (!standalone.refreshFileReference(project))
 						stuffToBeRemoved.add(standalone);
-					}
 				}
 			// purge objects that seem to be non-existent
 			for (Script s : stuffToBeRemoved)
@@ -151,9 +150,11 @@ public class ProjectIndex extends Index {
 	}
 
 	@Override
-	public synchronized void refreshIndex(boolean postLoad) {
-		super.refreshIndex(postLoad);
-		readVariablesFromPlayerControlsFile();
+	public void refreshIndex(boolean postLoad) {
+		synchronized (saveSynchronizer()) {
+			super.refreshIndex(postLoad);
+			readVariablesFromPlayerControlsFile();
+		}
 	}
 
 	private void readVariablesFromPlayerControlsFile() {
@@ -161,9 +162,9 @@ public class ProjectIndex extends Index {
 			project().accept(new IResourceVisitor() {
 				@Override
 				public boolean visit(IResource resource) throws CoreException {
-					if (resource instanceof IContainer) {
+					if (resource instanceof IContainer)
 						return true;
-					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
+					else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
 						PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
 						if (unit != null) {
 							staticVariables.addAll(unit.controlVariables());
@@ -197,7 +198,7 @@ public class ProjectIndex extends Index {
 			}
 		};
 		List<T> r = new LinkedList<T>();
-		for (Index i : relevantIndexes()) {
+		for (Index i : relevantIndexes())
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {
@@ -206,11 +207,9 @@ public class ProjectIndex extends Index {
 					e.printStackTrace();
 					continue;
 				}
-				if (finder.result() != null) {
+				if (finder.result() != null)
 					r.add(finder.result());
-				}
 			}
-		}
 		return Utilities.pickNearest(r, pivot, null);
 	}
 

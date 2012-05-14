@@ -171,8 +171,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			// create session cache
 			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
 			Iterable<? extends Definition> objects = definitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
-			if (objects != null) {
-				for (Definition obj : objects) {
+			if (objects != null)
+				for (Definition obj : objects)
 					if ((obj instanceof Definition)) {
 						Definition projDef = obj;
 						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
@@ -180,20 +180,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 							return projDef;
 						}
 					}
-				}
-			}
 			return null;
 		} catch (CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (List<Definition> list : indexedDefinitions.values()) {
-				for (Definition obj : list) {
+			for (List<Definition> list : indexedDefinitions.values())
+				for (Definition obj : list)
 					if (obj instanceof Definition) {
 						Definition intern = obj;
 						if (intern.definitionFolder() != null && intern.definitionFolder().equals(folder))
 							return intern;
 					}
-				}
-			}
 			// also try scenarios
 			for (Scenario s : indexedScenarios)
 				if (s.definitionFolder() != null && s.definitionFolder().equals(folder))
@@ -210,11 +206,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Script scriptAt(IFile file) {
 		Script result = Script.get(file, true);
-		if (result == null) {
+		if (result == null)
 			for (Script s : this.indexedScripts)
 				if (s.resource() != null && s.resource().equals(file))
 					return s;
-		}
 		return result;
 	}
 
@@ -234,8 +229,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	private void detectAppendages(Script script, Map<ID, List<Script>> detectedAppendages) {
-		if (detectedAppendages != null) {
-			for (Directive d : script.directives()) {
+		if (detectedAppendages != null)
+			for (Directive d : script.directives())
 				if (d.type() == DirectiveType.APPENDTO) {
 					List<Script> appendtoList = detectedAppendages.get(d.contentAsID());
 					if (appendtoList == null) {
@@ -244,8 +239,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 					}
 					appendtoList.add(script);
 				}
-			}
-		}
 	}
 	
 	protected <T extends Script> void addGlobalsFromScript(T script, Map<ID, List<Script>> detectedAppendages) {
@@ -370,10 +363,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			if (alreadyDefinedObjects == null) {
 				alreadyDefinedObjects = new LinkedList<Definition>();
 				indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
-			} else {
-				if (alreadyDefinedObjects.contains(definition))
-					return;
-			}
+			} else if (alreadyDefinedObjects.contains(definition))
+				return;
 			alreadyDefinedObjects.add(definition);
 		}
 	}
@@ -456,14 +447,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (definition.id() == null)
 			return;
 		List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
-		if (alreadyDefinedObjects != null) {
+		if (alreadyDefinedObjects != null)
 			if (alreadyDefinedObjects.remove(definition)) {
-				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
+				if (alreadyDefinedObjects.size() == 0)
 					indexedDefinitions.remove(definition.id());
-				}
 				scriptRemoved(definition);
 			}
-		}
 	}
 
 	/**
@@ -471,9 +460,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param scenario The {@link Scenario} to remove
 	 */
 	public void removeScenario(Scenario scenario) {
-		if (indexedScenarios.remove(scenario)) {
+		if (indexedScenarios.remove(scenario))
 			scriptRemoved(scenario);
-		}
 	}
 	
 	private void scriptRemoved(final Script script) {
@@ -632,13 +620,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Declaration findGlobalDeclaration(String declName, IResource pivot) {
 		List<Declaration> declarations = declarationMap.get(declName);
-		if (declarations != null) {
+		if (declarations != null)
 			return pivot != null
 				? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
 				: IS_GLOBAL.test(declarations.get(0))
 					? declarations.get(0)
 					: null;
-		}
 		return null;
 	}
 
@@ -826,12 +813,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param entity
 	 * @return The id of the entity. Is supposed to be unique.
 	 */
-	protected synchronized long addEntityReturningId(IndexEntity entity) {
-		long id = entityIdCounter++;
-		this.entities.put(id, entity);
-		if (newEntities != null)
-			newEntities.add(entity);
-		return id;
+	protected long addEntityReturningId(IndexEntity entity) {
+		synchronized (this) {
+			long id = entityIdCounter++;
+			this.entities.put(id, entity);
+			if (newEntities != null)
+				newEntities.add(entity);
+			return id;
+		}
 	}
 	
 	private File entityFile(IndexEntity entity) {
@@ -872,7 +861,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			Index externalIndex = index(index);
 			if (externalIndex != null) {
 				result = externalIndex.entityWithId(referencedEntityId);
-				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken)) {
+				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken))
 					if (referencedEntityToken != null)
 						for (IndexEntity e : externalIndex.entities()) {
 							Object token = e.additionalEntityIdentificationToken();
@@ -881,7 +870,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 								break;
 							}
 						}
-				}
 				if (result == null)
 					System.out.println(String.format("Couldn't find entity '%s' in '%s'", this.toString(), externalIndex.project().getName()));
 			}
@@ -1006,35 +994,40 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	protected void purgeUnusedIndexFiles(File indexFile) {
-		File[] files = folder.listFiles();
-		List<File> filesToBePurged = new ArrayList<File>(files.length);
-		filesToBePurged.addAll(Arrays.asList(files));
-		filesToBePurged.remove(indexFile);
-		for (IndexEntity e : entities())
-			filesToBePurged.remove(entityFile(e));
-		for (File f : filesToBePurged) {
-			if (!f.getName().startsWith("."))
-				f.delete();
+		synchronized (this) {
+			File[] files = folder.listFiles();
+			List<File> filesToBePurged = new ArrayList<File>(files.length);
+			filesToBePurged.addAll(Arrays.asList(files));
+			filesToBePurged.remove(indexFile);
+			for (IndexEntity e : entities())
+				filesToBePurged.remove(entityFile(e));
+			for (File f : filesToBePurged)
+				if (!f.getName().startsWith("."))
+					f.delete();
 		}
 	}
 	
 
 	private List<IndexEntity> newEntities;
 	
-	public synchronized void endModification() {
-		for (IndexEntity e : newEntities)
-			if (!e.notFullyLoaded && e.saveCalledByIndex())
-				try {
-					e.save();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-		newEntities = null;
+	public void endModification() {
+		synchronized (this) {
+			for (IndexEntity e : newEntities)
+				if (!e.notFullyLoaded && e.saveCalledByIndex())
+					try {
+						e.save();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+			newEntities = null;
+		}
 	}
 
-	public synchronized void beginModification() {
-		newEntities = new LinkedList<IndexEntity>();
-		relevantIndexes = null; // force rebuild of list
+	public void beginModification() {
+		synchronized (this) {
+			newEntities = new LinkedList<IndexEntity>();
+			relevantIndexes = null; // force rebuild of list
+		}
 	}
 
 	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {
