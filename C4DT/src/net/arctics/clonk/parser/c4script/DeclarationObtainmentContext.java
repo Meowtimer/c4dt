@@ -14,7 +14,7 @@ public interface DeclarationObtainmentContext extends IEvaluationContext {
 	Definition containerAsDefinition();
 	void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException;
 	void performParsingPhaseTwo(Script script);
-	void storeTypeInformation(ExprElm exprElm, IType type);
+	void storeType(ExprElm exprElm, IType type);
 	Declaration currentDeclaration();
 	SourceLocation absoluteSourceLocationFromExpr(ExprElm expression);
 }

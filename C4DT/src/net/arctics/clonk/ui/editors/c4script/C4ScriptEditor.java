@@ -24,7 +24,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
@@ -32,7 +32,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
-import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -262,7 +262,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.scriptStorage() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.scriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
-						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
+						C4ScriptParser.visitCode(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, int flags,
@@ -274,7 +274,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
 								return WhatToDo.PassThrough;
 							}
-						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
+						}, VisitCodeFlavour.AlsoStatements, true);
 						for (Variable localVar : f.localVars()) {
 							SourceLocation l = localVar.location();
 							l.setStart(f.body().getOffset()+l.getOffset());
@@ -570,7 +570,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return functionAt(cursorPos());
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(IScriptParserListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparseWithDocumentContents(IASTVisitor exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
@@ -584,7 +584,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private static C4ScriptParser reparseWithDocumentContents(
-			IScriptParserListener exprListener,
+			IASTVisitor exprListener,
 			boolean onlyDeclarations, Object document,
 			final Script script,
 			Runnable uiRefreshRunnable)

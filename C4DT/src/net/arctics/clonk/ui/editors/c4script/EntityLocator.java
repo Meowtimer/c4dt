@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -22,7 +22,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -61,9 +61,9 @@ public class EntityLocator extends ExpressionLocator {
 		public IRegion body;
 		public int bodyStart;
 		public Engine engine;
-		public ExpressionsAndStatementsReportingFlavour flavour;
+		public VisitCodeFlavour flavour;
 		public Function func;
-		public void initialize(IRegion body, Engine engine, ExpressionsAndStatementsReportingFlavour flavour) {
+		public void initialize(IRegion body, Engine engine, VisitCodeFlavour flavour) {
 			this.body = body;
 			this.bodyStart = body.getOffset();
 			this.engine = engine;
@@ -78,9 +78,9 @@ public class EntityLocator extends ExpressionLocator {
 			if (var == null)
 				return false;
 			else
-				d.initialize(var.initializationExpressionLocation(), var.engine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
+				d.initialize(var.initializationExpressionLocation(), var.engine(), VisitCodeFlavour.OnlyExpressions);
 		} else
-			d.initialize(d.func.body(), d.func.engine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+			d.initialize(d.func.body(), d.func.engine(), VisitCodeFlavour.AlsoStatements);
 		return true;
 	}
 
@@ -103,7 +103,7 @@ public class EntityLocator extends ExpressionLocator {
 		}
 		if (region.getOffset() >= d.bodyStart) {
 			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
-			parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
+			parser = C4ScriptParser.visitCode(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 			if (exprAtRegion != null) {
 				EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
@@ -162,12 +162,11 @@ public class EntityLocator extends ExpressionLocator {
 					potentialEntities.add(engineFunc);
 				if (potentialEntities.size() == 0)
 					potentialEntities = null;
-				else if (potentialEntities.size() == 1) {
+				else if (potentialEntities.size() == 1)
 					for (IIndexEntity e : potentialEntities) {
 						this.entity = e;
 						break;
 					}
-				}
 				setRegion = potentialEntities != null;
 			}
 			else
@@ -211,10 +210,10 @@ public class EntityLocator extends ExpressionLocator {
 	}
 
 	@Override
-	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-		expression.traverse(new ScriptParserListener() {
+	public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+		expression.traverse(new IASTVisitor() {
 			@Override
-			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+			public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;

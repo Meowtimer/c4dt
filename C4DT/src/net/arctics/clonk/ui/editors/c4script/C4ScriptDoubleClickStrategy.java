@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -34,7 +34,7 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		Function func = script.funcAt(pos);
 		if (func != null) {
 			ExpressionLocator locator = new ExpressionLocator(pos-func.body().start());
-			C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+			C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, false);
 			ExprElm expr = locator.expressionAtRegion();
 			if (expr == null)
 				return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());

@@ -74,7 +74,7 @@ public class ArraySliceExpression extends ExprElm {
 		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
 		IType sliceType = rightSide.obtainType(context);
 		if (arrayType != null)
-			context.storeTypeInformation(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
+			context.storeType(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
 				evaluateAtParseTime(lo, context),
 				evaluateAtParseTime(hi, context),
 				sliceType

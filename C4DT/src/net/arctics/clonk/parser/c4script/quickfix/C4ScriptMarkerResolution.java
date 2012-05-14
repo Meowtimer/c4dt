@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import org.eclipse.core.resources.IMarker;
@@ -53,7 +53,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			doc = provider.getDocument(marker.getResource());
 			C4ScriptParser parser;
 			try {
-				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
+				parser = C4ScriptParser.visitCode(doc, script, func, locator, null, VisitCodeFlavour.AlsoStatements, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;

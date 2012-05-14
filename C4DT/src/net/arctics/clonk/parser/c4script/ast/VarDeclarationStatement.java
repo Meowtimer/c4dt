@@ -172,7 +172,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		for (VarInitialization initialization : varInitializations)
 			if (initialization.variable != null) {
 				if (initialization.expression != null)
-					parser.storeTypeInformation(
+					parser.storeType(
 						new AccessVar(initialization.variable),
 						initialization.expression.type(parser)
 					);

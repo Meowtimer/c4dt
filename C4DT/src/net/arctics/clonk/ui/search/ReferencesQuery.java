@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
@@ -15,8 +15,8 @@ import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
@@ -59,7 +59,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class UltimateListener extends ScriptParserListener implements IResourceVisitor {
+	private class UltimateListener implements IResourceVisitor, IASTVisitor {
 
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
@@ -70,7 +70,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		}
 		
 		@Override
-		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
 			if (expression instanceof AccessDeclaration) {
 				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
 				Declaration dec = accessDeclExpr.declarationFromContext(parser);
@@ -95,11 +95,6 @@ public class ReferencesQuery extends SearchQueryBase {
 		}
 		
 		@Override
-		public int minimumParsingRecursion() {
-			return 0;
-		}
-		
-		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
 				Script script = Script.get(resource, true);
@@ -117,8 +112,8 @@ public class ReferencesQuery extends SearchQueryBase {
 					result.addMatch(include.asExpression(), parser, false, false);
 			}
 			for (Function f : script.functions()) {
-				parser.setCurrentFunc(f);
-				parser.reportExpressionsAndStatements(f, this, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+				parser.setCurrentFunction(f);
+				parser.visitCode(f, this, VisitCodeFlavour.AlsoStatements, false);
 			}
 			
 			// also search related files (actmap, defcore etc)
@@ -146,8 +141,8 @@ public class ReferencesQuery extends SearchQueryBase {
 				else if (scope instanceof Function) {
 					Function func = (Function)scope;
 					C4ScriptParser parser = new C4ScriptParser(func.script());
-					parser.setCurrentFunc(func);
-					parser.reportExpressionsAndStatements(func, listener, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+					parser.setCurrentFunction(func);
+					parser.visitCode(func, listener, VisitCodeFlavour.AlsoStatements, false);
 				}
 		} catch (CoreException e) {
 			e.printStackTrace();

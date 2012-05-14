@@ -1,19 +1,19 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
-
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
+
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 /**
  * Helper class for obtaining the expression at a specified region
  * @author madeen
  *
  */
-public class ExpressionLocator extends ScriptParserListener {
+public class ExpressionLocator implements IASTVisitor {
 	
 	protected ExprElm exprAtRegion;
 	protected ExprElm topLevelInRegion;
@@ -39,10 +39,10 @@ public class ExpressionLocator extends ScriptParserListener {
 	}
 
 	@Override
-	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-		expression.traverse(new ScriptParserListener() {
+	public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+		expression.traverse(new IASTVisitor() {
 			@Override
-			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+			public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
 					if (topLevelInRegion == null)
 						topLevelInRegion = expression;

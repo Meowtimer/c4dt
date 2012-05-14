@@ -250,7 +250,7 @@ public class Command {
 							parser.setMarkers(markers);
 							parsers.put(f.script(), parser);
 						}
-						parser.setCurrentFunc(f);
+						parser.setCurrentFunction(f);
 						f.codeBlock().reconsider(parser);
 						parser.reportErrorsOf(iterable(f.codeBlock().statements()));
 						f.codeBlock().reportErrors(parser);

@@ -100,7 +100,7 @@ public class ArrayElementExpression extends ExprElm {
 						ArrayType.NO_PRESUMED_LENGTH
 					);
 				}
-				context.storeTypeInformation(predecessorInSequence(), mutation);
+				context.storeType(predecessorInSequence(), mutation);
 				break;
 			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY) {
 				predecessorInSequence().expectedToBeOfType(

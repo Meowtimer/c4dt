@@ -66,16 +66,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	private int exprStart, exprEnd;
 	private ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
-
-	private int nestingDepth;
-
-	/**
-	 * Set how deeply nested the expression is in the AST.
-	 * @param nestingDepth The depth
-	 */
-	public void setNestingDepth(int nestingDepth) {
-		this.nestingDepth = nestingDepth;
-	}
 	
 	public final boolean flagsEnabled(int flags) {
 		return (this.flags & flags) != 0;
@@ -422,39 +412,26 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return t.canBeAssignedFrom(myType) || myType.subsetOf(t) || canBeConvertedTo(t, context);
 	}
 
-	public TraversalContinuation traverse(IScriptParserListener listener, int minimumParseRecursion) {
-		return traverse(listener, null, minimumParseRecursion);
-	}
-	
-	public final TraversalContinuation traverse(IScriptParserListener listener) {
-		return traverse(listener, null, 0);
-	}
-
 	/**
 	 * Traverses this expression by calling expressionDetected on the supplied IExpressionListener for the root expression and its sub elements.
 	 * @param listener the expression listener
 	 * @param parser the parser as context
-	 * @param minimumNesting Minimum AST nesting expressions being reported need to have 
 	 * @return flow control for the calling function
 	 */
-	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser, int minimumNesting) {
-		TraversalContinuation result;
-		if (nestingDepth >= minimumNesting) {
-			result = listener.expressionDetected(this, parser);
-			switch (result) {
-			case Cancel:
-				return TraversalContinuation.Cancel;
-			case Continue: case TraverseSubElements:
-				break;
-			case SkipSubElements:
-				return TraversalContinuation.Continue;
-			}
-		} else
-			result = TraversalContinuation.Continue;
+	public TraversalContinuation traverse(IASTVisitor listener, C4ScriptParser parser) {
+		TraversalContinuation result = listener.visitExpression(this, parser);
+		switch (result) {
+		case Cancel:
+			return TraversalContinuation.Cancel;
+		case Continue: case TraverseSubElements:
+			break;
+		case SkipSubElements:
+			return TraversalContinuation.Continue;
+		}
 		for (ExprElm sub : subElements()) {
 			if (sub == null)
 				continue;
-			switch (sub.traverse(listener, parser, minimumNesting)) {
+			switch (sub.traverse(listener, parser)) {
 			case Continue:
 				break;
 			case TraverseSubElements: case Cancel:
@@ -462,10 +439,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 		return result;
-	}
-	
-	public final TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser) {
-		return traverse(listener, parser, 0);
 	}
 
 	public IRegion region(int offset) {
@@ -531,13 +504,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		ITypeInfo info;
 		switch (mode) {
 		case Expect: case Force:
-			info = context.requestStoredTypeInformation(this);
+			info = context.requestTypeInfo(this);
 			if (info != null)
 				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY)
 					info.storeType(type);
 			break;
 		case Hint:
-			info = context.queryStoredTypeInformation(this);
+			info = context.queryTypeInfo(this);
 			if (info != null && !info.generalTypeHint(type) && errorWhenFailed != null)
 				context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
 			break;
@@ -553,7 +526,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
-		context.storeTypeInformation(this, rightSide.type(context));
+		context.storeType(this, rightSide.type(context));
 	}
 
 	public ControlFlow controlFlow() {

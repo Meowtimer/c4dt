@@ -1,9 +1,10 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -55,8 +56,8 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
-import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
@@ -74,7 +75,6 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
@@ -105,6 +105,12 @@ import org.eclipse.swt.widgets.Display;
  */
 public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext, IEvaluationContext {
 	
+	private static final EnumSet<ParserErrorCode> DISABLED_INSTANT_ERRORS = EnumSet.of(
+		ParserErrorCode.TokenExpected,
+		ParserErrorCode.InvalidExpression,
+		ParserErrorCode.BlockNotClosed,
+		ParserErrorCode.NotAllowedHere
+	);
 	private static final boolean DEBUG = false;
 	private static final boolean UNUSEDPARMWARNING = false;
 	
@@ -177,7 +183,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private static final Set<ParserErrorCode> NO_DISABLED_ERRORS = Collections.unmodifiableSet(new HashSet<ParserErrorCode>());
 	
-	protected IScriptParserListener listener;
+	protected IASTVisitor listener;
 	/**
 	 * Reference to project file the script was read from.
 	 */
@@ -235,7 +241,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
 	 * @return the expression listener
 	 */
-	public IScriptParserListener listener() {
+	public IASTVisitor listener() {
 		return listener;
 	}
 
@@ -243,7 +249,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Sets the expression listener.
 	 * @param listener the new expression listener
 	 */
-	public void setListener(IScriptParserListener listener) {
+	public void setListener(IASTVisitor listener) {
 		this.listener = listener;
 	}
 	
@@ -274,8 +280,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
 	@Override
-	public void storeTypeInformation(ExprElm expression, IType type) {
-		ITypeInfo requested = requestStoredTypeInformation(expression);
+	public void storeType(ExprElm expression, IType type) {
+		ITypeInfo requested = requestTypeInfo(expression);
 		if (requested != null) {
 			if (DEBUG)
 				warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
@@ -289,7 +295,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
-	public ITypeInfo requestStoredTypeInformation(ExprElm expression) {
+	public ITypeInfo requestTypeInfo(ExprElm expression) {
 		if (currentFunctionContext.typeInfos == null)
 			return null;
 		boolean topMostLayer = true;
@@ -319,7 +325,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param expression the expression to query the type of
 	 * @return
 	 */
-	public ITypeInfo queryStoredTypeInformation(ExprElm expression) {
+	public ITypeInfo queryTypeInfo(ExprElm expression) {
 		if (currentFunctionContext.typeInfos == null)
 			return null;
 		for (TypeInfoList list = currentFunctionContext.typeInfos; list != null; list = list.up)
@@ -338,7 +344,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
-		ITypeInfo info = queryStoredTypeInformation(expression);
+		ITypeInfo info = queryTypeInfo(expression);
 		return info != null ? info.type() : defaultType;
 	}
 	
@@ -363,7 +369,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Sets the current function. There should be a good reason to call this. 
 	 * @param func
 	 */
-	public void setCurrentFunc(Function func) {
+	public void setCurrentFunction(Function func) {
 		if (func != currentFunction()) {
 			currentFunctionContext.currentDeclaration = func;
 			currentFunctionContext.numUnnamedParameters = 0;
@@ -374,7 +380,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Returns the first variable in the parent chain of currentDeclaration
 	 * @return
 	 */
-	public Variable getCurrentVariable() {
+	public Variable currentVariable() {
 		return currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration.firstParentDeclarationOfType(Variable.class) : null;
 	}
 	
@@ -640,7 +646,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				oldFunctionContext = null;
 			Declaration oldDec = currentFunctionContext.currentDeclaration;
 			try {
-				setCurrentFunc(function);
+				setCurrentFunction(function);
 				assignDefaultParmTypesToFunction(function);
 				// reset local vars
 				function.resetLocalVarTypes();
@@ -649,7 +655,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				int endOfFunc = function.body().end();
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				List<Statement> statements = new LinkedList<Statement>();
-				parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+				parseStatementBlock(offset, endOfFunc, statements, options, VisitCodeFlavour.AlsoStatements);
 				BunchOfStatements bunch = new BunchOfStatements(statements);
 				if (function.isOldStyle() && statements.size() > 0)
 					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
@@ -1087,7 +1093,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		int startBody = 0, endBody = 0;
 		
-		setCurrentFunc(null);
+		setCurrentFunction(null);
 		if (header.isOldStyle)
 			warningWithCode(ParserErrorCode.OldStyleFunc, header.nameStart, header.nameStart+header.name.length());
 		Function currentFunc;
@@ -2194,9 +2200,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		root.setFlagsEnabled(ExprElm.STATEMENT_REACHED, currentFunctionContext.statementReached);
 		if (reportErrors)
 			reportErrorsOf(root);
-		root.setNestingDepth(currentFunctionContext.parseExpressionRecursion);
 		if (listener != null && currentFunctionContext.parseExpressionRecursion <= 1)
-			listener.expressionDetected(root, this);
+			listener.visitExpression(root, this);
 	}
 
 	private <T extends ExprElm> T reportErrorsOf(T expression) throws ParsingException {return expression;}
@@ -2413,7 +2418,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					int read = read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<Statement> subStatements = new LinkedList<Statement>();
-						parseStatementBlock(start, Integer.MAX_VALUE, subStatements, ParseStatementOption.NoOptions, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+						parseStatementBlock(start, Integer.MAX_VALUE, subStatements, ParseStatementOption.NoOptions, VisitCodeFlavour.AlsoStatements);
 						result = new Block(subStatements);
 					}
 					else if (read == ';')
@@ -2493,11 +2498,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void handleStatementCreated(Statement statement) throws ParsingException {
-		statement.setNestingDepth(currentFunctionContext.parseStatementRecursion);
 		statement.setFlagsEnabled(ExprElm.STATEMENT_REACHED, currentFunctionContext.statementReached);
 		if (currentFunctionContext.parseStatementRecursion == 1)
 			if (listener != null)
-				switch (listener.expressionDetected(statement, this)) {
+				switch (listener.visitExpression(statement, this)) {
 				case Cancel:
 					listener = null; // listener doesn't want to hear from me anymore? fine!
 					//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
@@ -2513,7 +2517,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param flavour Whether parsing statements or only expressions
 	 * @throws ParsingException
 	 */
-	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
+	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, VisitCodeFlavour flavour) throws ParsingException {
 		boolean done = false;
 		boolean reached = true;
 		int garbageStart = -1;
@@ -2522,7 +2526,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.currentFunctionContext.statementReached = reached;
 			int potentialGarbageEnd = offset;
 			//eatWhitespace();
-			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements
+			Statement statement = flavour == VisitCodeFlavour.AlsoStatements
 				? parseStatement(options)
 				: SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
@@ -3141,10 +3145,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param listener Listener to get informed about reported expressions
 	 * @param flavour Whether to only parse statements, or also expressions
 	 */
-	public void reportExpressionsAndStatements(
+	public void visitCode(
 		IRegion funcOrRegion,
-		final IScriptParserListener listener,
-		ExpressionsAndStatementsReportingFlavour flavour,
+		final IASTVisitor listener,
+		VisitCodeFlavour flavour,
 		boolean reportErrors
 	) {
 		boolean oldErrorsDisabled = allErrorsDisabled;
@@ -3154,54 +3158,26 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		try {
 			String functionSource = functionSource(func);
 			Block cachedBlock = func != null ? func.codeBlockMatchingSource(functionSource) : null;
-			// if block is non-existant or outdated, parse function code and store block
+			// if block is non-existent or outdated, parse function code and store block
 			if (cachedBlock == null) {
 				if (func != null)
 					func.clearLocalVars();
 				strictLevel = containingScript().strictLevel();
-				enableErrors(EnumSet.of(
-					ParserErrorCode.TokenExpected,
-					ParserErrorCode.InvalidExpression,
-					ParserErrorCode.BlockNotClosed,
-					ParserErrorCode.NotAllowedHere
-				), false);
+				enableErrors(DISABLED_INSTANT_ERRORS, false);
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				LinkedList<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
 				cachedBlock = new BunchOfStatements(statements);
-				if (func != null) {
-					reportErrorsOf(statements);
+				if (func != null)
 					func.storeBlock(cachedBlock, functionSource);
-				}
 			}
 			// traverse block using the listener
-			if (cachedBlock != null)
-				if (reportErrors) {
-					func.resetLocalVarTypes();
-					// traverse with new listener that re-reports errors in addition to forwarding notifications to the actual listener
-					// so clients expecting report... to cause marker creation won't be disappoint
-					cachedBlock.traverse(new IScriptParserListener() {
-						@Override
-						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							parser.reportErrorsOf(expression, false, null);
-							return listener != null
-								? listener.expressionDetected(expression, parser)
-								: TraversalContinuation.Continue;
-						}
-						@Override
-						public void endTypeInferenceBlock(List<ITypeInfo> typeInfos) {
-							if (listener != null)
-								listener.endTypeInferenceBlock(typeInfos);
-						}
-						@Override
-						public int minimumParsingRecursion() {
-							return listener.minimumParsingRecursion();
-						}
-					}, this, listener != null ? listener.minimumParsingRecursion() : 1);
-					warnAboutPossibleProblemsWithFunctionLocalVariables(func, Arrays.asList(cachedBlock.statements()));
-				} else
-					// just traverse... this should be faster than reparsing -.-
-					cachedBlock.traverse(listener, this, listener.minimumParsingRecursion());
+			if (cachedBlock != null) {
+				// just traverse... this should be faster than reparsing -.-
+				if (listener != null)
+					cachedBlock.traverse(listener, this);
+				reportErrorsOf(iterable(cachedBlock.statements()));
+			}
 		}
 		catch (ParsingException e) {
 			//e.printStackTrace();
@@ -3219,7 +3195,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @author madeen
 	 *
 	 */
-	public enum ExpressionsAndStatementsReportingFlavour {
+	public enum VisitCodeFlavour {
 		/**
 		 * Report only expressions (call {@link C4ScriptParser#parseExpression()})
 		 */
@@ -3283,11 +3259,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param reportErrors
 	 * @return The parser that did the reporting/(not necessarily parsing) work
 	 */
-	public static C4ScriptParser reportExpressionsAndStatements(
+	public static C4ScriptParser visitCode(
 		IDocument doc,
 		Script context, IRegion funcOrRegion,
-		IScriptParserListener listener, final IMarkerListener markerListener,
-		ExpressionsAndStatementsReportingFlavour flavour,
+		IASTVisitor listener, final IMarkerListener markerListener,
+		VisitCodeFlavour flavour,
 		boolean reportErrors
 	) { 
 		String statements_;
@@ -3315,7 +3291,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return statements;
 			}
 		};
-		parser.reportExpressionsAndStatements(funcOrRegion, listener, flavour, reportErrors);
+		parser.visitCode(funcOrRegion, listener, flavour, reportErrors);
 		return parser;
 	}
 	
@@ -3328,7 +3304,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
-	public static Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String statementText, Function context, IASTVisitor listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			Script tempScript = new TempScript(statementText);
 			context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
@@ -3353,10 +3329,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
-	public Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener) throws ParsingException {
+	public Statement parseStandaloneStatement(final String statementText, Function context, IASTVisitor listener) throws ParsingException {
 		initScanner(statementText);
 		setListener(listener);
-		setCurrentFunc(context);
+		setCurrentFunction(context);
 		enableError(ParserErrorCode.NotFinished, false);
 		
 		List<Statement> statements = new LinkedList<Statement>();

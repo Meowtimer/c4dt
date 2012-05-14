@@ -473,7 +473,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-				ClonkProjectNature.get(project).index().saveShallow();
+				Index index = ClonkProjectNature.get(project).index();
+				index.saveShallow();
 				monitor.worked(3);
 				return Status.OK_STATUS;
 			} finally {

@@ -1,8 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 
 import java.io.IOException;
@@ -184,7 +184,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				lineEnd = lineStart;
 			}
 		}
-		
 		return mappingAsList.toArray(new Function[mappingAsList.size()]);
 	}
 

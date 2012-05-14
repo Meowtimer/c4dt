@@ -106,8 +106,8 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
-		if (context.getCurrentVariable() != null) {
-			return context.containingScript().engine().iniConfigurations().configurationFor(context.getCurrentVariable().name()+".txt"); //$NON-NLS-1$
+		if (context.currentVariable() != null) {
+			return context.containingScript().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}

@@ -467,7 +467,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 
 			@Override
-			public void storeTypeInformation(ExprElm exprElm, IType type) {
+			public void storeType(ExprElm exprElm, IType type) {
 				// yeah right
 			}
 
