@@ -1608,7 +1608,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			markerEnd += offs;
 		}
 		Function cf = currentFunction();
-		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.body() != null && this.offset > cf.body().end()+1);
+		boolean misplacedErrorOrNoFileToAttachMarkerTo =
+			scriptFile == null ||
+			(cf != null && !cf.isOldStyle() && cf.body() != null && markerStart > cf.body().end()+1);
 		String problem = code.makeErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo)
 			markers().add(new Marker(this, code, markerStart, markerEnd, severity, args));
