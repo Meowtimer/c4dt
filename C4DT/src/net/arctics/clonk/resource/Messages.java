@@ -12,6 +12,7 @@ public class Messages extends NLS {
 	public static String ClonkBuilder_ParseFunctionCode;
 	public static String ClonkBuilder_RenameRefactoringPrompt;
 	public static String ClonkBuilder_RenameRefactoringTitle;
+	public static String ClonkBuilder_ReportingProblems;
 	public static String ClonkBuilder_SaveIndexFilesForParsedScripts;
 	public static String ClonkBuilder_SavingScriptIndexFiles;
 	public static String BuildProject;

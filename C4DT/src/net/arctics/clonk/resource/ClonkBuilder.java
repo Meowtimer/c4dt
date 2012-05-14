@@ -174,8 +174,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		public Definition createDefinition(IContainer folder) {
-			IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
-			IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class);
+			IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
+			IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
 			if (defCore == null && scenario == null)
 				return null;
 			try {
@@ -343,11 +343,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	public boolean isSystemScript(IResource resource) {
-		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent());
+		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
 	}
 
 	private boolean isSystemGroup(IContainer container) {
-		return index().engine().groupName("System", GroupType.ResourceGroup).equals(container.getName());
+		return index().engine().groupName("System", GroupType.ResourceGroup).equals(container.getName()); //$NON-NLS-1$
 	}
 
 	private static String buildTask(String text, IProject project) {
@@ -606,10 +606,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void reportProblems(final Script[] scripts) {
-		new Job("Reporting problems") {
+		new Job(Messages.ClonkBuilder_ReportingProblems) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				monitor.subTask("Reporting problems");
+				monitor.subTask(Messages.ClonkBuilder_ReportingProblems);
 				synchronized (errorReportingOrder) {
 					for (C4ScriptParser p : errorReportingOrder) {
 						if (monitor.isCanceled())
