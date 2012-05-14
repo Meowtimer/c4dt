@@ -973,7 +973,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			type == PrimitiveType.OBJECT ||
 			type == PrimitiveType.PROPLIST ||
 			type == this ||
-			(type instanceof ConstrainedProplist && this.doesInclude(this.index(), ((ConstrainedProplist)type).constraint())) ||
+			(type instanceof IHasConstraint && this.doesInclude(this.index(), ((IHasConstraint)type).constraint())) ||
 			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
 	}
 	

@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -157,11 +158,10 @@ public class SpecialScriptRules {
 					return null;
 			}
 			Set<String> funs = new HashSet<String>(5);
-			for (AppliedTo a : annots) {
+			for (AppliedTo a : annots)
 				if ((role & a.role()) != 0)
 					for (String f : a.functions())
 						funs.add(f);
-			}
 			return funs.toArray(new String[funs.size()]);
 		}
 		/**
@@ -172,7 +172,7 @@ public class SpecialScriptRules {
 		 */
 		public final int computeRoleMask() {
 			int result = 0;
-			for (Method m : getClass().getMethods()) {
+			for (Method m : getClass().getMethods())
 				try {
 					Class<?> cls = m.getDeclaringClass().getSuperclass();
 					while (cls != null) {
@@ -189,7 +189,6 @@ public class SpecialScriptRules {
 				} catch (Exception e) {
 					continue;
 				}
-			}
 			return result;
 		}
 	}
@@ -295,24 +294,18 @@ public class SpecialScriptRules {
 	}
 	private void putFuncRule(SpecialFuncRule rule, FunctionsByRole functionsGetter) {
 		int mask = rule.computeRoleMask();
-		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : functionsGetter.functions(ARGUMENT_VALIDATOR)) {
+		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : functionsGetter.functions(ARGUMENT_VALIDATOR))
 			argumentValidators.put(func, rule);
-		}
-		if ((mask & DECLARATION_LOCATOR) != 0) for (String func : functionsGetter.functions(DECLARATION_LOCATOR)) {
+		if ((mask & DECLARATION_LOCATOR) != 0) for (String func : functionsGetter.functions(DECLARATION_LOCATOR))
 			declarationLocators.put(func, rule);
-		}
-		if ((mask & RETURNTYPE_MODIFIER) != 0) for (String func : functionsGetter.functions(RETURNTYPE_MODIFIER)) {
+		if ((mask & RETURNTYPE_MODIFIER) != 0) for (String func : functionsGetter.functions(RETURNTYPE_MODIFIER))
 			returnTypeModifiers.put(func, rule);
-		}
-		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0) {
+		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0)
 			defaultParmTypeAssigners.add(rule);
-		}
-		if ((mask & FUNCTION_EVENT_LISTENER) != 0) {
+		if ((mask & FUNCTION_EVENT_LISTENER) != 0)
 			functionEventListeners.add(rule);
-		}
-		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (String func : functionsGetter.functions(FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)) {
+		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (String func : functionsGetter.functions(FUNCTION_PARM_PROPOSALS_CONTRIBUTOR))
 			parmProposalContributors.put(func, rule);
-		}
 	}
 	
 	public void putFuncRule(SpecialFuncRule rule, final Field fieldReference) {
@@ -381,17 +374,17 @@ public class SpecialScriptRules {
 			Script script = null;
 			ConstraintKind constraintKind = null;
 			IType t;
-			if (callFunc.params().length > 0) {
+			if (callFunc.params().length > 0)
 				t = callFunc.params()[0].type(context);
-			} else if (callFunc.predecessorInSequence() != null) {
+			else if (callFunc.predecessorInSequence() != null)
 				t = callFunc.predecessorInSequence().type(context);
-			} else {
+			else {
 				constraintKind = ConstraintKind.CallerType;
 				script = context.containingScript();
 				t = null;
 			}
-			if (t instanceof ConstrainedProplist) {
-				ConstrainedProplist cobj = (ConstrainedProplist)t;
+			if (t instanceof IHasConstraint) {
+				IHasConstraint cobj = (IHasConstraint)t;
 				constraintKind = cobj.constraintKind();
 				script = Utilities.as(cobj.constraint(), Script.class);
 			}
@@ -408,9 +401,8 @@ public class SpecialScriptRules {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(context, callFunc, true);
-			if (t == null || t == PrimitiveType.UNKNOWN) {
+			if (t == null || t == PrimitiveType.UNKNOWN)
 				t = PrimitiveType.OBJECT;
-			}
 			if (t != null) {
 				Function f = (Function) callFunc.declaration();
 				if (f != null && f.returnType() == PrimitiveType.ARRAY)
@@ -425,55 +417,43 @@ public class SpecialScriptRules {
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();
-				for (ExprElm parm : callFunc.params()) {
+				for (ExprElm parm : callFunc.params())
 					if (parm instanceof CallDeclaration) {
 						CallDeclaration call = (CallDeclaration)parm;
 						IType t = searchCriteriaAssumedResult(context, call, false);
-						if (t != null) for (IType ty : t) {
+						if (t != null) for (IType ty : t)
 							types.add(ty);
-						}
 					}
-				}
 				result = TypeSet.create(types);
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-				if (callFunc.params().length >= 1) {
+				if (callFunc.params().length >= 1)
 					result = callFunc.params()[0].guessObjectType(context);
-				}
 			}
 			else if (declarationName.equals("Find_Func") && callFunc.params().length >= 1) {
 				Object ev = callFunc.params()[0].evaluateAtParseTime(context.currentFunction());
 				if (ev instanceof String) {
 					List<Declaration> functions = functionsNamed(context, (String)ev);
 					List<IType> types = new ArrayList<IType>(functions.size());
-					for (Declaration f : functions) {
-						if (f.script() instanceof Definition) {
+					for (Declaration f : functions)
+						if (f.script() instanceof Definition)
 							types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
-						}
-						else for (Directive directive : f.script().directives()) {
+						else for (Directive directive : f.script().directives())
 							if (directive.type() == DirectiveType.APPENDTO) {
 								Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
-								if (def != null) {
+								if (def != null)
 									types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
-								}
 							}
-						}
-					}
-					for (Index index : context.containingScript().index().relevantIndexes()) {
-						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
-							if (f.script() instanceof Definition) {
+					for (Index index : context.containingScript().index().relevantIndexes())
+						for (Function f : index.declarationsWithName((String)ev, Function.class))
+							if (f.script() instanceof Definition)
 								types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
-							}
-							else for (Directive directive : f.script().directives()) {
+							else for (Directive directive : f.script().directives())
 								if (directive.type() == DirectiveType.APPENDTO) {
 									Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
-									if (def != null) {
+									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
-									}
 								}
-							}
-						}
-					}
 					return TypeSet.create(types);
 				}
 			}
@@ -495,20 +475,18 @@ public class SpecialScriptRules {
 			if (script == null)
 				script = parser.containingScript(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
-			if (scriptExpr instanceof String) {
+			if (scriptExpr instanceof String)
 				try {
 					C4ScriptParser.parseStandaloneStatement((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
 						@Override
 						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
-							if (code == ParserErrorCode.NotFinished) {
+							if (code == ParserErrorCode.NotFinished)
 								// ignore complaining about missing ';' - some genuine errors might slip through but who cares
 								return WhatToDo.DropCharges;
-							}
 							try {
 								// pass through to the 'real' script parser
-								if (parser.errorEnabled(code)) {
+								if (parser.errorEnabled(code))
 									parser.markerWithCode(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
-								}
 							} catch (ParsingException e) {
 								// shouldn't happen
 								e.printStackTrace();
@@ -519,7 +497,6 @@ public class SpecialScriptRules {
 				} catch (ParsingException e) {
 					// that on slipped through - pretend nothing happened
 				}
-			}
 			return false; // don't stop regular parameter validating
 		};
 		@Override
@@ -549,9 +526,8 @@ public class SpecialScriptRules {
 				IType t = callFunc.params()[0].type(parser);
 				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
 				Function func = scriptToLookIn.findFunction(lit.literal());
-				if (func != null) {
+				if (func != null)
 					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
-				}
 			}
 			return null;
 		};
@@ -611,9 +587,8 @@ public class SpecialScriptRules {
 						public void receivedObject(Index index) {
 							for (Scenario s : index.indexedScenarios()) {
 								Function f = s.findLocalFunction(lit.literal(), true);
-								if (f != null) {
+								if (f != null)
 									decs.add(f);
-								}
 							}	
 						};
 					});
@@ -697,11 +672,10 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
-			if (callFunc.params().length >= 3) {
+			if (callFunc.params().length >= 3)
 				return PrimitiveType.ID;
-			} else {
+			else
 				return PrimitiveType.INT;
-			}
 		};
 	};
 	
@@ -752,10 +726,9 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
 		protected void collectSoundResourcesInFolder(Set<IIndexEntity> set, Matcher nameMatcher, Engine engine, IContainer container, ProjectIndex pi) {
 			try {
-				for (IResource r : container.members()) {
+				for (IResource r : container.members())
 					if (nameMatcher.reset(r.getName()).matches())
 						set.add(new ProjectResource(pi, r));
-				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -766,15 +739,13 @@ public class SpecialScriptRules {
 			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
 			HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
 			boolean extensionWildcardNeeded = true;
-			for (String e : engine.settings().supportedSoundFileExtensions()) {
+			for (String e : engine.settings().supportedSoundFileExtensions())
 				if (name.endsWith("\\\\."+e)) {
 					extensionWildcardNeeded = false;
 					break;
 				}
-			}
-			if (extensionWildcardNeeded) {
+			if (extensionWildcardNeeded)
 				name += "\\..*";
-			}
 			Matcher nameMatcher = Pattern.compile(name).matcher("");
 			String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 			IResource r = parser.containingScript().resource();
@@ -818,9 +789,8 @@ public class SpecialScriptRules {
 						}
 						if (unit instanceof IniUnitWithNamedSections) {
 							IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
-							if (actionSection != null) {
+							if (actionSection != null)
 								return new EntityRegion(actionSection, actionNameExpression);
-							}
 						}
 					}
 				}
@@ -895,7 +865,7 @@ public class SpecialScriptRules {
 	 * Annotations are consulted to decide what lists the rules are added to.
 	 */
 	public void initialize() {
-		for (Class<?> c = getClass(); c != null; c = c.getSuperclass()) {
+		for (Class<?> c = getClass(); c != null; c = c.getSuperclass())
 			for (Field f : c.getDeclaredFields()) {
 				Object obj;
 				try {
@@ -908,7 +878,6 @@ public class SpecialScriptRules {
 					putFuncRule(funcRule, f);
 				}
 			}
-		}
 	}
 	
 	/**

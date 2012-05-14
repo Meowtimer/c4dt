@@ -154,10 +154,9 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 			return true;
 		if (type instanceof Script)
 			return ((Script)type).doesInclude(((Script)type).index(), constraint);
-		if (type instanceof ConstrainedProplist) {
+		if (type instanceof ConstrainedProplist)
 			//return ((ConstrainedProplist)type).constraint().includes(index(), constraint);
 			return false; // >:o
-		}
 		return false;
 	}
 	
@@ -199,7 +198,9 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		switch (constraintKind()) {
 		case CallerType:
-			if (callerType != constraint())
+			if (callerType == null)
+				return new ConstrainedProplist(constraint, ConstraintKind.Includes);
+			else if (callerType != constraint() || context.script() != constraint())
 				return callerType;
 			else
 				break;
@@ -241,6 +242,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 		return constraint.doesInclude(contextIndex, other);
 	}
 
+	@Override
 	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
 		return constraint.gatherIncludes(contextIndex, origin, set, options);
 	}

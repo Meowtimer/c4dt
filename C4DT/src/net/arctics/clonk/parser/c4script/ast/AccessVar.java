@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
@@ -149,7 +150,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		Declaration d = declarationFromContext(context);
-		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
+		// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
 			return new ConstrainedProplist(context.containingScript(), ConstraintKind.CallerType);
 		IType stored = context.queryTypeOfExpression(this, null);
@@ -161,6 +162,16 @@ public class AccessVar extends AccessDeclaration {
 			return ((ITypeable) d).type();
 			//return new SameTypeAsSomeTypeable((ITypeable)d);
 		return PrimitiveType.UNKNOWN;
+	}
+	
+	@Override
+	protected IType callerType(DeclarationObtainmentContext context) {
+		Variable v = as(declaration, Variable.class);
+		if (v != null) switch (v.scope()) {
+		case CONST: case STATIC:
+			return null;
+		}
+		return super.callerType(context);
 	}
 
 	@Override

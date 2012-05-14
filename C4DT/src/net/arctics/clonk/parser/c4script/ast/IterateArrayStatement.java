@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -95,7 +96,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		IType type = arrayExpr.type(parser);
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
-		IType elmType = ArrayType.elementTypeSet(type);
+		IType elmType = IResolvableType._.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
 		TypeInfoList bodyTyping = parser.typeInfoList();
 		if (loopVariable != null) {
 			if (elmType != null)
