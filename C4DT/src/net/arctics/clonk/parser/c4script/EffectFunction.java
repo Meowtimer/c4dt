@@ -20,7 +20,8 @@ public class EffectFunction extends Function {
 		Start,
 		Timer,
 		Stop,
-		Effect;
+		Effect,
+		Damage;
 		
 		Pattern pattern;
 		
@@ -42,6 +43,8 @@ public class EffectFunction extends Function {
 				return new IType[] {PrimitiveType.OBJECT, effectProplistType};
 			case Effect:
 				return new IType[] {PrimitiveType.STRING, PrimitiveType.OBJECT, effectProplistType};
+			case Damage:
+				return new IType[] {PrimitiveType.OBJECT, effectProplistType, PrimitiveType.INT, PrimitiveType.INT};
 			default:
 				return null;
 			}
@@ -101,15 +104,12 @@ public class EffectFunction extends Function {
 					this.setStartFunction(f);
 					break;
 				}
-			}
-			else {
-				if (f.hardcodedCallbackType() == HardcodedCallbackType.Start) {
-					// look if this name matches Fx<EffectName>(.*)
-					Matcher m = f.additionalCallbacksPattern().matcher(name);
-					if (m.matches()) {
-						this.setStartFunction(f);
-						break;
-					}
+			} else if (f.hardcodedCallbackType() == HardcodedCallbackType.Start) {
+				// look if this name matches Fx<EffectName>(.*)
+				Matcher m = f.additionalCallbacksPattern().matcher(name);
+				if (m.matches()) {
+					this.setStartFunction(f);
+					break;
 				}
 			}
 		}
