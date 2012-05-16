@@ -271,7 +271,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									return WhatToDo.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
+										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.expressionReportingErrors()), args);
 								return WhatToDo.PassThrough;
 							}
 						}, VisitCodeFlavour.AlsoStatements, true);

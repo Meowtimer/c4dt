@@ -1539,7 +1539,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			
 			this.cf = parser.currentDeclaration();
 			this.offset = parser.offset;
-			this.reporter = parser.getExpressionReportingErrors();
+			this.reporter = parser.expressionReportingErrors();
 			this.scriptFile = parser.scriptFile;
 			this.container = parser.containingScript();
 		}
@@ -2194,7 +2194,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * The expression that is currently reporting errors.
 	 * @return The expression reporting errors
 	 */
-	public ExprElm getExpressionReportingErrors() {
+	public ExprElm expressionReportingErrors() {
 		return currentFunctionContext.expressionReportingErrors;
 	}
 	
