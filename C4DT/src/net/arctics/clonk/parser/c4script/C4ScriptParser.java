@@ -1118,12 +1118,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// get parameters
 			do {
 				eat(WHITESPACE_CHARS);
-				Comment parameterComment = parseCommentObject();
+				Comment parameterCommentPre = parseCommentObject();
 				eat(WHITESPACE_CHARS);
 				Variable parm = parseParameter(currentFunc);
-				if (parm != null && parameterComment != null)
-					parm.setUserDescription(parameterComment.text());
-				eatWhitespace();
+				eat(WHITESPACE_CHARS);
+				Comment parameterCommentPost = parseCommentObject();
+				eat(WHITESPACE_CHARS);
+				if (parm != null) {
+					StringBuilder commentBuilder = new StringBuilder(30);
+					if (parameterCommentPre != null)
+						commentBuilder.append(parameterCommentPre.text());
+					if (parameterCommentPost != null) {
+						if (parameterCommentPre != null)
+							commentBuilder.append("\n");
+						commentBuilder.append(parameterCommentPost.text());
+					}
+					parm.setUserDescription(commentBuilder.toString());
+				}
 				int readByte = read();
 				if (readByte == ')')
 					break; // all parameters parsed
