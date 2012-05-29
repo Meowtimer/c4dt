@@ -90,14 +90,14 @@ public class IfStatement extends ConditionalStatement {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		parser.reportErrorsOf(condition, true, null);
+		parser.reportProblemsOf(condition, true, null);
 		// use two separate typeinfo lists for if and else statement, merging
 		// gathered information afterwards
 		TypeInfoList bodyTyping = parser.typeInfoList();
-		parser.reportErrorsOf(body, true, bodyTyping);
+		parser.reportProblemsOf(body, true, bodyTyping);
 		if (elseExpr != null) {
 			TypeInfoList elseTyping = parser.typeInfoList();
-			parser.reportErrorsOf(elseExpr, true, elseTyping);
+			parser.reportProblemsOf(elseExpr, true, elseTyping);
 			bodyTyping.inject(elseTyping);
 		}
 		parser.injectTypeInfos(bodyTyping);

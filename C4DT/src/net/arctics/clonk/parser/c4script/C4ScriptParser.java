@@ -176,6 +176,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		 */
 		public int numUnnamedParameters;
 		public ExprElm expressionReportingErrors;
+
 		public void initialize() {
 			statementReached = true;
 		}
@@ -216,11 +217,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Cached set of errors disabled by project settings
 	 */
 	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
-	private boolean allowInterleavedFunctionParsing;
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
-	private Set<Function> parsedFunctions;
 	private SpecialScriptRules specialScriptRules;
 	private Engine engine;
 	private TypeInfoList scriptLevelTypeInfos;
@@ -232,10 +231,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	public boolean allErrorsDisabled() {
 		return allErrorsDisabled;
-	}
-	
-	public void setAllowInterleavedFunctionParsing(boolean allowInterleavedFunctionParsing) {
-		this.allowInterleavedFunctionParsing = allowInterleavedFunctionParsing;
 	}
 	
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
@@ -517,7 +512,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		strictLevel = script.strictLevel();
 		int offset = 0;
 		this.seek(offset);
-		setAllowInterleavedFunctionParsing(true);
 		enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 		try {
 			eatWhitespace();
@@ -548,13 +542,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
-		System.out.println("Parsing functions of " + script.name());
 		prepareForFunctionParsing();
 		for (Function function : script.functions())
-			parseCodeOfFunction(function, false);
-		synchronized (parsedFunctions) {
-			parsedFunctions = null;
-		}
+			parseCodeOfFunction(function);
 		currentFunctionContext.currentDeclaration = null;
 		if (builder != null)
 			builder.scheduleErrorReporting(this);
@@ -579,10 +569,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	public void prepareForFunctionParsing() {
-		if (parsedFunctions == null) {
-			strictLevel = script.strictLevel();
-			parsedFunctions = new HashSet<Function>();
-		}
+		strictLevel = script.strictLevel();
 	}
 
 	/**
@@ -609,87 +596,53 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param function The function to be parsed
 	 * @throws ParsingException
 	 */
-	@Override
-	public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
+	private void parseCodeOfFunction(Function function) throws ParsingException {
 		// parser not yet ready to parse functions - deny
-		if (parsedFunctions == null)
+		// function is weird or does not belong here - ignore
+		if (function.body() == null)
 			return;
-		synchronized (parsedFunctions) {
-			if (parsedFunctions == null)
-				return; // >:o
-			// only allow interleaved function parsing when invoked by ClonkBuilder
-			if (!allowInterleavedFunctionParsing && withNewContext)
-				return;
-			// function is weird or does not belong here - ignore
-			if (function.body() == null)
-				return;
-			if (function.script() != script) {
-				if (builder != null)
-					builder.parseFunction(function);
-				return;
-			}
-			// already parsed? don't do that again
-			if (parsedFunctions.contains(function))
-				return;
-			else
-				parsedFunctions.add(function);
+		function.forceType(PrimitiveType.UNKNOWN);
 
-			function.forceType(PrimitiveType.UNKNOWN);
+		if (specialScriptRules != null)
+			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
+				eventListener.functionAboutToBeParsed(function, this);
 
-			if (specialScriptRules != null)
-				for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
-					eventListener.functionAboutToBeParsed(function, this);
-
-			int oldOffset = this.offset;
-			FunctionContext oldFunctionContext;
-			if (withNewContext) {
-				oldFunctionContext = currentFunctionContext;
-				currentFunctionContext = new FunctionContext();
-				currentFunctionContext.initialize();
-			} else
-				oldFunctionContext = null;
-			Declaration oldDec = currentFunctionContext.currentDeclaration;
-			try {
-				setCurrentFunction(function);
-				assignDefaultParmTypesToFunction(function);
-				// reset local vars
-				function.resetLocalVarTypes();
-				this.seek(function.body().start());
-				// parse code block
-				int endOfFunc = function.body().end();
-				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-				List<Statement> statements = new LinkedList<Statement>();
-				parseStatementBlock(offset, endOfFunc, statements, options, VisitCodeFlavour.AlsoStatements);
-				BunchOfStatements bunch = new BunchOfStatements(statements);
-				if (function.isOldStyle() && statements.size() > 0)
-					function.body().setEnd(statements.get(statements.size()-1).end()+bodyOffset());
-				if (builder == null)
-					reportErrorsOf(statements);
-				function.storeBlock(bunch, functionSource(function));
-				if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM)
-					function.createParameters(currentFunctionContext.numUnnamedParameters);
-				else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters()-1).isActualParm()))
-					addVarParmsParm(function);
-			}
-			catch (SilentParsingException e) {
-				// not really an error
-			}
-			catch (ParsingException e) {
-				//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-				//e.printStackTrace();
-				// not very exceptional
-			}
-			catch (Exception e) {
-				// errorWithCode throws ^^;
-				e.printStackTrace();
-				errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, NO_THROW, e.getMessage());
-			}
-			finally {
-				currentFunctionContext.currentDeclaration = oldDec;
-				if (oldFunctionContext != null)
-					currentFunctionContext = oldFunctionContext;
-				seek(oldOffset);
-			}
+		int oldOffset = this.offset;
+		Declaration oldDec = currentFunctionContext.currentDeclaration;
+		try {
+			setCurrentFunction(function);
+			// reset local vars
+			function.resetLocalVarTypes();
+			this.seek(function.body().start());
+			// parse code block
+			int endOfFunc = function.body().end();
+			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			List<Statement> statements = new LinkedList<Statement>();
+			parseStatementBlock(offset, endOfFunc, statements, options, VisitCodeFlavour.AlsoStatements);
+			BunchOfStatements bunch = new BunchOfStatements(statements);
+			if (function.isOldStyle() && statements.size() > 0)
+				function.body().setEnd(statements.get(statements.size() - 1).end() + bodyOffset());
+			if (builder == null)
+				reportProblemsOf(statements);
+			function.storeBlock(bunch, functionSource(function));
+			if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM)
+				function.createParameters(currentFunctionContext.numUnnamedParameters);
+			else if (currentFunctionContext.numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters() - 1).isActualParm()))
+				addVarParmsParm(function);
+		} catch (SilentParsingException e) {
+			// not really an error
+		} catch (ParsingException e) {
+			// System.out.println(String.format("ParsingException in %s (%s)",
+			// activeFunc.getName(), container.getName()));
+			// e.printStackTrace();
+			// not very exceptional
+		} catch (Exception e) {
+			// errorWithCode throws ^^;
+			e.printStackTrace();
+			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset + 1, NO_THROW, e.getMessage());
+		} finally {
+			currentFunctionContext.currentDeclaration = oldDec;
+			seek(oldOffset);
 		}
 	}
 	
@@ -718,14 +671,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (Variable p : func.parameters())
 				if (!p.isUsed())
 					warningWithCode(ParserErrorCode.UnusedParameter, p.location(), ABSOLUTE_MARKER_LOCATION, p.name());
-		for (Variable v : func.localVars()) {
-			if (!v.isUsed())
-				createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.Unused, v.name());
-			Variable shadowed = containingScript().findVariable(v.name());
-			// ignore those pesky static variables from scenario scripts
-			if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario)) 
-				createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
-		}
+		if (func.localVars() != null)
+			for (Variable v : func.localVars()) {
+				if (!v.isUsed())
+					createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.Unused, v.name());
+				Variable shadowed = containingScript().findVariable(v.name());
+				// ignore those pesky static variables from scenario scripts
+				if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario))
+					createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
+			}
 	}
 
 	private boolean createWarningAtDeclarationOfVariable(
@@ -975,9 +929,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 								typeOfNewVar = initializationExpression instanceof IType
 									? (IType)initializationExpression
-										: initializationExpression != null
-										? initializationExpression.type(this)
-											: PrimitiveType.UNKNOWN;
+									: PrimitiveType.UNKNOWN;
 							} else if (scope == Scope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else if (scope == Scope.STATIC && isEngine)
@@ -1623,8 +1575,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			scriptFile == null ||
 			(cf != null && !cf.isOldStyle() && cf.body() != null && markerStart > cf.body().end()+1);
 		String problem = code.makeErrorString(args);
-		if (!misplacedErrorOrNoFileToAttachMarkerTo)
-			markers().add(new Marker(this, code, markerStart, markerEnd, severity, args));
+		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
+			Markers markers = markers();
+			synchronized (markers) {
+				markers.add(new Marker(this, code, markerStart, markerEnd, severity, args));
+			}
+		}
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw misplacedErrorOrNoFileToAttachMarkerTo
 				? new SilentParsingException(Reason.SilenceRequested, problem)
@@ -2218,7 +2174,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (listener != null && currentFunctionContext.parseExpressionRecursion <= 1)
 			listener.visitExpression(root, this);
 	}
-
+	
 	/**
 	 * Let an expression report errors. Calling {@link ExprElm#reportErrors(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
@@ -2226,7 +2182,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 * @return The expression parameter is returned to allow for expression chaining. 
 	 */
-	public <T extends ExprElm> T reportErrorsOf(T expression, boolean recursive, TypeInfoList typeInfos) {
+	public <T extends ExprElm> T reportProblemsOf(T expression, boolean recursive, TypeInfoList typeInfos) {
 		if (expression == null)
 			return null;
 		ExprElm saved = currentFunctionContext.expressionReportingErrors;
@@ -2239,7 +2195,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (recursive && !expression.skipReportingErrorsForSubElements())
 				for (ExprElm e : expression.subElements())
 					if (e != null)
-						reportErrorsOf(e, true, null);
+						reportProblemsOf(e, true, null);
 			try {
 				expression.reportErrors(this);
 			} catch (Exception s) {
@@ -2264,25 +2220,73 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return l;
 	}
 
-	public void reportErrorsOf(Iterable<Statement> statements) {
+	public void reportProblemsOf(Iterable<Statement> statements) {
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
-			reportErrorsOf(s, true, functionLevelTypeInfos);
+			reportProblemsOf(s, true, functionLevelTypeInfos);
 		functionLevelTypeInfos.apply(this, false);
 		if (scriptLevelTypeInfos != null)
 			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
-	public void reportErrors() {
+	private final Object reportingMonitor = new Object();
+
+	public void reportProblems() {
 		scriptLevelTypeInfos = new TypeInfoList(10);
-		for (Function f : script.functions()) {
-			setCurrentFunction(f);
-			reportErrorsOf(iterable(f.codeBlock().statements()));
-		}
+		for (Function f : script.functions())
+			synchronized (reportingMonitor) {
+				setCurrentFunction(f);
+				_reportProblems(f);
+			}
 		scriptLevelTypeInfos.apply(this, false);
 	}
 	
+	@Override
+	public void reportProblems(Function function) {
+		synchronized (reportingMonitor) {
+			assignDefaultParmTypesToFunction(function);
+			FunctionContext ctx = currentFunctionContext;
+			currentFunctionContext = new FunctionContext();
+			currentFunctionContext.initialize();
+			setCurrentFunction(function);
+			try {
+				_reportProblems(function);
+			} finally {
+				currentFunctionContext = ctx;
+			}
+		}
+	}
+
+	private void _reportProblems(Function function) {
+		if (function == null || function.codeBlock() == null)
+			return;
+		if (function.script() == script) {
+			if (builder != null) {
+				Set<Function> reporters = builder.reporters();
+				if (reporters != null)
+					synchronized (reporters) {
+						if (reporters.contains(function))
+							return;
+						else
+							reporters.add(function);
+					}
+				else
+					return;
+			}
+			synchronized (currentFunctionContext) {
+				Function old = currentFunction();
+				setCurrentFunction(function);
+				reportProblemsOf(iterable(function.codeBlock().statements()));
+				setCurrentFunction(old);
+			}
+		} else if (builder != null) {
+			C4ScriptParser other = builder.parserFor(function.script());
+			if (other != null)
+				other._reportProblems(function);
+		}
+	}
+
 	private ExprElm parseExpression(boolean reportErrors) throws ParsingException {
 		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
 	}
@@ -3190,10 +3194,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			// traverse block using the listener
 			if (cachedBlock != null) {
+				reportProblemsOf(iterable(cachedBlock.statements()));
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)
 					cachedBlock.traverse(listener, this);
-				reportErrorsOf(iterable(cachedBlock.statements()));
 			}
 		}
 		catch (ParsingException e) {
@@ -3361,7 +3365,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			else
 				break;
 		} while (true);
-		reportErrorsOf(statements);
+		reportProblemsOf(statements);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 

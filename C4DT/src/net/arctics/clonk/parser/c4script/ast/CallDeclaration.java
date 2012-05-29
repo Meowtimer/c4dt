@@ -357,11 +357,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
 			if (dec instanceof Function && context.currentFunction() != null)
-				try {
-					context.parseCodeOfFunction((Function) dec, true);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
+				context.reportProblems((Function)dec);
 			if (dec != null)
 				if (listToAddPotentialDeclarationsTo == null)
 					return dec;
@@ -394,7 +390,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				numCandidates += allFromLocalIndex.size();
 			if (decl != null)
 				numCandidates++;
-			
+
 			// only return found global function if it's the only choice 
 			if (declaration != null && numCandidates == 1)
 				if (listToAddPotentialDeclarationsTo == null)

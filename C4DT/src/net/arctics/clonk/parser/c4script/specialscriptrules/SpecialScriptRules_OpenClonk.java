@@ -71,24 +71,17 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					? null
 					: fun.startFunction();
 				// parse *Start function first. Will define ad-hoc proplist type
-				if (startFunction != null) {
-					try {
-						parser.parseCodeOfFunction(startFunction, true);
-					} catch (ParsingException e) {
-						e.printStackTrace();
-					}
-				}
+				if (startFunction != null)
+					parser.reportProblems(startFunction);
 				IType effectProplistType;
-				if (startFunction != null) {
+				if (startFunction != null)
 					// not the start function - get effect parameter type from start function
 					effectProplistType = startFunction.effectType();
-				} else {
-					// this is the start function - create type if parameter present
-					if (fun.numParameters() < 2)
-						effectProplistType = PrimitiveType.PROPLIST;
-					else
-						effectProplistType = createAdHocProplistDeclaration(fun, fun.parameter(1));
-				}
+				else // this is the start function - create type if parameter present
+				if (fun.numParameters() < 2)
+					effectProplistType = PrimitiveType.PROPLIST;
+				else
+					effectProplistType = createAdHocProplistDeclaration(fun, fun.parameter(1));
 				if (fun.hardcodedCallbackType() != null)
 					function.assignParameterTypes(fun.hardcodedCallbackType().parameterTypes(effectProplistType));
 				return true;
@@ -129,13 +122,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (d instanceof EffectFunction) {
 						EffectFunction effFun = (EffectFunction)d;
 						// parse Start function of effect so ad-hoc variables are known
-						if (t == HardcodedCallbackType.Start && !(context.currentFunction() instanceof EffectFunction)) {
-							try {
-								context.parseCodeOfFunction(effFun, false);
-							} catch (ParsingException e) {
-								// e.printStackTrace();
-							}
-						}
+						if (t == HardcodedCallbackType.Start && !(context.currentFunction() instanceof EffectFunction))
+							context.reportProblems(effFun);
 						return effFun.effectType();
 					}
 				}
@@ -207,13 +195,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			if (function.name().equals(DEFINITION_FUNCTION)) //$NON-NLS-1$
 				return;
 			Function definitionFunc = function.script().findLocalFunction(DEFINITION_FUNCTION, false); //$NON-NLS-1$
-			if (definitionFunc != null) {
-				try {
-					context.parseCodeOfFunction(definitionFunc, true);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
-			}
+			if (definitionFunc != null)
+				context.reportProblems(definitionFunc);
 		};
 	};
 	
@@ -284,10 +267,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
-					} else {
+					} else
 						parser.errorWithCode(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-					}
 				}
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
@@ -308,7 +290,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.currentFunction())).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
 				boolean separateIssuesMarker = false;
-				for (int i = 0; i < formatString.length(); i++) {
+				for (int i = 0; i < formatString.length(); i++)
 					if (formatString.charAt(i) == '%') {
 						int j;
 						for (j = i+1; j < formatString.length() && (formatString.charAt(j) == '.' || (formatString.charAt(j) >= '0' && formatString.charAt(j) <= '9')); j++);
@@ -332,13 +314,11 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						case '%':
 							break;
 						}
-						if (requiredType != null) {
-							separateIssuesMarker |= checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, requiredType); 
-						}
+						if (requiredType != null)
+							separateIssuesMarker |= checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, requiredType);
 						i = j;
 						parmIndex++;
 					}
-				}
 				if (separateIssuesMarker)
 					parser.errorWithCode(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
 			}
@@ -360,14 +340,13 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
-					if (actMapLocal != null && actMapLocal.type() != null) {
+					if (actMapLocal != null && actMapLocal.type() != null)
 						for (IType ty : actMapLocal.type()) if (ty instanceof IProplistDeclaration) {
 							IProplistDeclaration proplDecl = (IProplistDeclaration) ty;
 							Variable action = proplDecl.findComponent((String)parmEv);
 							if (action != null)
 								return new EntityRegion(action, parmExpression);
 						}
-					}
 				}
 				return null;
 			};
@@ -376,13 +355,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				if (index != 0)
 					return null;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : null;
-				if (t != null) for (IType ty : t) {
+				if (t != null) for (IType ty : t)
 					if (ty instanceof Definition) {
 						EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
-				}
 				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 			@Override
@@ -390,12 +368,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				if (index != 0)
 					return;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.containingScript();
-				if (t != null) for (IType ty : t) {
+				if (t != null) for (IType ty : t)
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;
 						Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
-						if (actMapLocal != null && actMapLocal.type() != null) {
-							for (IType a : actMapLocal.type()) {
+						if (actMapLocal != null && actMapLocal.type() != null)
+							for (IType a : actMapLocal.type())
 								if (a instanceof IProplistDeclaration) {
 									IProplistDeclaration proplDecl = (IProplistDeclaration) a;
 									for (Variable comp : proplDecl.components()) {
@@ -405,10 +383,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(), "", processor.editor())); 
 									}
 								}
-							}
-						}
 					}
-				}
 			};
 		};
 	}

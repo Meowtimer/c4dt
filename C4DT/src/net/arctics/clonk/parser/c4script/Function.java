@@ -133,13 +133,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	/**
-	 * @param localVars the localVars to set
-	 */
-	public void setLocalVars(List<Variable> localVars) {
-		this.localVars = localVars;
-	}
-
-	/**
 	 * @return the parameter
 	 */
 	public Iterable<? extends Variable> parameters() {

@@ -447,10 +447,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public void parseCodeOfFunction(Function function, boolean b) throws ParsingException {
-				// fail
+			public void reportProblems(Function function) {
 			}
-			
+
 			@Override
 			public Function currentFunction() {
 				return Declaration.this instanceof Function ? (Function)Declaration.this : null;

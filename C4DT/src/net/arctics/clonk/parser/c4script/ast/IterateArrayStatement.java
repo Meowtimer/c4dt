@@ -87,8 +87,8 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		parser.reportErrorsOf(elementExpr, true, null);
-		parser.reportErrorsOf(arrayExpr, true, null);
+		parser.reportProblemsOf(elementExpr, true, null);
+		parser.reportProblemsOf(arrayExpr, true, null);
 		
 		Variable loopVariable = elementExpr instanceof VarDeclarationStatement
 			? ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable
@@ -103,7 +103,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 				new AccessVar(loopVariable).expectedToBeOfType(elmType, parser);
 			loopVariable.setUsed(true);
 		}
-		parser.reportErrorsOf(body, true, bodyTyping);
+		parser.reportProblemsOf(body, true, bodyTyping);
 		parser.injectTypeInfos(bodyTyping);
 	}
 

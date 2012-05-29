@@ -601,29 +601,38 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		reportProblems(scripts);
+		reportProblems();
+		Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
 		return scripts;
 	}
 
-	private void reportProblems(final Script[] scripts) {
-		new Job(Messages.ClonkBuilder_ReportingProblems) {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				monitor.subTask(Messages.ClonkBuilder_ReportingProblems);
-				synchronized (errorReportingOrder) {
-					for (C4ScriptParser p : errorReportingOrder) {
-						if (monitor.isCanceled())
-							return Status.CANCEL_STATUS;
-						p.reportErrors();
-						monitor.worked(1);
-					}
-					errorReportingOrder.clear();
-					markers.deploy();
-					Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
-				}
-				return Status.OK_STATUS;
+	private Set<Function> reporters;
+
+	public final Set<Function> reporters() {
+		return reporters;
+	}
+	
+	public C4ScriptParser parserFor(Script script) {
+		for (C4ScriptParser s : errorReportingOrder)
+			if (s.script() == script)
+				return s;
+		return null;
+	}
+
+	private void reportProblems() {
+		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
+		synchronized (errorReportingOrder) {
+			reporters = new HashSet<Function>();
+			for (final C4ScriptParser p : errorReportingOrder) {
+				if (monitor.isCanceled())
+					break;
+				p.reportProblems();
+				monitor.worked(1);
 			}
-		}.run(monitor);
+			reporters = null;
+			errorReportingOrder.clear();
+			markers.deploy();
+		}
 	}
 
 	private void clearState() {
@@ -710,7 +719,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			IStorage storage = script.scriptStorage();
 			if (storage != null) {
 				result = new C4ScriptParser(script);
-				result.setAllowInterleavedFunctionParsing(true);
 				result.setBuilder(this);
 			} else
 				result = null;
@@ -738,11 +746,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser = parserMap.get(function.script());
 		}
 		if (parser != null)
-			try {
-				parser.parseCodeOfFunction(function, true);
-			} catch (ParsingException e) {
-				e.printStackTrace();
-			}
+			parser.reportProblems(function);
 	}
 
 	private int phase;
