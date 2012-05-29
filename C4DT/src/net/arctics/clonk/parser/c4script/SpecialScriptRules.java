@@ -342,7 +342,7 @@ public class SpecialScriptRules {
 	/**
 	 * CreateObject and similar functions that will return an object of the specified type
 	 */
-	@AppliedTo(functions={"CreateObject", "CreateContents"})
+	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
