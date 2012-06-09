@@ -54,6 +54,14 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	}
 	
 	@Override
+	public boolean isConstant() {
+		for (ExprElm e : subElements())
+			if (e != null && !e.isConstant())
+				return false;
+		return true;
+	}
+	
+	@Override
 	public Object evaluate(IEvaluationContext context) {
 		return ArrayUtil.map(elements, Object.class, Conf.EVALUATE_EXPR);
 	}
