@@ -252,7 +252,7 @@ public class Command {
 						}
 						parser.setCurrentFunction(f);
 						f.codeBlock().reconsider(parser);
-						parser.reportProblemsOf(iterable(f.codeBlock().statements()), false);
+						parser.reportProblemsOf(iterable(f.codeBlock().statements()), true);
 						f.codeBlock().reportErrors(parser);
 					} catch (ParsingException e) {
 						e.printStackTrace();

@@ -716,7 +716,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return null;
 		}
 		else if (d != null)
-			return new GenericStoredTypeInfo(this, parser);
+			return new GenericTypeInfo(this, parser);
 		return super.createStoredTypeInformation(parser);
 	}
 	

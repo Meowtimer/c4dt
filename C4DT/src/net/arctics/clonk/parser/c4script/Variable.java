@@ -452,4 +452,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		setInitializationExpression(expression);
 	}
 	
+	@Override
+	public boolean isLocal() {
+		return scope == Scope.VAR;
+	}
+	
 }

@@ -879,4 +879,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return body != null ? body.getOffset() : 0;
 	}
 	
+	@Override
+	public boolean isLocal() {
+		return true;
+	}
+	
 }

@@ -142,7 +142,7 @@ public class AccessVar extends AccessDeclaration {
 
 	public static ITypeInfo createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
 		if (declaration != null)
-			return new GenericStoredTypeInfo(new AccessVar(declaration), parser);
+			return new GenericTypeInfo(new AccessVar(declaration), parser);
 		else
 			return null;
 	}

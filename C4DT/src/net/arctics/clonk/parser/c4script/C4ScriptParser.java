@@ -623,7 +623,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (function.isOldStyle() && statements.size() > 0)
 				function.body().setEnd(statements.get(statements.size() - 1).end() + bodyOffset());
 			if (builder == null)
-				reportProblemsOf(statements, true);
+				reportProblemsOf(statements, false);
 			function.storeBlock(bunch, functionSource(function));
 			if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM)
 				function.createParameters(currentFunctionContext.numUnnamedParameters);
@@ -2220,15 +2220,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return l;
 	}
 
-	public void reportProblemsOf(Iterable<Statement> statements, boolean applyTypeInfos) {
+	public void reportProblemsOf(Iterable<Statement> statements, boolean onlyTypeLocals) {
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportProblemsOf(s, true, functionLevelTypeInfos);
-		if (applyTypeInfos) {
-			functionLevelTypeInfos.apply(this, false);
-			if (scriptLevelTypeInfos != null)
-				scriptLevelTypeInfos.inject(functionLevelTypeInfos);
-		}
+		functionLevelTypeInfos.apply(this, onlyTypeLocals);
+		if (scriptLevelTypeInfos != null)
+			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
@@ -2279,7 +2277,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			synchronized (currentFunctionContext) {
 				Function old = currentFunction();
 				setCurrentFunction(function);
-				reportProblemsOf(iterable(function.codeBlock().statements()), true);
+				reportProblemsOf(iterable(function.codeBlock().statements()), false);
 				setCurrentFunction(old);
 			}
 		} else if (builder != null) {
@@ -3373,7 +3371,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			else
 				break;
 		} while (true);
-		reportProblemsOf(statements, false);
+		reportProblemsOf(statements, true);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 

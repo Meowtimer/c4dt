@@ -32,6 +32,12 @@ public interface ITypeable extends IIndexEntity {
 	boolean typeIsInvariant();
 	
 	/**
+	 * Whether this typeable can only be accessed from some restricted area (i.e. a parameter or local variable)
+	 * @return
+	 */
+	boolean isLocal();
+	
+	/**
 	 * Some predefined default implementations for implementing classes.
 	 * @author madeen
 	 *

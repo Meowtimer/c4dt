@@ -585,9 +585,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		ITypeable d = GenericStoredTypeInfo.typeableFromExpression(this, parser);
+		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
 		if (d != null && !d.typeIsInvariant())
-			return new GenericStoredTypeInfo(this, parser);
+			return new GenericTypeInfo(this, parser);
 		return null;
 	}
 	
@@ -783,10 +783,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @author madeen
 	 *
 	 */
-	protected static final class GenericStoredTypeInfo extends TypeInfo {
+	protected static final class GenericTypeInfo extends TypeInfo {
 		private final ExprElm referenceElm;
 		
-		public GenericStoredTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
+		public GenericTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
 			this.referenceElm = referenceElm;
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
@@ -830,8 +830,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
-			if (other instanceof GenericStoredTypeInfo)
-				return ((GenericStoredTypeInfo)other).referenceElm.equals(referenceElm);
+			if (other instanceof GenericTypeInfo)
+				return ((GenericTypeInfo)other).referenceElm.equals(referenceElm);
 			else
 				return false;
 		}
@@ -848,13 +848,17 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		public void apply(boolean soft, C4ScriptParser parser) {
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
 			if (typeable != null) {
+				// don't apply typing to non-local things if only applying type information softly
+				// this prevents assigning types to instance variables when only hovering over some function or something like that
+				if (soft && !typeable.isLocal())
+					return;
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
 				Index index = typeable.index();
-				if (index == null)
+				if (index == null || index != parser.containingScript().index())
 					return;
-				if (index == parser.containingScript().index())
-					typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+
+				typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}
 		
