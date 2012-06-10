@@ -623,7 +623,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (function.isOldStyle() && statements.size() > 0)
 				function.body().setEnd(statements.get(statements.size() - 1).end() + bodyOffset());
 			if (builder == null)
-				reportProblemsOf(statements);
+				reportProblemsOf(statements, true);
 			function.storeBlock(bunch, functionSource(function));
 			if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM)
 				function.createParameters(currentFunctionContext.numUnnamedParameters);
@@ -2220,13 +2220,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return l;
 	}
 
-	public void reportProblemsOf(Iterable<Statement> statements) {
+	public void reportProblemsOf(Iterable<Statement> statements, boolean applyTypeInfos) {
 		TypeInfoList functionLevelTypeInfos = typeInfoList(); 
 		for (Statement s : statements)
 			reportProblemsOf(s, true, functionLevelTypeInfos);
-		functionLevelTypeInfos.apply(this, false);
-		if (scriptLevelTypeInfos != null)
-			scriptLevelTypeInfos.inject(functionLevelTypeInfos);
+		if (applyTypeInfos) {
+			functionLevelTypeInfos.apply(this, false);
+			if (scriptLevelTypeInfos != null)
+				scriptLevelTypeInfos.inject(functionLevelTypeInfos);
+		}
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
@@ -2277,7 +2279,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			synchronized (currentFunctionContext) {
 				Function old = currentFunction();
 				setCurrentFunction(function);
-				reportProblemsOf(iterable(function.codeBlock().statements()));
+				reportProblemsOf(iterable(function.codeBlock().statements()), true);
 				setCurrentFunction(old);
 			}
 		} else if (builder != null) {
@@ -3194,7 +3196,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			// traverse block using the listener
 			if (cachedBlock != null) {
-				reportProblemsOf(iterable(cachedBlock.statements()));
+				if (func != null) {
+					for (Variable parm : func.parameters())
+						parm.setType(PrimitiveType.UNKNOWN);
+					for (Variable var : func.localVars())
+						var.setType(PrimitiveType.UNKNOWN);
+				}
+				reportProblemsOf(iterable(cachedBlock.statements()), true);
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)
 					cachedBlock.traverse(listener, this);
@@ -3365,7 +3373,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			else
 				break;
 		} while (true);
-		reportProblemsOf(statements);
+		reportProblemsOf(statements, false);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 

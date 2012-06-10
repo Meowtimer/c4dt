@@ -14,10 +14,11 @@ public class NillableType implements IType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private IType baseType; 
+	private final IType baseType; 
 	
 	public static IType make(IType baseType) {
-		return baseType instanceof NillableType ? baseType : new NillableType(baseType);
+		// gnah, nillable catastrophy
+		return baseType instanceof PrimitiveType ? new NillableType(baseType) : baseType;
 	}
 	
 	private NillableType(IType baseType) {
