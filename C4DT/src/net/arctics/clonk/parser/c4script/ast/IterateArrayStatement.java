@@ -5,7 +5,6 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -87,8 +86,8 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		parser.reportProblemsOf(elementExpr, true, null);
-		parser.reportProblemsOf(arrayExpr, true, null);
+		parser.reportProblemsOf(elementExpr, true);
+		parser.reportProblemsOf(arrayExpr, true);
 		
 		Variable loopVariable = elementExpr instanceof VarDeclarationStatement
 			? ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable
@@ -97,14 +96,14 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
 		IType elmType = IResolvableType._.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
-		TypeInfoList bodyTyping = parser.typeInfoList();
+		parser.pushTypeInfos();
 		if (loopVariable != null) {
 			if (elmType != null)
 				new AccessVar(loopVariable).expectedToBeOfType(elmType, parser);
 			loopVariable.setUsed(true);
 		}
-		parser.reportProblemsOf(body, true, bodyTyping);
-		parser.injectTypeInfos(bodyTyping);
+		parser.reportProblemsOf(body, true);
+		parser.popTypeInfos(true);
 	}
 
 }

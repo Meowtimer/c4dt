@@ -611,7 +611,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
 			storedLocalsTypeInformation = new LinkedList<ITypeInfo>();
 			for (Variable v : script.variables()) {
-				ITypeInfo info = v.type() != null || v.objectType() != null ? AccessVar.createStoredTypeInformation(v, parser) : null;
+				ITypeInfo info = v.type() != null || v.objectType() != null ? AccessVar.makeTypeInfo(v, parser) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);
 			}

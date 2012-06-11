@@ -5,7 +5,6 @@ import java.util.EnumSet;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -90,17 +89,17 @@ public class IfStatement extends ConditionalStatement {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		parser.reportProblemsOf(condition, true, null);
+		parser.reportProblemsOf(condition, true);
 		// use two separate typeinfo lists for if and else statement, merging
 		// gathered information afterwards
-		TypeInfoList bodyTyping = parser.typeInfoList();
-		parser.reportProblemsOf(body, true, bodyTyping);
+		parser.pushTypeInfos();
+		parser.reportProblemsOf(body, true);
 		if (elseExpr != null) {
-			TypeInfoList elseTyping = parser.typeInfoList();
-			parser.reportProblemsOf(elseExpr, true, elseTyping);
-			bodyTyping.inject(elseTyping);
+			parser.pushTypeInfos();
+			parser.reportProblemsOf(elseExpr, true);
+			parser.popTypeInfos(true);
 		}
-		parser.injectTypeInfos(bodyTyping);
+		parser.popTypeInfos(true);
 	}
 
 }

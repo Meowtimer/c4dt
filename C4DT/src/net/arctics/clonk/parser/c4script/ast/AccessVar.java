@@ -140,7 +140,7 @@ public class AccessVar extends AccessDeclaration {
 				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
 	}
 
-	public static ITypeInfo createStoredTypeInformation(Declaration declaration, C4ScriptParser parser) {
+	public static ITypeInfo makeTypeInfo(Declaration declaration, C4ScriptParser parser) {
 		if (declaration != null)
 			return new GenericTypeInfo(new AccessVar(declaration), parser);
 		else
