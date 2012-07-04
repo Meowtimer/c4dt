@@ -79,10 +79,15 @@ public class EngineSettings extends SettingsBase {
 	/** Engine supports passing references to functions */
 	@IniField(category=INTRINSIC)
 	public boolean supportsFunctionRefs;
+	/** Support floating point variables in script */
 	@IniField(category=INTRINSIC)
 	public boolean supportsFloats;
+	/** Support an implicitly defined proplist named 'global' */
 	@IniField(category=INTRINSIC)
 	public boolean supportsGlobalProplists;
+	/** Treat 0 as being of type ANY so assigning 0 to object variables and such does not result in warnings */
+	@IniField(category=INTRINSIC)
+	public boolean zeroIsAny;
 	
 	// Settings that are actually intended to be user-configurable
 	
@@ -207,6 +212,10 @@ public class EngineSettings extends SettingsBase {
 		return supportedSoundFileExtensions_;
 	}
 	
+	/**
+	 * Return array containing names of function this kind of engine will natively call.
+	 * @return The array of callback function names
+	 */
 	public String[] callbackFunctions() {
 		return callbackFunctions != null ? callbackFunctions.split(",") : new String[0];
 	}

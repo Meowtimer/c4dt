@@ -16,7 +16,7 @@ public class LongLiteral extends NumberLiteral {
 	public static final LongLiteral ZERO = new LongLiteral(0);
 	
 	private final boolean hex;
-	private long literal;
+	private final long literal;
 
 	public LongLiteral(long value, boolean hex) {
 		this.literal = value;
@@ -32,6 +32,7 @@ public class LongLiteral extends NumberLiteral {
 		return literal;
 	}
 	
+	@Override
 	public Long literal() {
 		return literal;
 	}
@@ -60,9 +61,9 @@ public class LongLiteral extends NumberLiteral {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		/*if (literal == 0)
+		if (literal == 0 && context.script().engine().settings().zeroIsAny)
 			return PrimitiveType.ANY;
-		else*/
+		else
 			return PrimitiveType.INT;
 	}
 
