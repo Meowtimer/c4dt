@@ -12,7 +12,7 @@ public interface ITypeable extends IIndexEntity {
 	/**
 	 * The outside world expects this entity to be of the specified type. Act accordingly.
 	 * @param t The type this entity is expected to be of
-	 * @param mode Strength of expectency expressed in {@link TypeExpectancyMode} values
+	 * @param mode Strength of expectancy expressed in {@link TypeExpectancyMode} values
 	 */
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode);
 	/**
