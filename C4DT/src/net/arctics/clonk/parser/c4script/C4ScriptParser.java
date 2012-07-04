@@ -2241,6 +2241,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	@Override
 	public void reportProblems(Function function) {
+		if (builder == null)
+			return;
 		if (function == null || function.isEngineDeclaration())
 			return;
 		synchronized (reportingMonitor) {
