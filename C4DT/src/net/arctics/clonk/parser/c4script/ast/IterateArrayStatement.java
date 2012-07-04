@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
@@ -11,6 +13,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
@@ -87,12 +90,24 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		
+		Variable loopVariable;
+		AccessVar accessVar;
+		if (elementExpr instanceof VarDeclarationStatement)
+			loopVariable = ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable;
+		else if ((accessVar = as(SimpleStatement.unwrap(elementExpr), AccessVar.class)) != null) {
+			if (accessVar.declarationFromContext(parser) == null) {
+				// implicitly create loop variable declaration if not found
+				SourceLocation varPos = parser.absoluteSourceLocationFromExpr(accessVar);
+				loopVariable = parser.createVarInScope(accessVar.declarationName(), Scope.VAR, varPos.start(), varPos.end(), null);
+			} else
+				loopVariable = as(accessVar.declaration(), Variable.class);
+		} else
+			loopVariable = null;
+		
 		parser.reportProblemsOf(elementExpr, true, null);
 		parser.reportProblemsOf(arrayExpr, true, null);
 		
-		Variable loopVariable = elementExpr instanceof VarDeclarationStatement
-			? ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable
-			: null;
 		IType type = arrayExpr.type(parser);
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
