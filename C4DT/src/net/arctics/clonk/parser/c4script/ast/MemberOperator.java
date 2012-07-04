@@ -1,16 +1,16 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Engine.EngineSettings;
-import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.util.Utilities;
@@ -28,7 +28,7 @@ public class MemberOperator extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	boolean dotNotation;
-	private boolean hasTilde;
+	private final boolean hasTilde;
 	private ID id;
 	private int idOffset;
 	
@@ -72,10 +72,9 @@ public class MemberOperator extends ExprElm {
 
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
-		if (dotNotation) {
+		if (dotNotation)
 			// so simple
 			output.append('.');
-		}
 		else {
 			if (hasTilde)
 				output.append("->~"); //$NON-NLS-1$
@@ -109,12 +108,11 @@ public class MemberOperator extends ExprElm {
 	 */
 	@Override
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-		if (predecessor != null) {
+		if (predecessor != null)
 			/*IType t = predecessor.getType(context);
 			if (t == null || t.subsetOfType(C4TypeSet.ARRAY_OR_STRING))
 				return false;*/
 			return true;
-		}
 		return false;
 	}
 	
@@ -130,9 +128,8 @@ public class MemberOperator extends ExprElm {
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		// explicit id
-		if (id != null) {
+		if (id != null)
 			return context.containingScript().nearestDefinitionWithId(id);
-		}
 		// stuff before -> decides
 		return predecessorInSequence() != null ? predecessorInSequence().type(context) : super.obtainType(context);
 	}

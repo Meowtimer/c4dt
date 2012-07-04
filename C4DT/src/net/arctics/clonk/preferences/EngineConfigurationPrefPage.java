@@ -7,7 +7,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Engine.EngineSettings;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.ui.navigator.ClonkFolderView;
 
 import org.eclipse.core.runtime.CoreException;
@@ -65,7 +65,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		public void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
 			String val = editor.getStringValue();
-			if (val.equals("") || !new File(val).exists()) { //$NON-NLS-1$
+			if (val.equals("") || !new File(val).exists())
 				for (String s : values) {
 					File f;
 					if ((f = gamePath.append(s).toFile()).exists()) {
@@ -73,11 +73,6 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 						break;
 					}
 				}
-			}
-			/* potential to annoy
-			 else if (val.toLowerCase().startsWith(previousGamePath)) {
-				editor.setStringValue(gamePathText + val.substring(previousGamePath.length()));
-			}*/
 		}
 
 		@Override
@@ -120,9 +115,8 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			String selection = super.changePressed();
 			if (selection != null) {
 				File d = new File(selection);
-				if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) { //$NON-NLS-1$
+				if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app"))
 					d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length())); //$NON-NLS-1$ //$NON-NLS-2$
-				}
 				return d.getAbsolutePath();
 			}
 			else
@@ -132,7 +126,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class EngineConfigPrefStore extends PreferenceStore {
 
-		private Engine.EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).settings().clone();
+		private EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).settings().clone();
 
 		@Override
 		public void setValue(String name, String value) {

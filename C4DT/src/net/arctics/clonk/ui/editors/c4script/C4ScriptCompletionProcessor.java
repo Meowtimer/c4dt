@@ -87,9 +87,21 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
-	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {
-		//'.' Zapper does not want
-	};
+	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {};
+	/*static {
+		List<Character> chars = new ArrayList<Character>(256);
+		int i;
+		for (i = 'A'; i <= 'Z'; i++)
+			chars.add((char)i);
+		for (i = 'a'; i <= 'z'; i++)
+			chars.add((char)i);
+		chars.add('_');
+		for (i = '0'; i <= '9'; i++)
+			chars.add((char)i);
+		COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[chars.size()];
+		for (i = 0; i < chars.size(); i++)
+			COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS[i] = chars.get(i);
+	}*/
 
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 

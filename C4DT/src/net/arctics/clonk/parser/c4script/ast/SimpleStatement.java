@@ -80,28 +80,32 @@ public class SimpleStatement extends Statement {
 	}
 	
 	public static Statement wrapExpression(ExprElm expr) {
-		if (expr instanceof Statement) {
+		if (expr instanceof Statement)
 			return (Statement)expr;
-		} else if (expr != null) {
+		else if (expr != null)
 			return new SimpleStatement(expr);
-		} else {
+		else
 			return null;
-		}
+	}
+	
+	public static ExprElm unwrap(ExprElm expr) {
+		if (expr instanceof SimpleStatement)
+			return ((SimpleStatement)expr).expression();
+		else
+			return expr;
 	}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		if (expression instanceof BinaryOp) {
+		if (expression instanceof BinaryOp)
 			((BinaryOp) expression).checkTopLevelAssignment(parser);
-		}
 		super.reportErrors(parser);
 	}
 	
 	public static Statement[] wrapExpressions(ExprElm... expressions) {
 		Statement[] result = new Statement[expressions.length];
-		for (int i = 0; i < expressions.length; i++) {
+		for (int i = 0; i < expressions.length; i++)
 			result[i] = wrapExpression(expressions[i]);
-		}
 		return result;
 	}
 

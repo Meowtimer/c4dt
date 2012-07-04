@@ -2758,7 +2758,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					// too much manual setting of stuff
 					AccessVar accessVar = new AccessVar(varName);
 					setExprRegionRelativeToFuncBody(accessVar, pos, pos+varName.length());
-					createVarInScope(varName, Scope.VAR, pos, pos+varName.length(), null);
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());

@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ID;
@@ -239,9 +240,8 @@ public class C4ScriptParserTestCase {
 				StringBuilder builder = new StringBuilder();
 				int read = 0;
 				char[] buf = new char[1024];
-				while ((read = reader.read(buf)) > 0) {
+				while ((read = reader.read(buf)) > 0)
 					builder.append(buf, 0, read);
-				}
 				return builder.toString();
 			} finally {
 				stream.close();

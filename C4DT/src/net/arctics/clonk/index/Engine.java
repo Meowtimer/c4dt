@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,12 +37,10 @@ import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocu
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
@@ -70,208 +67,6 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
 public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-	/**
-	 * Settings object encapsulating configuration options for a specific engine.
-	 * Read from res/engines/&lt;engine&gt;/configuration.ini and <workspace>/.metadata/.plugins/net.arctics.clonk/engines/&lt;engine&gt;/configuration.ini
-	 * @author madeen
-	 *
-	 */
-	public static class EngineSettings extends SettingsBase {
-
-		private static final String SOURCE = "Source";
-		private static final String INTRINSIC = "Intrinsic";
-
-		/** Default strictness level applied to scripts with no explicit #strict line. */
-		@IniField(category=INTRINSIC)
-		public long strictDefaultLevel;
-		/** Maximum string length of string constants. */
-		@IniField(category=INTRINSIC)
-		public long maxStringLen;
-		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
-		@IniField(category=INTRINSIC)
-		public boolean colonIDSyntax;
-		/**
-		 * Whether declarations of static non-const variables are allowed to include an assignment. OC added support for this.
-		 */
-		@IniField(category=INTRINSIC)
-		public boolean nonConstGlobalVarsAssignment;
-		/**
-		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
-		 * This toggle activates/deactivates this behavior.
-		 * */ 
-		@IniField(category=INTRINSIC)
-		public boolean definitionsHaveProxyVariables;
-		/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
-		@IniField(category=INTRINSIC)
-		public boolean supportsRefs;
-		/** Whether engine supports creating a debug connection and single-stepping through C4Script code */
-		@IniField(category=INTRINSIC)
-		public boolean supportsDebugging;
-		/** Name of editor mode option (CR: console, OC: editor) */
-		@IniField(category=INTRINSIC)
-		public String editorCmdLineOption;
-		/** Format for commandline options (ClonkRage: /%s vs OpenClonk: --%s) */
-		@IniField(category=INTRINSIC)
-		public String cmdLineOptionFormat;
-		/** Format for commandline options that take an argument --%s=%s */
-		@IniField(category=INTRINSIC)
-		public String cmdLineOptionWithArgumentFormat;
-		/** Whether engine supports -x <command> */
-		@IniField(category=INTRINSIC)
-		public boolean supportsEmbeddedUtilities;
-		/** Whether engine parser allows obj-> ~DoSomething() */
-		@IniField(category=INTRINSIC)
-		public boolean spaceAllowedBetweenArrowAndTilde;
-		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
-		@IniField(category=INTRINSIC)
-		public String fileExtensionToGroupTypeMapping;
-		/** Extension for material definition files */
-		@IniField(category=INTRINSIC)
-		public String materialExtension;
-		/** Engine supports proplists (OC) */
-		@IniField(category=INTRINSIC)
-		public boolean proplistsSupported;
-		/** ';'-separated list of file extensions supported as sound files */
-		@IniField(category=INTRINSIC)
-		public String supportedSoundFileExtensions;
-		/** Engine supports passing references to functions */
-		@IniField(category=INTRINSIC)
-		public boolean supportsFunctionRefs;
-		@IniField(category=INTRINSIC)
-		public boolean supportsFloats;
-		@IniField(category=INTRINSIC)
-		public boolean supportsGlobalProplists;
-		
-		// Settings that are actually intended to be user-configurable
-		
-		/** Template for Documentation URL. */
-		@IniField
-		public String docURLTemplate;
-		@IniField
-		public boolean useDocsFromRepository;
-		/** Path to engine executable. */
-		@IniField
-		public String engineExecutablePath;
-		/** Path to game folder. */
-		@IniField
-		public String gamePath;
-		/** Path to OC repository. To be used for automatically importing engine definitions (FIXME: needs proper implementation). */
-		@IniField
-		public String repositoryPath;
-		/** Path to c4group executable */
-		@IniField
-		public String c4GroupPath;
-		/** Whether to dynamically load documentation from the given repository **/
-		@IniField
-		public boolean readDocumentationFromRepository;
-		
-		// Fields related to scanning cpp source files for built-in declarations. 
-		
-		@IniField(category=SOURCE)
-		public String initFunctionMapPattern;
-		@IniField(category=SOURCE)
-		public String constMapPattern;
-		@IniField(category=SOURCE)
-		public String fnMapPattern;
-		@IniField(category=SOURCE)
-		public String fnMapEntryPattern;
-		@IniField(category=SOURCE)
-		public String constMapEntryPattern;
-		@IniField(category=SOURCE)
-		public String addFuncPattern;
-		@IniField(category=SOURCE)
-		public String fnDeclarationPattern;
-		/**
-		 * List of cpp source file paths - relative to a repository - to import declarations from. Used by {@link CPPSourceDeclarationsImporter}
-		 */
-		@IniField(category=SOURCE)
-		public String cppSources;
-		/**
-		 * Functions defined by scripts, called by engine
-		 */
-		@IniField(category=SOURCE)
-		public String callbackFunctions;
-		
-		private transient Map<String, C4Group.GroupType> fetgtm;
-		private transient Map<C4Group.GroupType, String> rfetgtm;
-		private transient List<String> supportedSoundFileExtensions_;
-		
-		/**
-		 * Return a map mapping a file name extension to a group type for this engine.
-		 * @return The map.
-		 */
-		public Map<String, C4Group.GroupType> fileExtensionToGroupTypeMapping() {
-			if (fetgtm == null) {
-				fetgtm = new HashMap<String, C4Group.GroupType>(C4Group.GroupType.values().length);
-				for (String mapping : fileExtensionToGroupTypeMapping.split(",")) {
-					String[] elms = mapping.split("->");
-					if (elms.length >= 2) {
-						C4Group.GroupType gt = C4Group.GroupType.valueOf(elms[1]);
-						fetgtm.put(elms[0], gt);
-					}
-				}
-				rfetgtm = ArrayUtil.reverseMap(fetgtm, new HashMap<C4Group.GroupType, String>());
-			}
-			return fetgtm;
-		}
-		
-		/**
-		 * Reverse map of {@link #fileExtensionToGroupTypeMapping()}
-		 * @return The reverse map
-		 */
-		public Map<C4Group.GroupType, String> groupTypeToFileExtensionMapping() {
-			fileExtensionToGroupTypeMapping();
-			return rfetgtm;
-		}
-		
-		private transient String fileDialogFilterString;
-		/**
-		 * Return a filter string for c4group files to be used with file dialogs
-		 * @return The filter string
-		 */
-		public String fileDialogFilterForGroupFiles() {
-			if (fileDialogFilterString == null) {
-				StringBuilder builder = new StringBuilder(6*fileExtensionToGroupTypeMapping().size());
-				for (String ext : fileExtensionToGroupTypeMapping().keySet()) {
-					builder.append("*.");
-					builder.append(ext);
-					builder.append(";");
-				}
-				fileDialogFilterString = builder.toString();
-			}
-			return fileDialogFilterString;
-		}
-
-		/**
-		 * Return documentation URL for a function name. The result will be a local file URL if {@link #useDocsFromRepository} is set,
-		 * a link based on the {@link #docURLTemplate} if not.
-		 * @param functionName The funciton name
-		 * @return The URL string
-		 */
-		public String documentationURLForFunction(String functionName) {
-			String urlFormatString = useDocsFromRepository
-				? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
-				: docURLTemplate;
-			return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
-		}
-		
-		/**
-		 * Return a list of sound file extensions this engine supports.
-		 * @return The extension list
-		 */
-		public List<String> supportedSoundFileExtensions() {
-			if (supportedSoundFileExtensions_ == null) {
-				supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
-			}
-			return supportedSoundFileExtensions_;
-		}
-		
-		public String[] callbackFunctions() {
-			return callbackFunctions != null ? callbackFunctions.split(",") : new String[0];
-		}
-
-	}
 
 	private transient CachedEngineDeclarations cachedFuncs;
 	private transient Map<String, Variable[]> cachedPrefixedVariables;
@@ -312,12 +107,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (
 			!Utilities.objectsEqual(oldSettings.repositoryPath, settings.repositoryPath) ||
 			oldSettings.readDocumentationFromRepository != settings.readDocumentationFromRepository
-		) {
+		)
 			if (settings.readDocumentationFromRepository)
 				reinitializeDocImporter();
 			else
 				parseEngineScript();
-		}
 	}
 
 	/**
@@ -367,18 +161,15 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 */
 	public static String[] possibleEngineNamesAccordingToOS() {
 		// reordered to save lots of cpu time
-		if (Util.isWindows()) {
+		if (Util.isWindows())
 			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (Util.isLinux()) {
+		if (Util.isLinux())
 			return new String[] { "clonk" }; //$NON-NLS-1$
-		}
-		if (Util.isMac()) {
+		if (Util.isMac())
 			return new String[] {
 				"clonk.app/Contents/MacOS/clonk",
 				"Clonk.app/Contents/MacOS/Clonk"
-			}; 
-		}
+			};
 		// assume some UNIX -.-
 		return new String[] { "clonk" }; //$NON-NLS-1$
 	}
@@ -434,9 +225,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					if (currentSettings == null) {
 						intrinsicSettings = SettingsBase.createFrom(EngineSettings.class, input);
 						currentSettings = (EngineSettings) intrinsicSettings.clone();
-					} else {
+					} else
 						currentSettings.loadFrom(input);
-					}
 				} finally {
 					input.close();
 				}
@@ -507,7 +297,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			try {
 				FileReader r = new FileReader(xmlFile);
 				try {
-					for (String l : StringUtil.lines(r)) {
+					for (String l : StringUtil.lines(r))
 						if (l.contains("<const>")) {
 							isConst = true;
 							break;
@@ -515,7 +305,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							isConst = false;
 							break;
 						}
-					}
 				} finally {
 					r.close();
 				}
@@ -606,9 +395,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					unit.parser().parse(false);
 					for (IniSection section : unit.sections()) {
 						Declaration declaration = findDeclaration(section.name());
-						if (declaration != null) {
+						if (declaration != null)
 							unit.commitSection(declaration, section, false);
-						}
 					}
 				} finally {
 					try {
@@ -736,11 +524,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			String returnType = f.returnType().toString();
 			String desc = f.obtainUserDescription();
 			if (desc != null) {
-				if (desc.contains("\n")) { //$NON-NLS-1$
+				if (desc.contains("\n"))
 					desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
-				} else {
+				else
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
-				}
 			} else
 				desc = ""; //$NON-NLS-1$
 			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.longParameterString(true, true)); //$NON-NLS-1$
@@ -809,9 +596,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			URL url = loc.getURL(entryPath, true);
 			if (url != null) {
 				OutputStream result = loc.outputStreamForURL(url);
-				if (result != null) {
+				if (result != null)
 					return result;
-				}
 			}
 		}
 		return null;
@@ -831,11 +617,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				return inCache;
 		}
 		List<Variable> result = new LinkedList<Variable>();
-		for (Variable v : variables()) {
-			if (v.scope() == Scope.CONST && v.name().startsWith(prefix)) {
+		for (Variable v : variables())
+			if (v.scope() == Scope.CONST && v.name().startsWith(prefix))
 				result.add(v);
-			}
-		}
 		Variable[] resultArray = result.toArray(new Variable[result.size()]);
 		if (cachedPrefixedVariables == null)
 			cachedPrefixedVariables = new HashMap<String, Variable[]>();
