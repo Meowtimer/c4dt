@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.DocumentedVariable;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Engine.EngineSettings;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
