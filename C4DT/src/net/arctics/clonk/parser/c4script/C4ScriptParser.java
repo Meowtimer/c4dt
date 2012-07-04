@@ -98,8 +98,6 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.widgets.Display;
 
-import com.sun.xml.internal.bind.v2.model.core.TypeInfoSet;
-
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
  * The parser can also perform a second parse phase that creates syntax trees from c4script functions. Those can be used for various purposes, including
@@ -2243,10 +2241,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	@Override
 	public void reportProblems(Function function) {
+		if (function == null || function.isEngineDeclaration())
+			return;
 		synchronized (reportingMonitor) {
 			assignDefaultParmTypesToFunction(function);
 			statementReached = true;
-			setCurrentFunction(function);
 			_reportProblems(function);
 		}
 	}
