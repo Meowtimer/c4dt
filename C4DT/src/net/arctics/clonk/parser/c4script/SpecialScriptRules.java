@@ -410,7 +410,6 @@ public class SpecialScriptRules {
 			}
 			return t;
 		}
-		
 		private IType searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallDeclaration callFunc, boolean topLevel) {
 			IType result = null;
 			String declarationName = callFunc.declarationName();
@@ -454,7 +453,10 @@ public class SpecialScriptRules {
 									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
-					return TypeSet.create(types);
+					IType ty = TypeSet.create(types);
+					if (ty instanceof TypeSet)
+						ty.setTypeDescription(String.format("Types providing '%s'", ev));
+					return ty;
 				}
 			}
 			return result;
