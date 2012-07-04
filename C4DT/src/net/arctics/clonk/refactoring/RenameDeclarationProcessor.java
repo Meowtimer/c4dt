@@ -17,8 +17,8 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
-import net.arctics.clonk.ui.search.ReferencesQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
+import net.arctics.clonk.ui.search.ReferencesQuery;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -80,10 +80,9 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
-			for (Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class)) {
+			for (Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class))
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().scriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
-			}
 		}
 		CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
 		// now that references by the old name have been detected, rename the declaration (in case of Definition.ProxyVar, this will change the id of the definition being proxied)
@@ -104,12 +103,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
-				if (file.equals(declaringFile)) {
+				if (file.equals(declaringFile))
 					if (decl instanceof Definition.ProxyVar) {
 						if ((options & CONSIDER_DEFCORE_ID_ALREADY_CHANGED) == 0) {
 							Definition def = ((Definition.ProxyVar)decl).definition();
 							DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
-							if (unit != null) {
+							if (unit != null)
 								try {
 									IniEntry entry = (IniEntry) unit.sectionWithName("DefCore").subItemByKey("id");
 									TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
@@ -118,18 +117,16 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
-							}
 						}
 					} else
 						fileChange.addEdit(new ReplaceEdit(decl.location().getOffset(), decl.location().getLength(), newName));
-				}
 //				else if (element instanceof C4Function) {
 //					C4Function relatedFunc = (C4Function)element;
 //					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
 //				}
 				for (Match m : searchResult.getMatches(element)) {
 					ClonkSearchMatch match = (ClonkSearchMatch) m;
-					if (!match.isPotential() && !match.isIndirect()) try {
+					try {
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 					} catch (MalformedTreeException e) {
 						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
@@ -153,9 +150,8 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.index() instanceof ProjectIndex)) {
+		if (!(baseDecl.index() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
-		}
 		
 		Declaration existingDec;
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.index());
@@ -163,9 +159,8 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		Structure parentStructure = decl.firstParentDeclarationOfType(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
-			if (existingDec != null) {
+			if (existingDec != null)
 				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.script().toString()));
-			}
 		}
 		
 		return new RefactoringStatus();
