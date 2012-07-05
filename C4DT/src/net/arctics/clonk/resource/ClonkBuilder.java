@@ -316,7 +316,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			pool.execute(new Runnable() {
 				@Override
 				public void run() {
-					System.out.println("Reporting problems for " + p.script().toString());
 					p.reportProblems();
 					monitor.worked(1);
 				}

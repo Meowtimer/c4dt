@@ -5,5 +5,6 @@
 	"NC": "Null Check",
 	"FTA": "Forgot to add",
 	"R": "Rename",
-	"FaN": "Forgot a Not"
+	"FaN": "Forgot a Not",
+	"RDO": "Remove debug output"
 }
