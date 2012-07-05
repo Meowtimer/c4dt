@@ -23,6 +23,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
@@ -218,7 +219,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 			
 			phaseTwo(scripts);
-			phaseThree(parsers, scripts);
+			
+			if (!ClonkPreferences.toggle(ClonkPreferences.DONT_ANALYZE_CODE, false))
+				phaseThree(parsers, scripts);
 			
 			new SaveScriptsJob(proj, scripts).schedule();
 		} finally {
