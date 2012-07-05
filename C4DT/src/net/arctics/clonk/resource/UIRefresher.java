@@ -14,9 +14,9 @@ import org.eclipse.ui.navigator.CommonNavigator;
 
 final class UIRefresher implements Runnable {
 
-	private final Iterable<Script> resourcesToBeRefreshed;
+	private final Script[] resourcesToBeRefreshed;
 
-	public UIRefresher(Iterable<Script> resourcesToBeRefreshed) {
+	public UIRefresher(Script[] resourcesToBeRefreshed) {
 		super();
 		this.resourcesToBeRefreshed = resourcesToBeRefreshed;
 	}

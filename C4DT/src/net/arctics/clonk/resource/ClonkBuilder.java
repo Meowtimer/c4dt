@@ -1,9 +1,6 @@
 package net.arctics.clonk.resource;
 
-import static net.arctics.clonk.util.ArrayUtil.listFromIterable;
-
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -157,9 +154,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private static class SaveScriptsJob extends Job {
 		private final Script[] scriptsToSave;
 		private final IProject project;
-		public SaveScriptsJob(IProject project, Collection<Script> scriptsToSave) {
+		public SaveScriptsJob(IProject project, Script[] scriptsToSave) {
 			super(buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
-			this.scriptsToSave = scriptsToSave.toArray(new Script[scriptsToSave.size()]);
+			this.scriptsToSave = scriptsToSave;
 			this.project = project;
 		}
 		@Override
@@ -219,10 +216,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
-			phaseTwo(scripts);
-			phaseThree(parsers);
 			
-			new SaveScriptsJob(proj, parserMap.keySet()).schedule();
+			phaseTwo(scripts);
+			phaseThree(parsers, scripts);
+			
+			new SaveScriptsJob(proj, scripts).schedule();
 		} finally {
 			monitor.done();
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
@@ -256,7 +254,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			Display.getDefault().asyncExec(new UIRefresher(listFromIterable(newlyEnqueuedParsers.keySet())));
+			Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
 			// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 			// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 			// if the function being referenced is defined in an #appendto from this index
@@ -302,7 +300,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
-	private void phaseThree(C4ScriptParser[] parsers) {
+	private void phaseThree(C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -329,7 +327,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 		problemReporters = null;
 		markers.deploy();
-		Display.getDefault().asyncExec(new UIRefresher(parserMap.keySet()));
+		Display.getDefault().asyncExec(new UIRefresher(scripts));
 	}
 
 	public final Set<Function> problemReporters() {
@@ -435,15 +433,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser.clean();
 			parser.parseDeclarations();
 		}
-	}
-
-	public void parseFunction(Function function) {
-		C4ScriptParser parser;
-		synchronized (parserMap) {
-			parser = parserMap.get(function.script());
-		}
-		if (parser != null)
-			parser.reportProblems(function);
 	}
 
 	/**
