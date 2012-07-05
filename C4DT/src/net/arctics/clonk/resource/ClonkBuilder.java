@@ -1,12 +1,9 @@
 package net.arctics.clonk.resource;
 
 import static net.arctics.clonk.util.ArrayUtil.listFromIterable;
-import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,9 +18,7 @@ import java.util.concurrent.TimeUnit;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
@@ -31,16 +26,9 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SystemScript;
-import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.util.Pair;
-import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -62,7 +50,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * An incremental builder for all project data.<br>
@@ -73,274 +60,22 @@ import org.eclipse.ui.navigator.CommonNavigator;
  */
 public class ClonkBuilder extends IncrementalProjectBuilder {
 
-	private static final boolean INDEX_C4GROUPS = true;
-
-	private static final class UIRefresher implements Runnable {
-
-		private final List<Script> resourcesToBeRefreshed;
-
-		public UIRefresher(List<Script> resourcesToBeRefreshed) {
-			super();
-			this.resourcesToBeRefreshed = resourcesToBeRefreshed;
-		}
-
-		@Override
-		public void run() {
-			IWorkbench w = PlatformUI.getWorkbench();
-			for (IWorkbenchWindow window : w.getWorkbenchWindows()) {
-				for (IWorkbenchPage page : window.getPages())
-					for (IEditorReference ref : page.getEditorReferences()) {
-						IEditorPart part = ref.getEditor(false);
-						if (part != null && part instanceof ClonkTextEditor)
-							((ClonkTextEditor)part).refreshOutline();
-					}
-				CommonNavigator projectExplorer = UI.projectExplorer(window);
-				if (projectExplorer != null)
-					for (Script s : resourcesToBeRefreshed)
-						UI.refreshAllProjectExplorers(s.resource());
-			}
-		}
-	}
-
-	private static class ResourceCounterAndCleaner extends ResourceCounter {
-		public ResourceCounterAndCleaner(int countFlags) {
-			super(countFlags);
-		}
-		@Override
-		public boolean visit(IResource resource) throws CoreException {
-			if (resource instanceof IContainer) {
-				Definition obj = Definition.definitionCorrespondingToFolder((IContainer) resource);
-				if (obj != null)
-					obj.setDefinitionFolder(null);
-			}
-			else if (resource instanceof IFile)
-				Structure.unPinFrom((IFile) resource);
-			return super.visit(resource);
-		}
-		@Override
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			if (delta.getKind() == IResourceDelta.CHANGED)
-				return super.visit(delta);
-			return true;
-		}
-	}
-
-	private class C4GroupStreamHandler implements IResourceDeltaVisitor, IResourceVisitor {
-
-		public static final int OPEN = 0;
-		public static final int CLOSE = 1;
-
-		private final int operation;
-
-		public C4GroupStreamHandler(int operation) {
-			this.operation = operation;
-		}
-
-		@Override
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			IResource res = delta.getResource();
-			return visit(res);
-		}
-
-		@Override
-		public boolean visit(IResource res) throws CoreException {
-			if (res.getParent() != null && res.getParent().equals(res.getProject()) && res instanceof IContainer) {
-				URI uri = null;
-				try {
-					uri = res.getLocationURI();
-				} catch (Exception e) {
-					System.out.println(res.getFullPath().toString());
-				}
-				IFileStore store = EFS.getStore(uri);
-				if (store instanceof C4Group) {
-					C4Group group = (C4Group) store;
-					try {
-						switch (operation) {
-						case OPEN:
-							group.requireStream();
-							break;
-						case CLOSE:
-							group.releaseStream();
-							break;
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			return res instanceof IProject;
-		}
-	}
-
-	public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
-		public Definition createDefinition(IContainer folder) {
-			IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
-			IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
-			if (defCore == null && scenario == null)
-				return null;
-			try {
-				Definition def = Definition.definitionCorrespondingToFolder(folder);
-				if (defCore != null) {
-					DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
-					if (def == null)
-						def = new Definition(index(), defCoreWrapper.definitionID(), defCoreWrapper.name(), folder);
-					else {
-						def.setId(defCoreWrapper.definitionID());
-						def.setName(defCoreWrapper.name(), false);
-					}
-				} else if (scenario != null)
-					def = new Scenario(index(), folder.getName(), folder);
-				return def;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		@Override
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			if (delta == null) 
-				return false;
-
-			boolean success = false;
-			If: if (delta.getResource() instanceof IFile) {
-				IFile file = (IFile) delta.getResource();
-				Script script;
-				switch (delta.getKind()) {
-				case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-					script = Script.get(file, true);
-					if (script == null)
-						// create if new file
-						// script in a system group
-						if (isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
-							script = new SystemScript(index(), file);
-					// object script
-						else
-							script = createDefinition(delta.getResource().getParent());
-					if (script != null && delta.getResource().equals(script.scriptStorage()))
-						queueScript(script);
-					else
-						processAuxiliaryFiles(file, script);
-					break;
-				case IResourceDelta.REMOVED:
-					script = SystemScript.scriptCorrespondingTo(file);
-					if (script != null && file.equals(script.scriptStorage()))
-						script.index().removeScript(script);
-				}
-				success = true;
-			}
-			else if (delta.getResource() instanceof IContainer) {
-				IContainer container = (IContainer)delta.getResource();
-				if (!INDEX_C4GROUPS)
-					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
-						success = false;
-						break If;
-					}
-				// make sure the object has a reference to its folder (not to some obsolete deleted one)
-				Definition definition;
-				switch (delta.getKind()) {
-				case IResourceDelta.ADDED:
-					definition = Definition.definitionCorrespondingToFolder(container);
-					if (definition != null)
-						definition.setDefinitionFolder(container);
-					//					else if (isSystemGroup(container))
-					//						for (IResource res : container.members())
-					//							if (isSystemScript(res))
-					//								queueScript(new SystemScript(index(), (IFile)res));
-					break;
-				case IResourceDelta.REMOVED:
-					// remove object when folder is removed
-					definition = Definition.definitionCorrespondingToFolder(container);
-					if (definition != null)
-						definition.index().removeDefinition(definition);
-					break;
-				}
-				success = true;
-			}
-			monitor.worked(1);
-			return success;
-		}
-		@Override
-		public boolean visit(IResource resource) throws CoreException {
-			if (monitor.isCanceled())
-				return false;
-			if (resource instanceof IContainer) {
-				if (!INDEX_C4GROUPS)
-					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
-						return false;
-				Definition definition = createDefinition((IContainer) resource);
-				if (definition != null)
-					queueScript(definition);
-				return true;
-			}
-			else if (resource instanceof IFile) {
-				IFile file = (IFile) resource;
-				// only create standalone-scripts for *.c files residing in System groups
-				if (isSystemScript(resource)) {
-					Script script = SystemScript.pinnedScript(file, true);
-					if (script == null)
-						script = new SystemScript(index(), file);
-					queueScript(script);
-					return true;
-				}
-				else if (processAuxiliaryFiles(file, Script.get(file, true)))
-					return true;
-			}
-			return false;
-		}
-		private boolean processAuxiliaryFiles(IFile file, Script script) throws CoreException {
-			boolean result = true;
-			Structure structure;
-			if ((structure = Structure.createStructureForFile(file, true)) != null) {
-				structure.commitTo(script, ClonkBuilder.this);
-				structure.pinTo(file);
-			}
-			else
-				structure = Structure.pinned(file, false, true);
-			if (structure != null)
-				gatheredStructures.add(structure);
-			// not parsed as Structure - let definition process the file
-			else if (script instanceof Definition) {
-				Definition def = (Definition)script;
-				try {
-					def.processDefinitionFolderFile(file);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			else
-				result = false;
-			return result;
-		}
-	}
-
 	private IProgressMonitor monitor;
 	private ClonkProjectNature nature;
-
-	/**
-	 *  Gathered list of scripts to be parsed
-	 */
 	private final Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
-
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
 	 */
 	private final Set<Structure> gatheredStructures = Collections.synchronizedSet(new HashSet<Structure>());
-
-	/**
-	 * Set of {@link Definition}s whose ids have been changed by reparsing of their DefCore.txt files
-	 */
-	private final Set<Pair<Definition, ID>> renamedDefinitions = Collections.synchronizedSet(new HashSet<Pair<Definition, ID>>());
-
 	private final Markers markers = new Markers();
-
-	public Markers markers() {
-		return markers;
-	}
-
-	private Index index() {
-		return ClonkProjectNature.get(getProject()).index();
-	}
+	private int buildKind;
+	private Set<Function> problemReporters;
+	
+	public void addGatheredStructure(Structure structure) { gatheredStructures.add(structure); }
+	public Markers markers() { return markers; }
+	public Index index() { return ClonkProjectNature.get(getProject()).index(); }
+	public IProgressMonitor monitor() { return monitor; }
 
 	public boolean isSystemScript(IResource resource) {
 		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
@@ -377,8 +112,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private int buildKind;
-
 	@Override
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
@@ -392,17 +125,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		try {
 			try {
 
-				performBuildPhases(
-					listOfResourcesToBeRefreshed, proj,
-					getDelta(proj)
-					);
+				performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
 
 				if (monitor.isCanceled()) {
 					monitor.done();
 					return null;
 				}
-
-				handleDefinitionRenaming();
 
 				// validate files related to the scripts that have been parsed
 				for (Script script : parserMap.keySet())
@@ -419,35 +147,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private void handleDefinitionRenaming() {
-		// let's just... not do that here
-		/*for (Pair<Definition, ID> rnd : renamedDefinitions) {
-			final Definition def = rnd.first();
-			final ID newID = rnd.second();
-			final ID oldID = def.id();
-			if (oldID == null || oldID == ID.NULL)
-				return;
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					// FIXME: implement for CR?
-					Variable var = def.proxyVar();
-					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						String.format(Messages.ClonkBuilder_RenameRefactoringPrompt, oldID.stringValue(), newID.stringValue()),
-						String.format(Messages.ClonkBuilder_RenameRefactoringTitle, oldID.stringValue()))
-					) {
-						// perform a refactoring
-						RenameDeclarationAction.performRenameRefactoring(var, newID.stringValue(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
-					}
-					// set id in any case
-					def.setId(newID); 
-				}
-			});
-		}*/
-	}
-
-
-
 	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T visitor) throws CoreException {
 		if (delta != null)
 			delta.accept(visitor);
@@ -458,9 +157,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private static class SaveScriptsJob extends Job {
 		private final Script[] scriptsToSave;
 		private final IProject project;
-		public SaveScriptsJob(IProject project, Script... scriptsToSave) {
+		public SaveScriptsJob(IProject project, Collection<Script> scriptsToSave) {
 			super(buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
-			this.scriptsToSave = scriptsToSave;
+			this.scriptsToSave = scriptsToSave.toArray(new Script[scriptsToSave.size()]);
 			this.project = project;
 		}
 		@Override
@@ -493,7 +192,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		Index index = nature.index();
 
 		// visit files to open C4Groups if files are contained in c4group file system
-		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
+		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.OPEN));
 		try {
 
 			// count num of resources to build
@@ -506,7 +205,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
 			monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
-			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
+			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer(this));
 
 			// delete old declarations
 			for (Script script : parserMap.keySet())
@@ -517,13 +216,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
-
+			
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
+			C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 			phaseTwo(scripts);
-			new SaveScriptsJob(proj, scripts).schedule();
+			phaseThree(parsers);
+			
+			new SaveScriptsJob(proj, parserMap.keySet()).schedule();
 		} finally {
 			monitor.done();
-			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
+			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
 		}
 	}
 
@@ -536,12 +238,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		newlyEnqueuedParsers.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
-			phase = 1;
-			final ExecutorService phaseOnePool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+			final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 			for (final Script script : newlyEnqueuedParsers.keySet()) {
 				if (monitor.isCanceled())
 					break;
-				phaseOnePool.execute(new Runnable() {
+				pool.execute(new Runnable() {
 					@Override
 					public void run() {
 						performBuildPhaseOne(script);
@@ -549,9 +250,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					}
 				});
 			}
-			phaseOnePool.shutdown();
+			pool.shutdown();
 			try {
-				phaseOnePool.awaitTermination(20, TimeUnit.MINUTES);
+				pool.awaitTermination(20, TimeUnit.MINUTES);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -572,22 +273,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 	}
 
-	private Script[] phaseTwo(Script[] scripts) {
-		errorReportingOrder.clear();
+	private void phaseTwo(Script[] scripts) {
+		// parse function code
+		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
 		for (C4ScriptParser parser : parserMap.values())
 			if (parser != null)
 				parser.prepareForFunctionParsing();
 
-		// parse function code
-		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
 		for (Script s : scripts)
 			s.generateFindDeclarationCache();
-		phase = 2;
-		final ExecutorService phaseTwoPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		for (final Script script : scripts) {
 			if (monitor.isCanceled())
 				break;
-			phaseTwoPool.execute(new Runnable() {
+			pool.execute(new Runnable() {
 				@Override
 				public void run() {
 					performBuildPhaseTwo(script);
@@ -595,50 +294,55 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			});
 		}
-		phaseTwoPool.shutdown();
+		pool.shutdown();
 		try {
-			phaseTwoPool.awaitTermination(20, TimeUnit.MINUTES);
+			pool.awaitTermination(20, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		reportProblems();
-		Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
-		return scripts;
+	}
+	
+	private void phaseThree(C4ScriptParser[] parsers) {
+		// report problems
+		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
+		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		problemReporters = new HashSet<Function>();
+		for (final C4ScriptParser p : parsers) {
+			if (monitor.isCanceled())
+				break;
+			if (p == null)
+				continue;
+			pool.execute(new Runnable() {
+				@Override
+				public void run() {
+					System.out.println("Reporting problems for " + p.script().toString());
+					p.reportProblems();
+					monitor.worked(1);
+				}
+			});
+		}
+		pool.shutdown();
+		try {
+			pool.awaitTermination(20, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		problemReporters = null;
+		markers.deploy();
+		Display.getDefault().asyncExec(new UIRefresher(parserMap.keySet()));
 	}
 
-	private Set<Function> reporters;
-
-	public final Set<Function> reporters() {
-		return reporters;
+	public final Set<Function> problemReporters() {
+		return problemReporters;
 	}
 	
 	public C4ScriptParser parserFor(Script script) {
-		for (C4ScriptParser s : errorReportingOrder)
-			if (s.script() == script)
-				return s;
-		return null;
+		return parserMap.get(script);
 	}
-
-	private void reportProblems() {
-		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		synchronized (errorReportingOrder) {
-			reporters = new HashSet<Function>();
-			for (final C4ScriptParser p : errorReportingOrder) {
-				if (monitor.isCanceled())
-					break;
-				p.reportProblems();
-				monitor.worked(1);
-			}
-			reporters = null;
-			errorReportingOrder.clear();
-			markers.deploy();
-		}
-	}
-
+	
 	private void clearState() {
 		gatheredStructures.clear();
 		parserMap.clear();
-		renamedDefinitions.clear();
 	}
 
 	private void queueDependentScripts(Map<Script, C4ScriptParser> scriptsToQueueDependenciesFrom, Map<Script, C4ScriptParser> newlyAddedParsers) {
@@ -680,40 +384,33 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void clearUIOfReferencesBeforeBuild() {
-		Display.getDefault().asyncExec(new Runnable() {
+		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					IWorkbench w = PlatformUI.getWorkbench();
-					for (IWorkbenchWindow window : w.getWorkbenchWindows())
-						if (window.getActivePage() != null) {
-							IWorkbenchPage page = window.getActivePage();
-							for (IEditorReference ref : page.getEditorReferences()) {
-								IEditorPart part = ref.getEditor(false);
-								if (part != null && part instanceof ClonkTextEditor) {
-									ClonkTextEditor ed = (ClonkTextEditor) part;
-									// only if building the project this element is declared in
-									Declaration topLevelDeclaration = ed.topLevelDeclaration();
-									if (
-										topLevelDeclaration != null &&
-										topLevelDeclaration.resource() != null &&
-										ClonkBuilder.this.getProject().equals(topLevelDeclaration.resource().getProject())
-										)
-										ed.clearOutline();
-								}
+				IWorkbench w = PlatformUI.getWorkbench();
+				for (IWorkbenchWindow window : w.getWorkbenchWindows())
+					if (window.getActivePage() != null) {
+						IWorkbenchPage page = window.getActivePage();
+						for (IEditorReference ref : page.getEditorReferences()) {
+							IEditorPart part = ref.getEditor(false);
+							if (part != null && part instanceof ClonkTextEditor) {
+								ClonkTextEditor ed = (ClonkTextEditor) part;
+								// only if building the project this element is declared in
+								Declaration topLevelDeclaration = ed.topLevelDeclaration();
+								if (
+									topLevelDeclaration != null &&
+									topLevelDeclaration.resource() != null &&
+									ClonkBuilder.this.getProject().equals(topLevelDeclaration.resource().getProject())
+								)
+									ed.clearOutline();
 							}
 						}
-				}
-				finally {
-					synchronized (ClonkBuilder.this) {
-						ClonkBuilder.this.notify();
 					}
-				}
 			}
 		});
 	}
 
-	private C4ScriptParser queueScript(Script script) {
+	public C4ScriptParser queueScript(Script script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			IStorage storage = script.scriptStorage();
@@ -749,17 +446,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser.reportProblems(function);
 	}
 
-	private int phase;
-
 	/**
 	 * Parse function code/validate variable initialization code.
 	 * An attempt is made to parse included scripts before the passed one.
 	 * @param script The script to parse
 	 */
-	public void performBuildPhaseTwo(Script script) {
+	private void performBuildPhaseTwo(Script script) {
 		C4ScriptParser parser;
-		if (phase != 2)
-			return;
 		synchronized (parserMap) {
 			parser = parserMap.containsKey(script) ? parserMap.remove(script) : null;
 		}
@@ -773,23 +466,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			} catch (ParsingException e) {
 				e.printStackTrace();
 			}
-	}
-
-	/**
-	 * Inform the builder about a Definition renaming caused by modifying its DefCore.txt file.
-	 * @param def The {@link Definition} whose DefCore.txt id value changed
-	 * @param ID newID The new id the builder is supposed to assign to the definition eventually
-	 */
-	public void queueDefinitionRenaming(Definition def, ID newID) {
-		renamedDefinitions.add(new Pair<Definition, ID>(def, newID));
-	}
-	
-	private final List<C4ScriptParser> errorReportingOrder = new LinkedList<C4ScriptParser>();
-
-	public void scheduleErrorReporting(C4ScriptParser parser) {
-		synchronized (errorReportingOrder) {
-			errorReportingOrder.add(parser);
-		}
 	}
 
 }

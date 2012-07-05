@@ -1,10 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {
 	
@@ -31,18 +28,6 @@ public class DefCoreUnit extends IniUnit {
 	public String name() {
 		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).extendedValue() : defaultName;
-	}
-	
-	@Override
-	public void commitTo(Script script, ClonkBuilder builder) {
-		if (script instanceof Definition) {
-			Definition def = (Definition) script;
-			ID oldID = def.id();
-			ID newID = this.definitionID();
-			//def.setId(newID);
-			if (!oldID.equals(newID))
-				builder.queueDefinitionRenaming(def, newID);
-		}
 	}
 	
 	@Override

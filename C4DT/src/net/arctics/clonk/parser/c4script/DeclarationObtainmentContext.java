@@ -12,7 +12,6 @@ public interface DeclarationObtainmentContext extends IEvaluationContext {
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);
 	Definition containerAsDefinition();
 	void reportProblems(Function function);
-	void performParsingPhaseTwo(Script script);
 	void storeType(ExprElm exprElm, IType type);
 	Declaration currentDeclaration();
 	SourceLocation absoluteSourceLocationFromExpr(ExprElm expression);

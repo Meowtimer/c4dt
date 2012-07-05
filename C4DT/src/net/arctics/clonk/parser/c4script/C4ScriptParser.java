@@ -551,8 +551,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Function function : script.functions())
 			parseCodeOfFunction(function);
 		currentDeclaration = null;
-		if (builder != null)
-			builder.scheduleErrorReporting(this);
 
 		for (Directive directive : script.directives())
 			directive.validate(this);
@@ -649,12 +647,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			currentDeclaration = oldDec;
 			seek(oldOffset);
 		}
-	}
-	
-	@Override
-	public void performParsingPhaseTwo(Script script) {
-		if (builder != null)
-			builder.performBuildPhaseTwo(script);
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
@@ -2257,7 +2249,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		if (function.script() == script) {
 			if (builder != null) {
-				Set<Function> reporters = builder.reporters();
+				Set<Function> reporters = builder.problemReporters();
 				if (reporters != null)
 					synchronized (reporters) {
 						if (reporters.contains(function))
