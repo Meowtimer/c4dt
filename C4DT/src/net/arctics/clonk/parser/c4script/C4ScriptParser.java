@@ -2238,7 +2238,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (function == null || function.isEngineDeclaration())
 			return;
 		synchronized (reportingMonitor) {
-			assignDefaultParmTypesToFunction(function);
 			statementReached = true;
 			_reportProblems(function);
 		}
@@ -2248,6 +2247,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (function == null || function.codeBlock() == null)
 			return;
 		if (function.script() == script) {
+			assignDefaultParmTypesToFunction(function);
 			if (builder != null) {
 				Set<Function> reporters = builder.problemReporters();
 				if (reporters != null)
