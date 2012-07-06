@@ -83,6 +83,7 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitiali
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -3185,7 +3186,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					for (Variable var : func.localVars())
 						var.setType(PrimitiveType.UNKNOWN);
 				}
-				reportProblemsOf(iterable(cachedBlock.statements()), true);
+				if (!ClonkPreferences.toggle(ClonkPreferences.DONT_ANALYZE_CODE, false))
+					reportProblemsOf(iterable(cachedBlock.statements()), true);
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)
 					cachedBlock.traverse(listener, this);
