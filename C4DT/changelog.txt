@@ -174,3 +174,6 @@ are then taken into account in various places
 -TODO/FIXME markers comments containing those words
 -Fix issues with C4DT not finding the cpp source files to read OC definitions from
 -Add some more logic to prevent scenario-local #appendtos from bleeding over to other regions of a project outside of that scenario
+1.7.3:
+-Option to analyze code which can be turned off, leading to c4dt doing less on clean build and other occasions
+-Fixes
