@@ -43,19 +43,15 @@ public class CStyleScanner extends BufferedScanner {
 				unread();
 			} else
 				javadoc = true;
-			int startMultiline = this.tell();
-			while (!this.reachedEOF()) {
-				if (this.read() == '*') {
+			int startMultiline = this.offset;
+			while (!this.reachedEOF())
+				if (this.read() == '*')
 					if (this.read() == '/') {
-						String commentText = this.readStringAt(startMultiline, this.tell()-2);
+						String commentText = this.readStringAt(startMultiline, this.offset-2);
 						return new Comment(commentText, true, javadoc); // genug gefressen
-					}
-					else {
+					} else
 						this.unread();
-					}
-				}
-			}
-			String commentText = this.readStringAt(startMultiline, this.tell());
+			String commentText = this.readStringAt(startMultiline, this.offset);
 			return new Comment(commentText, true, javadoc);
 		} else {
 			this.seek(start);
@@ -73,10 +69,12 @@ public class CStyleScanner extends BufferedScanner {
 	}
 	
 	protected boolean parseComment() {
-		int offset = this.tell();
+		int offset = this.offset;
 		Comment c = parseCommentObject();
 		if (c != null) {
-			setExprRegionRelativeToFuncBody(c, offset, this.tell());
+			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
+				c.previousComment = lastComment;
+			setExprRegionRelativeToFuncBody(c, offset, this.offset);
 			c.setAbsoluteOffset(offset);
 			lastComment = c;
 			return true;

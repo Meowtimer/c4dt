@@ -30,6 +30,11 @@ public class Comment extends Statement implements Statement.Attachment {
 	private boolean prependix;
 	private final boolean javaDoc;
 	private int absoluteOffset;
+	
+	/**
+	 * Used for linked list of comments interpreted by parser as one documentation comment
+	 */
+	public transient Comment previousComment;
 
 	/**
 	 * Create new {@link Comment}, specifying content and whether it's a multi-line comment.
@@ -45,10 +50,25 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 
 	/**
-	 * Return the comment string.
+	 * Return the text of the comment or comment chain.
+	 * @return Return the comment string. If {@link #previousComment} is set, the returned string will be the text of all comments in the linked list concatenated.
 	 */
 	public String text() {
-		return comment;
+		if (previousComment == null)
+			return comment;
+		else {
+			int cap = 0;
+			String lineBreak = "<br/>";
+			for (Comment c = this; c != null; c = c.previousComment)
+				cap += c.comment.length() + (c != this ? lineBreak.length() : 0);
+			StringBuilder builder = new StringBuilder(cap);
+			for (Comment c = this; c != null; c = c.previousComment) {
+				if (c != this)
+					builder.insert(0, lineBreak);
+				builder.insert(0, c.comment);
+			}
+			return builder.toString();
+		}
 	}
 
 	/**

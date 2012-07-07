@@ -844,10 +844,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 		monitor.done();
 	}
-
+	
+	private String sourceComment;
+	public String sourceComment() { return sourceComment; }
+	public void setSourceComment(String s) { sourceComment = s; }
+	
 	@Override
 	public String infoText() {
 		//requireLoaded();
+		if (sourceComment != null)
+			return sourceComment;
 		Object f = scriptStorage();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$

@@ -510,18 +510,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else
 			return String.valueOf((char)read());
 	}
-
+	
 	/**
-	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
+	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clean()}-ed to avoid duplicates.
 	 */
 	public void parseDeclarations() {
 		strictLevel = script.strictLevel();
-		int offset = 0;
-		this.seek(offset);
+		this.seek(0);
 		enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 		try {
+			parseInitialSourceComment();
 			eatWhitespace();
-			while(!reachedEOF()) {
+			while (!reachedEOF()) {
 				if (!parseDeclaration()) {
 					eatWhitespace();
 					if (!reachedEOF()) {
@@ -539,6 +539,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		enableError(ParserErrorCode.StringNotClosed, true);
 		if (markers != null)
 			markers.deploy();
+	}
+
+	private void parseInitialSourceComment() {
+		eat(WHITESPACE_CHARS);
+		Comment sourceComment = null;
+		for (Comment c; (c = parseCommentObject()) != null;)
+			sourceComment = c;
+		if (sourceComment != null)
+			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>"));
 	}
 	
 	/**
@@ -1366,8 +1375,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * read operator at some location
-	 * @param offset
+	 * Parse an {@link Operator} at the current location.
 	 * @return the operator referenced in the code at offset
 	 */
 	private Operator parseOperator() {
