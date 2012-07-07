@@ -27,7 +27,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 		toggleHumanMap.put(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer);
 		toggleHumanMap.put(ClonkPreferences.NO_AUTOBRACKETPAIRS, Messages.ClonkPreferencePage_NoAutoBrackets);
 		toggleHumanMap.put(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, Messages.TogglesPreferencePage_IgnoreSimpleFunctionDupes);
-		toggleHumanMap.put(ClonkPreferences.DONT_ANALYZE_CODE, "Do not analyze code (less reported problems, more speed when refreshing)");
+		toggleHumanMap.put(ClonkPreferences.ANALYZE_CODE, "Analyze code (more reported problems, slower when clean-building)");
 		for (Entry<String, String> entry : toggleHumanMap.entrySet())
 			addField(new BooleanFieldEditor(entry.getKey(), entry.getValue(), getFieldEditorParent()));
 	}

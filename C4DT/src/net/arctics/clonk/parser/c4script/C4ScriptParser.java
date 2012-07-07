@@ -3197,7 +3197,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					for (Variable var : func.localVars())
 						var.setType(PrimitiveType.UNKNOWN);
 				}
-				if (!ClonkPreferences.toggle(ClonkPreferences.DONT_ANALYZE_CODE, false))
+				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 					reportProblemsOf(iterable(cachedBlock.statements()), true);
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)

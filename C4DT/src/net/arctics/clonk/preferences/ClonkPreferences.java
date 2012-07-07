@@ -25,7 +25,7 @@ public class ClonkPreferences {
 	public static final String NO_AUTOBRACKETPAIRS = "noAutoBracketPairs";
 	public static final String AUTHOR = "author";
 	public static final String IGNORE_SIMPLE_FUNCTION_DUPES = "ignoreSimpleFunctionDupes"; //$NON-NLS-1$
-	public static final String DONT_ANALYZE_CODE = "dontAnalyzeCode";
+	public static final String ANALYZE_CODE = "analyzeCode";
 	
 	// defaults
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
@@ -83,6 +83,7 @@ public class ClonkPreferences {
 		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
+		store.setDefault(ANALYZE_CODE, true);
 	}
 	
 }

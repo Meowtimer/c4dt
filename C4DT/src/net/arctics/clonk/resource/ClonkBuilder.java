@@ -220,7 +220,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			phaseTwo(scripts);
 			
-			if (!ClonkPreferences.toggle(ClonkPreferences.DONT_ANALYZE_CODE, false))
+			if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 				phaseThree(parsers, scripts);
 			
 			new SaveScriptsJob(proj, scripts).schedule();
