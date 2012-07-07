@@ -51,10 +51,10 @@ public class SystemScript extends Script implements Serializable {
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
-			scriptFile.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
+			super.unPinFrom(scriptFile);
 		scriptFile = f;
 		if (f != null) { 
-			f.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
+			super.pinTo(scriptFile);
 			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.index() : null;
 		}
