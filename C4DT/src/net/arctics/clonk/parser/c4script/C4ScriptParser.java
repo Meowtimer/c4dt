@@ -2229,6 +2229,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				_reportProblems(f);
 			}
 		typeInfos.apply(this, false);
+		for (Variable v : script.variables())
+			if (v.scope() == Scope.CONST)
+				v.lockType();
 		popTypeInfos(false);
 	}
 	

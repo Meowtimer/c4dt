@@ -131,6 +131,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.typeLocked = typeLocked;
 	}
 	
+	public void lockType() {
+		typeLocked = true;
+	}
+	
 	public void setType(IType type) {
 		if (typeLocked)
 			return;
@@ -392,7 +396,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	@Override
 	public boolean typeIsInvariant() {
-		return scope == Scope.CONST || typeLocked;
+		return typeLocked || isEngineDeclaration();
 	}
 	
 	/**
