@@ -21,8 +21,8 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 	public static class ScannerPerEngine<T extends ClonkRuleBasedScanner> {
 		private static final Class<?>[] CTOR_SIGNATURE = new Class<?>[] {ColorManager.class, Engine.class};
 		private static final List<ScannerPerEngine<?>> INSTANCES = new ArrayList<ScannerPerEngine<?>>();
-		private Map<String, T> scanners = new HashMap<String, T>();
-		private Class<T> scannerClass;
+		private final Map<String, T> scanners = new HashMap<String, T>();
+		private final Class<T> scannerClass;
 		public static Iterable<ScannerPerEngine<?>> instances() {
 			return Collections.unmodifiableList(INSTANCES);
 		}
@@ -32,7 +32,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		}
 		public T get(Engine engine) {
 			T scanner = scanners.get(engine.name());
-			if (scanner == null) {
+			if (scanner == null)
 				try {
 					scanner = scannerClass.getConstructor(CTOR_SIGNATURE).newInstance(ColorManager.instance(), engine);
 					scanners.put(engine.name(), scanner);
@@ -40,14 +40,12 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 					e.printStackTrace();
 					return null;
 				}
-			}
 			return scanner;
 		}
 		public static void refreshScanners() {
-			for (ScannerPerEngine<?> i : INSTANCES) {
+			for (ScannerPerEngine<?> i : INSTANCES)
 				for (ClonkRuleBasedScanner s : i.scanners.values())
 					s.recommitRules();
-			}
 		}
 	}
 	
@@ -68,9 +66,18 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 				isNegative = true;
 			}
 			if (character >= 0x30 && character <= 0x39) {
-				do {
+				if (character == '0')
+					if (scanner.read() == 'x') {
+						do
+							character = scanner.read();
+						while ((character >= '0' && character <= '9') || (character >= 'A' && character <= 'F') || (character >= 'a' && character <= 'f'));
+						scanner.unread();
+						return token;
+					} else
+						scanner.unread();
+				do
 					character = scanner.read();
-				} while (character >= 0x30 && character <= 0x39);
+				while (character >= 0x30 && character <= 0x39);
 				scanner.unread();
 				return token;
 			}
@@ -111,10 +118,9 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		 * @return <code>true</code> if the character is a bracket, <code>false</code> otherwise.
 		 */
 		public boolean isBracket(char character) {
-			for (int index= 0; index < JAVA_BRACKETS.length; index++) {
+			for (int index= 0; index < JAVA_BRACKETS.length; index++)
 				if (JAVA_BRACKETS[index] == character)
 					return true;
-			}
 			return false;
 		}
 
@@ -126,9 +132,9 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 
 			int character= scanner.read();
 			if (isBracket((char) character)) {
-				do {
+				do
 					character= scanner.read();
-				} while (isBracket((char) character));
+				while (isBracket((char) character));
 				scanner.unread();
 				return fToken;
 			} else {
@@ -142,8 +148,8 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		this(manager, engine, "DEFAULT");
 	}
 	
-	private ColorManager manager;
-	private Engine engine;
+	private final ColorManager manager;
+	private final Engine engine;
 	
 	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine, String returnTokenTag) {
 		this.manager = manager;
