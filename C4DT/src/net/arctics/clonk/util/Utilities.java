@@ -4,6 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
@@ -42,9 +45,8 @@ public abstract class Utilities {
 	private static MessageConsoleStream debugConsoleStream = null;
 	
 	public static MessageConsole clonkConsole() {
-		if (clonkConsole == null) {
+		if (clonkConsole == null)
 			clonkConsole = consoleWithName(Messages.Utilities_ClonkConsole);
-		}
 		return clonkConsole;
 	}
 	
@@ -62,9 +64,8 @@ public abstract class Utilities {
 	}
 	
 	public static MessageConsoleStream debugStream() {
-		if (debugConsoleStream == null) {
+		if (debugConsoleStream == null)
 			debugConsoleStream = consoleWithName(Messages.Utilities_DebugConsole).newMessageStream();
-		}
 		return debugConsoleStream;
 	}
 
@@ -167,7 +168,7 @@ public abstract class Utilities {
 	public static <T extends IHasRelatedResource> T pickNearest(Iterable<T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
-		if (fromList != null) {
+		if (fromList != null)
 			for (T o : fromList) {
 				if (filter != null && !filter.test(o))
 					continue;
@@ -180,7 +181,6 @@ public abstract class Utilities {
 					bestDist = newDist;
 				}
 			}
-		}
 		return best;
 	}
 	
@@ -250,12 +250,10 @@ public abstract class Utilities {
 	}
 
 	public static <S, T extends S> boolean isAnyOf(S something, T... things) {
-		if (something != null) {
-			for (Object o : things) {
+		if (something != null)
+			for (Object o : things)
 				if (something.equals(o))
 					return true;
-			}
-		}
 		return false;
 	}
 	
@@ -297,10 +295,9 @@ public abstract class Utilities {
 	
 	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
 		try {
-	        for (IResource child : container.members()) {
-	        	if (child.getName().equalsIgnoreCase(name))
+	        for (IResource child : container.members())
+				if (child.getName().equalsIgnoreCase(name))
 	        		return child;
-	        }
         } catch (CoreException e) {
 	        //e.printStackTrace(); just return null, will just be some case of having a referenced container that does not exist anymore
         }
@@ -345,6 +342,20 @@ public abstract class Utilities {
 		for (int i = 0; i < times; i++)
 			builder.append(s);
 		return s.toString();
+	}
+
+	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
+		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		try {
+			action.receivedObject(pool);
+		} finally {
+			pool.shutdown();
+			try {
+				pool.awaitTermination(timeoutMinutes, TimeUnit.MINUTES);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 }

@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -26,6 +24,8 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -123,7 +123,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		try {
 			try {
 
-				performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
+				Script[] scripts = performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
 
 				if (monitor.isCanceled()) {
 					monitor.done();
@@ -131,7 +131,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 
 				// validate files related to the scripts that have been parsed
-				for (Script script : parserMap.keySet())
+				for (Script script : scripts)
 					validateRelatedFiles(script);
 
 				return new IProject[] { proj };
@@ -180,7 +180,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private void performBuildPhases(
+	private Script[] performBuildPhases(
 		List<IResource> listOfResourcesToBeRefreshed,
 		IProject proj,
 		IResourceDelta delta
@@ -224,6 +224,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				phaseThree(parsers, scripts);
 			
 			new SaveScriptsJob(proj, scripts).schedule();
+			
+			return scripts;
 		} finally {
 			monitor.done();
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
@@ -234,29 +236,27 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
-		Map<Script, C4ScriptParser> newlyEnqueuedParsers = new HashMap<Script, C4ScriptParser>();
-		Map<Script, C4ScriptParser> enqueuedFromLastIteration = new HashMap<Script, C4ScriptParser>();
+		final Map<Script, C4ScriptParser> newlyEnqueuedParsers = new HashMap<Script, C4ScriptParser>();
+		final Map<Script, C4ScriptParser> enqueuedFromLastIteration = new HashMap<Script, C4ScriptParser>();
 		newlyEnqueuedParsers.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
-			final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-			for (final Script script : newlyEnqueuedParsers.keySet()) {
-				if (monitor.isCanceled())
-					break;
-				pool.execute(new Runnable() {
-					@Override
-					public void run() {
-						performBuildPhaseOne(script);
-						monitor.worked(1);
+			Utilities.threadPool(new Sink<ExecutorService>() {
+				@Override
+				public void receivedObject(ExecutorService pool) {
+					for (final Script script : newlyEnqueuedParsers.keySet()) {
+						if (monitor.isCanceled())
+							break;
+						pool.execute(new Runnable() {
+							@Override
+							public void run() {
+								performBuildPhaseOne(script);
+								monitor.worked(1);
+							}
+						});
 					}
-				});
-			}
-			pool.shutdown();
-			try {
-				pool.awaitTermination(20, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+				}
+			}, 20);
 			Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
 			// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 			// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
@@ -274,7 +274,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 	}
 
-	private void phaseTwo(Script[] scripts) {
+	private void phaseTwo(final Script[] scripts) {
 		// parse function code
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
 		for (C4ScriptParser parser : parserMap.values())
@@ -283,50 +283,46 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 		for (Script s : scripts)
 			s.generateFindDeclarationCache();
-		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		for (final Script script : scripts) {
-			if (monitor.isCanceled())
-				break;
-			pool.execute(new Runnable() {
-				@Override
-				public void run() {
-					performBuildPhaseTwo(script);
-					monitor.worked(1);
+		Utilities.threadPool(new Sink<ExecutorService> () {
+			@Override
+			public void receivedObject(ExecutorService pool) {
+				for (final Script script : scripts) {
+					if (monitor.isCanceled())
+						break;
+					pool.execute(new Runnable() {
+						@Override
+						public void run() {
+							performBuildPhaseTwo(script);
+							monitor.worked(1);
+						}
+					});
 				}
-			});
-		}
-		pool.shutdown();
-		try {
-			pool.awaitTermination(20, TimeUnit.MINUTES);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+			}
+		}, 20);
 	}
 	
-	private void phaseThree(C4ScriptParser[] parsers, Script[] scripts) {
+	private void phaseThree(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		problemReporters = new HashSet<Function>();
-		for (final C4ScriptParser p : parsers) {
-			if (monitor.isCanceled())
-				break;
-			if (p == null)
-				continue;
-			pool.execute(new Runnable() {
-				@Override
-				public void run() {
-					p.reportProblems();
-					monitor.worked(1);
+		Utilities.threadPool(new Sink<ExecutorService>() {
+			@Override
+			public void receivedObject(ExecutorService pool) {
+				for (final C4ScriptParser p : parsers) {
+					if (monitor.isCanceled())
+						break;
+					if (p == null)
+						continue;
+					pool.execute(new Runnable() {
+						@Override
+						public void run() {
+							p.reportProblems();
+							monitor.worked(1);
+						}
+					});
 				}
-			});
-		}
-		pool.shutdown();
-		try {
-			pool.awaitTermination(20, TimeUnit.MINUTES);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+			}
+		}, 20);
 		problemReporters = null;
 		markers.deploy();
 		Display.getDefault().asyncExec(new UIRefresher(scripts));

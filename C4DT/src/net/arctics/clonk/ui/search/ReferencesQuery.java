@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.search;
 
+import java.util.concurrent.ExecutorService;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
@@ -14,8 +16,8 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
+import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
@@ -27,6 +29,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.KeyValuePair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -59,7 +62,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class UltimateListener implements IResourceVisitor, IASTVisitor {
+	private class Visitor implements IResourceVisitor, IASTVisitor {
 
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
@@ -105,17 +108,19 @@ public class ReferencesQuery extends SearchQueryBase {
 		}
 		
 		public void searchScript(IResource resource, Script script) {
-			C4ScriptParser parser = new C4ScriptParser(script);
-			if (declaration instanceof Definition) {
-				Directive include = script.directiveIncludingDefinition((Definition) declaration);
-				if (include != null)
-					result.addMatch(include.asExpression(), parser, false, false);
+			if (script.scriptFile() != null) {
+				C4ScriptParser parser = new C4ScriptParser(script);
+				if (declaration instanceof Definition) {
+					Directive include = script.directiveIncludingDefinition((Definition) declaration);
+					if (include != null)
+						result.addMatch(include.asExpression(), parser, false, false);
+				}
+				for (Function f : script.functions()) {
+					parser.setCurrentFunction(f);
+					parser.visitCode(f, this, VisitCodeFlavour.AlsoStatements, false);
+				}
 			}
-			for (Function f : script.functions()) {
-				parser.setCurrentFunction(f);
-				parser.visitCode(f, this, VisitCodeFlavour.AlsoStatements, false);
-			}
-			
+
 			// also search related files (actmap, defcore etc)
 			try {
 				searchScriptRelatedFiles(script);
@@ -129,31 +134,39 @@ public class ReferencesQuery extends SearchQueryBase {
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
-		UltimateListener listener = new UltimateListener();
-		try {
-			for (Object scope : this.scope)
-				if (scope instanceof IContainer)
-					((IContainer)scope).accept(listener);
-				else if (scope instanceof Script) {
-					Script script = (Script) scope;
-					listener.searchScript((IResource) script.scriptStorage(), script);
-				}
-				else if (scope instanceof Function) {
-					Function func = (Function)scope;
-					C4ScriptParser parser = new C4ScriptParser(func.script());
-					parser.setCurrentFunction(func);
-					parser.visitCode(func, listener, VisitCodeFlavour.AlsoStatements, false);
-				}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		
+		final Visitor visitor = new Visitor();
+		Utilities.threadPool(new Sink<ExecutorService>() {
+			@Override
+			public void receivedObject(ExecutorService pool) {
+				for (Object scope : ReferencesQuery.this.scope)
+					if (scope instanceof IContainer) try {
+						((IContainer)scope).accept(visitor);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					else if (scope instanceof Script) {
+						final Script script = (Script) scope;
+						pool.execute(new Runnable() {
+							@Override
+							public void run() {
+								visitor.searchScript((IResource) script.scriptStorage(), script);
+							}
+						});
+					}
+					else if (scope instanceof Function) {
+						Function func = (Function)scope;
+						C4ScriptParser parser = new C4ScriptParser(func.script());
+						parser.setCurrentFunction(func);
+						parser.visitCode(func, visitor, VisitCodeFlavour.AlsoStatements, false);
+					}
+			}
+		}, 20);
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 
 	private void searchScriptRelatedFiles(Script script) throws CoreException {
 		if (script instanceof Definition) {
-			IContainer objectFolder = ((Definition)script).scriptStorage().getParent();
+			IContainer objectFolder = ((Definition)script).definitionFolder();
 			for (IResource res : objectFolder.members())
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;
