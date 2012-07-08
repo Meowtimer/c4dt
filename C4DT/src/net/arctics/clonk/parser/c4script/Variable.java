@@ -1,8 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
@@ -17,7 +15,6 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -296,46 +293,10 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object[] occurenceScope(final ClonkProjectNature project) {
-		if (parentDeclaration instanceof Function)
-			return new Object[] {parentDeclaration};
-		if (!isGloballyAccessible() && parentDeclaration instanceof Definition) {
-			final Definition def = (Definition) parentDeclaration;
-			Index index = def.index();
-			final Set<Object> result = new HashSet<Object>();
-			result.add(def);
-			index.allDefinitions(new Sink<Definition>() {
-				@Override
-				public void receivedObject(Definition item) {
-					result.add(item);
-				}
-				@Override
-				public boolean filter(Definition item) {
-					return item.doesInclude(project.index(), def);
-				}
-			});
-			for (Script script : index.indexedScripts())
-				if (script.doesInclude(project.index(), def))
-					result.add(script);
-			// scenarios... unlikely
-			return result.toArray();
-		}
-		return super.occurenceScope(project);
-	}
-
-	@Override
 	public boolean isGlobal() {
 		return scope == Scope.STATIC || scope == Scope.CONST;
 	}
 	
-	/**
-	 * Returns whether references to this declaration might exist from everywhere
-	 * @return The above
-	 */
-	public boolean isGloballyAccessible() {
-		return scope == Scope.LOCAL || parentDeclaration instanceof IProplistDeclaration || isGlobal();
-	}
-
 	public boolean isAt(int offset) {
 		return location() != null && offset >= location().start() && offset <= location().end();
 	}
@@ -459,6 +420,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public boolean isLocal() {
 		return scope == Scope.VAR;
+	}
+	
+	@Override
+	public Object[] occurenceScope(ClonkProjectNature project) {
+		if (parentDeclaration instanceof Function)
+			return new Object[] {parentDeclaration};
+		else
+			return super.occurenceScope(project);
 	}
 	
 }

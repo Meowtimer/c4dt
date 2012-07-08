@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +28,7 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -241,25 +244,38 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		//final Script script = script();
-		return new Object[] {project.getProject()};
-		/*
-		if (isGlobal())
-			return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
-		final Set<Object> scope = new HashSet<Object>();
-		scope.add(script);
-		ClonkProjectNature nat = ClonkProjectNature.get(script.resource());
-		nat.index().forAllRelevantIndexes(new r() {
-			@Override
-			public void run(Index index) {
-				for (Script s : index.allScripts())
-					if (s.usedScripts() != null && s.usedScripts().contains(script))
-						scope.add(s);
-			}
-		});
-		return scope.toArray();
-		//return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
-		*/
+		final Set<Object> result = new LinkedHashSet<Object>();
+		// first, add the script this declaration is declared in. Matches will most likely be found in there
+		// so it helps to make it the first item to be searched
+		if (parentDeclaration instanceof Script)
+			result.add(parentDeclaration);
+		// next, in case of a definition, add items including the definition, so matches in derived definitions
+		// will be found next
+		if (parentDeclaration instanceof Definition) {
+			// first, add the definition this 
+			final Definition def = (Definition)parentDeclaration;
+			final Index projectIndex = project.index();
+			result.add(def);
+			def.index().allDefinitions(new Sink<Definition>() {
+				@Override
+				public void receivedObject(Definition item) {
+					result.add(item);
+				}
+				@Override
+				public boolean filter(Definition item) {
+					return item.doesInclude(projectIndex, def);
+				}
+			});
+		}
+		// then add all the scripts, because everything might potentially be accessed from everything
+		for (Index index : project.index().relevantIndexes())
+			index.allScripts(new Sink<Script>() {
+				@Override
+				public void receivedObject(Script item) {
+					result.add(item);
+				}
+			});
+		return result.toArray();
 	}
 	
 	/**
