@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.addAllSynchronized;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
@@ -368,11 +369,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & FUNCTIONS) != 0)
-			decs.addAll(functions());
+			addAllSynchronized(definedFunctions, decs);
 		if ((mask & VARIABLES) != 0)
-			decs.addAll(variables());
+			addAllSynchronized(definedVariables, decs);
 		if ((mask & DIRECTIVES) != 0)
-			decs.addAll(directives());
+			addAllSynchronized(definedDirectives, decs);
 		return decs;
 	}
 

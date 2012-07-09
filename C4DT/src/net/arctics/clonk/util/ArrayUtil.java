@@ -264,10 +264,17 @@ public class ArrayUtil {
 	public static <T> List<? extends T> copyListOrReturnDefaultList(Collection<? extends T> list, List<? extends T> defaultResult) {
 		if (list == null)
 			return defaultResult;
-		else synchronized(list) {
+		else synchronized (list) {
 			return new ArrayList<T>(list);
 		}
 	}
+	
+	public static <T> void addAllSynchronized(Collection<? extends T> list, List<T> into) {
+		if (list != null)
+			synchronized (list) {
+				into.addAll(list);
+			}
+	} 
 
 	public static <T> List<T> list(Iterable<? extends T> iterable) {
 		List<T> result = new ArrayList<T>();
