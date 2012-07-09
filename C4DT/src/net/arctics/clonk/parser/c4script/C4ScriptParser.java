@@ -1180,7 +1180,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// finish up
 		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
-		if (script.findLocalFunction(currentFunc.name(), false) != null)
+		Function existingFunction = script.findLocalFunction(currentFunc.name(), false);
+		if (existingFunction != null && existingFunction.isGlobal() == currentFunc.isGlobal())
 			warningWithCode(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
 		script.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
