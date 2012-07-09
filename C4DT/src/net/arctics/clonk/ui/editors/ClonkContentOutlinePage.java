@@ -53,7 +53,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			public IIndexEntity convert(Object from) {
 				return from instanceof Declaration ? ((Declaration)from).firstParentDeclarationOfType(IIndexEntity.class) : null;
 			}
-		})) {
+		}))
 			if (entity != null) {
 				List<? extends IIndexEntity> entities;
 				if (entity instanceof Directive) {
@@ -67,7 +67,6 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 					entities = ArrayUtil.list(entity);
 				new ClonkHyperlink(null, entities).open();
 			}
-		}
 	}
 	
 	/* (non-Javadoc)
@@ -108,9 +107,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		getTreeViewer().getTree().addKeyListener(new KeyListener() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.keyCode == SWT.CR) {
+				if (e.keyCode == SWT.CR)
 					openForeignDeclarations();
-				}
 			}
 			@Override
 			public void keyPressed(KeyEvent e) {}
@@ -125,9 +123,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		});
 		if (editor != null) {
 			Declaration topLevelDeclaration = getEditor().topLevelDeclaration();
-			if (topLevelDeclaration != null) {
+			if (topLevelDeclaration != null)
 				setTreeViewerInput(topLevelDeclaration);
-			}
 		}
 		parent.layout();
 	}
@@ -159,15 +156,14 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (event.getSelection().isEmpty()) {
+		if (event.getSelection().isEmpty())
 			return;
-		} else if (event.getSelection() instanceof IStructuredSelection) {
+		if (event.getSelection() instanceof IStructuredSelection) {
 			Declaration dec = (Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
 			dec = dec.latestVersion();
-			if (dec != null) {
+			if (dec != null)
 				if (dec.containedIn(editor.topLevelDeclaration()))
 					editor.selectAndReveal(dec.location());
-			}
 		}
 	}
 
