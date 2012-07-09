@@ -376,6 +376,26 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			addAllSynchronized(definedDirectives, decs);
 		return decs;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Declaration> T latestVersionOf(T from) {
+		int mask =
+			from instanceof Variable ? VARIABLES :
+			from instanceof Function ? FUNCTIONS :
+			from instanceof Directive ? DIRECTIVES : 0;
+		T candidate = null;
+		boolean locationMatch = false;
+		for (Declaration d : subDeclarations(this.index(), mask))
+			if (d.name().equals(from.name())) {
+				boolean newLocationMatch = from.location().equals(d.location());
+				if (candidate == null || (newLocationMatch && !locationMatch)) {
+					candidate = (T)d;
+					locationMatch = newLocationMatch;
+				}
+			}
+		return candidate;
+	};
 
 	/**
 	 * Finds a declaration with the given name using information from the helper object
