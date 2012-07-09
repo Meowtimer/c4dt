@@ -50,12 +50,12 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		if (Beans.isDesignTime()) {
 			return new String[][] {
 					new String[] {
-							"OpenClonk",
-							"OpenClonk"
+							"OpenClonk", //$NON-NLS-1$
+							"OpenClonk" //$NON-NLS-1$
 					},
 					new String[] {
-							"ClonkRage",
-							"ClonkRage"
+							"ClonkRage", //$NON-NLS-1$
+							"ClonkRage" //$NON-NLS-1$
 					}
 			};
 		}

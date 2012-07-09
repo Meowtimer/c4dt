@@ -37,6 +37,7 @@ public class Messages extends NLS {
 	public static String German;
 	public static String USEnglish;
 	public static String DocURLTemplateDefault;
+	public static String TogglesPreferencePage_AnalyzeCode;
 	public static String TogglesPreferencePage_IgnoreSimpleFunctionDupes;
 	static {
 		// initialize resource bundle
