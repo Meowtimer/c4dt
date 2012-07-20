@@ -1,8 +1,12 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.EnumSet;
+
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 
 public abstract class ConditionalStatement extends KeywordStatement {
 
@@ -60,12 +64,31 @@ public abstract class ConditionalStatement extends KeywordStatement {
 		parser.pushTypeInfos();
 		parser.reportProblemsOf(body, true);
 		parser.popTypeInfos(true);
+		loopConditionWarnings(parser);
 	}
 
 	@Override
 	public void setSubElements(ExprElm[] elms) {
 		condition = elms[0];
 		body      = elms[1];
+	}
+	
+	/**
+	 * Emit warnings about loop conditions that could result in loops never executing or never ending.
+	 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
+	 * @param condition The loop condition to check
+	 */
+	protected void loopConditionWarnings(C4ScriptParser parser) {
+		if (body == null || condition == null || !(this instanceof ILoop))
+			return;
+		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(parser.currentFunction()));
+		if (Boolean.FALSE.equals(condEv))
+			parser.warning(ParserErrorCode.ConditionAlwaysFalse, condition, C4ScriptParser.NO_THROW, condition);
+		else if (Boolean.TRUE.equals(condEv)) {
+			EnumSet<ControlFlow> flows = body.possibleControlFlows();
+			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
+				parser.warning(ParserErrorCode.InfiniteLoop, this, C4ScriptParser.NO_THROW);
+		}
 	}
 
 }

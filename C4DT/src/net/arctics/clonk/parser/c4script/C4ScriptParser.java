@@ -2837,7 +2837,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			error(ParserErrorCode.StatementExpected, savedOffset, savedOffset+4, NO_THROW);
 		switch (loopType) {
 		case For:
-			loopConditionWarnings(body, condition);
 			result = new ForStatement(initialization, condition, increment, body);
 			break;
 		case IterateArray:
@@ -2847,24 +2846,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result = null;
 		}
 		return result;
-	}
-
-	/**
-	 * Emit warnings about loop conditions that could result in loops never executing or never ending.
-	 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
-	 * @param condition The loop condition to check
-	 */
-	private void loopConditionWarnings(Statement body, ExprElm condition) {
-		if (body == null || condition == null)
-			return;
-		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(currentFunction()));
-		if (Boolean.FALSE.equals(condEv))
-			warning(ParserErrorCode.ConditionAlwaysFalse, condition, 0, condition);
-		else if (Boolean.TRUE.equals(condEv)) {
-			EnumSet<ControlFlow> flows = body.possibleControlFlows();
-			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-				warning(ParserErrorCode.InfiniteLoop, body, 0);
-		}
 	}
 
 	/**
@@ -2894,7 +2875,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Statement body = parseStatement();
 		if (body == null)
 			error(ParserErrorCode.StatementExpected, offset, offset+4, NO_THROW);
-		loopConditionWarnings(body, condition);
 		result = new WhileStatement(condition, body);
 		return result;
 	}
@@ -2930,13 +2910,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
 			elseStatement = null;
 		}
-		
-		if (!containsConst(condition)) {
-			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(currentFunction()));
-			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX)
-				warning(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
-						condition, 0, condition);
-		}
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}
@@ -2945,20 +2918,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return statement != null
 			? statement
 			: new MissingStatement(offsetWhereExpected-bodyOffset());
-	}
-
-	/**
-	 * Check whether the given expression contains a reference to a constant.
-	 * @param condition The expression to check
-	 * @return Whether the expression contains a constant.
-	 */
-	private static boolean containsConst(ExprElm condition) {
-		if(condition instanceof AccessVar && ((AccessVar)condition).constCondition())
-			return true;
-		for (ExprElm expression : condition.subElements())
-			if(containsConst(expression))
-				return true;
-		return false;
 	}
 
 	/**

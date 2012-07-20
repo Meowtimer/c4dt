@@ -962,5 +962,19 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public <T extends IType> T predecessorTypeAs(Class<T> cls, DeclarationObtainmentContext context) {
 		return predecessorInSequence != null ? as(predecessorInSequence.type(context), cls) : null;
 	}
+	
+	/**
+	 * Check whether the given expression contains a reference to a constant.
+	 * @param condition The expression to check
+	 * @return Whether the expression contains a constant.
+	 */
+	public boolean containsConst() {
+		if (this instanceof AccessVar && ((AccessVar)this).constCondition())
+			return true;
+		for (ExprElm expression : this.subElements())
+			if(expression != null && expression.containsConst())
+				return true;
+		return false;
+	}
 
 }
