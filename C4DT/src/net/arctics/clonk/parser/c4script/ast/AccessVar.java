@@ -121,7 +121,7 @@ public class AccessVar extends AccessDeclaration {
 							(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.scope() != Scope.LOCAL)
 						)
-							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
+							parser.error(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
 					}
 					break;
 				case STATIC: case CONST:

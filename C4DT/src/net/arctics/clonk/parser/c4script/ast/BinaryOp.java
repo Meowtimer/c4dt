@@ -169,7 +169,7 @@ public class BinaryOp extends OperatorExpression {
 		setExprRegion(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C
 		if (operator().modifiesArgument() && !leftSide().isModifiable(context))
-			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
+			context.error(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
 		// obsolete operators in #strict 2
 		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2))
 			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, operator().operatorName());

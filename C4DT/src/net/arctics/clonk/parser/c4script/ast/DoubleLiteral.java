@@ -9,7 +9,7 @@ public class DoubleLiteral extends NumberLiteral {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private double literal;
+	private final double literal;
 	
 	public DoubleLiteral(double literal) {
 		this.literal = literal;
@@ -31,7 +31,7 @@ public class DoubleLiteral extends NumberLiteral {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		if (!parser.script().engine().settings().supportsFloats)
-			parser.errorWithCode(ParserErrorCode.FloatNumbersNotSupported, this, C4ScriptParser.NO_THROW);
+			parser.error(ParserErrorCode.FloatNumbersNotSupported, this, C4ScriptParser.NO_THROW);
 		super.reportErrors(parser);
 	}
 

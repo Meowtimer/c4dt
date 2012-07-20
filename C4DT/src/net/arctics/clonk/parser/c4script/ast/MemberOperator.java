@@ -167,7 +167,7 @@ public class MemberOperator extends ExprElm {
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		if (getLength() > 3 && !parser.containingScript().engine().settings().spaceAllowedBetweenArrowAndTilde)
-			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
+			parser.error(ParserErrorCode.MemberOperatorWithTildeNoSpace, this, C4ScriptParser.NO_THROW);
 	}
 	
 	@Override

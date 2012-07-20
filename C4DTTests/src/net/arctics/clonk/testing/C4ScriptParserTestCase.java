@@ -139,7 +139,7 @@ public class C4ScriptParserTestCase {
 			};
 			this.parser = new C4ScriptParser(script, this.script, null) {
 				@Override
-				public void markerWithCode(ParserErrorCode code,
+				public void marker(ParserErrorCode code,
 						int markerStart, int markerEnd, int flags,
 						int severity, Object... args) throws ParsingException {
 					try {

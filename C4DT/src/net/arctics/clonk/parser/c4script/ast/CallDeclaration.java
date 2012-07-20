@@ -471,7 +471,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// inherited/_inherited not allowed in non-strict mode
 			if (context.strictLevel() <= 0)
 				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited))
-					context.errorWithCode(ParserErrorCode.InheritedDisabledInStrict0, this);
+					context.error(ParserErrorCode.InheritedDisabledInStrict0, this, C4ScriptParser.NO_THROW);
 			
 			if (multiplePotentialDeclarations)
 				return; // pfft, no checking

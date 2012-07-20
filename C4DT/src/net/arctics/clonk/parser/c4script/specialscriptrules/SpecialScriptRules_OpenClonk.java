@@ -268,14 +268,14 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
 					} else
-						parser.errorWithCode(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
+						parser.error(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
 						return true;
 					parser.problemReporter = arguments[parmIndex+1];
-					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
+					parser.error(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
 						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
@@ -320,7 +320,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						parmIndex++;
 					}
 				if (separateIssuesMarker)
-					parser.errorWithCode(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
+					parser.error(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
 			}
 			return false; // let others validate as well
 		};

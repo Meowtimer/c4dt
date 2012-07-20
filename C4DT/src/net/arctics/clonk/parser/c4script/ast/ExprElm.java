@@ -310,7 +310,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	/**
 	 * Give ExprElm a chance to complain about things.
-	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#markerWithCode(ParserErrorCode, int, int, int, int, Object...)}
+	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#marker(ParserErrorCode, int, int, int, int, Object...)}
 	 * @throws ParsingException
 	 */
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -933,7 +933,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	protected final void missing(C4ScriptParser parser) throws ParsingException {
 		ParserErrorCode code = this instanceof Statement ? ParserErrorCode.MissingStatement : ParserErrorCode.MissingExpression;
-		parser.errorWithCode(code, this, this);
+		parser.error(code, this, C4ScriptParser.NO_THROW, this);
 	}
 
 	/**
