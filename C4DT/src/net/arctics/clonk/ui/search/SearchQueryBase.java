@@ -1,7 +1,8 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.Declaration;
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.search.ui.ISearchQuery;
@@ -28,21 +29,19 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 
 	@Override
 	public ISearchResult getSearchResult() {
-		if (result == null) {
+		if (result == null)
 			result = new ClonkSearchResult(this);
-		}
 		return result;
 	}
 	
 	@Override
 	public IFile getFile(Object element) {
-		if (element instanceof Declaration)
-			return ((Declaration)element).script().scriptFile();
 		if (element instanceof Script)
 			return  ((Script)element).scriptFile();
-		if (element instanceof IFile) {
+		if (element instanceof IFile)
 			return (IFile)element;
-		}
+		if (element instanceof IHasRelatedResource)
+			return as(((IHasRelatedResource)element).resource(), IFile.class);
 		return null;
 	}
 
