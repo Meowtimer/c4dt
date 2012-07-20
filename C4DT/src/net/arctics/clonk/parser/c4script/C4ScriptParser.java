@@ -873,6 +873,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					error(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, NO_THROW, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
 					scope = Scope.LOCAL;
 				}
+			default:
+				break;
 			}
 			
 			{
@@ -2511,6 +2513,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				case Cancel:
 					listener = null; // listener doesn't want to hear from me anymore? fine!
 					//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
+				default:
+					break;
 				}
 	}
 

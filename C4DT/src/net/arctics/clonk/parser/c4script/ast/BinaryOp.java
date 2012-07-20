@@ -213,6 +213,8 @@ public class BinaryOp extends OperatorExpression {
 					// true || <anything> => true 
 					if (leftSide.equals(true))
 						return true;
+				default:
+					break;
 				}
 				if (rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX)
 					return evaluateOn(leftSide, rightSide);

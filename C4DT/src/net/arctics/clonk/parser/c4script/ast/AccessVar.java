@@ -170,6 +170,8 @@ public class AccessVar extends AccessDeclaration {
 		if (v != null) switch (v.scope()) {
 		case CONST: case STATIC:
 			return null;
+		default:
+			break;
 		}
 		return super.callerType(context);
 	}

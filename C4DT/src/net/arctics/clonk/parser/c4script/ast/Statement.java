@@ -51,6 +51,8 @@ public class Statement extends ExprElm implements Cloneable {
 					builder.append("\n");
 				Conf.printIndent(builder, depth-1);
 				break;
+			default:
+				break;
 			}
 		}
 	}

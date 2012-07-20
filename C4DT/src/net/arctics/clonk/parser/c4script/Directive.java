@@ -125,6 +125,8 @@ public class Directive extends Declaration implements Serializable {
 					parser.error(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, contents());
 			}
 			break;
+		default:
+			break;
 		}
 	}
 	

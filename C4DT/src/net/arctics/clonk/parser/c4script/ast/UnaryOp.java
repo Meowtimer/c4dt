@@ -130,6 +130,8 @@ public class UnaryOp extends OperatorExpression {
 				return -((Number)conv).longValue();
 			case Add:
 				return conv;
+			default:
+				break;
 			}
 		}
 		catch (ClassCastException e) {}

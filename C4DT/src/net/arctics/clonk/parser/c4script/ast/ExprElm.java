@@ -436,6 +436,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				break;
 			case TraverseSubElements: case Cancel:
 				result = TraversalContinuation.Cancel;
+			default:
+				break;
 			}
 		}
 		return result;
@@ -767,6 +769,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				case IgnoreRightSide:
 					// vice versa
 					myIndex--;
+					break;
+				default:
 					break;
 				}
 			}

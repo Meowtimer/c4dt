@@ -129,6 +129,8 @@ public enum PrimitiveType implements IType {
 					case OBJECT:
 						if (t == PROPLIST)
 							return true; // nya nya
+					default:
+						break;
 					}
 				}
 		}
@@ -193,6 +195,7 @@ public enum PrimitiveType implements IType {
 				break;
 			}
 			break;
+			
 		case ANY:
 			return value;
 		default:
@@ -255,6 +258,8 @@ public enum PrimitiveType implements IType {
 				return this == INT;
 			case REFERENCE: case ANY: case UNKNOWN:
 				return true;
+			default:
+				break;
 			}
 		return false;
 	}
