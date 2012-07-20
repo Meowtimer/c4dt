@@ -321,7 +321,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportErrors(C4ScriptParser)} on {@link #subElements()} 
 	 * @return Do you just show up, play the music,
 	 */
-	public boolean skipReportingErrorsForSubElements() {return false;}
+	public boolean skipReportingProblemsForSubElements() {return false;}
 
 	public void setPredecessorInSequence(ExprElm p) {
 		predecessorInSequence = p;

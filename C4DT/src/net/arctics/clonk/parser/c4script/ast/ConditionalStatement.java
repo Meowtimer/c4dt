@@ -52,7 +52,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	}
 	
 	@Override
-	public boolean skipReportingErrorsForSubElements() {return true;}
+	public boolean skipReportingProblemsForSubElements() {return true;}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {

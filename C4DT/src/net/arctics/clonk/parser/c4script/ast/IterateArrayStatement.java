@@ -85,7 +85,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 	
 	@Override
-	public boolean skipReportingErrorsForSubElements() {return true;}
+	public boolean skipReportingProblemsForSubElements() {return true;}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {

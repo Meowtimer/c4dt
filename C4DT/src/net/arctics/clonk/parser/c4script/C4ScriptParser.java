@@ -170,7 +170,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	public int numUnnamedParameters;
-	public ExprElm expressionReportingErrors;
+	public ExprElm problemReporter;
 
 	public static final int MAX_PAR = 10;
 	public static final int MAX_NUMVAR = 20;
@@ -568,11 +568,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Variable variable : script.variables()) {
 			ExprElm initialization = variable.initializationExpression();
 			if (initialization != null) {
-				ExprElm old = expressionReportingErrors;
-				expressionReportingErrors = initialization;
+				ExprElm old = problemReporter;
+				problemReporter = initialization;
 				if (variable.scope() == Scope.CONST && !initialization.isConstant())
 					errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
-				expressionReportingErrors = old;
+				problemReporter = old;
 			}
 		}
 		script.notDirty();
@@ -699,10 +699,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class))
 				for (VarInitialization initialization : decl.variableInitializations())
 					if (initialization.variable == variable) {
-						ExprElm old = expressionReportingErrors;
-						expressionReportingErrors = decl;
+						ExprElm old = problemReporter;
+						problemReporter = decl;
 						warning(code, initialization, 0, args);
-						expressionReportingErrors = old;
+						problemReporter = old;
 						return true;
 					}
 		return false;
@@ -2151,7 +2151,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The expression reporting errors
 	 */
 	public ExprElm expressionReportingErrors() {
-		return expressionReportingErrors;
+		return problemReporter;
 	}
 	
 	/**
@@ -2185,10 +2185,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public <T extends ExprElm> T reportProblemsOf(T expression, boolean recursive) {
 		if (expression == null)
 			return null;
-		ExprElm saved = expressionReportingErrors;
-		expressionReportingErrors = expression;
+		ExprElm saved = problemReporter;
+		problemReporter = expression;
 		try {
-			if (recursive && !expression.skipReportingErrorsForSubElements())
+			if (recursive && !expression.skipReportingProblemsForSubElements())
 				for (ExprElm e : expression.subElements())
 					if (e != null)
 						reportProblemsOf(e, true);
@@ -2198,7 +2198,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				// silent
 			}
 		} finally {
-			expressionReportingErrors = saved;
+			problemReporter = saved;
 		}
 		return expression;
 	}
