@@ -462,9 +462,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// return as function
 		else if (declarationName.equals(Keywords.Return)) {
 			if (context.strictLevel() >= 2)
-				context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
+				context.error(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
 			else
-				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
+				context.warning(ParserErrorCode.ReturnAsFunction, this, 0);
 		}
 		else {
 			
@@ -483,7 +483,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				// no warning when in #strict mode
 				if (context.strictLevel() >= 2)
 					if (declaration != cachedFuncs(context).This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.name(), type.typeName(false));
+						context.warning(ParserErrorCode.VariableCalled, this, 0, declaration.name(), type.typeName(false));
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
@@ -505,7 +505,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						if (given == null)
 							continue;
 						if (!given.validForType(parm.type(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.type().typeName(false), given.type(context).typeName(false));
+							context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
 						else
 							given.expectedToBeOfType(parm.type(), context);
 					}
@@ -516,13 +516,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					if (declarationName.equals(Keywords.Inherited)) {
 						Function activeFunc = context.currentFunction();
 						if (activeFunc != null)
-							context.errorWithCode(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
+							context.error(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
 						else
-							context.errorWithCode(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+							context.error(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					}
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited))
-						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
+						context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
 		}
 	}
 	public int actualParmsNum() {

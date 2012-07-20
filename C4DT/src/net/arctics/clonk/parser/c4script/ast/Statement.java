@@ -46,10 +46,9 @@ public class Statement extends ExprElm implements Cloneable {
 		public void applyAttachment(Attachment.Position position, ExprWriter builder, int depth) {
 			switch (position) {
 			case Pre:
-				for (int i = 0; i < num; i++) {
+				for (int i = 0; i < num; i++)
 					//printIndent(builder, depth);
 					builder.append("\n");
-				}
 				Conf.printIndent(builder, depth-1);
 				break;
 			}
@@ -72,13 +71,10 @@ public class Statement extends ExprElm implements Cloneable {
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Attachment> T attachmentOfType(Class<T> cls) {
-		if (attachments != null) {
-			for (Attachment a : attachments) {
-				if (cls.isAssignableFrom(a.getClass())) {
+		if (attachments != null)
+			for (Attachment a : attachments)
+				if (cls.isAssignableFrom(a.getClass()))
 					return (T) a;
-				}
-			}
-		}
 		return null;
 	}
 
@@ -88,9 +84,8 @@ public class Statement extends ExprElm implements Cloneable {
 
 	public void setInlineComment(Comment inlineComment) {
 		Comment old = inlineComment();
-		if (old != null) {
+		if (old != null)
 			attachments.remove(old);
-		}
 		addAttachment(inlineComment);
 	}
 
@@ -109,26 +104,22 @@ public class Statement extends ExprElm implements Cloneable {
 		super.reportErrors(parser);
 		warnIfNoSideEffects(parser);
 		if (!flagsEnabled(STATEMENT_REACHED))
-			parser.warningWithCode(ParserErrorCode.NeverReached, this);
+			parser.warning(ParserErrorCode.NeverReached, this, 0);
 		notFinishedError(parser, this);
 	}
 
 	@Override
 	public void printPrependix(ExprWriter builder, int depth) {
-		if (attachments != null) {
-			for (Attachment a : attachments) {
-				a.applyAttachment(Attachment.Position.Pre, builder, depth);
-			}
-		}	
+		if (attachments != null)
+			for (Attachment a : attachments)
+				a.applyAttachment(Attachment.Position.Pre, builder, depth);	
 	}
 	
 	@Override
 	public void printAppendix(ExprWriter builder, int depth) {
-		if (attachments != null) {
-			for (Attachment a : attachments) {
+		if (attachments != null)
+			for (Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Post, builder, depth);
-			}
-		}
 	}
 	
 	public static final Statement NULL_STATEMENT = new Statement() {
@@ -143,7 +134,7 @@ public class Statement extends ExprElm implements Cloneable {
 	protected void notFinishedError(C4ScriptParser parser, ExprElm e) throws ParsingException {
 		if (!e.isFinishedProperly())
 			// don't traverse children - one not-finished error is enough
-			parser.errorWithCode(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
+			parser.error(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
 	}
 
 }

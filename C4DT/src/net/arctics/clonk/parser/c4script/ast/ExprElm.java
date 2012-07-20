@@ -152,7 +152,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (parent() instanceof IterateArrayStatement && ((IterateArrayStatement)parent()).elementExpr() == this)
 			return;
 		if (!hasSideEffects())
-			parser.warningWithCode(ParserErrorCode.NoSideEffects, this);
+			parser.warning(ParserErrorCode.NoSideEffects, this, 0);
 	}
 
 	/**
@@ -512,7 +512,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		case Hint:
 			info = context.queryTypeInfo(this);
 			if (info != null && !info.generalTypeHint(type) && errorWhenFailed != null)
-				context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
+				context.warning(errorWhenFailed, this, 0, info.type().typeName(false));
 			break;
 		}
 	}

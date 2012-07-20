@@ -44,9 +44,8 @@ public class BinaryOp extends OperatorExpression {
 				op = Operator.Equal;
 			else if (op == Operator.ne)
 				op = Operator.NotEqual;
-			if (op != operator()) {
+			if (op != operator())
 				return new BinaryOp(op, leftSide().optimize(context), rightSide().optimize(context));
-			}
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
@@ -82,9 +81,8 @@ public class BinaryOp extends OperatorExpression {
 			leftSideArguments.addFirst(r);
 			List<Statement> statements = new LinkedList<Statement>();
 			// wrap expressions in statements
-			for (ExprElm ex : leftSideArguments) {
+			for (ExprElm ex : leftSideArguments)
 				statements.add(new SimpleStatement(ex.optimize(context)));
-			}
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
 				statements.add(new ReturnStatement(((CallDeclaration)rightSide()).soleParm().optimize(context)));
@@ -116,7 +114,7 @@ public class BinaryOp extends OperatorExpression {
 
 	public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
 		if (!operator().modifiesArgument())
-			parser.warningWithCode(ParserErrorCode.NoAssignment, this);
+			parser.warning(ParserErrorCode.NoAssignment, this, 0);
 	}
 
 	public BinaryOp(Operator op) {
@@ -174,12 +172,12 @@ public class BinaryOp extends OperatorExpression {
 			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
 		// obsolete operators in #strict 2
 		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2))
-			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, operator().operatorName());
+			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, operator().operatorName());
 		// wrong parameter types
 		if (!leftSide().validForType(operator().firstArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, leftSide(), operator().firstArgType(), leftSide().type(context));
+			context.warning(ParserErrorCode.IncompatibleTypes, leftSide(), 0, operator().firstArgType(), leftSide().type(context));
 		if (!rightSide().validForType(operator().secondArgType(), context))
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, rightSide(), operator().secondArgType(), rightSide().type(context));
+			context.warning(ParserErrorCode.IncompatibleTypes, rightSide(), 0, operator().secondArgType(), rightSide().type(context));
 
 		IType expectedLeft, expectedRight;
 		switch (operator()) {
@@ -216,9 +214,8 @@ public class BinaryOp extends OperatorExpression {
 					if (leftSide.equals(true))
 						return true;
 				}
-				if (rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
+				if (rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX)
 					return evaluateOn(leftSide, rightSide);
-				}
 			}
 		}
 		catch (ClassCastException e) {}

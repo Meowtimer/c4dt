@@ -78,9 +78,8 @@ public class FunctionDescription extends Statement implements Serializable {
 			if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
 				StringTbl stringTbl = parser.containingScript().localStringTblMatchingLanguagePref();
 				String entryName = part.substring(1, part.length()-1);
-				if (stringTbl == null || stringTbl.map().get(entryName) == null) {
-					parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(start()+off, part.length()), entryName);
-				}
+				if (stringTbl == null || stringTbl.map().get(entryName) == null)
+					parser.warning(ParserErrorCode.UndeclaredIdentifier, new Region(start()+off, part.length()), 0, entryName);
 			}
 			off += part.length()+1;
 		}

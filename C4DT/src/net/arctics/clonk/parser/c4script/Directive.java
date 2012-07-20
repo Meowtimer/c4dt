@@ -117,12 +117,12 @@ public class Directive extends Declaration implements Serializable {
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (contents() == null)
-				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, location(), C4ScriptParser.NO_THROW, this.toString());
+				parser.error(ParserErrorCode.MissingDirectiveArgs, location(), C4ScriptParser.NO_THROW, this.toString());
 			else {
 				ID id = contentAsID();
 				Definition obj = parser.containingScript().index().definitionNearestTo(parser.containingScript().resource(), id);
 				if (obj == null)
-					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, contents());
+					parser.error(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, contents());
 			}
 			break;
 		}

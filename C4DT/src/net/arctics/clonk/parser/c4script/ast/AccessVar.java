@@ -106,7 +106,7 @@ public class AccessVar extends AccessDeclaration {
 		super.reportErrors(parser);
 		ExprElm pred = predecessorInSequence();
 		if (declaration == null && pred == null)
-			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
+			parser.error(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
 		// local variable used in global function
 		else if (declaration instanceof Variable) {
 			Variable var = (Variable) declaration;
@@ -131,13 +131,13 @@ public class AccessVar extends AccessDeclaration {
 					if (var.location() != null && parser.currentFunction() != null && var.parentDeclaration() == parser.currentFunction()) {
 						int locationUsed = parser.currentFunction().body().getOffset()+this.start();
 						if (locationUsed < var.location().getOffset())
-							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.name());
+							parser.warning(ParserErrorCode.VarUsedBeforeItsDeclaration, this, 0, var.name());
 					}
 					break;
 			}
 		} else if (declaration instanceof Function)
 			if (!parser.script().engine().settings().supportsFunctionRefs)
-				parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
+				parser.error(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
 	}
 
 	public static ITypeInfo makeTypeInfo(Declaration declaration, C4ScriptParser parser) {

@@ -43,6 +43,6 @@ public abstract class KeywordStatement extends Statement {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		if (flagsEnabled(MISPLACED))
-			parser.errorWithCode(ParserErrorCode.KeywordInWrongPlace, this, C4ScriptParser.NO_THROW, this.toString());
+			parser.error(ParserErrorCode.KeywordInWrongPlace, this, C4ScriptParser.NO_THROW, this.toString());
 	}
 }

@@ -272,7 +272,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		ITypeInfo requested = requestTypeInfo(expression);
 		if (requested != null) {
 			if (DEBUG)
-				warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
+				warning(ParserErrorCode.TypingJudgment, expression, 0, expression.toString(), type.typeName(true));
 			requested.storeType(type);
 		}
 	}
@@ -527,7 +527,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (!reachedEOF()) {
 						int start = this.offset;
 						String tokenText = parseTokenAndReturnAsString();
-						errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
+						error(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
 					}
 				}
 				eatWhitespace();
@@ -652,7 +652,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} catch (Exception e) {
 			// errorWithCode throws ^^;
 			e.printStackTrace();
-			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset + 1, NO_THROW, e.getMessage());
+			error(ParserErrorCode.InternalError, this.offset, this.offset + 1, NO_THROW, e.getMessage());
 		} finally {
 			currentDeclaration = oldDec;
 			seek(oldOffset);
@@ -677,7 +677,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (UNUSEDPARMWARNING)
 			for (Variable p : func.parameters())
 				if (!p.isUsed())
-					warningWithCode(ParserErrorCode.UnusedParameter, p.location(), ABSOLUTE_MARKER_LOCATION, p.name());
+					warning(ParserErrorCode.UnusedParameter, p.location(), ABSOLUTE_MARKER_LOCATION, p.name());
 		if (func.localVars() != null)
 			for (Variable v : func.localVars()) {
 				if (!v.isUsed())
@@ -701,7 +701,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (initialization.variable == variable) {
 						ExprElm old = expressionReportingErrors;
 						expressionReportingErrors = decl;
-						warningWithCode(code, initialization, args);
+						warning(code, initialization, 0, args);
 						expressionReportingErrors = old;
 						return true;
 					}
@@ -864,7 +864,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else
 					this.seek(pos);
 				if (currentFunc != null) {
-					errorWithCode(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, NO_THROW, scope.toKeyword());
+					error(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, NO_THROW, scope.toKeyword());
 					scope = Scope.VAR;
 				}
 				break;
@@ -927,6 +927,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 											// fallthrough
 										case LOCAL: case STATIC:
 											var.setInitializationExpression(initializationExpression);
+											break;
+										default:
 											break;
 										}
 								} catch (Exception ex) {
@@ -1032,7 +1034,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String str;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs)
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, script.engine().name());
+				error(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, script.engine().name());
 			read();
 			return PrimitiveType.REFERENCE;
 		}
@@ -1100,7 +1102,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else
-					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ 
+					error(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ 
 			} while(!reachedEOF());
 		endOfHeader = this.offset;
 		lastComment = null;
@@ -1182,7 +1184,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
 		Function existingFunction = script.findLocalFunction(currentFunc.name(), false);
 		if (existingFunction != null && existingFunction.isGlobal() == currentFunc.isGlobal())
-			warningWithCode(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
+			warning(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
 		script.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
 			currentDeclaration = null; // to not suppress errors in-between functions
@@ -1286,14 +1288,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				parsedNumber = Double.parseDouble(numberString);
 			} catch (NumberFormatException e) {
 				parsedNumber = Double.MAX_VALUE;
-				errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
+				error(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
 			}
 		else
 			try {
 				parsedNumber = Long.parseLong(numberString);
 			} catch (NumberFormatException e) {
 				parsedNumber = Integer.MAX_VALUE;
-				errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
+				error(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
 			}
 		this.seek(offset+count);
 		return true;
@@ -1440,35 +1442,28 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return !(allErrorsDisabled || disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error));
 	}
 	
-	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) {
+	public void warning(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			markerWithCode(code, errorStart, errorEnd, flags|NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (ParsingException e) {
 			// won't happen
 		}
 	}
-	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) {
-		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
-	}
-	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
-		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), 0, args);
+	public void warning(ParserErrorCode code, IRegion region, int flags, Object... args) {
+		warning(code, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
 	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
-		warningWithCode(code, errorStart, errorEnd, 0, args);
+		warning(code, errorStart, errorEnd, 0, args);
 	}
-	
 	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
-		errorWithCode(code, errorRegion, 0, args);
+		error(code, errorRegion, 0, args);
 	}
-	
-	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) throws ParsingException {
-		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
+	public void error(ParserErrorCode code, IRegion errorRegion, int flags, Object... args) throws ParsingException {
+		error(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
-	
-	public void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
+	public void error(ParserErrorCode code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
 		markerWithCode(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
-	
 	private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
 		markerWithCode(code, errorStart, errorEnd, NO_THROW, IMarker.SEVERITY_ERROR, args);
 	}
@@ -1616,7 +1611,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int off = this.offset;
 		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
 			off--;
-		errorWithCode(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION, token);
+		error(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION, token);
 	}
 	
 	private boolean parseStaticFieldOperator_() {
@@ -1888,7 +1883,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					c = read();
 					if (c == ',') {
 						if (!expectingComma)
-							errorWithCode(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, ","); //$NON-NLS-1$
+							error(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, ","); //$NON-NLS-1$
 						expectingComma = false;
 					} else if (c == '}') {
 						properlyClosed = true;
@@ -1903,7 +1898,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							int c_ = read();
 							if (c_ != ':' && c_ != '=') {
 								unread();
-								errorWithCode(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION, (char)read());
+								error(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION, (char)read());
 							}
 							eatWhitespace();
 							Variable v = new Variable(name, currentFunction() != null ? Scope.VAR : Scope.LOCAL);
@@ -1927,13 +1922,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							expectingComma = true;
 						}
 						else {
-							errorWithCode(ParserErrorCode.TokenExpected, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION, Messages.TokenStringOrIdentifier);
+							error(ParserErrorCode.TokenExpected, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION, Messages.TokenStringOrIdentifier);
 							break;
 						}
 					}
 				}
 				if (!properlyClosed)
-					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, "}"); //$NON-NLS-1$
+					error(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, "}"); //$NON-NLS-1$
 				proplistDeclaration.setLocation(absoluteSourceLocation(propListStart, offset));
 				return proplistDeclaration;
 			} finally {
@@ -1975,7 +1970,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					elm = new ArrayElementExpression(arg);
 					break;
 				default:
-					errorWithCode(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, (char)t);
+					error(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, (char)t);
 				}
 			} else {
 				// array creation
@@ -2869,11 +2864,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(currentFunction()));
 		if (Boolean.FALSE.equals(condEv))
-			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
+			warning(ParserErrorCode.ConditionAlwaysFalse, condition, 0, condition);
 		else if (Boolean.TRUE.equals(condEv)) {
 			EnumSet<ControlFlow> flows = body.possibleControlFlows();
 			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-				warningWithCode(ParserErrorCode.InfiniteLoop, body);
+				warning(ParserErrorCode.InfiniteLoop, body, 0);
 		}
 	}
 
@@ -2944,8 +2939,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (!containsConst(condition)) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(currentFunction()));
 			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX)
-				warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
-						condition, condition.toString());
+				warning(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
+						condition, 0, condition);
 		}
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
@@ -3011,7 +3006,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
 		if (type == PrimitiveType.REFERENCE && !script.engine().settings().supportsRefs)
-			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, script.engine().name());
+			error(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, script.engine().name());
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
 		if (type == PrimitiveType.UNKNOWN)
@@ -3033,7 +3028,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			else {
 				// type is name
-				warningWithCode(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
+				warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
 				var.forceType(PrimitiveType.ANY, typeLocked);
 				var.setName(firstWord);
 				this.seek(e);

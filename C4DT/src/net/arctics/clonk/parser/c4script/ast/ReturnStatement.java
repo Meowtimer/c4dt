@@ -112,7 +112,7 @@ public class ReturnStatement extends KeywordStatement {
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc == null)
-			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
+			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
 			parser.currentFunction().expectedToBeOfType(returnExpr.type(parser), TypeExpectancyMode.Force);
 	}

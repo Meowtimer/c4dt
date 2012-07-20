@@ -189,10 +189,14 @@ public enum PrimitiveType implements IType {
 			switch (valueType) {
 			case INT:
 				return ((Number)value).intValue() != 0;
+			default:
+				break;
 			}
 			break;
 		case ANY:
 			return value;
+		default:
+			break;
 		}
 		return null;
 	}
