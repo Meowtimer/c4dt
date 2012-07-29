@@ -192,12 +192,12 @@ public class ArrayType implements IType {
 	}
 
 	@Override
-	public int specificness() {
-		int s = PrimitiveType.ARRAY.specificness()+1;
+	public int precision() {
+		int s = PrimitiveType.ARRAY.precision()+1;
 		if (generalElementType != null)
-			s += generalElementType.specificness();
+			s += generalElementType.precision();
 		for (IType t : elementTypeMapping.values())
-			s += t.specificness();
+			s += t.precision();
 		return s;
 	}
 

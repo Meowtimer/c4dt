@@ -169,8 +169,8 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public int specificness() {
-		int spec = PrimitiveType.OBJECT.specificness();
+	public int precision() {
+		int spec = PrimitiveType.OBJECT.precision();
 		spec++;
 		if (constraintKind == ConstraintKind.Exact)
 			spec++;

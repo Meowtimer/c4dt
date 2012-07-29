@@ -831,7 +831,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					return (T) other;
 		}
 		return null;
-	};
+	}
 	
 	/**
 	 * Assign parameter types to existing parameters. If more types than parameters are given, no new parameters will be created.

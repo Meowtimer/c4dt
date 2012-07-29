@@ -61,8 +61,8 @@ public class ReferenceType implements IType {
 	}
 
 	@Override
-	public int specificness() {
-		return type.specificness();
+	public int precision() {
+		return type.precision();
 	}
 
 	@Override

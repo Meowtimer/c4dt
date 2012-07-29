@@ -64,10 +64,10 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		return this;
 	}
 	
-	private static final Comparator<IType> SPECIFICNESS_COMPARATOR = new Comparator<IType>() {
+	private static final Comparator<IType> precision_COMPARATOR = new Comparator<IType>() {
 		@Override
 		public int compare(IType o1, IType o2) {
-			return o2.specificness()-o1.specificness();
+			return o2.precision()-o1.precision();
 		}
 	};
 	
@@ -120,7 +120,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		boolean containsAny = false;
 		
 		// remove less specific types that are already contained in more specific ones
-		Arrays.sort(ingredients, SPECIFICNESS_COMPARATOR);
+		Arrays.sort(ingredients, precision_COMPARATOR);
 		if (ingredients.length == 1 && ingredients[0] == PrimitiveType.ANY) {
 			actualCount = 0;
 			containsAny = true;
@@ -134,7 +134,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 						ingredients[z-1] = ingredients[z];
 					actualCount--;
 				}
-				else if (other.equals(t) || (t.specificness() >= other.specificness() && (t.subsetOf(other) || other.subsetOf(t)))) {
+				else if (other.equals(t) || (t.precision() >= other.precision() && (t.subsetOf(other) || other.subsetOf(t)))) {
 					ingredients[i] = ingredients[i].eat(other);
 					for (int z = actualCount-1; z > j; z--)
 						ingredients[z-1] = ingredients[z];
@@ -287,10 +287,10 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	}
 	
 	@Override
-	public int specificness() {
+	public int precision() {
 		int r = 0;
 		for (IType t : this)
-			r = Math.max(r, t.specificness());
+			r = Math.max(r, t.precision());
 		return r;
 	}
 

@@ -47,10 +47,10 @@ public interface IType extends Iterable<IType>, Serializable {
 	boolean subsetOfAny(IType... types);
 	
 	/**
-	 * Return an integer signifying the level of specificness. Actual C4Script definitions are supposed to be more specific than {@link PrimitiveType#OBJECT} for example.
-	 * @return The specificness of the type as integer
+	 * Return an integer signifying the level of precision. Actual C4Script definitions are supposed to be more specific than {@link PrimitiveType#OBJECT} for example.
+	 * @return The precision of the type as integer
 	 */
-	int specificness();
+	int precision();
 	
 	/**
 	 * Return a static type equivalent of this type (static type of {@link Definition} is {@link PrimitiveType#OBJECT} for example)
@@ -63,7 +63,7 @@ public interface IType extends Iterable<IType>, Serializable {
 	 */
 	void setTypeDescription(String description);
 	/**
-	 * Let this type eat another one of less {@link #specificness()} and return the result of the combination.
+	 * Let this type eat another one of less {@link #precision()} and return the result of the combination.
 	 * @param other The other type to be eaten
 	 * @return Combination of both types
 	 */

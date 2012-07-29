@@ -56,8 +56,8 @@ public class NillableType implements IType {
 	}
 
 	@Override
-	public int specificness() {
-		return baseType.specificness();
+	public int precision() {
+		return baseType.precision();
 	}
 
 	@Override

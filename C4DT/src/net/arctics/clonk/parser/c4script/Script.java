@@ -1013,8 +1013,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public int specificness() {
-		return PrimitiveType.OBJECT.specificness()+3;
+	public int precision() {
+		return PrimitiveType.OBJECT.precision()+3;
 	}
 
 	@Override

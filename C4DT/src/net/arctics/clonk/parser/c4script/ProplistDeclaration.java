@@ -182,8 +182,8 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 
 	@Override
-	public int specificness() {
-		return PrimitiveType.PROPLIST.specificness()+1;
+	public int precision() {
+		return PrimitiveType.PROPLIST.precision()+1;
 	}
 
 	@Override

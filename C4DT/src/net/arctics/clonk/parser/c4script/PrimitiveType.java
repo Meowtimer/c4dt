@@ -267,7 +267,7 @@ public enum PrimitiveType implements IType {
 	}
 	
 	@Override
-	public int specificness() {
+	public int precision() {
 		switch (this) {
 		case UNKNOWN:
 			return 0;

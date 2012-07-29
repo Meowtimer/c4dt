@@ -51,8 +51,8 @@ public class SameTypeAsSomeTypeable implements IType {
 	}
 
 	@Override
-	public int specificness() {
-		return actualType().specificness();
+	public int precision() {
+		return actualType().precision();
 	}
 
 	@Override
