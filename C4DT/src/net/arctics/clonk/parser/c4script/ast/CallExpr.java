@@ -94,11 +94,11 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		if (!parser.script().engine().settings().supportsFunctionRefs)
-			parser.errorWithCode(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
+			parser.error(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
 		else {
 			IType type = predecessorInSequence().obtainType(parser);
 			if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-				parser.errorWithCode(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
+				parser.error(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
 		}
 	}
 	

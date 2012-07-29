@@ -3,17 +3,17 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 
 public final class BoolLiteral extends Literal<Boolean> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private boolean literal;
+	private final boolean literal;
 	
 	public boolean booleanValue() {
 		return literal;
@@ -38,7 +38,7 @@ public final class BoolLiteral extends Literal<Boolean> {
 		if (parent() instanceof BinaryOp) {
 			Operator op = ((BinaryOp) parent()).operator();
 			if (op == Operator.And || op == Operator.Or)
-				parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
+				parser.warning(ParserErrorCode.BoolLiteralAsOpArg, this, 0, this.toString());
 		}
 	}
 }

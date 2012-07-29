@@ -88,7 +88,7 @@ public final class StringLiteral extends Literal<String> {
 		// warn about overly long strings
 		long max = parser.containingScript().index().engine().settings().maxStringLen;
 		if (max != 0 && literal().length() > max) {
-			parser.warningWithCode(ParserErrorCode.StringTooLong, this, literal().length(), max);
+			parser.warning(ParserErrorCode.StringTooLong, this, literal().length(), max);
 		}
 		
 		// stringtbl entries

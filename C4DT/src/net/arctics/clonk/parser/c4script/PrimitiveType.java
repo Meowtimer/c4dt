@@ -129,6 +129,8 @@ public enum PrimitiveType implements IType {
 					case OBJECT:
 						if (t == PROPLIST)
 							return true; // nya nya
+					default:
+						break;
 					}
 				}
 		}
@@ -189,10 +191,15 @@ public enum PrimitiveType implements IType {
 			switch (valueType) {
 			case INT:
 				return ((Number)value).intValue() != 0;
+			default:
+				break;
 			}
 			break;
+			
 		case ANY:
 			return value;
+		default:
+			break;
 		}
 		return null;
 	}
@@ -251,6 +258,8 @@ public enum PrimitiveType implements IType {
 				return this == INT;
 			case REFERENCE: case ANY: case UNKNOWN:
 				return true;
+			default:
+				break;
 			}
 		return false;
 	}

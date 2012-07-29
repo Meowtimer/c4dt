@@ -488,7 +488,7 @@ public class SpecialScriptRules {
 							try {
 								// pass through to the 'real' script parser
 								if (parser.errorEnabled(code))
-									parser.markerWithCode(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
+									parser.marker(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
 							} catch (ParsingException e) {
 								// shouldn't happen
 								e.printStackTrace();
@@ -556,7 +556,7 @@ public class SpecialScriptRules {
 							continue;
 						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						if (!given.validForType(parmType, parser))
-							parser.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.type(parser));
+							parser.warning(ParserErrorCode.IncompatibleTypes, given, 0, parmType, given.type(parser));
 						else
 							given.expectedToBeOfType(parmType, parser);
 					}

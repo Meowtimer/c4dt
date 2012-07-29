@@ -152,7 +152,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		if (parent() instanceof IterateArrayStatement && ((IterateArrayStatement)parent()).elementExpr() == this)
 			return;
 		if (!hasSideEffects())
-			parser.warningWithCode(ParserErrorCode.NoSideEffects, this);
+			parser.warning(ParserErrorCode.NoSideEffects, this, 0);
 	}
 
 	/**
@@ -310,7 +310,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	/**
 	 * Give ExprElm a chance to complain about things.
-	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#markerWithCode(ParserErrorCode, int, int, int, int, Object...)}
+	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#marker(ParserErrorCode, int, int, int, int, Object...)}
 	 * @throws ParsingException
 	 */
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -321,7 +321,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportErrors(C4ScriptParser)} on {@link #subElements()} 
 	 * @return Do you just show up, play the music,
 	 */
-	public boolean skipReportingErrorsForSubElements() {return false;}
+	public boolean skipReportingProblemsForSubElements() {return false;}
 
 	public void setPredecessorInSequence(ExprElm p) {
 		predecessorInSequence = p;
@@ -436,6 +436,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				break;
 			case TraverseSubElements: case Cancel:
 				result = TraversalContinuation.Cancel;
+			default:
+				break;
 			}
 		}
 		return result;
@@ -512,7 +514,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		case Hint:
 			info = context.queryTypeInfo(this);
 			if (info != null && !info.generalTypeHint(type) && errorWhenFailed != null)
-				context.warningWithCode(errorWhenFailed, this, info.type().typeName(false));
+				context.warning(errorWhenFailed, this, 0, info.type().typeName(false));
 			break;
 		}
 	}
@@ -768,6 +770,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 					// vice versa
 					myIndex--;
 					break;
+				default:
+					break;
 				}
 			}
 			if (myIndex == mySubElements.length && otherIndex == otherSubElements.length)
@@ -933,7 +937,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	protected final void missing(C4ScriptParser parser) throws ParsingException {
 		ParserErrorCode code = this instanceof Statement ? ParserErrorCode.MissingStatement : ParserErrorCode.MissingExpression;
-		parser.errorWithCode(code, this, this);
+		parser.error(code, this, C4ScriptParser.NO_THROW, this);
 	}
 
 	/**
@@ -957,6 +961,20 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public <T extends IType> T predecessorTypeAs(Class<T> cls, DeclarationObtainmentContext context) {
 		return predecessorInSequence != null ? as(predecessorInSequence.type(context), cls) : null;
+	}
+	
+	/**
+	 * Check whether the given expression contains a reference to a constant.
+	 * @param condition The expression to check
+	 * @return Whether the expression contains a constant.
+	 */
+	public boolean containsConst() {
+		if (this instanceof AccessVar && ((AccessVar)this).constCondition())
+			return true;
+		for (ExprElm expression : this.subElements())
+			if(expression != null && expression.containsConst())
+				return true;
+		return false;
 	}
 
 }

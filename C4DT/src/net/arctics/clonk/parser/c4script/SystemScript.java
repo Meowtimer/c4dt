@@ -94,7 +94,8 @@ public class SystemScript extends Script implements Serializable {
 	}
 	
 	public static SystemScript scriptCorrespondingTo(IFile file) {
-		Script script = ProjectIndex.fromResource(file) != null ? ProjectIndex.fromResource(file).scriptAt(file) : null;
+		ProjectIndex index = ProjectIndex.fromResource(file);
+		Script script = index != null ? index.scriptAt(file) : null;
 		return script instanceof SystemScript ? (SystemScript)script : null;
 	}
 	

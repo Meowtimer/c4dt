@@ -85,7 +85,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 	
 	@Override
-	public boolean skipReportingErrorsForSubElements() {return true;}
+	public boolean skipReportingProblemsForSubElements() {return true;}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -108,7 +108,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
 		IType type = arrayExpr.type(parser);
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
-			parser.warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, type.toString(), PrimitiveType.ARRAY.toString());
+			parser.warning(ParserErrorCode.IncompatibleTypes, arrayExpr, 0, type, PrimitiveType.ARRAY);
 		IType elmType = IResolvableType._.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
 		parser.pushTypeInfos();
 		if (loopVariable != null) {

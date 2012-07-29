@@ -426,7 +426,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 						private boolean firstMessage = true;
 						@Override
-						public void markerWithCode(ParserErrorCode code,
+						public void marker(ParserErrorCode code,
 								int errorStart, int errorEnd, int flags,
 								int severity, Object... args) throws ParsingException {
 							if (firstMessage) {
@@ -439,7 +439,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 								lno.obtainLineNumber(errorStart),
 								lno.obtainCharNumberInObtainedLine()
 							));
-							super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
+							super.marker(code, errorStart, errorEnd, flags, severity, args);
 						}
 					};
 					try {

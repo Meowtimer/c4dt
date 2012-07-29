@@ -9,6 +9,18 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.StreamUtil;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -16,25 +28,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.ReadOnlyIterator;
-import net.arctics.clonk.util.StreamUtil;
-
 public class StringTbl extends Structure implements ITreeNode, ITableEntryInformationSink {
 	
 	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
+	private final Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
 	private transient IFile file;
 
 	public IFile file() {
@@ -184,11 +184,10 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		if (result != null) {
 			StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
 			Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
-			if (e == null && returnNullIfNotFound) {
+			if (e == null && returnNullIfNotFound)
 				result = null;
-			} else {
+			else
 				result.setEntity(e);
-			}
 		}
 		return result;
 	}
@@ -213,7 +212,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		boolean moreThanOneSubstitution = false;
 		boolean substitutionsApplied = false;
 		Outer: for (int i = 0; i < valueLen;) {
-			if (i+1 < valueLen) {
+			if (i+1 < valueLen)
 				switch (value.charAt(i)) {
 				case '$':
 					moreThanOneSubstitution = reg != null;
@@ -234,7 +233,6 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					}
 					break;
 				}
-			}
 			builder.append(value.charAt(i++));
 		}
 		EvaluationResult r = new EvaluationResult();
@@ -260,7 +258,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				if (m.matches()) {
 					String lang = m.group(1);
 					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
-					if (tbl != null) {
+					if (tbl != null)
 						if (tbl.map().get(region.text()) == null) {
 							if (listOfLangFilesItsMissingIn == null)
 								listOfLangFilesItsMissingIn = new StringBuilder(10);
@@ -268,13 +266,11 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 								listOfLangFilesItsMissingIn.append(", "); //$NON-NLS-1$
 							listOfLangFilesItsMissingIn.append(lang);
 						}
-					}
 				}
 			}
 		} catch (CoreException e) {}
-		if (listOfLangFilesItsMissingIn != null) {
-			parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.region(), listOfLangFilesItsMissingIn.toString());
-		}
+		if (listOfLangFilesItsMissingIn != null)
+			parser.warning(ParserErrorCode.MissingLocalizations, region.region(), 0, listOfLangFilesItsMissingIn);
 	}
 
 }

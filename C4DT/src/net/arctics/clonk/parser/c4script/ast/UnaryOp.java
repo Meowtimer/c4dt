@@ -66,13 +66,11 @@ public class UnaryOp extends OperatorExpression {
 	@Override
 	public void reportErrors(C4ScriptParser context) throws ParsingException {
 		super.reportErrors(context);
-		if (operator().modifiesArgument() && !argument().isModifiable(context)) {
+		if (operator().modifiesArgument() && !argument().isModifiable(context))
 			//				System.out.println(getArgument().toString() + " does not behave");
-			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
-		}
-		if (!argument().validForType(operator().firstArgType(), context)) {
-			context.warningWithCode(ParserErrorCode.IncompatibleTypes, argument(), operator().firstArgType().toString(), argument().type(context).toString());
-		}
+			context.error(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
+		if (!argument().validForType(operator().firstArgType(), context))
+			context.warning(ParserErrorCode.IncompatibleTypes, argument(), 0, operator().firstArgType(), argument().type(context));
 		argument().expectedToBeOfType(operator().firstArgType(), context, TypeExpectancyMode.Expect, ParserErrorCode.InternalError);
 	}
 
@@ -99,6 +97,8 @@ public class UnaryOp extends OperatorExpression {
 					break;
 				case ne:
 					oppo = Operator.StringEqual;
+					break;
+				default:
 					break;
 				}
 				if (oppo != null)
@@ -130,6 +130,8 @@ public class UnaryOp extends OperatorExpression {
 				return -((Number)conv).longValue();
 			case Add:
 				return conv;
+			default:
+				break;
 			}
 		}
 		catch (ClassCastException e) {}

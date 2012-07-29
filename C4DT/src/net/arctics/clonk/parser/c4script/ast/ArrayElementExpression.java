@@ -7,8 +7,8 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 
 public class ArrayElementExpression extends ExprElm {
@@ -21,13 +21,12 @@ public class ArrayElementExpression extends ExprElm {
 		IType t = super.obtainType(context);
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
-		if (predecessorInSequence() != null) {
+		if (predecessorInSequence() != null)
 			for (IType ty : predecessorInSequence().type(context)) {
 				ArrayType at = as(ty, ArrayType.class);
 				if (at != null)
 					return at.typeForElementWithIndex(evaluateAtParseTime(argument, context));
 			}
-		}
 		return PrimitiveType.ANY;
 	}
 
@@ -54,10 +53,10 @@ public class ArrayElementExpression extends ExprElm {
 		super.reportErrors(parser);
 		IType type = predecessorType(parser);
 		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
-			parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence());
+			parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
 		ExprElm arg = argument();
 		if (arg == null)
-			parser.warningWithCode(ParserErrorCode.MissingExpression, this);
+			parser.warning(ParserErrorCode.MissingExpression, this, 0);
 	}
 
 	@Override
@@ -88,27 +87,25 @@ public class ArrayElementExpression extends ExprElm {
 			if (arrayType != null) {
 				Object argEv = evaluateAtParseTime(argument, context);
 				IType mutation;
-				if (argEv instanceof Number) {
+				if (argEv instanceof Number)
 					mutation = arrayType.modifiedBySliceAssignment(
 						argEv,
 						((Number)argEv).intValue()+1,
 						new ArrayType(rightSideType, rightSideType)
 					);
-				} else {
+				else
 					mutation = new ArrayType(
 						TypeSet.create(rightSideType, arrayType.generalElementType()),
 						ArrayType.NO_PRESUMED_LENGTH
 					);
-				}
 				context.storeType(predecessorInSequence(), mutation);
 				break;
-			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY) {
+			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY)
 				predecessorInSequence().expectedToBeOfType(
 					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 					context,
 					TypeExpectancyMode.Force
 				);
-			}
 		}
 	}
 

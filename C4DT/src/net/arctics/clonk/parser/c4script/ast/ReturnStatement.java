@@ -3,8 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -92,18 +92,14 @@ public class ReturnStatement extends KeywordStatement {
 	private void warnAboutTupleInReturnExpr(C4ScriptParser parser, ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
-		if (expr instanceof Tuple) {
-			if (tupleIsError) {
-				parser.errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
-			} else {
-				if (parser.strictLevel() >= 2)
-					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
-			}
-		}
+		if (expr instanceof Tuple)
+			if (tupleIsError)
+				parser.error(ParserErrorCode.TuplesNotAllowed, expr, C4ScriptParser.NO_THROW);
+			else if (parser.strictLevel() >= 2)
+				parser.error(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
 		ExprElm[] subElms = expr.subElements();
-		for (ExprElm e : subElms) {
+		for (ExprElm e : subElms)
 			warnAboutTupleInReturnExpr(parser, e, true);
-		}
 	}
 	
 	@Override
@@ -112,7 +108,7 @@ public class ReturnStatement extends KeywordStatement {
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc == null)
-			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
+			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
 			parser.currentFunction().expectedToBeOfType(returnExpr.type(parser), TypeExpectancyMode.Force);
 	}

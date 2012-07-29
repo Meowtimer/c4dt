@@ -257,29 +257,29 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
 		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ExprElm saved = parser.expressionReportingErrors;			
+			ExprElm saved = parser.problemReporter;			
 			try {
 				if (parmIndex+1 >= arguments.length) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.expressionReportingErrors = arguments[0];
+					parser.problemReporter = arguments[0];
 					if (evTracer.tracedFile.equals(parser.containingScript().scriptFile())) {
-						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
+						parser.error(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
 					} else
-						parser.errorWithCode(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
+						parser.error(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.expressionReportingErrors = arguments[parmIndex+1];
-					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
+					parser.problemReporter = arguments[parmIndex+1];
+					parser.error(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
 						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
-				parser.expressionReportingErrors = saved;
+				parser.problemReporter = saved;
 			}
 			return false;
 		}
@@ -320,7 +320,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						parmIndex++;
 					}
 				if (separateIssuesMarker)
-					parser.errorWithCode(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
+					parser.error(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
 			}
 			return false; // let others validate as well
 		};
