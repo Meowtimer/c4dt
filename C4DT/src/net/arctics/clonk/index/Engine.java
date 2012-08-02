@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.Function;
@@ -313,6 +314,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				continue;
 			}
 			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+			if (BuiltInDefinitions.KEYWORDS.contains(rawFileName))
+				return;
 			if (isConst)
 				this.addDeclaration(new DocumentedVariable(rawFileName, Variable.Scope.CONST));
 			else

@@ -1,9 +1,12 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.util.Arrays;
+import java.util.List;
+
 
 
 public class BuiltInDefinitions {	
-	public static final String[] KEYWORDS = new String[] {
+	public static final List<String> KEYWORDS = Arrays.asList(
 		Keywords.Break,
 		Keywords.Continue,
 		Keywords.Else,
@@ -17,9 +20,9 @@ public class BuiltInDefinitions {
 		Keywords.Nil,
 		Keywords.False,
 		Keywords.True
-	};
+	);
 	
-	public static final String[] DECLARATORS = new String[] {
+	public static final List<String> DECLARATORS = Arrays.asList(
 		Keywords.Const,
 		Keywords.Func,
 		Keywords.Global,
@@ -29,7 +32,7 @@ public class BuiltInDefinitions {
 		Keywords.Public,
 		Keywords.GlobalNamed,
 		Keywords.VarNamed
-	};
+	);
 	
 	public static final String[] DIRECTIVES = Directive.arrayOfDirectiveStrings();
 	public static final String[] SCRIPTOPERATORS = Operator.arrayOfOperatorNames(); 
