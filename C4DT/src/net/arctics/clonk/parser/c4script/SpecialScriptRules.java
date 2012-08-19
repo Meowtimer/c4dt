@@ -47,6 +47,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -747,12 +748,12 @@ public class SpecialScriptRules {
 					break;
 				}
 			if (extensionWildcardNeeded)
-				name += "\\..*";
+				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
 			Matcher nameMatcher = Pattern.compile(name).matcher("");
 			String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 			IResource r = parser.containingScript().resource();
 			for (
-				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = c;
+				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = null;
 				c != null;
 				c = c.getParent(), d = c != null ? as(c.findMember(soundGroupName), IContainer.class) : null
 			) {
