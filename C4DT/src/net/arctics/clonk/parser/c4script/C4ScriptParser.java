@@ -328,7 +328,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Query the type of an arbitrary expression. With some luck the parser will be able to give an answer.
 	 * @param expression the expression to query the type of
-	 * @return
+	 * @return The typeinfo or null if nothing was found
 	 */
 	public ITypeInfo queryTypeInfo(ExprElm expression) {
 		if (typeInfos == null)
@@ -2223,7 +2223,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Function f : script.functions())
 			synchronized (reportingMonitor) {
 				setCurrentFunction(f);
-				_reportProblems(f);
+				reportProblemsOfFunction(f);
 			}
 		typeInfos.apply(this, false);
 		for (Variable v : script.variables())
@@ -2240,11 +2240,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		synchronized (reportingMonitor) {
 			statementReached = true;
-			_reportProblems(function);
+			reportProblemsOfFunction(function);
 		}
 	}
 
-	private void _reportProblems(Function function) {
+	private void reportProblemsOfFunction(Function function) {
 		if (function == null || function.codeBlock() == null)
 			return;
 		if (function.script() == script) {
@@ -2270,7 +2270,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} else if (builder != null) {
 			C4ScriptParser other = builder.parserFor(function.script());
 			if (other != null)
-				other._reportProblems(function);
+				other.reportProblemsOfFunction(function);
 		}
 	}
 

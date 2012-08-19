@@ -18,9 +18,9 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 	public void storeType(IType type) {
 		this.type = type;
 	}
-	
+
 	@Override
-	public boolean generalTypeHint(IType hint) {
+	public boolean hint(IType hint) {
 		if (type == PrimitiveType.UNKNOWN)
 			storeType(hint);
 		else if (type == PrimitiveType.ANY)

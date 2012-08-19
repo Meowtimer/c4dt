@@ -23,11 +23,11 @@ public interface ITypeInfo {
 	 */
 	void storeType(IType type);
 	/**
-	 * Hint that the expression this {@link ITypeInfo} was created might be of the given type.
+	 * Hint that the expression this {@link ITypeInfo} was created for might be of the given type.
 	 * @param type The type to hint at
 	 * @return Return true if hinting resulted in changing the type or if the already-set type intersects with the new one. 
 	 */
-	boolean generalTypeHint(IType type);
+	boolean hint(IType type);
 	/**
 	 * Return whether the stored type information stores type information for the given expression so that creating a new stored type information object is not necessary.
 	 * @param expr The expression to test for

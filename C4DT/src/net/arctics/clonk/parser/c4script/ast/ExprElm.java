@@ -513,7 +513,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			break;
 		case Hint:
 			info = context.queryTypeInfo(this);
-			if (info != null && !info.generalTypeHint(type) && errorWhenFailed != null)
+			if (info != null && !info.hint(type) && errorWhenFailed != null)
 				context.warning(errorWhenFailed, this, 0, info.type().typeName(false));
 			break;
 		}

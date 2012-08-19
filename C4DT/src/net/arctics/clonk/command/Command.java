@@ -259,7 +259,6 @@ public class Command {
 					}
 				markers.deploy();
 			} catch (CoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
