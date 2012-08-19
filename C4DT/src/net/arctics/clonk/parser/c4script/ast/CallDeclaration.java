@@ -278,7 +278,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return stored;
 		
 		// calling this() as function -> return object type belonging to script
-		if (params.length == 0 && (d == cachedFuncs(context).This || d == Variable.THIS)) {
+		if (params.length == 0 && (d == context.cachedEngineDeclarations().This || d == Variable.THIS)) {
 			Definition obj = context.containerAsDefinition();
 			if (obj != null)
 				return obj;
@@ -452,15 +452,17 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public void reportProblems(final C4ScriptParser context) throws ParsingException {
 		super.reportProblems(context);
 		
+		CachedEngineDeclarations cachedEngineDeclarations = context.cachedEngineDeclarations();
+		
 		// notify parser about unnamed parameter usage
-		if (declaration == cachedFuncs(context).Par) {
+		if (declaration == cachedEngineDeclarations.Par) {
 			if (params.length > 0)
 				context.unnamedParamaterUsed(params[0]);
 			else
 				context.unnamedParamaterUsed(LongLiteral.ZERO);
 		}
 		// return as function
-		else if (declarationName.equals(Keywords.Return)) {
+		else if (declaration == cachedEngineDeclarations._return) {
 			if (context.strictLevel() >= 2)
 				context.error(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
 			else
@@ -482,7 +484,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				IType type = this.obtainType(context);
 				// no warning when in #strict mode
 				if (context.strictLevel() >= 2)
-					if (declaration != cachedFuncs(context).This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+					if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 						context.warning(ParserErrorCode.VariableCalled, this, 0, declaration.name(), type.typeName(false));
 			}
 			else if (declaration instanceof Function) {
@@ -576,7 +578,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return applyOperatorTo(parser, params, replOperator);
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && declaration == cachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && declaration == parser.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = params[i+2].optimize(parser);
@@ -608,7 +610,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 		
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == cachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof LongLiteral)) {
+		if (params.length <= 1 && declaration != null && declaration == parser.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof LongLiteral)) {
 			LongLiteral number = params.length > 0 ? (LongLiteral) params[0] : LongLiteral.ZERO;
 			Function activeFunc = parser.currentFunction();
 			if (activeFunc != null)
@@ -617,19 +619,19 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == cachedFuncs(parser).SetVar || declaration == cachedFuncs(parser).SetLocal || declaration == cachedFuncs(parser).AssignVar))
+		if (params.length == 2 && declaration != null && (declaration == parser.cachedEngineDeclarations().SetVar || declaration == parser.cachedEngineDeclarations().SetLocal || declaration == parser.cachedEngineDeclarations().AssignVar))
 			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == cachedFuncs(parser).DecVar || declaration == cachedFuncs(parser).IncVar))
-			return new UnaryOp(declaration == cachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallDeclaration(cachedFuncs(parser).Var.name(), new ExprElm[] {
+		if (params.length <= 1 && declaration != null && (declaration == parser.cachedEngineDeclarations().DecVar || declaration == parser.cachedEngineDeclarations().IncVar))
+			return new UnaryOp(declaration == parser.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
+					new CallDeclaration(parser.cachedEngineDeclarations().Var.name(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : LongLiteral.ZERO
 					})
 			);
 
 		// Call("Func", 5, 5) -> Func(5, 5)
-		if (params.length >= 1 && declaration != null && declaration == cachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
+		if (params.length >= 1 && declaration != null && declaration == parser.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
 			String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
@@ -697,7 +699,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
-		CachedEngineDeclarations cache = cachedFuncs(parser);
+		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
 		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)

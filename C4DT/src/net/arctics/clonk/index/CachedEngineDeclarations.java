@@ -36,6 +36,7 @@ public class CachedEngineDeclarations {
 	public Function AppendCommand;
 	public Function ObjectCall;
 	public Function GetID;
+	public Function _return;
 	public Object   This; // this as variable name not allowed so exclude this var -.-
 	
 	/**
@@ -56,9 +57,11 @@ public class CachedEngineDeclarations {
 		this.engine = engine;
 		try {
 			for (Field f : CachedEngineDeclarations.class.getFields()) {
-				if (f.getType() == Function.class) {
-					f.set(this, this.f(f.getName()));
-				}
+				String realName = f.getName();
+				if (realName.startsWith("_"))
+					realName = realName.substring(1);
+				if (f.getType() == Function.class)
+					f.set(this, this.f(realName));
 			}
 			This = this.f("this"); //$NON-NLS-1$
 		} catch (Exception e) {

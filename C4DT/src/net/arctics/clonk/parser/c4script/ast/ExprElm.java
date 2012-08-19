@@ -9,9 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -617,15 +615,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	public final Object evaluate() throws ControlFlowException {
 		return evaluate(null);
-	}
-	
-	/**
-	 * Shortcut for obtaining {@link Engine#cachedFuncs()}
-	 * @param context Context the {@link Engine} is lifted from
-	 * @return The {@link CachedEngineDeclarations}
-	 */
-	public final CachedEngineDeclarations cachedFuncs(DeclarationObtainmentContext context) {
-		return context.containingScript().index().engine().cachedFuncs();
 	}
 	
 	/**

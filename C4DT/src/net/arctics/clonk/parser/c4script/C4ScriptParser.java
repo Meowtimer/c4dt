@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -213,6 +214,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private SpecialScriptRules specialScriptRules;
 	private Engine engine;
 	private ClonkBuilder builder;
+	private CachedEngineDeclarations cachedEngineDeclarations;
 	
 	public SpecialScriptRules getSpecialScriptRules() {
 		return specialScriptRules;
@@ -433,6 +435,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (script != null) {
 			engine = script.engine();
 			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
+			cachedEngineDeclarations = engine.cachedFuncs();
 
 			if (script.index() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) script.index();
@@ -447,6 +450,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		statementReached = true;
 		if (scriptFile != null)
 			allErrorsDisabled = C4GroupItem.groupItemBackingResource(scriptFile) != null;
+	}
+	
+	@Override
+	public CachedEngineDeclarations cachedEngineDeclarations() {
+		return cachedEngineDeclarations;
 	}
 
 	/**
@@ -2179,27 +2187,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (expression == null)
 			return null;
 		ExprElm saved = problemReporter;
-		Double d = null;
-		if (builder != null) {
-			d = builder.problemReportingStats().get(expression.getClass());
-			if (d == null)
-				d = 0.0;
-		}
 		problemReporter = expression;
-		long start = System.currentTimeMillis();
 		try {
 			if (recursive && !expression.skipReportingProblemsForSubElements())
 				for (ExprElm e : expression.subElements())
 					if (e != null)
 						reportProblemsOf(e, true);
 			try {
+				Double oldStat = 0.0;
+				if (builder != null) {
+					oldStat = builder.problemReportingStats().get(expression.getClass());
+					if (oldStat == null)
+						oldStat = 0.0;
+				}
+				long start = System.currentTimeMillis();
 				expression.reportProblems(this);
+				if (builder != null)
+					builder.problemReportingStats().put(expression.getClass(), oldStat+(System.currentTimeMillis()-start)/1000.0);
 			} catch (Exception s) {
 				// silent
 			}
 		} finally {
-			if (builder != null)
-				builder.problemReportingStats().put(expression.getClass(), d+(System.currentTimeMillis()-start)/1000.0);
 			problemReporter = saved;
 		}
 		return expression;

@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
@@ -523,6 +524,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			@Override
 			public Object valueForVariable(String varName) {
 				return null;
+			}
+
+			@Override
+			public CachedEngineDeclarations cachedEngineDeclarations() {
+				return engine().cachedFuncs();
 			}
 		};
 	}

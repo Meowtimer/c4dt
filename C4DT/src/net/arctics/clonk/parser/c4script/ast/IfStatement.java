@@ -106,7 +106,7 @@ public class IfStatement extends ConditionalStatement {
 		}
 		if (ifTypeInfos.up != null)
 			ifTypeInfos.up.inject(ifTypeInfos);
-		
+
 		if (!condition.containsConst()) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(parser.currentFunction()));
 			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX)
