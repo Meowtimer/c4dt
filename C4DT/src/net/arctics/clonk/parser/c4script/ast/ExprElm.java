@@ -298,7 +298,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	/**
-	 * Reset some cached state so {@link #reportErrors(C4ScriptParser)} is more likely to not report on errors that have since been fixed.
+	 * Reset some cached state so {@link #reportProblems(C4ScriptParser)} is more likely to not report on errors that have since been fixed.
 	 * Also called recursively on {@link #subElements()}.
 	 * @param parser context
 	 */
@@ -313,12 +313,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#marker(ParserErrorCode, int, int, int, int, Object...)}
 	 * @throws ParsingException
 	 */
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		// i'm totally error-free
 	}
 	
 	/**
-	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportErrors(C4ScriptParser)} on {@link #subElements()} 
+	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportProblems(C4ScriptParser)} on {@link #subElements()} 
 	 * @return Do you just show up, play the music,
 	 */
 	public boolean skipReportingProblemsForSubElements() {return false;}

@@ -138,8 +138,8 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		if (!parser.containingScript().engine().settings().proplistsSupported)
 			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}

@@ -41,7 +41,7 @@ public class Placeholder extends ExprElm {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		StringTbl.reportMissingStringTblEntries(parser, new EntityRegion(null, this, entryName));
 	}
 	

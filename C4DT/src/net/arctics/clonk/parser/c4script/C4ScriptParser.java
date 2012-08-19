@@ -2169,7 +2169,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Let an expression report errors. Calling {@link ExprElm#reportErrors(C4ScriptParser)} indirectly like that ensures
+	 * Let an expression report errors. Calling {@link ExprElm#reportProblems(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
 	 * @param expression The expression to report errors.
 	 * @throws ParsingException
@@ -2179,18 +2179,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (expression == null)
 			return null;
 		ExprElm saved = problemReporter;
+		Double d = null;
+		if (builder != null) {
+			d = builder.problemReportingStats().get(expression.getClass());
+			if (d == null)
+				d = 0.0;
+		}
 		problemReporter = expression;
+		long start = System.currentTimeMillis();
 		try {
 			if (recursive && !expression.skipReportingProblemsForSubElements())
 				for (ExprElm e : expression.subElements())
 					if (e != null)
 						reportProblemsOf(e, true);
 			try {
-				expression.reportErrors(this);
+				expression.reportProblems(this);
 			} catch (Exception s) {
 				// silent
 			}
 		} finally {
+			if (builder != null)
+				builder.problemReportingStats().put(expression.getClass(), d+(System.currentTimeMillis()-start)/1000.0);
 			problemReporter = saved;
 		}
 		return expression;

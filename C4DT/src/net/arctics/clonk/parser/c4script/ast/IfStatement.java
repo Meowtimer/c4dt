@@ -91,7 +91,7 @@ public class IfStatement extends ConditionalStatement {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		parser.reportProblemsOf(condition, true);
 		// use two separate typeinfo lists for if and else statement, merging
 		// gathered information afterwards

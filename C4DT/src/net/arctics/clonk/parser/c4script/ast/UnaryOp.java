@@ -64,8 +64,8 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser context) throws ParsingException {
-		super.reportErrors(context);
+	public void reportProblems(C4ScriptParser context) throws ParsingException {
+		super.reportProblems(context);
 		if (operator().modifiesArgument() && !argument().isModifiable(context))
 			//				System.out.println(getArgument().toString() + " does not behave");
 			context.error(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);

@@ -164,7 +164,7 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser context) throws ParsingException {
+	public void reportProblems(C4ScriptParser context) throws ParsingException {
 		// sanity
 		setExprRegion(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C

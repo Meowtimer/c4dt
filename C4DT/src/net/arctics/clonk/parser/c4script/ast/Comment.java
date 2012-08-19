@@ -191,7 +191,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		String s = text();
 		if (s.contains("TODO"))
 			parser.todo(s, start(), end(), IMarker.PRIORITY_NORMAL);

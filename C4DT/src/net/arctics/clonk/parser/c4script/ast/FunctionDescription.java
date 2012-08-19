@@ -69,7 +69,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		return null;
 	}
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		// see StringLiteral.reportErrors
 		if (parser.hasAppendTo())
 			return;

@@ -158,8 +158,8 @@ public class MemberOperator extends ExprElm {
 	 * Additionally, a warning is emitted if space between the actual operator and ~ is left and this is not allowed ({@link EngineSettings#spaceAllowedBetweenArrowAndTilde})
 	 */
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		ExprElm pred = predecessorInSequence();
 		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(

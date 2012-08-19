@@ -49,8 +49,8 @@ public class ArrayElementExpression extends ExprElm {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		IType type = predecessorType(parser);
 		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
 			parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);

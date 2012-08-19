@@ -102,8 +102,8 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		ExprElm pred = predecessorInSequence();
 		if (declaration == null && pred == null)
 			parser.error(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);

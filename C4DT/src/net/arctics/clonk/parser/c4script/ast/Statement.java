@@ -102,8 +102,8 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		warnIfNoSideEffects(parser);
 		if (!flagsEnabled(STATEMENT_REACHED))
 			parser.warning(ParserErrorCode.NeverReached, this, 0);

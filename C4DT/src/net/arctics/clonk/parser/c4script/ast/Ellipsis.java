@@ -19,8 +19,8 @@ public class Ellipsis extends ExprElm {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		parser.unnamedParamaterUsed(this); // it's kinda sound...
 	}
 	

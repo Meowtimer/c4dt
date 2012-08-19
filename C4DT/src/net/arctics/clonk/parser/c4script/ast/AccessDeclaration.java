@@ -55,8 +55,8 @@ public abstract class AccessDeclaration extends ExprElm {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
 	}
 	

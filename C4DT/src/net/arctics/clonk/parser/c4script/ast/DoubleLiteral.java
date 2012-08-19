@@ -29,10 +29,10 @@ public class DoubleLiteral extends NumberLiteral {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		if (!parser.script().engine().settings().supportsFloats)
 			parser.error(ParserErrorCode.FloatNumbersNotSupported, this, C4ScriptParser.NO_THROW);
-		super.reportErrors(parser);
+		super.reportProblems(parser);
 	}
 
 }

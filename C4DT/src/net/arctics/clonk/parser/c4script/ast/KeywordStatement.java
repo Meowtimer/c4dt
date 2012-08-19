@@ -40,8 +40,8 @@ public abstract class KeywordStatement extends Statement {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		if (flagsEnabled(MISPLACED))
 			parser.error(ParserErrorCode.KeywordInWrongPlace, this, C4ScriptParser.NO_THROW, this.toString());
 	}

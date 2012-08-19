@@ -83,7 +83,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		
 		// warn about overly long strings
 		long max = parser.containingScript().index().engine().settings().maxStringLen;

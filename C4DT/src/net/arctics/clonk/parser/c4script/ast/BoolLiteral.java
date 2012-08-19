@@ -34,7 +34,7 @@ public final class BoolLiteral extends Literal<Boolean> {
 		output.append(booleanValue() ? Keywords.True : Keywords.False);
 	}
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		if (parent() instanceof BinaryOp) {
 			Operator op = ((BinaryOp) parent()).operator();
 			if (op == Operator.And || op == Operator.Or)

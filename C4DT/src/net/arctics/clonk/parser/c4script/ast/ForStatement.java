@@ -65,8 +65,8 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		if (initializer != null)
 			parser.reportProblemsOf(initializer, true);
 		if (increment != null)

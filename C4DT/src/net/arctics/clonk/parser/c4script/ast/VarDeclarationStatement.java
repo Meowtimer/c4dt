@@ -167,8 +167,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return super.declarationAt(offset, parser);
 	}
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		super.reportErrors(parser);
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		super.reportProblems(parser);
 		for (VarInitialization initialization : varInitializations)
 			if (initialization.variable != null) {
 				if (initialization.expression != null)

@@ -449,8 +449,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return anythingNonPrimitive;
 	}
 	@Override
-	public void reportErrors(final C4ScriptParser context) throws ParsingException {
-		super.reportErrors(context);
+	public void reportProblems(final C4ScriptParser context) throws ParsingException {
+		super.reportProblems(context);
 		
 		// notify parser about unnamed parameter usage
 		if (declaration == cachedFuncs(context).Par) {

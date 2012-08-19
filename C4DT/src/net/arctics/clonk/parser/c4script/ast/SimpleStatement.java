@@ -96,10 +96,10 @@ public class SimpleStatement extends Statement {
 	}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		if (expression instanceof BinaryOp)
 			((BinaryOp) expression).checkTopLevelAssignment(parser);
-		super.reportErrors(parser);
+		super.reportProblems(parser);
 	}
 	
 	public static Statement[] wrapExpressions(ExprElm... expressions) {

@@ -88,7 +88,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	public boolean skipReportingProblemsForSubElements() {return true;}
 	
 	@Override
-	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		Variable loopVariable;
 		AccessVar accessVar;
 		if (elementExpr instanceof VarDeclarationStatement)
