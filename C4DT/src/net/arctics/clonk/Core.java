@@ -67,7 +67,7 @@ import org.xml.sax.SAXException;
  */
 public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 	
-	public static final String HUMAN_READABLE_NAME = Messages.ClonkCore_HumanReadableName;
+	public static final String HUMAN_READABLE_NAME = Messages.HumanReadableName;
 	
 	/**
 	 * The Plugin-ID
@@ -191,7 +191,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		// only if there are projects at all
 		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0) {
 			if (versionGap(oldVersion, newVersion, 1, 5, 9)) {
-				UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
+				UI.message(Messages.UpdateNotes_1_5_9);
 			}
 		}
 	}
@@ -511,7 +511,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					if (clonkProj != null)
 						clonkProj.saveIndex();
 				} catch (Exception e) {
-					UI.informAboutException(Messages.ClonkCore_ErrorWhileSavingIndex, e, project.getName());
+					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
 			}
 			removeOldIndexes();
