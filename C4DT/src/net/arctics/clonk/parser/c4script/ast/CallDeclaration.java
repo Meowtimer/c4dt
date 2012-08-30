@@ -462,7 +462,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				context.unnamedParamaterUsed(LongLiteral.ZERO);
 		}
 		// return as function
-		else if (declaration == cachedEngineDeclarations._return) {
+		else if (declarationName.equals(Keywords.Return)) {
 			if (context.strictLevel() >= 2)
 				context.error(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
 			else
