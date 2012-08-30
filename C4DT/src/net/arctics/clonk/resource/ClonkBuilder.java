@@ -334,6 +334,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			}
 		}, 20);
+		printStats();
+		problemReporters = null;
+		markers.deploy();
+		Display.getDefault().asyncExec(new UIRefresher(scripts));
+	}
+	private void printStats() {
 		List<Entry<Class<? extends ExprElm>, Double>> list = new ArrayList<Entry<Class<? extends ExprElm>, Double>>();
 		for (Entry<Class<? extends ExprElm>, Double> s : problemReportingStats.entrySet())
 			list.add(s);
@@ -346,9 +352,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		});
 		for (Entry<Class<? extends ExprElm>, Double> s : list)
 			System.out.println(s.getKey() + ": " + s.getValue());
-		problemReporters = null;
-		markers.deploy();
-		Display.getDefault().asyncExec(new UIRefresher(scripts));
 	}
 
 	public final Set<Function> problemReporters() {
