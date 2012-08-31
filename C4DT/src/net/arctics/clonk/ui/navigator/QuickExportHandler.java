@@ -39,9 +39,8 @@ public class QuickExportHandler extends ClonkResourceHandler {
 						IFile file = ((FileEditorInput)((EditorPart)part).getEditorInput()).getFile();
 						IContainer r; 
 						for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
-						if (r != null) {
+						if (r != null)
 							selectedContainers.add(r);
-						}
 					} else {
 						final ISelection selection = HandlerUtil.getCurrentSelection(event);
 						if (selection != null && selection instanceof TreeSelection) {
@@ -49,28 +48,24 @@ public class QuickExportHandler extends ClonkResourceHandler {
 							Iterator it = tree.iterator();
 							while (it.hasNext()) {
 								Object obj = it.next();
-								if (obj instanceof IProject) {
+								if (obj instanceof IProject)
 									try {
 										IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
-										for(int i = 0; i < selectedResources.length;i++) {
+										for(int i = 0; i < selectedResources.length;i++)
 											if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
 												selectedContainers.add((IContainer) selectedResources[i]);
-										}
 									}
 									catch (CoreException ex) {
 										ex.printStackTrace();
 									}
-								}
-								else if (obj instanceof IFolder) {
+								else if (obj instanceof IFolder)
 									selectedContainers.add((IContainer) obj);
-								}
 								else if (obj instanceof IFile) {
 									IFile file = (IFile)obj;
 									IContainer r;
 									for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
-									if (r != null) {
+									if (r != null)
 										selectedContainers.add(r);
-									}
 								}
 							}
 						}

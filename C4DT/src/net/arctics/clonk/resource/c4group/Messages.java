@@ -6,6 +6,7 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.resource.c4group.messages"; //$NON-NLS-1$
 	public static String NoImportingToWorkspaceRoot;
 	public static String WhereToSave;
+	public static String ExportC4GroupJobTitle;
 	public static String Exporting;
 	public static String ExporterCommandlineTitle;
 	public static String C4Group_Copying;

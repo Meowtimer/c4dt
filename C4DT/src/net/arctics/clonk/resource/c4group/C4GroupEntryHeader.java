@@ -73,9 +73,8 @@ public class C4GroupEntryHeader implements Serializable {
 		byte[] buffer = new byte[STORED_SIZE];
 		try {
 			int readCount = stream.read(buffer,0,STORED_SIZE);
-			while (readCount != STORED_SIZE) {
+			while (readCount != STORED_SIZE)
 				readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
-			}
 			header.entryName = C4GroupHeader.byteToString(buffer, 0, 260).trim();
 			header.packed = C4GroupHeader.byteToInt32(buffer, 260) > 0;
 			header.group = C4GroupHeader.byteToInt32(buffer, 264) > 0;
@@ -98,12 +97,10 @@ public class C4GroupEntryHeader implements Serializable {
     
 	
 	public void skipData(InputStream stream) throws IOException {
-		if (this.isGroup()) {
+		if (this.isGroup())
 			throw new IOException("skipData for groups not implemented"); //$NON-NLS-1$
-		}
-		else {
+		else
 			stream.skip(size());
-		}
 	}
     
     /**
@@ -168,10 +165,9 @@ public class C4GroupEntryHeader implements Serializable {
     }
     
     private static void arrayCopyTo(byte[] source, byte[] target, int dstOffset, int length) {
-    	for(int i = 0;i < length;i++) {
-    		if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
+    	for(int i = 0;i < length;i++)
+			if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
     		else target[dstOffset + i] = source[i];
-    	}
     }
     
 }

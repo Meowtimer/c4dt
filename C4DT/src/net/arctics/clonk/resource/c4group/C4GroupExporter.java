@@ -1,7 +1,6 @@
 package net.arctics.clonk.resource.c4group;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import net.arctics.clonk.util.FileOperations;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -29,6 +27,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.MessageConsole;
@@ -36,9 +35,9 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 public class C4GroupExporter implements IRunnableWithProgress {
 	
-	private Map<Engine, List<Pair<IContainer, String>>> packsDividedInEngines = new HashMap<Engine, List<Pair<IContainer, String>>>();
-	private String destinationPath;
-	private int numTotal;
+	private final Map<Engine, List<Pair<IContainer, String>>> packsDividedInEngines = new HashMap<Engine, List<Pair<IContainer, String>>>();
+	private final String destinationPath;
+	private final int numTotal;
 	
 	private void divideInEngines(IContainer[] packs) {
 		packsDividedInEngines.clear();
@@ -76,13 +75,10 @@ public class C4GroupExporter implements IRunnableWithProgress {
 					fileDialog.setText(String.format(Messages.WhereToSave, toExport.first().getName()));
 					fileDialog.setFilterPath(destinationPath);
 					packPath = fileDialog.open();
-					if (packPath == null) {
+					if (packPath == null)
 						return false;
-					}
-				}
-				else {
+				} else
 					packPath = new Path(destinationPath).append(toExport.first().getName()).toOSString();
-				}
 				toExport.setSecond(packPath);
 			}
 		}
@@ -104,7 +100,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
 				if (oldFile.exists())
 					oldFile.delete();
-				(new Job("Export C4Group") {
+				(new Job(String.format(Messages.ExportC4GroupJobTitle, toExport.first().getName())) {
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
@@ -139,14 +135,16 @@ public class C4GroupExporter implements IRunnableWithProgress {
 								byte[] buffer = new byte[256];
 								c4group.waitFor();
 
-								while((read = stream.read(buffer, 0, 256)) > 0) {
+								while((read = stream.read(buffer, 0, 256)) > 0)
 									out.write(buffer, 0, read);
-								}
 							}
+							c4group.waitFor();
 							return Status.OK_STATUS;
 						} catch (IOException e) {
+							e.printStackTrace();
 							return Status.CANCEL_STATUS;
 						} catch (InterruptedException e) {
+							e.printStackTrace();
 							return Status.CANCEL_STATUS;
 						}
 					}
