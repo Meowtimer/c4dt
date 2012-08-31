@@ -193,10 +193,25 @@ public class Comment extends Statement implements Statement.Attachment {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		String s = text();
-		if (s.contains("TODO"))
-			parser.todo(s, start(), end(), IMarker.PRIORITY_NORMAL);
-		else if (s.contains("FIXME"))
-			parser.todo(s, start(), end(), IMarker.PRIORITY_HIGH);
+		int markerPriority;
+		int searchStart = 0;
+		do {
+			markerPriority = IMarker.PRIORITY_LOW;
+			int todoIndex = s.indexOf("TODO", searchStart);
+			if (todoIndex == -1) {
+				todoIndex = s.indexOf("FIXME", searchStart);
+				if (todoIndex != -1)
+					markerPriority = IMarker.PRIORITY_HIGH;
+			} else
+				markerPriority = IMarker.PRIORITY_NORMAL;
+			if (todoIndex != -1) {
+				int lineEnd = s.indexOf('\n', todoIndex);
+				if (lineEnd == -1)
+					lineEnd = s.length();
+				searchStart = lineEnd;
+				parser.todo(s.substring(todoIndex, lineEnd), start()+2+todoIndex, start()+2+lineEnd, markerPriority);
+			}
+		} while (markerPriority > IMarker.PRIORITY_LOW);
 	}
 
 	/**
