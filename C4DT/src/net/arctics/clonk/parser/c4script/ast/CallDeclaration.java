@@ -126,10 +126,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					ev.equals(varIndex);
 			} else if (expr instanceof AccessVar) {
 				AccessVar accessVar = (AccessVar) expr;
-				return
-					accessVar.declaration() instanceof Variable &&
-					parser.currentFunction().localVars() != null &&
-					parser.currentFunction().localVars().indexOf(accessVar.declaration) == varIndex;
+				if (accessVar.declaration() instanceof Variable)
+					return (varFunction == parser.cachedEngineDeclarations().Par
+						? parser.currentFunction().parameters()
+						: parser.currentFunction().localVars()).indexOf(accessVar) == varIndex;
 			}
 			return false;
 		}
@@ -148,7 +148,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		public String toString() {
 			return String.format("%s(%d)", varFunction.name(), varIndex); //$NON-NLS-1$
 		}
-		
+		@Override
+		public boolean local() {
+			return true;
+		}
 	}
 
 	private ExprElm[] params;

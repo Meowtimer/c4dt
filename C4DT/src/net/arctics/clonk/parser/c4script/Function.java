@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -135,8 +133,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the parameter
 	 */
-	public Iterable<? extends Variable> parameters() {
-		return copyListOrReturnDefaultList(parameters, null);
+	public List<Variable> parameters() {
+		return parameters;
 	}
 	
 	public void addParameter(Variable parameter) {

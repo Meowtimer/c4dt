@@ -134,6 +134,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (ITypeInfo info : this)
 				for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {
 					ITypeInfo info2 = it.next();
+					if (info2.local()) {
+						it.remove();
+						continue;
+					}
 					if (info2.refersToSameExpression(info)) {
 						info.merge(info2);
 						it.remove();
@@ -312,13 +316,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	public TypeInfoList pushTypeInfos() {
 		TypeInfoList l = new TypeInfoList();
-		pushTypeInfos(l);
+		l.up = this.typeInfos;
+		this.typeInfos = l;
 		return l;
-	}
-	
-	public void pushTypeInfos(TypeInfoList typeInfos) {
-		typeInfos.up = this.typeInfos;
-		this.typeInfos = typeInfos;
 	}
 	
 	public void popTypeInfos(boolean inject) {
