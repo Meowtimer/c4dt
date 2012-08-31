@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -32,7 +34,7 @@ public final class DocumentedFunction extends Function implements IDocumentedDec
 	}
 
 	@Override
-	public synchronized Iterable<? extends Variable> parameters() {
+	public synchronized List<Variable> parameters() {
 		fetchDocumentation();
 		return super.parameters();
 	}
