@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.search.ReferencesQuery;
 
@@ -22,11 +23,12 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 	public void run() {
 		try {
 			Declaration declaration = declarationAtSelection(false);
+			if (declaration == null)
+				declaration = ((ClonkTextEditor)getTextEditor()).topLevelDeclaration();
 			if (declaration != null) {
 				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());				
-				if (nature == null) {
-					nature = ClonkProjectNature.get(getTextEditor()); 
-				}
+				if (nature == null)
+					nature = ClonkProjectNature.get(getTextEditor());
 				if (nature == null) {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
 					return;
