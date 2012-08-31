@@ -1,6 +1,5 @@
 <clonkiniconfig>
-	<file name="ActMap.txt"
-		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="ActMap.txt">
 		<section name="Action">
 			<entry name="Name" class="java.lang.String" description="Name der Aktivität. Siehe " />
 			<entry name="Procedure" class="java.lang.String"
@@ -53,8 +52,7 @@
 				description="Bei Step=n nur jedes n-te Bild aus der Animationsgrafik zeichnen." />
 		</section>
 	</file>
-	<file name="DefCore.txt"
-		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="DefCore.txt">
 		<section name="DefCore">
 			<entry name="id" class="C4ID"
 				description="Id des Objekts." />
@@ -283,8 +281,7 @@
 				description="0 Objekt kann nicht fliegen, 1 Objekt kann fliegen." />
 		</section>
 	</file>
-	<file name="Particle.txt"
-		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="Particle.txt">
 		<section name="Particle">
 			<entry name="Name" class="java.lang.String"
 				description="Name des Partikeltyps. Dieser Name dient zugleich zur Referenzierung in Scripten. Für Mehrsprachigkeit im Frontend sollte die Names.txt benutzt werden." />
@@ -337,8 +334,7 @@
 			<entry name="FadeDelay" class="SignedInteger" />
 		</section>
 	</file>
-	<file name="Material.txt"
-		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="Material.txt">
 		<section name="Material">
 			<entry name="Name" class="java.lang.String" description="Name des Materials." />
 			<entry name="Color" class="IntegerArray"
@@ -455,8 +451,7 @@
 				description="Nur für Reaktionstyp Corrode: Chance darauf, dass verätzt wird." />
 		</section>
 	</file>
-	<file name="Scenario.txt"
-		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="Scenario.txt">
 		<section name="Head">
 			<entry name="Icon" class="SignedInteger"
 				description="Standard-Icon des Szenarios. Siehe Szenarioeigenschaften im Menüsystem." />
@@ -677,7 +672,7 @@
 				description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So lässt sich beispielsweise die Erforschung bestimmter Objekte verhindern." />
 		</section>
 	</file>
-	<file name="PlayerControls.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="PlayerControls.txt">
 		<section name="ControlDefs">
 			<section name="ControlDef">
 				<entry name="Identifier" class="java.lang.String" />
@@ -708,7 +703,7 @@
 			</section>
 		</section>
 	</file>
-	<file name="FolderMap.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="FolderMap.txt">
 		<section name="FolderMap">
 			<entry name="MinResX" class="UnsignedInteger" />
 			<entry name="MinResY" class="UnsignedInteger" />
@@ -735,7 +730,7 @@
 			</section>
 		</section>
 	</file>
-	<file name="Teams.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+	<file name="Teams.txt">
 		<section name="Teams">
 			<entry name="AllowHostilityChange" class="Boolean" />
 			<entry name="AllowTeamSwitch" class="Boolean" />
