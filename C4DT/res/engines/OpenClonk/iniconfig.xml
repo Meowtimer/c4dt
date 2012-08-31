@@ -740,6 +740,9 @@
 			<entry name="Active" class="Boolean" />
 			<entry name="Custom" class="Boolean" />
 			<entry name="AutoGenerateTeams" class="Boolean" />
+			<entry name="TeamDistribution" class="Enum" enumValues="Free,Host,None,Random,RandomInv"/>
+			<entry name="MaxScriptPlayers" class="SignedInteger"/>
+			<entry name="ScriptPlayerNames" class="java.lang.String"/>
 			<section name="Team">
 				<entry name="id" class="SignedInteger" />
 				<entry name="Name" class="java.lang.String" />
