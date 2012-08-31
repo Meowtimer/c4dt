@@ -1044,7 +1044,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String str;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs)
-				error(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, script.engine().name());
+				error(ParserErrorCode.PrimitiveTypeNotSupported, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW,
+					'&', script.engine().name());
 			read();
 			return PrimitiveType.REFERENCE;
 		}
@@ -2975,9 +2976,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		int e = this.offset;
 		Variable var = new Variable(null, Scope.VAR);
-		IType type = PrimitiveType.makeType(firstWord);
-		if (type == PrimitiveType.REFERENCE && !script.engine().settings().supportsRefs)
-			error(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, script.engine().name());
+		PrimitiveType type = PrimitiveType.makeType(firstWord);
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
 		if (type == PrimitiveType.UNKNOWN)
@@ -2986,6 +2985,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else {
 			eatWhitespace();
 			if (read() == '&') {
+				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
 				var.forceType(ReferenceType.get(type), typeLocked);
 				eatWhitespace();
 			} else
@@ -2993,13 +2994,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			int newStart = this.offset;
 			String secondWord = readIdent();
 			if (secondWord.length() > 0) {
+				if (!engine.supportsPrimitiveType(type))
+					error(ParserErrorCode.PrimitiveTypeNotSupported, s, e, NO_THROW, type.typeName(true), script.engine().name());
 				var.setName(secondWord);
 				s = newStart;
 				e = this.offset;
 			}
 			else {
-				// type is name
-				warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
+				
+				if (engine.supportsPrimitiveType(type))
+					// type is name
+					warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
 				var.forceType(PrimitiveType.ANY, typeLocked);
 				var.setName(firstWord);
 				this.seek(e);

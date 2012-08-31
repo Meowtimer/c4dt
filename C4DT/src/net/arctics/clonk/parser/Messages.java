@@ -120,6 +120,7 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_Arg_VariableType;
 	public static String ParserErrorCode_Arg_WeirdoNumber;
 	public static String ParserErrorCode_Parameter_Name;
+	public static String PrimitiveTypeNotSupported;
 	public static String TooManyParameters;
 	static {
 		// initialize resource bundle

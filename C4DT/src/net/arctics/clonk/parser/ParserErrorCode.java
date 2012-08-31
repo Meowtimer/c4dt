@@ -58,7 +58,6 @@ public enum ParserErrorCode {
 	IdentShadowed(Messages.IdentShadowed, Messages.ParserErrorCode_Arg_Identifier, Messages.ParserErrorCode_Arg_ShadowedIdentifier),
 	VarUsedBeforeItsDeclaration(Messages.VarUsedBeforeItsDeclaration, Messages.ParserErrorCode_Arg_Variable),
 	MissingDirectiveArgs(Messages.MissingDirectiveArgs, Messages.ParserErrorCode_Arg_Directive),
-	EngineDoesNotSupportRefs(Messages.EngineDoesNotSupportRefs, Messages.ParserErrorCode_Arg_Engine),
 	BoolLiteralAsOpArg(Messages.BoolLiteralAsOpArg, Messages.ParserErrorCode_Arg_Bool),
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject, Messages.ParserErrorCode_Arg_GuessedType),
@@ -85,7 +84,8 @@ public enum ParserErrorCode {
 	FunctionRefNotAllowed(Messages.FunctionRefNotAllowed, Messages.ParserErrorCode_Arg_Engine),
 	CallingExpression(Messages.CallingExpression),
 	FloatNumbersNotSupported(Messages.FloatNumbersNotSupported),
-	DuplicateDeclaration(Messages.DuplicateDeclaration, Messages.DuplicateDeclarationName);
+	DuplicateDeclaration(Messages.DuplicateDeclaration, Messages.DuplicateDeclarationName),
+	PrimitiveTypeNotSupported(Messages.PrimitiveTypeNotSupported);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

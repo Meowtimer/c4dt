@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -722,6 +723,17 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	@Override
 	public String qualifiedName() {
 		return name();
+	}
+	
+	public boolean supportsPrimitiveType(PrimitiveType type) {
+		switch (type) {
+		case NUM:
+			return settings().supportsFloats;
+		case REFERENCE:
+			return settings().supportsRefs;
+		default:
+			return true;
+		}
 	}
 
 }

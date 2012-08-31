@@ -151,7 +151,7 @@ public class BufferedScanner implements ICharacterScanner {
 				length++;
 			else {
 				seek(start);
-				return readString(length);
+				return length == 0 ? "" : readString(length);
 			}
 		} while(!reachedEOF());
 		return readStringAt(start, start+length);
