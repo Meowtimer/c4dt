@@ -758,8 +758,18 @@
 			commandId="net.arctics.clonk.ui.OpenDefinition"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			sequence="M1+SHIFT+T">
-      </key>
-   </extension>
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			sequence="F4">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			sequence="F3">
+		</key>
+	</extension>
 
 	<!--
 	<extension point="org.eclipse.ui.popupMenus">
