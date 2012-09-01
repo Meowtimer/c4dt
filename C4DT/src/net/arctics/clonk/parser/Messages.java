@@ -18,7 +18,6 @@ public class Messages extends NLS {
 	public static String ValueExpected;
 	public static String TuplesNotAllowed;
 	public static String EmptyParentheses;
-	public static String EngineDoesNotSupportRefs;
 	public static String ExpectedCode;
 	public static String MemberOperatorWithTildeNoSpace;
 	public static String MissingBrackets;

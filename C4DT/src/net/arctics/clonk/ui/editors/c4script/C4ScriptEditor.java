@@ -24,20 +24,19 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
+import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -45,7 +44,8 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IHasEditorPart;
 import net.arctics.clonk.ui.editors.TextChangeListenerBase;
-import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
@@ -57,7 +57,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
@@ -436,29 +435,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.dispose();
 	}
 	
-	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(Core.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
+	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void createActions() {
 		super.createActions();
-
-		IAction action;
-		
-		action = new TidyUpCodeAction(messagesBundle,"TidyUpCode.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
-		
-		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.FIND_REFERENCES, action);
-		
-		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.RENAME_DECLARATION, action);
-		
-		action = new FindDuplicateAction(messagesBundle, "FindDuplicates.", this);
-		setAction(ClonkCommandIds.FIND_DUPLICATES, action);
-		
-		action = new ToggleCommentAction(messagesBundle, "ToggleComment.", this);
-		setAction(ClonkCommandIds.TOGGLE_COMMENT, action);
-		
+		addActions(MESSAGES_BUNDLE,
+			TidyUpCodeAction.class,
+			FindReferencesAction.class,
+			RenameDeclarationAction.class,
+			FindDuplicatesAction.class,
+			ToggleCommentAction.class
+		);
 	}
 
 	/* (non-Javadoc)
@@ -469,12 +458,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.editorContextMenuAboutToShow(menu);
 		if (script() != null) {
 			if (script().isEditable()) {
-				addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-				addAction(menu, ClonkCommandIds.RENAME_DECLARATION);
-				addAction(menu, ClonkCommandIds.TOGGLE_COMMENT);
+				addAction(menu, ClonkTextEditorAction.idString(TidyUpCodeAction.class));
+				addAction(menu, ClonkTextEditorAction.idString(RenameDeclarationAction.class));
+				addAction(menu, ClonkTextEditorAction.idString(ToggleCommentAction.class));
 			}
-			addAction(menu, ClonkCommandIds.FIND_REFERENCES);
-			addAction(menu, ClonkCommandIds.FIND_DUPLICATES);
+			addAction(menu, ClonkTextEditorAction.idString(FindReferencesAction.class));
+			addAction(menu, ClonkTextEditorAction.idString(FindDuplicatesAction.class));
 		}
 	}
 	

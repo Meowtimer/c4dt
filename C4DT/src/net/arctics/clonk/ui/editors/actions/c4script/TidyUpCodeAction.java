@@ -18,7 +18,8 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -33,13 +34,12 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.texteditor.TextEditorAction;
 
-public class TidyUpCodeAction extends TextEditorAction {
+@CommandId(id="ui.editors.actions.TidyUpCode")
+public class TidyUpCodeAction extends ClonkTextEditorAction {
 
 	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
 
 	/* (non-Javadoc)
@@ -81,10 +81,9 @@ public class TidyUpCodeAction extends TextEditorAction {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			List<Declaration> decs = new ArrayList<Declaration>();
-			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.VARIABLES|+IHasSubDeclarations.FUNCTIONS)) {
+			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.VARIABLES|+IHasSubDeclarations.FUNCTIONS))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
-			}
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
 				public int compare(Declaration arg0, Declaration arg1) {
@@ -93,7 +92,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 					return codeB.start()-codeA.start();
 				}
 			});
-			for (Declaration d : decs) {
+			for (Declaration d : decs)
 				try {
 					Function func = as(d, Function.class);
 					// variable declared inside function -> ignore
@@ -142,17 +141,15 @@ public class TidyUpCodeAction extends TextEditorAction {
 						}
 					}
 					else {
-						if (!noSelection) {
+						if (!noSelection)
 							region.setStartAndEnd(
 								selection.getOffset()-(func != null ? func.body().getOffset() : 0),
 								selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
 							);
-						}
 						if (elms instanceof Block) {
-							for (ExprElm e : elms.subElements()) {
+							for (ExprElm e : elms.subElements())
 								if (Utilities.regionContainsOtherRegion(region, e))
 									replaceExpression(document, e, parser, textChange);
-							}
 						}
 						else
 							replaceExpression(document, elms, parser, textChange);
@@ -162,7 +159,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
-			}
 			try {
 				textChange.perform(new NullProgressMonitor());
 			} catch (CoreException e) {

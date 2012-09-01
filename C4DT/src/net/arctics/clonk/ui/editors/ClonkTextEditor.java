@@ -8,6 +8,8 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 
 import org.eclipse.core.resources.IContainer;
@@ -50,6 +52,7 @@ import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -247,18 +250,31 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
-	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
+	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
 	
+	protected void addActions(ResourceBundle messagesBundle, Class<? extends ClonkTextEditorAction>... classes) {
+		for (Class<? extends ClonkTextEditorAction> c : classes) {
+			CommandId id = ClonkTextEditorAction.id(c);
+			if (c != null) {
+				String actionName = id.id().substring(id.id().lastIndexOf('.')+1);
+				try {
+					ClonkTextEditorAction action = c.getConstructor(ResourceBundle.class, String.class, ITextEditor.class).
+						newInstance(messagesBundle, actionName+".", this);
+					setAction(action.getActionDefinitionId(), action);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void createActions() {
 		super.createActions();
-		
-		IAction action;
-		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
-		
+		addActions(MESSAGES_BUNDLE, OpenDeclarationAction.class);
 		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
-			action = new ContentAssistAction(messagesBundle, "ContentAssist.", this); //$NON-NLS-1$
+			IAction action = new ContentAssistAction(MESSAGES_BUNDLE, "ContentAssist.", this); //$NON-NLS-1$
 			action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 			setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 		}
@@ -268,8 +284,8 @@ public class ClonkTextEditor extends TextEditor {
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (topLevelDeclaration() != null) {
-			menu.add(new Separator(ClonkCommandIds.GROUP_CLONK));
-			addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
+			menu.add(new Separator(Core.MENU_GROUP_CLONK));
+			addAction(menu, ClonkTextEditorAction.idString(OpenDeclarationAction.class));
 		}
 	}
 	

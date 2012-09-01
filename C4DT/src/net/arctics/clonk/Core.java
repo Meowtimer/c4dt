@@ -99,6 +99,8 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public static final QualifiedName FOLDER_DEFINITION_REFERENCE_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
 	public static final QualifiedName FILE_STRUCTURE_REFERENCE_ID = new QualifiedName(PLUGIN_ID, "structure"); //$NON-NLS-1$
 	
+	public static final String MENU_GROUP_CLONK = id("ui.editors.actions.clonkGroup");
+	
 	public static final long SERIAL_VERSION_UID = 1L;
 
 	/**
@@ -163,10 +165,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			public void propertyChange(PropertyChangeEvent event) {
 				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 					setActiveEngineByName(ClonkPreferences.valueOrDefault(ClonkPreferences.ACTIVE_ENGINE));
-				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
 					for (Engine e : loadedEngines())
 						e.reinitializeDocImporter();
-				}
 			}
 		});
 
@@ -189,11 +190,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	
 	private void informAboutUpdate(Version oldVersion, Version newVersion) {
 		// only if there are projects at all
-		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0) {
-			if (versionGap(oldVersion, newVersion, 1, 5, 9)) {
+		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0)
+			if (versionGap(oldVersion, newVersion, 1, 5, 9))
 				UI.message(Messages.UpdateNotes_1_5_9);
-			}
-		}
 	}
 
 	private void registerStructureClasses() {
@@ -218,13 +217,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		// get built-in engine definitions
 		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
 			String engineName = engineNameFromPath(paths.nextElement());
-			if (engineName != null) {
+			if (engineName != null)
 				result.add(engineName);
-			}
 		}
 		// get engine definitions from workspace
 		File[] workspaceEngines = workspaceStorageLocationForEngines().toFile().listFiles();
-		if (workspaceEngines != null) {
+		if (workspaceEngines != null)
 			for (File wEngine : workspaceEngines) {
 				// only accepting folders should be sufficient
 				if (!wEngine.isDirectory())
@@ -233,7 +231,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				if (engineName != null && !result.contains(engineName))
 					result.add(engineName);
 			}
-		}
 		return result;
 	}
 	
@@ -253,13 +250,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		if (result != null)
 			return result;
 		IStorageLocation[] locations;
-		if (getBundle() != null) {
+		if (getBundle() != null)
 			// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
 			locations = IDEStorageLocations(engineName);
-		} else {
+		else
 			// no bundle? seems to run headlessly
 			locations = headlessStorageLocations(engineName);
-		}
 		result = Engine.loadFromStorageLocations(locations);
 		if (result != null)
 			loadedEngines.put(engineName, result);
@@ -296,12 +292,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
 					Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
-					if (urls != null) {
+					if (urls != null)
 						while (urls.hasMoreElements()) {
 							URL url = urls.nextElement();
 							PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
 						}
-					}
 				};
 				@Override
 				public File toFolder() {
@@ -503,7 +498,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			rememberCurrentVersion();
 			for (Engine engine : loadedEngines.values())
 				engine.saveSettings();
-			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects())
 				try {
 					if (!project.isOpen())
 						continue;
@@ -513,7 +508,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				} catch (Exception e) {
 					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
-			}
 			removeOldIndexes();
 			break;
 		}

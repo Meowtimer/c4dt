@@ -2,8 +2,11 @@ package net.arctics.clonk.ui.editors.actions;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -21,8 +24,41 @@ import org.eclipse.ui.texteditor.TextEditorAction;
  */
 public abstract class ClonkTextEditorAction extends TextEditorAction {
 
-	public ClonkTextEditorAction(ResourceBundle bundle, String prefix, ITextEditor editor, String actionDefinitionId) {
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface CommandId {
+		String id();
+	}
+	
+	public static CommandId id(Class<? extends ClonkTextEditorAction> c) {
+		return c.getAnnotation(CommandId.class);
+	}
+	
+	public static String idString(Class<? extends ClonkTextEditorAction> c) {
+		CommandId commandId = id(c);
+		if (commandId == null)
+			return null;
+		else
+			return Core.id(commandId.id());
+	}
+	
+	public static String resourceBundlePrefix(Class<? extends ClonkTextEditorAction> c) {
+		String idString = idString(c);
+		return idString.substring(idString.lastIndexOf('.')+1)+".";
+	}
+	
+	private void assignId() {
+		CommandId id = id(getClass());
+		if (id != null) {
+			String idString = Core.id(id.id());
+			this.setId(idString);
+			this.setActionDefinitionId(idString);
+		} else
+			System.out.println(String.format("Missing CommandId for %s", getClass().getSimpleName()));
+	}
+	
+	public ClonkTextEditorAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
+		assignId();
 	}
 	
 	/**
