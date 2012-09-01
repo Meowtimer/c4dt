@@ -743,6 +743,7 @@
 			<entry name="TeamDistribution" class="Enum" enumValues="Free,Host,None,Random,RandomInv"/>
 			<entry name="MaxScriptPlayers" class="SignedInteger"/>
 			<entry name="ScriptPlayerNames" class="java.lang.String"/>
+			<entry name="FreeForAll" class="Boolean"/>
 			<section name="Team">
 				<entry name="id" class="SignedInteger" />
 				<entry name="Name" class="java.lang.String" />
