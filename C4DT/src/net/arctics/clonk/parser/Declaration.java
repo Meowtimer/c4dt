@@ -473,7 +473,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public Definition containerAsDefinition() {
+			public Definition definition() {
 				return script() instanceof Definition ? (Definition)script() : null;
 			}
 			

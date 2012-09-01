@@ -473,7 +473,7 @@ public class SpecialScriptRules {
 		public boolean validateArguments(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
-			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.containerAsDefinition();
+			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
 			Script script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.containingScript(); // fallback
@@ -634,7 +634,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn == null && callFunc.predecessorInSequence() != null)
 					typeToLookIn = callFunc.predecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
-					typeToLookIn = parser.containerAsDefinition();
+					typeToLookIn = parser.definition();
 				if (typeToLookIn != null) {
 					Function f = typeToLookIn.findFunction(lit.stringValue());
 					if (f != null)
@@ -658,7 +658,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn == null && callFunc.predecessorInSequence() != null)
 					typeToLookIn = callFunc.predecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
-					typeToLookIn = parser.containerAsDefinition();
+					typeToLookIn = parser.definition();
 				if (typeToLookIn != null) {
 					Variable var = typeToLookIn.findVariable(lit.stringValue());
 					if (var != null)
@@ -774,7 +774,7 @@ public class SpecialScriptRules {
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
-			return getActionLinkForDefinition(parser.currentFunction(), parser.containerAsDefinition(), parmExpression);
+			return getActionLinkForDefinition(parser.currentFunction(), parser.definition(), parmExpression);
 		}
 		protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
 			Object parmEv;

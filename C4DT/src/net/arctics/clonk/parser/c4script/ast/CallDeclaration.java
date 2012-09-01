@@ -282,7 +282,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		// calling this() as function -> return object type belonging to script
 		if (params.length == 0 && (d == context.cachedEngineDeclarations().This || d == Variable.THIS)) {
-			Definition obj = context.containerAsDefinition();
+			Definition obj = context.definition();
 			if (obj != null)
 				return obj;
 		}

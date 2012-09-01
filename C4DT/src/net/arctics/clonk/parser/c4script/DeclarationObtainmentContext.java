@@ -11,7 +11,7 @@ public interface DeclarationObtainmentContext extends IEvaluationContext {
 	Script containingScript();
 	Function currentFunction();
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);
-	Definition containerAsDefinition();
+	Definition definition();
 	void reportProblems(Function function);
 	void storeType(ExprElm exprElm, IType type);
 	Declaration currentDeclaration();

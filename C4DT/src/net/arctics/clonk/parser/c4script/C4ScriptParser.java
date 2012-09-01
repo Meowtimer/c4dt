@@ -414,7 +414,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The script object as  C4Object
 	 */
 	@Override
-	public Definition containerAsDefinition() {
+	public Definition definition() {
 		if (script instanceof Definition)
 			return (Definition) script;
 		return null;
