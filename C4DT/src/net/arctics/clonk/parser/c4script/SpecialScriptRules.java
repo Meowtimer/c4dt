@@ -483,18 +483,19 @@ public class SpecialScriptRules {
 					C4ScriptParser.parseStandaloneStatement((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
 						@Override
 						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
-							if (code == ParserErrorCode.NotFinished)
-								// ignore complaining about missing ';' - some genuine errors might slip through but who cares
+							switch (code) {
+							// ignore complaining about missing ';' - some genuine errors might slip through but who cares
+							case NotFinished:
+							// also ignore undeclared identifier error - local variables and whatnot, checking for all of this is also overkill
+							case UndeclaredIdentifier:
 								return WhatToDo.DropCharges;
-							try {
-								// pass through to the 'real' script parser
+							default:
 								if (parser.errorEnabled(code))
-									parser.marker(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
-							} catch (ParsingException e) {
-								// shouldn't happen
-								e.printStackTrace();
+									try {
+										parser.marker(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
+									} catch (ParsingException e1) {}
+								return WhatToDo.PassThrough;
 							}
-							return WhatToDo.PassThrough;
 						}
 					});
 				} catch (ParsingException e) {
