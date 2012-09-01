@@ -70,7 +70,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private transient CachedEngineDeclarations cachedFuncs;
+	private transient CachedEngineDeclarations cachedDeclarations;
 	private transient Map<String, Variable[]> cachedPrefixedVariables;
 
 	private transient EngineSettings intrinsicSettings;
@@ -128,8 +128,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * Return {@link CachedEngineDeclarations} for this engine.
 	 * @return The {@link CachedEngineDeclarations}
 	 */
-	public final CachedEngineDeclarations cachedFuncs() {
-		return cachedFuncs;
+	public final CachedEngineDeclarations cachedDeclarations() {
+		return cachedDeclarations;
 	}
 	
 	/**
@@ -152,7 +152,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	private void resetCache() {
-		cachedFuncs = new CachedEngineDeclarations(this);
+		cachedDeclarations = new CachedEngineDeclarations(this);
 		cachedPrefixedVariables = null;
 	}
 

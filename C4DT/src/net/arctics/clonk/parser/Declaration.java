@@ -528,7 +528,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 
 			@Override
 			public CachedEngineDeclarations cachedEngineDeclarations() {
-				return engine().cachedFuncs();
+				return engine().cachedDeclarations();
 			}
 		};
 	}

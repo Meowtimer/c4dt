@@ -435,7 +435,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (script != null) {
 			engine = script.engine();
 			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
-			cachedEngineDeclarations = engine.cachedFuncs();
+			cachedEngineDeclarations = engine.cachedDeclarations();
 
 			if (script.index() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) script.index();
