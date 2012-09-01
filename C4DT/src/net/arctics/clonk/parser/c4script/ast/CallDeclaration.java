@@ -273,6 +273,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
+		IType type = declarationType(context);
+		if (type instanceof FunctionType)
+			return ((FunctionType)type).prototype().returnType();
+		else
+			return type;
+	}
+
+	private IType declarationType(DeclarationObtainmentContext context) {
 		Declaration d = declarationFromContext(context);
 		
 		// look for gathered type information
@@ -484,7 +492,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// variable as function
 			if (declaration instanceof Variable) {
 				((Variable)declaration).setUsed(true);
-				IType type = this.obtainType(context);
+				IType type = this.declarationType(context);
 				// no warning when in #strict mode
 				if (context.strictLevel() >= 2)
 					if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
