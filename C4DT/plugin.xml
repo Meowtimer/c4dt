@@ -752,6 +752,14 @@
 			<run class="net.arctics.clonk.cli.CLI"/>
 		</application>
 	</extension>
+	
+	<extension point="org.eclipse.ui.bindings">
+		<key
+			commandId="net.arctics.clonk.ui.OpenDefinition"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			sequence="M1+SHIFT+T">
+      </key>
+   </extension>
 
 	<!--
 	<extension point="org.eclipse.ui.popupMenus">
