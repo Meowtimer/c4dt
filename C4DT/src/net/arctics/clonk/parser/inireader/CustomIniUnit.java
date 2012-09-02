@@ -10,8 +10,8 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.util.Utilities;
 
 public class CustomIniUnit extends IniUnit {
@@ -65,11 +65,11 @@ public class CustomIniUnit extends IniUnit {
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
 				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
 					continue;
-				IniDataSection dataSection = configuration().getSections().get(annot.category());
+				IniSectionDefinition dataSection = configuration().getSections().get(annot.category());
 				if (dataSection != null) {
-					IniDataBase dataItem = dataSection.getEntry(f.getName());
-					if (dataItem instanceof IniDataEntry) {
-						IniDataEntry entry = (IniDataEntry) dataItem;
+					IniDataBase dataItem = dataSection.entryForKey(f.getName());
+					if (dataItem instanceof IniEntryDefinition) {
+						IniEntryDefinition entry = (IniEntryDefinition) dataItem;
 						Constructor<?> ctor;
 						Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
 						if (value == null) {

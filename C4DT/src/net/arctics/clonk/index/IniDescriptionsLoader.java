@@ -12,8 +12,8 @@ import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniParserException;
@@ -27,8 +27,8 @@ public class IniDescriptionsLoader {
 	private class DescriptionsIniConfiguration extends IniConfiguration {
 		public DescriptionsIniConfiguration() {
 			super();
-			sections.put("Descriptions", new IniDataSection() { //$NON-NLS-1$
-				private final IniDataEntry entry = new IniDataEntry("", String.class); //$NON-NLS-1$
+			sections.put("Descriptions", new IniSectionDefinition() { //$NON-NLS-1$
+				private final IniEntryDefinition entry = new IniEntryDefinition("", String.class); //$NON-NLS-1$
 
 				@Override
 				public boolean hasEntry(String entryName) {
@@ -36,13 +36,13 @@ public class IniDescriptionsLoader {
 				}
 
 				@Override
-				public IniDataEntry getEntry(String key) {
+				public IniEntryDefinition entryForKey(String key) {
 					return entry;
 				}
 			});
 			factory = new IEntryFactory() {
 				@Override
-				public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
+				public Object create(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws InvalidClassException, IniParserException {
 					return value;
 				}
 			};

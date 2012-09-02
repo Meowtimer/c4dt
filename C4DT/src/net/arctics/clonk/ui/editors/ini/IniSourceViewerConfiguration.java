@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -102,10 +102,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
-							IniDataBase dataItem = section.sectionData().getEntry(attrib);
+							IniDataBase dataItem = section.sectionData().entryForKey(attrib);
 							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
-							if (dataItem instanceof IniDataEntry) {
-								IniDataEntry entry = (IniDataEntry) dataItem;
+							if (dataItem instanceof IniEntryDefinition) {
+								IniEntryDefinition entry = (IniEntryDefinition) dataItem;
 								Class<?> entryClass = entry.entryClass();
 								Declaration declaration = null;
 								if (entryClass == ID.class) {

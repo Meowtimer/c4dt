@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
 
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
 
@@ -14,7 +14,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	public IntegerArray() {
 	}
 	
-	public IntegerArray(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public IntegerArray(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		setInput(value, entryData, context);
 	}
 	
@@ -33,7 +33,7 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	}
 
 	@Override
-	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		try {
 			// empty input should be okay
 			if (input.equals("")) { //$NON-NLS-1$

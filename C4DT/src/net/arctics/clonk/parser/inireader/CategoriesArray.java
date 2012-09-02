@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 
 
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 public class CategoriesArray extends IniEntryValueBase {
 
@@ -17,7 +17,7 @@ public class CategoriesArray extends IniEntryValueBase {
 	}
 
 	@Override
-	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		value = new CategoriesValue(input, context.engine(), entryData.constantsPrefix());
 	}
 

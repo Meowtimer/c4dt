@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
 
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 import org.eclipse.core.resources.IMarker;
 
@@ -21,7 +21,7 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 	}
 
 	@Override
-	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
 			int inlineCommentStart = input.indexOf(';');
@@ -39,7 +39,7 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 		}
 	}
 
-	protected void setNumberFromStringValue(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	protected void setNumberFromStringValue(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		setNumber(Long.parseLong(input));
 	}
 	

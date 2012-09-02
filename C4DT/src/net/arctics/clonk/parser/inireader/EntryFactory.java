@@ -3,14 +3,14 @@ package net.arctics.clonk.parser.inireader;
 import java.io.InvalidClassException;
 
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 public enum EntryFactory implements IEntryFactory {
 	
 	INSTANCE;
 	
 	@Override
-	public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
+	public Object create(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws InvalidClassException, IniParserException {
 		if (value == null)
 			value = ""; //$NON-NLS-1$
 		if (type.equals(ID.class))

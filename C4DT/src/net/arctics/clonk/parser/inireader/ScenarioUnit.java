@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 
 public class ScenarioUnit extends IniUnit {
 
@@ -17,7 +17,7 @@ public class ScenarioUnit extends IniUnit {
 	}
 	
 	@Override
-	protected IniDataSection sectionDataFor(IniSection section, IniSection parentSection) {
+	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
 		if (section.name().startsWith("Player")) //$NON-NLS-1$
 			return configuration().getSections().get("Player"); //$NON-NLS-1$
 		return super.sectionDataFor(section, parentSection);

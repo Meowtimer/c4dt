@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 /**
  * Entry class for those Definition[1-9] entries
@@ -17,7 +17,7 @@ public class DefinitionPack extends IniEntryValueBase {
 	}
 	
 	@Override
-	public void setInput(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 

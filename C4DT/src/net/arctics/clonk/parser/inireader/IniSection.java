@@ -11,7 +11,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -27,7 +27,7 @@ public class IniSection extends Declaration implements
 
 	private Map<String, IniItem> itemMap;
 	private List<IniItem> itemList;
-	private IniDataSection sectionData;
+	private IniSectionDefinition sectionData;
 	private int indentation;
 	private int sectionEnd;
 
@@ -39,11 +39,11 @@ public class IniSection extends Declaration implements
 		this.sectionEnd = sectionEnd;
 	}
 
-	public IniDataSection sectionData() {
+	public IniSectionDefinition sectionData() {
 		return sectionData;
 	}
 
-	public void setSectionData(IniDataSection sectionData) {
+	public void setSectionData(IniSectionDefinition sectionData) {
 		this.sectionData = sectionData;
 	}
 

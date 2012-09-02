@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.ITreeNode;
@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.IPath;
 public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryValueBase implements IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
-	public KeyValueArrayEntry(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public KeyValueArrayEntry(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		setInput(value, entryData, context);
 	}
 	
@@ -46,7 +46,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	public abstract KeyValuePair<KeyType, ValueType> singleComponentFromString(String s);
 
 	@Override
-	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
+	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		// CLNK=1;STIN=10;
 		components.clear();
 		String[] parts = input.split(";|,"); //$NON-NLS-1$

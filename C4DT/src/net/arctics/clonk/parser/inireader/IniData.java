@@ -23,11 +23,10 @@ public class IniData {
 	
 	public static class IniConfiguration {
 		private String filename;
-		protected Map<String, IniDataSection> sections = new HashMap<String, IniDataSection>();
+		protected Map<String, IniSectionDefinition> sections = new HashMap<String, IniSectionDefinition>();
 		protected IEntryFactory factory = null;
 		
-		protected IniConfiguration() {
-		}
+		protected IniConfiguration() {}
 		
 		public static IniConfiguration createFromXML(Node fileNode) throws InvalidIniConfigurationException {
 			IniConfiguration conf = new IniConfiguration();
@@ -39,8 +38,8 @@ public class IniData {
 			NodeList sectionNodes = fileNode.getChildNodes();
 			for(int i = 0; i < sectionNodes.getLength(); i++)
 				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
-					IniDataSection section = IniDataSection.createFromXML(sectionNodes.item(i), conf.factory);
-					conf.getSections().put(section.getSectionName(), section);
+					IniSectionDefinition section = IniSectionDefinition.createFromXML(sectionNodes.item(i), conf.factory);
+					conf.getSections().put(section.sectionName(), section);
 				}
 			return conf;
 		}
@@ -50,13 +49,13 @@ public class IniData {
 			for (Field f : clazz.getFields()) {
 				IniField annotation;
 				if ((annotation = f.getAnnotation(IniField.class)) != null) {
-					IniDataSection section = result.getSections().get(annotation.category());
+					IniSectionDefinition section = result.getSections().get(annotation.category());
 					if (section == null) {
-						section = new IniDataSection();
+						section = new IniSectionDefinition();
 						section.sectionName = annotation.category();
 						result.sections.put(annotation.category(), section);
 					}
-					section.entries.put(f.getName(), new IniDataEntry(f.getName(), f.getType()));
+					section.entries.put(f.getName(), new IniEntryDefinition(f.getName(), f.getType()));
 				}
 			}
 			result.factory = EntryFactory.INSTANCE;
@@ -67,7 +66,7 @@ public class IniData {
 			return filename;
 		}
 
-		public Map<String, IniDataSection> getSections() {
+		public Map<String, IniSectionDefinition> getSections() {
 			return sections;
 		}
 		
@@ -85,19 +84,16 @@ public class IniData {
 		
 	}
 
-	public static class IniDataBase {
-		
-	}
+	public static class IniDataBase {}
 
-	public static class IniDataSection extends IniDataBase {
+	public static class IniSectionDefinition extends IniDataBase {
 		private String sectionName;
 		private final Map<String, IniDataBase> entries = new HashMap<String, IniDataBase>();
 		
-		protected IniDataSection() {
-		}
+		protected IniSectionDefinition() {}
 		
-		public static IniDataSection createFromXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
-			IniDataSection section = new IniDataSection();
+		public static IniSectionDefinition createFromXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+			IniSectionDefinition section = new IniSectionDefinition();
 			if (sectionNode.getAttributes() == null || 
 					sectionNode.getAttributes().getLength() == 0 || 
 					sectionNode.getAttributes().getNamedItem("name") == null)
@@ -108,22 +104,22 @@ public class IniData {
 				Node node = entryNodes.item(i);
 				// there was a '==' comparison all the time :D - did work by chance or what?
 				if (node.getNodeName().equals("entry")) { //$NON-NLS-1$
-					IniDataEntry entry = IniDataEntry.createFromXML(node, factory);
-					section.getEntries().put(entry.entryName(), entry);
+					IniEntryDefinition entry = IniEntryDefinition.createFromXML(node, factory);
+					section.entries().put(entry.entryName(), entry);
 				}
 				else if (node.getNodeName().equals("section")) {
-					IniDataSection sec = IniDataSection.createFromXML(node, factory);
-					section.getEntries().put(sec.getSectionName(), sec);
+					IniSectionDefinition sec = IniSectionDefinition.createFromXML(node, factory);
+					section.entries().put(sec.sectionName(), sec);
 				}
 			}
 			return section;
 		}
 		
-		public String getSectionName() {
+		public String sectionName() {
 			return sectionName;
 		}
 
-		public Map<String, IniDataBase> getEntries() {
+		public Map<String, IniDataBase> entries() {
 			return entries;
 		}
 		
@@ -132,30 +128,26 @@ public class IniData {
 		}
 		
 		public boolean hasSection(String section) {
-			IniDataBase item = getEntry(section);
-			return item instanceof IniDataSection;
-		}
-		
-		public String[] getEntryNames() {
-			return entries.keySet().toArray(new String[entries.size()]);
+			IniDataBase item = entryForKey(section);
+			return item instanceof IniSectionDefinition;
 		}
 
-		public IniDataBase getEntry(String key) {
-			return getEntries().get(key);
+		public IniDataBase entryForKey(String key) {
+			return entries().get(key);
 		}
 		
 	}
 	
-	public static final class IniDataEntry extends IniDataBase {
+	public static final class IniEntryDefinition extends IniDataBase {
 		protected String entryName;
 		protected Class<?> entryClass;
 		protected String entryDescription;
 		protected Object extraData;
 		
-		protected IniDataEntry() {
+		protected IniEntryDefinition() {
 		}
 		
-		public IniDataEntry(String name, Class<?> valueType) {
+		public IniEntryDefinition(String name, Class<?> valueType) {
 			entryName = name;
 			if (valueType == String.class)
 				entryClass = valueType;
@@ -179,9 +171,9 @@ public class IniData {
 			}
 		}
 		
-		public static IniDataEntry createFromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+		public static IniEntryDefinition createFromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
 			Node n;
-			IniDataEntry entry = new IniDataEntry();
+			IniEntryDefinition entry = new IniEntryDefinition();
 			if (entryNode.getAttributes() == null || 
 					entryNode.getAttributes().getLength() < 2 || 
 					entryNode.getAttributes().getNamedItem("name") == null || //$NON-NLS-1$

@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.inireader;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -15,7 +15,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Object extendedValue;
-	private IniDataEntry entryConfig;
+	private IniEntryDefinition entryConfig;
 
 	protected ComplexIniEntry(int pos, int endPos, String key, String value) {
 		super(pos,endPos, key,value);
@@ -30,15 +30,15 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		return extendedValue;
 	}
 	
-	public void setEntryConfig(IniDataEntry entryConfig) {
+	public void setEntryConfig(IniEntryDefinition entryConfig) {
 		this.entryConfig = entryConfig;
 	}
 	
-	public IniDataEntry entryConfig() {
+	public IniEntryDefinition entryConfig() {
 		return entryConfig;
 	}
 	
-	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniDataEntry config, boolean createErrorMarkers) {
+	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniEntryDefinition config, boolean createErrorMarkers) {
 		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
