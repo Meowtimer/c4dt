@@ -22,17 +22,17 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
-import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
+import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -115,9 +115,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								}
 								else if (entryClass == FunctionEntry.class) {
 									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent());
-									if (obj != null) {
+									if (obj != null)
 										declaration = obj.findFunction(value);
-									}
 								}
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
@@ -145,24 +144,16 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == DefinitionPack.class) {
 									Index projIndex = ProjectIndex.fromResource(Utilities.fileBeingEditedBy(editor()).getParent()).index();
 									List<Index> indexes = projIndex.relevantIndexes();
-									for (Index index : indexes) {
+									for (Index index : indexes)
 										if (index instanceof ProjectIndex) {
 											ProjectIndex pi = (ProjectIndex) index;
-											try {
-												for (IResource res : pi.project().members()) {
-													if (res instanceof IContainer && projIndex.engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
-														if (res.getName().equals(value)) {
-															return new IHyperlink[] {
-																new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
-															};
-														}
-													}
-												}
-											} catch (CoreException e) {
-												e.printStackTrace();
-											}	
+											IPath path = Path.fromPortableString(value.replaceAll("\\\\", "/"));
+											IResource res = pi.project().findMember(path);
+											if (res instanceof IContainer)
+												return new IHyperlink[] {
+													new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
+												};
 										}
-									}
 								}
 								else if (entryClass == IconSpec.class) {
 									String firstPart = value.split(":")[0];
@@ -179,11 +170,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								
-								if (declaration != null) {
+								if (declaration != null)
 									return new IHyperlink[] {
 										new ClonkHyperlink(new Region(linkStart, linkLen), declaration)
 									};
-								}
 							}
 						}
 					}
