@@ -11,6 +11,9 @@ public class Messages extends NLS {
 	public static String ClonkFolderView_Import;
 	public static String ClonkFolderView_JustAFolder;
 	public static String ClonkFolderView_Link;
+	public static String ClonkFolderView_LookForIDJobDescription;
+	public static String ClonkFolderView_LookForIDMenuText;
+	public static String ClonkFolderView_LookForIDPromptCaption;
 	public static String ClonkFolderView_OpenInCurrentProject;
 	public static String ClonkFolderView_Project;
 	public static String ClonkFolderView_Refresh0;
