@@ -111,7 +111,9 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 							// noop
 							break;
 						}
+						ExprElm original = elms;
 						elms = new Block(elms.subElements());
+						elms.setExprRegion(original);
 						elms.exhaustiveOptimize(parser).print(blockStringBuilder, 1);
 						String blockString = blockStringBuilder.toString();
 						int blockBegin;
