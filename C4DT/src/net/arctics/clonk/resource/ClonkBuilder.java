@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
@@ -116,6 +117,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	@Override
 	@SuppressWarnings({"rawtypes"})
+	@Profiled
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		this.buildKind = kind;
 		this.monitor = monitor;
