@@ -38,11 +38,14 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		controlVariables.clear();
 	}
 	
+	/**
+	 * Creates global const variables for definitions in the PlayerControls.txt file so they can be used in scripts.
+	 */
 	@Override
 	protected void endParsing() {
 		IniSection controlsDefsSection = sectionWithName("ControlDefs");
-		if (controlsDefsSection != null) {
-			for (IniItem item : controlsDefsSection.subItemList()) {
+		if (controlsDefsSection != null)
+			for (IniItem item : controlsDefsSection.subItemList())
 				if (item instanceof IniSection) {
 					IniSection section = (IniSection) item;
 					if (section.name().equals("ControlDef")) { //$NON-NLS-1$
@@ -58,8 +61,6 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 						}
 					}
 				}
-			}
-		}
 		super.endParsing();
 	}
 	
@@ -79,11 +80,10 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		if (declarationClass == Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
+		if (declarationClass == Variable.class && declarationName.startsWith("CON_"))
 			for (Variable var : controlVariables())
 				if (var.name().equals(declarationName))
 					return var;
-		}
 		return super.findLocalDeclaration(declarationName, declarationClass);
 	}
 	
