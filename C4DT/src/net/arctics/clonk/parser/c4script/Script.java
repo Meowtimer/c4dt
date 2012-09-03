@@ -386,14 +386,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			from instanceof Directive ? DIRECTIVES : 0;
 		T candidate = null;
 		boolean locationMatch = false;
-		for (Declaration d : subDeclarations(this.index(), mask))
+		for (Declaration d : subDeclarations(this.index(), mask)) {
+			if (d == from)
+				return (T)d;
 			if (d.name().equals(from.name())) {
-				boolean newLocationMatch = from.location().equals(d.location());
+				boolean newLocationMatch = Utilities.objectsEqual(d.location(), from.location());
 				if (candidate == null || (newLocationMatch && !locationMatch)) {
 					candidate = (T)d;
 					locationMatch = newLocationMatch;
 				}
 			}
+		}
 		return candidate;
 	};
 
