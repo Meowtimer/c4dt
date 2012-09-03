@@ -77,9 +77,8 @@ public class ClonkHyperlink implements IHyperlink {
 
 	@Override
 	public void open() {
-		if (this.targets.size() == 1) {
+		if (this.targets.size() == 1)
 			openTarget(this.targets.iterator().next(), true);
-		}
 		else
 			chooseDeclarations();
 	}
@@ -103,18 +102,15 @@ public class ClonkHyperlink implements IHyperlink {
 					new FileStoreEditorInput(sourceFile),
 					EditorsUI.DEFAULT_TEXT_EDITOR_ID
 				);
-				if (editor instanceof ITextEditor) {
+				if (editor instanceof ITextEditor)
 					((ITextEditor)editor).selectAndReveal(documentedFunction.location().getOffset(), documentedFunction.location().getLength());
-				}
 			}
 			else if (target instanceof Declaration) {
 				Declaration dec = (Declaration)target;
-				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null) {
+				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null)
 					// can't open editor so try something else like opening up a documentation page in the browser
-					if (dec.isEngineDeclaration()) {
+					if (dec.isEngineDeclaration())
 						openDocumentationForFunction(dec.name(), dec.engine());
-					}
-				}
 			}
 			else if (target instanceof ProjectResource) {
 				CommonNavigator nav = UI.projectExplorer();
@@ -132,21 +128,18 @@ public class ClonkHyperlink implements IHyperlink {
 		String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
+		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable())
 			browser = support.getExternalBrowser();
-		}
 		else {
 			browser = internalBrowser.get();
-			if (browser == null) {
+			if (browser == null)
 				internalBrowser = new WeakReference<IWebBrowser>(browser = support.createBrowser(null));
-			}
 		}
-		if (browser != null) {
+		if (browser != null)
 			browser.openURL(new URL(String.format(
 				docURLTemplate,
 				functionName, ClonkPreferences.languagePref().toLowerCase()
 			)));
-		}
 	}
 
 	public IRegion region() {
