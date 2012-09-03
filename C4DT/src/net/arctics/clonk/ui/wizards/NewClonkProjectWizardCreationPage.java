@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 
-public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationPage implements IEngineProvider {
+public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationPage implements IEngineProvider {
 
 	private C4GroupListEditor linkGroupsEditor, importGroupsEditor;
 	private CheckboxTableViewer projectReferencesViewer;
@@ -30,7 +30,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	private PreferenceStore dummyPrefStore;
 	private TabItem linkTab, importTab, referenceTab;
 	
-	public WizardNewClonkProjectCreationPage(String pageName) {
+	public NewClonkProjectWizardCreationPage(String pageName) {
 		super(pageName);
 		setImageDescriptor(UI.imageDescriptorForPath("icons/project_big.png"));
 	}

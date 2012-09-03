@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.util.IHasLabelAndImage;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.search.ui.text.Match;
@@ -22,12 +23,12 @@ public class FindDuplicatesMatch extends Match implements IHasLabelAndImage {
 	}
 
 	@Override
-	public String getLabel() {
+	public String label() {
 		return dupe.qualifiedName();
 	}
 
 	@Override
-	public Image getImage() {
+	public Image image() {
 		return UI.DUPE_ICON;
 	}
 
@@ -37,7 +38,7 @@ public class FindDuplicatesMatch extends Match implements IHasLabelAndImage {
 	
 	@Override
 	public String toString() {
-		return getLabel();
+		return label();
 	}
 
 }

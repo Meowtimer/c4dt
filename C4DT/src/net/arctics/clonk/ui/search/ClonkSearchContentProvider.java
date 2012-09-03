@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.IHasLabelAndImage;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.UI;
 
@@ -81,7 +82,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		if (element instanceof Function)
 			return ((Function)element).qualifiedName();
 		else if (element instanceof IHasLabelAndImage)
-			return ((IHasLabelAndImage)element).getLabel();
+			return ((IHasLabelAndImage)element).label();
 		else
 			return element.toString();
 	}
@@ -102,7 +103,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		}
 		else if (element instanceof IHasLabelAndImage) {
 			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
-			return lblimg.getImage();
+			return lblimg.image();
 		}
 		return super.getImage(element);
 	}
@@ -128,7 +129,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		}
 		else if (element instanceof IHasLabelAndImage) {
 			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
-			return new StyledString(lblimg.getLabel());
+			return new StyledString(lblimg.label());
 		}
 		return new StyledString(element.toString());
 	}

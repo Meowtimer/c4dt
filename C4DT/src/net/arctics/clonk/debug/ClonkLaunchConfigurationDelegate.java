@@ -71,7 +71,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			File workDirectory = engine.getParentFile();
 			
 			// Progress
-			if(monitor.isCanceled()) return;
+			if(monitor.isCanceled())
+				return;
 			monitor.worked(1);
 			monitor.subTask(Messages.StartingClonkEngine);
 			
@@ -87,14 +88,13 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine");
 				processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenario.getProjectRelativePath().toOSString());
 				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
-				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+				if (mode.equals(ILaunchManager.DEBUG_MODE))
 					try {
 						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
 						launch.addDebugTarget(target);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				}
 			} catch(IOException e) {
 				abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
@@ -138,6 +138,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	
 	/** 
 	 * Searches an appropriate Clonk installation for launching the scenario.
+	 * @param configuration The launch configuration
+	 * @param scenario Scenario folder
 	 * @return The path of the Clonk engine executable
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
@@ -182,11 +184,16 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		return String.format(engine.settings().cmdLineOptionWithArgumentFormat, option, argument);
 	}
 	
-	/** 
+	/**
 	 * Collects arguments to pass to the engine at launch
-	 * @param mode 
+	 * @param configuration Launch configuration
+	 * @param scenario Scenario resource
+	 * @param engine Engine executable
+	 * @param mode (either {@link ILaunchManager#DEBUG_MODE} or {@link ILaunchManager#RUN_MODE}
+	 * @return Command-line arguments to run the engine with
+	 * @throws CoreException
 	 */
-	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IResource scenario, File engine, String mode) throws CoreException {
+	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IFolder scenario, File engine, String mode) throws CoreException {
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
@@ -197,7 +204,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		
 		Engine engineObj;
 		try {
-			engineObj = Scenario.get((IContainer) scenario).engine();
+			engineObj = Scenario.get(scenario).engine();
 		} catch (Exception e) {
 			return null;
 		}
@@ -205,21 +212,18 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			return null;
 		
 		// add stuff from the project so Clonk does not fail to find them
-		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes()) {
+		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
 			if (index instanceof ProjectIndex) {
 				IContainer projectLevel = ((ProjectIndex)index).project();
-				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {
-					for (IResource res : c.members()) {
+				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent())
+					for (IResource res : c.members())
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
 							GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
 									args.add(resFilePath(res));
 						}
-					}
-				}
 			}
-		}
 		
 		// Full screen/console
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))

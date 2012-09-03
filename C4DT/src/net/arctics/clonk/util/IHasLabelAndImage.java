@@ -1,8 +1,8 @@
-package net.arctics.clonk.ui.search;
+package net.arctics.clonk.util;
 
 import org.eclipse.swt.graphics.Image;
 
 public interface IHasLabelAndImage {
-	String getLabel();
-	Image getImage();
+	String label();
+	Image image();
 }

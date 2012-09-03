@@ -20,7 +20,7 @@ import org.eclipse.ui.IWorkbench;
 
 public class NewClonkProject extends Wizard implements INewWizard {
 	
-	protected WizardNewClonkProjectCreationPage page;
+	protected NewClonkProjectWizardCreationPage page;
 	
 	@Override
 	public boolean performFinish() {
@@ -59,7 +59,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		page = new WizardNewClonkProjectCreationPage("newProject"); //$NON-NLS-1$
+		page = new NewClonkProjectWizardCreationPage("newProject"); //$NON-NLS-1$
 		page.setTitle(Messages.NewClonkProject_PageTitle);
 		addPage(page);
 		setWindowTitle(Messages.NewClonkProject_WindowTitle);

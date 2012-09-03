@@ -324,7 +324,6 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public int seek(int newPos) {
 		offset = newPos;
-		//if (offset >= size) offset = size - 1;
 		return offset;
 	}
 	

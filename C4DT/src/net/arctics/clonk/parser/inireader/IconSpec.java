@@ -4,28 +4,28 @@ import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 public class IconSpec extends IniEntryValueBase implements IConvertibleToPrimitive {
 
-	private String Definition;
-	private int Index;
+	private String definition;
+	private int index;
 	
 	@Override
 	public Object convertToPrimitive() {
-		return Definition;
+		return definition;
 	}
 
 	@Override
 	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		String[] split = value.split(":");
-		Definition = split[0];
+		definition = split[0];
 		if (split.length > 1) try {
-			Index = Integer.parseInt(split[1]);
+			index = Integer.parseInt(split[1]);
 		} catch (NumberFormatException e) {
-			Index = 0;
+			index = 0;
 		}
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("%s:%d", Definition, Index);
+		return String.format("%s:%d", definition, index);
 	}
 
 }

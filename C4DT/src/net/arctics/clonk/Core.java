@@ -45,10 +45,8 @@ import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IDocument;
@@ -68,6 +66,7 @@ import org.xml.sax.SAXException;
 public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 	
 	public static final String HUMAN_READABLE_NAME = Messages.HumanReadableName;
+	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
 	
 	/**
 	 * The Plugin-ID
@@ -122,16 +121,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * Provider used by the plugin to provide text of documents
 	 */
 	private TextFileDocumentProvider textFileDocumentProvider;
-
-	/**
-	 * The constructor
-	 * @throws IOException 
-	 */
-	public Core() {
-	}
 	
-	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
+	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
+	private boolean runsHeadless;
+
+	public Core() {}
 	
 	public Version versionFromLastRun() {
 		return versionFromLastRun;
@@ -252,7 +247,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		IStorageLocation[] locations;
 		if (getBundle() != null)
 			// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
-			locations = IDEStorageLocations(engineName);
+			locations = storageLocations(engineName);
 		else
 			// no bundle? seems to run headlessly
 			locations = headlessStorageLocations(engineName);
@@ -262,7 +257,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return result;
 	}
 
-	private IStorageLocation[] IDEStorageLocations(final String engineName) {
+	private IStorageLocation[] storageLocations(final String engineName) {
 		return new IStorageLocation[] {
 			new FolderStorageLocation(engineName) {
 				@Override
@@ -321,8 +316,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			}
 		};
 	}
-
-	private String engineConfigurationFolder;
 
 	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		setActiveEngineByName(ClonkPreferences.valueOrDefault(ClonkPreferences.ACTIVE_ENGINE));
@@ -424,7 +417,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return instance;
 	}
 	
-	private boolean runsHeadless;
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (instance == null) {
 			instance = new Core();
@@ -473,16 +465,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	@Override
-	public void doneSaving(ISaveContext context) {
-	}
+	public void doneSaving(ISaveContext context) {}
 
 	@Override
-	public void prepareToSave(ISaveContext context) throws CoreException {
-	}
+	public void prepareToSave(ISaveContext context) throws CoreException {}
 
 	@Override
-	public void rollback(ISaveContext context) {
-	}
+	public void rollback(ISaveContext context) {}
 
 	@Override
 	public void saving(ISaveContext context) throws CoreException {
@@ -541,6 +530,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				removeRecursively(new File(stateDir, file));
 	}
 
+	/**
+	 * Prepend {@link #PLUGIN_ID} to the parameter, making it a complete plugin id
+	 * @param id The parameter to make a full plugin-id from
+	 * @return The plugin id
+	 */
 	public static String id(String id) {
 		return PLUGIN_ID + "." + id; //$NON-NLS-1$
 	}
@@ -615,11 +609,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
 	
-	public void reportException(Exception e) {
-		e.printStackTrace();
-		getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage()));
-	}
-
 	public boolean runsHeadless() {
 		return runsHeadless;
 	}
