@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: C4DTAspects
+Bundle-SymbolicName: net.arctics.clonk.aspects
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: net.arctics.clonk,
+ org.aspectj.runtime;visibility:=reexport,
+ org.eclipse.osgi,
+ org.eclipse.core.runtime
+Eclipse-SupplementBundle: net.arctics.clonk
+Export-Package: net.arctics.clonk.aspects
