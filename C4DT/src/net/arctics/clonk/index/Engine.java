@@ -731,6 +731,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return settings().supportsFloats;
 		case REFERENCE:
 			return settings().supportsRefs;
+		case PROPLIST:
+			return settings().supportsProplists;
 		default:
 			return true;
 		}

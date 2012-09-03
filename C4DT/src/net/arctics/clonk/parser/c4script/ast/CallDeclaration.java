@@ -613,7 +613,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!parser.containingScript().engine().settings().proplistsSupported && predecessorInSequence() != null)
+			if (!parser.containingScript().engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);

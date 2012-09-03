@@ -191,7 +191,7 @@ public class MemberOperator extends ExprElm {
 	
 	@Override
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
-		if (context.containingScript().engine().settings().proplistsSupported) {
+		if (context.containingScript().engine().settings().supportsProplists) {
 			ExprElm succ = successorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();
