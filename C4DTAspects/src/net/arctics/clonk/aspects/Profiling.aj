@@ -1,5 +1,7 @@
 package net.arctics.clonk.aspects;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,11 +21,11 @@ public aspect Profiling {
 	private static Map<Signature, Long> PROFILING = new HashMap<Signature, Long>();
 	
 	before(): profiledMethods() {
-		start(thisJoinPoint.getSignature().toString());
+		start(thisJoinPoint.getSignature().getName());
 	}
 	
 	after(): profiledMethods() {
-		end(thisJoinPoint.getSignature().toString());
+		end(thisJoinPoint.getSignature().getName());
 	}
 	
 	public static void start(String name) {
@@ -50,6 +52,14 @@ public aspect Profiling {
 		}
 	}
 	
+	private static File csvFile(String name) {
+		File baseFolder = new File(System.getProperty("user.home"), "Profiling");
+		baseFolder.mkdirs();
+		File f;
+		for (int i = 1; (f = new File(baseFolder, String.format("%s%d.csv", name, i))).exists(); i++);
+		return f;
+	}
+	
 	public static void end(String name) {
 		ENABLED = false;
 		System.out.println("End " + name);
@@ -67,7 +77,16 @@ public aspect Profiling {
 				return diff > 0 ? 1 : diff < 0 ? -1 : 0;
 			}
 		});
-		for (Entry<Signature, Long> s : list)
-			System.out.println(s.getKey() + ": " + s.getValue());
+		try {
+			PrintWriter pw = new PrintWriter(csvFile(name));
+			try {
+				for (Entry<Signature, Long> s : list)
+					pw.print(String.format("%s,%s\n", s.getKey().toString().replaceAll(",", " "), s.getValue()));
+			} finally {
+				pw.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
