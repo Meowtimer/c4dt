@@ -177,3 +177,14 @@ are then taken into account in various places
 1.7.3:
 -Option to analyze code which can be turned off, leading to c4dt doing less on clean build and other occasions
 -Fixes
+1.7.4:
+-Optimize "Reporting problems" building phase a bit
+-Fix some Clonk Rage parsing issues
+-Clonk Folder View
+	-Add multi-selection
+	-Add Look for ID command
+-TidyUpCodeInBulk: Temporarily disable auto-build
+-C4Group export: Indicate in Eclipse UI that c4group process still running
+-C4ScriptParser fixes
+-Teams.txt: Add some missing entries to definition
+-Probably more bugs with some fixed 
