@@ -772,3 +772,5 @@ global func string GetScoreboardString(int par0, int par1);
 global func bool SetNextMission(string par0, string par1, string par2);
 global func any CastBool(par0, par1, par2, par3, par4, par5, par6, par7, par8, par9);
 global func any CastAny(par0, par1, par2, par3, par4, par5, par6, par7, par8, par9);
+
+global func int GetLeagueScore(int iPlayerID);
