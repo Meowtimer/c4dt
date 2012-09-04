@@ -491,30 +491,31 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				}
 				f = null;
 			}
-			if (info.findGlobalVariables) {
-				if (engine().acceptsId(name)) {
-					Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
-					if (d != null && info.declarationClass == Variable.class)
-						f = d.proxyVar();
-					else
-						f = d;
-					if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
-						Scenario scenario = Scenario.nearestScenario(this.resource());
-						if (scenario != null)
-							f = scenario.propList();
-					}
+
+			if (info.findGlobalVariables && engine().acceptsId(name)) {
+				Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
+				if (d != null && info.declarationClass == Variable.class)
+					f = d.proxyVar();
+				else
+					f = d;
+				if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
+					Scenario scenario = Scenario.nearestScenario(this.resource());
+					if (scenario != null)
+						f = scenario.propList();
 				}
-				// global stuff defined in project
-				if (f == null)
-					for (Index index : info.index.relevantIndexes()) {
-						f = index.findGlobalDeclaration(name, resource());
-						if (f != null)
-							break;
-					}
-				// engine function
-				if (f == null)
-					f = index().engine().findDeclaration(name, info);
 			}
+
+			// global stuff defined in project
+			if (f == null)
+				for (Index index : info.index.relevantIndexes()) {
+					f = index.findGlobalDeclaration(name, resource());
+					if (f != null && !info.findGlobalVariables && !(f instanceof Function))
+						break;
+				}
+			// engine function
+			if (f == null)
+				f = index().engine().findDeclaration(name, info);
+			
 			info.recursion--;
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
