@@ -1,15 +1,12 @@
 package net.arctics.clonk.resource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -24,7 +21,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -307,17 +303,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}, 20);
 	}
 	
-	private final Map<Class<? extends ExprElm>, Double> problemReportingStats =
-		new HashMap<Class<? extends ExprElm>, Double>();
-	public Map<Class<? extends ExprElm>, Double> problemReportingStats() {
-		return problemReportingStats;
-	}
-	
 	private void phaseThree(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		problemReporters = new HashSet<Function>();
-		problemReportingStats.clear();
 		Utilities.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
@@ -336,24 +325,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			}
 		}, 20);
-		printStats();
 		problemReporters = null;
 		markers.deploy();
 		Display.getDefault().asyncExec(new UIRefresher(scripts));
-	}
-	private void printStats() {
-		List<Entry<Class<? extends ExprElm>, Double>> list = new ArrayList<Entry<Class<? extends ExprElm>, Double>>();
-		for (Entry<Class<? extends ExprElm>, Double> s : problemReportingStats.entrySet())
-			list.add(s);
-		Collections.sort(list, new Comparator<Entry<Class<? extends ExprElm>, Double>>() {
-			@Override
-			public int compare(Entry<Class<? extends ExprElm>, Double> o1, Entry<Class<? extends ExprElm>, Double> o2) {
-				double diff = o2.getValue() - o1.getValue();
-				return diff > 0 ? 1 : diff < 0 ? -1 : 0;
-			}
-		});
-		for (Entry<Class<? extends ExprElm>, Double> s : list)
-			System.out.println(s.getKey() + ": " + s.getValue());
 	}
 
 	public final Set<Function> problemReporters() {

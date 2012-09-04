@@ -2195,16 +2195,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (e != null)
 						reportProblemsOf(e, true);
 			try {
-				Double oldStat = 0.0;
-				if (builder != null) {
-					oldStat = builder.problemReportingStats().get(expression.getClass());
-					if (oldStat == null)
-						oldStat = 0.0;
-				}
-				long start = System.currentTimeMillis();
 				expression.reportProblems(this);
-				if (builder != null)
-					builder.problemReportingStats().put(expression.getClass(), oldStat+(System.currentTimeMillis()-start)/1000.0);
 			} catch (Exception s) {
 				// silent
 			}
