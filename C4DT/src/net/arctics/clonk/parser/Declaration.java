@@ -171,15 +171,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return The {@link Scenario}
 	 */
 	public Scenario scenario() {
-		Object file = script() != null ? script().scriptStorage() : null;
-		if (file instanceof IResource)
-			for (IResource r = (IResource) file; r != null; r = r.getParent())
-				if (r instanceof IContainer) {
-					Scenario s = Scenario.get((IContainer) r);
-					if (s != null)
-						return s;
-				}
-		return null;
+		return parentDeclaration != null ? parentDeclaration.scenario() : null;
 	}
 	
 	/**

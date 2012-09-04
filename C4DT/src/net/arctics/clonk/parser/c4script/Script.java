@@ -46,7 +46,6 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
@@ -269,6 +268,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return includes(index(), this, options);
 	}
 	
+	private transient int _lastIncludesIndex;
+	private transient int _lastIncludesOrigin;
+	private transient int _lastIncludesOptions;
+	
+	private enum Locks {
+		INCLUDES_GET
+	}
+	
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list
 	 * @param index The index to be passed to gatherIncludes
@@ -278,16 +285,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
 		requireLoaded();
-		if (
-			includes != null &&
-			(options & GatherIncludesOptions.Recursive) == 0 &&
-			origin instanceof IHasRelatedResource &&
-			Scenario.getAscending(((IHasRelatedResource)origin).resource()) == this.scenario() &&
-			index == this.index()
-		)
-			return includes;
-		else
-			return IHasIncludes.Default.includes(index, this, origin, options);
+		synchronized (Locks.INCLUDES_GET) {
+			int indexHash = index != null ? index.hashCode() : 0;
+			int originHash = origin != null ? origin.hashCode() : 0;
+			if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
+				return includes;
+			//System.out.println(this.name() + ": reget");
+			_lastIncludesIndex = indexHash;
+			_lastIncludesOrigin = originHash;
+			_lastIncludesOptions = options;
+			return includes = IHasIncludes.Default.includes(index, this, origin, options);
+		}
 	}
 
 	public Iterable<Script> dependentScripts() {
@@ -411,20 +419,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 
 		// prevent infinite recursion
-		if (info.alreadySearched.contains(this))
+		if (!info.startSearchingIn(this))
 			return null;
-		info.alreadySearched.add(this);
 		
 		Class<? extends Declaration> decClass = info.declarationClass;
 
 		// local variable?
 		if (info.recursion == 0)
-			if (info.contextFunction != null && (decClass == null || decClass == Variable.class)) {
+			if (info.contextFunction != null && (decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
 				Declaration v = info.contextFunction.findVariable(name);
 				if (v != null)
 					return v;
 			}
-		
+
 		// prefer using the cache
 		boolean didUseCacheForLocalDeclarations = false;
 		if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index()) {
@@ -448,7 +455,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return thisDec;
 
 		if (!didUseCacheForLocalDeclarations) {
-
 			// a function defined in this object
 			if (decClass == null || decClass == Function.class)
 				for (Function f : functions())
@@ -459,18 +465,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				for (Variable v : variables())
 					if (v.name().equals(name))
 						return v;
+			
+			info.recursion++;
+			{
+				for (IHasIncludes o : includes(info.index, info.searchOrigin, 0)) {
+					Declaration result = o.findDeclaration(name, info);
+					if (result != null)
+						return result;
+				}
+			}
+			info.recursion--;
 		}
 		
-		info.recursion++;
-		for (IHasIncludes o : includes(info.index, info.searchOrigin, 0)) {
-			Declaration result = o.findDeclaration(name, info);
-			if (result != null)
-				return result;
-		}
-		info.recursion--;
-
 		// finally look if it's something global
-		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
+		if (info.recursion == 0 && info.index != null) {
+			info.recursion++;
 			Declaration f = null;
 			// prefer declarations from scripts that were previously determined to be the providers of global declarations
 			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
@@ -482,30 +491,31 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				}
 				f = null;
 			}
-			// definition from extern index
-			if (info.findGlobalVariables && engine().acceptsId(name)) {
-				f = info.index.definitionNearestTo(resource(), ID.get(name));
-				if (f != null && info.declarationClass == Variable.class && f instanceof Definition)
-					f = ((Definition)f).proxyVar();
-				if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
-					Scenario scenario = Scenario.nearestScenario(this.resource());
-					if (scenario != null)
-						f = scenario.propList();
+			if (info.findGlobalVariables) {
+				if (engine().acceptsId(name)) {
+					Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
+					if (d != null && info.declarationClass == Variable.class)
+						f = d.proxyVar();
+					else
+						f = d;
+					if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
+						Scenario scenario = Scenario.nearestScenario(this.resource());
+						if (scenario != null)
+							f = scenario.propList();
+					}
 				}
+				// global stuff defined in project
+				if (f == null)
+					for (Index index : info.index.relevantIndexes()) {
+						f = index.findGlobalDeclaration(name, resource());
+						if (f != null)
+							break;
+					}
+				// engine function
+				if (f == null)
+					f = index().engine().findDeclaration(name, info);
 			}
-			// global stuff defined in project
-			if (f == null)
-				for (Index index : info.index.relevantIndexes()) {
-					f = index.findGlobalDeclaration(name, resource());
-					if (f != null && !info.findGlobalVariables && !(f instanceof Function))
-						f = null;
-					if (f != null)
-						break;
-				}
-			// engine function
-			if (f == null)
-				f = index().engine().findDeclaration(name, info);
-
+			info.recursion--;
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
 		}
@@ -1097,8 +1107,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void generateFindDeclarationCache() {
 		cachedFunctionMap = new HashMap<String, Function>();
 		cachedVariableMap = new HashMap<String, Variable>();
-		includes = null;
-		includes = includes(0);
 		_generateFindDeclarationCache();
 	}
 	
@@ -1118,13 +1126,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return resource().getProjectRelativePath().toOSString();
 	}
 	
+	private transient Scenario scenario;
+	
 	/**
 	 * Return the {@link Scenario} the {@link Script} is contained in.
 	 */
 	@Override
 	public Scenario scenario() {
-		IResource res = resource();
-		return res != null ? Scenario.getAscending(res) : null;
+		if (scenario == null) {
+			IResource res = resource();
+			scenario = res != null ? Scenario.getAscending(res) : null;
+		}
+		return scenario;
 	}
 
 }
