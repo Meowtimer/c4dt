@@ -1,7 +1,5 @@
 package net.arctics.clonk.index;
 
-import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -136,13 +134,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param id The id
 	 * @return The list
 	 */
-	public Iterable<? extends Definition> definitionsWithID(ID id) {
+	public List<? extends Definition> definitionsWithID(ID id) {
 		if (indexedDefinitions == null)
 			return null;
-		synchronized (indexedDefinitions) {
-			List<Definition> l = indexedDefinitions.get(id);
-			return copyListOrReturnDefaultList(l, null);
-		}
+		else
+			return indexedDefinitions.get(id);
 	}
 	
 	public void postLoad() throws CoreException {
@@ -562,8 +558,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		Definition best = null;
 		for (Index index : relevantIndexes()) {
 			if (resource != null) {
-				Iterable<? extends Definition> objs = index.definitionsWithID(id);
-				best = Utilities.pickNearest(objs, resource, null);
+				List<? extends Definition> objs = index.definitionsWithID(id);
+				best = objs == null ? null : objs.size() == 1 ? objs.get(0) : Utilities.pickNearest(objs, resource, null);
 			}
 			else
 				best = index.lastDefinitionWithId(id);
