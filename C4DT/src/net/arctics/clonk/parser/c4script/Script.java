@@ -434,7 +434,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 		// prefer using the cache
 		boolean didUseCacheForLocalDeclarations = false;
-		if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index()) {
+		if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index() && (info.searchOrigin == null || scenario() == info.searchOrigin.scenario())) {
 			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
 				Declaration d = cachedVariableMap.get(name);
 				if (d != null)
