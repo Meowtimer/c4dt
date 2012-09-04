@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * A literal value in an expression (123, "hello", CLNK...)
@@ -30,7 +31,7 @@ public abstract class Literal<T> extends ExprElm {
 
 	public abstract T literal();
 	public boolean literalsEqual(Literal<?> other) {
-		return other.literal().equals(this.literal());
+		return Utilities.objectsEqual(other.literal(), this.literal());
 	}
 
 	@Override

@@ -393,7 +393,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		
 		if (innermostCallFunc != null) {
-			SpecialScriptRules rules = parser.getSpecialScriptRules();
+			SpecialScriptRules rules = parser.specialScriptRules();
 			if (rules != null) {
 				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {

@@ -33,7 +33,6 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
 import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -43,6 +42,7 @@ import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
@@ -159,7 +159,7 @@ public class C4ScriptParserTestCase {
 				new AccessVar("i"), new LongLiteral(50))),
 				new SimpleStatement(new UnaryOp(Operator.Increment,
 						Placement.Prefix, new AccessVar("i"))),
-				new WhileStatement(new BoolLiteral(true), new Block(
+				new WhileStatement(new True(), new Block(
 						new SimpleStatement(new CallDeclaration("Log",
 								new StringLiteral("Test"))),
 						new BreakStatement())));

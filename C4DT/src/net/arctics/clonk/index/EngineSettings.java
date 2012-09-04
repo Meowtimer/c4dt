@@ -85,6 +85,9 @@ public class EngineSettings extends SettingsBase {
 	/** Support an implicitly defined proplist named 'global' */
 	@IniField(category=INTRINSIC)
 	public boolean supportsGlobalProplists;
+	@IniField(category=INTRINSIC)
+	/** Engine supports nil keyword **/
+	public boolean supportsNil;
 	/** Treat 0 as being of type ANY so assigning 0 to object variables and such does not result in warnings */
 	@IniField(category=INTRINSIC)
 	public boolean zeroIsAny;

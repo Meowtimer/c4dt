@@ -6,25 +6,26 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 
-public abstract class BoolLiteral extends Literal<Boolean> {
-
+public class Nil extends Literal<Object> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-	public abstract boolean booleanValue();
-	
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		return PrimitiveType.BOOL;
+		return PrimitiveType.ANY;
+	};
+	@Override
+	public Object literal() {
+		return null;
+	}
+	@Override
+	public void doPrint(ExprWriter output, int depth) {
+		output.append(Keywords.Nil);
 	}
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		if (parent() instanceof BinaryOp) {
-			Operator op = ((BinaryOp) parent()).operator();
-			if (op == Operator.And || op == Operator.Or)
-				parser.warning(ParserErrorCode.BoolLiteralAsOpArg, this, 0, this.toString());
-		}
+		if (!parser.engine().settings().supportsNil)
+			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Keywords.Nil);
 	}
 }

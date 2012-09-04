@@ -42,7 +42,6 @@ import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
 import net.arctics.clonk.parser.c4script.ast.ArraySliceExpression;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
 import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -54,6 +53,7 @@ import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.False;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
@@ -67,6 +67,7 @@ import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.MissingStatement;
 import net.arctics.clonk.parser.c4script.ast.NewProplist;
+import net.arctics.clonk.parser.c4script.ast.Nil;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
@@ -76,6 +77,7 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
@@ -220,7 +222,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private ClonkBuilder builder;
 	private CachedEngineDeclarations cachedEngineDeclarations;
 	
-	public SpecialScriptRules getSpecialScriptRules() {
+	public final Engine engine() {
+		return engine;
+	}
+	
+	public final SpecialScriptRules specialScriptRules() {
 		return specialScriptRules;
 	}
 	
@@ -1724,9 +1730,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							this.seek(beforeWhitespace);
 							// bool
 							if (word.equals(Keywords.True))
-								elm = new BoolLiteral(true);
+								elm = new True();
 							else if (word.equals(Keywords.False))
-								elm = new BoolLiteral(false);
+								elm = new False();
+							else if (word.equals(Keywords.Nil))
+								elm = new Nil();
 							else
 								// variable
 								elm = new AccessVar(word);
