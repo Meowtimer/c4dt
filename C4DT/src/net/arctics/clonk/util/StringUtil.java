@@ -30,9 +30,8 @@ public class StringUtil {
 	 */
 	public static String repetitions(String s, int times) {
 		StringBuilder builder = new StringBuilder(s.length()*times);
-		for (int i = 0; i < times; i++) {
+		for (int i = 0; i < times; i++)
 			builder.append(s);
-		}
 		return builder.toString();
 	}
 	/**
@@ -45,9 +44,9 @@ public class StringUtil {
 	 * @return If output is set to null, the resulting string will be returned. Null is returned if there is an output to append the result to.
 	 */
 	public static String writeBlock(
-			Appendable output,
-			CharSequence startBlock, CharSequence endBlock, CharSequence delimiter,
-			Iterable<?> enumeration
+		Appendable output,
+		CharSequence startBlock, CharSequence endBlock, CharSequence delimiter,
+		Iterable<?> enumeration
 	) {
 		boolean returnString = output == null;
 		if (returnString)
@@ -68,6 +67,11 @@ public class StringUtil {
 		}
 		return returnString ? output.toString() : null;
 	}
+	
+	public static String blockString(CharSequence startBlock, CharSequence endBlock, CharSequence delimiter, Iterable<?> enumeration) {
+		return writeBlock(null, startBlock, endBlock, delimiter, enumeration);
+	}
+	
 	/**
 	 * Evaluate escapes such as \" and \\
 	 * @param str The string containing escapes
@@ -138,11 +142,10 @@ public class StringUtil {
 
 	    // Remove the path upto the filename.
 	    int lastSeparatorIndex = s.lastIndexOf(separator);
-	    if (lastSeparatorIndex == -1) {
-	        filename = s;
-	    } else {
-	        filename = s.substring(lastSeparatorIndex + 1);
-	    }
+	    if (lastSeparatorIndex == -1)
+			filename = s;
+		else
+			filename = s.substring(lastSeparatorIndex + 1);
 
 	    // Remove the extension.
 	    int extensionIndex = filename.lastIndexOf(".");
@@ -226,13 +229,11 @@ public class StringUtil {
 			nMatched++;
 		}
 	
-		if (nMatched == name2len) {
+		if (nMatched == name2len)
 			return 200;
-		}
 	
-		if (name2len - nMatched > nMatched) {
+		if (name2len - nMatched > nMatched)
 			return -1;
-		}
 	
 		int tolerance= name2len / 4 + 1;
 		return (tolerance - (k - i)) * 256 / tolerance;
