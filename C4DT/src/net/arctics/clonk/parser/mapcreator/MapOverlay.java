@@ -22,6 +22,7 @@ public class MapOverlay extends MapOverlayBase {
 		mandel,
 		rndall,
 		script,
+		gradient,
 		poly
 	}
 	
@@ -69,11 +70,10 @@ public class MapOverlay extends MapOverlayBase {
 	@Override
 	public MapOverlayBase findLocalDeclaration(String declarationName,
 			Class<? extends Declaration> declarationClass) {
-		if (MapOverlay.class.isAssignableFrom(declarationClass)) {
+		if (MapOverlay.class.isAssignableFrom(declarationClass))
 			for (MapOverlayBase o : subOverlays)
 				if (o.name() != null && o.name().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
-		}
 		return null;
 	}
 	
@@ -103,9 +103,8 @@ public class MapOverlay extends MapOverlayBase {
 	public MapOverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
 		Class<? extends MapOverlayBase> cls = defaultClass(type);
 		MapOverlayBase result;
-		if (cls != null) {
+		if (cls != null)
 			result = cls.newInstance();
-		}
 		else {
 			MapOverlay template = templateWithName(type);
 			if (template != null) {
@@ -165,12 +164,11 @@ public class MapOverlay extends MapOverlayBase {
 	public MapOverlayBase overlayAt(int offset) {
 		MapOverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
-			for (MapOverlayBase o : ov.childCollection()) {
+			for (MapOverlayBase o : ov.childCollection())
 				if (offset >= o.location().start() && offset < (o.body!=null?o.body:o.location()).end()) {
 					ov = o;
 					continue Outer;
 				}
-			}
 			break;
 		}
 		return ov;
