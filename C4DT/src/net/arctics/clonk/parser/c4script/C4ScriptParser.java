@@ -871,20 +871,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			eatWhitespace();
 			switch (scope) {
 			case STATIC:
-				int scopeSpecifierStart = offset-scope.toKeyword().length();
 				int pos = this.offset;
 				if (readIdent().equals(Keywords.Const))
 					scope = Scope.CONST;
 				else
 					this.seek(pos);
-				if (currentFunc != null) {
-					error(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, NO_THROW, scope.toKeyword());
-					scope = Scope.VAR;
-				}
 				break;
 			case VAR:
 				if (currentFunc == null) {
-					error(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, NO_THROW, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
+					error(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
 					scope = Scope.LOCAL;
 				}
 			default:
