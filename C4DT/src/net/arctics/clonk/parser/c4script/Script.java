@@ -73,6 +73,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	// will be written by #save
 	protected transient List<Function> definedFunctions;
 	protected transient List<Variable> definedVariables;
 	protected transient List<Directive> definedDirectives;
@@ -82,21 +83,35 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	// scripts dependent on this one inside the same index
 	private transient Set<Script> dependentScripts;
 	
+	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
 	private transient Collection<? extends IHasIncludes> includes;
+	private transient Scenario scenario;
+	
 	private Set<String> dictionary;
 	
+	/**
+	 * The script's dictionary contains names of variables and functions defined in it.
+	 * It can be queried before {@link #requireLoaded()} was called, enabling one to look before-hand whether the script contains
+	 * a declaration with some name.
+	 * @return The dictionary
+	 */
 	public Set<String> dictionary() {
 		return dictionary;
 	}
 	
+	/**
+	 * Return list of scripts used by this one. A script is considered to be using another one if it calls a global function or accesses a static variable defined in the other script.
+	 * Kept and managed to make reparsing a script using global declarations from some other script work without requiring a reload of all scripts in the index. 
+	 * @return The list of used scripts
+	 */
 	public Collection<? extends Script> usedScripts() {
 		return copyListOrReturnDefaultList(usedScripts, NO_SCRIPTS);
 	}
 	
 	/**
-	 * Flag hinting that this script contains global functions/static variables. This will flag will be consulted to decide whether to fully load the script when looking for global declarations.
+	 * Flag hinting that this script contains global functions/static variables. This flag will be consulted to decide whether to fully load the script when looking for global declarations.
 	 */
 	public boolean containsGlobals;
 	
@@ -1129,21 +1144,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return resource().getProjectRelativePath().toOSString();
 	}
 	
-	private transient Object scenario;
-	private static final Object NO_SCENARIO = new Object();
+	public void indexRefresh() {
+		clearDependentScripts();
+		IResource res = resource();
+		scenario = res != null ? Scenario.getAscending(res) : null;
+	}
 	
 	/**
 	 * Return the {@link Scenario} the {@link Script} is contained in.
 	 */
 	@Override
 	public Scenario scenario() {
-		if (scenario == null) {
-			IResource res = resource();
-			scenario = res != null ? Scenario.getAscending(res) : null;
-			if (scenario == null)
-				scenario = NO_SCENARIO;
-		}
-		return scenario == NO_SCENARIO ? null : (Scenario)scenario;
+		return scenario;
 	}
 
 }

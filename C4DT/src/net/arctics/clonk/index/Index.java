@@ -287,8 +287,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				item.clearDependentScripts();
-				item.scenario();
+				item.indexRefresh();
 				if (item instanceof Definition)
 					counts[0]++;
 				else
