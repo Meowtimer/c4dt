@@ -272,10 +272,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	private transient int _lastIncludesOrigin;
 	private transient int _lastIncludesOptions;
 	
-	private enum Locks {
-		INCLUDES_GET
-	}
-	
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list
 	 * @param index The index to be passed to gatherIncludes
@@ -285,7 +281,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
 		requireLoaded();
-		synchronized (Locks.INCLUDES_GET) {
+		synchronized (this) {
 			int indexHash = index != null ? index.hashCode() : 0;
 			int originHash = origin != null ? origin.hashCode() : 0;
 			if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
@@ -1127,7 +1123,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return resource().getProjectRelativePath().toOSString();
 	}
 	
-	private transient Scenario scenario;
+	private transient Object scenario;
+	private static final Object NO_SCENARIO = new Object();
 	
 	/**
 	 * Return the {@link Scenario} the {@link Script} is contained in.
@@ -1137,8 +1134,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (scenario == null) {
 			IResource res = resource();
 			scenario = res != null ? Scenario.getAscending(res) : null;
+			if (scenario == null)
+				scenario = NO_SCENARIO;
 		}
-		return scenario;
+		return scenario == NO_SCENARIO ? null : (Scenario)scenario;
 	}
 
 }

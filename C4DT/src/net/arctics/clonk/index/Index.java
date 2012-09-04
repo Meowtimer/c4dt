@@ -291,6 +291,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			@Override
 			public void receivedObject(Script item) {
 				item.clearDependentScripts();
+				item.scenario();
 			}
 		});
 

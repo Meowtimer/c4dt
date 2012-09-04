@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IResource;
 public class Scenario extends Definition {
 	
 	public static final String PROPLIST_NAME = "Scenario";
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Variable scenarioPropList = createScenarioProplist();
 
@@ -71,7 +72,5 @@ public class Scenario extends Definition {
 				scenario = get((IContainer)resource);
 		return scenario;
 	}
-
-	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 }
