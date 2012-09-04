@@ -283,13 +283,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		staticVariables.clear();
 		declarationMap.clear();
 		
+		final int[] counts = new int[2];
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
 				item.clearDependentScripts();
 				item.scenario();
+				if (item instanceof Definition)
+					counts[0]++;
+				else
+					counts[1]++;
 			}
 		});
+		System.out.println(String.format("Refreshing index for '%s': %d definitions, %d other scripts", project().getName(), counts[0], counts[1]));
 
 		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
 		allScripts(new Sink<Script>() {
