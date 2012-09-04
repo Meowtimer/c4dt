@@ -2464,11 +2464,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
 					if (initializations != null) {
 						result = new VarDeclarationStatement(initializations, initializations.get(0).variable.scope());
-						if (!options.contains(ParseStatementOption.InitializationStatement))
+						if (!options.contains(ParseStatementOption.InitializationStatement)) {
+							int rewind = this.offset;
+							eatWhitespace();
 							if (read() != ';') {
-								unread();
+								seek(rewind);
 								result.setFinishedProperly(false);
 							}
+						}
 					}
 				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement))
