@@ -294,7 +294,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
-		for (File xmlFile : new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles()) {
+		File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles();
+		for (File xmlFile : xmlFiles) {
+			System.out.println(xmlFile.getName());
 			boolean isConst = false;
 			try {
 				FileReader r = new FileReader(xmlFile);
@@ -316,7 +318,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
 			if (BuiltInDefinitions.KEYWORDS.contains(rawFileName))
-				return;
+				continue;
 			if (isConst)
 				this.addDeclaration(new DocumentedVariable(rawFileName, Variable.Scope.CONST));
 			else
