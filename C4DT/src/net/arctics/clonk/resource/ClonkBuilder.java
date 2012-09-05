@@ -239,6 +239,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
+	@Profiled
 	private void phaseOne(Index index) {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
@@ -281,6 +282,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 	}
 
+	@Profiled
 	private void phaseTwo(final Script[] scripts) {
 		// parse function code
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
@@ -309,6 +311,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}, 20);
 	}
 	
+	@Profiled
 	private void phaseThree(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
