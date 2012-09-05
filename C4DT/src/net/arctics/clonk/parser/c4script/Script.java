@@ -158,6 +158,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		populateDictionary();
 	}
 	
+	private static int nextCamelBack(String s, int offset) {
+		for (++offset; offset < s.length() && !Character.isUpperCase(s.charAt(offset)); offset++);
+		return offset;
+	}
+	
 	public void detectEffects() {
 		List<EffectFunction> allEffectFunctions = new ArrayList<EffectFunction>(10);
 		for (EffectFunction f : functions(EffectFunction.class))
@@ -166,7 +171,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			String s = allEffectFunctions.get(0).name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length());
 			List<EffectFunction> effectCandidates = null;
 			String effectName = null;
-			for (int i = 1; i < s.length(); i++) {
+			for (int i = nextCamelBack(s, 0); i < s.length(); i = nextCamelBack(s, i)) {
 				final String sub = s.substring(0, i);
 				List<EffectFunction> matching = filter(allEffectFunctions, new IPredicate<EffectFunction>() {
 					@Override
@@ -178,7 +183,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 						}
 					}
 				});
-				if (effectCandidates != null && effectCandidates.size() > matching.size())
+				if (matching.size() == 0)
 					break;
 				effectName = sub;
 				effectCandidates = matching;
