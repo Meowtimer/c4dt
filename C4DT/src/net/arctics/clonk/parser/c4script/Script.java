@@ -1196,6 +1196,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		generateFindDeclarationCache();
+		indexRefresh();
 	}
 	
 	@Override
@@ -1210,9 +1211,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	public void indexRefresh() {
 		clearDependentScripts();
-		IResource res = resource();
-		scenario = res != null ? Scenario.getAscending(res) : null;
-		detectEffects();
+		if (!notFullyLoaded) {
+			IResource res = resource();
+			scenario = res != null ? Scenario.getAscending(res) : null;
+			detectEffects();
+		}
 	}
 	
 	/**
