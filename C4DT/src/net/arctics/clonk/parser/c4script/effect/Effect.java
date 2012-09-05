@@ -20,7 +20,6 @@ public class Effect extends ProplistDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private final Map<String, EffectFunction> functions = new HashMap<String, EffectFunction>();
-	private EffectFunction startFunction;
 	
 	public Effect(List<Variable> components) {
 		super(components);
@@ -32,10 +31,6 @@ public class Effect extends ProplistDeclaration {
 		adHoc = true;
 		for (EffectFunction f : functions)
 			addFunction(f);
-	}
-	
-	public Function startFunction() {
-		return startFunction;
 	}
 	
 	public Map<String, EffectFunction> functions() {
@@ -52,8 +47,6 @@ public class Effect extends ProplistDeclaration {
 	
 	public void addFunction(EffectFunction function) {
 		function.setEffect(this);
-		if (function.callbackName().equals("Start"))
-			startFunction = function;
 		functions.put(function.callbackName(), function);
 	}
 	

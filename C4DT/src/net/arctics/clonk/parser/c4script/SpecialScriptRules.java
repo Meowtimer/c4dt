@@ -381,7 +381,7 @@ public class SpecialScriptRules {
 				t = callFunc.predecessorInSequence().type(context);
 			else {
 				constraintKind = ConstraintKind.CallerType;
-				script = context.containingScript();
+				script = context.script();
 				t = null;
 			}
 			if (t instanceof IHasConstraint) {
@@ -440,17 +440,17 @@ public class SpecialScriptRules {
 							types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
 						else for (Directive directive : f.script().directives())
 							if (directive.type() == DirectiveType.APPENDTO) {
-								Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
+								Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 								if (def != null)
 									types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 							}
-					for (Index index : context.containingScript().index().relevantIndexes())
+					for (Index index : context.script().index().relevantIndexes())
 						for (Function f : index.declarationsWithName((String)ev, Function.class))
 							if (f.script() instanceof Definition)
 								types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
 							else for (Directive directive : f.script().directives())
 								if (directive.type() == DirectiveType.APPENDTO) {
-									Definition def = f.script().index().definitionNearestTo(context.containingScript().resource(), directive.contentAsID());
+									Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
@@ -476,7 +476,7 @@ public class SpecialScriptRules {
 			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
 			Script script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
-				script = parser.containingScript(); // fallback
+				script = parser.script(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
 			if (scriptExpr instanceof String)
 				try {
@@ -528,7 +528,7 @@ public class SpecialScriptRules {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.params()[0].type(parser);
-				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.containingScript();
+				Script scriptToLookIn = t instanceof Script ? (Script)t : parser.script();
 				Function func = scriptToLookIn.findFunction(lit.literal());
 				if (func != null)
 					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
@@ -578,8 +578,8 @@ public class SpecialScriptRules {
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Index index = parser.containingScript().index();
-				Scenario scenario = Scenario.nearestScenario(parser.containingScript().resource().getParent());
+				Index index = parser.script().index();
+				Scenario scenario = Scenario.nearestScenario(parser.script().resource().getParent());
 				if (scenario != null) {
 					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
@@ -613,7 +613,7 @@ public class SpecialScriptRules {
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
-				Function f = parser.containingScript().findFunction(lit.stringValue());
+				Function f = parser.script().findFunction(lit.stringValue());
 				if (f != null)
 					return new EntityRegion(f, lit.identifierRegion());
 			}
@@ -690,7 +690,7 @@ public class SpecialScriptRules {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
 				String resourceName = (String)parmEv;
-				ProjectIndex pi = (ProjectIndex)parser.containingScript().index();
+				ProjectIndex pi = (ProjectIndex)parser.script().index();
 				Set<IIndexEntity> e = locateEntitiesByName(callFunc, resourceName, pi, parser);
 				if (e != null)
 					return new EntityRegion(e, parmExpression);
@@ -706,7 +706,7 @@ public class SpecialScriptRules {
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
-			return ArrayUtil.set((IIndexEntity)pi.findPinnedStructure(ParticleUnit.class, name, parser.containingScript().resource(), true, "Particle.txt"));
+			return ArrayUtil.set((IIndexEntity)pi.findPinnedStructure(ParticleUnit.class, name, parser.script().resource(), true, "Particle.txt"));
 		}
 	};
 	
@@ -739,7 +739,7 @@ public class SpecialScriptRules {
 		}
 		@Override
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
-			Engine engine = parser.containingScript().engine();
+			Engine engine = parser.script().engine();
 			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
 			HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
 			boolean extensionWildcardNeeded = true;
@@ -752,7 +752,7 @@ public class SpecialScriptRules {
 				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
 			Matcher nameMatcher = Pattern.compile(name).matcher("");
 			String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
-			IResource r = parser.containingScript().resource();
+			IResource r = parser.script().resource();
 			for (
 				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = null;
 				c != null;
@@ -820,7 +820,7 @@ public class SpecialScriptRules {
 					}
 				}
 			};
-			context.containingScript().index().forAllRelevantIndexes(new Sink<Index>() {
+			context.script().index().forAllRelevantIndexes(new Sink<Index>() {
 				@Override
 				public void receivedObject(Index index) {
 					index.allScripts(scriptSink);

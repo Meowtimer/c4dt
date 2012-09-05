@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public interface DeclarationObtainmentContext extends IEvaluationContext {
-	Script containingScript();
+	Script script();
 	Function currentFunction();
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);
 	Definition definition();

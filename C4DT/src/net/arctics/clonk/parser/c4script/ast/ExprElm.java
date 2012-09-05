@@ -224,7 +224,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return context.containingScript();
+		return context.script();
 	}
 	
 	/**
@@ -848,7 +848,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
 				Index index = typeable.index();
-				if (index == null || index != parser.containingScript().index())
+				if (index == null || index != parser.script().index())
 					return;
 
 				typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);

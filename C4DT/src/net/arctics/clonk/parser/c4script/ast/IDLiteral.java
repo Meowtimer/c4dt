@@ -34,13 +34,13 @@ public final class IDLiteral extends Literal<ID> {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		Definition obj = context.containingScript().nearestDefinitionWithId(idValue());
+		Definition obj = context.script().nearestDefinitionWithId(idValue());
 		return obj != null ? obj.objectType() : PrimitiveType.ID;
 	}
 
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new EntityRegion(parser.containingScript().nearestDefinitionWithId(idValue()), region(0));
+		return new EntityRegion(parser.script().nearestDefinitionWithId(idValue()), region(0));
 	}
 
 }

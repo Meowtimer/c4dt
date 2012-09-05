@@ -49,7 +49,7 @@ public final class StringLiteral extends Literal<String> {
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parser.containingScript(), true);
+		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parser.script(), true);
 		if (result != null)
 			return result;
 
@@ -86,7 +86,7 @@ public final class StringLiteral extends Literal<String> {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		
 		// warn about overly long strings
-		long max = parser.containingScript().index().engine().settings().maxStringLen;
+		long max = parser.script().index().engine().settings().maxStringLen;
 		if (max != 0 && literal().length() > max) {
 			parser.warning(ParserErrorCode.StringTooLong, this, literal().length(), max);
 		}
@@ -94,7 +94,7 @@ public final class StringLiteral extends Literal<String> {
 		// stringtbl entries
 		// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 		// and checking for the existence of the table entries there is overkill
-		if (parser.hasAppendTo() || parser.containingScript().resource() == null)
+		if (parser.hasAppendTo() || parser.script().resource() == null)
 			return;
 		String value = literal();
 		int valueLen = value.length();

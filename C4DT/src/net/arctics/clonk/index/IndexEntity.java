@@ -8,6 +8,7 @@ import java.security.InvalidParameterException;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.util.Sink;
 
 /**
  * Entity in a {@link Index} which is stored in its own file inside the \<name\>.index folder
@@ -17,6 +18,13 @@ import net.arctics.clonk.parser.Structure;
 public abstract class IndexEntity extends Structure {
 	
 	public interface TopLevelEntity {}
+	
+	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
+		@Override
+		public boolean filter(T item) {
+			return !item.notFullyLoaded;
+		}
+	}
 
 	private static final long serialVersionUID = 1L;
 

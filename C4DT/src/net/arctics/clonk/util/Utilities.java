@@ -120,6 +120,10 @@ public abstract class Utilities {
 		return (a == null && b == null) || (a != null && b != null && a.equals(b));
 	}
 	
+	public static boolean objectsNonNullEqual(Object a, Object b) {
+		return a != null && b != null && a.equals(b);
+	}
+	
 	/**
 	 * Returns whether resource somewhere below container in the file hierarchy
 	 * @param resource the resource

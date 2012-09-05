@@ -73,7 +73,7 @@ public class AccessVar extends AccessDeclaration {
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
 		ExprElm sequencePredecessor = predecessorInSequence();
-		IType type = context.containingScript();
+		IType type = context.script();
 		if (sequencePredecessor != null)
 			type = sequencePredecessor.type(context);
 		if (type != null) for (IType t : type) {
@@ -86,7 +86,7 @@ public class AccessVar extends AccessDeclaration {
 						return proplistComponent;
 				}
 			} else {
-				FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
+				FindDeclarationInfo info = new FindDeclarationInfo(context.script().index());
 				info.contextFunction = sequencePredecessor == null ? context.currentFunction() : null;
 				info.searchOrigin = scriptToLookIn;
 				info.findGlobalVariables = sequencePredecessor == null;
@@ -125,7 +125,7 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 				case STATIC: case CONST:
-					parser.containingScript().addUsedScript(var.script());
+					parser.script().addUsedScript(var.script());
 					break;
 				case VAR:
 					if (var.location() != null && parser.currentFunction() != null && var.parentDeclaration() == parser.currentFunction()) {
@@ -152,7 +152,7 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = declarationFromContext(context);
 		// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return new ConstrainedProplist(context.containingScript(), ConstraintKind.CallerType);
+			return new ConstrainedProplist(context.script(), ConstraintKind.CallerType);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;

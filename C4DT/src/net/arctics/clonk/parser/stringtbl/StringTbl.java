@@ -250,7 +250,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public static void reportMissingStringTblEntries(C4ScriptParser parser, EntityRegion region) {
 		StringBuilder listOfLangFilesItsMissingIn = null;
 		try {
-			for (IResource r : (parser.containingScript().resource() instanceof IContainer ? (IContainer)parser.containingScript().resource() : parser.containingScript().resource().getParent()).members()) {
+			for (IResource r : (parser.script().resource() instanceof IContainer ? (IContainer)parser.script().resource() : parser.script().resource().getParent()).members()) {
 				if (!(r instanceof IFile))
 					continue;
 				IFile f = (IFile) r;

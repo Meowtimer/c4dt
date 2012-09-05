@@ -41,6 +41,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
 
@@ -256,7 +257,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
 	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
-		Engine engine = context.containingScript().engine();
+		Engine engine = context.script().engine();
 		if (engine != null && engine.specialScriptRules() != null)
 			return engine.specialScriptRules().funcRuleFor(declarationName, role);
 		else
@@ -354,15 +355,15 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
-		IType lookIn = pred == null ? context.containingScript() : pred.type(context);
+		IType lookIn = pred == null ? context.script() : pred.type(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof IHasConstraint))
 				continue;
 			Script script = as(((IHasConstraint)ty).constraint(), Script.class);
 			if (script == null)
 				continue;
-			FindDeclarationInfo info = new FindDeclarationInfo(context.containingScript().index());
-			info.searchOrigin = context.containingScript();
+			FindDeclarationInfo info = new FindDeclarationInfo(context.script().index());
+			info.searchOrigin = context.script();
 			info.contextFunction = context.currentFunction();
 			info.findGlobalVariables = pred == null;
 			Declaration dec = script.findDeclaration(functionName, info);
@@ -379,23 +380,23 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// find global function
 			Declaration declaration;
 			try {
-				declaration = context.containingScript().index().findGlobal(Declaration.class, functionName);
+				declaration = context.script().index().findGlobal(Declaration.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context == null)
 					System.out.println("No context");
-				if (context.containingScript() == null)
+				if (context.script() == null)
 					System.out.println("No container");
-				if (context.containingScript().index() == null)
+				if (context.script().index() == null)
 					System.out.println("No index");
 				return null;
 			}
 			// find engine function
 			if (declaration == null)
-				declaration = context.containingScript().index().engine().findFunction(functionName);
+				declaration = context.script().index().engine().findFunction(functionName);
 
-			List<Declaration> allFromLocalIndex = context.containingScript().index().declarationMap().get(functionName);
-			Declaration decl = context.containingScript().engine().findLocalFunction(functionName, false);
+			List<Declaration> allFromLocalIndex = context.script().index().declarationMap().get(functionName);
+			Declaration decl = context.script().engine().findLocalFunction(functionName, false);
 			int numCandidates = 0;
 			if (allFromLocalIndex != null)
 				numCandidates += allFromLocalIndex.size();
@@ -466,7 +467,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		CachedEngineDeclarations cachedEngineDeclarations = context.cachedEngineDeclarations();
 		
 		// notify parser about unnamed parameter usage
-		if (declaration == cachedEngineDeclarations.Par) {
+		if (Utilities.objectsNonNullEqual(declaration, cachedEngineDeclarations.Par)) {
 			if (params.length > 0)
 				context.unnamedParamaterUsed(params[0]);
 			else
@@ -501,7 +502,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
 				if (f.visibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
-					context.containingScript().addUsedScript(f.script());
+					context.script().addUsedScript(f.script());
 				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
@@ -613,7 +614,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!parser.containingScript().engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!parser.script().engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName));
 			else
 				return new AccessVar(declarationName);

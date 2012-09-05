@@ -208,7 +208,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					if (evTracer.tracedFile == null)
 						return true;
 					parser.problemReporter = arguments[0];
-					if (evTracer.tracedFile.equals(parser.containingScript().scriptFile())) {
+					if (evTracer.tracedFile.equals(parser.script().scriptFile())) {
 						parser.error(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
@@ -312,7 +312,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.containingScript();
+				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.script();
 				if (t != null) for (IType ty : t)
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;

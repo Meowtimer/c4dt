@@ -408,15 +408,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Returns the script object that is being parsed by the parser.
-	 * @return
-	 */
-	@Override
-	public final Script containingScript() {
-		return script;
-	}
-	
-	/**
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
 	 */
@@ -697,7 +688,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (Variable v : func.localVars()) {
 				if (!v.isUsed())
 					createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.Unused, v.name());
-				Variable shadowed = containingScript().findVariable(v.name());
+				Variable shadowed = script().findVariable(v.name());
 				// ignore those pesky static variables from scenario scripts
 				if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario))
 					createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
@@ -910,7 +901,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						currentDeclaration = var;
 						VarInitialization varInitialization;
 						ExprElm initializationExpression = null;
-						if (scope == Scope.CONST || currentFunc != null || containingScript().engine().settings().nonConstGlobalVarsAssignment) {
+						if (scope == Scope.CONST || currentFunc != null || script().engine().settings().nonConstGlobalVarsAssignment) {
 							eatWhitespace();
 							if (peek() == '=') {
 								read();
@@ -1014,7 +1005,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return (C4Variable) globalDeclaration;
 			// not yet in index - search locally
 		case LOCAL: */
-			return containingScript().findLocalVariable(name, false);
+			return script().findLocalVariable(name, false);
 		default:
 			return null;
 		}
@@ -1032,8 +1023,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			currentFunction().localVars().add(result);
 			break;
 		case CONST: case STATIC: case LOCAL:
-			result.setParentDeclaration(containingScript());
-			containingScript().addDeclaration(result);
+			result.setParentDeclaration(script());
+			script().addDeclaration(result);
 		}
 		result.setLocation(absoluteSourceLocation(start, end));
 		result.setUserDescription(description != null ? description.text().trim() : null);
@@ -1499,7 +1490,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.offset = parser.offset;
 			this.reporter = parser.expressionReportingErrors();
 			this.scriptFile = parser.scriptFile;
-			this.container = parser.containingScript();
+			this.container = parser.script();
 		}
 		public IMarker deploy() {
 			IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
@@ -3150,7 +3141,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (cachedBlock == null) {
 				if (func != null)
 					func.clearLocalVars();
-				strictLevel = containingScript().strictLevel();
+				strictLevel = script().strictLevel();
 				enableErrors(DISABLED_INSTANT_ERRORS, false);
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				LinkedList<Statement> statements = new LinkedList<Statement>();
@@ -3360,7 +3351,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	@Override
 	public Script script() {
-		return containingScript();
+		return script;
 	}
 
 	@Override

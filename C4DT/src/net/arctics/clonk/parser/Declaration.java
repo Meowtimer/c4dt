@@ -468,11 +468,6 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public Definition definition() {
 				return script() instanceof Definition ? (Definition)script() : null;
 			}
-			
-			@Override
-			public Script containingScript() {
-				return script();
-			}
 
 			@Override
 			public void storeType(ExprElm exprElm, IType type) {

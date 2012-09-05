@@ -31,7 +31,7 @@ public class Placeholder extends ExprElm {
 	}
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
-		StringTbl stringTbl = parser.containingScript().localStringTblMatchingLanguagePref();
+		StringTbl stringTbl = parser.script().localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			NameValueAssignment entry = stringTbl.map().get(entryName);
 			if (entry != null)

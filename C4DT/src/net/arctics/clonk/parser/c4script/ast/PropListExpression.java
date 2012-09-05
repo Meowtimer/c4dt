@@ -107,7 +107,7 @@ public class PropListExpression extends ExprElm {
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.currentVariable() != null) {
-			return context.containingScript().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
+			return context.script().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}
@@ -140,7 +140,7 @@ public class PropListExpression extends ExprElm {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
-		if (!parser.containingScript().engine().settings().supportsProplists)
+		if (!parser.script().engine().settings().supportsProplists)
 			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
 	
