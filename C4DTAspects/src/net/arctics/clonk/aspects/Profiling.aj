@@ -2,23 +2,34 @@ package net.arctics.clonk.aspects;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Stack;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.aspectj.lang.Signature;
+
 import net.arctics.clonk.util.Profiled;
 
 public aspect Profiling {
 	
 	private static pointcut profiledMethods(): execution(@Profiled * *(..));
 	private static pointcut allMethods(): execution(* *(..)) && !profiledMethods();
+	
+	private static class ProfilingFrame {
+		public Map<Signature, Long> times = new HashMap<Signature, Long>();
+		public String name;
+		public ProfilingFrame(String name) {
+			this.name = name;
+		}
+	}
+	
 	private static boolean ENABLED = false;
-	private static Map<Signature, Long> PROFILING = new HashMap<Signature, Long>();
+	private static final Stack<ProfilingFrame> frames = new Stack<ProfilingFrame>();
 	
 	before(): profiledMethods() {
 		start(thisJoinPoint.getSignature().getName());
@@ -29,10 +40,8 @@ public aspect Profiling {
 	}
 	
 	public static void start(String name) {
-		if (ENABLED)
-			throw new IllegalStateException("Profiling already running");
 		System.out.println("Start " + name);
-		PROFILING.clear();
+		frames.push(new ProfilingFrame(name));
 		ENABLED = true;
 	}
 	
@@ -43,13 +52,16 @@ public aspect Profiling {
 			long start = System.currentTimeMillis();
 			Object r = proceed();
 			long took = System.currentTimeMillis() - start;
-			synchronized (PROFILING) {
-				Long s = PROFILING.get(thisJoinPoint.getSignature());
+			synchronized (frames) {
+				if (!ENABLED)
+					return r;
+				Map<Signature, Long> times = frames.peek().times;
+				Long s = times.get(thisJoinPoint.getSignature());
 				if (s == null)
 					s = took;
 				else
 					s = s + took;
-				PROFILING.put(thisJoinPoint.getSignature(), s);
+				times.put(thisJoinPoint.getSignature(), s);
 			}
 			return r;
 		}
@@ -64,14 +76,14 @@ public aspect Profiling {
 	}
 	
 	public static void end(String name) {
-		ENABLED = false;
 		System.out.println("End " + name);
 		List<Entry<Signature, Long>> list;
-		synchronized (PROFILING) {
-			list = new ArrayList<Entry<Signature, Long>>(PROFILING.size());
-			for (Entry<Signature, Long> s : PROFILING.entrySet())
+		synchronized (frames) {
+			Map<Signature, Long> times = frames.pop().times;
+			list = new ArrayList<Entry<Signature, Long>>(times.size());
+			for (Entry<Signature, Long> s : times.entrySet())
 				list.add(s);
-			PROFILING.clear();
+			ENABLED = frames.size() > 0;
 		}
 		Collections.sort(list, new Comparator<Entry<Signature, Long>>() {
 			@Override
