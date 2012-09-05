@@ -1,15 +1,15 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -18,14 +18,10 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
-import net.arctics.clonk.parser.c4script.EffectFunction;
-import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
-import net.arctics.clonk.parser.c4script.EffectPropListDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -35,6 +31,8 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.effect.Effect;
+import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.util.UI;
@@ -64,48 +62,18 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
-			if (function instanceof EffectFunction) {
-				EffectFunction fun = (EffectFunction) function;
-				fun.findStartCallback();
-				EffectFunction startFunction = fun.hardcodedCallbackType() == EffectFunction.HardcodedCallbackType.Start
-					? null
-					: fun.startFunction();
-				// parse *Start function first. Will define ad-hoc proplist type
-				if (startFunction != null)
-					parser.reportProblems(startFunction);
-				IType effectProplistType;
-				if (startFunction != null)
-					// not the start function - get effect parameter type from start function
-					effectProplistType = startFunction.effectType();
-				else // this is the start function - create type if parameter present
-				if (fun.numParameters() < 2)
-					effectProplistType = PrimitiveType.PROPLIST;
-				else
-					effectProplistType = createAdHocProplistDeclaration(fun, fun.parameter(1));
-				if (fun.hardcodedCallbackType() != null)
-					function.assignParameterTypes(fun.hardcodedCallbackType().parameterTypes(effectProplistType));
+			EffectFunction fun = as(function, EffectFunction.class);
+			if (fun != null && fun.effect() != null) {
+				fun.assignParameterTypes(fun.effect().parameterTypesForCallback(fun.callbackName()));
 				return true;
 			}
 			return false;
 		}
-		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
-			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.index(), startFunction.effectName(), null);
-			result.setLocation(effectParameter.location());
-			result.setParentDeclaration(startFunction);
-			startFunction.addOtherDeclaration(result);
-			return result;
-		}
 		@Override
 		public Function newFunction(String name) {
-			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX)) {
-				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-					Matcher m = t.pattern().matcher(name);
-					if (m.matches())
-						return new EffectFunction(m.group(1), t);
-				}
-				// hard to match sequence of two arbitrary, non-separate strings ;c
-				return new EffectFunction(null, null);
-			}
+			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX))
+				// determine effect and callback name later
+				return new EffectFunction();
 			return null;
 		};
 		@Override
@@ -113,20 +81,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			Object parmEv;
 			if (callFunc.params().length >= 1 && (parmEv = callFunc.params()[0].evaluateAtParseTime(context.currentFunction())) instanceof String) {
 				String effectName = (String) parmEv;
-				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
-							callFunc.predecessorInSequence(),
-							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()),
-							context, null
-					);
-					if (d instanceof EffectFunction) {
-						EffectFunction effFun = (EffectFunction)d;
-						// parse Start function of effect so ad-hoc variables are known
-						if (t == HardcodedCallbackType.Start && !(context.currentFunction() instanceof EffectFunction))
-							context.reportProblems(effFun);
-						return effFun.effectType();
-					}
-				}
+				return context.script().effects().get(effectName);
 			}
 			return null;
 		};
@@ -137,19 +92,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).literal();
-				Set<IIndexEntity> functions = new HashSet<IIndexEntity>(HardcodedCallbackType.values().length);
-				for (HardcodedCallbackType t : HardcodedCallbackType.values()) {
-					Declaration d = CallDeclaration.findFunctionUsingPredecessor(
-						callFunc.predecessorInSequence(),
-						String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
-						parser,
-						null
-					);
-					if (d instanceof EffectFunction)
-						functions.add(d);
-				}
-				if (functions.size() > 0)
-					return new EntityRegion(functions, new Region(parmExpression.start()+1, parmExpression.getLength()-2));
+				Effect effect = parser.script().effects().get(effectName);
+				if (effect != null)
+					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
 			return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 		}

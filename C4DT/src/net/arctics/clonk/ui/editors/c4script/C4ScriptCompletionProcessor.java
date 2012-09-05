@@ -23,7 +23,6 @@ import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
-import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
@@ -41,6 +40,7 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -483,9 +483,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset).setCategory(Category.NewFunction);
 
 			// propose creating effect functions
-			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
-			for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values())
-				callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE).setCategory(Category.EffectCallbacks);
+			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix);
+			for (String s : EffectFunction.DEFAULT_CALLBACKS)
+				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE).setCategory(Category.EffectCallbacks);
 
 			if (!funcSupplied) {
 

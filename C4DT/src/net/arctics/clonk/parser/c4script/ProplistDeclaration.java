@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +18,7 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * A proplist declaration parsed from an {key:value, ...} expression.
@@ -83,9 +85,9 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public Variable addComponent(Variable variable) {
 		Variable found = findComponent(variable.name());
-		if (found != null) {
+		if (found != null)
 			return found;
-		} else {
+		else {
 			components.add(variable);
 			variable.setParentDeclaration(this);
 			return variable;
@@ -122,11 +124,9 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		for (Variable v : components()) {
-			if (v.name().equals(declarationName)) {
+		for (Variable v : components())
+			if (v.name().equals(declarationName))
 				return v;
-			}
-		}
 		return null;
 	}
 	
@@ -141,11 +141,10 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
-		if (Variable.class.isAssignableFrom(from.getClass())) {
+		if (Variable.class.isAssignableFrom(from.getClass()))
 			return (T) findComponent(from.name());
-		} else {
+		else
 			return super.latestVersionOf(from);
-		}
 	};
 	
 	@Override
@@ -200,12 +199,11 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public ProplistDeclaration prototype() {
 		ExprElm prototypeExpr = null;
-		for (Variable v : components) {
+		for (Variable v : components)
 			if (v.name().equals(PROTOTYPE_KEY)) {
 				prototypeExpr = v.initializationExpression();
 				break;
 			}
-		}
 		if (prototypeExpr == null)	
 			prototypeExpr = implicitPrototype;
 		if (prototypeExpr != null) {
@@ -247,9 +245,10 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ProplistDeclaration && ((ProplistDeclaration)other).location().equals(this.location()))
+		if (other == this)
 			return true;
-		return false;
+		ProplistDeclaration o = as(other, ProplistDeclaration.class);
+		return o != null && Utilities.objectsEqual(o.location(), this.location());
 	}
 	
 	@Override

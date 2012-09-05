@@ -29,7 +29,10 @@ public aspect Profiling {
 	}
 	
 	public static void start(String name) {
+		if (ENABLED)
+			throw new IllegalStateException("Profiling already running");
 		System.out.println("Start " + name);
+		PROFILING.clear();
 		ENABLED = true;
 	}
 	

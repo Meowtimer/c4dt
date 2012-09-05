@@ -836,6 +836,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param types The types to assign to the parameters
 	 */
 	public void assignParameterTypes(IType... types) {
+		if (types == null)
+			return;
 		synchronized (parameters) {
 			for (int i = 0; i < types.length; i++) {
 				if (i >= parameters.size())

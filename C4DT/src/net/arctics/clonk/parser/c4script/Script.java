@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
+import static net.arctics.clonk.util.Utilities.filter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,8 +46,11 @@ import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.effect.Effect;
+import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -77,6 +81,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	protected transient List<Function> definedFunctions;
 	protected transient List<Variable> definedVariables;
 	protected transient List<Directive> definedDirectives;
+	protected transient Map<String, Effect> definedEffects;
 	
 	// set of scripts this script is using functions and/or static variables from
 	private Set<Script> usedScripts;
@@ -127,6 +132,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		definedVariables = (List<Variable>) stream.readObject();
 		definedDirectives = (List<Directive>) stream.readObject();
 		usedScripts = (Set<Script>) stream.readObject();
+		try {
+			definedEffects = (Map<String, Effect>)stream.readObject();
+		} catch (Exception e) {
+			// that's ok
+		}
 		purgeNullEntries(definedFunctions, definedVariables, definedDirectives, usedScripts);
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
@@ -146,7 +156,44 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		stream.writeObject(definedVariables);
 		stream.writeObject(definedDirectives);
 		stream.writeObject(usedScripts);
+		stream.writeObject(definedEffects);
 		populateDictionary();
+	}
+	
+	public void detectEffects() {
+		List<EffectFunction> allEffectFunctions = new ArrayList<EffectFunction>(10);
+		for (EffectFunction f : functions(EffectFunction.class))
+			allEffectFunctions.add(f);
+		while (allEffectFunctions.size() > 0) {
+			String s = allEffectFunctions.get(0).name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length());
+			List<EffectFunction> effectCandidates = null;
+			String effectName = null;
+			for (int i = 1; i < s.length(); i++) {
+				final String sub = s.substring(0, i);
+				List<EffectFunction> matching = filter(allEffectFunctions, new IPredicate<EffectFunction>() {
+					@Override
+					public boolean test(EffectFunction item) {
+						try {
+							return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
+						} catch (StringIndexOutOfBoundsException e) {
+							return false;
+						}
+					}
+				});
+				if (effectCandidates != null && effectCandidates.size() > matching.size())
+					break;
+				effectName = sub;
+				effectCandidates = matching;
+			};
+			if (effectName != null) {
+				allEffectFunctions.removeAll(effectCandidates);
+				if (definedEffects == null)
+					definedEffects = new HashMap<String, Effect>();
+				Effect effect = new Effect(effectName, effectCandidates);
+				effect.setParentDeclaration(this);
+				definedEffects.put(effectName, effect);
+			}
+		}
 	}
 
 	protected void populateDictionary() {
@@ -764,22 +811,30 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	private static final List<Function> NO_FUNCTIONS = Collections.unmodifiableList(new ArrayList<Function>());
 	private static final List<Variable> NO_VARIABLES = Collections.unmodifiableList(new ArrayList<Variable>());
 	private static final List<Script> NO_SCRIPTS = Collections.unmodifiableList(new ArrayList<Script>());
+	private static final Map<String, Effect> NO_EFFECTS = Collections.unmodifiableMap(new HashMap<String, Effect>());
 
 	/**
-	 * Returns an iterator to iterate over all functions defined in this script
+	 * Return the list of functions defined in this script.
+	 * @return The functions list
 	 */
 	public List<? extends Function> functions() {
 		requireLoaded();
-		return copyListOrReturnDefaultList(definedFunctions, NO_FUNCTIONS);
+		return definedFunctions != null ? definedFunctions : NO_FUNCTIONS;
 	}
 	
+	/**
+	 * Iterate over all functions of a certain function class.
+	 * @param cls The {@link Function} class
+	 * @return The {@link Iterable}
+	 */
 	public <T extends Function> Iterable<T> functions(Class<T> cls) {
 		requireLoaded();
 		return filteredIterable(functions(), cls);
 	}
 
 	/**
-	 * Returns an iterator to iterate over all variables defined in this script
+	 * Return the list of variables defined in this script.
+	 * @return The variables list
 	 */
 	public List<? extends Variable> variables() {
 		requireLoaded();
@@ -787,11 +842,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	/**
-	 * Returns an iterator to iterate over all directives defined in this script
+	 * Return the list of directives defined in this script.
+	 * @return The directives list
 	 */
 	public List<? extends Directive> directives() {
 		requireLoaded();
-		return copyListOrReturnDefaultList(definedDirectives, NO_DIRECTIVES);
+		return definedDirectives != null ? definedDirectives : NO_DIRECTIVES;
+	}
+	
+	/**
+	 * Return a map mapping effect name to {@link Effect} object
+	 * @return The map
+	 */
+	public Map<String, Effect> effects() {
+		return definedEffects != null ? definedEffects : NO_EFFECTS;
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
@@ -1148,6 +1212,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		clearDependentScripts();
 		IResource res = resource();
 		scenario = res != null ? Scenario.getAscending(res) : null;
+		detectEffects();
 	}
 	
 	/**
