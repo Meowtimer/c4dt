@@ -1,18 +1,18 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.StringUtil;
+
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.StringUtil;
-
 public abstract class Conf {
 	
 	// options
-	public static boolean alwaysConvertObjectCalls = false;
+	public static boolean alwaysConvertObjectCalls = true;
 	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
 	public static String indentString = "\t"; //$NON-NLS-1$
 
@@ -36,11 +36,10 @@ public abstract class Conf {
 	
 	private static void configureByEditorPreferences() {
 		boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
-		if (tabsToSpaces) {
+		if (tabsToSpaces)
 			indentString = StringUtil.repetitions(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
-		} else {
+		else
 			indentString = "\t";
-		}
 	}
 	
 	static {
@@ -48,9 +47,8 @@ public abstract class Conf {
 			EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {
-					if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
+					if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS))
 						configureByEditorPreferences();
-					}
 				}
 			});
 			configureByEditorPreferences();
