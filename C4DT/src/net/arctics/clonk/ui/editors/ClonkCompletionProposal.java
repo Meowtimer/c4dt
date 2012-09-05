@@ -193,13 +193,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 				((IDocumentedDeclaration)declaration).fetchDocumentation();
 			displayString = declaration.displayString();
 			Function func = as(declaration, Function.class);
-			if (func != null) {
+			if (func != null)
 				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
 				// for more than zero parameters, jump into brackets to let user type her parameters
-				if (replacementString.length() > declaration.name().length()) {
+				if (replacementString.length() > declaration.name().length())
 					cursorPosition += func.numParameters() == 0 ? 2 : 1;
-				}
-			}
 		}
 		return displayString();
 	}
@@ -215,9 +213,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	@Override
 	public String getAdditionalProposalInfo() {
-		if (additionalProposalInfo == null && declaration != null) {
+		if (additionalProposalInfo == null && declaration != null)
 			additionalProposalInfo = declaration.infoText();
-		}
 		return additionalProposalInfo;
 	}
 
@@ -240,9 +237,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	}
 	
 	public int compareTo(ClonkCompletionProposal other) {
-		if (other.category != null && this.category != null && other.category != this.category) {
+		if (other.category != null && this.category != null && other.category != this.category)
 			return this.category.ordinal() - other.category.ordinal();
-		}
 		String dispA = this.displayString();
 		String dispB = other.displayString();
 		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$

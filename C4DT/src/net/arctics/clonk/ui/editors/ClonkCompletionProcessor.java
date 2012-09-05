@@ -33,7 +33,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (def == null || def.id() == null)
 				return;
 
-			if (prefix != null) {
+			if (prefix != null)
 				if (!(
 					def.name().toLowerCase().contains(prefix) ||
 					def.id().stringValue().toLowerCase().contains(prefix) ||
@@ -41,7 +41,6 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					(def instanceof Definition && def.definitionFolder() != null && def.definitionFolder().getName().contains(prefix))
 				))
 					return;
-			}
 			String displayString = def.name();
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
@@ -60,16 +59,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 	
 	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
+		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
-		}
 	}
 	
 	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
-		if (prefix != null) {
+		if (prefix != null)
 			if (!func.name().toLowerCase().startsWith(prefix))
 				return;
-		}
 		int replacementLength = prefix != null ? prefix.length() : 0;
 
 		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -91,7 +88,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
-			null, var.infoText(), " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
+			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()
 		);
 		prop.setCategory(Category.Variables);
@@ -104,9 +101,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
 			@Override
 			public int compare(ICompletionProposal a, ICompletionProposal b) {
-				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal) {
+				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal)
 					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
-				}
 				return 1;
 			}
 		});

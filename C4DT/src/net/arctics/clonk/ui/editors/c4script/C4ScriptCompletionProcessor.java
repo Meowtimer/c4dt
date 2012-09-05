@@ -52,6 +52,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.Gen;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -88,6 +89,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
 	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {};
+	
 	/*static {
 		List<Character> chars = new ArrayList<Character>(256);
 		int i;
@@ -126,33 +128,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	}
 
-	private enum ProposalCycle {
-		ALL,
-		LOCAL,
-		OBJECT;
-
-		public String description() {
-			switch (this) {
-			case ALL:
-				return Messages.C4ScriptCompletionProcessor_AllCompletions;
-			case LOCAL:
-				return Messages.C4ScriptCompletionProcessor_LocalCompletions;
-			case OBJECT:
-				return Messages.C4ScriptCompletionProcessor_ObjectCompletions;
-			default:
-				return null;
-			}
-		}
-
-		public ProposalCycle reverseCycle() {
-			return values()[ordinal() == 0 ? values().length-1 : ordinal() - 1];
-		}
-
-		public ProposalCycle cycle() {
-			return values()[(this.ordinal()+1)%values().length];
-		}
-	}
-
 	private final ContentAssistant assistant;
 	private ExprElm contextExpression;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
@@ -164,7 +139,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		this.assistant = assistant;
 
 		if (assistant != null) {
-			assistant.setRepeatedInvocationTrigger(getIterationBinding());
+			assistant.setRepeatedInvocationTrigger(iterationBinding());
 			assistant.addCompletionListener(new ClonkCompletionListener());
 		}
 
@@ -209,6 +184,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 	}
 
+	@Profiled
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		int wordOffset = offset - 1;
@@ -257,13 +233,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		//assistant.setStatusMessage(statusMessage.toString());
-		assistant.setStatusMessage(getProposalCycleMessage());
+		assistant.setStatusMessage(proposalCycleMessage());
 
 		doCycle();
 
 		if (proposals.size() == 0)
 			return new ICompletionProposal[] {
-					new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) //$NON-NLS-1$ 
+				new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) //$NON-NLS-1$ 
 			};
 
 		return sortProposals(proposals);
@@ -299,7 +275,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		Script editorScript,
 		C4ScriptParser parser
 	) {
-
 		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
 		contextStructures.add(editorScript);
 		boolean contextStructuresChanged = false;
@@ -445,7 +420,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	};
 
-	private String getFunctionScaffold(String functionName, ParmInfo... parmTypes) {
+	private String functionScaffold(String functionName, ParmInfo... parmTypes) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
@@ -470,7 +445,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback, parmTypes); //$NON-NLS-1$
+		String repString = funcSupplied ? (callback!=null?callback:"") : functionScaffold(callback, parmTypes); //$NON-NLS-1$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				null,
 				repString, offset, replacementLength, 
@@ -561,8 +536,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
-	private String getProposalCycleMessage() {
-		TriggerSequence sequence = getIterationBinding();
+	private String proposalCycleMessage() {
+		TriggerSequence sequence = iterationBinding();
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
@@ -660,9 +635,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return new ClonkContextInformationValidator();
 	}
 
-	private KeySequence getIterationBinding() {
-		final IBindingService bindingSvc= (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
-		TriggerSequence binding= bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+	private KeySequence iterationBinding() {
+		final IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
+		TriggerSequence binding = bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 		if (binding instanceof KeySequence)
 			return (KeySequence) binding;
 		return null;
