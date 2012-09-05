@@ -1,5 +1,7 @@
 package net.arctics.clonk.resource;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -286,6 +289,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				parser.prepareForFunctionParsing();
 
 		for (Script s : scripts)
+			//s.clearDependentScripts();
 			s.generateFindDeclarationCache();
 		Utilities.threadPool(new Sink<ExecutorService> () {
 			@Override
@@ -345,18 +349,26 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		parserMap.clear();
 	}
 
-	private void queueDependentScripts(Map<Script, C4ScriptParser> scriptsToQueueDependenciesFrom, Map<Script, C4ScriptParser> newlyAddedParsers) {
-		for (C4ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
+	private void queueDependentScripts(Map<Script, C4ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, C4ScriptParser> newlyAddedParsers) {
+		for (final C4ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
 			if (monitor.isCanceled())
 				break;
 			if (parser == null)
 				continue;
-			//System.out.println("Queueing dependent scripts for " + parser.getContainer().toString());
-			for (Script dep : parser.containingScript().dependentScripts())
-				if (!parserMap.containsKey(dep)) {
-					C4ScriptParser p = queueScript(dep);
-					newlyAddedParsers.put(dep, p);
+			System.out.println("Queueing dependent scripts for " + parser.script().toString());
+			final Script s = parser.script();
+			final Definition def = as(s, Definition.class);
+			index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
+				@Override
+				public void receivedObject(Script item) {
+					if (
+						!parserMap.containsKey(item) &&
+						(item.usedScripts().contains(s) || (def != null && item.directlyIncludes(def)))
+					)
+						newlyAddedParsers.put(item, queueScript(item));
 				}
+			});
+			System.out.println("Done with that");
 		}
 		for (Structure s : gatheredStructures) {
 			s.validate();

@@ -85,8 +85,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	// set of scripts this script is using functions and/or static variables from
 	private Set<Script> usedScripts;
-	// scripts dependent on this one inside the same index
-	private transient Set<Script> dependentScripts;
 	
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
@@ -355,43 +353,30 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return includes = IHasIncludes.Default.includes(index, this, origin, options);
 		}
 	}
-
-	public Iterable<Script> dependentScripts() {
-		requireLoaded();
-		if (dependentScripts == null)
-			return iterable();
-		else
-			return dependentScripts;
-	}
 	
-	public void clearDependentScripts() {
-		dependentScripts = null;
-	}
-	
-	public void addDependentScript(Script s) {
-		requireLoaded();
-		synchronized (this) {
-			if (dependentScripts == null)
-				dependentScripts = new HashSet<Script>();
-			dependentScripts.add(s);
-		}
+	public boolean directlyIncludes(Definition other) {
+		for (Directive d : directives())
+			if (d.refersTo(other))
+				return true;
+		return false;
 	}
 
 	/**
 	 * Returns an include directive that includes a specific {@link Definition}'s script
-	 * @param obj The {@link Definition} to return a corresponding {@link Directive} for
+	 * @param definition The {@link Definition} to return a corresponding {@link Directive} for
 	 * @return The {@link Directive} or null if no matching directive exists in this script.
 	 */
-	public Directive directiveIncludingDefinition(Definition obj) {
+	public Directive directiveIncludingDefinition(Definition definition) {
 		requireLoaded();
 		for (Directive d : includeDirectives())
-			if ((d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
+			if ((d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == definition)
 				return d;
 		return null;
 	}
 
 	/**
 	 * Finds a declaration in this script or an included one
+	 * @param name Name of declaration to find.
 	 * @return The declaration or null if not found
 	 */
 	@Override
@@ -1029,8 +1014,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			synchronized (usedScripts) {
 				usedScripts.remove(script);
 			}
-		if (dependentScripts != null)
-			dependentScripts.remove(script);
 	}
 	
 	@Override
@@ -1210,7 +1193,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	public void indexRefresh() {
-		clearDependentScripts();
 		if (!notFullyLoaded) {
 			IResource res = resource();
 			scenario = res != null ? Scenario.getAscending(res) : null;

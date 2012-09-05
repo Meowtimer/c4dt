@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.util.Utilities;
 
 public class Directive extends Declaration implements Serializable {
 
@@ -135,6 +136,16 @@ public class Directive extends Declaration implements Serializable {
 		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt())
 			return true;
 		return contents() != null && matcher.reset(contents()).lookingAt();
+	}
+	
+	public boolean refersTo(Definition definition) {
+		switch (type) {
+		case APPENDTO: case INCLUDE:
+			ID id = contentAsID();
+			return Utilities.objectsEqual(id, definition.id());
+		default:
+			return false;
+		}
 	}
 
 }
