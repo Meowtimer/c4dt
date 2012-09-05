@@ -641,7 +641,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param pivot The pivot dictating the perspective of the call
 	 * @return An {@link Iterable} to iterate over this presumably large subset of all the {@link Definition}s managed by the index.
 	 */
-	public Iterable<Definition> objectsIgnoringRemoteDuplicates(final IResource pivot) {
+	public Iterable<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
 		return new ConvertingIterable<List<Definition>, Definition>(new IConverter<List<Definition>, Definition>() {
 			@Override
 			public Definition convert(List<Definition> from) {

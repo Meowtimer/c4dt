@@ -59,7 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 	
 	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile()))
+		for (Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
 	
