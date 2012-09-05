@@ -147,11 +147,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T visitor) throws CoreException {
+	private <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T visitor) throws CoreException {
 		if (delta != null)
 			delta.accept(visitor);
-		else
+		else if (buildKind == FULL_BUILD || buildKind == CLEAN_BUILD)
 			proj.accept(visitor);
+		else
+			System.out.println("ClonkBuilder: Not visiting things - no delta but no full build either");
 	}
 
 	private static class SaveScriptsJob extends Job {
