@@ -161,13 +161,16 @@ public class MemberOperator extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		ExprElm pred = predecessorInSequence();
+		EngineSettings settings = parser.script().engine().settings();
 		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(
 				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
-		if (getLength() > 3 && !parser.script().engine().settings().spaceAllowedBetweenArrowAndTilde)
+		if (getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
 			parser.error(ParserErrorCode.MemberOperatorWithTildeNoSpace, this, C4ScriptParser.NO_THROW);
+		if (dotNotation && !settings.supportsProplists)
+			parser.error(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW);
 	}
 	
 	@Override
