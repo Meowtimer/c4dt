@@ -621,7 +621,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public synchronized void clearDeclarations() {
-		notFullyLoaded = false;
+		loaded = true;
 		usedScripts = null;
 		definedDirectives = null;
 		definedFunctions = null;
@@ -1198,7 +1198,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	public void indexRefresh() {
-		if (!notFullyLoaded) {
+		if (loaded) {
 			IResource res = resource();
 			scenario = res != null ? Scenario.getAscending(res) : null;
 			detectEffects();

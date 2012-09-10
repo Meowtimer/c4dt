@@ -22,7 +22,7 @@ public abstract class IndexEntity extends Structure {
 	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
 		@Override
 		public boolean filter(T item) {
-			return !item.notFullyLoaded;
+			return item.loaded;
 		}
 	}
 
@@ -31,7 +31,7 @@ public abstract class IndexEntity extends Structure {
 	/**
 	 * Flag indicating whether the entity was loaded already loaded from disk or not.
 	 */
-	protected transient boolean notFullyLoaded = false;
+	protected transient boolean loaded = true;
 	protected transient boolean dirty = false; 
 	protected transient Index index;
 	protected long entityId;
@@ -71,14 +71,14 @@ public abstract class IndexEntity extends Structure {
 	}
 
 	/**
-	 * Require this entity to be loaded. If {@link #notFullyLoaded} is true it is set to false and {@link Index#loadEntity(IndexEntity)} is called.
+	 * Require this entity to be loaded. If {@link #loaded} is false it is set to true and {@link Index#loadEntity(IndexEntity)} is called.
 	 */
 	public final void requireLoaded() {
 		if (index == null)
 			return;
 		synchronized (index.saveSynchronizer()) {
-			if (notFullyLoaded) {
-				notFullyLoaded = false;
+			if (!loaded) {
+				loaded = true;
 				try {
 					index.loadEntity(this);
 				} catch (Exception e) {
@@ -88,6 +88,10 @@ public abstract class IndexEntity extends Structure {
 				}
 			}
 		}
+	}
+	
+	public final boolean loaded() {
+		return loaded;
 	}
 	
 	/**

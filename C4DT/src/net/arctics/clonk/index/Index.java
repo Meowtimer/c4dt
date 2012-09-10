@@ -147,7 +147,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			saveSynchronizer = new Object();
 		for (IndexEntity e : entities()) {
 			e.index = this;
-			e.notFullyLoaded = true;
+			e.loaded = false;
 		}
 		refreshIndex(true);
 	}
@@ -254,7 +254,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Call {@link #refreshIndex(boolean)} with false.
+	 * Call {@link #refreshIndex(boolean)} when not post-loading the index.
 	 */
 	public void refreshIndex() {
 		refreshIndex(false);
@@ -279,18 +279,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		staticVariables.clear();
 		declarationMap.clear();
 
-		final int[] counts = new int[2];
+		final int[] counts = new int[3];
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
 				item.indexRefresh();
+				if (item.loaded)
+					counts[2]++;
 				if (item instanceof Definition)
 					counts[0]++;
 				else
 					counts[1]++;
 			}
 		});
-		System.out.println(String.format("Refreshing index for '%s': %d definitions, %d other scripts", project().getName(), counts[0], counts[1]));
 
 		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
@@ -999,7 +1000,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void endModification() {
 		synchronized (this) {
 			for (IndexEntity e : newEntities)
-				if (!e.notFullyLoaded && e.saveCalledByIndex())
+				if (e.loaded && e.saveCalledByIndex())
 					try {
 						e.save();
 					} catch (IOException e1) {
