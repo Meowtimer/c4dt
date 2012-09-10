@@ -296,7 +296,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
 		File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles();
 		for (File xmlFile : xmlFiles) {
-			System.out.println(xmlFile.getName());
 			boolean isConst = false;
 			try {
 				FileReader r = new FileReader(xmlFile);

@@ -18,14 +18,15 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.CallReturnType;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.FuncReturnType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
@@ -303,8 +304,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// Some special rule applies and the return type is set accordingly
 			SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 			if (rule != null)
-				return new FuncReturnType(this, rule);
-			return new FuncReturnType(this, null);
+				return new CallReturnType(this, rule);
+			return new CallReturnType(this, null);
 		}
 		if (d instanceof Variable)
 			return ((Variable)d).type();
@@ -321,6 +322,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		super.obtainDeclaration(context);
 		return _obtainDeclaration(null, context);
 	}
+	
+	private static IType resolveType(IType type, DeclarationObtainmentContext context, IType callerType) {
+		return IResolvableType._.resolve(type, context, callerType != null ? callerType : context.script());
+	}
 
 	protected Declaration _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
@@ -336,9 +341,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				}
 			}
 		}
-		ExprElm p = predecessorInSequence();
+		ExprElm p;
+		for (p = predecessorInSequence(); p != null && p instanceof MemberOperator; p = p.predecessorInSequence());
 		unresolvedPredecessorType = p != null ? p.unresolvedType(context) : null;
-		return findFunction(declarationName, unresolvedPredecessorType, MemberOperator.unforgiving(p), context, list);
+		return findFunction(declarationName,
+			unresolvedPredecessorType != null
+				? resolveType(unresolvedPredecessorType, context, p.unresolvedPredecessorType(context))
+				: null, MemberOperator.unforgiving(p), context, list);
 	}
 
 	/**
@@ -378,9 +387,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				declaration = context.script().index().findGlobal(Declaration.class, functionName);
 			} catch (Exception e) {
 				e.printStackTrace();
-				if (context == null)
-					System.out.println("No context");
-				else if (context.script() == null)
+				if (context.script() == null)
 					System.out.println("No container");
 				else if (context.script().index() == null)
 					System.out.println("No index");

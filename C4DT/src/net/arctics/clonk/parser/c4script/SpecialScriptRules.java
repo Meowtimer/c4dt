@@ -140,11 +140,23 @@ public class SpecialScriptRules {
 	/**
 	 * Base class for special rules.
 	 * @author madeen
-	 *
 	 */
-	public static abstract class SpecialRule implements ISerializationResolvable, Serializable {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	public static abstract class SpecialRule {
+		
+		public static class Ticket implements ISerializationResolvable, Serializable {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			private final String name;
+			public Ticket(SpecialRule obj) {
+				this.name = obj.name;
+			}
+			@Override
+			public Object resolve(Index index) {
+				return index.engine().specialScriptRules().rule(name);
+			}
+		}
+		
 		public String name;
+		
 		/**
 		 * Return the list of functions an instance of SpecialRule should be applied to.
 		 * Obtained from an @AppliedTo annotation attached to the passed instance field refering to the actual rule. 
@@ -197,10 +209,6 @@ public class SpecialScriptRules {
 				}
 			return result;
 		}
-		@Override
-		public Object resolve(Index index) {
-			return index.engine().specialScriptRules().rule(name); 
-		}
 	}
 	
 	/**
@@ -216,10 +224,6 @@ public class SpecialScriptRules {
 	 *
 	 */
 	public static abstract class SpecialFuncRule extends SpecialRule {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		/**
 		 * Validate arguments of a function call.
@@ -388,7 +392,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
@@ -412,7 +415,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"GetID"})
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
@@ -443,7 +445,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"FindObjects"})
 	public final SpecialFuncRule criteriaSearchRule = new SearchCriteriaRuleBase() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(context, callFunc, true);
@@ -514,7 +515,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Schedule"})
 	public final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public boolean validateArguments(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
@@ -569,7 +569,6 @@ public class SpecialScriptRules {
 	
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
@@ -589,7 +588,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"AddCommand", "AppendCommand", "SetCommand"})
 	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			Function f = callFunc.declaration() instanceof Function ? (Function)callFunc.declaration() : null;
@@ -622,7 +620,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
@@ -658,7 +655,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
@@ -676,7 +672,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
@@ -701,7 +696,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
@@ -726,7 +720,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"GetPlrKnowledge", "GetPlrMagic"})
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 3)
@@ -737,7 +730,6 @@ public class SpecialScriptRules {
 	};
 	
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser);
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
@@ -758,7 +750,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
 			return ArrayUtil.set((IIndexEntity)pi.findPinnedStructure(ParticleUnit.class, name, parser.script().resource(), true, "Particle.txt"));
@@ -767,7 +758,6 @@ public class SpecialScriptRules {
 	
 	@AppliedTo(functions={"Format"})
 	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser) {
 			if (callFunc.parent() instanceof CallDeclaration && ((CallDeclaration)callFunc.parent()).indexOfParm(callFunc) == 0) {
@@ -784,7 +774,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Sound"})
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		protected void collectSoundResourcesInFolder(Set<IIndexEntity> set, Matcher nameMatcher, Engine engine, IContainer container, ProjectIndex pi) {
 			try {
 				for (IResource r : container.members())
@@ -829,7 +818,6 @@ public class SpecialScriptRules {
 	 *
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return getActionLinkForDefinition(parser.currentFunction(), parser.definition(), parmExpression);
@@ -865,7 +853,6 @@ public class SpecialScriptRules {
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
 	
 	private abstract class SearchCriteriaRuleBase extends SpecialFuncRule {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		protected List<Declaration> functionsNamed(DeclarationObtainmentContext context, final String name) {
 			final List<Declaration> matchingDecs = new LinkedList<Declaration>();
 			final Sink<Script> scriptSink = new Sink<Script>() {
@@ -894,7 +881,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SearchCriteriaRuleBase() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
@@ -912,7 +898,6 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"CreateArray"})
 	public final SpecialFuncRule createArrayTypingRule = new SpecialFuncRule() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
 			int arrayLength = ArrayType.NO_PRESUMED_LENGTH;

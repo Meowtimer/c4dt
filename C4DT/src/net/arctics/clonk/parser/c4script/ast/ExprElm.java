@@ -224,7 +224,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return context.script();
+		return unresolvedPredecessorType(context);
 	}
 	
 	/**
@@ -964,6 +964,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if(expression != null && expression.containsConst())
 				return true;
 		return false;
+	}
+	
+	public final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
+		ExprElm e = this;
+		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
+		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;
 	}
 
 }

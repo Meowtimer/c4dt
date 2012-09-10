@@ -7,14 +7,22 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.util.ArrayUtil;
 
-public class FuncReturnType implements IType, IResolvableType {
+public class CallReturnType implements IType, IResolvableType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private final CallDeclaration call;
 	private final SpecialFuncRule rule;
 	
-	public FuncReturnType(CallDeclaration call, SpecialFuncRule rule) {
+	public CallDeclaration call() {
+		return call;
+	}
+	
+	public SpecialFuncRule rule() {
+		return rule;
+	}
+	
+	public CallReturnType(CallDeclaration call, SpecialFuncRule rule) {
 		super();
 		this.call = call;
 		this.rule = rule;
@@ -80,7 +88,7 @@ public class FuncReturnType implements IType, IResolvableType {
 		IType predType = call.unresolvedPredecessorType();
 		IType ct = IResolvableType._.resolve(predType != null ? predType : callerType, context, callerType);
 		Function func = ct instanceof Script ? ((Script)ct).findFunction(call.function().name()) : null;
-		return func != null ? IResolvableType._.resolve(func.returnType(), context, callerType) : PrimitiveType.UNKNOWN;
+		return func != null ? IResolvableType._.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
 	}
 
 }

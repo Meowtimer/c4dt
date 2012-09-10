@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -318,6 +319,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
 	
+	@Override
+	public DeclarationObtainmentContext declarationObtainmentContext() {
+		return parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script());
+	}
+	
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
@@ -578,22 +584,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			final Script script,
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
-		C4ScriptParser parser = null;
-		if (document instanceof IDocument)
-			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
-		else if (document instanceof IFile)
-			try {
-				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
-					@Override
-					public C4ScriptParser run(IDocument document) {
-						return new C4ScriptParser(document.get(), script, script.scriptFile());
-					}
-				});
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		if (parser == null)
-			throw new InvalidParameterException("document");
+		C4ScriptParser parser = parserForDocument(document, script);
 		List<ITypeInfo> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			// when only parsing declarations store type information for variables declared in the script
@@ -617,6 +608,26 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
+		return parser;
+	}
+
+	private static C4ScriptParser parserForDocument(Object document, final Script script) {
+		C4ScriptParser parser = null;
+		if (document instanceof IDocument)
+			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
+		else if (document instanceof IFile)
+			try {
+				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+					@Override
+					public C4ScriptParser run(IDocument document) {
+						return new C4ScriptParser(document.get(), script, script.scriptFile());
+					}
+				});
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		if (parser == null)
+			throw new InvalidParameterException("document");
 		return parser;
 	}
 	
