@@ -723,16 +723,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Returns a line a region is in as a string
-	 * @param region the region the line to be returned is in
-	 * @return the line string
-	 */
-	@Override
-	public String lineAtRegion(IRegion region) {
-		return this.lineAtRegion(region);
-	}
-
-	/**
 	 * Parses the declaration at the current this position.
 	 * @return whether parsing was successful
 	 * @throws ParsingException
@@ -3316,7 +3306,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public Statement parseStandaloneStatement(final String statementText, Function context, IASTVisitor listener) throws ParsingException {
-		initScanner(statementText);
+		init(statementText);
 		setListener(listener);
 		setCurrentFunction(context);
 		enableError(ParserErrorCode.NotFinished, false);

@@ -56,10 +56,10 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param withString
 	 */
 	public BufferedScanner(String withString) {
-		initScanner(withString);
+		init(withString);
 	}
 	
-	protected void initScanner(String withString) {
+	protected final void init(String withString) {
 		offset = 0;
 		buffer = withString;
 		size = buffer.length();
@@ -89,7 +89,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the character (can be cast to char) or -1 if the current offset exceeds the size of the buffer
 	 */
 	@Override
-	public int read() {
+	public final int read() {
 		if (offset >= size) {
 			offset++; // increment anyway so unread works as expected
 			return -1;
@@ -102,7 +102,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return
 	 */
 	@Override
-	public void unread() {
+	public final void unread() {
 		offset--;
 	}
 
@@ -111,7 +111,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param length the length
 	 * @return the read string
 	 */
-	public String readString(int length) {
+	public final String readString(int length) {
 		if (offset+length > size)
 			return null;
 		String result = buffer.substring(offset, offset+length);
@@ -139,7 +139,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
 	 * @return the code-word
 	 */
-	public String readIdent() {
+	public final String readIdent() {
 		int start = offset;
 		int length = 0;
 		do {
@@ -162,7 +162,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param delimiters
 	 * @return string sequence, without delimiter char
 	 */
-	public String readStringUntil(char ...delimiters) {
+	public final String readStringUntil(char ...delimiters) {
 		int start = offset;
 		int subtract = 0;
 		Outer: do {
@@ -178,7 +178,7 @@ public class BufferedScanner implements ICharacterScanner {
 		return readString(stringLength);
 	}
 	
-	public int skipUntil(char... delimiters) {
+	public final int skipUntil(char... delimiters) {
 		int subtract = 0;
 		int len;
 		Outer: for (len = 0; !reachedEOF(); len++) {
@@ -193,7 +193,7 @@ public class BufferedScanner implements ICharacterScanner {
 		return len;
 	}
 	
-	public boolean skipSingleLineEnding() {
+	public final boolean skipSingleLineEnding() {
 		if (read() == '\r') {
 			if (read() != '\n')
 				unread();
@@ -209,7 +209,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Cursor is after newline char(s)
 	 * @return the line without newline char(s)
 	 */
-	public String readLine() {
+	public final String readLine() {
 		int start = offset;
 		String line = readStringUntil(NEWLINE_CHARS);
 		if (line == null)
@@ -234,7 +234,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Moves offset until a char from <code>delimiters</code> occurs
 	 * @param delimiters
 	 */
-	public void moveUntil(char[] delimiters) {
+	public final void moveUntil(char[] delimiters) {
 		do {
 			int readByte = read();
 			for(int i = 0; i < delimiters.length;i++)
@@ -247,7 +247,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Moves offset until any other char than <code>charsToEat</code> occurs
 	 * @param charsToEat
 	 */
-	public int eat(char[] charsToEat) {
+	public final int eat(char[] charsToEat) {
 		if (reachedEOF())
 			return 0; // no unreading() when already reached EOF
 		int result = 0;
@@ -268,7 +268,7 @@ public class BufferedScanner implements ICharacterScanner {
 		return result;
 	}
 	
-	public int eatUntil(char ...delimiters) {
+	public final int eatUntil(char ...delimiters) {
 		if (reachedEOF())
 			return 0; // no unreading() when already reached EOF
 		int result = 0;
@@ -309,11 +309,11 @@ public class BufferedScanner implements ICharacterScanner {
 		return tabs;
 	}
 	
-	public int indentationAt(int offset) {
+	public final int indentationAt(int offset) {
 		return indentationOfStringAtPos(buffer, offset);
 	}
 	
-	public int currentIndentation() {
+	public final int currentIndentation() {
 		return indentationOfStringAtPos(buffer, tell());
 	}
 
@@ -322,7 +322,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param newPos
 	 * @return new offset
 	 */
-	public int seek(int newPos) {
+	public final int seek(int newPos) {
 		offset = newPos;
 		return offset;
 	}
@@ -341,7 +341,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param distance
 	 * @return new offset
 	 */
-	public int move(int distance) {
+	public final int move(int distance) {
 		offset += distance;
 		if (offset >= size) offset = size - 1;
 		return offset;
@@ -369,7 +369,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param end end offset of string
 	 * @return the read string
 	 */
-	public String readStringAt(int start, int end) {
+	public final String readStringAt(int start, int end) {
 		if (start == end)
 			return ""; //$NON-NLS-1$
 		int p = tell();
@@ -406,7 +406,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param region the region
 	 * @return the line string
 	 */
-	public String lineAtRegion(IRegion region) {
+	public final String lineAtRegion(IRegion region) {
 		IRegion lineRegion = regionOfLineContainingRegion(region);
 		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
 	}
@@ -416,7 +416,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param region the region
 	 * @return the substring
 	 */
-	public String bufferSubstringAtRegion(IRegion region) {
+	public final String bufferSubstringAtRegion(IRegion region) {
 		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
 	}
 	
@@ -433,7 +433,7 @@ public class BufferedScanner implements ICharacterScanner {
 		return new Region(start, end-start);
 	}
 	
-	public IRegion regionOfLineContainingRegion(IRegion regionInLine) {
+	public final IRegion regionOfLineContainingRegion(IRegion regionInLine) {
 		return regionOfLineContainingRegion(this.buffer, regionInLine);
 	}
 
@@ -441,7 +441,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * returns the size of the buffer 
 	 * @return the buffer size
 	 */
-	public int bufferSize() {
+	public final int bufferSize() {
 		return size;
 	}
 	
@@ -449,7 +449,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Return the buffer the scanner operates on
 	 * @return the buffer
 	 */
-	public String buffer() {
+	public final String buffer() {
 		return buffer;
 	}
 	
@@ -462,7 +462,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Return the next-to-be-read char without modifying the scanner position
 	 * @return the next char
 	 */
-	public int peek() {
+	public final int peek() {
 		int p = read();
 		unread();
 		return p;
@@ -472,7 +472,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Returns the first character from the current offset that is not whitespace. This method does not alter the current offset
 	 * @return
 	 */
-	public int peekAfterWhitespace() {
+	public final int peekAfterWhitespace() {
 		int pos = offset;
 		eatWhitespace();
 		int result = read();
@@ -480,14 +480,14 @@ public class BufferedScanner implements ICharacterScanner {
 		return result;
 	}
 	
-	public String peekString(int length) {
+	public final String peekString(int length) {
 		int pos = offset;
 		String result = readString(Math.min(length, size-offset));
 		seek(pos);
 		return result;
 	}
 	
-	public String stringAtRegion(IRegion region) {
+	public final String stringAtRegion(IRegion region) {
 		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
 	}
 	
@@ -504,12 +504,12 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	@Override
-	public char[][] getLegalLineDelimiters() {
+	public final char[][] getLegalLineDelimiters() {
 		return new char[][] {{'\n'}, {'\r', '\n'}};
 	}
 
 	@Override
-	public int getColumn() {
+	public final int getColumn() {
 		return indentationAt(offset);
 	}
 	
