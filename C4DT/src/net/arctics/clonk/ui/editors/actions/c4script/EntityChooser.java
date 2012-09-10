@@ -71,7 +71,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
-				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element, false);
+				StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null, null);
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 				if (element instanceof IHasRelatedResource)
 					result.append(((IHasRelatedResource)element).resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);

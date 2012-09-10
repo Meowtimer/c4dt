@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.specialscriptrules;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
@@ -19,18 +20,19 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 		putFuncRule(criteriaSearchRule, "FindObject2");
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
 			@Override
 			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 				if (index == 1 && callFunc.declarationName().equals("ObjectSetAction")) {
 					IType t = callFunc.params()[0].type(parser);
-					if (t != null) for (IType ty : t) {
+					if (t != null) for (IType ty : t)
 						if (ty instanceof Definition) {
 							Definition def = (Definition)ty;
 							EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), def, parmExpression);
 							if (result != null)
 								return result;
 						}
-					}
 				}
 				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};

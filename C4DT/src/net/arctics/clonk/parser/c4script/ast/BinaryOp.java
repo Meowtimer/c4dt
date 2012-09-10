@@ -18,7 +18,7 @@ public class BinaryOp extends OperatorExpression {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		switch (operator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or: case JumpNotNil:
@@ -31,7 +31,7 @@ public class BinaryOp extends OperatorExpression {
 		case Assign:
 			return rightSide().type(context);
 		default:
-			return super.obtainType(context);
+			return super.unresolvedType(context);
 		}
 	}
 

@@ -111,7 +111,7 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext parser) {
+	public IType unresolvedType(DeclarationObtainmentContext parser) {
 		return PrimitiveType.ANY;
 	}
 	

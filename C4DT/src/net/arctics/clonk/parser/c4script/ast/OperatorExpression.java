@@ -13,7 +13,7 @@ public class OperatorExpression extends ExprElm {
 	private final Operator operator;
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return operator.resultType();
 	}
 

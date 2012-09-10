@@ -29,7 +29,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	 */
 	public static final class VarInitialization extends ExprElm {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		/**
 		 * Name of the variable being declared.

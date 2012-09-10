@@ -17,8 +17,8 @@ public class ArrayElementExpression extends ExprElm {
 	protected ExprElm argument;
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
-		IType t = super.obtainType(context);
+	public IType unresolvedType(DeclarationObtainmentContext context) {
+		IType t = super.unresolvedType(context);
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
 		if (predecessorInSequence() != null)

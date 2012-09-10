@@ -1086,7 +1086,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	@Override
 	public boolean subsetOfAny(IType... types) {
-		return IType.Default.containsAnyTypeOf(this, types);
+		return IType.Default.subsetOfAny(this, types);
 	}
 
 	@Override

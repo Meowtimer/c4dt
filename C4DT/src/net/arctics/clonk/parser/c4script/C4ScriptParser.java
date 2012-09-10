@@ -1333,7 +1333,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 		private TempScript(String expression) {
 			super(new Index() {
-				private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
 				@Override
 				public Engine engine() {
@@ -1499,7 +1499,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	public static class Markers extends LinkedList<Marker> {
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public void deploy() {
 			if (Core.instance().runsHeadless())
 				return;

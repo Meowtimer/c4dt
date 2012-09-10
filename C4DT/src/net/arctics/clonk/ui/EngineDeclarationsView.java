@@ -7,10 +7,10 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -124,18 +124,15 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			composite.setLayout(new GridLayout(2,false));
 			if (declaration == null) {
 				Object activeElement = getActiveElement();
-				if (!(activeElement instanceof Declaration)) {
+				if (!(activeElement instanceof Declaration))
 					return null;
-				}
 				declaration = (Declaration) activeElement;
 			}
 			
-			if (declaration instanceof Function) {
+			if (declaration instanceof Function)
 				createFunctionEditDialog(composite, (Function) declaration);
-			}
-			else if (declaration instanceof Variable) {
+			else if (declaration instanceof Variable)
 				createVariableEditDialog(composite, (Variable) declaration);
-			}
 			
 			return composite;
 		}
@@ -242,11 +239,9 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			
 			new Label(parent, SWT.NONE).setText(" "); // placeholder //$NON-NLS-1$
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
-			if (func.parameters() != null) {
-				for(Variable par : func.parameters()) {
+			if (func.parameters() != null)
+				for(Variable par : func.parameters())
 					createParameterControls(parent, par.type(), par.name());
-				}
-			}
 			
 			createNewParameterButton(parent);
 			
@@ -265,12 +260,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		private Combo createComboBoxForScope(Composite parent, Object scope) {
 			Object[] values = null;
-			if (scope instanceof Scope) {
+			if (scope instanceof Scope)
 				values = Scope.values();
-			}
-			else if (scope instanceof FunctionScope) {
+			else if (scope instanceof FunctionScope)
 				values = FunctionScope.values();
-			}
 			else
 				return null;
 			Combo combo = new Combo(parent, SWT.READ_ONLY);
@@ -335,7 +328,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		drillDownAdapter = new DrillDownAdapter(viewer);
 		
-		ClonkOutlineProvider provider = new ClonkOutlineProvider();
+		ClonkOutlineProvider provider = new ClonkOutlineProvider(null);
 		viewer.setContentProvider(provider);
 		viewer.setLabelProvider(provider);
 		viewer.setSorter(new ViewerSorter() {
@@ -419,9 +412,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
-				if (dialog.open() == Window.OK) {
+				if (dialog.open() == Window.OK)
 					Core.instance().activeEngine().addDeclaration(func);
-				}
 				refresh();
 			}
 		};
@@ -436,9 +428,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
-				if (dialog.open() == Window.OK) {
+				if (dialog.open() == Window.OK)
 					Core.instance().activeEngine().addDeclaration(var);
-				}
 				refresh();
 			}
 		};
@@ -473,9 +464,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					TreeItem[] selection = viewer.getTree().getSelection();
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
-						if (selectedItem instanceof Declaration) {
+						if (selectedItem instanceof Declaration)
 							Core.instance().activeEngine().removeDeclaration((Declaration) selectedItem);
-						}
 					}
 					refresh();
 				}
@@ -507,10 +497,9 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
 					final String repo = Core.instance().activeEngine().settings().repositoryPath;
-					if (repo == null) {
+					if (repo == null)
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
-					}
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -593,9 +582,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
-		if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+		if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 			refresh();
-		}
 	}
 	
 	@Override

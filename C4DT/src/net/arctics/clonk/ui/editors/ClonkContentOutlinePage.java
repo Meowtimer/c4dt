@@ -122,7 +122,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			public void mouseDoubleClick(MouseEvent e) {openForeignDeclarations();}
 		});
 		if (editor != null) {
-			Declaration topLevelDeclaration = getEditor().topLevelDeclaration();
+			Declaration topLevelDeclaration = editor().topLevelDeclaration();
 			if (topLevelDeclaration != null)
 				setTreeViewerInput(topLevelDeclaration);
 		}
@@ -146,7 +146,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
-		ClonkOutlineProvider provider = new ClonkOutlineProvider();
+		ClonkOutlineProvider provider = new ClonkOutlineProvider(this);
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
 		treeViewer.setSorter(DECLARATION_SORTER);
@@ -177,12 +177,12 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	/**
 	 * @return the editor
 	 */
-	public ClonkTextEditor getEditor() {
+	public ClonkTextEditor editor() {
 		return editor;
 	}
 
 	public void refresh() {
-		Declaration newInput = getEditor().topLevelDeclaration();
+		Declaration newInput = editor().topLevelDeclaration();
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else

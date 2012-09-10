@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.InvalidParameterException;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.Sink;
@@ -17,6 +18,8 @@ import net.arctics.clonk.util.Sink;
  */
 public abstract class IndexEntity extends Structure {
 	
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	
 	public interface TopLevelEntity {}
 	
 	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
@@ -25,8 +28,6 @@ public abstract class IndexEntity extends Structure {
 			return item.loaded;
 		}
 	}
-
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Flag indicating whether the entity was loaded already loaded from disk or not.

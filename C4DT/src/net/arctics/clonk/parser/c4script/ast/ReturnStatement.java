@@ -110,6 +110,6 @@ public class ReturnStatement extends KeywordStatement {
 		if (activeFunc == null)
 			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
-			parser.currentFunction().expectedToBeOfType(returnExpr.type(parser), TypeExpectancyMode.Force);
+			parser.currentFunction().expectedToBeOfType(returnExpr.unresolvedType(parser), TypeExpectancyMode.Force);
 	}
 }

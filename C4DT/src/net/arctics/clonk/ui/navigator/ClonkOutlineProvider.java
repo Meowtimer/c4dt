@@ -3,13 +3,20 @@
  */
 package net.arctics.clonk.ui.navigator;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IResolvableType;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -21,8 +28,13 @@ import org.eclipse.swt.graphics.Image;
 
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
+	private final ClonkContentOutlinePage page;
 	protected static final Object[] NO_CHILDREN = new Object[0];
-	private WeakReference<Object> root;
+	private WeakReference<Declaration> root;
+	
+	public ClonkOutlineProvider(ClonkContentOutlinePage page) {
+		this.page = page;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
@@ -39,8 +51,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 */
 	@Override
 	public Object getParent(Object obj) {
-		// TODO Auto-generated method stub
-		return null;
+		return obj instanceof Declaration ? ((Declaration)obj).parentDeclaration() : null;
 	}
 
 	/* (non-Javadoc)
@@ -69,7 +80,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 */
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		root = new WeakReference<Object>(newInput);
+		root = new WeakReference<Declaration>((Declaration)newInput);
 	}
 
 	@Override
@@ -87,11 +98,11 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		boolean foreign =
 			element instanceof Declaration &&
 			root != null && root.get() instanceof Declaration &&
-			!((Declaration)element).containedIn((Declaration)root.get());
-		return getStyledTextForEveryone(element, foreign);
+			!((Declaration)element).containedIn(root.get());
+		return styledTextFor(element, foreign, root.get(), page != null && page.editor() != null ? page.editor().declarationObtainmentContext() : null);
 	}
 	
-	public static StyledString getStyledTextForEveryone(Object element, boolean foreign) {
+	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, DeclarationObtainmentContext context) {
 		StyledString result = new StyledString();
 		if (foreign && element instanceof Declaration) {
 			Declaration topDec = ((Declaration)element).topLevelStructure();
@@ -103,9 +114,12 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		if (element instanceof Function) {
 			Function func = ((Function)element);
 			result.append(func.longParameterString(true, false));
-			if (func.returnType() != null && func.returnType() != PrimitiveType.UNKNOWN && func.returnType() != PrimitiveType.ANY) {
+			IType retType = func.returnType();
+			if (retType != null && retType != PrimitiveType.UNKNOWN && retType != PrimitiveType.ANY) {
+				if (context != null)
+					retType = IResolvableType._.resolve(retType, context, as(root, Script.class));
 				result.append(" : "); //$NON-NLS-1$
-				result.append(func.returnType().typeName(true), StyledString.DECORATIONS_STYLER);
+				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
 			}
 		}
 		else if (element instanceof Variable) {

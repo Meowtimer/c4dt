@@ -358,7 +358,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				break;
 			if (parser == null)
 				continue;
-			System.out.println("Queueing dependent scripts for " + parser.script().toString());
 			final Script s = parser.script();
 			final Definition def = as(s, Definition.class);
 			index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
@@ -371,7 +370,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						newlyAddedParsers.put(item, queueScript(item));
 				}
 			});
-			System.out.println("Done with that");
 		}
 		for (Structure s : gatheredStructures) {
 			s.validate();

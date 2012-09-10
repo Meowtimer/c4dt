@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -27,7 +28,7 @@ import net.arctics.clonk.util.Utilities;
  */
 public class ProplistDeclaration extends Structure implements IType, IHasIncludes, Cloneable, IProplistDeclaration {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected List<Variable> components;
 	protected boolean adHoc;
 	protected ExprElm implicitPrototype;

@@ -7,8 +7,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 
 public class Sequence extends ExprElmWithSubElementsArray {
 
@@ -32,8 +32,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			e.print(output, depth+1);
 	}
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
-		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].type(context);
+	public IType unresolvedType(DeclarationObtainmentContext context) {
+		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].unresolvedType(context);
 	}
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
@@ -60,21 +60,20 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			currentSequenceExpressions.add(e);
 			p = e;
 		}
-		if (result.size() == 0) {
+		if (result.size() == 0)
 			return new Statement[] {SimpleStatement.wrapExpression(this)};
-		} else {
+		else {
 			result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
 	public Sequence subSequenceUpTo(ExprElm elm) {
 		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
-		for (ExprElm e : elements) {
+		for (ExprElm e : elements)
 			if (e == elm)
 				break;
 			else
 				list.add(e);
-		}
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
 	@Override

@@ -55,7 +55,7 @@ public class PropListExpression extends ExprElm {
 		output.append('}');
 	}
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext parser) {
+	public IType unresolvedType(DeclarationObtainmentContext parser) {
 		return definedDeclaration;
 	}
 	@Override

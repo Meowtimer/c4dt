@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
-public class DefinitionFunction extends Function {
+import net.arctics.clonk.Core;
 
-	private static final long serialVersionUID = 1L;
-	
+public class DefinitionFunction extends Function {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 }

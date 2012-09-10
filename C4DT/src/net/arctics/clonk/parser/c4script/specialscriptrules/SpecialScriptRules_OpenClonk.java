@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -60,6 +61,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		@AppliedTo(functions={"GetEffectCount"}, role=DECLARATION_LOCATOR)
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			EffectFunction fun = as(function, EffectFunction.class);
@@ -106,6 +108,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"SetProperty"})
 	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Function newFunction(String name) {
 			if (name.equals(DEFINITION_FUNCTION))
@@ -201,6 +204,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
 			ExprElm saved = parser.problemReporter;			
 			try {
@@ -275,6 +279,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		super();
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm parmExpression) {
 				if (definition == null)

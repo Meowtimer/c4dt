@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -16,13 +15,12 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.c4script.FuncReturnType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
@@ -157,6 +155,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	private ExprElm[] params;
 	private int parmsStart, parmsEnd;
+	private transient IType unresolvedPredecessorType;
+	
+	public IType unresolvedPredecessorType() {
+		return unresolvedPredecessorType;
+	}
 
 	@Override
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
@@ -256,7 +259,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param role Role mask passed to {@link SpecialScriptRules#funcRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
-	public SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
+	public final SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.script().engine();
 		if (engine != null && engine.specialScriptRules() != null)
 			return engine.specialScriptRules().funcRuleFor(declarationName, role);
@@ -273,7 +276,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		IType type = declarationType(context);
 		if (type instanceof FunctionType)
 			return ((FunctionType)type).prototype().returnType();
@@ -296,54 +299,46 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return obj;
 		}
 
-		// Some special rule applies and the return type is set accordingly
-		SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
-		if (rule != null) {
-			IType returnType = rule.returnType(context, this);
-			if (returnType != null)
-				return returnType;
+		if (d instanceof Function) {
+			// Some special rule applies and the return type is set accordingly
+			SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
+			if (rule != null)
+				return new FuncReturnType(this, rule);
+			return new FuncReturnType(this, null);
 		}
-		
-		if (d instanceof Function)
-			return ((Function)d).returnType();
-		else if (d instanceof Variable)
+		if (d instanceof Variable)
 			return ((Variable)d).type();
 
-		return super.obtainType(context);
+		return super.unresolvedType(context);
 	}
 	@Override
 	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 	}
 	
-	private transient boolean multiplePotentialDeclarations;
-	
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
-		Set<IIndexEntity> decs = new HashSet<IIndexEntity>();
-		_obtainDeclaration(decs, context);
-		for (IIndexEntity e : decs)
-			if (e instanceof Declaration)
-				return (Declaration)e;
-		return null;
+		return _obtainDeclaration(null, context);
 	}
 
-	protected void _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
+	protected Declaration _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
-			return;
+			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
 			Function activeFunc = context.currentFunction();
 			if (activeFunc != null) {
 				Function inher = activeFunc.inheritedFunction();
-				if (inher != null)
-					list.add(inher);
-				return;
+				if (inher != null) {
+					if (list != null)
+						list.add(inher);
+					return inher;
+				}
 			}
 		}
 		ExprElm p = predecessorInSequence();
-		findFunctionUsingPredecessor(p, declarationName, context, list);
-		multiplePotentialDeclarations = list.size() > 1;
+		unresolvedPredecessorType = p != null ? p.unresolvedType(context) : null;
+		return findFunction(declarationName, unresolvedPredecessorType, MemberOperator.unforgiving(p), context, list);
 	}
 
 	/**
@@ -354,8 +349,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 	 */
-	public static Declaration findFunctionUsingPredecessor(ExprElm pred, String functionName, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
-		IType lookIn = pred == null ? context.script() : pred.type(context);
+	private static Declaration findFunction(String functionName, IType callerType, boolean errorOnUnknown, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
+		IType lookIn = callerType != null ? callerType : context.script();
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof IHasConstraint))
 				continue;
@@ -365,7 +360,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			FindDeclarationInfo info = new FindDeclarationInfo(context.script().index());
 			info.searchOrigin = context.script();
 			info.contextFunction = context.currentFunction();
-			info.findGlobalVariables = pred == null;
+			info.findGlobalVariables = callerType == null;
 			Declaration dec = script.findDeclaration(functionName, info);
 			// parse function before this one
 			if (dec instanceof Function && context.currentFunction() != null)
@@ -376,7 +371,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				else
 					listToAddPotentialDeclarationsTo.add(dec);
 		}
-		if (pred != null) {
+		if (callerType != null) {
 			// find global function
 			Declaration declaration;
 			try {
@@ -385,9 +380,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				e.printStackTrace();
 				if (context == null)
 					System.out.println("No context");
-				if (context.script() == null)
+				else if (context.script() == null)
 					System.out.println("No container");
-				if (context.script().index() == null)
+				else if (context.script().index() == null)
 					System.out.println("No index");
 				return null;
 			}
@@ -410,7 +405,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				else
 					listToAddPotentialDeclarationsTo.add(declaration);
 		}
-		if ((pred == null || !(pred instanceof MemberOperator) || !((MemberOperator)pred).hasTilde()) && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
+		/*if (errorOnUnknown && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
 			List<IType> typesWithThatMember = new LinkedList<IType>();
 			for (Declaration d : ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class))
 				if (!d.isGlobal() && d instanceof Function && d.parentDeclaration() instanceof IHasIncludes)
@@ -421,12 +416,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				if (context instanceof C4ScriptParser)
 					pred.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
 			}
-		}
+		}*/
 		if (listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0)
 			return ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class).iterator().next();
 		else
 			return null;
 	}
+	
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
 		ExprElm pred = predecessorInSequence();
 		// standalone function? always bark!
@@ -486,9 +482,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (context.strictLevel() <= 0)
 				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited))
 					context.error(ParserErrorCode.InheritedDisabledInStrict0, this, C4ScriptParser.NO_THROW);
-			
-			if (multiplePotentialDeclarations)
-				return; // pfft, no checking
 			
 			// variable as function
 			if (declaration instanceof Variable) {
@@ -756,5 +749,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
 		return as(declaration(), Function.class);
+	}
+	
+	public final Function function() {
+		return (Function)declaration;
 	}
 }

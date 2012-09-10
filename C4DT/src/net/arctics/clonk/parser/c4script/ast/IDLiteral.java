@@ -33,7 +33,7 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		Definition obj = context.script().nearestDefinitionWithId(idValue());
 		return obj != null ? obj.objectType() : PrimitiveType.ID;
 	}

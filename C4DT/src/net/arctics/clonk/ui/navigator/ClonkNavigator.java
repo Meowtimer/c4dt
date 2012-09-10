@@ -9,8 +9,8 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupFileSystem;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.resource.c4group.C4GroupFileSystem;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.INode;
@@ -34,6 +34,10 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 
+	public ClonkNavigator() {
+		super(null);
+	}
+
 	private boolean showStructureOutlines() {return ClonkPreferences.toggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
 	
 	@Override
@@ -42,14 +46,13 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			return NO_CHILDREN;
 		boolean showStructureOutlines = showStructureOutlines();
 		Object[] baseResources = NO_CHILDREN;
-		if (element instanceof IContainer) {
+		if (element instanceof IContainer)
 			try {
 				createC4GroupLinksIn((IContainer)element);
 				baseResources = ((IContainer)element).members();
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
-		}
 		// add additional virtual nodes to the project
 		if (element instanceof IFile && showStructureOutlines) {
 			// list contents of ini and script files
@@ -58,10 +61,9 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 				return ArrayUtil.concat(baseResources, super.getChildren(script));
 			try {
 				Structure s = Structure.pinned((IFile) element, false, false);
-				if (s instanceof ITreeNode) {
+				if (s instanceof ITreeNode)
 					// call again for ITreeNode object (below)
 					return ArrayUtil.concat(baseResources, this.getChildren(s));
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -111,11 +113,9 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 							0, mon
 						);
 					}
-				} else if (res instanceof IFolder && (groupItem = C4GroupItem.groupItemBackingResource(res)) instanceof C4Group) {
-					if (!((C4Group)groupItem).existsOnDisk()) {
+				} else if (res instanceof IFolder && (groupItem = C4GroupItem.groupItemBackingResource(res)) instanceof C4Group)
+					if (!((C4Group)groupItem).existsOnDisk())
 						res.delete(true, mon);
-					}
-				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -127,9 +127,8 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		if (element instanceof IProject && !((IProject)element).isOpen())
 			return false;
 		boolean s = showStructureOutlines();
-		if (element instanceof IContainer) {
+		if (element instanceof IContainer)
 			return true;
-		}
 		else if (element instanceof IFile && s) {
 			Script script = Script.get((IFile) element, true);
 			if (script != null)

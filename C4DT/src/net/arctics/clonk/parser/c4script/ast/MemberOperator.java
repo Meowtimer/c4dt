@@ -19,7 +19,7 @@ import org.eclipse.jface.text.Region;
 
 /**
  * Either '->' or '.' operator. As a middleman, this operator delegates some of its operations to its predecessor, like
- * type expectations ({@link #expectedToBeOfType(IType, C4ScriptParser, TypeExpectancyMode, ParserErrorCode)}) or obtainment of its own type ({@link #obtainType(DeclarationObtainmentContext)}).<br/>
+ * type expectations ({@link #expectedToBeOfType(IType, C4ScriptParser, TypeExpectancyMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(DeclarationObtainmentContext)}).<br/>
  * Different typing assumptions are made based on the notation.
  * @author madeen
  *
@@ -123,15 +123,15 @@ public class MemberOperator extends ExprElm {
 
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#obtainType(DeclarationObtainmentContext)
+	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#unresolvedType(DeclarationObtainmentContext)
 	 */
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		// explicit id
 		if (id != null)
 			return context.script().nearestDefinitionWithId(id);
 		// stuff before -> decides
-		return predecessorInSequence() != null ? predecessorInSequence().type(context) : super.obtainType(context);
+		return predecessorInSequence() != null ? predecessorInSequence().unresolvedType(context) : super.unresolvedType(context);
 	}
 	
 	/**
@@ -200,6 +200,10 @@ public class MemberOperator extends ExprElm {
 				return dotOperator();
 		}
 		return super.optimize(context);
+	}
+
+	public static boolean unforgiving(ExprElm p) {
+		return p instanceof MemberOperator && !((MemberOperator)p).hasTilde();
 	}
 
 }

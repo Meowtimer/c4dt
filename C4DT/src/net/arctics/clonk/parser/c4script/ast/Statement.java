@@ -32,7 +32,7 @@ public class Statement extends ExprElm implements Cloneable {
 	
 	public static class EmptyLinesAttachment implements Attachment {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		private final int num;
 		public int num() {
@@ -92,7 +92,7 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return PrimitiveType.UNKNOWN;
 	}
 

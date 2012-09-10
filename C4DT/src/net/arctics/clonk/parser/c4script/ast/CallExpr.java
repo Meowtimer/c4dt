@@ -47,8 +47,8 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 	}
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
-		IType type = predecessorInSequence().obtainType(context);
+	public IType unresolvedType(DeclarationObtainmentContext context) {
+		IType type = predecessorInSequence().unresolvedType(context);
 		if (type instanceof FunctionType)
 			return ((FunctionType)type).prototype().returnType();
 		else
@@ -67,7 +67,7 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 
 	@Override
 	public Function function(DeclarationObtainmentContext context) {
-		for (IType type : predecessorInSequence().obtainType(context))
+		for (IType type : predecessorInSequence().unresolvedType(context))
 			if (type instanceof FunctionType)
 				return ((FunctionType)type).prototype();
 		return null;
@@ -96,7 +96,7 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 		if (!parser.script().engine().settings().supportsFunctionRefs)
 			parser.error(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
 		else {
-			IType type = predecessorInSequence().obtainType(parser);
+			IType type = predecessorInSequence().unresolvedType(parser);
 			if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 				parser.error(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
 		}

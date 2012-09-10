@@ -148,7 +148,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		Declaration d = declarationFromContext(context);
 		// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)

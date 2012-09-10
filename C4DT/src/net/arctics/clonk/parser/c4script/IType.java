@@ -75,7 +75,7 @@ public interface IType extends Iterable<IType>, Serializable {
 	 *
 	 */
 	public abstract class Default {
-		public static boolean containsAnyTypeOf(IType instance, IType... types) {
+		public static boolean subsetOfAny(IType instance, IType... types) {
 			for (IType t : types)
 				if (instance.subsetOf(t))
 					return true;

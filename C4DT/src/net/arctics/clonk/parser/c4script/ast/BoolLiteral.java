@@ -16,7 +16,7 @@ public abstract class BoolLiteral extends Literal<Boolean> {
 	public abstract boolean booleanValue();
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return PrimitiveType.BOOL;
 	}
 	@Override

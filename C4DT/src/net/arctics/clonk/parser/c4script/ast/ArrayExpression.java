@@ -31,7 +31,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	}
 	
 	@Override
-	protected IType obtainType(final DeclarationObtainmentContext context) {
+	public IType unresolvedType(final DeclarationObtainmentContext context) {
 		return new ArrayType(
 			null,
 			ArrayUtil.map(elements, IType.class, new IConverter<ExprElm, IType>() {

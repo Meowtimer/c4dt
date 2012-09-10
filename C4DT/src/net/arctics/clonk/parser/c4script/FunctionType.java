@@ -61,7 +61,7 @@ public class FunctionType implements IType {
 
 	@Override
 	public boolean subsetOfAny(IType... types) {
-		return IType.Default.containsAnyTypeOf(this, types);
+		return IType.Default.subsetOfAny(this, types);
 	}
 
 	@Override

@@ -60,7 +60,7 @@ public class LongLiteral extends NumberLiteral {
 	}
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		if (literal == 0 && context.script().engine().settings().zeroIsAny)
 			return PrimitiveType.ANY;
 		else

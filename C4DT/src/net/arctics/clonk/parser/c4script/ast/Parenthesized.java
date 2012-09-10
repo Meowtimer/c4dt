@@ -31,7 +31,7 @@ public class Parenthesized extends ExprElm {
 		output.append(")"); //$NON-NLS-1$
 	}
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return innerExpr.type(context);
 	}
 	@Override

@@ -283,7 +283,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	@Override
 	public boolean subsetOfAny(IType... types) {
-		return IType.Default.containsAnyTypeOf(this, types);
+		return IType.Default.subsetOfAny(this, types);
 	}
 	
 	@Override

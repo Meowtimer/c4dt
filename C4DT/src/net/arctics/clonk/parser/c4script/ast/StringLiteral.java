@@ -41,7 +41,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return PrimitiveType.STRING;
 	}
 

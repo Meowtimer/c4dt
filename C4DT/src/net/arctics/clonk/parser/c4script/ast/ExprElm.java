@@ -215,7 +215,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type of the expression
 	 */
 	public final IType type(DeclarationObtainmentContext context) {
-		return IResolvableType._.resolve(obtainType(context), context, callerType(context));
+		return IResolvableType._.resolve(unresolvedType(context), context, callerType(context));
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		IType t = context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
 		if (t == null)
 			t = PrimitiveType.UNKNOWN;
@@ -469,7 +469,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 				@Override
-				protected IType obtainType(DeclarationObtainmentContext context) {
+				public IType unresolvedType(DeclarationObtainmentContext context) {
 					return type;
 				}
 			};

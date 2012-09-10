@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 public class Nil extends Literal<Object> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		return PrimitiveType.ANY;
 	};
 	@Override

@@ -58,7 +58,7 @@ public class ArraySliceExpression extends ExprElm {
 	}
 	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
+	public IType unresolvedType(DeclarationObtainmentContext context) {
 		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
 		if (arrayType != null)
 			return lo == null && hi == null ? arrayType : arrayType.typeForSlice(
@@ -72,7 +72,7 @@ public class ArraySliceExpression extends ExprElm {
 	@Override
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		ArrayType arrayType = predecessorTypeAs(ArrayType.class, context);
-		IType sliceType = rightSide.obtainType(context);
+		IType sliceType = rightSide.unresolvedType(context);
 		if (arrayType != null)
 			context.storeType(predecessorInSequence(), arrayType.modifiedBySliceAssignment(
 				evaluateAtParseTime(lo, context),
