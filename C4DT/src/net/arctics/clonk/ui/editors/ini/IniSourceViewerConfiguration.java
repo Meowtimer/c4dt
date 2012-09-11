@@ -109,18 +109,18 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								Class<?> entryClass = entry.entryClass();
 								Declaration declaration = null;
 								if (entryClass == ID.class) {
-									IResource r = Utilities.fileBeingEditedBy(editor());
+									IResource r = Utilities.fileEditedBy(editor());
 									Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FunctionEntry.class) {
-									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor()).getParent());
+									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor()).getParent());
 									if (obj != null)
 										declaration = obj.findFunction(value);
 								}
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
-									IResource r = Utilities.fileBeingEditedBy(editor());
+									IResource r = Utilities.fileEditedBy(editor());
 									Index index = ProjectIndex.fromResource(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.engine() != null && index.engine().acceptsId(id)) {
@@ -142,7 +142,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = ProjectIndex.fromResource(Utilities.fileBeingEditedBy(editor()).getParent()).index();
+									Index projIndex = ProjectIndex.fromResource(Utilities.fileEditedBy(editor()).getParent()).index();
 									List<Index> indexes = projIndex.relevantIndexes();
 									for (Index index : indexes)
 										if (index instanceof ProjectIndex) {
@@ -157,7 +157,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								}
 								else if (entryClass == IconSpec.class) {
 									String firstPart = value.split(":")[0];
-									IResource r = Utilities.fileBeingEditedBy(editor());
+									IResource r = Utilities.fileEditedBy(editor());
 									Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(firstPart));
 								}
@@ -240,7 +240,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.fileBeingEditedBy(editor()).getName() + " proposals"); //$NON-NLS-1$
+		assistant.setStatusMessage(Utilities.fileEditedBy(editor()).getName() + " proposals"); //$NON-NLS-1$
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

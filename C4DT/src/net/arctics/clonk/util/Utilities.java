@@ -87,7 +87,7 @@ public abstract class Utilities {
 		});
 	}
 	
-	public static IFile fileBeingEditedBy(IEditorPart editor) {
+	public static IFile fileEditedBy(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput)
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
 		else

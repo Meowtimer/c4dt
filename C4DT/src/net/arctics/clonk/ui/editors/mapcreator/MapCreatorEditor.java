@@ -46,7 +46,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 				ClonkPreviewView view = (ClonkPreviewView) UI.findViewInActivePage(getSite(), ClonkPreviewView.ID);
 				if (view != null) {
 					IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
-					IFile file = Utilities.fileBeingEditedBy(this);
+					IFile file = Utilities.fileEditedBy(this);
 					if (
 							mapCreator != null && mapCreator.engine() != null && mapCreator.engine().settings().supportsEmbeddedUtilities &&
 							sel != null && sel.getFirstElement().equals(file)
@@ -62,7 +62,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	
 	public MapCreator mapCreator() {
 		if (mapCreator == null)
-			mapCreator = new MapCreator(Utilities.fileBeingEditedBy(this));
+			mapCreator = new MapCreator(Utilities.fileEditedBy(this));
 		return mapCreator;
 		
 	}

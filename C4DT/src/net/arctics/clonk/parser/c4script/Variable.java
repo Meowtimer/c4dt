@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IPostLoadable;
@@ -136,16 +135,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		if (typeLocked)
 			return;
 		forceType(type);
-	}
-
-	/**
-	 * Return any object type this variable is expected to hold a value of.
-	 * @return Some {@link Definition} contained in this variable's {@link #type()}
-	 */
-	public Definition objectType() {
-		for (IType t : type)
-			return (Definition)t;
-		return null;
 	}
 
 	/**

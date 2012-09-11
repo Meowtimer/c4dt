@@ -113,7 +113,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	public IniUnit unit() {
 		IniUnit unit = null;
 		try {
-			unit = (IniUnit) Structure.pinned(Utilities.fileBeingEditedBy(this), true, false);
+			unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

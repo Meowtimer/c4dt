@@ -251,11 +251,6 @@ public class Definition extends Script implements IProplistDeclaration {
 		}
 
 		@Override
-		public Definition objectType() {
-			return null;
-		}
-
-		@Override
 		public IType type() {
 			return Definition.this.objectType();
 		}

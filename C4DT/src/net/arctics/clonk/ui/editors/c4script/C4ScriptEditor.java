@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.util.Utilities.fileBeingEditedBy;
+import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -529,7 +529,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
 
 		if (result == null) {
-			IFile f = Utilities.fileBeingEditedBy(this);
+			IFile f = Utilities.fileEditedBy(this);
 			if (f != null) {
 				Script script = Script.get(f, true);
 				if (script != null)
@@ -591,7 +591,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
 			storedLocalsTypeInformation = new LinkedList<ITypeInfo>();
 			for (Variable v : script.variables()) {
-				ITypeInfo info = v.type() != null || v.objectType() != null ? AccessVar.makeTypeInfo(v, parser) : null;
+				ITypeInfo info = v.type() != null ? AccessVar.makeTypeInfo(v, parser) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);
 			}
@@ -686,7 +686,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	@Override
 	protected void initializeEditor() {
-		IFile file = fileBeingEditedBy(this);
+		IFile file = fileEditedBy(this);
 		if (file != null)
 			ClonkProjectNature.get(file).index();
 		super.initializeEditor();

@@ -215,7 +215,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileBeingEditedBy(editor).getParent());
+		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor).getParent());
 		if (obj != null) {
 			for (IHasIncludes include : obj.conglomerate()) {
 				Script script = Utilities.as(include, Script.class);
