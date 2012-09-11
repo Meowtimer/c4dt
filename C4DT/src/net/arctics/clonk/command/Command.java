@@ -251,9 +251,9 @@ public class Command {
 							parsers.put(f.script(), parser);
 						}
 						parser.setCurrentFunction(f);
-						f.codeBlock().reconsider(parser);
-						parser.reportProblemsOf(iterable(f.codeBlock().statements()), true);
-						f.codeBlock().reportProblems(parser);
+						f.body().reconsider(parser);
+						parser.reportProblemsOf(iterable(f.body().statements()), true);
+						f.body().reportProblems(parser);
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}

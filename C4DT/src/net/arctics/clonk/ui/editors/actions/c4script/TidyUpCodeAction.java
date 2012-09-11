@@ -64,7 +64,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 		if (d instanceof Variable)
 			return ((Variable)d).initializationExpression();
 		else if (d instanceof Function)
-			return ((Function)d).codeBlock();
+			return ((Function)d).body();
 		else
 			return null;
 	}
@@ -123,11 +123,11 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 						if (func.isOldStyle()) {
 							blockBegin = elms.start();
 							blockLength = elms.end() - blockBegin;
-							blockBegin += func.body().start();
+							blockBegin += func.bodyLocation().start();
 						}
 						else {
-							blockBegin  = func.body().start()-1;
-							blockLength = func.body().end()+1 - blockBegin;
+							blockBegin  = func.bodyLocation().start()-1;
+							blockLength = func.bodyLocation().end()+1 - blockBegin;
 						}
 						// eat indentation
 						while (blockBegin-1 >= func.header().end() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
@@ -146,8 +146,8 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 					else {
 						if (!noSelection)
 							region.setStartAndEnd(
-								selection.getOffset()-(func != null ? func.body().getOffset() : 0),
-								selection.getOffset()-(func != null ? func.body().getOffset() : 0)+selection.getLength()
+								selection.getOffset()-(func != null ? func.bodyLocation().getOffset() : 0),
+								selection.getOffset()-(func != null ? func.bodyLocation().getOffset() : 0)+selection.getLength()
 							);
 						if (elms instanceof Block) {
 							for (ExprElm e : elms.subElements())

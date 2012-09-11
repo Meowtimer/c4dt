@@ -163,7 +163,7 @@ public class C4ScriptToCPPConverter {
 		
 		StringWriter scriptWriter = new StringWriter();
 		for (Function f : script.functions()) {			
-			printFunction(f, f.codeBlock(), scriptWriter);
+			printFunction(f, f.body(), scriptWriter);
 			scriptWriter.append('\n');
 			scriptWriter.append('\n');
 		}

@@ -436,8 +436,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (script == null || document == null)
 				return;
 			Function func = script.funcAt(position.getOffset());
-			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.body().getOffset()+expressionRegion.getOffset());
-			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.body().start());
+			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset());
+			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
 			final C4ScriptParser parser = C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, true);
 			ExprElm offendingExpression = locator.expressionAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
@@ -671,7 +671,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.body().getOffset())
+							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset())
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
 					break;
@@ -697,7 +697,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 				for (final Replacement replacement : replacements) {
 					String replacementAsString = "later"; //$NON-NLS-1$
-					int offset = func.body().getOffset();
+					int offset = func.bodyLocation().getOffset();
 					int length;
 					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
 						offset += replacement.replacementExpression().start();
@@ -725,7 +725,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private Replacement addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
 		Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
-			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.body().getOffset()) //$NON-NLS-1$
+			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()) //$NON-NLS-1$
 		);
 		result.regionToBeReplacedSpecifiedByReplacementExpression = true;
 		return result;

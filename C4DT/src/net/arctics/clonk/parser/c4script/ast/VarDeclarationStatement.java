@@ -155,13 +155,13 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc != null) {
-			int addToMakeAbsolute = activeFunc.body().start() + this.start();
+			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
 			offset += addToMakeAbsolute;
 			for (VarInitialization pair : varInitializations) {
 				String varName = pair.name;
 				Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
-					return new EntityRegion(var, new Region(var.location().start()-activeFunc.body().start(), var.location().getLength()));
+					return new EntityRegion(var, new Region(var.location().start()-activeFunc.bodyLocation().start(), var.location().getLength()));
 			}
 		}
 		return super.declarationAt(offset, parser);

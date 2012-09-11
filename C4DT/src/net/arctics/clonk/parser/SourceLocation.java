@@ -24,8 +24,8 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 		end = matcher.end();
 	}
 	public SourceLocation(IRegion region, Function relative) {
-		start = relative.body().start()+region.getOffset();
-		end = relative.body().start()+region.getOffset()+region.getLength();
+		start = relative.bodyLocation().start()+region.getOffset();
+		end = relative.bodyLocation().start()+region.getOffset()+region.getLength();
 	}
 	public SourceLocation(int offset, IRegion relativeLocation) {
 		start = offset+relativeLocation.getOffset();

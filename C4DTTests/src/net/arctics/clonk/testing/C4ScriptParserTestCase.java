@@ -203,7 +203,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.errors.size() == 0);
 		assertTrue(setup.script.findFunction("Test") != null);
 		block.toString();
-		assertTrue(setup.script.findFunction("Test").codeBlock()
+		assertTrue(setup.script.findFunction("Test").body()
 				.compare(block, new IASTComparisonDelegate() {
 					@Override
 					public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {

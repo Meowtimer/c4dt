@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.c4script.Function;
  */
 public interface IFunctionCall {
 	ExprElm[] params();
-	Function function(DeclarationObtainmentContext context);
+	Function quasiCalledFunction(DeclarationObtainmentContext context);
 	int parmsStart();
 	int parmsEnd();
 	int indexOfParm(ExprElm parm);

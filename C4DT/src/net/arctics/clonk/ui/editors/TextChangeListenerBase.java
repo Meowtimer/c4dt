@@ -159,8 +159,8 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 				else if (dec instanceof Function) {
 					// inside function: expand end location
 					Function func = (Function) dec;
-					if (offset >= func.body().start() && offset+replLength < func.body().end()) {
-						func.body().setEnd(func.body().end()+diff);
+					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end()) {
+						func.bodyLocation().setEnd(func.bodyLocation().end()+diff);
 					}
 				}
 			}

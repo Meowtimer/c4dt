@@ -99,7 +99,10 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			element instanceof Declaration &&
 			root != null && root.get() instanceof Declaration &&
 			!((Declaration)element).containedIn(root.get());
-		return styledTextFor(element, foreign, root.get(), page != null && page.editor() != null ? page.editor().declarationObtainmentContext() : null);
+		return styledTextFor(element, foreign,
+			root != null ? root.get() : null,
+			page != null && page.editor() != null ? page.editor().declarationObtainmentContext() : null
+		);
 	}
 	
 	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, DeclarationObtainmentContext context) {
@@ -116,8 +119,10 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			result.append(func.longParameterString(true, false));
 			IType retType = func.returnType();
 			if (retType != null && retType != PrimitiveType.UNKNOWN && retType != PrimitiveType.ANY) {
-				if (context != null)
+				if (context != null) {
+					context.setCurrentFunction(func);
 					retType = IResolvableType._.resolve(retType, context, as(root, Script.class));
+				}
 				result.append(" : "); //$NON-NLS-1$
 				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
 			}

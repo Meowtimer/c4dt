@@ -151,10 +151,8 @@ public class ProjectIndex extends Index {
 
 	@Override
 	public void refreshIndex(boolean postLoad) {
-		synchronized (saveSynchronizer()) {
-			super.refreshIndex(postLoad);
-			readVariablesFromPlayerControlsFile();
-		}
+		super.refreshIndex(postLoad);
+		readVariablesFromPlayerControlsFile();
 	}
 
 	private void readVariablesFromPlayerControlsFile() {

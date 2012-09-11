@@ -99,7 +99,7 @@ public class ClonkTextEditor extends TextEditor {
 	public void refreshOutline() {
 		if (topLevelDeclaration() == null)
 			return;
-		synchronized (topLevelDeclaration().index().saveSynchronizer()) {
+		synchronized (topLevelDeclaration().index().loadSynchronizer()) {
 			if (outlinePage != null) // don't start lazy loading of outlinePage
 				outlinePage.refresh();
 		}

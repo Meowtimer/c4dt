@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
 import java.security.InvalidParameterException;
@@ -11,6 +12,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IPostLoadable;
+import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -38,6 +40,17 @@ import org.eclipse.jface.text.Region;
  */
 public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
+	public static class Ticket implements ISerializationResolvable, Serializable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public Ticket(ExprElm elm) {
+			// non-ambigious description of an ExprElm somewhere in a tree gets made here
+		}
+		@Override
+		public Object resolve(Index index) {
+			return null; // lol i don't know
+		}
+	}
+	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final ExprElm NULL_EXPR = new ExprElm();
@@ -224,7 +237,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @return The type
 	 */
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return unresolvedPredecessorType(context);
+		IType predType = unresolvedPredecessorType(context);
+		return defaulting(predType, context.script());
 	}
 	
 	/**
@@ -546,7 +560,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
 	}
 
-	public boolean containedIn(ExprElm expression) {
+	public final boolean containedIn(ExprElm expression) {
 		if (expression == this)
 			return true;
 		try {
@@ -970,6 +984,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		ExprElm e = this;
 		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
 		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;
+	}
+	
+	/**
+	 * Return the {@link Declaration} this expression element is owned by. This may be the function whose body this element is contained in.
+	 * @return The owning {@link Declaration}
+	 */
+	public Declaration owningDeclaration() {
+		return parent != null ? parent.owningDeclaration() : null;
 	}
 
 }

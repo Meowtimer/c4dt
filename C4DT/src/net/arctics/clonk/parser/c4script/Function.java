@@ -18,10 +18,10 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -51,24 +51,18 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private String returnDescription;
 	private boolean isCallback;
 	private boolean isOldStyle;
-	private SourceLocation body, header;
+	private SourceLocation bodyLocation, header;
 	
 	/**
 	 * Code block kept in memory for speed optimization
 	 */
-	private Block codeBlock;
+	private FunctionBody body;
 	
 	/**
 	 * Hash code of the string the block was parsed from.
 	 */
 	private int blockSourceHash;
 	
-	/**
-	 * false if postSerialize still needs to be called on codeBlock. postSerialize will be called when getCodeBlock is called.<br/>
-	 * Added so loading an index won't lag too much.
-	 */
-	private transient boolean codeBlockDefrosted;
-
 	/**
 	 * Create a new function.
 	 * @param name Name of the function
@@ -328,26 +322,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	/**
-	 * @param body the body to set
+	 * Set the body location.
+	 * @param body the body location to set
 	 */
-	public void setBody(SourceLocation body) {
-		this.body = body;
+	public void setBodyLocation(SourceLocation body) {
+		this.bodyLocation = body;
 	}
 
 	/**
-	 * @return the body
+	 * @return the body the location.
 	 */
-	public SourceLocation body() {
-		return body;
+	public SourceLocation bodyLocation() {
+		return bodyLocation;
 	}
 	
 	public SourceLocation wholeBody() {
-		if (body == null)
+		if (bodyLocation == null)
 			return null;
 		if (isOldStyle())
-			return body;
+			return bodyLocation;
 		else
-			return new SourceLocation(body.start()-1, body.end()+1);
+			return new SourceLocation(bodyLocation.start()-1, bodyLocation.end()+1);
 	}
 	
 	@Override
@@ -682,7 +677,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public Object invoke(Object... args) {
 		try {
-			return codeBlock != null ? codeBlock.evaluate(this) : null;
+			return body != null ? body.evaluate(this) : null;
 		} catch (ControlFlowException e) {
 			e.printStackTrace();
 			return null;
@@ -773,12 +768,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
 	
-	public void storeBlock(Block block, String source) {
-		codeBlock = block;
+	public void storeBody(FunctionBody block, String source) {
+		body = block;
 		blockSourceHash = source.hashCode();
-		codeBlockDefrosted = true;
-		if (body != null)
-			codeBlock.setExprRegion(0, body.getLength());
+		if (bodyLocation != null)
+			body.setExprRegion(0, bodyLocation.getLength());
 	}
 	
 	/**
@@ -786,34 +780,31 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param source The source to test against
 	 * @return The code block or null if it was created from differing source.
 	 */
-	public Block codeBlockMatchingSource(String source) {
+	public FunctionBody bodyMatchingSource(String source) {
 		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
-			if (!codeBlockDefrosted) {
-				codeBlockDefrosted = true;
-				if (codeBlock != null)
-					codeBlock.postLoad(null, declarationObtainmentContext());
-			}
-			return codeBlock;
+			if (body != null)
+				body.postLoad(null, declarationObtainmentContext());
+			return body;
 		} else
-			return codeBlock = null;
+			return body = null;
 	}
 	
 	/**
 	 * Return the cached block without performing checks.
 	 * @return The cached code block
 	 */
-	public Block codeBlock() {
-		return codeBlockMatchingSource(null);
+	public FunctionBody body() {
+		return bodyMatchingSource(null);
 	}
 
 	@Override
 	public int getLength() {
-		return body().getLength();
+		return bodyLocation().getLength();
 	}
 
 	@Override
 	public int getOffset() {
-		return body().getOffset();
+		return bodyLocation().getOffset();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -849,7 +840,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public int absoluteExpressionsOffset() {
-		return body().getOffset();
+		return bodyLocation().getOffset();
 	}
 
 	@Override
@@ -876,7 +867,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@Override
 	public int codeFragmentOffset() {
-		return body != null ? body.getOffset() : 0;
+		return bodyLocation != null ? bodyLocation.getOffset() : 0;
 	}
 	
 	@Override

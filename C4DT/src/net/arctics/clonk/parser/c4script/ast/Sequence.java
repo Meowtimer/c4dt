@@ -37,7 +37,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 	}
 	@Override
 	protected IType callerType(DeclarationObtainmentContext context) {
-		return elements != null && elements.length > 0 ? elements[elements.length-1].callerType(context) : null;
+		return super.callerType(context);
 	}
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {

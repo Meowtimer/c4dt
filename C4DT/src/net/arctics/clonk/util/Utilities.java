@@ -334,6 +334,10 @@ public abstract class Utilities {
 		return type.isInstance(obj) ? type.cast(obj) : null;
 	}
 	
+	public static <A> A defaulting(A firstChoice, A defaultChoice) {
+		return firstChoice != null ? firstChoice : defaultChoice;
+	}
+	
 	public static <A> A or(A a, A b) {
 		if (a != null)
 			return a;

@@ -688,8 +688,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		//System.out.println("");
 		requireLoaded();
 		for (Function f : functions()) {
-			int fStart = f.body().getOffset();
-			int fEnd   = f.body().getOffset()+f.body().getLength();
+			int fStart = f.bodyLocation().getOffset();
+			int fEnd   = f.bodyLocation().getOffset()+f.bodyLocation().getLength();
 			int rStart = region.getOffset();
 			int rEnd   = region.getOffset()+region.getLength();
 			//System.out.println(String.format("Shit: %d %d", fStart, fEnd));
@@ -713,7 +713,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
 		for (Function f : functions())
-			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.body().getOffset()+f.body().getLength())
+			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.bodyLocation().getOffset()+f.bodyLocation().getLength())
 				return f;
 		return null;
 	}

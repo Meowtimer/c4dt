@@ -33,7 +33,7 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		Script script = Utilities.scriptForEditor(configuration.editor());
 		Function func = script.funcAt(pos);
 		if (func != null) {
-			ExpressionLocator locator = new ExpressionLocator(pos-func.body().start());
+			ExpressionLocator locator = new ExpressionLocator(pos-func.bodyLocation().start());
 			C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, false);
 			ExprElm expr = locator.expressionAtRegion();
 			if (expr == null)
@@ -50,12 +50,12 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 						continue;
 					}
 				} else if (expr instanceof Literal)
-					return new Region(func.body().getOffset()+expr.start(), expr.getLength());
+					return new Region(func.bodyLocation().getOffset()+expr.start(), expr.getLength());
 				else if (expr instanceof AccessDeclaration) {
 					AccessDeclaration accessDec = (AccessDeclaration) expr;
-					return new Region(func.body().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
+					return new Region(func.bodyLocation().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
 				} else if (expr instanceof PropListExpression || expr instanceof Block)
-					return new Region(expr.start()+func.body().getOffset(), expr.getLength());
+					return new Region(expr.start()+func.bodyLocation().getOffset(), expr.getLength());
 		}
 		return null;
 	}

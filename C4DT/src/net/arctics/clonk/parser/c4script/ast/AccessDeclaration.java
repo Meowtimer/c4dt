@@ -150,7 +150,6 @@ public abstract class AccessDeclaration extends ExprElm {
 	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
-		//root.getContainer().getIndex().loadScriptsContainingDeclarationsNamed(declarationName);
 		declarationFromContext(root);
 	}
 	

@@ -77,7 +77,7 @@ public abstract class IndexEntity extends Structure {
 	public final void requireLoaded() {
 		if (index == null)
 			return;
-		synchronized (index.saveSynchronizer()) {
+		synchronized (index.loadSynchronizer()) {
 			if (!loaded) {
 				loaded = true;
 				try {

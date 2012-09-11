@@ -80,7 +80,7 @@ public class EntityLocator extends ExpressionLocator {
 			else
 				d.initialize(var.initializationExpressionLocation(), var.engine(), VisitCodeFlavour.OnlyExpressions);
 		} else
-			d.initialize(d.func.body(), d.func.engine(), VisitCodeFlavour.AlsoStatements);
+			d.initialize(d.func.bodyLocation(), d.func.engine(), VisitCodeFlavour.AlsoStatements);
 		return true;
 	}
 

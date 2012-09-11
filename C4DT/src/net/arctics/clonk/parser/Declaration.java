@@ -517,6 +517,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public CachedEngineDeclarations cachedEngineDeclarations() {
 				return engine().cachedDeclarations();
 			}
+
+			@Override
+			public void setCurrentFunction(Function function) {
+				// ignore
+			}
 		};
 	}
 

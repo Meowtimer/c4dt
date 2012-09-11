@@ -84,7 +84,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 
 	private void fillFunctionMapWithFunctionList(List<Function> functions) {
 		for (Function f : functions) {
-			if (f.codeBlock() == null)
+			if (f.body() == null)
 				continue;
 			List<Function> list = functionsToBeChecked.get(f.name());
 			if (list == null) {
@@ -112,7 +112,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 					index.loadScriptsContainingDeclarationsNamed(function.name());
 				if (deemedDuplicate.contains(function))
 					continue;
-				Block functionCodeBlock = function.codeBlock();
+				Block functionCodeBlock = function.body();
 				// ignore simple return functions
 				if (ignoreSimpleFunctions)
 					if (functionCodeBlock == null || functionCodeBlock.statements().length == 1 && functionCodeBlock.statements()[0] instanceof ReturnStatement)
@@ -130,7 +130,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 								continue;
 							if (function == otherFn)
 								continue;
-							Block block = otherFn.codeBlock();
+							Block block = otherFn.body();
 							if (block == null)
 								continue; // -.-
 							if (functionCodeBlock.compare(block, this).isEqual()) {

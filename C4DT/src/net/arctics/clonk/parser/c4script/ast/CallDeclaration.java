@@ -305,13 +305,18 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 			if (rule != null)
 				return new CallReturnType(this, rule);
-			return new CallReturnType(this, null);
+			Function f = (Function)d;
+			if (f.returnType() instanceof IResolvableType)
+				return new CallReturnType(this, null);
+			else
+				return f.returnType();
 		}
 		if (d instanceof Variable)
 			return ((Variable)d).type();
 
 		return super.unresolvedType(context);
 	}
+
 	@Override
 	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
@@ -750,12 +755,16 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public Function function(DeclarationObtainmentContext context) {
+	public Function quasiCalledFunction(DeclarationObtainmentContext context) {
 		if (declaration instanceof Variable)
 			for (IType type : ((Variable)declaration).type())
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
 		return as(declaration(), Function.class);
+	}
+	
+	public final Function function(DeclarationObtainmentContext context) {
+		return as(declarationFromContext(context), Function.class);
 	}
 	
 	public final Function function() {

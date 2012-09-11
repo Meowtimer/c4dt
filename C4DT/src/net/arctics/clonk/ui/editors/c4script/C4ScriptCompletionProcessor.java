@@ -284,7 +284,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		CallDeclaration innermostCallFunc = null;
 
 		if (editorScript != null) {
-			final int preservedOffset = offset - (activeFunc != null?activeFunc.body().start():0);
+			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 			if (contextExpression == null && !specifiedParser) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				parser = C4ScriptParser.visitCode(doc, editorScript, activeFunc, locator,
@@ -568,7 +568,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
-				IIndexEntity entity = funcCallInfo.callFunc.function(editor.functionAtCursor().declarationObtainmentContext());
+				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(editor.functionAtCursor().declarationObtainmentContext());
 				if (entity == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {

@@ -73,8 +73,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private transient Object saveSynchronizer = new Object();
-	public Object saveSynchronizer() {return saveSynchronizer;}
+	public transient Object saveSynchronizer = new Object();
+	public transient Object loadSynchronizer = new Object();
+	public final Object saveSynchronizer() {return saveSynchronizer;}
+	public final Object loadSynchronizer() {return loadSynchronizer;}
 
 	private transient static final IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
 		@Override
@@ -145,6 +147,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			pendingScriptAdds = new LinkedList<Script>();
 		if (saveSynchronizer == null)
 			saveSynchronizer = new Object();
+		if (loadSynchronizer == null)
+			loadSynchronizer = new Object();
 		for (IndexEntity e : entities()) {
 			e.index = this;
 			e.loaded = false;
@@ -815,7 +819,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	public ObjectOutputStream newEntityOutputStream(IndexEntity entity) throws FileNotFoundException, IOException {
-		return new IndexEntityOutputStream(this, new GZIPOutputStream(new FileOutputStream(entityFile(entity))));
+		return new IndexEntityOutputStream(this, entity, new GZIPOutputStream(new FileOutputStream(entityFile(entity))));
 	}
 
 	public ObjectInputStream newEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
@@ -953,7 +957,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			OutputStream out = new GZIPOutputStream(new FileOutputStream(indexFile));
 			removeNullsInScriptLists();
 			try {
-				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
+				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
 					@Override
 					protected Object replaceObject(Object obj) throws IOException {
 						// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
@@ -1017,7 +1021,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 	}
 
-	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {
+	public Object saveReplacementForEntityDeclaration(Declaration obj) {
 		Index objIndex = obj.index();
 		if (objIndex == null || objIndex == this)
 			return obj;

@@ -66,7 +66,7 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 	}
 
 	@Override
-	public Function function(DeclarationObtainmentContext context) {
+	public Function quasiCalledFunction(DeclarationObtainmentContext context) {
 		for (IType type : predecessorInSequence().unresolvedType(context))
 			if (type instanceof FunctionType)
 				return ((FunctionType)type).prototype();

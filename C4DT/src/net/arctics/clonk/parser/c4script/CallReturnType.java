@@ -42,6 +42,11 @@ public class CallReturnType implements IType, IResolvableType {
 	public String typeName(boolean special) {
 		return String.format("Result of %s", call != null ? call.toString() : "<Unknown>");
 	}
+	
+	@Override
+	public String toString() {
+		return typeName(true);
+	}
 
 	@Override
 	public boolean intersects(IType type) {
@@ -80,15 +85,20 @@ public class CallReturnType implements IType, IResolvableType {
 
 	@Override
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
-		if (rule != null) {
-			IType ruleSays = rule.returnType(context, call);
-			if (ruleSays != null)
-				return ruleSays;
+		try {
+			if (rule != null) {
+				IType ruleSays = rule.returnType(context, call);
+				if (ruleSays != null)
+					return ruleSays;
+			}
+			IType predType = call.unresolvedPredecessorType();
+			IType ct = IResolvableType._.resolve(predType != null ? predType : callerType, context, callerType);
+			Function func = ct instanceof Script ? ((Script)ct).findFunction(call.function(context).name()) : null;
+			return func != null ? IResolvableType._.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return PrimitiveType.UNKNOWN;
 		}
-		IType predType = call.unresolvedPredecessorType();
-		IType ct = IResolvableType._.resolve(predType != null ? predType : callerType, context, callerType);
-		Function func = ct instanceof Script ? ((Script)ct).findFunction(call.function().name()) : null;
-		return func != null ? IResolvableType._.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
 	}
 
 }

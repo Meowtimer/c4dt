@@ -186,7 +186,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		protected void adjustDec(Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function)
-				incrementLocationOffsetsExceedingThreshold(((Function)declaration).body(), offset, add);
+				incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
 			for (Declaration v : declaration.subDeclarations(declaration.index(), IHasSubDeclarations.ALL))
 				adjustDec(v, offset, add);
 		}
@@ -230,7 +230,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						m.delete();
 					// delete regular markers that are in the region of interest
 					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
-					SourceLocation body = func != null ? func.body() : null;
+					SourceLocation body = func != null ? func.bodyLocation() : null;
 					for (IMarker m : markers) {
 						
 						// delete markers that are explicitly marked as being caused by parsing the function
@@ -277,8 +277,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						}, VisitCodeFlavour.AlsoStatements, true);
 						for (Variable localVar : f.localVars()) {
 							SourceLocation l = localVar.location();
-							l.setStart(f.body().getOffset()+l.getOffset());
-							l.setEnd(f.body().getOffset()+l.end());
+							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
+							l.setEnd(f.bodyLocation().getOffset()+l.end());
 						}
 					}
 				}
@@ -486,7 +486,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		boolean noHighlight = true;
 		if (f != null) {
 			this.setHighlightRange(f.location().getOffset(), Math.min(
-				f.body().getOffset()-f.location().getOffset() + f.body().getLength() + (f.isOldStyle()?0:1),
+				f.bodyLocation().getOffset()-f.location().getOffset() + f.bodyLocation().getLength() + (f.isOldStyle()?0:1),
 				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.location().getOffset()
 			), false);
 			noHighlight = false;
@@ -644,8 +644,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public FuncCallInfo(Function func, IFunctionCall callFunc2, ExprElm parm, EntityLocator locator) {
 			this.callFunc = callFunc2;
 			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
-			this.parmsStart = func.body().start()+callFunc2.parmsStart();
-			this.parmsEnd = func.body().start()+callFunc2.parmsEnd();
+			this.parmsStart = func.bodyLocation().start()+callFunc2.parmsStart();
+			this.parmsEnd = func.bodyLocation().start()+callFunc2.parmsEnd();
 			this.locator = locator;
 		}
 	}
@@ -658,7 +658,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		ExprElm expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
-		int bodyStart = f.body().start();
+		int bodyStart = f.bodyLocation().start();
 		for (
 			expr = locator.expressionAtRegion();
 			expr != null;
