@@ -504,15 +504,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 		if (!didUseCacheForLocalDeclarations) {
 			// a function defined in this object
-			if (decClass == null || decClass == Function.class)
-				for (Function f : functions())
-					if (f.name().equals(name))
-						return f;
+			if (decClass == null || decClass == Function.class) {
+				Function f = definedDeclarationNamed(name, Function.class);
+				if (f != null)
+					return f;
+			}
 			// a variable
-			if (decClass == null || decClass == Variable.class)
-				for (Variable v : variables())
-					if (v.name().equals(name))
-						return v;
+			if (decClass == null || decClass == Variable.class) {
+				Variable v = definedDeclarationNamed(name, Variable.class);
+				if (v != null)
+					return v;
+			}
 			
 			info.recursion++;
 			{
@@ -810,6 +812,26 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public List<? extends Function> functions() {
 		requireLoaded();
 		return definedFunctions != null ? definedFunctions : NO_FUNCTIONS;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Declaration> T definedDeclarationNamed(String name, Class<T> cls) {
+		List<T> list;
+		if (cls == Variable.class)
+			list = (List<T>)definedVariables;
+		else if (cls == Function.class)
+			list = (List<T>)definedFunctions;
+		else if (cls == Directive.class)
+			list = (List<T>)definedDirectives;
+		else
+			return null;
+		synchronized (this) {
+			if (list != null)
+				for (T f : list)
+					if (f.name().equals(name))
+						return f;
+			return null;
+		}
 	}
 	
 	/**
