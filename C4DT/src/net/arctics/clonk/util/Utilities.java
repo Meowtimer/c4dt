@@ -353,7 +353,7 @@ public abstract class Utilities {
 	}
 
 	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
-		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
+		final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		try {
 			action.receivedObject(pool);
 		} finally {
