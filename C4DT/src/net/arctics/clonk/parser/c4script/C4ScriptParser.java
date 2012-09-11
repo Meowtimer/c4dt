@@ -384,6 +384,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Sets the current function. There should be a good reason to call this. 
 	 * @param func
 	 */
+	@Override
 	public void setCurrentFunction(Function func) {
 		if (func != currentFunction()) {
 			currentDeclaration = func;
@@ -1738,8 +1739,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (parseMemberOperator()) {
 					int idStart = this.offset;
 					int idOffset;
-					if (eatWhitespace() >= 0 && parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_())
-						idOffset = this.offset-fieldOperatorStart;
+					eatWhitespace();
+					idOffset = offset;
+					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_())
+						idOffset -= fieldOperatorStart;
 					else {
 						parsedID = null; // reset because that call could have been successful (GetX would be recognized as id)
 						seek(idStart);

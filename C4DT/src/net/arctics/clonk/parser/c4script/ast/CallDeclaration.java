@@ -346,9 +346,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				}
 			}
 		}
-		ExprElm p;
-		for (p = predecessorInSequence(); p != null && p instanceof MemberOperator; p = p.predecessorInSequence());
-		unresolvedPredecessorType = p != null ? p.unresolvedType(context) : null;
+		unresolvedPredecessorType = this.unresolvedPredecessorType(context);
+		ExprElm p = predecessorInSequence();
+		if (p instanceof MemberOperator)
+			p = p.predecessorInSequence();
 		return findFunction(declarationName,
 			unresolvedPredecessorType != null
 				? resolveType(unresolvedPredecessorType, context, p.unresolvedPredecessorType(context))
