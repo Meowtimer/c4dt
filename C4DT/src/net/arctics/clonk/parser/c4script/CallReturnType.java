@@ -13,19 +13,13 @@ public class CallReturnType implements IType, IResolvableType {
 	
 	private final CallDeclaration call;
 	private final SpecialFuncRule rule;
+	private final Script originatingScript;
 	
-	public CallDeclaration call() {
-		return call;
-	}
-	
-	public SpecialFuncRule rule() {
-		return rule;
-	}
-	
-	public CallReturnType(CallDeclaration call, SpecialFuncRule rule) {
+	public CallReturnType(CallDeclaration call, SpecialFuncRule rule, Script originatingScript) {
 		super();
 		this.call = call;
 		this.rule = rule;
+		this.originatingScript = originatingScript;
 	}
 	
 	@Override
@@ -91,6 +85,8 @@ public class CallReturnType implements IType, IResolvableType {
 				if (ruleSays != null)
 					return ruleSays;
 			}
+			if (originatingScript == callerType)
+				return call.function(context).returnType();
 			IType predType = call.unresolvedPredecessorType();
 			IType ct = IResolvableType._.resolve(predType != null ? predType : callerType, context, callerType);
 			Function func = ct instanceof Script ? ((Script)ct).findFunction(call.function(context).name()) : null;

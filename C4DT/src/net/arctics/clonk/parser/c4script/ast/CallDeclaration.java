@@ -304,10 +304,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// Some special rule applies and the return type is set accordingly
 			SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 			if (rule != null)
-				return new CallReturnType(this, rule);
+				return new CallReturnType(this, rule, context.script());
 			Function f = (Function)d;
 			if (f.returnType() instanceof IResolvableType)
-				return new CallReturnType(this, null);
+				return new CallReturnType(this, null, context.script());
 			else
 				return f.returnType();
 		}
