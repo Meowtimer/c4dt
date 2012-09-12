@@ -66,7 +66,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public void storeType(IType type) {
-			// don't store if function.getReturnType() already specifies a type (including any)
+			// don't store if function.returunType() already specifies a type (including any)
 			// this is to prevent cases where for example the result of EffectVar in one instance is
 			// used as int and then as something else which leads to an erroneous type incompatibility warning
 			if (type == PrimitiveType.UNKNOWN)
