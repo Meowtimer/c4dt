@@ -121,7 +121,6 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			try {
 				ty = ma.getMarker().getType();
 			} catch (CoreException e) {
-				e.printStackTrace();
 				return false;
 			}
 			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))

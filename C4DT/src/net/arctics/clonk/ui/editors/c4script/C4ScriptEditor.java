@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -318,10 +319,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
+	private WeakReference<DeclarationObtainmentContext> cachedDeclarationObtainmentContext;
 	
 	@Override
 	public DeclarationObtainmentContext declarationObtainmentContext() {
-		return parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script());
+		if (cachedDeclarationObtainmentContext != null) {
+			DeclarationObtainmentContext ctx = cachedDeclarationObtainmentContext.get();
+			if (ctx != null && ctx.script() == script())
+				return ctx;
+		}
+		cachedDeclarationObtainmentContext = new WeakReference<DeclarationObtainmentContext>(
+			parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script())
+		);
+		return cachedDeclarationObtainmentContext.get();
 	}
 	
 	public C4ScriptEditor() {
@@ -365,6 +375,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);
 		}
+	}
+	
+	@Override
+	public void refreshOutline() {
+		cachedScript = new WeakReference<Script>(null);
+		super.refreshOutline();
 	}
 	
 	@Override
@@ -520,10 +536,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *  Created if there is no suitable script to get from somewhere else
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
-	private Script scratchScript;
+	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
 	
 	public Script script() {
-		Script result = null;
+		Script result = cachedScript.get();
+		if (result != null)
+			return result;
 		
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput)
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
@@ -537,14 +555,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 
-		if (result == null && scratchScript == null) {
-			result = scratchScript = new ScratchScript(this);
+		if (result == null && cachedScript == null) {
+			result = new ScratchScript(this);
 			try {
 				reparseWithDocumentContents(null, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		cachedScript = new WeakReference<Script>(result);
 		return result;
 	}
 	@Override

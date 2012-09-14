@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
@@ -279,6 +281,9 @@ public class Definition extends Script implements IProplistDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	protected transient IContainer definitionFolder;
+	protected transient IFile scriptFile;
+	protected transient IFile defCoreFile;
+	
 	protected String relativePath;
 	private transient ProxyVar proxyVar;
 	
@@ -325,11 +330,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	@Override
 	public IFile scriptStorage() {
-		if (this.definitionFolder == null)
-			return null;
-		IResource res = Utilities.findMemberCaseInsensitively(this.definitionFolder, "Script.c"); //$NON-NLS-1$
-		if (res == null || !(res instanceof IFile)) return null;
-		else return (IFile) res;
+		return scriptFile;
 	}
 
 	@Override
@@ -346,11 +347,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return The DefCore.txt file or null if it does not exist for mysterious reasons
 	 */
 	public IFile defCoreFile() {
-		IResource res = Utilities.findMemberCaseInsensitively(this.definitionFolder, "DefCore.txt"); //$NON-NLS-1$
-		if (res == null || !(res instanceof IFile))
-			return null;
-		else
-			return (IFile) res;
+		return defCoreFile;
 	}
 
 	/**
@@ -365,8 +362,10 @@ public class Definition extends Script implements IProplistDeclaration {
 			definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);
 		// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
 		// (see ClonkIndex.getLatestVersion)
-		definitionFolder = folder != null ? folder : definitionFolder;
+		definitionFolder = folder;
 		if (folder != null) {
+			scriptFile = as(Utilities.findMemberCaseInsensitively(definitionFolder, "Script.c"), IFile.class);
+			defCoreFile = as(Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
 			folder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (id() != null)
 				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
@@ -391,7 +390,8 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return The Definition object
 	 */
 	public static Definition definitionCorrespondingToFolder(IContainer folder) {
-		Definition obj = (ProjectIndex.fromResource(folder) != null) ? ProjectIndex.fromResource(folder).definitionAt(folder) : null;
+		ProjectIndex index = ProjectIndex.fromResource(folder);
+		Definition obj = index != null ? index.definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
 			obj.definitionFolder = folder;

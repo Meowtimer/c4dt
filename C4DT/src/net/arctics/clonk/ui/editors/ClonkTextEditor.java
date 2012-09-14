@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
+import net.arctics.clonk.util.Profiled;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -96,13 +97,12 @@ public class ClonkTextEditor extends TextEditor {
 	/**
 	 * Refresh the outline so the new contents of the {@link #topLevelDeclaration()} will be shown.
 	 */
+	@Profiled
 	public void refreshOutline() {
 		if (topLevelDeclaration() == null)
 			return;
-		synchronized (topLevelDeclaration().index().loadSynchronizer()) {
-			if (outlinePage != null) // don't start lazy loading of outlinePage
-				outlinePage.refresh();
-		}
+		if (outlinePage != null) // don't start lazy loading of outlinePage
+			outlinePage.refresh();
 	}
 	
 	/**

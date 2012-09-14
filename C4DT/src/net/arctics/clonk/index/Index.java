@@ -284,7 +284,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		declarationMap.clear();
 
 		final int[] counts = new int[3];
-		allScripts(new Sink<Script>() {
+		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
 				item.indexRefresh();
@@ -301,18 +301,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				addGlobalsFromScript(item, postLoad ? null : newAppendages);
+				addGlobalsFromScript(item, newAppendages);
 			}
 		});
 		if (!postLoad)
 			appendages = newAppendages;
 
-		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
-			@Override
-			public void receivedObject(Script item) {
-				item.postLoad(Index.this, Index.this);
-			}
-		});
+		if (postLoad)
+			allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
+				@Override
+				public void receivedObject(Script item) {
+					item.postLoad(Index.this, Index.this);
+				}
+			});
 	}
 
 	private int pendingScriptIterations;
