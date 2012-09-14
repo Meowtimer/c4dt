@@ -1183,16 +1183,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		Collections.reverse(conglo);
 		for (IHasIncludes i : conglo)
 			if (i instanceof Script) {
-				for (Function f : ((Script)i).functions()) {
-					// prefer putting non-global functions into the map so when in doubt the object function is picked
-					// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
-					Function existing = cachedFunctionMap.get(f.name());
-					if (existing != null && existing.script() == i && f.isGlobal() && !existing.isGlobal())
-						continue;
-					cachedFunctionMap.put(f.name(), f);
-				}
-				for (Variable v : ((Script)i).variables())
-					cachedVariableMap.put(v.name(), v);
+				Script s = (Script)i;
+				if (s.definedFunctions != null)
+					for (Function f : s.definedFunctions) {
+						// prefer putting non-global functions into the map so when in doubt the object function is picked
+						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
+						Function existing = cachedFunctionMap.get(f.name());
+						if (existing != null && existing.script() == i && f.isGlobal() && !existing.isGlobal())
+							continue;
+						cachedFunctionMap.put(f.name(), f);
+					}
+				if (s.definedVariables != null)
+					for (Variable v : s.definedVariables)
+						cachedVariableMap.put(v.name(), v);
 			}
 	}
 	
