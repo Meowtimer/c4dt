@@ -85,7 +85,8 @@ public enum ParserErrorCode {
 	CallingExpression(Messages.CallingExpression),
 	FloatNumbersNotSupported(Messages.FloatNumbersNotSupported),
 	DuplicateDeclaration(Messages.DuplicateDeclaration, Messages.DuplicateDeclarationName),
-	PrimitiveTypeNotSupported(Messages.PrimitiveTypeNotSupported);
+	PrimitiveTypeNotSupported(Messages.PrimitiveTypeNotSupported),
+	NonConstGlobalVarAssignment(Messages.NonConstGlobalVarAssignment);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

@@ -36,7 +36,7 @@ public class EngineSettings extends SettingsBase {
 	 * Whether declarations of static non-const variables are allowed to include an assignment. OC added support for this.
 	 */
 	@IniField(category=INTRINSIC)
-	public boolean nonConstGlobalVarsAssignment;
+	public boolean supportsNonConstGlobalVarAssignment;
 	/**
 	 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
 	 * This toggle activates/deactivates this behavior.

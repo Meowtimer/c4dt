@@ -114,7 +114,7 @@ public class C4ScriptParserTestCase {
 						if (settings == null) {
 							settings = new EngineSettings();
 							settings.maxStringLen = 0;
-							settings.nonConstGlobalVarsAssignment = true;
+							settings.supportsNonConstGlobalVarAssignment = true;
 							settings.supportsProplists = true;
 							settings.strictDefaultLevel = 3;
 							settings.supportsRefs = false;

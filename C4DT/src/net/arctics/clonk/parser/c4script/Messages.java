@@ -6,7 +6,6 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.parser.c4script.messages"; //$NON-NLS-1$
 	public static String DescriptionNotAvailable;
 	public static String FunctionInfoTextTemplate;
-	public static String C4ScriptParser_Or;
 	public static String C4TypeSet_End;
 	public static String C4TypeSet_Or;
 	public static String C4TypeSet_Start;

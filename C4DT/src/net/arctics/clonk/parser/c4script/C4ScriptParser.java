@@ -555,7 +555,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Comment c; (c = parseCommentObject()) != null;)
 			sourceComment = c;
 		if (sourceComment != null)
-			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>"));
+			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	/**
@@ -893,9 +893,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						currentDeclaration = var;
 						VarInitialization varInitialization;
 						ExprElm initializationExpression = null;
-						if (scope == Scope.CONST || currentFunc != null || script().engine().settings().nonConstGlobalVarsAssignment) {
+						{
 							eatWhitespace();
 							if (peek() == '=') {
+								if (scope != Variable.Scope.CONST && currentFunc == null && !engine.settings().supportsNonConstGlobalVarAssignment)
+									error(ParserErrorCode.NonConstGlobalVarAssignment, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW);
 								read();
 								eatWhitespace();
 
@@ -1087,7 +1089,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						commentBuilder.append(parameterCommentPre.text());
 					if (parameterCommentPost != null) {
 						if (parameterCommentPre != null)
-							commentBuilder.append("\n");
+							commentBuilder.append("\n"); //$NON-NLS-1$
 						commentBuilder.append(parameterCommentPost.text());
 					}
 					parm.setUserDescription(commentBuilder.toString());
@@ -1098,7 +1100,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else
-					error(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ 
+					error(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$ 
 			} while(!reachedEOF());
 		endOfHeader = this.offset;
 		lastComment = null;
@@ -1113,11 +1115,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (token != '{')
 			if (isEngine) {
 				if (token != ';')
-					tokenExpectedError(";");
+					tokenExpectedError(";"); //$NON-NLS-1$
 				else
 					parseBody = false;
 			} else if (!header.isOldStyle)
-				tokenExpectedError("{");
+				tokenExpectedError("{"); //$NON-NLS-1$
 			else {
 				this.seek(endOfHeader);
 				blockDepth = -1;
@@ -1496,7 +1498,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		@Override
 		public String toString() {
-			return String.format("%s @(%d, %s)", code.toString(), offset, reporter.toString());
+			return String.format("%s @(%d, %s)", code.toString(), offset, reporter.toString()); //$NON-NLS-1$
 		}
 	}
 	
@@ -1583,7 +1585,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				marker.setAttribute(IMarker.CHAR_START, markerStart+bodyOffset());
 				marker.setAttribute(IMarker.CHAR_END, markerEnd+bodyOffset());
 				marker.setAttribute(IMarker.MESSAGE, todoText);
-				marker.setAttribute(IMarker.LOCATION, currentDeclaration() != null ? currentDeclaration().qualifiedName() : "");
+				marker.setAttribute(IMarker.LOCATION, currentDeclaration() != null ? currentDeclaration().qualifiedName() : ""); //$NON-NLS-1$
 				marker.setAttribute(IMarker.PRIORITY, priority);
 				return marker;
 			} catch (CoreException e) {

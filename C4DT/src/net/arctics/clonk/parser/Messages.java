@@ -47,6 +47,7 @@ public class Messages extends NLS {
 	public static String OutOfIntRange;
 	public static String InvalidExpression;
 	public static String NoInheritedFunction;
+	public static String NonConstGlobalVarAssignment;
 	public static String FloatNumbersNotSupported;
 	public static String FunctionRedeclared;
 	public static String FunctionRefNotAllowed;
