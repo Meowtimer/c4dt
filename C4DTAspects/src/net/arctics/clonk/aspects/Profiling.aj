@@ -74,7 +74,8 @@ public aspect Profiling {
 	}
 	
 	private static File csvFile(String name) {
-		File baseFolder = new File(System.getProperty("user.home"), "Profiling");
+		File baseFolder = new File(System.getProperty("user.home"), "Library");
+		baseFolder = new File(baseFolder, "Profiling");
 		baseFolder.mkdirs();
 		File f;
 		for (int i = 1; (f = new File(baseFolder, String.format("%s%d.csv", name, i))).exists(); i++);
