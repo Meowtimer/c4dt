@@ -127,12 +127,14 @@ public abstract class IndexEntity extends Structure {
 	}
 	
 	/**
-	 * Save this entity by requesting a stream to write to from the index.
+	 * Save this entity by requesting a stream to write to from the {@link #index()}.
 	 * @throws IOException 
 	 */
 	public final void save() throws IOException {
+		if (index == null)
+			return;
 		synchronized (index.saveSynchronizer()) {
-			if (index != null) try {
+			try {
 				requireLoaded();
 				index.saveEntity(this);
 			} catch (Exception e) {

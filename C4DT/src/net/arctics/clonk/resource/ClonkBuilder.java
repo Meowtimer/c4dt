@@ -360,16 +360,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				continue;
 			final Script s = parser.script();
 			final Definition def = as(s, Definition.class);
-			index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
-				@Override
-				public void receivedObject(Script item) {
-					if (
-						!parserMap.containsKey(item) &&
-						(item.usedScripts().contains(s) || (def != null && item.directlyIncludes(def)))
-					)
-						newlyAddedParsers.put(item, queueScript(item));
-				}
-			});
+			if (def != null)
+				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
+					@Override
+					public void receivedObject(Script item) {
+						if (!parserMap.containsKey(item) && item.directlyIncludes(def))
+							newlyAddedParsers.put(item, queueScript(item));
+					}
+				});
 		}
 		for (Structure s : gatheredStructures) {
 			s.validate();
