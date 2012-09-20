@@ -1046,18 +1046,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return PrimitiveType.REFERENCE;
 		}
 		else if ((isEngine||Conf.staticTyping) && ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null))) {
-			PrimitiveType t = PrimitiveType.makeType(str, true);
-			if (t != PrimitiveType.UNKNOWN)
-				return t;
-			else if (Conf.staticTyping) {
-				if (script.index() != null && engine.acceptsId(str)) {
-					Definition d = script.index().anyDefinitionWithID(ID.get(str));
-					if (d != null)
-						return d;
+			IType t = PrimitiveType.makeType(str, true);
+			if (t == PrimitiveType.UNKNOWN)
+				t = null;
+			if (t == null && Conf.staticTyping)
+				if (script.index() != null && engine.acceptsId(str))
+					t = script.index().anyDefinitionWithID(ID.get(str));
+			if (t != null) {
+				int p = offset;
+				if (t == PrimitiveType.ARRAY) {
+					eatWhitespace();
+					if (read() == '[') {
+						IType elementType = parseStaticType();
+						expect(']');
+						if (elementType != null)
+							return new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
+					}
 				}
+				seek(p);
+				return t;
+			} else if (Conf.staticTyping)
 				error(ParserErrorCode.InvalidType, offset-str.length(), offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, str);
-				return PrimitiveType.ANY;
-			}
 		}
 		this.seek(backtrack);
 		return null;
