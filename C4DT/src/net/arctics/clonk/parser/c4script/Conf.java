@@ -1,6 +1,10 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.ast.BraceStyleType;
+import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -15,13 +19,14 @@ public abstract class Conf {
 	public static boolean alwaysConvertObjectCalls = true;
 	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
 	public static String indentString = "\t"; //$NON-NLS-1$
+	public static final boolean staticTyping = true;
 
 	public static void printIndent(ExprWriter builder, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
 			builder.append(indentString);
 	}
 
-	static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+	public static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
 		@Override
         public Object convert(ExprElm from) {
             try {

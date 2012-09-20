@@ -63,7 +63,7 @@ public class CallReturnType implements IType, IResolvableType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.ANY;
 	}
 

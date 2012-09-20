@@ -150,11 +150,11 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			IType s = ingredients[i];
 			if (s instanceof TypeSet) {
 				for (IType t : s) {
-					containsNonStatics = containsNonStatics || t.staticType() != t;
+					containsNonStatics = containsNonStatics || t.simpleType() != t;
 					list.add(t);
 				}
 			} else {
-				containsNonStatics = containsNonStatics || s.staticType() != s;
+				containsNonStatics = containsNonStatics || s.simpleType() != s;
 				list.add(s);
 			}
 		}
@@ -295,7 +295,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return internalized ? this : PrimitiveType.ANY;
 	}
 

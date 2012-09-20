@@ -70,7 +70,7 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.FUNCTION;
 	}
 

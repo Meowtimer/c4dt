@@ -46,7 +46,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * Explicit type, not to be changed by weird type inference
 	 */
-	private transient boolean typeLocked;
+	private transient boolean staticallyTyped;
 	
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
@@ -65,7 +65,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	private Variable(String name, PrimitiveType type, String desc) {
 		this(name, type, desc, Scope.VAR);
-		typeLocked = true;
+		staticallyTyped = true;
 	}
 	
 	public Variable(String name, IType type) {
@@ -124,17 +124,23 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	public void forceType(IType type, boolean typeLocked) {
 		forceType(type);
-		this.typeLocked = typeLocked;
+		this.staticallyTyped = typeLocked;
 	}
 	
 	public void lockType() {
-		typeLocked = true;
+		staticallyTyped = true;
 	}
 	
-	public void setType(IType type) {
-		if (typeLocked)
-			return;
-		forceType(type);
+	public void assignType(IType type) {
+		assignType(type, false);
+	}
+	
+	@Override
+	public void assignType(IType type, boolean _static) {
+		if (!staticallyTyped || _static) {
+			forceType(type);
+			staticallyTyped = _static;
+		}
 	}
 
 	/**
@@ -252,7 +258,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
-		if (!typeLocked && !(script() instanceof Engine))
+		if (!staticallyTyped && !(script() instanceof Engine))
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
@@ -291,8 +297,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	private void ensureTypeLockedIfPredefined(Declaration declaration) {
-		if (!typeLocked && declaration instanceof Engine)
-			typeLocked = true;
+		if (!staticallyTyped && declaration instanceof Engine)
+			staticallyTyped = true;
 	}
 	
 	@Override
@@ -345,8 +351,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public boolean typeIsInvariant() {
-		return typeLocked || isEngineDeclaration();
+	public boolean staticallyTyped() {
+		return staticallyTyped || isEngineDeclaration();
 	}
 	
 	/**

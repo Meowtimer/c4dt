@@ -103,7 +103,7 @@ public enum PrimitiveType implements IType {
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
 		if (other != null) for (IType t : other) {
-			t = t.staticType();
+			t = t.simpleType();
 			if (t == this || t == UNKNOWN || t == REFERENCE || t == ANY)
 				return true;
 			if (t instanceof PrimitiveType)
@@ -241,11 +241,11 @@ public enum PrimitiveType implements IType {
 
 	@Override
 	public boolean subsetOf(IType type) {
-		IType staticType = type.staticType();
-		if (staticType == this)
+		IType simpleType = type.simpleType();
+		if (simpleType == this)
 			return true;
-		if (staticType instanceof PrimitiveType)
-			switch ((PrimitiveType)staticType) {
+		if (simpleType instanceof PrimitiveType)
+			switch ((PrimitiveType)simpleType) {
 			case ARRAY:
 			case ID:
 			case OBJECT:
@@ -290,7 +290,7 @@ public enum PrimitiveType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return this;
 	}
 	

@@ -66,7 +66,7 @@ public class ReferenceType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.REFERENCE;
 	}
 	
@@ -78,7 +78,7 @@ public class ReferenceType implements IType {
 	}
 	
 	public static ReferenceType get(IType type) {
-		if (type.staticType() == type) {
+		if (type.simpleType() == type) {
 			ReferenceType r = internalizedReferenceTypes.get(type);
 			if (r == null) {
 				r = new ReferenceType(type);

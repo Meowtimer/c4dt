@@ -141,7 +141,7 @@ public abstract class AccessDeclaration extends ExprElm {
 	
 	@Override
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant())
+		if (declaration instanceof ITypeable && ((ITypeable)declaration).staticallyTyped())
 			return null;
 		else
 			return super.createStoredTypeInformation(parser);

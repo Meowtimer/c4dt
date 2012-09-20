@@ -56,8 +56,8 @@ public class SameTypeAsSomeTypeable implements IType {
 	}
 
 	@Override
-	public IType staticType() {
-		return actualType().staticType();
+	public IType simpleType() {
+		return actualType().simpleType();
 	}
 
 	@Override

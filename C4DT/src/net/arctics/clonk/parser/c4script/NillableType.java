@@ -61,8 +61,8 @@ public class NillableType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
-		return baseType.staticType();
+	public IType simpleType() {
+		return baseType.simpleType();
 	}
 
 	@Override

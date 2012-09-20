@@ -202,7 +202,7 @@ public class ArrayType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.ARRAY;
 	}
 

@@ -215,7 +215,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 	
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.ID;
 	}
 	
@@ -258,7 +258,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		}
 
 		@Override
-		public boolean typeIsInvariant() {
+		public boolean staticallyTyped() {
 			return true;
 		}
 		

@@ -37,6 +37,7 @@ public class Messages extends NLS {
 	public static String VariableCalled;
 	public static String VarOutsideFunction;
 	public static String TypeAsName;
+	public static String TypeExpected;
 	public static String BlockNotClosed;
 	public static String BoolLiteralAsOpArg;
 	public static String UnknownDirective;
@@ -46,6 +47,7 @@ public class Messages extends NLS {
 	public static String ConditionExpected;
 	public static String OutOfIntRange;
 	public static String InvalidExpression;
+	public static String InvalidType;
 	public static String NoInheritedFunction;
 	public static String NonConstGlobalVarAssignment;
 	public static String FloatNumbersNotSupported;

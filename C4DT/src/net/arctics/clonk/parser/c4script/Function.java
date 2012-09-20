@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -51,6 +50,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private String returnDescription;
 	private boolean isCallback;
 	private boolean isOldStyle;
+	private boolean staticallyTyped;
 	private SourceLocation bodyLocation, header;
 	
 	/**
@@ -283,12 +283,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (numParameters() > 0) {
 			for(Variable par : parameters()) {
-				IType staticType = engineCompatible ? par.type().staticType() : par.type();
+				IType type = engineCompatible ? par.type().simpleType() : par.type();
 				if (engineCompatible && !par.isActualParm())
 					continue;
-				if (staticType != PrimitiveType.UNKNOWN && staticType != null) {
-					if (!engineCompatible || (staticType instanceof PrimitiveType && staticType != PrimitiveType.ANY)) {
-						output.append(staticType.typeName(false));
+				if (type != PrimitiveType.UNKNOWN && type != null) {
+					if (!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)) {
+						output.append(type.typeName(false));
 						output.append(' ');
 					}
 					output.append(par.name());
@@ -593,11 +593,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public void forceType(IType type) {
-		setReturnType(type);
+		this.returnType = type;
+		this.staticallyTyped = true;
 	}
 	
-	public void setReturnType(IType returnType) {
-		this.returnType = returnType;
+	@Override
+	public void assignType(IType returnType, boolean _static) {
+		if (!staticallyTyped || _static) {
+			this.returnType = returnType;
+			this.staticallyTyped = _static;
+		}
 	}
 	
 	public void setObjectType(Definition object) {
@@ -685,18 +690,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public void absorb(Declaration declaration) {
-		if (declaration instanceof Function) {
-			Function f = (Function) declaration;
-			if (f.parameters.size() >= this.parameters.size())
-				this.parameters = f.parameters;
-			this.setReturnType(f.returnType);
-			f.parameters = null;
-		}
-		super.absorb(declaration);
-	}
-	
-	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(visibility().toKeyword());
 		builder.append(" "); //$NON-NLS-1$
@@ -759,8 +752,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public boolean typeIsInvariant() {
-		return isEngineDeclaration();
+	public boolean staticallyTyped() {
+		return staticallyTyped||(staticallyTyped=isEngineDeclaration());
 	}
 
 	public void resetLocalVarTypes() {

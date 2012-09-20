@@ -56,7 +56,7 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * Return a static type equivalent of this type (static type of {@link Definition} is {@link PrimitiveType#OBJECT} for example)
 	 * @return The static type equivalent
 	 */
-	IType staticType();
+	IType simpleType();
 	/**
 	 * Description of the type. Will be incorporated into {@link #typeName(boolean)} if set. There is no guarantee that calling this method will actually result in some description being set.
 	 * @param description The description explaining how this type was constructed

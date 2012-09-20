@@ -600,7 +600,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
-		if (d != null && !d.typeIsInvariant())
+		if (d != null && !d.staticallyTyped())
 			return new GenericTypeInfo(this, parser);
 		return null;
 	}

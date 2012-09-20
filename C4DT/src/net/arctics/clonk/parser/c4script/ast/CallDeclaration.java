@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -727,7 +728,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
-			if (f.typeIsInvariant())
+			if (f.staticallyTyped())
 				return null;
 			IType retType = f.returnType();
 			if (retType == null || !retType.subsetOfAny(PrimitiveType.ANY, PrimitiveType.REFERENCE))
