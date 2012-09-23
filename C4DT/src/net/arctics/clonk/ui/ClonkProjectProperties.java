@@ -1,18 +1,19 @@
 package net.arctics.clonk.ui;
 
 import java.util.Arrays;
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.preferences.ClonkPreferencePage;
+import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkProjectNature.ProjectSettings;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.preferences.ClonkPreferencePage;
-import net.arctics.clonk.preferences.Messages;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -180,7 +181,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	}
 
 	private final class AdapterStore extends PreferenceStore {
-		private Map<String, String> values = new HashMap<String, String>();
+		private final Map<String, String> values = new HashMap<String, String>();
 
 		@Override
 		public String getDefaultString(String name) {
@@ -243,7 +244,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
-		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
+		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkProjectProperties_SpecifiedEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
 		addField(new DisabledErrorsFieldEditor(DISABLED_ERRORS_PROPERTY, Messages.EnabledErrors, getFieldEditorParent()));
 	}
 
