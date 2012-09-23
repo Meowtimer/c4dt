@@ -88,6 +88,7 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingPurger;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -436,6 +437,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		initialize();
 	}
 	
+	private List<SourceLocation> typingAnnotationLocations;
+	
 	/**
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
 	 */
@@ -455,6 +458,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			strictLevel = script.strictLevel();
 			script.containsGlobals = false;
+			if (staticTyping)
+				typingAnnotationLocations = new ArrayList<SourceLocation>();
 		}
 		statementReached = true;
 		if (scriptFile != null)
@@ -553,9 +558,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		catch (ParsingException e) {
 			return;
 		}
-		enableError(ParserErrorCode.StringNotClosed, true);
-		if (markers != null)
-			markers.deploy();
+		finally {
+			enableError(ParserErrorCode.StringNotClosed, true);
+			if (markers != null)
+				markers.deploy();
+			if (typingAnnotationLocations != null) {
+				if (scriptFile != null)
+					StaticTypingPurger.storeAnnotationLocations(scriptFile, typingAnnotationLocations);
+				typingAnnotationLocations.clear();
+			}
+		}
 	}
 
 	private void parseInitialSourceComment() {
@@ -1048,6 +1060,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		final int backtrack = this.offset;
 		eatWhitespace();
 		String str;
+		IType t = null;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs)
 				error(ParserErrorCode.PrimitiveTypeNotSupported, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW,
@@ -1057,7 +1070,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
 			PrimitiveType pt;
-			IType t = pt = PrimitiveType.fromString(str, isEngine||staticTyping);
+			t = pt = PrimitiveType.fromString(str, isEngine||staticTyping);
 			if (pt != null && !script.engine().supportsPrimitiveType(pt))
 				t = null;
 			else if (t == null && staticTyping)
@@ -1067,24 +1080,28 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				int p = offset;
 				eatWhitespace();
 				switch (read()) {
+				case '&':
+					t = ReferenceType.get(t);
+					break;
 				case '[':
 					if (staticTyping && t == PrimitiveType.ARRAY) {
 						IType elementType = parseStaticType();
 						expect(']');
 						if (elementType != null)
 							return new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
+						break;
 					}
-					break;
-				case '&':
-					return ReferenceType.get(t);
+				default:
+					seek(p);
 				}
-				seek(p);
-				return t;
+				if (typingAnnotationLocations != null)
+					typingAnnotationLocations.add(new SourceLocation(backtrack, this.offset));
 			} else if (staticTyping)
 				error(ParserErrorCode.InvalidType, offset-str.length(), offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, str);
 		}
-		this.seek(backtrack);
-		return null;
+		if (t == null)
+			this.seek(backtrack);
+		return t;
 	}
 	
 	/**

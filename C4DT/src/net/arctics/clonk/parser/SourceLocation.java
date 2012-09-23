@@ -31,6 +31,11 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 		start = offset+relativeLocation.getOffset();
 		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
 	}
+	public SourceLocation(String stringRepresentation) {
+		int comma = stringRepresentation.indexOf(",");
+		start = Integer.parseInt(stringRepresentation.substring(1, comma));
+		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
+	}
 	
 	/**
 	 * @param start the start to set
@@ -77,7 +82,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	
 	@Override
 	public String toString() {
-		return "("+start()+", "+end()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		return "("+start+", "+end+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-

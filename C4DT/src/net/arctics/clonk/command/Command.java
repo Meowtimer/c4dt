@@ -28,12 +28,14 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingPurger;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -174,6 +176,11 @@ public class Command {
 			Engine engine = Core.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
+		}
+		@CommandFunction
+		public static void NoSTMirror(Object context, String project, String destinationFolder) {
+			IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
+			StaticTypingPurger.mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
 		}
 	}
 
