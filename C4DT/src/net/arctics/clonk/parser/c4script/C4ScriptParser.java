@@ -632,7 +632,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (function.bodyLocation() == null)
 			return;
 		if (!function.staticallyTyped())
-			function.forceType(PrimitiveType.UNKNOWN);
+			function.assignType(PrimitiveType.UNKNOWN, false);
 
 		if (specialScriptRules != null)
 			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())

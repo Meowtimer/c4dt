@@ -58,7 +58,7 @@ public interface ITypeable extends IIndexEntity {
 		public static void expectedToBeOfType(ITypeable instance, IType type) {
 			if (instance.type() == PrimitiveType.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
-				instance.forceType(type);
+				instance.assignType(type, false);
 			else if (!instance.type().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
 				instance.assignType(TypeSet.create(type, instance.type()), false);

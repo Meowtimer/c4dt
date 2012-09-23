@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CallReturnType;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
@@ -26,7 +27,6 @@ import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -100,7 +100,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return;
 			function = (Function) function.latestVersion();
 			if (!soft && !function.isEngineDeclaration())
-				function.forceType(type());
+				function.assignType(type(), false);
 		}
 		
 	}
