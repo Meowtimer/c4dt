@@ -581,7 +581,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					PrimitiveType t = PrimitiveType.makeType(ParserErrorCode.arg(marker, 0), true);
+					PrimitiveType t = PrimitiveType.fromString(ParserErrorCode.arg(marker, 0), true);
 					if (t == PrimitiveType.STRING)
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_QuoteExpression,

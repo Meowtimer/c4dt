@@ -180,7 +180,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			else if (declaration instanceof Variable) {
 				Variable var = (Variable) declaration;
 				var.setName(declarationNameField.getText());
-				var.forceType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
+				var.forceType(PrimitiveType.fromString(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
 				var.setScope(Scope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
 			

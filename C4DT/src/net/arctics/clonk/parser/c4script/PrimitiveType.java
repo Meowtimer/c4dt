@@ -96,7 +96,7 @@ public enum PrimitiveType implements IType {
 	}
 	
 	public static String cppTypeFromType(IType type) {
-		PrimitiveType t = makeType(type.toString());
+		PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
 	
@@ -137,11 +137,11 @@ public enum PrimitiveType implements IType {
 		return false;
 	}
 
-	public static PrimitiveType makeType(String arg) {
-		return makeType(arg, false);
+	public static PrimitiveType fromString(String arg) {
+		return fromString(arg, false);
 	}
 	
-	public static PrimitiveType makeType(String arg, boolean allowSpecial) {
+	public static PrimitiveType fromString(String arg, boolean allowSpecial) {
 		for (PrimitiveType t : values())
 			if (t.toString().equals(arg))
 				return t;

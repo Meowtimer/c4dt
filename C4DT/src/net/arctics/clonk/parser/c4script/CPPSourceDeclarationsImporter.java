@@ -131,12 +131,12 @@ public class CPPSourceDeclarationsImporter {
 							//String oldPointer = fnMapMatcher.group(i++);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new DocumentedFunction(name, PrimitiveType.makeType(retType.substring(4).toLowerCase(), true), origin);
+								fun = new DocumentedFunction(name, PrimitiveType.fromString(retType.substring(4).toLowerCase(), true), origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 								String[] p = parms.split(","); //$NON-NLS-1$
 								List<Variable> parList = new ArrayList<Variable>(p.length);
 								for (String pa : p)
-									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
+									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.fromString(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
 							}

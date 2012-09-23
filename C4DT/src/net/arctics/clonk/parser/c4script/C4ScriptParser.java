@@ -1046,7 +1046,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return PrimitiveType.REFERENCE;
 		}
 		else if ((isEngine||Conf.staticTyping) && ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null))) {
-			IType t = PrimitiveType.makeType(str, true);
+			IType t = PrimitiveType.fromString(str, true);
 			if (t == PrimitiveType.UNKNOWN)
 				t = null;
 			if (t == null && Conf.staticTyping)
