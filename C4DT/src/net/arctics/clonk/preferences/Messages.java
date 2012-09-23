@@ -17,6 +17,7 @@ public class Messages extends NLS {
 	public static String ClonkPreferencePage_StructureOutlinesInProjectExplorer;
 	public static String ClonkPreferencePage_YesIndeed;
 	public static String ClonkPreferences;
+	public static String ClonkProjectProperties_SpecifiedEngine;
 	public static String GamePath;
 	public static String Finnish;
 	public static String EnabledErrors;
