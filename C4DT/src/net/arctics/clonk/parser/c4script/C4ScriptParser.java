@@ -811,13 +811,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (s != null)
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
+						int bt = parser.offset;
 						returnType = parser.parseStaticType();
-						if (Conf.staticTyping && returnType == null) {
-							parser.error(ParserErrorCode.TypeExpected, parser.offset, parser.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+						if (Conf.staticTyping && returnType == null)
 							returnType = PrimitiveType.INT;
-						}
-						nameStart = parser.offset;
+						else if (!Conf.staticTyping && returnType != PrimitiveType.REFERENCE)
+							parser.seek(bt);
 						parser.eatWhitespace();
+						nameStart = parser.offset;
 						s = parser.parseIdentifier();
 						if (s != null) {
 							name = s;
@@ -1046,20 +1047,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return PrimitiveType.REFERENCE;
 		}
 		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
-			IType t = PrimitiveType.fromString(str, isEngine||Conf.staticTyping);
-			if (t == null && Conf.staticTyping)
+			PrimitiveType pt;
+			IType t = pt = PrimitiveType.fromString(str, isEngine||Conf.staticTyping);
+			if (pt != null && !script.engine().supportsPrimitiveType(pt))
+				t = null;
+			else if (t == null && Conf.staticTyping)
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().anyDefinitionWithID(ID.get(str));
 			if (t != null) {
 				int p = offset;
-				if (t == PrimitiveType.ARRAY) {
-					eatWhitespace();
-					if (read() == '[') {
+				eatWhitespace();
+				switch (read()) {
+				case '[':
+					if (Conf.staticTyping && t == PrimitiveType.ARRAY) {
 						IType elementType = parseStaticType();
 						expect(']');
 						if (elementType != null)
 							return new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
 					}
+					break;
+				case '&':
+					return ReferenceType.get(t);
 				}
 				seek(p);
 				return t;
@@ -2975,52 +2983,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (isEngine && parseEllipsis())
 			return addVarParmsParm(function);
 		
-		int s = this.offset;
-		String firstWord = readIdent();
-		if (firstWord.length() == 0)
-			if (read() == '&')
-				firstWord = "&"; //$NON-NLS-1$
-			else {
-				unread();
-				return null;
-			}
-		int e = this.offset;
+		IType type = parseStaticType();
+		if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+			error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
 		Variable var = new Variable(null, Scope.VAR);
-		PrimitiveType type = PrimitiveType.fromString(firstWord);
-		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
-		var.forceType(type, typeLocked);
-		if (type == PrimitiveType.UNKNOWN)
-			//var.setType(C4Type.ANY);
-			var.setName(firstWord);
-		else {
-			eatWhitespace();
-			if (read() == '&') {
-				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-				var.forceType(ReferenceType.get(type), typeLocked);
-				eatWhitespace();
-			} else
-				unread();
-			int newStart = this.offset;
-			String secondWord = readIdent();
-			if (secondWord.length() > 0) {
-				if (!engine.supportsPrimitiveType(type))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, s, e, NO_THROW, type.typeName(true), script.engine().name());
-				var.setName(secondWord);
-				s = newStart;
-				e = this.offset;
-			}
-			else {
-				
-				if (engine.supportsPrimitiveType(type))
-					// type is name
-					warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
-				var.forceType(PrimitiveType.ANY, typeLocked);
-				var.setName(firstWord);
-				this.seek(e);
-			}
-		}
-		var.setLocation(new SourceLocation(s, e));
+		boolean typeLocked = type != null;
+		if (type != null)
+			var.forceType(type, typeLocked);
+		eatWhitespace();
+		int nameStart = this.offset;
+		String parmName = readIdent();
+		var.setName(parmName);
+		var.setLocation(new SourceLocation(nameStart, this.offset));
 		var.setParentDeclaration(function);
 		function.addParameter(var);
 		return var;
