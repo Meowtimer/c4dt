@@ -115,7 +115,7 @@ public class ReturnStatement extends KeywordStatement {
 			if (Conf.staticTyping && currentFunction.staticallyTyped()) {
 				if (!returnExpr.validForType(currentFunction.returnType(), parser))
 					parser.error(ParserErrorCode.IncompatibleTypes, returnExpr, C4ScriptParser.NO_THROW,
-						currentFunction.returnType().typeName(true), returnExpr);
+						currentFunction.returnType().typeName(true), returnExpr.type(parser));
 			}
 			else
 				currentFunction.expectedToBeOfType(returnExpr.unresolvedType(parser), TypeExpectancyMode.Force);
