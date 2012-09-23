@@ -49,10 +49,9 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		 * @return <code>true</code> if the character is an operator, <code>false</code> otherwise.
 		 */
 		public boolean isOperator(char character) {
-			for (int index= 0; index < CLONK_OPERATORS.length; index++) {
+			for (int index= 0; index < CLONK_OPERATORS.length; index++)
 				if (CLONK_OPERATORS[index] == character)
 					return true;
-			}
 			return false;
 		}
 
@@ -74,9 +73,9 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 					scanner.unread();
 			}
 			if (isOperator(character)) {
-				do {
+				do
 					character = (char) scanner.read();
-				} while (isOperator(character));
+				while (isOperator(character));
 				scanner.unread();
 				return fToken;
 			} else {
@@ -137,7 +136,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		for (String k : BuiltInDefinitions.DECLARATORS)
 			wordRule.addWord(k.trim(), keyword);
 		for (PrimitiveType t : PrimitiveType.values()) 
-			if (t != PrimitiveType.UNKNOWN)
+			if (t != PrimitiveType.UNKNOWN && engine.supportsPrimitiveType(t))
 				wordRule.addWord(t.typeName(false).trim().toLowerCase(), type);
 		for (Function func : engine.functions())
 			wordRule.addWord(func.name(), engineFunction);
