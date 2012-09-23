@@ -4,7 +4,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -112,7 +111,7 @@ public class ReturnStatement extends KeywordStatement {
 		if (activeFunc == null)
 			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
-			if (Conf.staticTyping && currentFunction.staticallyTyped()) {
+			if (parser.staticTyping() && currentFunction.staticallyTyped()) {
 				if (!returnExpr.validForType(currentFunction.returnType(), parser))
 					parser.error(ParserErrorCode.IncompatibleTypes, returnExpr, C4ScriptParser.NO_THROW,
 						currentFunction.returnType().typeName(true), returnExpr.type(parser));

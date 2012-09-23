@@ -201,6 +201,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	protected int strictLevel;
 	/**
+	 * Whether to parse the script with static typing rules.
+	 */
+	protected boolean staticTyping;
+	/**
 	 * Whether the script contains an #appendto
 	 */
 	protected boolean appendTo;
@@ -234,6 +238,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	public boolean allErrorsDisabled() {
 		return allErrorsDisabled;
+	}
+	
+	public final boolean staticTyping() {
+		return staticTyping;
 	}
 	
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
@@ -436,14 +444,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			engine = script.engine();
 			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
 			cachedEngineDeclarations = engine.cachedDeclarations();
-
+			staticTyping = false;
 			if (script.index() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) script.index();
 				ClonkProjectNature nature = projIndex.getNature();
-				if (nature != null)
+				if (nature != null) {
 					errorsDisabledByProjectSettings = nature.settings().getDisabledErrorsSet();
+					staticTyping = nature.settings().staticTyping;
+				}
 			}
-
 			strictLevel = script.strictLevel();
 			script.containsGlobals = false;
 		}
@@ -813,9 +822,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						parser.eatWhitespace();
 						int bt = parser.offset;
 						returnType = parser.parseStaticType();
-						if (Conf.staticTyping && returnType == null)
+						if (parser.staticTyping && returnType == null)
 							returnType = PrimitiveType.INT;
-						else if (!Conf.staticTyping && returnType != PrimitiveType.REFERENCE)
+						else if (!(parser.staticTyping||parser.isEngine) && returnType != PrimitiveType.REFERENCE)
 							parser.seek(bt);
 						parser.eatWhitespace();
 						nameStart = parser.offset;
@@ -882,7 +891,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					eatWhitespace();
 					IType typeOfNewVar;
 					// when parsing an engine script from (res/engines/...), allow specifying the type directly
-					if (isEngine || Conf.staticTyping) {
+					if (isEngine || staticTyping) {
 						typeOfNewVar = parseStaticType();
 						if (typeOfNewVar != null)
 							eatWhitespace();
@@ -1048,10 +1057,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
 			PrimitiveType pt;
-			IType t = pt = PrimitiveType.fromString(str, isEngine||Conf.staticTyping);
+			IType t = pt = PrimitiveType.fromString(str, isEngine||staticTyping);
 			if (pt != null && !script.engine().supportsPrimitiveType(pt))
 				t = null;
-			else if (t == null && Conf.staticTyping)
+			else if (t == null && staticTyping)
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().anyDefinitionWithID(ID.get(str));
 			if (t != null) {
@@ -1059,7 +1068,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				eatWhitespace();
 				switch (read()) {
 				case '[':
-					if (Conf.staticTyping && t == PrimitiveType.ARRAY) {
+					if (staticTyping && t == PrimitiveType.ARRAY) {
 						IType elementType = parseStaticType();
 						expect(']');
 						if (elementType != null)
@@ -1071,7 +1080,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 				seek(p);
 				return t;
-			} else if (Conf.staticTyping)
+			} else if (staticTyping)
 				error(ParserErrorCode.InvalidType, offset-str.length(), offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, str);
 		}
 		this.seek(backtrack);

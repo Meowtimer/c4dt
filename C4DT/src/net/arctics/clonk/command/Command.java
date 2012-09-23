@@ -186,8 +186,8 @@ public class Command {
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			Engine engine = Core.instance().activeEngine();
 			setFieldValue(
-					engine.intrinsicSettings(), name,
-					engine.settings().getClass().getField(name).get(engine.settings())
+				engine.intrinsicSettings(), name,
+				engine.settings().getClass().getField(name).get(engine.settings())
 			);
 		}
 	}

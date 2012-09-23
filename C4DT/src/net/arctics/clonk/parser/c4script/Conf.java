@@ -19,7 +19,6 @@ public abstract class Conf {
 	public static boolean alwaysConvertObjectCalls = true;
 	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
 	public static String indentString = "\t"; //$NON-NLS-1$
-	public static boolean staticTyping = true;
 
 	public static void printIndent(ExprWriter builder, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
