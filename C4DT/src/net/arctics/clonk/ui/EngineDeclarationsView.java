@@ -166,7 +166,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			if (declaration instanceof Function) {
 				Function func = (Function) declaration;
 				func.setName(declarationNameField.getText());
-				func.forceType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
+				func.forceType(PrimitiveType.fromString(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
 				
@@ -188,7 +188,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		}
 		
 		private PrimitiveType getSelectedType(Combo combo) {
-			return PrimitiveType.makeType(combo.getItem(combo.getSelectionIndex()));
+			return PrimitiveType.fromString(combo.getItem(combo.getSelectionIndex()));
 		}
 
 		private void createVariableEditDialog(Composite parent,

@@ -88,7 +88,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param pars
 	 */
 	public Function(String name, String type, String desc, Variable... pars) {
-		this(name, PrimitiveType.makeType(type), pars);
+		this(name, PrimitiveType.fromString(type), pars);
 		description = desc;
 		parentDeclaration = null; // since engine function only
 		localVars = null;

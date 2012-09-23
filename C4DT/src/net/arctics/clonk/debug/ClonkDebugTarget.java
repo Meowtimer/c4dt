@@ -298,7 +298,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									if (varName != null && varType != null && varValue != null) {
 										ClonkDebugVariable var = vars.get(varName);
 										if (var != null) {
-											var.getValue().setValue(varValue, PrimitiveType.makeType(varType));
+											var.getValue().setValue(varValue, PrimitiveType.fromString(varType));
 											vars.remove(varName);
 										}
 									}

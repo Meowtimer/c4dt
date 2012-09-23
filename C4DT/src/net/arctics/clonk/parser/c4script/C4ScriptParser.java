@@ -1045,10 +1045,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			read();
 			return PrimitiveType.REFERENCE;
 		}
-		else if ((isEngine||Conf.staticTyping) && ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null))) {
-			IType t = PrimitiveType.fromString(str, true);
-			if (t == PrimitiveType.UNKNOWN)
-				t = null;
+		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
+			IType t = PrimitiveType.fromString(str, isEngine||Conf.staticTyping);
 			if (t == null && Conf.staticTyping)
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().anyDefinitionWithID(ID.get(str));
@@ -2988,7 +2986,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		int e = this.offset;
 		Variable var = new Variable(null, Scope.VAR);
-		PrimitiveType type = PrimitiveType.makeType(firstWord);
+		PrimitiveType type = PrimitiveType.fromString(firstWord);
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
 		if (type == PrimitiveType.UNKNOWN)

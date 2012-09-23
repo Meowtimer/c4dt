@@ -1,5 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,6 +12,8 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
+
+import org.omg.CORBA.UNKNOWN;
 
 /**
  * The engine predefined variable types.
@@ -31,22 +36,16 @@ public enum PrimitiveType implements IType {
 	FLOAT,
 	NUM;
 	
-	private String lowercaseName;
+	private String scriptName;
+	public String scriptName() {return scriptName;}
 	
-	@Override
-	public String toString() {
-		return typeName(false);
-	}
-	
-	@Override
-	public String typeName(boolean special) {
-		if (!special && this == REFERENCE)
-			return "&"; //$NON-NLS-1$
-		if (lowercaseName == null)
-			lowercaseName = super.toString().toLowerCase();
-		return lowercaseName;
-	}
-
+	private static final Map<String, PrimitiveType> REGULAR_MAP = new HashMap<String, PrimitiveType>();
+	private static final Map<String, PrimitiveType> SPECIAL_MAPPING = map(false,
+		"dword", INT,
+		"any", ANY,
+		"reference", REFERENCE,
+		"void", UNKNOWN
+	); 
 	/**
 	 * Map to map type names from Clonk engine source to primitive types.
 	 */
@@ -65,37 +64,59 @@ public enum PrimitiveType implements IType {
 		"C4Void*", PrimitiveType.UNKNOWN,
 		"C4AulFunc*", PrimitiveType.FUNCTION
 	);
-	
 	/**
 	 * Map to map primitive types to type names from Clonk engine source.
 	 */
 	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = ArrayUtil.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
 	
-	private static final Pattern nillablePattern = Pattern.compile("Nillable\\<(.*?)\\>");
-	private static final Pattern pointerTypePattern = Pattern.compile("(.*?)\\s*?\\*");
+	static {
+		for (PrimitiveType t : values()) {
+			switch (t) {
+			case REFERENCE:
+				t.scriptName = "&";
+				break;
+			default:
+				t.scriptName = t.name().toLowerCase();
+			}
+			REGULAR_MAP.put(t.scriptName, t);
+		}
+	}
+	
+	@Override
+	public String toString() {
+		return typeName(false);
+	}
+	
+	@Override
+	public String typeName(boolean special) {
+		return scriptName;
+	}
+
+	private static final Pattern NILLABLE_PATTERN = Pattern.compile("Nillable\\<(.*?)\\>");
+	private static final Pattern POINTERTYPE_PATTERN = Pattern.compile("(.*?)\\s*?\\*");
 	
 	/**
 	 * Return a primitive type from a C++ type string
 	 * @param type The C++ type string to interpret
 	 * @return The primitive type or {@link #UNKNOWN} if no 
 	 */
-	public static PrimitiveType typeFromCPPType(String type) {
+	public static PrimitiveType fromCPPString(String type) {
 		Matcher m;
 		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
 		if (ty != null)
 			return ty;
-		if ((m = nillablePattern.matcher(type)).matches())
-			return typeFromCPPType(m.group(1));
-		else if ((m = pointerTypePattern.matcher(type)).matches()) {
+		if ((m = NILLABLE_PATTERN.matcher(type)).matches())
+			return fromCPPString(m.group(1));
+		else if ((m = POINTERTYPE_PATTERN.matcher(type)).matches()) {
 			String t = m.group(1);
-			ty = typeFromCPPType(t);
+			ty = fromCPPString(t);
 			if (ty != null)
 				return ty;
 		}
 		return PrimitiveType.UNKNOWN; 
 	}
 	
-	public static String cppTypeFromType(IType type) {
+	public static String CPPTypeFromType(IType type) {
 		PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
@@ -137,23 +158,29 @@ public enum PrimitiveType implements IType {
 		return false;
 	}
 
+	/**
+	 * Return a {@link PrimitiveType} parsed from a C4Script type string. If the string does not specify a type, {@link UNKNOWN} is returned.
+	 * @param arg The C4Script type string to return a primitive type for
+	 * @return The primitive type or {@link UNKNOWN}.
+	 */
 	public static PrimitiveType fromString(String arg) {
-		return fromString(arg, false);
+		return defaulting(fromString(arg, false), UNKNOWN);
 	}
 	
-	public static PrimitiveType fromString(String arg, boolean allowSpecial) {
-		for (PrimitiveType t : values())
-			if (t.toString().equals(arg))
-				return t;
-		if (allowSpecial) {
-			if (arg.equals("dword")) //$NON-NLS-1$
-				return PrimitiveType.INT; // formerly DWORD
-			if (arg.equals("any")) //$NON-NLS-1$
-				return PrimitiveType.ANY;
-		}
-		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) //$NON-NLS-1$ //$NON-NLS-2$
-			return PrimitiveType.REFERENCE;
-		return PrimitiveType.UNKNOWN;
+	/**
+	 * Return {@link PrimitiveType} parsed from a type string that can be a regular C4Script type string or
+	 * if allowSpecial is passed true some 'special' type string which would not be allowed by the engine when parsing a script. 
+	 * @param typeString The type string
+	 * @param allowSpecial Whether to allow special syntax
+	 * @return The {@link PrimitiveType} parsed from the argument or null if not successful.
+	 */
+	public static PrimitiveType fromString(String typeString, boolean allowSpecial) {
+		PrimitiveType t = REGULAR_MAP.get(typeString);
+		if (t != null)
+			return t;
+		if (allowSpecial)
+			return SPECIAL_MAPPING.get(typeString);
+		return null;
 	}
 
 	/**
@@ -161,7 +188,7 @@ public enum PrimitiveType implements IType {
 	 * @param value the value
 	 * @return the type
 	 */
-	public static PrimitiveType typeFrom(Object value) {
+	public static PrimitiveType correspondingToInstance(Object value) {
 		if (value instanceof String)
 			return STRING;
 		if (value instanceof Number)
@@ -183,7 +210,7 @@ public enum PrimitiveType implements IType {
 	 * @return the converted value or null if conversion failed
 	 */
 	public Object convert(Object value) {
-		PrimitiveType valueType = typeFrom(value);
+		PrimitiveType valueType = correspondingToInstance(value);
 		if (valueType == this)
 			return value;
 		switch (this) {
@@ -296,5 +323,4 @@ public enum PrimitiveType implements IType {
 	
 	@Override
 	public void setTypeDescription(String description) {}
-
 }
