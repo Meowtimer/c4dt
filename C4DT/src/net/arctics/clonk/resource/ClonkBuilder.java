@@ -215,7 +215,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// delete old declarations
 			for (Script script : parserMap.keySet())
 				script.clearDeclarations();
-			index.refreshIndex();
+			index.refreshIndex(false);
 
 			phaseOne(index);
 
@@ -269,7 +269,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 			// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 			// if the function being referenced is defined in an #appendto from this index
-			index.refreshIndex();
+			index.refreshIndex(false);
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 				break;

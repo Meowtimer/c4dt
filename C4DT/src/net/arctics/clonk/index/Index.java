@@ -258,13 +258,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Call {@link #refreshIndex(boolean)} when not post-loading the index.
-	 */
-	public void refreshIndex() {
-		refreshIndex(false);
-	}
-
-	/**
 	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
@@ -344,7 +337,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	/**
 	 * Add an {@link Definition} to the index.<br>
-	 * {@link #refreshIndex()} will need to be called manually after this.
+	 * {@link #refreshIndex(boolean)} will need to be called manually after this.
 	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
 	public void addDefinition(Definition definition) {
@@ -634,7 +627,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
-		refreshIndex();
+		refreshIndex(false);
 	}
 
 	private void clearEntityFiles() {
