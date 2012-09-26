@@ -572,17 +572,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 		for (Directive directive : script.directives())
 			directive.validate(this);
-
-		for (Variable variable : script.variables()) {
-			ExprElm initialization = variable.initializationExpression();
-			if (initialization != null) {
-				ExprElm old = problemReporter;
-				problemReporter = initialization;
-				if (variable.scope() == Scope.CONST && !initialization.isConstant())
-					error(ParserErrorCode.ConstantValueExpected, initialization, C4ScriptParser.NO_THROW);
-				problemReporter = old;
-			}
-		}
 		script.notDirty();
 		distillAdditionalInformation();
 		if (markers != null)
@@ -909,30 +898,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								} finally {
 									allErrorsDisabled = old;
 								}
-
-								try {
-									if (currentFunc == null)
-										// only set initialization expression outside function so TidyUpCode won't have overlapping edits when trying
-										// to tidy up both the function code and the initialization expression separately
-										switch (scope) {
-										case CONST:
-											// never evaluate expressions, it's nice to have them and stuff
-											/*if (varInitialization.expression.isConstant()) {
-											varInitialization.variableBeingInitialized.setConstValue(varInitialization.expression.evaluateAtParseTime(Utilities.or(getCurrentFunc(), container)));
-											break;
-										}*/
-											// fallthrough
-										case LOCAL: case STATIC:
-											var.setInitializationExpression(initializationExpression);
-											break;
-										default:
-											break;
-										}
-								} catch (Exception ex) {
-									ex.printStackTrace();
-									error(ParserErrorCode.InvalidExpression, initializationExpression, NO_THROW);
-								}
-
+								var.setInitializationExpression(initializationExpression);
 								typeOfNewVar = initializationExpression instanceof IType
 									? (IType)initializationExpression
 									: PrimitiveType.UNKNOWN;
@@ -2210,8 +2176,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				ExprElm init = v.initializationExpression();
 				if (init != null) {
 					pushTypeInfos();
-					reportProblemsOf(init, true);
+					if (script.funcAt(init.start()) == null)
+						reportProblemsOf(init, true);
 					new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
+					if (v.scope() == Scope.CONST && !init.isConstant())
+						try {
+							error(ParserErrorCode.ConstantValueExpected, init, ABSOLUTE_MARKER_LOCATION|NO_THROW, v.name());
+						} catch (ParsingException e) {}
 					popTypeInfos(true);
 				}
 			}
