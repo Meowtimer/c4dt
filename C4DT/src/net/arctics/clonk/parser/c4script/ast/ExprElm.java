@@ -540,7 +540,15 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
-		context.storeType(this, rightSide.type(context));
+		if (context.staticTyping()) {
+			IType left = this.type(context);
+			IType right = rightSide.type(context); 
+			if (!left.canBeAssignedFrom(right))
+				try {
+					context.error(ParserErrorCode.IncompatibleTypes, rightSide, C4ScriptParser.NO_THROW, left, right);
+				} catch (ParsingException e) {}
+		} else
+			context.storeType(this, rightSide.type(context));
 	}
 
 	public ControlFlow controlFlow() {
