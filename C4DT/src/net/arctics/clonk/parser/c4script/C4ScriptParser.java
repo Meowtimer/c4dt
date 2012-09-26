@@ -1098,8 +1098,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				{} // old style funcs have no named parameters
 			else
 				tokenExpectedError("("); //$NON-NLS-1$
-		} else
+		} else {
 			// get parameters
+			boolean parmExpected = false;
 			do {
 				eat(WHITESPACE_CHARS);
 				Comment parameterCommentPre = parseCommentObject();
@@ -1118,15 +1119,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						commentBuilder.append(parameterCommentPost.text());
 					}
 					parm.setUserDescription(commentBuilder.toString());
-				}
+				} else if (parmExpected)
+					error(ParserErrorCode.NameExpected, this.offset, offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+				parmExpected = false;
 				int readByte = read();
 				if (readByte == ')')
 					break; // all parameters parsed
 				else if (readByte == ',')
-					continue; // parse another parameter
+					parmExpected = true;
 				else
 					error(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$ 
 			} while(!reachedEOF());
+		}
 		endOfHeader = this.offset;
 		lastComment = null;
 		eatWhitespace();
@@ -2980,20 +2984,29 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (isEngine && parseEllipsis())
 			return addVarParmsParm(function);
 		
+		int backtrack = this.offset;
 		IType type = parseStaticType();
-		if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
-			error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-		Variable var = new Variable(null, Scope.VAR);
-		boolean typeLocked = type != null;
-		if (type != null)
-			var.forceType(type, typeLocked);
 		eatWhitespace();
 		int nameStart = this.offset;
 		String parmName = readIdent();
+		if (parmName.length() == 0) {
+			type = null;
+			seek(nameStart = backtrack);
+			parmName = readIdent();
+			if (parmName.length() == 0)
+				return null;
+		}
+		Variable var = new Variable(null, Scope.VAR);
+		if (type != null) {
+			if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+				error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
+			var.forceType(type, true);
+		}
 		var.setName(parmName);
 		var.setLocation(new SourceLocation(nameStart, this.offset));
 		var.setParentDeclaration(function);
 		function.addParameter(var);
+		eatWhitespace();
 		return var;
 	}
 	
