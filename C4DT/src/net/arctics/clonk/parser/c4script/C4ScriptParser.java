@@ -1512,13 +1512,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				markersToDeploy = new ArrayList<Marker>(this);
 				this.clear();
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					for (Marker m : markersToDeploy)
-						m.deploy();
-				}
-			});
+			for (Marker m : markersToDeploy)
+				m.deploy();
 		}
 		@Override
 		public boolean add(Marker e) {
