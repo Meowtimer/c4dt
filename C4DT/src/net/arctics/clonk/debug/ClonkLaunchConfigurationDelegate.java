@@ -2,6 +2,7 @@ package net.arctics.clonk.debug;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingPurger;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
@@ -194,22 +196,37 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 * @throws CoreException
 	 */
 	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IFolder scenario, File engine, String mode) throws CoreException {
+		
+		Scenario scenarioObj;
+		Engine engineObj;
+		ClonkProjectNature nature;
+		try {
+			scenarioObj = Scenario.get(scenario);
+			engineObj = scenarioObj.engine();
+			nature = ClonkProjectNature.get(scenario);
+		} catch (Exception e) {
+			return null;
+		}
+		if (engineObj == null)
+			return null;
+		
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		args.add(resFilePath(scenario));
-		
-		Engine engineObj;
-		try {
-			engineObj = Scenario.get(scenario).engine();
-		} catch (Exception e) {
-			return null;
-		}
-		if (engineObj == null)
-			return null;
+		if (nature.settings().staticTyping)
+			try {
+				File tempFolder = Files.createTempDirectory("c4dt").toFile();
+				tempFolder = new File(tempFolder, scenario.getName());
+				StaticTypingPurger.mirrorDirectoryWithTypingAnnotationsRemoved(scenario, tempFolder, true);
+				args.add(tempFolder.getPath());
+			} catch (IOException e) {
+				System.out.println(String.format("Failed mirroring %s", scenario.getProjectRelativePath().toOSString()));
+			}
+		else
+			args.add(resFilePath(scenario));
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
