@@ -77,18 +77,19 @@ public abstract class IndexEntity extends Structure {
 	public final void requireLoaded() {
 		if (index == null)
 			return;
+		boolean needLoad = false;
 		synchronized (index.loadSynchronizer()) {
-			if (!loaded) {
-				loaded = true;
-				try {
-					index.loadEntity(this);
-				} catch (Exception e) {
-					if (e instanceof FileNotFoundException)
-						System.out.println("Entity file for " + this.toString() + " not found");
-					e.printStackTrace();
-				}
-			}
+			if (!loaded)
+				needLoad = loaded = true;
 		}
+		if (needLoad)
+			try {
+				index.loadEntity(this);
+			} catch (Exception e) {
+				if (e instanceof FileNotFoundException)
+					System.out.println("Entity file for " + this.toString() + " not found");
+				e.printStackTrace();
+			}
 	}
 	
 	public final boolean loaded() {

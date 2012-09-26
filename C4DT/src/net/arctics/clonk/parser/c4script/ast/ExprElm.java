@@ -42,8 +42,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 	public static class Ticket implements ISerializationResolvable, Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public Ticket(ExprElm elm) {
-			// non-ambigious description of an ExprElm somewhere in a tree gets made here
+		private final Declaration owner;
+		public Ticket(Declaration owner, ExprElm elm) {
+			this.owner = owner;
 		}
 		@Override
 		public Object resolve(Index index) {

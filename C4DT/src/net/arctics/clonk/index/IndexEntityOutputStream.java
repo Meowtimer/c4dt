@@ -32,7 +32,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 				ExprElm elm = (ExprElm)obj;
 				Declaration owner = elm.owningDeclaration();
 				if (owner != null && !owner.containedIn(entity))
-					return new ExprElm.Ticket(elm);
+					return new ExprElm.Ticket(owner, elm);
 			}
 			else if (obj instanceof String)
 				return ((String)obj).intern();
