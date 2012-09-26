@@ -559,7 +559,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			if (f == null)
 				for (Index index : info.index.relevantIndexes()) {
 					f = index.findGlobalDeclaration(name, resource());
-					if (f != null && !info.findGlobalVariables && !(f instanceof Function))
+					if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
 						break;
 				}
 			// engine function
