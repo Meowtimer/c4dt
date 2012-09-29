@@ -2,20 +2,28 @@
 
 package net.arctics.clonk.parser.mapcreator;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
+import org.antlr.runtime.ANTLRReaderStream;
+import org.antlr.runtime.BitSet;
+import org.antlr.runtime.CharStream;
+import org.antlr.runtime.CommonToken;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.NoViableAltException;
+import org.antlr.runtime.Parser;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.RecognizerSharedState;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.TokenStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-
-import org.antlr.runtime.*;
 
 public class MapCreatorParser extends Parser {
     public static final String[] tokenNames = new String[] {
@@ -134,8 +142,6 @@ public class MapCreatorParser extends Parser {
     			errorWithCode(ParserErrorCode.ExpressionExpected, endPos(nameToken), endPos(nameToken)+1);
     		else
     			current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
-    	} catch (NoSuchFieldException e) {
-    		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
     	} catch (Exception e) {
     		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
     	}
@@ -236,9 +242,8 @@ public class MapCreatorParser extends Parser {
                 int alt1=2;
                 int LA1_0 = input.LA(1);
 
-                if ( ((LA1_0>=MAP && LA1_0<=POINT)) ) {
-                    alt1=1;
-                }
+                if ( ((LA1_0>=MAP && LA1_0<=POINT)) )
+					alt1=1;
 
 
                 switch (alt1) {
@@ -321,9 +326,8 @@ public class MapCreatorParser extends Parser {
             int alt2=2;
             int LA2_0 = input.LA(1);
 
-            if ( (LA2_0==OPERATOR) ) {
-                alt2=1;
-            }
+            if ( (LA2_0==OPERATOR) )
+				alt2=1;
             switch (alt2) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:188:15: op= OPERATOR composition
@@ -403,9 +407,8 @@ public class MapCreatorParser extends Parser {
                     int alt3=2;
                     int LA3_0 = input.LA(1);
 
-                    if ( (LA3_0==NAME) ) {
-                        alt3=1;
-                    }
+                    if ( (LA3_0==NAME) )
+						alt3=1;
                     switch (alt3) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:191:17: name= NAME
@@ -434,9 +437,8 @@ public class MapCreatorParser extends Parser {
                     int alt4=2;
                     int LA4_0 = input.LA(1);
 
-                    if ( (LA4_0==NAME) ) {
-                        alt4=1;
-                    }
+                    if ( (LA4_0==NAME) )
+						alt4=1;
                     switch (alt4) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:21: name= NAME
@@ -465,9 +467,8 @@ public class MapCreatorParser extends Parser {
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
-                    if ( (LA5_0==NAME) ) {
-                        alt5=1;
-                    }
+                    if ( (LA5_0==NAME) )
+						alt5=1;
                     switch (alt5) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:193:19: name= NAME
@@ -496,9 +497,8 @@ public class MapCreatorParser extends Parser {
                     int alt6=2;
                     int LA6_0 = input.LA(1);
 
-                    if ( (LA6_0==NAME) ) {
-                        alt6=1;
-                    }
+                    if ( (LA6_0==NAME) )
+						alt6=1;
                     switch (alt6) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:194:22: name= NAME
@@ -544,9 +544,8 @@ public class MapCreatorParser extends Parser {
             int alt8=2;
             int LA8_0 = input.LA(1);
 
-            if ( (LA8_0==BLOCKOPEN) ) {
-                alt8=1;
-            }
+            if ( (LA8_0==BLOCKOPEN) )
+				alt8=1;
             switch (alt8) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:4: block
@@ -595,9 +594,8 @@ public class MapCreatorParser extends Parser {
                 int alt9=2;
                 int LA9_0 = input.LA(1);
 
-                if ( ((LA9_0>=MAP && LA9_0<=POINT)) ) {
-                    alt9=1;
-                }
+                if ( ((LA9_0>=MAP && LA9_0<=POINT)) )
+					alt9=1;
 
 
                 switch (alt9) {
@@ -646,23 +644,20 @@ public class MapCreatorParser extends Parser {
             if ( (LA10_0==NAME) ) {
                 int LA10_1 = input.LA(2);
 
-                if ( (LA10_1==ASSIGN) ) {
-                    alt10=1;
-                }
-                else if ( ((LA10_1>=STATEMENTEND && LA10_1<=OPERATOR)||LA10_1==NAME||LA10_1==BLOCKOPEN) ) {
-                    alt10=2;
-                }
-                else {
+                if ( (LA10_1==ASSIGN) )
+					alt10=1;
+				else if ( ((LA10_1>=STATEMENTEND && LA10_1<=OPERATOR)||LA10_1==NAME||LA10_1==BLOCKOPEN) )
+					alt10=2;
+				else {
                     NoViableAltException nvae =
                         new NoViableAltException("", 10, 1, input);
 
                     throw nvae;
                 }
             }
-            else if ( (LA10_0==MAP||(LA10_0>=OVERLAY && LA10_0<=POINT)) ) {
-                alt10=2;
-            }
-            else {
+            else if ( (LA10_0==MAP||(LA10_0>=OVERLAY && LA10_0<=POINT)) )
+				alt10=2;
+			else {
                 NoViableAltException nvae =
                     new NoViableAltException("", 10, 0, input);
 
@@ -794,9 +789,8 @@ public class MapCreatorParser extends Parser {
                     int alt11=2;
                     int LA11_0 = input.LA(1);
 
-                    if ( (LA11_0==MINUS) ) {
-                        alt11=1;
-                    }
+                    if ( (LA11_0==MINUS) )
+						alt11=1;
                     switch (alt11) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:208:75: MINUS valHi= NUMBER
