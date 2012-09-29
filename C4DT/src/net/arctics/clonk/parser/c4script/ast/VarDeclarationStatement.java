@@ -96,8 +96,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 		 * @return
 		 */
 		public VarInitialization getNextInitialization() {
-			VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).varInitializations;
-			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
+			VarInitialization[] sisters = parentOfType(VarDeclarationStatement.class).varInitializations;
+			return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 		}
 		@Override
 		public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
@@ -170,12 +170,11 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		for (VarInitialization initialization : varInitializations)
-			if (initialization.variable != null) {
+			if (initialization.variable != null)
 				if (initialization.expression != null)
 					parser.storeType(
 						new AccessVar(initialization.variable),
 						initialization.expression.type(parser)
 					);
-			}
 	}
 }

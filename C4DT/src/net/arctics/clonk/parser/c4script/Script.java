@@ -1118,7 +1118,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public String typeName(boolean special) {
-		return name();
+		return special ? name() : PrimitiveType.OBJECT.typeName(false);
 	}
 
 	@Override

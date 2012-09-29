@@ -37,7 +37,7 @@ public class NillableType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return baseType.typeName(special) + "?";
+		return special ? baseType.typeName(true) + "?" : baseType.typeName(false);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
@@ -99,6 +101,8 @@ public class ArrayType implements IType {
 	 */
 	@Override
 	public String typeName(final boolean special) {
+		if (!special)
+			return String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(generalElementType, PrimitiveType.ANY).typeName(false));
 		if (elementTypeMapping.size() > 0) {
 			StringBuilder builder = new StringBuilder();
 			builder.append('[');
@@ -126,9 +130,8 @@ public class ArrayType implements IType {
 					hadCluster = true;
 					old = min = i;
 					t = it;
-				} else {
+				} else
 					old = i;
-				}
 			}
 			if (presumedLength == NO_PRESUMED_LENGTH) {
 				if (hadCluster)
@@ -173,10 +176,9 @@ public class ArrayType implements IType {
 		ArrayType at = as(other, ArrayType.class);
 		if (at != null) {
 			ArrayType result = this;
-			if (at.generalElementType != null && !objectsEqual(this.generalElementType, at.generalElementType)) {
+			if (at.generalElementType != null && !objectsEqual(this.generalElementType, at.generalElementType))
 				result = new ArrayType(TypeSet.create(this.generalElementType,
 					at.generalElementType), presumedLength, this.elementTypeMapping);
-			}
 			for (Map.Entry<Integer, IType> e : at.elementTypeMapping.entrySet()) {
 				IType my = this.elementTypeMapping.get(e.getKey());
 				if (!objectsEqual(my, e.getValue())) {
@@ -322,19 +324,17 @@ public class ArrayType implements IType {
 		
 		if (elementTypeMapping.size() > 0 || sat.elementTypeMapping().size() > 0) {
 			ArrayType result = new ArrayType(generalElementType, presumedLength);
-			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet()) {
+			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet())
 				if (t.getKey() < lo)
 					result.elementTypeMapping.put(t.getKey(), t.getValue());
 				else if (t.getKey() >= hi)
 					result.elementTypeMapping.put(t.getKey()-(hi-lo)+sat.presumedLength(), t.getValue());
-			}
-			if (sat.elementTypeMapping().size() > 0) {
+			if (sat.elementTypeMapping().size() > 0)
 				for (Map.Entry<Integer, IType> t : sat.elementTypeMapping().entrySet())
 					result.elementTypeMapping.put(t.getKey()+lo, t.getValue());
-			} else {
+			else
 				for (int i = lo; i < hi; i++)
 					result.elementTypeMapping.put(i, sat.generalElementType());
-			}
 			return result;
 		} else
 			return new ArrayType(generalElementType,

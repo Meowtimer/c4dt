@@ -28,7 +28,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.statictyping.StaticTypingPurger;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
@@ -181,7 +181,7 @@ public class Command {
 		@CommandFunction
 		public static void NoSTMirror(Object context, String project, String destinationFolder) {
 			IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
-			StaticTypingPurger.mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
+			StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
 		}
 	}
 

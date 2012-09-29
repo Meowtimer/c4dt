@@ -164,9 +164,8 @@ public abstract class UI {
 				Group g = new Group(parent, SWT.NONE);
 				g.setText(groupText);
 				container = g;
-			} else {
+			} else
 				container = new Composite(parent, SWT.NONE);
-			}
 			container.setLayout(new GridLayout(2, false));
 			container.setLayoutData(groupLayoutData != null ? groupLayoutData : new GridData(GridData.FILL_HORIZONTAL));
 			
@@ -265,9 +264,8 @@ public abstract class UI {
 		dialog.setInitialSelections(new Object [] { initialSelection });
 
 		// Show
-		if(dialog.open() == Window.OK) {
+		if(dialog.open() == Window.OK)
 			return ArrayUtil.convertArray(dialog.getResult(), IProject.class);
-		}
 		else
 			return null;
 	}
@@ -286,9 +284,8 @@ public abstract class UI {
 	
 	public static CommonNavigator projectExplorer() {
 		IWorkbench workbench = PlatformUI.getWorkbench();
-		if (workbench != null) {
+		if (workbench != null)
 			return projectExplorer(workbench.getActiveWorkbenchWindow());
-		}
 		return null;
 	}
 	
@@ -305,9 +302,8 @@ public abstract class UI {
 			IWorkbenchPage page = window.getActivePage();
 			if (page != null) {
 				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
-				if (viewPart instanceof CommonNavigator) {
+				if (viewPart instanceof CommonNavigator)
 					return (CommonNavigator) viewPart;
-				}
 			}
 		}
 		return null;

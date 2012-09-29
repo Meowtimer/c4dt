@@ -27,6 +27,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
@@ -541,7 +542,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
-		if (context.staticTyping()) {
+		if (context.staticTyping() == StaticTyping.On) {
 			IType left = this.type(context);
 			IType right = rightSide.type(context); 
 			if (!left.canBeAssignedFrom(right))

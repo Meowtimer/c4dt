@@ -13,8 +13,9 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.c4script.statictyping.StaticTypingPurger;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
 
@@ -216,17 +217,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		if (nature.settings().staticTyping)
-			try {
-				File tempFolder = Files.createTempDirectory("c4dt").toFile();
-				tempFolder = new File(tempFolder, scenario.getName());
-				StaticTypingPurger.mirrorDirectoryWithTypingAnnotationsRemoved(scenario, tempFolder, true);
-				args.add(tempFolder.getPath());
-			} catch (IOException e) {
-				System.out.println(String.format("Failed mirroring %s", scenario.getProjectRelativePath().toOSString()));
-			}
-		else
-			args.add(resFilePath(scenario));
+		addWorkspaceDependency(scenario, nature, args);
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
@@ -238,7 +229,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 							GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
-									args.add(resFilePath(res));
+									addWorkspaceDependency((IContainer)res, ((ProjectIndex)index).nature(), args);
 						}
 			}
 		
@@ -269,6 +260,20 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		}
 		
 		return args.toArray(new String [args.size()]);
+	}
+
+	private void addWorkspaceDependency(IContainer res, ClonkProjectNature nature, Collection<String> args) {
+		if (nature.settings().staticTyping == StaticTyping.On)
+			try {
+				File tempFolder = Files.createTempDirectory("c4dt").toFile();
+				tempFolder = new File(tempFolder, res.getName());
+				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(res, tempFolder, true);
+				args.add(tempFolder.getPath());
+				return;
+			} catch (IOException e) {
+				System.out.println(String.format("Failed mirroring %s", res.getProjectRelativePath().toOSString()));
+			}
+		args.add(resFilePath(res));
 	}
 	
 }

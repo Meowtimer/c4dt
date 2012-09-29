@@ -202,12 +202,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
 		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ExprElm saved = parser.problemReporter;			
+			ExprElm saved = parser.problemReporter();			
 			try {
 				if (parmIndex+1 >= arguments.length) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.problemReporter = arguments[0];
+					parser.setProblemReporter(arguments[0]);
 					if (evTracer.tracedFile.equals(parser.script().scriptFile())) {
 						parser.error(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
@@ -219,12 +219,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.problemReporter = arguments[parmIndex+1];
+					parser.setProblemReporter(arguments[parmIndex+1]);
 					parser.error(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
 						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
-				parser.problemReporter = saved;
+				parser.setProblemReporter(saved);
 			}
 			return false;
 		}

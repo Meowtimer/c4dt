@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.QualifiedName;
  * @author madeen
  *
  */
-public class StaticTypingPurger {
+public class StaticTypingUtil {
 	
 	public static final QualifiedName ANNOTATION_LOCATIONS_PROPERTY = new QualifiedName(Core.PLUGIN_ID, "staticTypingAnnotations");
 	
@@ -39,7 +39,7 @@ public class StaticTypingPurger {
 	 * @param file The file to store the information for
 	 * @param annotationLocations The list of static typing annotation locations
 	 */
-	public static void storeAnnotationLocations(IFile file, List<SourceLocation> annotationLocations) {
+	public static void storeAnnotationLocations(IFile file, List<? extends SourceLocation> annotationLocations) {
 		String text = StringUtil.blockString("", "", ";", annotationLocations);
 		try {
 			file.setPersistentProperty(ANNOTATION_LOCATIONS_PROPERTY, text);

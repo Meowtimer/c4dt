@@ -286,7 +286,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 		public void runOnMarker(final IMarker marker) {
 			try {
-				Core.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
+				Core.instance().performActionsOnFileDocument((IFile)marker.getResource(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
 						replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);

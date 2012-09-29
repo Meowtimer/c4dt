@@ -104,7 +104,9 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	@Override
 	public String typeName(boolean special) {
 		if (constraint == null)
-			return IType.ERRONEOUS_TYPE;
+			return PrimitiveType.OBJECT.typeName(special);
+		if (!special)
+			return (constraint instanceof Definition ? constraint : PrimitiveType.OBJECT).typeName(false);
 		String formatString;
 		switch (constraintKind) {
 		case CallerType:

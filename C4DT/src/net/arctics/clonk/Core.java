@@ -36,8 +36,8 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.UI;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
@@ -576,16 +576,16 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		T run(IDocument document);
 	}
 	
-	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) throws CoreException {
+	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) throws CoreException {
 		IDocumentProvider provider = getTextFileDocumentProvider();
-		provider.connect(resource);
+		provider.connect(file);
 		try {
-			IDocument document = provider.getDocument(resource);
+			IDocument document = provider.getDocument(file);
 			T result = action.run(document);
-			provider.saveDocument(null, resource, document, true);
+			provider.saveDocument(null, file, document, true);
 			return result;
 		} finally {
-			provider.disconnect(resource);
+			provider.disconnect(file);
 		}
 	}
 

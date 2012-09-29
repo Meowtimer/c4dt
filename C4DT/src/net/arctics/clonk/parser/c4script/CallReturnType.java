@@ -34,7 +34,10 @@ public class CallReturnType implements IType, IResolvableType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("Result of %s", call != null ? call.toString() : "<Unknown>");
+		if (special)
+			return String.format("Result of %s", call != null ? call.toString() : "<Unknown>");
+		else
+			return call != null && call.function() != null ? call.function().returnType().typeName(false) : PrimitiveType.ANY.typeName(false);
 	}
 	
 	@Override
@@ -93,7 +96,7 @@ public class CallReturnType implements IType, IResolvableType {
 			Function func = callerType == originatingScript ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
 			return func != null ? IResolvableType._.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return PrimitiveType.UNKNOWN;
 		}
 	}

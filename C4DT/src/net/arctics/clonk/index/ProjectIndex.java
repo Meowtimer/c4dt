@@ -45,7 +45,7 @@ public class ProjectIndex extends Index {
 	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #project()})
 	 * @return The {@link ClonkProjectNature}
 	 */
-	public final ClonkProjectNature getNature() {
+	public final ClonkProjectNature nature() {
 		return nature;
 	}
 	

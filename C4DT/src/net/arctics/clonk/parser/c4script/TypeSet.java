@@ -98,10 +98,10 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		for (IType t : types)
 			if (t == null)
 				continue;
-			else if ((t=NillableType.unwrap(t)) instanceof TypeSet) {
+			else if ((t=NillableType.unwrap(t)) instanceof TypeSet)
 				for (IType t2 : ((TypeSet)t))
 					newArray[i++] = t2;
-			} else
+			else
 				newArray[i++] = t;
 		return newArray;
 	}
@@ -148,12 +148,12 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		List<IType> list = new ArrayList<IType>(actualCount);
 		for (int i = 0; i < actualCount; i++) {
 			IType s = ingredients[i];
-			if (s instanceof TypeSet) {
+			if (s instanceof TypeSet)
 				for (IType t : s) {
 					containsNonStatics = containsNonStatics || t.simpleType() != t;
 					list.add(t);
 				}
-			} else {
+			else {
 				containsNonStatics = containsNonStatics || s.simpleType() != s;
 				list.add(s);
 			}
@@ -179,10 +179,9 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		/*if (set.contains(C4Type.ANY))
 			return C4Type.ANY; */
 		synchronized (typeSets) {
-			for (TypeSet r : typeSets) {
+			for (TypeSet r : typeSets)
 				if (r.types.equals(list))
 					return r;
-			}
 			TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
 				? (TypeSet)ingredients[0]
 					: new TypeSet(list.toArray(new IType[list.size()]));
@@ -203,15 +202,32 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			return true;
 		if (equals(other))
 			return true;
-		for (IType t : this) {
+		for (IType t : this)
 			if (t.canBeAssignedFrom(other))
 				return true;
-		}
 		return false;
 	}
 
+	public PrimitiveType primitiveType() {
+		PrimitiveType result = null;
+		for (IType t : this) {
+			IType s = t.simpleType();
+			if (s instanceof PrimitiveType) {
+				if (result == null)
+					result = (PrimitiveType) s;
+				else if (result != s)
+					return PrimitiveType.ANY;
+			} else
+				return PrimitiveType.ANY;
+		}
+		return result;
+	}
+	
 	@Override
 	public String typeName(boolean special) {
+		if (!special)
+			return primitiveType().typeName(false);
+		
 		StringBuilder builder = new StringBuilder((description != null ? description.length() : 0) + 20);
 		builder.append(IType.COMPLEX_TYPE_START);
 		if (description != null) {
@@ -220,12 +236,11 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		}
 		Set<String> typeNames = new HashSet<String>();
 		boolean containsAny = false;
-		for (IType t : this) {
+		for (IType t : this)
 			if (t == PrimitiveType.ANY)
 				containsAny = true;
 			else
 				typeNames.add(t.typeName(special));
-		}
 		
 		if (typeNames.size() == 1 && containsAny)
 			return typeNames.iterator().next() + "?";
@@ -255,9 +270,8 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof TypeSet) {
+		if (obj instanceof TypeSet)
 			return types.equals(((TypeSet)obj).types);
-		}
 		else
 			return false;
 	}
@@ -300,10 +314,9 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	}
 
 	public static Definition objectIngredient(IType type) {
-		for (IType t : type) {
+		for (IType t : type)
 			if (t instanceof Definition)
 				return (Definition) t; // return the first one found
-		}
 		return null;
 	}
 

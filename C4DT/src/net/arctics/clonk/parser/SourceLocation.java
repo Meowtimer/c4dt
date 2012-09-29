@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.IRegion;
 
-public class SourceLocation implements IRegion, Serializable, Cloneable {
+public class SourceLocation implements IRegion, Serializable, Cloneable, Comparable<SourceLocation> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -102,6 +102,10 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	
 	public SourceLocation relativeTo(IRegion other) {
 		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
+	}
+	@Override
+	public int compareTo(SourceLocation o) {
+		return start - o.start;
 	}
 
 }

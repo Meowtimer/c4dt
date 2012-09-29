@@ -636,7 +636,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		else if (document instanceof IFile)
 			try {
-				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+				parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<C4ScriptParser>() {
 					@Override
 					public C4ScriptParser run(IDocument document) {
 						return new C4ScriptParser(document.get(), script, script.scriptFile());

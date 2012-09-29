@@ -482,5 +482,10 @@ public class Definition extends Script implements IProplistDeclaration {
 	public IProplistDeclaration prototype() {
 		return null;
 	}
+	
+	@Override
+	public String typeName(boolean special) {
+		return special ? name() : id != null ? id.stringValue() : PrimitiveType.OBJECT.typeName(false);
+	}
 
 }
