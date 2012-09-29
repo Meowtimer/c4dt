@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.HashSet;
 import java.util.List;
@@ -719,7 +718,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
-		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
+		if (d == cache.Var || d == cache.Local || d == cache.Par) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
 				if (ev instanceof Number)

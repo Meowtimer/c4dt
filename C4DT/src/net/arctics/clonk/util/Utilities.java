@@ -237,8 +237,20 @@ public abstract class Utilities {
 		return null;
 	}
 	
-	public static Enum<?>[] valuesOfEnum(Class<?> enumClass) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
+	public static Enum<?>[] enumValues(Class<?> enumClass) {
+		try {
+			return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
+		} catch (IllegalAccessException | IllegalArgumentException
+			| InvocationTargetException | NoSuchMethodException
+			| SecurityException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T> T enumValueFromString(Class<T> enumClass, String value) {
+		return (T) Enum.valueOf((Class<Enum>)enumClass, value);
 	}
 	
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
@@ -253,7 +265,7 @@ public abstract class Utilities {
 		}
 	}
 
-	public static <S, T extends S> boolean isAnyOf(S something, T... things) {
+	public static <S, T extends S> boolean isAnyOf(S something, @SuppressWarnings("unchecked") T... things) {
 		if (something != null)
 			for (Object o : things)
 				if (something.equals(o))

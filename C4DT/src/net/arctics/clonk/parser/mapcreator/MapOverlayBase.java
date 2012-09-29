@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
@@ -16,6 +15,7 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -53,10 +53,9 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		}
 		
 		public static Operator valueOf(char c) {
-			for (Operator o : values()) {
+			for (Operator o : values())
 				if (o.c == c)
 					return o;
-			}
 			return null;
 		}
 	}
@@ -147,12 +146,10 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		
 		@Override
 		public String toString() {
-			if (lo != null && hi != null) {
+			if (lo != null && hi != null)
 				return lo.toString() + " - " + hi.toString(); //$NON-NLS-1$
-			}
-			else if (lo != null) {
+			else if (lo != null)
 				return lo.toString();
-			}
 			else
 				return "<Empty Range>"; //$NON-NLS-1$
 		}
@@ -192,35 +189,29 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	public void addChild(ITreeNode node) {
 	}
 	
-	public boolean setAttribute(String attr, String valueLo, String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		Field f = getClass().getField(attr);
-		if (f != null) {
-			if (f.getType().getSuperclass() == Enum.class) {
-				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), valueLo)); //$NON-NLS-1$
-			}
-			else if (f.getType() == NumVal.class) {
-				f.set(this, NumVal.parse(valueLo));
-			}
-			else if (f.getType() == Range.class) {
-				f.set(this, new Range(NumVal.parse(valueLo), NumVal.parse(valueHi)));
-			}
-			else if (f.getType() == String.class) {
-				f.set(this, valueLo);
-			}
-			else if (f.getType() == Boolean.TYPE) {
-				f.set(this, Integer.parseInt(valueLo) == 1);
-			}
-			else
-				return false;
-			return true;
+	public boolean setAttribute(String attr, String valueLo, String valueHi) {
+		try {
+			Field f = getClass().getField(attr);
+			if (f != null)
+				if (f.getType().isEnum())
+					f.set(this, Utilities.enumValueFromString(f.getType(), valueLo));
+				else if (f.getType() == NumVal.class)
+					f.set(this, NumVal.parse(valueLo));
+				else if (f.getType() == Range.class)
+					f.set(this, new Range(NumVal.parse(valueLo), NumVal.parse(valueHi)));
+				else if (f.getType() == String.class)
+					f.set(this, valueLo);
+				else if (f.getType() == Boolean.TYPE)
+					f.set(this, Integer.parseInt(valueLo) == 1);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
 	
 	public void copyFromTemplate(MapOverlayBase template) throws IllegalArgumentException, IllegalAccessException {
-		for (Field field : getClass().getFields()) {
+		for (Field field : getClass().getFields())
 			field.set(this, field.get(template));
-		}
 	}
 	
 	public void setBody(SourceLocation body) {
@@ -236,11 +227,9 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 	}
 	
 	public String typeName() {
-		for (String key : DEFAULT_CLASS.keySet()) {
-			if (DEFAULT_CLASS.get(key).equals(this.getClass())) {
+		for (String key : DEFAULT_CLASS.keySet())
+			if (DEFAULT_CLASS.get(key).equals(this.getClass()))
 				return key;
-			}
-		}
 		return null;
 	}
 	
@@ -256,7 +245,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 				}
 				builder.append(" {\n"); //$NON-NLS-1$
 			}
-			for (Field f : this.getClass().getFields()) {
+			for (Field f : this.getClass().getFields())
 				if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
 					Object val = f.get(this);
 					// flatly cloned attributes of template -> don't print
@@ -270,24 +259,20 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 						builder.append("\n"); //$NON-NLS-1$
 					}
 				}
-			}
 			Collection<? extends MapOverlayBase> children = this.childCollection();
 			if (children != null) {
 				Operator lastOp = null;
 				for (MapOverlayBase child : children) {
-					if (lastOp == null) {
+					if (lastOp == null)
 						builder.append(StringUtil.multiply(Conf.indentString, depth));
-					}
 					child.print(builder, depth+1);
 					Operator op = child.operator();
 					if (op != null) {
 						builder.append(" "); //$NON-NLS-1$
 						builder.append(op.toString());
 						builder.append(" "); //$NON-NLS-1$
-					}
-					else {
+					} else
 						builder.append(";\n"); //$NON-NLS-1$
-					}
 					lastOp = op;
 				}
 			}

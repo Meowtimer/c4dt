@@ -36,6 +36,8 @@ public enum PrimitiveType implements IType {
 	FLOAT,
 	NUM;
 	
+	public static final PrimitiveType[] NILLABLES = {PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST};
+	
 	private String scriptName;
 	public String scriptName() {return scriptName;}
 	

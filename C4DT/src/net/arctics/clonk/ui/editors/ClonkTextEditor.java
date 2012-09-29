@@ -255,6 +255,7 @@ public class ClonkTextEditor extends TextEditor {
 	
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
 	
+	@SuppressWarnings("unchecked")
 	protected void addActions(ResourceBundle messagesBundle, Class<? extends ClonkTextEditorAction>... classes) {
 		for (Class<? extends ClonkTextEditorAction> c : classes) {
 			CommandId id = ClonkTextEditorAction.id(c);

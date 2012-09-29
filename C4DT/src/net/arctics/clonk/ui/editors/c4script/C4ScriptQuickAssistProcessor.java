@@ -589,7 +589,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							false
 						);
 					if (
-						isAnyOf(t, PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST) &&
+						isAnyOf(t, PrimitiveType.NILLABLES) &&
 						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
 					)
 						replacements.add(

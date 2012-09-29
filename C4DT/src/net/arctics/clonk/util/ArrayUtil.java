@@ -68,6 +68,7 @@ public class ArrayUtil {
 		return array;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <E> ArrayList<E> list(E... elements) {
 		ArrayList<E> result = new ArrayList<E>(elements.length);
 		for (E e : elements)
@@ -111,6 +112,7 @@ public class ArrayUtil {
 		return items.toArray((B[]) Array.newInstance(cls, items.size()));
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> Iterable<T> iterable(final T... items) {
 		return new Iterable<T>() {
 			@Override
@@ -234,6 +236,7 @@ public class ArrayUtil {
 				c.removeAll(Collections.singletonList(null));
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> Set<T> set(T... items) {
 		HashSet<T> t = new HashSet<T>();
 		for (T i : items)

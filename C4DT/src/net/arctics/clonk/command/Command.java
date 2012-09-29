@@ -112,14 +112,15 @@ public class Command {
 		COMMAND_BASESCRIPT.addDeclaration(new NativeCommandFunction(COMMAND_BASESCRIPT, method));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void setFieldValue(Object obj, String name, Object value) {
 		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
 			Field f = c.getField(name);
 			if (value instanceof Long && f.getType() == Integer.TYPE)
 				value = ((Long)value).intValue();
-			else if (value instanceof String && f.getType().getSuperclass() == Enum.class)
-				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value); //$NON-NLS-1$
+			else if (value instanceof String && f.getType().isEnum())
+				value = Enum.valueOf((Class<Enum>)f.getType(), (String)value);
 			f.set(obj, value);
 		} catch (Exception e) {
 			e.printStackTrace();
