@@ -88,7 +88,6 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
-import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkBuilder;
@@ -464,6 +463,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			strictLevel = script.strictLevel();
 			script.containsGlobals = false;
+			script.setTypeAnnotations(null);
 		}
 		statementReached = true;
 		if (scriptFile != null)
@@ -568,9 +568,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			enableError(ParserErrorCode.StringNotClosed, true);
 			if (markers != null)
 				markers.deploy();
-			if (typeAnnotations != null)
-				if (scriptFile != null)
-					StaticTypingUtil.storeAnnotationLocations(scriptFile, typeAnnotations);
 		}
 	}
 
@@ -959,8 +956,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				Declaration outerDec = currentDeclaration;
 				try {
 					Variable var = createVarInScope(varName, scope, s, e, comment);
-					if (typeAnnotation != null)
+					if (typeAnnotation != null) {
 						typeAnnotation.setTypeable(var);
+						var.assignType(typeOfNewVar, true);
+					}
 					if (parsedTypeAnnotation != null)
 						parsedTypeAnnotation.setTypeable(var);
 					currentDeclaration = var;
@@ -1098,7 +1097,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				t = null;
 			else if (t == null && staticTyping != StaticTyping.Off)
 				if (script.index() != null && engine.acceptsId(str))
-					t = script.index().anyDefinitionWithID(ID.get(str));
+					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
 			if (t != null) {
 				int p = offset;
 				eatWhitespace();
@@ -1128,8 +1127,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (t == null) {
 			switch (staticTyping) {
 			case On:
-				if (required)
+				if (required) {
 					error(ParserErrorCode.InvalidType, start, offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
+					return null;
+				}
 				break;
 			case Migrating:
 				if (topLevel && typeAnnotations != null)

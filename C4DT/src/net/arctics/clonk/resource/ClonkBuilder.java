@@ -238,6 +238,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 				phaseThree(parsers, scripts);
 			
+			for (C4ScriptParser parser : parsers)
+				if (parser != null && parser.script() != null)
+					parser.script().setTypeAnnotations(parser.typeAnnotations());
+			
 			new SaveScriptsJob(proj, scripts).schedule();
 			
 			final ProjectSettings settings = nature.settings();
@@ -321,6 +325,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		newlyEnqueuedParsers.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
+			for (Script s : newlyEnqueuedParsers.keySet())
+				nature.index().addScript(s);
 			Utilities.threadPool(new Sink<ExecutorService>() {
 				@Override
 				public void receivedObject(ExecutorService pool) {
@@ -513,7 +519,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
 		}
-		nature.index().addScript(script);
 		if (parser != null) {
 			parser.clean();
 			parser.parseDeclarations();

@@ -48,6 +48,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.IPredicate;
@@ -94,6 +95,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	private Set<String> dictionary;
 	
+	private List<TypeAnnotation> typeAnnotations;
+	
+	public List<TypeAnnotation> typeAnnotations() {
+		return typeAnnotations;
+	}
+
+	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
+		this.typeAnnotations = typeAnnotations;
+	}
+
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
 	 * It can be queried before {@link #requireLoaded()} was called, enabling one to look before-hand whether the script contains

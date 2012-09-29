@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.statictyping;
 
-import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
@@ -9,12 +8,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
@@ -35,39 +33,13 @@ public class StaticTypingUtil {
 	public static final QualifiedName ANNOTATION_LOCATIONS_PROPERTY = new QualifiedName(Core.PLUGIN_ID, "staticTypingAnnotations");
 	
 	/**
-	 * Store information about static typing annotation locations for the given file.
-	 * @param file The file to store the information for
-	 * @param annotationLocations The list of static typing annotation locations
-	 */
-	public static void storeAnnotationLocations(IFile file, List<? extends SourceLocation> annotationLocations) {
-		String text = StringUtil.blockString("", "", ";", annotationLocations);
-		try {
-			file.setPersistentProperty(ANNOTATION_LOCATIONS_PROPERTY, text);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
 	 * Retrieve list of static typing annotation locations for a given file saved earlier via {@link #storeAnnotationLocations(IFile, List)}
 	 * @param file The file to retrieve the information for
 	 * @return The list or null if some error occured.
 	 */
-	public static List<SourceLocation> annotationLocations(IFile file) {
-		try {
-			String annotationsAsText = file.getPersistentProperty(ANNOTATION_LOCATIONS_PROPERTY);
-			if (annotationsAsText == null)
-				return null;
-			return Arrays.asList(map(annotationsAsText.split(";"), SourceLocation.class, new IConverter<String, SourceLocation>() {
-				@Override
-				public SourceLocation convert(String from) {
-					return new SourceLocation(from);
-				}
-			}));
-		} catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
+	public static List<TypeAnnotation> annotationLocations(IFile file) {
+		Script script = Script.get(file, true);
+		return script != null ? script.typeAnnotations() : null;
 	}
 	
 	/**
@@ -78,7 +50,7 @@ public class StaticTypingUtil {
 	 * @return Contents of the file with typing annotations replaced with whitespace or null if no typing annotations stored for the file.
 	 */
 	public static String contentsWithAnnotationsPurged(IFile file) {
-		List<SourceLocation> annotationLocations = annotationLocations(file);
+		List<TypeAnnotation> annotationLocations = annotationLocations(file);
 		String text = StreamUtil.stringFromFile(file);
 		if (annotationLocations != null) {
 			StringBuilder builder = new StringBuilder(text);
