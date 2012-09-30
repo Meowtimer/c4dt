@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
@@ -285,13 +286,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
-					if (actMapLocal != null && actMapLocal.type() != null)
-						for (IType ty : actMapLocal.type()) if (ty instanceof IProplistDeclaration) {
-							IProplistDeclaration proplDecl = (IProplistDeclaration) ty;
-							Variable action = proplDecl.findComponent((String)parmEv);
-							if (action != null)
-								return new EntityRegion(action, parmExpression);
-						}
+					if (actMapLocal != null && actMapLocal.initializationExpression() instanceof PropListExpression) {
+						IProplistDeclaration proplDecl = ((PropListExpression)actMapLocal.initializationExpression()).definedDeclaration();
+						Variable action = proplDecl.findComponent((String)parmEv);
+						if (action != null)
+							return new EntityRegion(action, parmExpression);
+					}
 				}
 				return null;
 			};
