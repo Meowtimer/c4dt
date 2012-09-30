@@ -83,7 +83,7 @@ import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -914,24 +914,24 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			int rewind = this.offset;
 			do {
 				eatWhitespace();
-				IType typeOfNewVar;
+				IType staticType;
 				TypeAnnotation typeAnnotation = null;
 				int bt = this.offset;
 				int typeExpectedAt = -1;
 				// when parsing an engine script from (res/engines/...), allow specifying the type directly
 				if (isEngine || staticTyping != StaticTyping.Off) {
-					typeOfNewVar = parseTypeAnnotation(true, false);
-					if (typeOfNewVar != null) {
+					staticType = parseTypeAnnotation(true, false);
+					if (staticType != null) {
 						typeAnnotation = parsedTypeAnnotation;
 						eatWhitespace();
 					}
 					else if (staticTyping == StaticTyping.On) {
 						typeExpectedAt = this.offset;
-						typeOfNewVar = PrimitiveType.INT;
+						staticType = PrimitiveType.INT;
 					}
 				}
 				else
-					typeOfNewVar = null;
+					staticType = null;
 
 				int s = this.offset;
 				String varName = readIdent();
@@ -942,7 +942,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				)) {
 					seek(s = bt);
 					typeAnnotation = null;
-					typeOfNewVar = null;
+					staticType = null;
 					varName = readIdent();
 				}
 				int e = this.offset;
@@ -958,7 +958,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					Variable var = createVarInScope(varName, scope, s, e, comment);
 					if (typeAnnotation != null) {
 						typeAnnotation.setTypeable(var);
-						var.assignType(typeOfNewVar, true);
+						var.assignType(staticType, true);
 					}
 					if (parsedTypeAnnotation != null)
 						parsedTypeAnnotation.setTypeable(var);
@@ -982,30 +982,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								allErrorsDisabled = old;
 							}
 							var.setInitializationExpression(initializationExpression);
-							typeOfNewVar = initializationExpression instanceof IType
-								? (IType)initializationExpression
-								: PrimitiveType.UNKNOWN;
 						} else if (scope == Scope.CONST && !isEngine)
 							error(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, NO_THROW);
 						else if (scope == Scope.STATIC && isEngine)
 							var.forceType(PrimitiveType.INT); // most likely
 					}
 					varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
+					varInitialization.type = staticType;
 					createdVariables.add(varInitialization);
-					if (typeOfNewVar != null)
-						switch (scope) {
-						case CONST: case STATIC:
-							script.containsGlobals = true;
-						case LOCAL:
-							if (currentFunc == null) {
-								varInitialization.variable.forceType(typeOfNewVar);
-								break;
-							}
-							break;
-						case VAR:
-							//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
-							break;
-						}
 					rewind = this.offset;
 					eatWhitespace();
 				} finally {

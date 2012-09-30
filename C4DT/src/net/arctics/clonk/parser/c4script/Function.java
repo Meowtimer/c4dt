@@ -550,6 +550,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
+			if (staticallyTyped && returnType != null) {
+				output.append(" ");
+				output.append(returnType.typeName(false));
+			}
 		}
 		output.append(" "); //$NON-NLS-1$
 		output.append(name());
