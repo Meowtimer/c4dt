@@ -1,11 +1,14 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
+
+import org.eclipse.jface.text.Region;
 
 /**
  * A single var declaration/initialization. Includes name of variable being declared, optionally the initialization expression and
@@ -95,6 +98,9 @@ public final class VarInitialization extends ExprElm {
 	}
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new EntityRegion(variable, this);
+		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
+			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
+		else
+			return new EntityRegion(variable, this);
 	}
 }

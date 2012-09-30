@@ -987,7 +987,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						else if (scope == Scope.STATIC && isEngine)
 							var.forceType(PrimitiveType.INT); // most likely
 					}
-					varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
+					varInitialization = new VarInitialization(varName, initializationExpression, bt-bodyOffset(), var);
 					varInitialization.type = staticType;
 					createdVariables.add(varInitialization);
 					rewind = this.offset;
