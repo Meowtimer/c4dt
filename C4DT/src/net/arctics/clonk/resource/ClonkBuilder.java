@@ -274,7 +274,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						insertTypeAnnotations(parser);
 					monitor.worked(1);
 				}
-				settings.staticTyping = StaticTyping.Migrating;
+				settings.staticTyping = StaticTyping.On;
 				nature.saveSettings();
 				return Status.OK_STATUS;
 			}
