@@ -1645,6 +1645,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void marker(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
 		if (!errorEnabled(code))
 			return;
+		// C4ScriptST: Incompatible type warnings always errors
+		if (staticTyping == StaticTyping.On && code == ParserErrorCode.IncompatibleTypes)
+			severity = IMarker.SEVERITY_ERROR; 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			int offs = bodyOffset();
 			markerStart += offs;
