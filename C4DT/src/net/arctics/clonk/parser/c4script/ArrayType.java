@@ -82,7 +82,7 @@ public class ArrayType implements IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		if (other == PrimitiveType.ARRAY)
+		if (other == PrimitiveType.ARRAY || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
 			return true;
 		else if (other instanceof ArrayType) {
 			ArrayType otherArrayType = (ArrayType) other;
