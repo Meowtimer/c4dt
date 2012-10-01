@@ -1101,11 +1101,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				default:
 					seek(p);
 				}
-				if (topLevel && typeAnnotations != null) {
-					parsedTypeAnnotation = new TypeAnnotation(backtrack, this.offset);
-					parsedTypeAnnotation.setType(t);
-					typeAnnotations.add(parsedTypeAnnotation);
+				eatWhitespace();
+				while (read() == '|') {
+					eatWhitespace();
+					IType option = parseTypeAnnotation(false, true);
+					if (option != null)
+						t = TypeSet.create(t, option);
+					else
+						break;
+					eatWhitespace();
 				}
+				unread();
+				if (topLevel)
+					if (typeAnnotations != null) {
+						parsedTypeAnnotation = new TypeAnnotation(backtrack, this.offset);
+						parsedTypeAnnotation.setType(t);
+						typeAnnotations.add(parsedTypeAnnotation);
+					}
 			}
 		}
 		if (t == null) {
