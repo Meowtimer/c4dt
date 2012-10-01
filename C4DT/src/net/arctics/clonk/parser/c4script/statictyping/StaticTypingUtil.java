@@ -11,17 +11,26 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.Status;
 
 /**
  * Helper class to purge type annotations from C4ScriptST source files so that the resulting scripts will be accepted by the engine.
@@ -111,5 +120,23 @@ public class StaticTypingUtil {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@CommandFunction
+	public static void MigrateToStaticTyping(Object context, String projectName) {
+		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+		if (nature != null)
+			if (nature.settings().staticTyping == StaticTyping.Off) {
+				nature.settings().staticTyping = StaticTyping.Migrating;
+				nature.saveSettings();
+				new WorkspaceJob(String.format("Migrating '%s' to static typing", projectName)) {
+					@Override
+					public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+						nature.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
+						return Status.OK_STATUS;
+					}
+				}.schedule();
+			} else
+				UI.message(String.format("'%s' is already statically typed", projectName));
 	}
 }

@@ -102,7 +102,7 @@ public class ArrayType implements IType {
 	@Override
 	public String typeName(final boolean special) {
 		if (!special)
-			return String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(generalElementType, PrimitiveType.ANY).typeName(false));
+			return String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(generalElementType(), PrimitiveType.ANY).typeName(false));
 		if (elementTypeMapping.size() > 0) {
 			StringBuilder builder = new StringBuilder();
 			builder.append('[');

@@ -956,10 +956,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				Declaration outerDec = currentDeclaration;
 				try {
 					Variable var = createVarInScope(varName, scope, s, e, comment);
-					if (typeAnnotation != null) {
+					if (typeAnnotation != null)
 						typeAnnotation.setTypeable(var);
+					if (staticType != null)
 						var.assignType(staticType, true);
-					}
 					if (parsedTypeAnnotation != null)
 						parsedTypeAnnotation.setTypeable(var);
 					currentDeclaration = var;
@@ -1095,7 +1095,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						IType elementType = parseTypeAnnotation(false, true);
 						expect(']');
 						if (elementType != null)
-							return new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
+							t = new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
 						break;
 					}
 				default:

@@ -73,6 +73,7 @@ public class Command {
 
 		for (Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(c);
+		registerCommandsFromClass(StaticTypingUtil.class);
 	}
 	
 	public static ExecutableScript executableScriptFromCommand(String command) {
