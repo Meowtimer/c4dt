@@ -295,6 +295,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		@Override
 		public void cleanupAfterRemoval() {
+			if (reparseTimer != null)
+				reparseTimer.cancel();
 			try {
 				if (structure.scriptStorage() instanceof IFile) {
 					IFile file = (IFile)structure.scriptStorage();
