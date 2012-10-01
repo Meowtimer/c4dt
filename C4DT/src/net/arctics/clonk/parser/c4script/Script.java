@@ -530,47 +530,48 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		// finally look if it's something global
 		if (info.recursion == 0 && info.index != null) {
 			info.recursion++;
-			Declaration f = null;
-			// prefer declarations from scripts that were previously determined to be the providers of global declarations
-			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
-			if (usedScripts != null) {
-				for (Script s : usedScripts()) {
-					f = s.findDeclaration(name, info);
-					if (f != null && f.isGlobal())
-						return f;
-				}
-				f = null;
-			}
-
-			if (info.findGlobalVariables && engine().acceptsId(name)) {
-				Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
-				if (d != null && info.declarationClass == Variable.class)
-					f = d.proxyVar();
-				else
-					f = d;
-				if (f == null && name.equals(Scenario.PROPLIST_NAME)) {
-					Scenario scenario = Scenario.nearestScenario(this.resource());
-					if (scenario != null)
-						f = scenario.propList();
-				}
-			}
-
-			// global stuff defined in project
-			if (f == null)
-				for (Index index : info.index.relevantIndexes()) {
-					f = index.findGlobalDeclaration(name, resource());
-					if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
-						break;
-				}
-			// engine function
-			if (f == null)
-				f = index().engine().findDeclaration(name, info);
-			
+			Declaration f = findGlobalDeclaration(name, info);
 			info.recursion--;
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
 		}
 		return null;
+	}
+
+	private Declaration findGlobalDeclaration(String name, FindDeclarationInfo info) {
+		
+		// prefer declarations from scripts that were previously determined to be the providers of global declarations
+		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
+		if (usedScripts != null)
+			for (Script s : usedScripts()) {
+				Declaration f = s.findDeclaration(name, info);
+				if (f != null && f.isGlobal())
+					return f;
+			}
+		
+		if (info.findGlobalVariables && engine().acceptsId(name)) {
+			Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
+			if (d != null)
+				if (info.declarationClass == Variable.class)
+					return d.proxyVar();
+				else
+					return d;
+			if (name.equals(Scenario.PROPLIST_NAME)) {
+				Scenario scenario = Scenario.nearestScenario(this.resource());
+				if (scenario != null)
+					return scenario.propList();
+			}
+		}
+
+		// global stuff defined in relevant projects
+		for (Index index : info.index.relevantIndexes()) {
+			Declaration f = index.findGlobalDeclaration(name, resource());
+			if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
+				return f;
+		}
+		
+		// engine function
+		return index().engine().findDeclaration(name, info);
 	}
 	
 	public void addDeclaration(Declaration declaration) {
