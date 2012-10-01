@@ -16,6 +16,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * Type that represents a set of multiple possible types.
@@ -180,7 +183,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			return C4Type.ANY; */
 		synchronized (typeSets) {
 			for (TypeSet r : typeSets)
-				if (r.types.equals(list))
+				if (ArrayUtil.elementsEqual(r.types, ingredients))
 					return r;
 			TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
 				? (TypeSet)ingredients[0]
@@ -226,7 +229,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	@Override
 	public String typeName(boolean special) {
 		if (!special)
-			return primitiveType().typeName(false);
+			return StringUtil.blockString("", "", "|", iterable(types));
 		
 		StringBuilder builder = new StringBuilder((description != null ? description.length() : 0) + 20);
 		builder.append(IType.COMPLEX_TYPE_START);
@@ -270,8 +273,15 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof TypeSet)
-			return types.equals(((TypeSet)obj).types);
+		if (obj instanceof TypeSet) {
+			TypeSet other = (TypeSet)obj;
+			if (other.types.length != this.types.length)
+				return false;
+			for (int i = 0; i < this.types.length; i++)
+				if (!Utilities.objectsEqual(types[i], other.types[i]))
+					return false;
+			return true;
+		}
 		else
 			return false;
 	}

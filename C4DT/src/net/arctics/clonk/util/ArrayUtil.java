@@ -292,5 +292,14 @@ public class ArrayUtil {
 			if (sink.elutriate(it.next()) == Decision.Purge)
 				it.remove();
 	}
+	
+	public static <T> boolean elementsEqual(T[] a, T[] b) {
+		if (a.length != b.length)
+			return false;
+		for (int i = 0; i < a.length; i++)
+			if (!Utilities.objectsEqual(a[i], b[i]))
+				return false;
+		return true;
+	}
 
 }
