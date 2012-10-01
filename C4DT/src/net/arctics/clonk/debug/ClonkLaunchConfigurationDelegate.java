@@ -211,9 +211,12 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		if (engineObj == null)
 			return null;
 		
-		File tempFolder;
+		File tempFolder = null;
 		try {
-			tempFolder = nature.settings().staticTyping != StaticTyping.Off ? Files.createTempDirectory("c4dt").toFile() : null;
+			if (nature.settings().staticTyping != StaticTyping.Off) {
+				tempFolder = Files.createTempDirectory("c4dt").toFile();
+				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tempFolder, true);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
@@ -271,12 +274,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	}
 
 	private void addWorkspaceDependency(IContainer res, ClonkProjectNature nature, Collection<String> args, File tempFolder) {
-		if (tempFolder != null) {
-			tempFolder = new File(tempFolder, res.getName());
-			StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(res, tempFolder, true);
-			args.add(tempFolder.getPath());
-			return;
-		}
+		if (tempFolder != null)
+			args.add(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
 		else
 			args.add(resFilePath(res));
 	}
