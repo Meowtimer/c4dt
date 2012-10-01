@@ -211,13 +211,21 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		if (engineObj == null)
 			return null;
 		
+		File tempFolder;
+		try {
+			tempFolder = nature.settings().staticTyping != StaticTyping.Off ? Files.createTempDirectory("c4dt").toFile() : null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		addWorkspaceDependency(scenario, nature, args);
+		addWorkspaceDependency(scenario, nature, args, tempFolder);
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
@@ -229,7 +237,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 							GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
-									addWorkspaceDependency((IContainer)res, ((ProjectIndex)index).nature(), args);
+									addWorkspaceDependency((IContainer)res, ((ProjectIndex)index).nature(), args, tempFolder);
 						}
 			}
 		
@@ -262,18 +270,15 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		return args.toArray(new String [args.size()]);
 	}
 
-	private void addWorkspaceDependency(IContainer res, ClonkProjectNature nature, Collection<String> args) {
-		if (nature.settings().staticTyping == StaticTyping.On)
-			try {
-				File tempFolder = Files.createTempDirectory("c4dt").toFile();
-				tempFolder = new File(tempFolder, res.getName());
-				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(res, tempFolder, true);
-				args.add(tempFolder.getPath());
-				return;
-			} catch (IOException e) {
-				System.out.println(String.format("Failed mirroring %s", res.getProjectRelativePath().toOSString()));
-			}
-		args.add(resFilePath(res));
+	private void addWorkspaceDependency(IContainer res, ClonkProjectNature nature, Collection<String> args, File tempFolder) {
+		if (tempFolder != null) {
+			tempFolder = new File(tempFolder, res.getName());
+			StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(res, tempFolder, true);
+			args.add(tempFolder.getPath());
+			return;
+		}
+		else
+			args.add(resFilePath(res));
 	}
 	
 }

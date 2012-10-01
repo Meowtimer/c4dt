@@ -566,6 +566,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		cachedScript = new WeakReference<Script>(result);
 		return result;
 	}
+	
 	@Override
 	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
 		return textChangeListener;
