@@ -757,16 +757,19 @@
 		<key
 			commandId="net.arctics.clonk.ui.OpenDefinition"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
 			sequence="M1+SHIFT+T">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
 			sequence="F4">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
 			sequence="F3">
 		</key>
 	</extension>
