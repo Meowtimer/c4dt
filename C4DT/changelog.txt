@@ -188,3 +188,7 @@ are then taken into account in various places
 -C4ScriptParser fixes
 -Teams.txt: Add some missing entries to definition
 -Probably more bugs with some fixed 
+1.7.5:
+-Performance improvements (or maybe not)
+-Shortcuts contributed by plugin put into shortcut context "Clonk Editing" to not conflict with Java shortcuts etc
+-Default shortcuts for various commands
