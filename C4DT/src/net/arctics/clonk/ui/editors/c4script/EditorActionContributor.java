@@ -24,8 +24,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	
 	private final List<RetargetTextEditorAction> actions = new ArrayList<RetargetTextEditorAction>();
 	
-	@SuppressWarnings("unchecked")
-	private void add(ResourceBundle bundle, Class<? extends ClonkTextEditorAction>... classes) {
+	private void add(ResourceBundle bundle, @SuppressWarnings("unchecked") Class<? extends ClonkTextEditorAction>... classes) {
 		for (Class<? extends ClonkTextEditorAction> c : classes) {
 			String prefix = ClonkTextEditorAction.resourceBundlePrefix(c);
 			String id = ClonkTextEditorAction.idString(c);

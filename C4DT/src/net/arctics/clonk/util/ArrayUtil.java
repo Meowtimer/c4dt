@@ -236,8 +236,7 @@ public class ArrayUtil {
 				c.removeAll(Collections.singletonList(null));
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> Set<T> set(T... items) {
+	public static <T> Set<T> set(@SuppressWarnings("unchecked") T... items) {
 		HashSet<T> t = new HashSet<T>();
 		for (T i : items)
 			t.add(i);
