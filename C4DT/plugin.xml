@@ -772,6 +772,12 @@
 			contextId="net.arctics.clonk.context"
 			sequence="F3">
 		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.TidyUpCode"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+I">
+		</key>
 	</extension>
 
 	<!--
