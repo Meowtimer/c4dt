@@ -25,3 +25,4 @@ C4DT/doc/*
 snippets/*
 glob:*.settings/*
 C4DTBuild
+Instance
