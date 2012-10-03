@@ -18,7 +18,6 @@ import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities;
 
 /**
  * Type that represents a set of multiple possible types.
@@ -273,15 +272,8 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof TypeSet) {
-			TypeSet other = (TypeSet)obj;
-			if (other.types.length != this.types.length)
-				return false;
-			for (int i = 0; i < this.types.length; i++)
-				if (!Utilities.objectsEqual(types[i], other.types[i]))
-					return false;
-			return true;
-		}
+		if (obj instanceof TypeSet)
+			return ArrayUtil.elementsEqual(types, ((TypeSet)obj).types);
 		else
 			return false;
 	}
