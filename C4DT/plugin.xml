@@ -757,17 +757,50 @@
 		<key
 			commandId="net.arctics.clonk.ui.OpenDefinition"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-			sequence="M1+SHIFT+T">
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M2+T">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
 			sequence="F4">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
 			sequence="F3">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.TidyUpCode"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+I">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M3+R">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.ToggleComment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M2+C">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.FindDuplicates"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M2+D">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M3+O">
 		</key>
 	</extension>
 
