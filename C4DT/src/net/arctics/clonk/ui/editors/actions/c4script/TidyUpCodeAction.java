@@ -61,8 +61,13 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	}
 
 	private static ExprElm codeFor(Declaration d) {
-		if (d instanceof Variable)
-			return ((Variable)d).initializationExpression();
+		if (d instanceof Variable) {
+			ExprElm init = ((Variable)d).initializationExpression();
+			if (init != null && init.owningDeclaration() != null && init.owningDeclaration() != d)
+				return null;
+			else
+				return init;
+		}
 		else if (d instanceof Function)
 			return ((Function)d).body();
 		else
@@ -99,8 +104,6 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 					/*if (var != null && parser.getContainer().funcAt(var.getLocation().getOffset()) != null)
 						continue;*/
 					ExprElm elms = codeFor(d);
-					if (elms == null)
-						continue;
 					if (func != null) {
 						StringBuilder blockStringBuilder = new StringBuilder(region.getLength());
 						switch (Conf.braceStyle) {
@@ -177,8 +180,12 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		String oldString = document.get(e.start(), e.end()-e.start());
 		String newString = e.exhaustiveOptimize(parser).toString(2);
-		if (!oldString.equals(newString))
+		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(e.start(), e.end()-e.start(), newString));
+		} catch (MalformedTreeException malformed) {
+			//malformed.printStackTrace();
+			throw malformed;
+		}
 	}
 	
 }

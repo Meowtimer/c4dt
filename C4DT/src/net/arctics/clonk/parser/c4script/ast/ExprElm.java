@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IResolvableType;
@@ -38,7 +39,7 @@ import org.eclipse.jface.text.Region;
 /**
  * Base class for making expression trees
  */
-public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
+public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
 	public static class Ticket implements ISerializationResolvable, Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -75,7 +76,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return result;
 	}
 	
-	private int exprStart, exprEnd;
 	private ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
 	
@@ -281,14 +281,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return start();
 	}
 
-	public int end() {
-		return exprEnd;
-	}
-
-	public int start() {
-		return exprStart;
-	}
-
 	public int identifierStart() {
 		return start();
 	}
@@ -302,8 +294,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public void setExprRegion(int start, int end) {
-		this.exprStart = start;
-		this.exprEnd   = end;
+		this.start = start;
+		this.end = end;
 	}
 	
 	public void setExprRegion(IRegion r) {
@@ -595,10 +587,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return false;
 	}
 
-	public boolean containsOffset(int offset) {
-		return offset >= start() && offset <= end();
-	}
-
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
 		if (d != null && !d.typeIsInvariant())
@@ -640,9 +628,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 */
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
 		if (start)
-			exprStart += amount;
+			this.start += amount;
 		if (end)
-			exprEnd += amount;
+			this.end += amount;
 	}
 	
 	private static void offsetExprRegionRecursively(ExprElm elm, int diff) {
@@ -949,7 +937,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	 * @param amount Amount to increment the location by
 	 */
 	public void incrementLocation(int amount) {
-		setExprRegion(exprStart+amount, exprStart+amount);
+		setExprRegion(start+amount, start+amount);
 		for (ExprElm e : subElements())
 			if (e != null)
 				e.incrementLocation(amount);
