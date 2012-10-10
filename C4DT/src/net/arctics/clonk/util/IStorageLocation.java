@@ -29,14 +29,14 @@ public interface IStorageLocation {
 	 * @param create Create data entry if not already existing.
 	 * @return The URL for the path or null if it didn't exist and couldn't be created or if the path was just unsuitable.
 	 */
-	URL getURL(String entryPath, boolean create);
+	URL locatorForEntry(String entryPath, boolean create);
 	/**
 	 * Return URLs of data entries contained in the given container path.
 	 * @param containerPath the path of the container
 	 * @param recurse Whether to also return URLs for data entries in sub-containers.
 	 * @param listToAddTo Add results to this list, attempting to avoid duplicates
 	 */
-	void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo);
+	void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo);
 	/**
 	 * Return this storage location as a folder. Will only work with storage locations that are actually backed by a folder.
 	 * @return The folder or null if read-only/not folder backed/whatever

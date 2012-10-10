@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.filter;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -717,8 +719,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		for (Variable v : variables()) {
 			ExprElm initialization = v.initializationExpression();
-			if (initialization != null && initialization.containsOffset(region.getOffset()))
-				return v;
+			if (initialization != null) {
+				Function owningFunc = as(initialization.owningDeclaration(), Function.class);
+				SourceLocation loc = owningFunc != null ? owningFunc.bodyLocation().add(initialization) : initialization;
+				if (loc.containsOffset(region.getOffset()))
+					return v;
+			}
 		}
 		return null;
 	}

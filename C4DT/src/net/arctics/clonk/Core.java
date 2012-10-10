@@ -10,7 +10,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -120,7 +119,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/**
 	 * Provider used by the plugin to provide text of documents
 	 */
-	private TextFileDocumentProvider textFileDocumentProvider;
+	private final TextFileDocumentProvider textFileDocumentProvider = new TextFileDocumentProvider();
 	
 	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
@@ -196,10 +195,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		MapCreator.register();
 	}
 	
-	public Map<String, Engine> getLoadedEngines() {
-		return Collections.unmodifiableMap(loadedEngines);
-	}
-	
 	private String engineNameFromPath(String path) {
 		String folderName = path.endsWith("/") //$NON-NLS-1$
 			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
@@ -272,7 +267,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 			new IStorageLocation() {
 				@Override
-				public URL getURL(String entryName, boolean create) {
+				public URL locatorForEntry(String entryName, boolean create) {
 					return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
 				}
 				@Override
@@ -284,7 +279,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					return null;
 				}
 				@Override
-				public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+				public void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
 					Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
 					if (urls != null)
@@ -433,7 +428,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @param path the path
 	 * @return the image descriptor
 	 */
-	public static ImageDescriptor getImageDescriptor(String path) {
+	public static ImageDescriptor imageDescriptorFor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
@@ -443,7 +438,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * 
 	 * @param iconName Name of the icon
 	 */
-	public Image getIconImage(String iconName) {
+	public Image iconImageFor(String iconName) {
 
 		// Already exists?
 		ImageRegistry reg = getImageRegistry();
@@ -452,13 +447,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			return img;
 
 		// Create
-		ImageDescriptor descriptor = getIconImageDescriptor(iconName);
+		ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
 		reg.put(iconName, img = descriptor.createImage(true));
 		return img;
 	}
 
-	public ImageDescriptor getIconImageDescriptor(String iconName) {
-		ImageDescriptor descriptor = getImageDescriptor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public ImageDescriptor iconImageDescriptorFor(String iconName) {
+		ImageDescriptor descriptor = imageDescriptorFor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
 		if(descriptor == null)
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
 		return descriptor;
@@ -566,9 +561,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * Return the shared text file document provider
 	 * @return the provider
 	 */
-	public TextFileDocumentProvider getTextFileDocumentProvider() {
-		if (textFileDocumentProvider == null)
-			textFileDocumentProvider = new TextFileDocumentProvider();
+	public TextFileDocumentProvider textFileDocumentProvider() {
 		return textFileDocumentProvider;
 	}
 	
@@ -577,7 +570,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 	
 	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) throws CoreException {
-		IDocumentProvider provider = getTextFileDocumentProvider();
+		IDocumentProvider provider = textFileDocumentProvider();
 		provider.connect(file);
 		try {
 			IDocument document = provider.getDocument(file);

@@ -26,7 +26,7 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	}
 
 	@Override
-	public URL getURL(String entryName, boolean create) {
+	public URL locatorForEntry(String entryName, boolean create) {
 		try {
 			File file = fileForEntry(entryName);
 			try {
@@ -85,7 +85,7 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	}
 	
 	@Override
-	public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+	public void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
 		final File folder = fileForEntry(containerPath);
 		containerPath = name() + "/" + containerPath;
 		if (folder == null || !folder.exists())

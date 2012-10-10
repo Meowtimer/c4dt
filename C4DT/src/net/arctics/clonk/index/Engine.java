@@ -220,7 +220,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
-			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, false);
+			URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, false);
 			if (settingsFile != null) {
 				InputStream input = settingsFile.openStream();
 				try {
@@ -249,7 +249,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				IStorageLocation loc = storageLocations[i];
 				if (loc == null)
 					continue;
-				URL confFile = loc.getURL("iniconfig.xml", false); //$NON-NLS-1$
+				URL confFile = loc.locatorForEntry("iniconfig.xml", false); //$NON-NLS-1$
 				if (confFile != null) {
 					InputStream input = confFile.openStream();
 					try {
@@ -386,7 +386,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
-			URL url = loc.getURL("declarations.ini", false);
+			URL url = loc.locatorForEntry("declarations.ini", false);
 			if (url != null) {
 				InputStream stream;
 				try {
@@ -416,7 +416,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	
 	private void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
-			final URL url = loc.getURL(name()+".c", false);
+			final URL url = loc.locatorForEntry(name()+".c", false);
 			if (url != null) {
 				InputStream stream;
 				try {
@@ -491,7 +491,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				if (location == null)
 					continue;
 				// only consider valid engine folder if configuration.ini is present
-				URL url = location.getURL(CONFIGURATION_INI_NAME, false); 
+				URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false); 
 				if (url != null) {
 					result = new Engine(location.name());
 					result.load(locations);
@@ -542,7 +542,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	
 	public void writeEngineScript() throws IOException {
 		for (IStorageLocation loc : storageLocations) {
-			URL scriptFile = loc.getURL(loc.name()+".c", true);
+			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true);
 			if (scriptFile != null) {
 				OutputStream output = loc.outputStreamForURL(scriptFile);
 				if (output != null) try {
@@ -567,7 +567,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (!hasCustomSettings())
 			return;
 		for (IStorageLocation loc : storageLocations) {
-			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, true);
+			URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, true);
 			if (settingsFile != null) {
 				OutputStream output = loc.outputStreamForURL(settingsFile);
 				if (output != null) {
@@ -591,14 +591,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		for (IStorageLocation loc : storageLocations) {
 			if (onlyFromReadonlyStorageLocation && loc.toFolder() != null)
 				continue;
-			loc.getURLsOfContainer(configurationFolder, true, result);
+			loc.collectURLsOfContainer(configurationFolder, true, result);
 		}
 		return result;
 	}
 	
 	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
 		for (IStorageLocation loc : storageLocations) {
-			URL url = loc.getURL(entryPath, true);
+			URL url = loc.locatorForEntry(entryPath, true);
 			if (url != null) {
 				OutputStream result = loc.outputStreamForURL(url);
 				if (result != null)

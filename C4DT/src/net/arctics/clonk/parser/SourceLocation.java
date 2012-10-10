@@ -14,7 +14,10 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 
 	public static final SourceLocation ZERO = new SourceLocation(0, 0);
 	
-	private int start, end;
+	protected int start, end;
+	
+	public SourceLocation() {}
+	
 	public SourceLocation(int start,int end) {
 		this.start = start;
 		this.end = end;
@@ -97,15 +100,24 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	
 	@Override
 	public SourceLocation clone() throws CloneNotSupportedException {
-		return new SourceLocation(start, end);
+		return (SourceLocation)super.clone();
 	}
 	
 	public SourceLocation relativeTo(IRegion other) {
 		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
 	}
+
 	@Override
 	public int compareTo(SourceLocation o) {
 		return start - o.start;
+	}
+	
+	public SourceLocation add(IRegion other) {
+		return new SourceLocation(start+other.getOffset(), start+other.getOffset()+other.getLength());
+	}
+	
+	public boolean containsOffset(int offset) {
+		return offset >= start && offset <= end;
 	}
 
 }

@@ -90,7 +90,7 @@ public class StreamUtil {
 	}
 
 	public static String stringFromFileDocument(IFile file) {
-		TextFileDocumentProvider provider = Core.instance().getTextFileDocumentProvider();
+		TextFileDocumentProvider provider = Core.instance().textFileDocumentProvider();
 		try {
 			provider.connect(file);
 		} catch (CoreException e) {

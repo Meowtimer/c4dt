@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -157,6 +158,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
+	private Function currentFunction;
 	private Declaration currentDeclaration;
 	private ID parsedID;
 	private Number parsedNumber;
@@ -389,7 +391,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public Function currentFunction() {
-		return currentDeclaration != null ? currentDeclaration.firstParentDeclarationOfType(Function.class) : null;
+		return currentFunction;
 	}
 	
 	/**
@@ -398,8 +400,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	@Override
 	public void setCurrentFunction(Function func) {
-		if (func != currentFunction()) {
-			currentDeclaration = func;
+		if (func != currentFunction) {
+			currentFunction = func;
+			setCurrentDeclaration(func);
 			numUnnamedParameters = 0;
 		}
 	}
@@ -409,7 +412,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return
 	 */
 	public Variable currentVariable() {
-		return currentDeclaration != null ? currentDeclaration.firstParentDeclarationOfType(Variable.class) : null;
+		return currentDeclaration() != null ? currentDeclaration().firstParentDeclarationOfType(Variable.class) : null;
 	}
 	
 	/**
@@ -421,6 +424,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return currentDeclaration;
 	}
 	
+	/**
+	 * @param currentDeclaration the currentDeclaration to set
+	 */
+	private final void setCurrentDeclaration(Declaration currentDeclaration) {
+		this.currentDeclaration = currentDeclaration;
+	}
+
 	/**
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
@@ -590,7 +600,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		prepareForFunctionParsing();
 		for (Function function : script.functions())
 			parseCodeOfFunction(function);
-		currentDeclaration = null;
+		setCurrentDeclaration(null);
 
 		for (Directive directive : script.directives())
 			directive.validate(this);
@@ -641,7 +651,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				eventListener.functionAboutToBeParsed(function, this);
 
 		int oldOffset = this.offset;
-		Declaration oldDec = currentDeclaration;
+		Declaration oldDec = currentDeclaration();
 		try {
 			setCurrentFunction(function);
 			// reset local vars
@@ -674,7 +684,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			e.printStackTrace();
 			error(ParserErrorCode.InternalError, this.offset, this.offset + 1, NO_THROW, e.getMessage());
 		} finally {
-			currentDeclaration = oldDec;
+			setCurrentDeclaration(oldDec);
+			currentFunction = null;
 			seek(oldOffset);
 		}
 	}
@@ -889,7 +900,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			
 		final int backtrack = this.offset;
 
-		List<VarInitialization> createdVariables = new LinkedList<VarInitialization>();
+		List<VarInitialization> createdVariables = null;
 		Function currentFunc = currentFunction();
 		
 		eatWhitespace();
@@ -953,7 +964,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				} else if (typeExpectedAt != -1)
 					typeRequiredAt(typeExpectedAt);
 				
-				Declaration outerDec = currentDeclaration;
+				Declaration outerDec = currentDeclaration();
 				try {
 					Variable var = createVarInScope(varName, scope, s, e, comment);
 					if (typeAnnotation != null)
@@ -962,7 +973,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						var.assignType(staticType, true);
 					if (parsedTypeAnnotation != null)
 						parsedTypeAnnotation.setTypeable(var);
-					currentDeclaration = var;
+					setCurrentDeclaration(var);
 					VarInitialization varInitialization;
 					ExprElm initializationExpression = null;
 					{
@@ -989,11 +1000,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					}
 					varInitialization = new VarInitialization(varName, initializationExpression, bt-bodyOffset(), var);
 					varInitialization.type = staticType;
+					if (createdVariables == null)
+						createdVariables = new LinkedList<VarInitialization>();
 					createdVariables.add(varInitialization);
 					rewind = this.offset;
 					eatWhitespace();
 				} finally {
-					currentDeclaration = outerDec;
+					setCurrentDeclaration(outerDec);
 				}
 			} while(read() == ',');
 			seek(rewind);
@@ -1016,7 +1029,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				v.variable.setUserDescription(inlineComment);
 		}
 		
-		return createdVariables.size() > 0 ? createdVariables : null;
+		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
 	}
 	
 	private void typeRequiredAt(int typeExpectedAt) throws ParsingException {
@@ -1157,7 +1170,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (header.isOldStyle)
 			warning(ParserErrorCode.OldStyleFunc, header.nameStart, header.nameStart+header.name.length(), 0);
 		Function currentFunc;
-		currentDeclaration = currentFunc = newFunction(header.name);
+		setCurrentFunction(currentFunc = newFunction(header.name));
 		header.apply(currentFunc);
 		currentFunc.setScript(script);
 		if (header.scope == FunctionScope.GLOBAL)
@@ -1278,7 +1291,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else {
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
-			Comment c = getCommentImmediatelyFollowing();
+			Comment c = commentImmediatelyFollowing();
 			if (c != null)
 				currentFunc.setUserDescription(c.text());
 		}
@@ -1291,7 +1304,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			warning(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
 		script.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
-			currentDeclaration = null; // to not suppress errors in-between functions
+			setCurrentFunction(null); // to not suppress errors in-between functions
 		return true;
 	}
 
@@ -1969,9 +1982,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int c = read();
 		if (c == '{') {
 			ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
-			proplistDeclaration.setParentDeclaration(currentDeclaration != null ? currentDeclaration : script);
-			Declaration oldDec = currentDeclaration;
-			currentDeclaration = proplistDeclaration;
+			proplistDeclaration.setParentDeclaration(currentDeclaration() != null ? currentDeclaration() : script);
+			Declaration oldDec = currentDeclaration();
+			setCurrentDeclaration(proplistDeclaration);
 			try {
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
@@ -2000,8 +2013,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							eatWhitespace();
 							Variable v = new Variable(name, currentFunction() != null ? Scope.VAR : Scope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
-							Declaration outerDec = currentDeclaration;
-							currentDeclaration = v;
+							Declaration outerDec = currentDeclaration();
+							setCurrentDeclaration(v);
 							ExprElm value = null;
 							try {
 								v.setParentDeclaration(outerDec);
@@ -2013,7 +2026,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								v.setInitializationExpression(value);
 								v.forceType(value.type(this));
 							} finally {
-								currentDeclaration = outerDec;
+								setCurrentDeclaration(outerDec);
 							}
 							proplistDeclaration.addComponent(v);
 							expectingComma = true;
@@ -2029,7 +2042,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				proplistDeclaration.setLocation(absoluteSourceLocation(propListStart, offset));
 				return proplistDeclaration;
 			} finally {
-				currentDeclaration = oldDec;
+				setCurrentDeclaration(oldDec);
 			}
 		}
 		else
@@ -2266,7 +2279,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
-		root.setAssociatedDeclaration(currentDeclaration);
+		root.setAssociatedDeclaration(currentDeclaration());
 		root.setFlagsEnabled(ExprElm.STATEMENT_REACHED, statementReached);
 		if (listener != null && parseExpressionRecursion <= 1)
 			listener.visitExpression(root, this);
@@ -2318,15 +2331,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				setCurrentFunction(null);
 				ExprElm init = v.initializationExpression();
 				if (init != null) {
-					pushTypeInfos();
-					if (script.funcAt(init.start()) == null)
+					Function owningFunc = as(init.owningDeclaration(), Function.class);
+					if (owningFunc == null) {
+						pushTypeInfos();
 						reportProblemsOf(init, true);
-					new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
+						new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
+						popTypeInfos(true);
+					}
 					if (v.scope() == Scope.CONST && !init.isConstant())
 						try {
-							error(ParserErrorCode.ConstantValueExpected, init, ABSOLUTE_MARKER_LOCATION|NO_THROW, v.name());
+							error(ParserErrorCode.ConstantValueExpected, owningFunc == null ? init : owningFunc.bodyLocation().add(init), ABSOLUTE_MARKER_LOCATION|NO_THROW, v.name());
 						} catch (ParsingException e) {}
-					popTypeInfos(true);
 				}
 			}
 		for (Function f : script.functions())
@@ -2600,7 +2615,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 			if (result != null) {
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
-				Comment c = getCommentImmediatelyFollowing();
+				Comment c = commentImmediatelyFollowing();
 				if (c != null)
 					result.setInlineComment(c);
 				if (emptyLines > 0)
@@ -2698,7 +2713,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Parse a comment following some expression. Will return null if there is a line break in between the expression and the comment.
 	 * @return The parsed comment.
 	 */
-	private Comment getCommentImmediatelyFollowing() {
+	private Comment commentImmediatelyFollowing() {
 		int daring = this.offset;
 		Comment c = null;
 		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read())
@@ -3220,7 +3235,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		boolean oldErrorsDisabled = allErrorsDisabled;
 		allErrorsDisabled = !reportErrors;
 		Function func = funcOrRegion instanceof Function ? (Function)funcOrRegion : null;
-		currentDeclaration = func;
+		setCurrentFunction(func);
 		try {
 			String functionSource = functionSource(func);
 			FunctionBody cachedBlock = func != null ? func.bodyMatchingSource(functionSource) : null;

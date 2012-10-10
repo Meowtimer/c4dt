@@ -75,7 +75,7 @@ public class IniDescriptionsLoader {
 			IStorageLocation[] storageLocations = engine.storageLocations();
 			for (int i = storageLocations.length - 1; i >= 0; i--) {
 				IStorageLocation loc = storageLocations[i];
-				URL descs = loc.getURL(fileName, false);
+				URL descs = loc.locatorForEntry(fileName, false);
 				if (descs != null) {
 					InputStream input = descs.openStream();
 					try {
