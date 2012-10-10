@@ -424,12 +424,12 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			else if (script != null && script.scriptStorage() instanceof IFile) {
 				needToDisconnect = script.scriptStorage();
 				try {
-					Core.instance().getTextFileDocumentProvider().connect(needToDisconnect);
+					Core.instance().textFileDocumentProvider().connect(needToDisconnect);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					return;
 				}
-				document = Core.instance().getTextFileDocumentProvider().getDocument(needToDisconnect);
+				document = Core.instance().textFileDocumentProvider().getDocument(needToDisconnect);
 			}
 		try {
 			if (script == null || document == null)
@@ -716,7 +716,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 		} finally {
 			if (needToDisconnect != null)
-				Core.instance().getTextFileDocumentProvider().disconnect(needToDisconnect);
+				Core.instance().textFileDocumentProvider().disconnect(needToDisconnect);
 		}
 
 	}

@@ -38,7 +38,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	public ImageDescriptor getImageDescriptor() {
-		return Core.instance().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
+		return Core.instance().iconImageDescriptorFor("C4Object"); //$NON-NLS-1$
 	}
 
 	@Override

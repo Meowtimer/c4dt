@@ -77,7 +77,7 @@ public abstract class UI {
 	 */
 	public static Image functionIcon(Function function) {
 		String iconName = function.visibility().name().toLowerCase();
-		return Core.instance().getIconImage(iconName);
+		return Core.instance().iconImageFor(iconName);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public abstract class UI {
 	 */
 	public static Image variableIcon(Variable variable) {
 		String iconName = variable.scope().toString().toLowerCase();
-		return Core.instance().getIconImage(iconName);
+		return Core.instance().iconImageFor(iconName);
 	}
 
 	/**

@@ -108,7 +108,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 								for (IContainer container : selectedContainers)
 									try {
-										final TextFileDocumentProvider textFileDocProvider = Core.instance().getTextFileDocumentProvider();
+										final TextFileDocumentProvider textFileDocProvider = Core.instance().textFileDocumentProvider();
 										final List<IFile> failedSaves = new LinkedList<IFile>();
 										container.accept(new IResourceVisitor() {
 											@Override

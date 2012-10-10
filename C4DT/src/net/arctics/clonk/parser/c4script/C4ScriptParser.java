@@ -1148,7 +1148,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else {
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
-			Comment c = getCommentImmediatelyFollowing();
+			Comment c = commentImmediatelyFollowing();
 			if (c != null)
 				currentFunc.setUserDescription(c.text());
 		}
@@ -2469,7 +2469,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 			if (result != null) {
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
-				Comment c = getCommentImmediatelyFollowing();
+				Comment c = commentImmediatelyFollowing();
 				if (c != null)
 					result.setInlineComment(c);
 				if (emptyLines > 0)
@@ -2567,7 +2567,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Parse a comment following some expression. Will return null if there is a line break in between the expression and the comment.
 	 * @return The parsed comment.
 	 */
-	private Comment getCommentImmediatelyFollowing() {
+	private Comment commentImmediatelyFollowing() {
 		int daring = this.offset;
 		Comment c = null;
 		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read())
