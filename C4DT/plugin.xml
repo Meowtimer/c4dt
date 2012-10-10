@@ -685,7 +685,7 @@
 
 		<propertyTester id="net.arctics.clonk.resource.ResourceTesterEditor"
 			namespace="net.arctics.clonk.resource.editor" properties="isScenario,isDefinition,isFolder,isResource,isInScenario"
-			type="org.eclipse.ui.IFileEditorInput" class="net.arctics.clonk.resource.ResourceTester" />
+			type="org.eclipse.ui.part.FileEditorInput" class="net.arctics.clonk.resource.ResourceTester" />
 
 	</extension>
 
