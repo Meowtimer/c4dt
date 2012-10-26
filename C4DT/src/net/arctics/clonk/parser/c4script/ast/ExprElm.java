@@ -589,7 +589,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
-		if (d != null && !d.typeIsInvariant())
+		if (d != null)
 			return new GenericTypeInfo(this, parser);
 		return null;
 	}

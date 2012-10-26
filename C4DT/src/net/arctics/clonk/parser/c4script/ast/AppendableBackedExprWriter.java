@@ -3,10 +3,10 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.io.IOException;
 
 public class AppendableBackedExprWriter implements ExprWriter {
-	private final Appendable builder;
+	private final Appendable appendable;
 
 	public AppendableBackedExprWriter(Appendable builder) {
-		this.builder = builder;
+		this.appendable = builder;
 	}
 
 	@Override
@@ -17,7 +17,7 @@ public class AppendableBackedExprWriter implements ExprWriter {
 	@Override
 	public Appendable append(char c) {
 		try {
-			return builder.append(c);
+			return appendable.append(c);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
@@ -27,7 +27,7 @@ public class AppendableBackedExprWriter implements ExprWriter {
 	@Override
 	public void append(String text) {
 		try {
-			builder.append(text);
+			appendable.append(text);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -35,11 +35,16 @@ public class AppendableBackedExprWriter implements ExprWriter {
 
 	@Override
 	public Appendable append(CharSequence sequence) throws IOException {
-		return builder.append(sequence);
+		return appendable.append(sequence);
 	}
 
 	@Override
 	public Appendable append(CharSequence sequence, int start, int end) throws IOException {
-		return builder.append(sequence, start, end);
+		return appendable.append(sequence, start, end);
+	}
+	
+	@Override
+	public String toString() {
+		return appendable.toString();
 	}
 }

@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -16,12 +17,24 @@ public abstract class Conf {
 	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
 	public static String indentString = "\t"; //$NON-NLS-1$
 
-	public static void printIndent(ExprWriter builder, int indentDepth) {
+	public static void printIndent(ExprWriter output, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
-			builder.append(indentString);
+			output.append(indentString);
+	}
+	
+	public static void blockPrelude(ExprWriter output, int indentDepth) {
+		switch (braceStyle) {
+		case NewLine:
+			output.append('\n');
+			Conf.printIndent(output, indentDepth);
+			break;
+		case SameLine:
+			output.append(' ');
+			break;
+		}
 	}
 
-	static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+	public static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
 		@Override
         public Object convert(ExprElm from) {
             try {
@@ -32,7 +45,7 @@ public abstract class Conf {
         }
 	};
 	
-	// install property change listener so the indentString will match with the user preferences regarding spaces-to-tabs conversion
+	// install property change listener so the indentString and braceStyle will match with corresponding preferences
 	
 	private static void configureByEditorPreferences() {
 		boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
@@ -40,17 +53,29 @@ public abstract class Conf {
 			indentString = StringUtil.repetitions(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
 		else
 			indentString = "\t";
+		boolean javaStyleBlocks = Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.JAVA_STYLE_BLOCKS);
+		if (javaStyleBlocks)
+			braceStyle = BraceStyleType.SameLine;
+		else
+			braceStyle = BraceStyleType.NewLine;
 	}
 	
 	static {
 		if (!Core.instance().runsHeadless()) {
-			EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			IPropertyChangeListener listener = new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {
-					if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS))
-						configureByEditorPreferences();
+					String[] relevantPrefValues = {
+						AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+						ClonkPreferences.JAVA_STYLE_BLOCKS
+					};
+					for (String pref : relevantPrefValues)
+						if (event.getProperty().equals(pref))
+							configureByEditorPreferences();
 				}
-			});
+			};
+			EditorsUI.getPreferenceStore().addPropertyChangeListener(listener);
+			Core.instance().getPreferenceStore().addPropertyChangeListener(listener);
 			configureByEditorPreferences();
 		}
 	}

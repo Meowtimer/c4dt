@@ -15,13 +15,15 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -111,14 +113,14 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 							blockStringBuilder.append('\n');
 							break;
 						case SameLine:
-							// noop
+							blockStringBuilder.append(' ');
 							break;
 						}
 						ExprElm original = elms;
 						elms = new Block(elms.subElements());
 						elms.setExprRegion(original);
 						parser.setCurrentFunction(func);
-						elms.exhaustiveOptimize(parser).print(blockStringBuilder, 1);
+						elms.exhaustiveOptimize(parser).print(blockStringBuilder, 0);
 						String blockString = blockStringBuilder.toString();
 						int blockBegin;
 						int blockLength;
@@ -146,20 +148,8 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 							System.out.println("Adding edit for " + func.name() + " failed");
 						}
 					}
-					else {
-						if (!noSelection)
-							region.setStartAndEnd(
-								selection.getOffset()-(func != null ? func.bodyLocation().getOffset() : 0),
-								selection.getOffset()-(func != null ? func.bodyLocation().getOffset() : 0)+selection.getLength()
-							);
-						if (elms instanceof Block) {
-							for (ExprElm e : elms.subElements())
-								if (Utilities.regionContainsOtherRegion(region, e))
-									replaceExpression(document, e, parser, textChange);
-						}
-						else
-							replaceExpression(document, elms, parser, textChange);
-					}
+					else
+						replaceExpression(document, elms, parser, textChange);
 				} catch (CloneNotSupportedException e1) {
 					e1.printStackTrace();
 				} catch (BadLocationException e) {
@@ -178,10 +168,20 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	}
 	
 	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
-		String oldString = document.get(e.start(), e.end()-e.start());
-		String newString = e.exhaustiveOptimize(parser).toString(2);
+		int oldStart = e.start();
+		int oldLength = e.end()-e.start();
+		while (superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
+			oldStart--;
+			oldLength++;
+		}
+		String oldString = document.get(oldStart, oldLength);
+		ExprWriter newStringWriter = new AppendableBackedExprWriter(new StringBuilder());
+		if (e instanceof PropListExpression)
+			Conf.blockPrelude(newStringWriter, 0);
+		e.exhaustiveOptimize(parser).print(newStringWriter, 0);
+		String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
-			textChange.addEdit(new ReplaceEdit(e.start(), e.end()-e.start(), newString));
+			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));
 		} catch (MalformedTreeException malformed) {
 			//malformed.printStackTrace();
 			throw malformed;

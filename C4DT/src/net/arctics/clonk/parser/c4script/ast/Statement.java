@@ -49,7 +49,7 @@ public class Statement extends ExprElm implements Cloneable {
 				for (int i = 0; i < num; i++)
 					//printIndent(builder, depth);
 					builder.append("\n");
-				Conf.printIndent(builder, depth-1);
+				Conf.printIndent(builder, depth);
 				break;
 			default:
 				break;

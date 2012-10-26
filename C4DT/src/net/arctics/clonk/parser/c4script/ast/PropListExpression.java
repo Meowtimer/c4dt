@@ -42,14 +42,17 @@ public class PropListExpression extends ExprElm {
 		for (int i = 0; i < components.size(); i++) {
 			Variable component = components.get(i);
 			output.append('\n');
-			Conf.printIndent(output, depth-1);
+			Conf.printIndent(output, depth+1);
 			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
+			if (component.initializationExpression() instanceof PropListExpression)
+				Conf.blockPrelude(output, depth+1);
 			component.initializationExpression().print(output, depth+1);
-			if (i < components.size()-1) {
+			if (i < components.size()-1)
 				output.append(',');
-			} else {
-				output.append('\n'); Conf.printIndent(output, depth-2);
+			else {
+				output.append('\n');
+				Conf.printIndent(output, depth);
 			}
 		}
 		output.append('}');
@@ -81,17 +84,15 @@ public class PropListExpression extends ExprElm {
 		if (definedDeclaration == null)
 			return;
 		List<Variable> components = components();
-		for (int i = 0; i < Math.min(elms.length, components.size()); i++) {
+		for (int i = 0; i < Math.min(elms.length, components.size()); i++)
 			components.get(i).setInitializationExpression(elms[i]);
-		}
 	}
 	@Override
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
-		for (Variable component : components()) {
+		for (Variable component : components())
 			if (!component.initializationExpression().isConstant())
 				return false;
-		}
 		return true;
 	}
 	
@@ -99,18 +100,16 @@ public class PropListExpression extends ExprElm {
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		List<Variable> components = components();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
-		for (Variable component : components) {
+		for (Variable component : components)
 			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
-		}
 		return map;
 	}
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
-		if (context.currentVariable() != null) {
+		if (context.currentVariable() != null)
 			return context.script().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
-		} else {
+		else
 			return null;
-		}
 	}
 	
 	private Declaration associatedDeclaration;
@@ -176,10 +175,9 @@ public class PropListExpression extends ExprElm {
 	@Override
 	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
 		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
-		for (Variable v : this.components()) {
+		for (Variable v : this.components())
 			if (v.isAt(absolute))
 				return new EntityRegion(v, v.location().relativeTo(parser.absoluteSourceLocation(0, 0)));
-		}
 		return super.declarationAt(offset, parser);
 	}
 	
