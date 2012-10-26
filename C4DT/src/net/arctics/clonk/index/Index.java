@@ -185,9 +185,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			for (List<Definition> list : indexedDefinitions.values())
 				for (Definition obj : list)
 					if (obj instanceof Definition) {
-						Definition intern = obj;
-						if (intern.definitionFolder() != null && intern.definitionFolder().equals(folder))
-							return intern;
+						Definition def = obj;
+						if (def.definitionFolder() != null && def.definitionFolder().equals(folder))
+							return def;
 					}
 			// also try scenarios
 			for (Scenario s : indexedScenarios)

@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
@@ -14,7 +16,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 /**
@@ -58,15 +59,15 @@ public class SystemScript extends Script implements Serializable {
 			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.index() : null;
 		}
-		scriptFilePath = f != null ? f.getFullPath().toPortableString() : ""; //$NON-NLS-1$
+		scriptFilePath = f != null ? f.getProjectRelativePath().toPortableString() : ""; //$NON-NLS-1$
 	}
 	
-	public String getScriptFilePath() {
+	public String scriptFilePath() {
 		return scriptFilePath;
 	}
 	
-	public static SystemScript pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
-		Structure s = pinned(resource, false, duringBuild);
+	public static SystemScript pinned(IResource resource, boolean duringBuild) throws CoreException {
+		Structure s = Structure.pinned(resource, true, duringBuild);
 		return s instanceof SystemScript ? (SystemScript) s : null;
 	}
 	
@@ -82,8 +83,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	public boolean refreshFileReference(IProject project) throws CoreException {
-		Path path = new Path(getScriptFilePath());
-		IPath projectPath = path.removeFirstSegments(1);
+		Path projectPath = new Path(scriptFilePath());
 		IResource res = project.findMember(projectPath);
 		if (res instanceof IFile) {
 			setScriptFile((IFile) res);
@@ -102,6 +102,30 @@ public class SystemScript extends Script implements Serializable {
 	@Override
 	public Object additionalEntityIdentificationToken() {
 		return scriptFilePath;
+	}
+	
+	public static void register() {
+		registerStructureFactory(new IStructureFactory() {
+			@Override
+			public Structure create(IResource resource, boolean duringBuild) {
+				if (!resource.getName().endsWith(".c"))
+					return null;
+				ProjectIndex index = ProjectIndex.fromResource(resource);
+				if (index != null)
+					for (Script script : index.indexedScripts()) {
+						SystemScript sysScript = as(script, SystemScript.class);
+						if (sysScript != null && sysScript.scriptFile() != null && sysScript.scriptFile().equals(resource)) {
+							try {
+								index.loadEntity(sysScript);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							return sysScript;
+						}
+					}
+				return null;
+			}
+		});
 	}
 
 }

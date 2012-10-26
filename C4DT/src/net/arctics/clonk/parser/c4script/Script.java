@@ -1061,7 +1061,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (resource == null)
 			return null;
 		try {
-			script = SystemScript.pinnedScript(resource, false);
+			script = SystemScript.pinned(resource, false);
 		} catch (CoreException e) {
 			script = null;
 		}

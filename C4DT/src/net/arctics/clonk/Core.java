@@ -22,6 +22,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -193,6 +194,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		IniUnit.register();
 		StringTbl.register();
 		MapCreator.register();
+		SystemScript.register();
 	}
 	
 	private String engineNameFromPath(String path) {

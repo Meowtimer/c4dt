@@ -371,7 +371,7 @@ public class Definition extends Script implements IProplistDeclaration {
 				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			else
 				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, null);
-			relativePath = folder.getFullPath().toPortableString();
+			relativePath = folder.getProjectRelativePath().toPortableString();
 			//index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}
 	}
@@ -404,8 +404,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return Whether refreshing the folder reference was successful
 	 */
 	public boolean refreshDefinitionFolderReference(IProject project) {
-		Path path = new Path(this.relativePath);
-		IPath projectPath = path.removeFirstSegments(1);
+		IPath projectPath = new Path(this.relativePath);
 		IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
 			try {
