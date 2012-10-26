@@ -7,7 +7,6 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
@@ -147,10 +146,7 @@ public abstract class AccessDeclaration extends ExprElm {
 	
 	@Override
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant())
-			return null;
-		else
-			return super.createStoredTypeInformation(parser);
+		return super.createStoredTypeInformation(parser);
 	}
 	
 	@Override

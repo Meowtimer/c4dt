@@ -15,10 +15,12 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CallReturnType;
+import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
@@ -532,7 +534,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				}				
 			}
 			else if (declaration == null)
-				if (unknownFunctionShouldBeError(context))
+				if (unknownFunctionShouldBeError(context)) {
 					if (declarationName.equals(Keywords.Inherited)) {
 						Function activeFunc = context.currentFunction();
 						if (activeFunc != null)
@@ -543,13 +545,22 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited))
 						context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
+				} else if (context.findDefinitionViaCall() && predecessorInSequence() != null) {
+					Index index = context.script().index();
+					index.loadScriptsContainingDeclarationsNamed(declarationName);
+					List<Declaration> decs = index.declarationMap().get(declarationName);
+					if (decs != null) {
+						IType[] types = new IType[decs.size()];
+						for (int i = 0; i < types.length; i++) {
+							types[i] = as(decs.get(i).parentDeclaration(), IType.class);
+							if (types[i] instanceof IHasIncludes)
+								types[i] = new ConstrainedProplist((IHasIncludes) types[i], ConstraintKind.Includes);
+						}
+						IType typeSet = TypeSet.create(types);
+						predecessorInSequence().expectedToBeOfType(typeSet, context);
+					}
+				}
 		}
-	}
-	public int actualParmsNum() {
-		int result = params.length;
-		while (result > 0 && params[result-1] instanceof Ellipsis)
-			result--;
-		return result;
 	}
 	@Override
 	public ExprElm[] subElements() {
