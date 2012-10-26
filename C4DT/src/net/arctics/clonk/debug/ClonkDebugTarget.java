@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import net.arctics.clonk.util.ICreate;
+
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -69,7 +70,6 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	 * Result type for ILineReceivedListener.lineReceived.
 	 * Used to decide whether a listener processed a line and whether it should be removed from the queue or not.
 	 * @author madeen
-	 *
 	 */
 	public enum LineReceivedResult {
 		/** Has been processed but should not be removed. */
@@ -110,17 +110,17 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
 	
-	private ILaunch launch;
-	private IProcess process;
-	private ClonkDebugThread thread;
-	private IThread[] threads;
+	private final ILaunch launch;
+	private final IProcess process;
+	private final ClonkDebugThread thread;
+	private final IThread[] threads;
 	private Socket socket;
 	private PrintWriter socketWriter;
 	private BufferedReader socketReader;
 	private boolean suspended;
-	private IResource scenario;
+	private final IResource scenario;
 	
-	private List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
+	private final List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
 	
 	/**
 	 * Request a line received listener of a certain type. A new one won't be created if one already exists
@@ -184,13 +184,13 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 			super(name);
 		}
 		
-		private List<String> stackTrace = new ArrayList<String>(10);
+		private final List<String> stackTrace = new ArrayList<String>(10);
 		
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 			addLineReceiveListener(this);
 			String event = ""; //$NON-NLS-1$
-			while (!isTerminated() && event != null) {
+			while (!isTerminated() && event != null)
 				try {
 					event = receive();
 					if (event != null && event.length() > 0) {
@@ -228,7 +228,6 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				} catch (IOException e) {
 					break;
 				}
-			}
 			terminated();
 			return Status.OK_STATUS;
 		}
@@ -253,22 +252,18 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				send(Commands.SENDSTACKTRACE); 
 				while (!isTerminated() && event != null) {
 					event = receive();
-					if (event != null && event.length() > 0) {
-						if (event.equals(Commands.ENDSTACKTRACE)) { 
+					if (event != null && event.length() > 0)
+						if (event.equals(Commands.ENDSTACKTRACE))
 							break;
-						}
 						else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
 							if (stackTrace.size() > 512) {
 								System.out.println("Runaway stacktrace"); //$NON-NLS-1$
 								break;
-							}
-							else {
-								stackTrace.add(event.substring(Commands.AT.length()+1)); 
-							}
+							} else
+								stackTrace.add(event.substring(Commands.AT.length()+1));
 						}
 						else
 							break;
-					}
 				}
 
 				stoppedWithStackTrace(stackTrace);
@@ -279,13 +274,12 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 						Map<String, ClonkDebugVariable> vars = new HashMap<String, ClonkDebugVariable>(varArray.length);
 						for (ClonkDebugVariable var : varArray)
 							vars.put(var.getName(), var);
-						for (ClonkDebugVariable var : vars.values()) {
+						for (ClonkDebugVariable var : vars.values())
 							send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
-						}
 						while (!isTerminated() && event != null && !vars.isEmpty()) {
 						//	System.out.println("missing " + vars.toString());
 							event = receive();
-							if (event != null && event.length() > 0) {
+							if (event != null && event.length() > 0)
 								if (event.startsWith(Commands.VAR)) { 
 									event = event.substring(Commands.VAR.length()); 
 									BufferedScanner scanner = new BufferedScanner(event);
@@ -303,7 +297,6 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 										}
 									}
 								}
-							}
 						}
 					}
 				} catch (DebugException e) {
@@ -323,7 +316,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	private class ConnectionJob extends Job {
 
-		private int port;
+		private final int port;
 		
 		public ConnectionJob(String name, int port) {
 			super(name);
@@ -389,14 +382,13 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	private void setBreakpoints() {
 		IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
-		for (IBreakpoint b : breakpoints) {
+		for (IBreakpoint b : breakpoints)
 			try {
 				if (b.isEnabled())
 					breakpointAdded(b);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
-		}
 	}
 	
 	private void stoppedWithStackTrace(List<String> stackTrace) {
