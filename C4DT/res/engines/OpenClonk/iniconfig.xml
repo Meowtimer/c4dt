@@ -699,7 +699,7 @@
 					<entry name="Key" class="java.lang.String" />
 					<entry name="Control" class="java.lang.String" />
 					<entry name="Group" class="Boolean" />
-					<entry name="GUIGroup" class="Integer" />
+					<entry name="GUIGroup" class="UnsignedInteger" />
 					<entry name="GUIName" class="java.lang.String" />
 					<entry name="GUIDesc" class="java.lang.String" />
 				</section>
