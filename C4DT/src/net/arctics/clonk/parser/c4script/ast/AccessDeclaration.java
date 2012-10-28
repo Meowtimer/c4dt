@@ -57,7 +57,13 @@ public abstract class AccessDeclaration extends ExprElm {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
-		declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
+		for (byte attempt = 0; declaration == null && attempt < 2; attempt++) {
+			if (attempt == 1)
+				// last straw in case a file was modified outside Eclipse to call some global function from a script which was not yet loaded
+				// from the index - load scripts
+				parser.script().index().loadScriptsContainingDeclarationsNamed(declarationName);
+			declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
+		}
 	}
 	
 	@Override

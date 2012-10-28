@@ -42,7 +42,7 @@ public class ProjectResource implements IIndexEntity, IHasRelatedResource {
 	}
 
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		return name();
 	}
 	

@@ -40,7 +40,7 @@ public class ResourceTester extends PropertyTester {
 			else if (property.equals("isInClonkProject"))
 				result = isInClonkProject(res);
 			else
-				assert false;
+				return false;
 
 			// Compare to expected value, if given
 			return expected == null ? result : (expected instanceof Boolean && result == (Boolean)expected);

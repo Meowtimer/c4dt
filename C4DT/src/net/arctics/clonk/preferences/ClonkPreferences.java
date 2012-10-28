@@ -26,6 +26,7 @@ public class ClonkPreferences {
 	public static final String AUTHOR = "author";
 	public static final String IGNORE_SIMPLE_FUNCTION_DUPES = "ignoreSimpleFunctionDupes"; //$NON-NLS-1$
 	public static final String ANALYZE_CODE = "analyzeCode";
+	public static final String JAVA_STYLE_BLOCKS = "javaStyleBlocks";
 	
 	// defaults
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$

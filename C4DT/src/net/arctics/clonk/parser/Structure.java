@@ -79,17 +79,25 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * Returns the structure pinned to a file creating it if force is true and the structure does not already exist
 	 * @param file the file to return the pinned structure of
 	 * @param force whether to create the structure if it does not yet exist
-	 * @return the structure
+	 * @return the structure or null if something went wrong or file is null as well. In other situations an exception will be thrown.
 	 * @throws CoreException
 	 */
-	public static Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
-		Structure result = (Structure) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
-		if (result == null && force) {
-			result = createStructureForFile(file, duringBuild);
-			if (result != null)
-				result.pinTo(file);
+	public static Structure pinned(IResource file, boolean force, boolean duringBuild) {
+		if (file == null)
+			return null;
+		Structure result;
+		try {
+			result = (Structure) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
+			if (result == null && force) {
+				result = createStructureForFile(file, duringBuild);
+				if (result != null)
+					result.pinTo(file);
+			}
+			return result;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
 		}
-		return result;
 	}
 	
 	/**

@@ -13,13 +13,11 @@ public class CallReturnType implements IType, IResolvableType {
 	
 	private final CallDeclaration call;
 	private final SpecialFuncRule rule;
-	private final Script originatingScript;
 	
 	public CallReturnType(CallDeclaration call, SpecialFuncRule rule, Script originatingScript) {
 		super();
 		this.call = call;
 		this.rule = rule;
-		this.originatingScript = originatingScript;
 	}
 	
 	@Override
@@ -47,12 +45,15 @@ public class CallReturnType implements IType, IResolvableType {
 
 	@Override
 	public boolean intersects(IType type) {
+		for (IType t : type)
+			if (subsetOf(t))
+				return true;
 		return false;
 	}
 
 	@Override
 	public boolean subsetOf(IType type) {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -89,12 +90,13 @@ public class CallReturnType implements IType, IResolvableType {
 					return ruleSays;
 			}
 			Function originalFunc = call.function(context);
-			if (callerType == originatingScript && !(originalFunc.returnType() instanceof IResolvableType))
+			Script contextScript = context.script();
+			if (contextScript == originalFunc.script() && !(originalFunc.returnType() instanceof IResolvableType))
 				return originalFunc.returnType();
 			IType predType = call.unresolvedPredecessorType();
-			IType ct = IResolvableType._.resolve(predType != null ? predType : callerType, context, callerType);
-			Function func = callerType == originatingScript ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
-			return func != null ? IResolvableType._.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
+			IType ct = TypeUtil.resolve(predType != null ? predType : callerType, context, callerType);
+			Function func = contextScript == originalFunc.script() ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
+			return func != null ? TypeUtil.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
 		} catch (Exception e) {
 			//e.printStackTrace();
 			return PrimitiveType.UNKNOWN;

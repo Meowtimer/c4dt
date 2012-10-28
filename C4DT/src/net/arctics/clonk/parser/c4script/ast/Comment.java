@@ -179,7 +179,7 @@ public class Comment extends Statement implements Statement.Attachment {
 			if (prependix) {
 				this.print(builder, depth);
 				builder.append("\n");
-				Conf.printIndent(builder, depth-1);
+				Conf.printIndent(builder, depth);
 			}
 			break;
 		case Post:

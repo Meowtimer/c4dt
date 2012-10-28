@@ -90,7 +90,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		for (VarInitialization initialization : varInitializations)
 			if (initialization.variable != null)
 				if (initialization.expression != null) {
-					IType initializationType = initialization.expression.type(parser);
+					IType initializationType = initialization.expression.unresolvedType(parser);
 					if (
 						initialization.variable.staticallyTyped() &&
 						!initialization.variable.type().canBeAssignedFrom(initializationType)

@@ -1,8 +1,6 @@
-package net.arctics.clonk.resource;
+package net.arctics.clonk.resource.c4group;
 
 import java.net.URI;
-
-import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -14,7 +12,7 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
-class C4GroupStreamOpener implements IResourceDeltaVisitor, IResourceVisitor {
+public class C4GroupStreamOpener implements IResourceDeltaVisitor, IResourceVisitor {
 	public static final int OPEN = 0;
 	public static final int CLOSE = 1;
 

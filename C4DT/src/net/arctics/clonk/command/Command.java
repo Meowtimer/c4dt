@@ -30,6 +30,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectConverter;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
@@ -40,6 +41,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
@@ -183,6 +185,14 @@ public class Command {
 		public static void NoSTMirror(Object context, String project, String destinationFolder) {
 			IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
 			StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
+		}
+		@CommandFunction
+		public static void convertProject(Object context, String source, String dest) {
+			ProjectConverter converter = new ProjectConverter(
+				ResourcesPlugin.getWorkspace().getRoot().getProject(source),
+				ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
+			);
+			converter.convert(new NullProgressMonitor());
 		}
 	}
 

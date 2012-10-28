@@ -7,6 +7,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
@@ -142,12 +143,11 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
-
 		// put brackets around operands in case some transformation messed up prioritization
 		boolean needsBrackets = leftSide instanceof BinaryOp && operator().priority() > ((BinaryOp)leftSide).operator().priority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
-		leftSide.print(output, depth+1);
+		leftSide.print(output, depth);
 		if (needsBrackets)
 			output.append(")"); //$NON-NLS-1$
 
@@ -158,7 +158,9 @@ public class BinaryOp extends OperatorExpression {
 		needsBrackets = rightSide instanceof BinaryOp && operator().priority() > ((BinaryOp)rightSide).operator().priority();
 		if (needsBrackets)
 			output.append("("); //$NON-NLS-1$
-		rightSide.print(output, depth+1);
+		if (rightSide instanceof PropListExpression)
+			Conf.blockPrelude(output, depth);
+		rightSide.print(output, depth);
 		if (needsBrackets)
 			output.append(")"); //$NON-NLS-1$
 	}

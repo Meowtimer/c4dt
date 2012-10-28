@@ -35,6 +35,7 @@ import javax.xml.xpath.XPathFactory;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
@@ -990,7 +991,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void setSourceComment(String s) { sourceComment = s; }
 	
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		//requireLoaded();
 		if (sourceComment != null)
 			return sourceComment;
@@ -1002,7 +1003,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					return StreamUtil.stringFromFileDocument((IFile) infoFile);
 				} catch (Exception e) {
 					e.printStackTrace();
-					return super.infoText();
+					return super.infoText(context);
 				}
 		}
 		return "";
@@ -1072,7 +1073,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (resource == null)
 			return null;
 		try {
-			script = SystemScript.pinnedScript(resource, false);
+			script = SystemScript.pinned(resource, false);
 		} catch (CoreException e) {
 			script = null;
 		}

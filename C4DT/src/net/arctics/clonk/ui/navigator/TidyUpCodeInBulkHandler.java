@@ -130,7 +130,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 															IDocument document = textFileDocProvider.getDocument(file);
 
 															if (document != null)
-																TidyUpCodeAction.runOnDocument(script, null, parser, document);
+																TidyUpCodeAction.converter().runOnDocument(script, null, parser, document);
 
 															try {
 																textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());

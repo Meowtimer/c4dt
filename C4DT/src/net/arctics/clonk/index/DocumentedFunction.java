@@ -54,9 +54,9 @@ public final class DocumentedFunction extends Function implements IDocumentedDec
 	}
 	
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		fetchDocumentation();
-		String sup = super.infoText();
+		String sup = super.infoText(context);
 		if (originInfo != null)
 			sup += originInfo;
 		return sup;

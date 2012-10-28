@@ -24,6 +24,7 @@ public class IniUnitParser extends CStyleScanner {
 	
 	public IniUnitParser(IniUnit iniUnit, Object source) {
 		super(source);
+		figureOutIndentation();
 		unit = iniUnit;
 		if (source instanceof IFile)
 			file = (IFile) source;
@@ -45,6 +46,7 @@ public class IniUnitParser extends CStyleScanner {
 		int start = tell();
 		if (read() == '[' && indentation == targetIndentation) {
 			String name = readStringUntil(']', '\n', '\r');
+			int end;
 			if (read() != ']') {
 				if (modifyMarkers)
 					unit.marker(ParserErrorCode.TokenExpected, tell()-1, tell(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
@@ -53,9 +55,9 @@ public class IniUnitParser extends CStyleScanner {
 				if (!unit.isSectionNameValid(name, parentSection))
 					if (modifyMarkers)
 						unit.marker(ParserErrorCode.UnknownSection, start+1, tell()-1, IMarker.SEVERITY_WARNING, name);
+				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
-			int end = tell();
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
 			section.setParentDeclaration(parentSection != null ? parentSection : unit);
 			section.setIndentation(indentation);
@@ -63,8 +65,7 @@ public class IniUnitParser extends CStyleScanner {
 			IniItem item= null;
 			Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
 			List<IniItem> itemList = new LinkedList<IniItem>();
-			unit.currentSection = section;
-			unit.currentSection.setSectionData(unit.sectionDataFor(section, parentSection));
+			section.setSectionData(unit.sectionDataFor(section, parentSection));
 			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
 				itemMap.put(item.key(),item);
 				itemList.add(item);

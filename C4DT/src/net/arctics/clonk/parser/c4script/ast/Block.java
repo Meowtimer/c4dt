@@ -61,12 +61,12 @@ public class Block extends Statement {
 		builder.append("{\n"); //$NON-NLS-1$
 		for (Statement statement : statements) {
 			//statement.printPrependix(builder, depth);
-			Conf.printIndent(builder, depth);
+			Conf.printIndent(builder, depth+1);
 			statement.print(builder, depth+1);
 			//statement.printAppendix(builder, depth);
 			builder.append("\n"); //$NON-NLS-1$
 		}
-		Conf.printIndent(builder, depth-1); builder.append("}"); //$NON-NLS-1$
+		Conf.printIndent(builder, depth); builder.append("}"); //$NON-NLS-1$
 	}
 	
 	@Override

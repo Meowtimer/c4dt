@@ -1,9 +1,5 @@
 package net.arctics.clonk.preferences;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
@@ -20,16 +16,18 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 	@Override
 	protected void createFieldEditors() {
 		// toggles
-		Map<String, String> toggleHumanMap = new HashMap<String, String>();
-		toggleHumanMap.put(ClonkPreferences.SHOW_EXPORT_LOG, Messages.ShowExportLog);
-		toggleHumanMap.put(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, Messages.ClonkPreferencePage_ShowErrorsWhileTyping);
-		toggleHumanMap.put(ClonkPreferences.OPEN_EXTERNAL_BROWSER, Messages.ClonkPreferencePage_OpenExternalBrowser);
-		toggleHumanMap.put(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer);
-		toggleHumanMap.put(ClonkPreferences.NO_AUTOBRACKETPAIRS, Messages.ClonkPreferencePage_NoAutoBrackets);
-		toggleHumanMap.put(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, Messages.TogglesPreferencePage_IgnoreSimpleFunctionDupes);
-		toggleHumanMap.put(ClonkPreferences.ANALYZE_CODE, Messages.TogglesPreferencePage_AnalyzeCode);
-		for (Entry<String, String> entry : toggleHumanMap.entrySet())
-			addField(new BooleanFieldEditor(entry.getKey(), entry.getValue(), getFieldEditorParent()));
+		String[] toggles = {
+			ClonkPreferences.SHOW_EXPORT_LOG, Messages.ShowExportLog,
+			ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, Messages.ClonkPreferencePage_ShowErrorsWhileTyping,
+			ClonkPreferences.OPEN_EXTERNAL_BROWSER, Messages.ClonkPreferencePage_OpenExternalBrowser,
+			ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer,
+			ClonkPreferences.NO_AUTOBRACKETPAIRS, Messages.ClonkPreferencePage_NoAutoBrackets,
+			ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, Messages.TogglesPreferencePage_IgnoreSimpleFunctionDupes,
+			ClonkPreferences.ANALYZE_CODE, Messages.TogglesPreferencePage_AnalyzeCode,
+			ClonkPreferences.JAVA_STYLE_BLOCKS, Messages.TogglesPreferencePage_JavaStyleBlocks
+		};
+		for (int i = 0; i < toggles.length; i += 2)
+			addField(new BooleanFieldEditor(toggles[i], toggles[i+1], getFieldEditorParent()));
 	}
 
 	@Override

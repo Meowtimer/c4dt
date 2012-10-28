@@ -831,12 +831,7 @@ public class SpecialScriptRules {
 					IResource res = Utilities.findMemberCaseInsensitively(projDef.definitionFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
 						IniUnit unit;
-						try {
-							unit = (IniUnit) Structure.pinned(res, true, false);
-						} catch (CoreException e) {
-							e.printStackTrace();
-							return null;
-						}
+						unit = (IniUnit) Structure.pinned(res, true, false);
 						if (unit instanceof IniUnitWithNamedSections) {
 							IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
 							if (actionSection != null)

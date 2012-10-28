@@ -328,7 +328,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		boolean didResolveSomething = false;
 		int i = 0;
 		for (IType t : this) {
-			IType resolved = IResolvableType._.resolve(t, context, callerType);
+			IType resolved = TypeUtil.resolve(t, context, callerType);
 			if (resolved != t)
 				didResolveSomething = true;
 			resolvedTypes[i++] = resolved;

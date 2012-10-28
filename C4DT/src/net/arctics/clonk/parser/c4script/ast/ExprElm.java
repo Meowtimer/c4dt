@@ -21,11 +21,11 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
@@ -230,7 +230,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return The type of the expression
 	 */
 	public final IType type(DeclarationObtainmentContext context) {
-		return IResolvableType._.resolve(unresolvedType(context), context, callerType(context));
+		return TypeUtil.resolve(unresolvedType(context), context, callerType(context));
 	}
 
 	/**

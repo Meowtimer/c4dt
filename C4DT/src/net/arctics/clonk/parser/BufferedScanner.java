@@ -3,10 +3,15 @@ package net.arctics.clonk.parser;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
+import java.math.BigInteger;
 import java.security.InvalidParameterException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -17,7 +22,8 @@ import org.eclipse.jface.text.rules.ICharacterScanner;
  * Scanner operating on a string stored in memory. Can be created from a file, an input stream or a raw string
  */
 public class BufferedScanner implements ICharacterScanner {
-
+	
+	public static final byte TABINDENTATIONMODE = -1;
 	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 	public static final Pattern NUMERAL_PATTERN = Pattern.compile("[0-9]+");
 	
@@ -50,6 +56,39 @@ public class BufferedScanner implements ICharacterScanner {
 	 * Current offset
 	 */
 	protected int offset;
+	
+	/**
+	 * Indentation mode: -1 for Tab, number for number of whitespace characters
+	 */
+	protected byte indentationMode = -1;
+	
+	/**
+	 * Figure out what indentation the {@link #buffer()} is written in.
+	 * @return The value assigned to {@link #indentationMode}
+	 */
+	protected byte figureOutIndentation() {
+		Set<BigInteger> leadingWhitespaceCounts = null;
+		for (String line : StringUtil.lines(new StringReader(buffer)))
+			if (line.length() > 0 && line.charAt(0) == '\t')
+				// one tab is enough to conclude that
+				return indentationMode = TABINDENTATIONMODE;
+			else {
+				int numWhitespace;
+				for (numWhitespace = 0; numWhitespace < line.length() && line.charAt(numWhitespace) == ' '; numWhitespace++);
+				if (numWhitespace > 0) {
+					if (leadingWhitespaceCounts == null)
+						leadingWhitespaceCounts = new HashSet<BigInteger>();
+					leadingWhitespaceCounts.add(BigInteger.valueOf(numWhitespace));
+				}
+			}
+		if (leadingWhitespaceCounts != null) {
+			BigInteger gcd = null;
+			for (BigInteger wc : leadingWhitespaceCounts)
+				gcd = gcd == null ? wc : wc.gcd(gcd);
+			return indentationMode = gcd.byteValue();
+		} else
+			return indentationMode = TABINDENTATIONMODE;
+	}
 
 	/**
 	 * Create a new scanner that scans a string
@@ -297,24 +336,47 @@ public class BufferedScanner implements ICharacterScanner {
 		return eat(WHITESPACE_CHARS);
 	}
 	
-	public static int indentationOfStringAtPos(String s, int pos) {
+	/**
+	 * Return indentation of the line inside the given string at the given position using a specific indentation mode.
+	 * @param s The string the line is contained in to return the indentation of
+	 * @param pos The position inside the string
+	 * @param indentationMode Indentation mode: {@link #TABINDENTATIONMODE} for tab indentation, number for number-of-whitespace-characters indentation
+	 * @return The indentation at the specified position.
+	 */
+	public static int indentationOfStringAtPos(String s, int pos, byte indentationMode) {
 		if (pos >= s.length())
 			pos = s.length();
-		int tabs = 0;
-		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
-			if (pos < s.length() && s.charAt(pos) == '\t')
-				tabs++;
+		switch (indentationMode) {
+		case TABINDENTATIONMODE:
+			int tabs = 0;
+			for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
+				if (pos < s.length() && s.charAt(pos) == '\t')
+					tabs++;
+				else
+					tabs = 0; // don't count tabs not at the start of the line
+			return tabs;
+		default:
+			int whitespace = 0;
+			if (indentationMode > 0) {
+				for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
+					if (pos < s.length() && s.charAt(pos) == ' ')
+						whitespace++;
+					else
+						whitespace = 0; // don't count tabs not at the start of the line
+				return whitespace / indentationMode;
+			}
 			else
-				tabs = 0; // don't count tabs not at the start of the line
-		return tabs;
+				return 0;
+		}
+
 	}
-	
+
 	public final int indentationAt(int offset) {
-		return indentationOfStringAtPos(buffer, offset);
+		return indentationOfStringAtPos(buffer, offset, indentationMode);
 	}
 	
 	public final int currentIndentation() {
-		return indentationOfStringAtPos(buffer, tell());
+		return indentationOfStringAtPos(buffer, tell(), indentationMode);
 	}
 
 	/**

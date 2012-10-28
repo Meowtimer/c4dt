@@ -4,6 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -39,8 +40,11 @@ public class ReturnStatement extends KeywordStatement {
 			// return(); -> return 0;
 			if (returnExpr == ExprElm.NULL_EXPR)
 				builder.append("0"); //$NON-NLS-1$
-			else
-				returnExpr.print(builder, depth+1);
+			else {
+				if (returnExpr instanceof PropListExpression)
+					Conf.blockPrelude(builder, depth);
+				returnExpr.print(builder, depth);
+			}
 		}
 		builder.append(";"); //$NON-NLS-1$
 	}

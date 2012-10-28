@@ -233,25 +233,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Engine engine;
 	private ClonkBuilder builder;
 	private CachedEngineDeclarations cachedEngineDeclarations;
+	protected boolean findDefinitionViaCall;
 	
-	public final Engine engine() {
-		return engine;
-	}
-	
-	public final SpecialScriptRules specialScriptRules() {
-		return specialScriptRules;
-	}
-	
-	public boolean allErrorsDisabled() {
-		return allErrorsDisabled;
-	}
-	
-	public final StaticTyping staticTyping() {
-		return staticTyping;
-	}
-	
+	public final boolean findDefinitionViaCall() {return findDefinitionViaCall;}
+	public final Engine engine() {return engine;}
+	public final SpecialScriptRules specialScriptRules() {return specialScriptRules;}
+	public boolean allErrorsDisabled() {return allErrorsDisabled;}
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
 	public ClonkBuilder builder() {return builder;}
+	public final StaticTyping staticTyping() { return staticTyping; }
 	
 	/**
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
@@ -3369,6 +3359,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			protected void initialize() {
 				super.initialize();
 				offsetOfScriptFragment = statementStart;
+				findDefinitionViaCall = true;
 			}
 			@Override
 			public int bodyOffset() {

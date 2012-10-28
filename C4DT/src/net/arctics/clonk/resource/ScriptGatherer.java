@@ -133,7 +133,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			IFile file = (IFile) resource;
 			// only create standalone-scripts for *.c files residing in System groups
 			if (builder.isSystemScript(resource)) {
-				Script script = SystemScript.pinnedScript(file, true);
+				Script script = SystemScript.pinned(file, true);
 				if (script == null)
 					script = new SystemScript(builder.index(), file);
 				builder.queueScript(script);

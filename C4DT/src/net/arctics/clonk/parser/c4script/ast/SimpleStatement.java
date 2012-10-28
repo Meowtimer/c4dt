@@ -50,7 +50,7 @@ public class SimpleStatement extends Statement {
 
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		expression.print(builder, depth+1);
+		expression.print(builder, depth);
 		builder.append(";"); //$NON-NLS-1$
 	}
 

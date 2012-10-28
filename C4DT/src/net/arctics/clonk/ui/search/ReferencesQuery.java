@@ -109,7 +109,13 @@ public class ReferencesQuery extends SearchQueryBase {
 		
 		public void searchScript(IResource resource, Script script) {
 			if (script.scriptFile() != null) {
-				C4ScriptParser parser = new C4ScriptParser(script);
+				C4ScriptParser parser;
+				try {
+					parser = new C4ScriptParser(script);
+				} catch (Exception e) {
+					// that went wrong
+					return;
+				}
 				if (declaration instanceof Definition) {
 					Directive include = script.directiveIncludingDefinition((Definition) declaration);
 					if (include != null)

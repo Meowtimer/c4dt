@@ -21,7 +21,7 @@ import org.eclipse.core.resources.IFile;
 public final class StringLiteral extends Literal<String> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private String literal;
+	private final String literal;
 	
 	public StringLiteral(String literal) {
 		this.literal =literal != null ? literal : ""; //$NON-NLS-1$
@@ -62,9 +62,8 @@ public final class StringLiteral extends Literal<String> {
 			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(parser, SpecialScriptRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
 				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parser, myIndex, offset, this);
-				if (region != null) {
+				if (region != null)
 					return region;
-				}
 			}
 
 		}
@@ -73,7 +72,10 @@ public final class StringLiteral extends Literal<String> {
 	
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
-		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), StringUtil.evaluateEscapes(literal()), false);
+		String escapesEvaluated = StringUtil.evaluateEscapes(literal());
+		if (context.script() == null)
+			return escapesEvaluated;
+		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), escapesEvaluated, false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && literal().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.region(), (IFile) r.singleDeclarationRegionUsed.entityAs(Declaration.class).resource());
@@ -87,9 +89,8 @@ public final class StringLiteral extends Literal<String> {
 		
 		// warn about overly long strings
 		long max = parser.script().index().engine().settings().maxStringLen;
-		if (max != 0 && literal().length() > max) {
+		if (max != 0 && literal().length() > max)
 			parser.warning(ParserErrorCode.StringTooLong, this, literal().length(), max);
-		}
 		
 		// stringtbl entries
 		// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to

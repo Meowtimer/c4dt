@@ -325,7 +325,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(), "", processor.editor())); 
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(parser.script()), "", processor.editor())); 
 									}
 								}
 					}
