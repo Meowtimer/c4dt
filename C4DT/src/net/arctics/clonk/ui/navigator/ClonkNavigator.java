@@ -133,13 +133,9 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			Script script = Script.get((IFile) element, true);
 			if (script != null)
 				return super.hasChildren(script);
-			try {
-				Structure structure;
-				if ((structure = Structure.pinned((IFile) element, true, false)) != null)
-					return structure instanceof ITreeNode && ((ITreeNode)structure).childCollection().size() > 0;
-			} catch (CoreException e) {
-				return false;
-			}
+			Structure structure;
+			if ((structure = Structure.pinned((IFile) element, true, false)) != null)
+				return structure instanceof ITreeNode && ((ITreeNode)structure).childCollection().size() > 0;
 		}
 		else if (element instanceof ITreeNode && s) {
 			ITreeNode node = (ITreeNode) element;
