@@ -70,11 +70,6 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	protected String defaultName;
 	
 	/**
-	 * Temporary reference to the section being currently parsed.
-	 */
-	protected IniSection currentSection;
-	
-	/**
 	 * Parser parsing this IniUnit
 	 */
 	private IniUnitParser parser;
@@ -145,7 +140,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
-		IniSectionDefinition sectionConfig = currentSection.sectionData();
+		IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).sectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key()))
