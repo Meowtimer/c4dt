@@ -248,8 +248,8 @@ public class Definition extends Script implements IProplistDeclaration {
 		}
 
 		@Override
-		public String infoText() {
-			return Definition.this.infoText();
+		public String infoText(IIndexEntity context) {
+			return Definition.this.infoText(context);
 		}
 
 		@Override
@@ -430,8 +430,8 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public String infoText() {
-		return String.format(INFO_TEXT_TEMPLATE, name(), super.infoText(), definitionFolder().getFullPath().toOSString());
+	public String infoText(IIndexEntity context) {
+		return String.format(INFO_TEXT_TEMPLATE, name(), super.infoText(context), definitionFolder().getFullPath().toOSString());
 	}
 
 	/**

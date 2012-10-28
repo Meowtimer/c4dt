@@ -25,7 +25,7 @@ public interface IIndexEntity {
 	 * Return some informational text describing this entity for the user.
 	 * @return Informational text
 	 */
-	String infoText();
+	String infoText(IIndexEntity context);
 	/**
 	 * Return the index the entity is contained in.
 	 * @return The {@link Index}

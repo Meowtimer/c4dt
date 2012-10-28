@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
@@ -19,9 +18,8 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -187,12 +185,12 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return The short info string.
 	 */
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		return name();
 	}
 	
-	public String displayString() {
-		return infoText();
+	public String displayString(IIndexEntity context) {
+		return infoText(this);
 	}
 	
 	/**
@@ -441,90 +439,16 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return null;
 	}
 	
-	protected int absoluteExpressionsOffset() {return 0;}
+	public int absoluteExpressionsOffset() {return 0;}
 	
 	/**
 	 * Return a {@link DeclarationObtainmentContext} describing the surrounding environment of this {@link Declaration}. 
 	 * @return The context
 	 */
 	public DeclarationObtainmentContext declarationObtainmentContext() {
-		return new DeclarationObtainmentContext() {
-			
-			@Override
-			public IType queryTypeOfExpression(ExprElm exprElm, IType defaultType) {
-				return null;
-			}
-			
-			@Override
-			public void reportProblems(Function function) {
-			}
-
-			@Override
-			public Function currentFunction() {
-				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
-			}
-			
-			@Override
-			public Definition definition() {
-				return script() instanceof Definition ? (Definition)script() : null;
-			}
-
-			@Override
-			public void storeType(ExprElm exprElm, IType type) {
-				// yeah right
-			}
-
-			@Override
-			public Declaration currentDeclaration() {
-				return Declaration.this;
-			}
-
-			@Override
-			public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
-				int bodyOffset = absoluteExpressionsOffset();
-				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
-			}
-
-			@Override
-			public Object[] arguments() {
-				return new Object[0];
-			}
-
-			@Override
-			public Function function() {
-				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
-			}
-
-			@Override
-			public Script script() {
-				return Declaration.this.script();
-			}
-
-			@Override
-			public int codeFragmentOffset() {
-				return 0;
-			}
-
-			@Override
-			public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {}
-
-			@Override
-			public Object valueForVariable(String varName) {
-				return null;
-			}
-
-			@Override
-			public CachedEngineDeclarations cachedEngineDeclarations() {
-				return engine().cachedDeclarations();
-			}
-
-			@Override
-			public void setCurrentFunction(Function function) {
-				// ignore
-			}
-		};
+		return TypeUtil.declarationObtainmentContext(this);
 	}
-
+	
 	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
 			new DeclarationLocation(this, location(), resource())

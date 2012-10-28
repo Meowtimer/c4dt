@@ -39,6 +39,7 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -333,7 +334,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	private static IType resolveType(IType type, DeclarationObtainmentContext context, IType callerType) {
-		return IResolvableType._.resolve(type, context, callerType != null ? callerType : context.script());
+		return TypeUtil.resolve(type, context, callerType != null ? callerType : context.script());
 	}
 
 	protected Declaration _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
