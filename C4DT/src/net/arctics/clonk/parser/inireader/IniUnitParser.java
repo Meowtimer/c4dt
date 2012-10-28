@@ -24,6 +24,7 @@ public class IniUnitParser extends CStyleScanner {
 	
 	public IniUnitParser(IniUnit iniUnit, Object source) {
 		super(source);
+		figureOutIndentation();
 		unit = iniUnit;
 		if (source instanceof IFile)
 			file = (IFile) source;
