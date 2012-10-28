@@ -39,9 +39,11 @@ public class PropListExpression extends ExprElm {
 	public void doPrint(ExprWriter output, int depth) {
 		output.append('{');
 		List<Variable> components = components();
+		final boolean singleLine = output.flag(ExprWriter.SINGLE_LINE);
 		for (int i = 0; i < components.size(); i++) {
 			Variable component = components.get(i);
-			output.append('\n');
+			if (singleLine) { if (i > 0) output.append(' '); }
+			else output.append('\n');
 			Conf.printIndent(output, depth+1);
 			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
@@ -51,7 +53,8 @@ public class PropListExpression extends ExprElm {
 			if (i < components.size()-1)
 				output.append(',');
 			else {
-				output.append('\n');
+				if (!singleLine)
+					output.append('\n');
 				Conf.printIndent(output, depth);
 			}
 		}

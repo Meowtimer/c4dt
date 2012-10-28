@@ -18,6 +18,8 @@ public abstract class Conf {
 	public static String indentString = "\t"; //$NON-NLS-1$
 
 	public static void printIndent(ExprWriter output, int indentDepth) {
+		if (output.flag(ExprWriter.SINGLE_LINE))
+			return;
 		for (int i = 0; i < indentDepth; i++)
 			output.append(indentString);
 	}
