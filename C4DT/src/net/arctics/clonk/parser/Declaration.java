@@ -33,7 +33,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 
 /**
@@ -424,18 +423,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	public StringTbl localStringTblMatchingLanguagePref() {
-		try {
-			IResource res = resource();
-			if (res == null)
-				return null;
-			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-			String pref = ClonkPreferences.languagePref();
-			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (tblFile instanceof IFile)
-				return (StringTbl) Structure.pinned(tblFile, true, false);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
+		IResource res = resource();
+		if (res == null)
+			return null;
+		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
+		String pref = ClonkPreferences.languagePref();
+		IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (tblFile instanceof IFile)
+			return (StringTbl) Structure.pinned(tblFile, true, false);
 		return null;
 	}
 	

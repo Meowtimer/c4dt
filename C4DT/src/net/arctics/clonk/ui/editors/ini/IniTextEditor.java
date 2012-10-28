@@ -18,7 +18,6 @@ import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
@@ -112,14 +111,9 @@ public class IniTextEditor extends ClonkTextEditor {
 
 	public IniUnit unit() {
 		IniUnit unit = null;
-		try {
-			unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		if (textChangeListener == null && unit != null && unit.isEditable()) {
+		unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
+		if (textChangeListener == null && unit != null && unit.isEditable())
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
-		}
 		else if (textChangeListener != null)
 			textChangeListener.ensureIniUnitUpToDate(this);
 		return unit;
@@ -136,8 +130,8 @@ public class IniTextEditor extends ClonkTextEditor {
 	private TextChangeListener textChangeListener;
 	
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
-		if (item.childCollection() != null) {
-			for (INode i : item.childCollection()) {
+		if (item.childCollection() != null)
+			for (INode i : item.childCollection())
 				if (i instanceof IniItem) { 
 					if (i instanceof IniSection) {
 						IniSection sec = (IniSection) i;
@@ -145,8 +139,6 @@ public class IniTextEditor extends ClonkTextEditor {
 					}
 					collectAnnotationPositions((IniItem) i, positions);
 				}
-			}
-		}
 	}
 	
 	public void updateFoldingStructure() {

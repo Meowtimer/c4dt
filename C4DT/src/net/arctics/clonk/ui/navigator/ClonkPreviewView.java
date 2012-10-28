@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
@@ -15,8 +16,8 @@ import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
@@ -62,7 +63,7 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.ViewPart;
 
 /**
  * View to show preview of files
@@ -95,9 +96,9 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		}
 
 		public synchronized void reschedule(int delay, ISelection selection) {
-			if (selection == null) {
+			if (selection == null)
 				this.cancel();
-			} else if (this.selection == null || getState() != WAITING || !selection.equals(this.selection.get())) {
+			else if (this.selection == null || getState() != WAITING || !selection.equals(this.selection.get())) {
 				this.setSelection(selection);
 				this.schedule(delay);
 			}
@@ -234,9 +235,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			IResource matsRes = container.findMember(materialFolderBaseName);
-			if (matsRes != null) {
+			if (matsRes != null)
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
-			}
 		}
 		return engine.settings().gamePath+"/"+materialFolderBaseName; 
 	}
@@ -255,7 +255,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				IFile file = (IFile) sel;
 				String fileName = file.getName().toLowerCase();
 				if (fileName.endsWith(".png") || fileName.endsWith(".bmp") || fileName.endsWith(".jpeg") || fileName.endsWith("jpg")) { //$NON-NLS-1$ //$NON-NLS-2$
-					newImage = new Image(canvas.getDisplay(), file.getContents());
+					InputStream contents = file.getContents();
+					try {
+						newImage = new Image(canvas.getDisplay(), contents);
+					} finally {
+						contents.close();
+					}
 				}
 				else if (fileName.equalsIgnoreCase("Landscape.txt")) {
 					// render landscape.txt using utility embedded into OpenClonk
@@ -299,12 +304,10 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 						e.printStackTrace();
 					}
 				}
-				else if (fileName.endsWith(".rtf")) { //$NON-NLS-1$
+				else if (fileName.endsWith(".rtf"))
 					newHtml = rtfToHtml(StreamUtil.stringFromFileDocument(file));
-				}
-				else if (fileName.endsWith(".txt")) { //$NON-NLS-1$
+				else if (fileName.endsWith(".txt"))
 					newHtml = StreamUtil.stringFromFileDocument(file);
-				}
 			}
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				IContainer container = (IContainer) sel;
@@ -314,14 +317,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					newDefText = obj.infoTextIncludingIDAndName();
 
 				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.languagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
-				if (descFile instanceof IFile) {
+				if (descFile instanceof IFile)
 					newHtml = rtfToHtml(StreamUtil.stringFromFileDocument((IFile) descFile));
-				}
 				else {
 					descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
-					if (descFile instanceof IFile) {
+					if (descFile instanceof IFile)
 						newHtml = StreamUtil.stringFromFileDocument((IFile) descFile);
-					}
 				}
 
 				if (obj != null && obj.cachedPicture() != null) {
@@ -333,9 +334,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					// Title.png
 					if (newImage == null) {
 						IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
-						if (graphicsFile instanceof IFile) {
+						if (graphicsFile instanceof IFile)
 							newImage = new Image(canvas.getDisplay(), ((IFile)graphicsFile).getContents());
-						}
 					}
 
 					// part of Graphics.png as specified by DefCore.Picture
