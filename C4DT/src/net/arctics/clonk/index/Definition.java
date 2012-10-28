@@ -459,12 +459,12 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public List<Variable> components() {
+	public List<Variable> components(boolean includeAdhocComponents) {
 		return this.definedVariables;
 	}
 
 	@Override
-	public Variable addComponent(Variable variable) {
+	public Variable addComponent(Variable variable, boolean adhoc) {
 		Variable v = this.findVariable(variable.name());
 		if (v != null)
 			return v;

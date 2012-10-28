@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.util.List;
-
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public interface IProplistDeclaration {
@@ -23,16 +21,18 @@ public interface IProplistDeclaration {
 
 	/**
 	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
+	 * @param includeAdhocComponents Whether the returned list also contains adhoc-components in addition to the ones present in the initial declaration
 	 * @return Return the list of component variables this proplist declaration is made up of.
 	 */
-	List<Variable> components();
+	Iterable<Variable> components(boolean includeAdhocComponents);
 
 	/**
 	 * Add a new component variable to this declaration.
 	 * @param variable The variable to add
+	 * @param adhoc Whether the variable is to be marked as having been added after the initial proplist parsing took place.
 	 * @return Return either the passed variable or an already existing one with that name
 	 */
-	Variable addComponent(Variable variable);
+	Variable addComponent(Variable variable, boolean adhoc);
 
 	/**
 	 * Find a component variable by name.

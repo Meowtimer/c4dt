@@ -578,7 +578,6 @@ global func int GetUnusedOverlayID(int iBaseIndex);
 global func int GetValue(object pBase, int iForPlayer);
 global func int GetVertex(int iIndex, int data);
 global func int GetVertexNum();
-global func bool CheckVisibility(int player, object object);
 global func int GetWealth(int iOwner);
 global func int GetWind(int x, int y, bool fGlobal);
 global func int GetX(int precision);

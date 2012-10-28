@@ -29,7 +29,7 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	public List<Variable> components() {
-		return definedDeclaration.components();
+		return definedDeclaration.components(false);
 	}
 	
 	public PropListExpression(ProplistDeclaration declaration) {

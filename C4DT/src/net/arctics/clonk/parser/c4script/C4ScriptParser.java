@@ -2018,7 +2018,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							} finally {
 								setCurrentDeclaration(outerDec);
 							}
-							proplistDeclaration.addComponent(v);
+							proplistDeclaration.addComponent(v, false);
 							expectingComma = true;
 						}
 						else {

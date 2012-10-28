@@ -195,7 +195,7 @@ public class AccessVar extends AccessDeclaration {
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(declarationName(), Variable.Scope.VAR);
 						var.initializeFromAssignment(this, expression, context);
-						proplDecl.addComponent(var);
+						proplDecl.addComponent(var, true);
 						declaration = var;
 					}
 				} else for (IType t : predType)

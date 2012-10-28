@@ -4,6 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
@@ -77,7 +78,9 @@ public final class VarInitialization extends ExprElm {
 		output.append(name);
 		if (expression != null) {
 			output.append(" = ");
-			expression.print(output, depth+1);
+			if (expression instanceof PropListExpression)
+				Conf.blockPrelude(output, depth);
+			expression.print(output, depth);
 		}
 	}
 	/**
