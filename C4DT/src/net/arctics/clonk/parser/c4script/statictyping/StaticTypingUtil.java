@@ -23,8 +23,10 @@ import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -138,5 +140,11 @@ public class StaticTypingUtil {
 				}.schedule();
 			} else
 				UI.message(String.format("'%s' is already statically typed", projectName));
+	}
+	
+	@CommandFunction
+	public static void NoSTMirror(Object context, String project, String destinationFolder) {
+		IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
+		mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
 	}
 }
