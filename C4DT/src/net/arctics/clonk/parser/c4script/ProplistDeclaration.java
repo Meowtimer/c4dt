@@ -30,6 +30,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected List<Variable> components;
+	protected List<Variable> adhocComponents;
 	protected boolean adHoc;
 	protected ExprElm implicitPrototype;
 	
@@ -47,14 +48,6 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public boolean isAdHoc() {
 		return adHoc;
-	}
-	
-	/* (non-Javadoc)
-	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#components()
-	 */
-	@Override
-	public List<Variable> components() {
-		return components;
 	}
 	
 	private ProplistDeclaration() {
@@ -84,12 +77,21 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#addComponent(net.arctics.clonk.parser.c4script.Variable)
 	 */
 	@Override
-	public Variable addComponent(Variable variable) {
+	public Variable addComponent(Variable variable, boolean adhoc) {
 		Variable found = findComponent(variable.name());
 		if (found != null)
 			return found;
 		else {
-			components.add(variable);
+			List<Variable> list;
+			if (adhoc)
+				synchronized (components) {
+					if (adhocComponents == null)
+						adhocComponents = new ArrayList<Variable>(5);
+					list = adhocComponents;
+				}
+			else
+				list = components;
+			list.add(variable);
 			variable.setParentDeclaration(this);
 			return variable;
 		}
@@ -103,9 +105,15 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 			return null;
 		else
 			recursionPrevention.add(this);
-		for (Variable v : components)
-			if (v.name().equals(declarationName))
-				return v;
+		synchronized (components) {
+			for (Variable v : components)
+				if (v.name().equals(declarationName))
+					return v;
+			if (adhocComponents != null)
+				for (Variable v : adhocComponents)
+					if (v.name().equals(declarationName))
+						return v;
+		}
 		IProplistDeclaration proto = prototype();
 		if (proto instanceof ProplistDeclaration)
 			return ((ProplistDeclaration)proto).findComponent(declarationName, recursionPrevention);
@@ -125,9 +133,15 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		for (Variable v : components())
-			if (v.name().equals(declarationName))
-				return v;
+		synchronized (components) {
+			for (Variable v : components)
+				if (v.name().equals(declarationName))
+					return v;
+			if (adhocComponents != null)
+				for (Variable v : adhocComponents)
+					if (v.name().equals(declarationName))
+						return v;
+		}
 		return null;
 	}
 	
@@ -281,6 +295,17 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
+	}
+
+	@Override
+	public List<Variable> components(boolean includeAdhocComponents) {
+		synchronized(components) {
+			ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&adhocComponents!=null?adhocComponents.size():0));
+			list.addAll(components);
+			if (includeAdhocComponents && adhocComponents != null)
+				list.addAll(adhocComponents);
+			return list;
+		}
 	}
 
 }

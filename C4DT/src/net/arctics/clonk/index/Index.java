@@ -223,7 +223,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
 		indexedProplistDeclarations.add(proplistDeclaration);
-		for (Variable v : proplistDeclaration.components())
+		for (Variable v : proplistDeclaration.components(true))
 			addToDeclarationMap(v);
 	}
 

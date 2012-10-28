@@ -321,7 +321,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 							for (IType a : actMapLocal.type())
 								if (a instanceof IProplistDeclaration) {
 									IProplistDeclaration proplDecl = (IProplistDeclaration) a;
-									for (Variable comp : proplDecl.components()) {
+									for (Variable comp : proplDecl.components(true)) {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$

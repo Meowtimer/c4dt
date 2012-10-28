@@ -80,7 +80,9 @@ public class VarDeclarationStatement extends KeywordStatement {
 			output.append(name);
 			if (expression != null) {
 				output.append(" = ");
-				expression.print(output, depth+1);
+				if (expression instanceof PropListExpression)
+					Conf.blockPrelude(output, depth);
+				expression.print(output, depth);
 			}
 		}
 		/**
