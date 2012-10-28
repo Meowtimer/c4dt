@@ -12,6 +12,7 @@ import java.util.Set;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -276,7 +277,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public String displayString() {
+	public String displayString(IIndexEntity context) {
 		return longParameterString(true);
 	}
 
@@ -363,7 +364,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		String description = obtainUserDescription();
 		StringBuilder builder = new StringBuilder();
 		String scriptPath = script().resource() != null
@@ -384,19 +385,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		if (returnType() != PrimitiveType.UNKNOWN) {
-			builder.append("<br/><b>"+Messages.Returns+ "</b> "+StringUtil.htmlerize(returnType().typeName(true))+"<br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
+				Messages.Returns,
+				StringUtil.htmlerize(TypeUtil.resolve(returnType(), context, this).typeName(true)))); 
 			if (returnDescription != null)
 				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
 		}
 		return builder.toString();
-		/*return String.format(
-			Messages.FunctionInfoTextTemplate,
-			returnType() != null ? StringUtil.htmlerize(returnType().typeName(true)) : "",
-			StringUtil.htmlerize(longParameterString(true, false)),
-			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable,
-			script().name()
-		); //$NON-NLS-1$
-		*/
 	}
 
 	@Override

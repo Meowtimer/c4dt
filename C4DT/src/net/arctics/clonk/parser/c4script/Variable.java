@@ -5,6 +5,7 @@ import java.io.Serializable;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -225,8 +226,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public String infoText() {
-		IType t = type(); //getObjectType() != null ? getObjectType() : getType();
+	public String infoText(IIndexEntity context) {
+		IType t = TypeUtil.resolve(type(), context, this);
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue
@@ -234,18 +235,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
 			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
-			name(),
-			initializationExpression != null
-				? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))
-				: "", //$NON-NLS-1$
-			obtainUserDescription() != null && obtainUserDescription().length() > 0
-				? String.format(descriptionFormat, obtainUserDescription())
-				: "" //$NON-NLS-1$
+				name(),
+				initializationExpression != null
+					? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))
+					: "", //$NON-NLS-1$
+				obtainUserDescription() != null && obtainUserDescription().length() > 0
+					? String.format(descriptionFormat, obtainUserDescription())
+					: "" //$NON-NLS-1$
 		);
 	}
 	
 	@Override
-	public String displayString() {
+	public String displayString(IIndexEntity context) {
 		return this.name();
 	}
 	

@@ -94,22 +94,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
 		@Override
 		public void keyPressed(KeyEvent e) {}
-
 		@Override
 		public void mouseDoubleClick(MouseEvent e) {}
-
 		@Override
 		public void mouseDown(MouseEvent e) {}
-
 		@Override
-		public void keyReleased(KeyEvent e) {
-			showContentAssistance();
-		}
-
+		public void keyReleased(KeyEvent e) { showContentAssistance(); }
 		@Override
-		public void mouseUp(MouseEvent e) {
-			showContentAssistance();
-		}
+		public void mouseUp(MouseEvent e) { showContentAssistance(); }
 	}
 
 	/**

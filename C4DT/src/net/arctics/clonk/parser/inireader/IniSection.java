@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
@@ -165,9 +166,8 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public void validate() {
-		for (IniItem e : this) {
+		for (IniItem e : this)
 			e.validate();
-		}
 	}
 
 	public int indentation() {
@@ -186,11 +186,9 @@ public class IniSection extends Declaration implements
 	public Iterable<IniSection> sections() {
 		// unable to make this work generically ;c
 		List<IniSection> sections = new LinkedList<IniSection>();
-		for (ITreeNode node : childCollection()) {
-			if (node instanceof IniSection) {
+		for (ITreeNode node : childCollection())
+			if (node instanceof IniSection)
 				sections.add((IniSection) node);
-			}
-		}
 		return sections;
 	}
 
@@ -204,8 +202,8 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		IniUnit unit = iniUnit();
-		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText());
+		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText(context));
 	}
 }

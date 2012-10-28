@@ -47,4 +47,21 @@ public class AppendableBackedExprWriter implements ExprWriter {
 	public String toString() {
 		return appendable.toString();
 	}
+
+	private int flags;
+	
+	@Override
+	public void enable(int flag) {
+		flags |= flag;
+	}
+
+	@Override
+	public void disable(int flag) {
+		flags &= ~flag;
+	}
+
+	@Override
+	public boolean flag(int flag) {
+		return (flags & flag) != 0;
+	}
 }

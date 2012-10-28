@@ -51,8 +51,8 @@ public class DeclarationLocation implements Serializable, IIndexEntity, IHasRela
 		return declaration.matchedBy(matcher);
 	}
 	@Override
-	public String infoText() {
-		return declaration.infoText();
+	public String infoText(IIndexEntity context) {
+		return declaration.infoText(context);
 	}
 	@Override
 	public Index index() {

@@ -170,12 +170,11 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		for (VarInitialization initialization : varInitializations)
-			if (initialization.variable != null) {
+			if (initialization.variable != null)
 				if (initialization.expression != null)
 					parser.storeType(
 						new AccessVar(initialization.variable),
-						initialization.expression.type(parser)
+						initialization.expression.unresolvedType(parser)
 					);
-			}
 	}
 }

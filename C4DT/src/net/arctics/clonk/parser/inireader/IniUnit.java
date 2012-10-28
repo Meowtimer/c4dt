@@ -13,6 +13,7 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -67,11 +68,6 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * Name of the configuration that is to be used when no name was explicitly defined in the file. (?)
 	 */
 	protected String defaultName;
-	
-	/**
-	 * Temporary reference to the section being currently parsed.
-	 */
-	protected IniSection currentSection;
 	
 	/**
 	 * Parser parsing this IniUnit
@@ -144,7 +140,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
-		IniSectionDefinition sectionConfig = currentSection.sectionData();
+		IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).sectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key()))
@@ -475,7 +471,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 		return String.format(
 			INFO_FORMAT,
 			this.defaultName, this.iniFile().getProjectRelativePath().toOSString()

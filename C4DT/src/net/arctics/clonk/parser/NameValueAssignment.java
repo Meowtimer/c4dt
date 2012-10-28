@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -104,7 +105,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	}
 	
 	@Override
-	public String infoText() {
+	public String infoText(IIndexEntity context) {
 	    return key() + "=" + stringValue(); //$NON-NLS-1$
 	}
 

@@ -191,7 +191,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			displayStringRecomputationNecessary = false;
 			if (declaration instanceof IDocumentedDeclaration)
 				((IDocumentedDeclaration)declaration).fetchDocumentation();
-			displayString = declaration.displayString();
+			displayString = declaration.displayString(declaration);
 			Function func = as(declaration, Function.class);
 			if (func != null)
 				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
@@ -214,8 +214,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	@Override
 	public String getAdditionalProposalInfo() {
 		if (additionalProposalInfo == null && declaration != null)
-			additionalProposalInfo = declaration.infoText();
+			additionalProposalInfo = declaration.infoText(context());
 		return additionalProposalInfo;
+	}
+
+	private Declaration context() {
+		return editor != null ? editor.topLevelDeclaration() : declaration;
 	}
 
 	@Override

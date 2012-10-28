@@ -38,8 +38,11 @@ public class ReturnStatement extends KeywordStatement {
 			// return(); -> return 0;
 			if (returnExpr == ExprElm.NULL_EXPR)
 				builder.append("0"); //$NON-NLS-1$
-			else
-				returnExpr.print(builder, depth+1);
+			else {
+				if (returnExpr instanceof PropListExpression)
+					Conf.blockPrelude(builder, depth);
+				returnExpr.print(builder, depth);
+			}
 		}
 		builder.append(";"); //$NON-NLS-1$
 	}

@@ -7,12 +7,12 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
@@ -109,7 +109,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		IType type = arrayExpr.type(parser);
 		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 			parser.warning(ParserErrorCode.IncompatibleTypes, arrayExpr, 0, type, PrimitiveType.ARRAY);
-		IType elmType = IResolvableType._.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
+		IType elmType = TypeUtil.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
 		parser.pushTypeInfos();
 		if (loopVariable != null) {
 			if (elmType != null)
