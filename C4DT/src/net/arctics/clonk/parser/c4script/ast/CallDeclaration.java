@@ -38,8 +38,8 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -236,7 +236,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param depth Indentation level of parameter expressions.
 	 */
 	public static void printParmString(ExprWriter output, ExprElm[] params, int depth) {
-		output.enable(ExprWriter.SINGLE_LINE);
 		output.append("("); //$NON-NLS-1$
 		if (params != null)
 			for (int i = 0; i < params.length; i++) {
@@ -246,7 +245,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					output.append(", "); //$NON-NLS-1$
 			}
 		output.append(")"); //$NON-NLS-1$
-		output.disable(ExprWriter.SINGLE_LINE);
 	}
 	
 	@Override
