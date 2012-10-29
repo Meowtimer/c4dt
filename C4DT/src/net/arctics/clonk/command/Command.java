@@ -204,8 +204,8 @@ public class Command {
 
 	public static class Diagnostics {
 		@CommandFunction
-		public static void ReadIndex(Object context, String path) {
-			Index index = Index.loadShallow(Index.class, new File(path), null);
+		public static void ReadIndex(Object context, String path, String engine) {
+			Index index = Index.loadShallow(Index.class, new File(path), null, Core.instance().loadEngine(engine));
 			try {
 				index.postLoad();
 			} catch (CoreException e) {

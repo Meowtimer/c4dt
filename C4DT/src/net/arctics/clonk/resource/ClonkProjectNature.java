@@ -12,10 +12,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -78,13 +79,12 @@ public class ClonkProjectNature implements IProjectNature {
 				disabledErrorsSet = new HashSet<ParserErrorCode>();
 				if (!disabledErrors.equals("")) {
 					String ds[] = disabledErrors.split(",");
-					for (String d : ds) {
+					for (String d : ds)
 						try {
 							disabledErrorsSet.add(ParserErrorCode.valueOf(d));
 						} catch (IllegalArgumentException e) {
 							System.out.println("Unknown parser error: " + d);
 						}
-					}
 				}
 			}
 			return disabledErrorsSet;
@@ -121,27 +121,23 @@ public class ClonkProjectNature implements IProjectNature {
 		private void guessEngine(ClonkProjectNature nature) {
 			List<IProject> referencingProjects = nature.referencingClonkProjects();
 			Map<String, Integer> score = new HashMap<String, Integer>();
-			for (String engine : Core.instance().namesOfAvailableEngines()) {
+			for (String engine : Core.instance().namesOfAvailableEngines())
 				score.put(engine, 0);
-			}
 			for (IProject proj : referencingProjects) {
 				String projName = proj.getName();
 				String engine;
-				if (projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC")) {
+				if (projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC"))
 					engine = "OpenClonk";
-				} else if (projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR")) {
+				else if (projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR"))
 					engine = "ClonkRage";
-				} else {
+				else
 					continue;
-				}
 				score.put(engine, score.get(engine)+1);
 			}
 			Entry<String, Integer> best = null;
-			for (Entry<String, Integer> entry : score.entrySet()) {
-				if (best == null || entry.getValue() > best.getValue()) {
+			for (Entry<String, Integer> entry : score.entrySet())
+				if (best == null || entry.getValue() > best.getValue())
 					best = entry;
-				}
-			}
 			setEngineName(best.getKey());
 		}
 	}
@@ -275,7 +271,7 @@ public class ClonkProjectNature implements IProjectNature {
 			index = new ProjectIndex(getProject(), indexFolder());
 			performBuildOnOutdatedProject();
 		} else {
-			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null);
+			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null, settings().engine());
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
 				loadedIndex.setProject(getProject());
@@ -300,9 +296,8 @@ public class ClonkProjectNature implements IProjectNature {
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-				if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
+				if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0)
 					settings().guessValues(ClonkProjectNature.this);
-				}
 			}
 		});
 	}
@@ -317,9 +312,8 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the nature
 	 */
 	public static ClonkProjectNature get(ITextEditor editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput) {
+		if (editor.getEditorInput() instanceof FileEditorInput)
 			return get(((FileEditorInput)editor.getEditorInput()).getFile());
-		}
 		return null;
 	}
 	
@@ -363,16 +357,14 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	public static ClonkProjectNature get(String projectName) {
-		for (IProject proj : clonkProjectsInWorkspace()) {
-			if (proj.getName().equals(projectName)) {
+		for (IProject proj : clonkProjectsInWorkspace())
+			if (proj.getName().equals(projectName))
 				try {
 					return (ClonkProjectNature) proj.getNature(Core.NATURE_ID);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					return null;
 				}
-			}
-		}
 		return null;
 	}
 	
@@ -413,14 +405,12 @@ public class ClonkProjectNature implements IProjectNature {
 			List<IProject> newOnes = new LinkedList<IProject>();
 			for (IProject p : proj.getReferencedProjects()) {
 				ClonkProjectNature n = ClonkProjectNature.get(p);
-				if (n != null && !newOnes.contains(p)) {
+				if (n != null && !newOnes.contains(p))
 					newOnes.add(p);
-				}
 			}
 			result.addAll(newOnes);
-			for (IProject i : newOnes) {
+			for (IProject i : newOnes)
 				addProjectsFromReferencedProjects(result, i);
-			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

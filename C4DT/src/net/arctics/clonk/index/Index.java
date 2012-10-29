@@ -689,14 +689,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param fallbackFileLocation Secondary file location to use if the first one does not exist
 	 * @return The loaded index or null if loading the index failed for any reason.
 	 */
-	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation) {
+	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation, final Engine engine) {
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
 			InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
 			T index;
 			try {
-				ObjectInputStream objStream = new IndexEntityInputStream(null, in);
+				ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public Engine engine() {
+						return engine;
+					}
+				}, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
 					for (IndexEntity e : index.entities())
