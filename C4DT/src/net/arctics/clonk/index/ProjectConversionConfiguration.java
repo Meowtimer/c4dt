@@ -86,4 +86,8 @@ public class ProjectConversionConfiguration {
 			e1.printStackTrace();
 		}
 	}
+	
+	public List<CodeTransformation> transformations() {
+		return transformations;
+	}
 }

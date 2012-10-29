@@ -539,7 +539,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					List<URL> bucket = buckets.get(engineName);
 					if (bucket == null) {
 						bucket = new ArrayList<URL>();
-						buckets.put(path.segment(0), bucket);
+						buckets.put(engineName, bucket);
 					}
 					bucket.add(url);
 				}
@@ -550,6 +550,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				}
 			}
 		}
+	}
+	
+	public ProjectConversionConfiguration projectConversionConfigurationForEngine(Engine engine) {
+		return projectConversionConfigurations.get(engine.name());
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {

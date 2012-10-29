@@ -385,7 +385,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @throws CloneNotSupportedException
 	 */
 	public ExprElm optimize(final C4ScriptParser context) throws CloneNotSupportedException {
-		return transform(new ITransformer() {
+		return transformSubElements(new ITransformer() {
 			@Override
 			public ExprElm transform(ExprElm expression) {
 				if (expression == null)
@@ -410,7 +410,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return Either this element if no transformation took place or a clone with select transformations applied
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm transform(ITransformer transformer) {
+	public ExprElm transformSubElements(ITransformer transformer) {
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
@@ -750,7 +750,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return Whether elements are equal or not.
 	 */
 	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
-		if (other.getClass() == this.getClass()) {
+		if (other != null && other.getClass() == this.getClass()) {
 			ExprElm[] mySubElements = this.subElements();
 			ExprElm[] otherSubElements = other.subElements();
 			if (mySubElements.length != otherSubElements.length)
@@ -1017,32 +1017,31 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
 	 */
 	public Map<String, ExprElm> match(ExprElm other) {
-		final Map<String, ExprElm> result = new HashMap<String, ExprElm>();
-		this.compare(other, new IASTComparisonDelegate() {
+		class ComparisonDelegate implements IASTComparisonDelegate {
+			public Map<String, ExprElm> result;
 			@Override
-			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {}
 			@Override
-			public boolean optionEnabled(Option option) {
-				return false;
-			}
+			public boolean optionEnabled(Option option) { return false; }
 			@Override
 			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 				if (what == CLASS && a instanceof Placeholder) {
+					if (result == null)
+						result = new HashMap<String, ExprElm>();
 					result.put(((Placeholder)a).entryName(), b);
 					return DifferenceHandling.Equal;
 				}
 				else
 					return DifferenceHandling.Differs;
 			}
-		});
-		return result;
+		}
+		ComparisonDelegate delegate = new ComparisonDelegate();
+		this.compare(other, delegate);
+		return delegate.result;
 	}
 	
 	public ExprElm transform(final Map<String, ExprElm> substitutions) {
-		return this.transform(new ITransformer() {
+		return this.transformSubElements(new ITransformer() {
 			@Override
 			public ExprElm transform(ExprElm expression) {
 				if (expression instanceof Placeholder) {
@@ -1050,7 +1049,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					if (substitution != null)
 						return substitution;
 				}
-				return expression.transform(this);
+				return expression.transformSubElements(this);
 			}
 		});
 	}
