@@ -1,10 +1,10 @@
 package net.arctics.clonk.ui.navigator.actions;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 
@@ -22,16 +22,20 @@ public class LookupDeclarationHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		ClonkProjectNature nat = ClonkProjectNature.get(part);
-		List<Index> indices = new ArrayList<Index>();
-		if (nat != null && nat.index() != null)
-			indices.add(nat.index());
+		Set<Declaration> declarations = new HashSet<Declaration>();
+		if (nat != null && nat.index() != null) {
+			declarations.add(nat.index());
+			declarations.add(nat.index().engine());
+		}
 		else
-			for (IProject p : ClonkProjectNature.clonkProjectsInWorkspace())
-				indices.add(ClonkProjectNature.get(p).index());
-		if (indices.size() > 0) {
+			for (IProject p : ClonkProjectNature.clonkProjectsInWorkspace()) {
+				declarations.add(ClonkProjectNature.get(p).index());
+				declarations.add(ClonkProjectNature.get(p).index().engine());
+			}
+		if (declarations.size() > 0) {
 			EntityChooser chooser = new EntityChooser(
 				Platform.getResourceString(Core.instance().getBundle(), "%LookupDeclaration_Name"),
-				HandlerUtil.getActiveShell(event), indices
+				HandlerUtil.getActiveShell(event), declarations
 			);
 			chooser.run();
 		}

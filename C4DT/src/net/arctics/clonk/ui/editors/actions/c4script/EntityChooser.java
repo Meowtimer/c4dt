@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
@@ -24,6 +25,7 @@ import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -72,9 +74,17 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
 				StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null, null);
-				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				if (element instanceof IHasRelatedResource)
-					result.append(((IHasRelatedResource)element).resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+				if (element instanceof Declaration && ((Declaration)element).parentDeclaration() instanceof Engine) {
+					result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+					result.append(((Declaration)element).parentDeclaration().name());
+				}
+				if (element instanceof IHasRelatedResource) {
+					IResource resource = ((IHasRelatedResource)element).resource();
+					if (resource != null) {
+						result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+						result.append(resource.getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+					}
+				}
 				return result;
 			} else
 				return new StyledString("");
@@ -164,7 +174,11 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 							});
 						}
 					});
-				} else
+				}
+				else if (d instanceof Engine)
+					for (Declaration engineDeclaration : ((Engine)d).subDeclarations(null, IHasSubDeclarations.ALL))
+						contentProvider.add(engineDeclaration, itemsFilter);
+				else
 					contentProvider.add(d, itemsFilter);
 	}
 
