@@ -652,8 +652,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					if (offendingExpression instanceof VarInitialization) {
 						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
 						VarInitialization cur = (VarInitialization) offendingExpression;
-						VarInitialization next = cur.getNextInitialization();
-						VarInitialization previous = cur.getPreviousInitialization();
+						VarInitialization next = cur.succeedingInitialization();
+						VarInitialization previous = cur.precedingInitialization();
 						String replacementString = ""; //$NON-NLS-1$
 						if (next == null) {
 							if (previous != null) {

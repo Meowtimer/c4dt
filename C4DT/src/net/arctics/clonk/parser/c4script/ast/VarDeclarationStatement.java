@@ -26,7 +26,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	VarInitialization[] varInitializations;
 	private final Scope scope;
-
+	
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
 		super();
 		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);

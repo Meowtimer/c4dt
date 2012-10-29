@@ -87,16 +87,16 @@ public final class VarInitialization extends ExprElm {
 	 * Return the {@link VarInitialization} preceding this one in the {@link VarDeclarationStatement}
 	 * @return
 	 */
-	public VarInitialization getPreviousInitialization() {
-		VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).varInitializations;
+	public VarInitialization precedingInitialization() {
+		VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
 	}
 	/**
 	 * Return the subsequent {@link VarInitialization} in the {@link VarDeclarationStatement}
 	 * @return
 	 */
-	public VarInitialization getNextInitialization() {
-		VarInitialization[] sisters = parentOfType(VarDeclarationStatement.class).varInitializations;
+	public VarInitialization succeedingInitialization() {
+		VarInitialization[] sisters = parentOfType(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 	}
 	@Override

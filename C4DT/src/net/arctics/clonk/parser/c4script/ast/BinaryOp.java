@@ -230,23 +230,23 @@ public class BinaryOp extends OperatorExpression {
 	private Object evaluateOn(Object leftSide, Object rightSide) {
         switch (operator()) {
         case Add:
-        	return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() + ((Number)rightSide).doubleValue();
         case Subtract:
-        	return ((Number)leftSide).longValue() - ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() - ((Number)rightSide).doubleValue();
         case Multiply:
-        	return ((Number)leftSide).longValue() * ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() * ((Number)rightSide).doubleValue();
         case Divide:
-        	return ((Number)leftSide).longValue() / ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() / ((Number)rightSide).doubleValue();
         case Modulo:
-        	return ((Number)leftSide).longValue() % ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() % ((Number)rightSide).doubleValue();
         case Larger:
-        	return ((Number)leftSide).longValue() > ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() > ((Number)rightSide).doubleValue();
         case Smaller:
-        	return ((Number)leftSide).longValue() < ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() < ((Number)rightSide).doubleValue();
         case LargerEqual:
-        	return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() >= ((Number)rightSide).doubleValue();
         case SmallerEqual:
-        	return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
+        	return ((Number)leftSide).doubleValue() <= ((Number)rightSide).doubleValue();
         case StringEqual:
         case Equal:
         	return leftSide.equals(rightSide);
