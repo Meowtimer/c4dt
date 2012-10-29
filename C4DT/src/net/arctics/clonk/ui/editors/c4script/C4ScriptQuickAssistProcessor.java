@@ -43,7 +43,7 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -649,11 +649,11 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case Unused:
-					if (offendingExpression instanceof VarDeclarationStatement.VarInitialization) {
+					if (offendingExpression instanceof VarInitialization) {
 						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
 						VarInitialization cur = (VarInitialization) offendingExpression;
-						VarInitialization next = cur.getNextInitialization();
-						VarInitialization previous = cur.getPreviousInitialization();
+						VarInitialization next = cur.succeedingInitialization();
+						VarInitialization previous = cur.precedingInitialization();
 						String replacementString = ""; //$NON-NLS-1$
 						if (next == null) {
 							if (previous != null) {

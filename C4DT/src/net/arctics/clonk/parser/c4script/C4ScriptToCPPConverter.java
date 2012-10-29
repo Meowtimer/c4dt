@@ -31,7 +31,7 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.ui.editors.c4script.ReplacementStatement;
 import net.arctics.clonk.util.StreamUtil;
 

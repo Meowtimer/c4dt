@@ -84,7 +84,7 @@ import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
