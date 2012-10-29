@@ -1,0 +1,1 @@
+ObjectSetAction($obj$, $action$) => $obj$->SetAction($action$);

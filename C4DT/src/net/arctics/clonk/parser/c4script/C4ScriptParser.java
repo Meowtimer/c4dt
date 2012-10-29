@@ -19,6 +19,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
@@ -1307,7 +1308,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		private TempScript(String expression) {
 			super(new Index() {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
+				private final Engine tempEngine = new Engine("Temp Engine") { //$NON-NLS-1$
+					private final EngineSettings tempSettings = new EngineSettings();
+					{
+						tempSettings.strictDefaultLevel = 2;
+					}
+					@Override
+					public EngineSettings settings() {
+						return tempSettings;
+					}
+				};
 				@Override
 				public Engine engine() {
 					return tempEngine;
@@ -2901,7 +2911,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean parseID() throws ParsingException {
 		ID id;
-		if (offset < size && (id = specialScriptRules.parseId(this)) != null) {
+		if (offset < size && (id = specialScriptRules != null ? specialScriptRules.parseId(this) : null) != null) {
 			parsedID = id;
 			return true;
 		} else {

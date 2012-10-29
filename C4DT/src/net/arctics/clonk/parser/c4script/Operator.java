@@ -47,7 +47,8 @@ public enum Operator {
 	AssignModulo(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "%=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignOr(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "|=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignAnd(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "&=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
-	AssignXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^=", 2, null, 1/*RETURNS_REF*/); //$NON-NLS-1$
+	AssignXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
+	Transform(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "=>", 2, null);
 	
 	public static final int RETURNS_REF = 1;
 	public static final int RIGHTASSOCIATIVE = 2;
@@ -62,9 +63,8 @@ public enum Operator {
 	
 	static {
 		HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
-		for (Operator op : values()) {
+		for (Operator op : values())
 			workInProgress.put(op.operatorName(), op);
-		}
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
 	
@@ -166,10 +166,9 @@ public enum Operator {
 	}
 	
 	public static Operator oldStyleFunctionReplacement(String funcName) {
-		for (Operator o : values()) {
+		for (Operator o : values())
 			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
 				return o;
-		}
 		return null;
 	}
 	
@@ -197,9 +196,8 @@ public enum Operator {
 	
 	public static String[] arrayOfOperatorNames() {
 		String[] result = new String[values().length];
-		for (Operator o : values()) {
+		for (Operator o : values())
 			result[o.ordinal()] = o.operatorName();
-		}
 		return result;
 	}
 

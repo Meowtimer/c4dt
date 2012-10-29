@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,7 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
@@ -516,7 +518,38 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (!settings().readDocumentationFromRepository)
 			parseEngineScript();
 		loadDeclarationsConfiguration();
+		loadProjectConversionConfigurations();
 		reinitializeDocImporter();
+	}
+
+	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
+	
+	private void loadProjectConversionConfigurations() {
+		for (int i = storageLocations.length-1; i >= 0; i--) {
+			IStorageLocation location = storageLocations[i];
+			List<URL> projectConverterFiles = new ArrayList<URL>();
+			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles);
+			if (projectConverterFiles.size() > 0) {
+				Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
+				for (URL url : projectConverterFiles) {
+					Path path = new Path(url.getPath());
+					String engineName = path.segment(path.segmentCount()-2);
+					if (engineName.equals("projectConverters"))
+						continue; // bogus file next to engine-specific folders
+					List<URL> bucket = buckets.get(engineName);
+					if (bucket == null) {
+						bucket = new ArrayList<URL>();
+						buckets.put(path.segment(0), bucket);
+					}
+					bucket.add(url);
+				}
+				for (Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
+					ProjectConversionConfiguration conf = new ProjectConversionConfiguration();
+					conf.load(bucket.getValue());
+					projectConversionConfigurations.put(bucket.getKey(), conf);
+				}
+			}
+		}
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {

@@ -6,8 +6,10 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
@@ -382,12 +384,38 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return a #strict/#strict 2/readability enhanced version of the original expression
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ExprElm optimize(final C4ScriptParser context) throws CloneNotSupportedException {
+		return transform(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm expression) {
+				if (expression == null)
+					return expression;
+				try {
+					return expression.optimize(context);
+				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
+					return expression;
+				}
+			}
+		});
+	}
+	
+	public interface ITransformer {
+		ExprElm transform(ExprElm expression);
+	}
+	
+	/**
+	 * Transform the expression using the supplied transformer.
+	 * @param transformer The transformer whose {@link ITransformer#transform(ExprElm)} will be called on each sub element
+	 * @return Either this element if no transformation took place or a clone with select transformations applied
+	 * @throws CloneNotSupportedException
+	 */
+	public ExprElm transform(ITransformer transformer) {
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++) {
-			newSubElms[i] = subElms[i] != null ? subElms[i].optimize(context) : null;
+			newSubElms[i] = transformer.transform(subElms[i]);
 			if (newSubElms[i] != subElms[i])
 				differentSubElms = true;
 		}
@@ -771,7 +799,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			else
 				return DifferenceHandling.Differs;
 		} else
-			return listener.differs(this, other, other);
+			return listener.differs(this, other, IASTComparisonDelegate.CLASS);
 	}
 	
 	/**
@@ -981,6 +1009,50 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 */
 	public Declaration owningDeclaration() {
 		return parent != null ? parent.owningDeclaration() : null;
+	}
+	
+	/**
+	 * Compare this expression with another one, returning sub elements of the other expression that correspond to {@link Placeholder}s in this one.
+	 * @param other Expression to match against
+	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
+	 */
+	public Map<String, ExprElm> match(ExprElm other) {
+		final Map<String, ExprElm> result = new HashMap<String, ExprElm>();
+		this.compare(other, new IASTComparisonDelegate() {
+			@Override
+			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+				// TODO Auto-generated method stub
+				
+			}
+			@Override
+			public boolean optionEnabled(Option option) {
+				return false;
+			}
+			@Override
+			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+				if (what == CLASS && a instanceof Placeholder) {
+					result.put(((Placeholder)a).entryName(), b);
+					return DifferenceHandling.Equal;
+				}
+				else
+					return DifferenceHandling.Differs;
+			}
+		});
+		return result;
+	}
+	
+	public ExprElm transform(final Map<String, ExprElm> substitutions) {
+		return this.transform(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm expression) {
+				if (expression instanceof Placeholder) {
+					ExprElm substitution = substitutions.get(((Placeholder)expression).entryName());
+					if (substitution != null)
+						return substitution;
+				}
+				return expression.transform(this);
+			}
+		});
 	}
 
 }
