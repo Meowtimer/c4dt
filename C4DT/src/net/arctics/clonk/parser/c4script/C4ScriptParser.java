@@ -1309,6 +1309,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			super(new Index() {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				private final Engine tempEngine = new Engine("Temp Engine") { //$NON-NLS-1$
+					private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 					private final EngineSettings tempSettings = new EngineSettings();
 					{
 						tempSettings.strictDefaultLevel = 2;
