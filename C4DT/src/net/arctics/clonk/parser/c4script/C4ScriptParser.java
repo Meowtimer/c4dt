@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -19,8 +18,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.EngineSettings;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -31,7 +28,6 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
-import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -98,7 +94,6 @@ import net.arctics.clonk.resource.c4group.C4GroupItem;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -1301,42 +1296,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 
-	private static final class TempScript extends Script {
-		private final String expression;
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-		private TempScript(String expression) {
-			super(new Index() {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				private final Engine tempEngine = new Engine("Temp Engine") { //$NON-NLS-1$
-					private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-					private final EngineSettings tempSettings = new EngineSettings();
-					{
-						tempSettings.strictDefaultLevel = 2;
-					}
-					@Override
-					public EngineSettings settings() {
-						return tempSettings;
-					}
-				};
-				@Override
-				public Engine engine() {
-					return tempEngine;
-				};
-			});
-			this.expression = expression;
-		}
-
-		@Override
-		public IStorage scriptStorage() {
-			try {
-				return new SimpleScriptStorage(expression, expression);
-			} catch (UnsupportedEncodingException e) {
-				return null;
-			}
-		}
-	}
-
 	/**
 	 * Loop types.
 	 */
@@ -1766,7 +1725,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			
 			String placeholder;
 			if (elm == null && (placeholder = parsePlaceholderString()) != null)
-				elm = new Placeholder(placeholder);
+				elm = makePlaceholder(placeholder);
 			
 			// §{...}
 			if (elm == null)
@@ -1821,6 +1780,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		return result;
 		
+	}
+	
+	protected Placeholder makePlaceholder(String placeholder) {
+		return new Placeholder(placeholder);
 	}
 
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {

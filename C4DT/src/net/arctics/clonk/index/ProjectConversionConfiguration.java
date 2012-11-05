@@ -7,13 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.TempScript;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.SubstitutionPoint;
 import net.arctics.clonk.util.StreamUtil;
 
 /**
@@ -51,7 +58,11 @@ public class ProjectConversionConfiguration {
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
 	
 	private void addTransformationFromStatement(Statement statement) {
-		transformations.add(new CodeTransformation(statement));
+		try {
+			transformations.add(new CodeTransformation(statement));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void load(List<URL> files) {
@@ -62,24 +73,32 @@ public class ProjectConversionConfiguration {
 		if (codeTransformations != null)
 			loadCodeTransformations(codeTransformations);
 	}
-
+	
 	private void loadCodeTransformations(URL transformationsFile) {
 		try {
 			InputStream stream = transformationsFile.openStream();
+			String text;
 			try {
-				Statement s = C4ScriptParser.parseStandaloneStatement(StreamUtil.stringFromInputStream(stream), null, null, null);
-				if (s instanceof BunchOfStatements)
-					for (Statement stmt : ((BunchOfStatements)s).statements())
-						addTransformationFromStatement(stmt);
-				else
-					addTransformationFromStatement(s);
+				text = StreamUtil.stringFromInputStream(stream);
 			} finally {
-				try {
-					stream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				stream.close();
 			}
+			Script script = new TempScript(text);
+			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
+				@Override
+				protected Placeholder makePlaceholder(String placeholder) {
+					return new SubstitutionPoint(placeholder);
+				}
+			};
+			Function context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
+			context.setScript(script);
+			context.setBodyLocation(new SourceLocation(0, text.length()));
+			Statement s = parser.parseStandaloneStatement(text, context, null);
+			if (s instanceof BunchOfStatements)
+				for (Statement stmt : ((BunchOfStatements)s).statements())
+					addTransformationFromStatement(stmt);
+			else
+				addTransformationFromStatement(s);
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		} catch (IOException e1) {
