@@ -803,4 +803,18 @@
 			sequence="M1+M3+O">
 		</key>
 	</extension>
+	
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			class="net.arctics.clonk.ui.editors.ScenarioProperties"
+			id="net.arctics.clonk.ui.editors.ScenarioProperties"
+			name="%ScenarioProperties">
+			<enabledWhen>
+				<and>
+					<instanceof value="org.eclipse.core.resources.IContainer"/>
+					<test property="net.arctics.clonk.resource.isScenario" />
+				</and>
+			</enabledWhen>
+		</page>
+	</extension>
 </plugin>
