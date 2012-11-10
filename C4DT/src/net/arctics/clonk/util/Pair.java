@@ -16,16 +16,16 @@ public class Pair<First, Second> implements Serializable {
 		this.first = first;
 		this.second = second;
 	}
-	public First first() {
+	public final First first() {
 		return first;
 	}
-	public void setFirst(First first) {
+	public final void setFirst(First first) {
 		this.first = first;
 	}
-	public Second second() {
+	public final Second second() {
 		return second;
 	}
-	public void setSecond(Second second) {
+	public final void setSecond(Second second) {
 		this.second = second;
 	}
 	@Override

@@ -38,7 +38,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.swt.graphics.Image;
 
 /**
  * A Clonk object definition.
@@ -62,10 +61,6 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	protected ID id;
 
-	/**
-	 * Cached picture from Graphics.png
-	 */
-	private transient Image cachedPicture;
 	private transient ConstrainedProplist objectType;
 
 	/**
@@ -175,7 +170,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final List<IHasIncludes> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
-		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.getAscending(((IHasRelatedResource)origin).resource()) : null;
+		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0)
 			for (Index i : contextIndex.relevantIndexes()) {
 				List<Script> appendages = i.appendagesOf(Definition.this);
@@ -193,21 +188,6 @@ public class Definition extends Script implements IProplistDeclaration {
 		return true;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (cachedPicture != null)
-			cachedPicture.dispose();
-		super.finalize();
-	}
-
-	public Image cachedPicture() {
-		return cachedPicture;
-	}
-
-	public void setCachedPicture(Image cachedPicture) {
-		this.cachedPicture = cachedPicture;
-	}
-	
 	public ConstrainedProplist objectType() {
 		if (objectType == null)
 			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false);
@@ -444,8 +424,6 @@ public class Definition extends Script implements IProplistDeclaration {
 	public void processDefinitionFolderFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt"))
 			readNames(StreamUtil.stringFromFileDocument(file));
-		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp"))
-			setCachedPicture(null); // obsolete
 	}
 
 	@Override

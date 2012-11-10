@@ -27,7 +27,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
 public class OpenDefinitionDialog extends EntityChooser {
@@ -50,9 +49,15 @@ public class OpenDefinitionDialog extends EntityChooser {
 		}
 	}
 	
-	public OpenDefinitionDialog(Shell shell) {
-		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), shell); //$NON-NLS-1$
-		selection = UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
+	public OpenDefinitionDialog() {
+		this(UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite()));
+		
+	}
+	
+	public OpenDefinitionDialog(ISelection selection) {
+		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), //$NON-NLS-1$
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+		this.selection = selection;
 		setListLabelProvider(new OpenDefinitionLabelProvider());
 	}
 
@@ -124,7 +129,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 		return Status.OK_STATUS;
 	}
 	
-	public Definition[] getSelectedObjects() {
+	public Definition[] selectedDefinitions() {
 		return ArrayUtil.convertArray(getResult(), Definition.class);
 	}
 

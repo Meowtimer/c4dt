@@ -101,6 +101,19 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public void addChild(ITreeNode node) {
+		if (node instanceof IniItem)
+			addItem((IniItem)node);
+		else
+			throw new IllegalArgumentException("node");
+	}
+	
+	public void addItem(IniItem item) {
+		if (!itemMap.containsKey(item.key())) {
+			itemMap.put(item.key(), item);
+			itemList.add(item);
+		}
+		else
+			throw new IllegalArgumentException("item");
 	}
 
 	@Override
@@ -151,17 +164,17 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation)
-			throws IOException {
+	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
 
-		for (IniItem entry : subItemMap().values()) {
+		for (IniItem entry : subItemList()) {
 			entry.writeTextRepresentation(writer, indentation + 1);
 			writer.append('\n');
 		}
+		writer.append('\n');
 	}
 
 	@Override

@@ -571,13 +571,22 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		T run(IDocument document);
 	}
 	
-	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) throws CoreException {
+	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) {
 		IDocumentProvider provider = textFileDocumentProvider();
-		provider.connect(resource);
+		try {
+			provider.connect(resource);
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
 		try {
 			IDocument document = provider.getDocument(resource);
 			T result = action.run(document);
-			provider.saveDocument(null, resource, document, true);
+			try {
+				provider.saveDocument(null, resource, document, true);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 			return result;
 		} finally {
 			provider.disconnect(resource);

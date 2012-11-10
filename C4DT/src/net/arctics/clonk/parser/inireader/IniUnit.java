@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
 import java.io.InvalidClassException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -12,11 +13,13 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.foldermap.FolderMapUnit;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -40,6 +43,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * Reads Windows ini style configuration files
@@ -99,6 +103,25 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public void save(Writer writer) throws IOException {
 		for (IniSection section : sectionsList)
 			section.writeTextRepresentation(writer, -1);
+	}
+	
+	public void save() {
+		if (iniFile != null)
+			Core.instance().performActionsOnFileDocument(iniFile, new IDocumentAction<Void>() {
+				@Override
+				public Void run(IDocument document) {
+					StringWriter writer = new StringWriter();
+					try {
+						save(writer);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					document.set(writer.toString());
+					return null;
+				}
+			});
+		else
+			throw new IllegalStateException(String.format("%s has no associated file", toString()));
 	}
 	
 	/**
@@ -477,5 +500,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			this.defaultName, this.iniFile().getProjectRelativePath().toOSString()
 		);
 	}
-
+	
+	public IniSection addSection(IniSection parentSection, int start, String name, int end) {
+		IniSection section = new IniSection(new SourceLocation(start, end), name);
+		section.setParentDeclaration(parentSection != null ? parentSection : this);
+		return section;
+	}
+	
 }

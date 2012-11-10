@@ -629,16 +629,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (document instanceof IDocument)
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		else if (document instanceof IFile)
-			try {
-				parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
-					@Override
-					public C4ScriptParser run(IDocument document) {
-						return new C4ScriptParser(document.get(), script, script.scriptFile());
-					}
-				});
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
+			parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+				@Override
+				public C4ScriptParser run(IDocument document) {
+					return new C4ScriptParser(document.get(), script, script.scriptFile());
+				}
+			});
 		if (parser == null)
 			throw new InvalidParameterException("document");
 		return parser;

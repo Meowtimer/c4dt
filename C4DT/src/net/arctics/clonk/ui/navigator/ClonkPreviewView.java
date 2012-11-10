@@ -18,10 +18,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.parser.inireader.IniEntry;
-import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -213,22 +209,6 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	public void setFocus() {
 	}
 	
-	public Image getPicture(DefCoreUnit defCore, Image graphics) {
-		Image result = null;
-		IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (pictureEntry != null && pictureEntry.value() instanceof IntegerArray) {
-			IntegerArray values = (IntegerArray) pictureEntry.value();
-			result = new Image(canvas.getDisplay(), values.get(2), values.get(3));
-			GC gc = new GC(result);
-			try {
-				gc.drawImage(graphics, values.get(0), values.get(1), values.get(2), values.get(3), 0, 0, result.getBounds().width, result.getBounds().height);
-			} finally {
-				gc.dispose();
-			}
-		}
-		return result;
-	}
-	
 	private File tempLandscapeRenderFile = null;
 	
 	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
@@ -325,12 +305,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 						newHtml = StreamUtil.stringFromFileDocument((IFile) descFile);
 				}
 
-				if (obj != null && obj.cachedPicture() != null) {
-					newImage = obj.cachedPicture();
-					newDoNotDispose = true;
-				}
-				else {
-
+				{
 					// Title.png
 					if (newImage == null) {
 						IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
@@ -339,30 +314,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					}
 
 					// part of Graphics.png as specified by DefCore.Picture
-					if (newImage == null) {
-						IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
-						if (graphicsFile == null)
-							graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
-						if (graphicsFile instanceof IFile) {
-							Image fullGraphics = new Image(canvas.getDisplay(), ((IFile)graphicsFile).getContents());
-							try {
-								IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
-								if (defCoreFile instanceof IFile) {
-									DefCoreUnit defCore = (DefCoreUnit) Structure.pinned(defCoreFile, true, false);
-									newImage = getPicture(defCore, fullGraphics);
-								}
-							} finally {
-								if (newImage == null)
-									newImage = fullGraphics;
-								else
-									fullGraphics.dispose();
-								if (obj != null) {
-									obj.setCachedPicture(newImage);
-									newDoNotDispose = true;
-								}
-							}
-						}
-					}
+					if (newImage == null)
+						newImage = UI.imageForContainer(container);
 				}
 			}
 		} catch (Exception e) {

@@ -100,6 +100,11 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild, Class<T> cls) {
+		return (T)pinned(file, force, duringBuild);
+	}
+	
 	/**
 	 * Remove the structure pinned to the given file
 	 * @param file the file to remove the reference from

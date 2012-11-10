@@ -5,11 +5,12 @@ import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 
 public class ScenarioUnit extends IniUnit {
 
+	public static final String FILENAME = "Scenario.txt"; //$NON-NLS-1$
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	@Override
 	protected String configurationName() {
-		return "Scenario.txt"; //$NON-NLS-1$
+		return FILENAME;
 	}
 	
 	public ScenarioUnit(Object input) {

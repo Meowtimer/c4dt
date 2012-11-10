@@ -1,24 +1,34 @@
 package net.arctics.clonk.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
+import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
 import net.arctics.clonk.parser.mapcreator.MapOverlay;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -33,6 +43,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -164,9 +175,8 @@ public abstract class UI {
 				Group g = new Group(parent, SWT.NONE);
 				g.setText(groupText);
 				container = g;
-			} else {
+			} else
 				container = new Composite(parent, SWT.NONE);
-			}
 			container.setLayout(new GridLayout(2, false));
 			container.setLayoutData(groupLayoutData != null ? groupLayoutData : new GridData(GridData.FILL_HORIZONTAL));
 			
@@ -265,9 +275,8 @@ public abstract class UI {
 		dialog.setInitialSelections(new Object [] { initialSelection });
 
 		// Show
-		if(dialog.open() == Window.OK) {
+		if(dialog.open() == Window.OK)
 			return ArrayUtil.convertArray(dialog.getResult(), IProject.class);
-		}
 		else
 			return null;
 	}
@@ -286,9 +295,8 @@ public abstract class UI {
 	
 	public static CommonNavigator projectExplorer() {
 		IWorkbench workbench = PlatformUI.getWorkbench();
-		if (workbench != null) {
+		if (workbench != null)
 			return projectExplorer(workbench.getActiveWorkbenchWindow());
-		}
 		return null;
 	}
 	
@@ -305,9 +313,8 @@ public abstract class UI {
 			IWorkbenchPage page = window.getActivePage();
 			if (page != null) {
 				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
-				if (viewPart instanceof CommonNavigator) {
+				if (viewPart instanceof CommonNavigator)
 					return (CommonNavigator) viewPart;
-				}
 			}
 		}
 		return null;
@@ -326,6 +333,50 @@ public abstract class UI {
 	public static void refreshAllProjectExplorers(final Object at) {
 		for (CommonNavigator nav : projectExplorers())
 			nav.getCommonViewer().refresh(at);
+	}
+	
+	public static Image getPicture(DefCoreUnit defCore, Image graphics) {
+		Image result = null;
+		IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (pictureEntry != null && pictureEntry.value() instanceof IntegerArray) {
+			IntegerArray values = (IntegerArray) pictureEntry.value();
+			result = new Image(Display.getCurrent(), values.get(2), values.get(3));
+			GC gc = new GC(result);
+			try {
+				gc.drawImage(graphics, values.get(0), values.get(1), values.get(2), values.get(3), 0, 0, result.getBounds().width, result.getBounds().height);
+			} finally {
+				gc.dispose();
+			}
+		}
+		return result;
+	}
+	
+	public static Image imageForContainer(IContainer container) throws CoreException, IOException {
+		Image image = null;
+		IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
+		if (graphicsFile == null)
+			graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
+		if (graphicsFile instanceof IFile) {
+			InputStream fileContents = ((IFile)graphicsFile).getContents();
+			try {
+				Image fullGraphics = new Image(Display.getCurrent(), fileContents);
+				try {
+					IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
+					if (defCoreFile instanceof IFile) {
+						DefCoreUnit defCore = (DefCoreUnit) Structure.pinned(defCoreFile, true, false);
+						image = getPicture(defCore, fullGraphics);
+					}
+				} finally {
+					if (image == null)
+						image = fullGraphics;
+					else
+						fullGraphics.dispose();
+				}
+			} finally {
+				fileContents.close();
+			}
+		}
+		return image;
 	}
 
 }

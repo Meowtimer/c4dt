@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,6 +24,13 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	
 	public void add(KeyType id, ValueType num) {
 		components.add(new KeyValuePair<KeyType, ValueType>(id,num));
+	}
+	
+	public KeyValuePair<KeyType, ValueType> find(KeyType key) {
+		for (KeyValuePair<KeyType, ValueType> kv : components)
+			if (kv.key().equals(key))
+				return kv;
+		return null;
 	}
 
 	public List<KeyValuePair<KeyType, ValueType>> components() {
@@ -50,23 +56,19 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		// CLNK=1;STIN=10;
 		components.clear();
 		String[] parts = input.split(";|,"); //$NON-NLS-1$
-		for(String part : parts) {
-			if (!part.contains("="))
-				part += "=1";
+		for(String part : parts)
 			if (part.contains("=")) { //$NON-NLS-1$
 				KeyValuePair<KeyType, ValueType> kv = singleComponentFromString(part);
 				if (kv != null)
 					components.add(kv);
 			}
-		}
 	}
 
 	@Override
 	public IHasContext[] children(Object context) {
 		IHasContext[] result = new IHasContext[components.size()];
-		for (int i = 0; i < components.size(); i++) {
+		for (int i = 0; i < components.size(); i++)
 			result[i] = new EntrySubItem<KeyValueArrayEntry<KeyType, ValueType>>(this, context, i);
-		}
 		return result;
 	}
 
@@ -95,7 +97,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	}
 	
 	@Override
-	public Collection<? extends ITreeNode> childCollection() {
+	public List<KeyValuePair<KeyType, ValueType>> childCollection() {
 		return components;
 	}
 	

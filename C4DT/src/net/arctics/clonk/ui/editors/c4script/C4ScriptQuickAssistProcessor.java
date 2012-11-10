@@ -285,19 +285,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 
 		public void runOnMarker(final IMarker marker) {
-			try {
-				Core.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
-					@Override
-					public Object run(IDocument document) {
-						replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
-						replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
-						apply(document);
-						return null;
-					}
-				});
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
+			Core.instance().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
+				@Override
+				public Object run(IDocument document) {
+					replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
+					replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
+					apply(document);
+					return null;
+				}
+			});
 		}
 
 		public Replacement getReplacement() {

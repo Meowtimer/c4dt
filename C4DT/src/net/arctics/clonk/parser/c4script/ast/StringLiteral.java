@@ -73,7 +73,7 @@ public final class StringLiteral extends Literal<String> {
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
 		String escapesEvaluated = StringUtil.evaluateEscapes(literal());
-		if (context.script() == null)
+		if (context == null || context.script() == null)
 			return escapesEvaluated;
 		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), escapesEvaluated, false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 

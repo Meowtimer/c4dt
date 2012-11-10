@@ -19,6 +19,27 @@ public class Messages extends NLS {
 	public static String ColorManager_TYPE;
 	public static String ClonkHyperlink_ChooseLinkTargetTitle;
 	public static String ClonkHyperlink_Label;
+	public static String ScenarioProperties_AddDefinitions;
+	public static String ScenarioProperties_Animals;
+	public static String ScenarioProperties_CopyToOtherPlayers;
+	public static String ScenarioProperties_CountColumn;
+	public static String ScenarioProperties_Definition;
+	public static String ScenarioProperties_EnvironmentTab;
+	public static String ScenarioProperties_EquipmentTab;
+	public static String ScenarioProperties_GameTab;
+	public static String ScenarioProperties_Goals;
+	public static String ScenarioProperties_InEarth;
+	public static String ScenarioProperties_LandscapeTab;
+	public static String ScenarioProperties_Nests;
+	public static String ScenarioProperties_PlayerBuildings;
+	public static String ScenarioProperties_PlayerCrew;
+	public static String ScenarioProperties_PlayerMaterial;
+	public static String ScenarioProperties_PlayerTabFormat;
+	public static String ScenarioProperties_PlayerVehicles;
+	public static String ScenarioProperties_RemoveDefinitions;
+	public static String ScenarioProperties_Rules;
+	public static String ScenarioProperties_Vegetation;
+	public static String ScenarioProperties_WeatherTab;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

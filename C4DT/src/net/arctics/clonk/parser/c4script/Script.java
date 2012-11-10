@@ -1233,7 +1233,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void indexRefresh() {
 		if (loaded) {
 			IResource res = resource();
-			scenario = res != null ? Scenario.getAscending(res) : null;
+			scenario = res != null ? Scenario.containingScenario(res) : null;
 			detectEffects();
 		}
 	}

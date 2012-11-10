@@ -96,7 +96,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	private final Set<? extends IIndexEntity> entities;
 
 	public EntityChooser(String title, Shell shell, Collection<? extends IIndexEntity> entities) {
-		super(shell);
+		super(shell, true);
 		this.entities = entities != null ? new HashSet<IIndexEntity>(entities) : null;
 		setTitle(title);
 		setListLabelProvider(new LabelProvider());

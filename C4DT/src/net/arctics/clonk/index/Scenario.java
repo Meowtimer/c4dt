@@ -1,14 +1,18 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.inireader.ScenarioUnit;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 /**
@@ -54,7 +58,7 @@ public class Scenario extends Definition {
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 	
-	public static Scenario getAscending(IResource res) {
+	public static Scenario containingScenario(IResource res) {
 		if (res == null)
 			return null;
 		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
@@ -71,6 +75,11 @@ public class Scenario extends Definition {
 			if (resource instanceof IContainer)
 				scenario = get((IContainer)resource);
 		return scenario;
+	}
+	
+	public ScenarioUnit scenarioConfiguration() {
+		IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
+		return scenarioFile != null ? Structure.pinned(scenarioFile, true, false, ScenarioUnit.class) : null;
 	}
 
 }
