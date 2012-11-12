@@ -9,6 +9,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 
@@ -21,10 +22,10 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.PlatformUI;
@@ -33,9 +34,14 @@ public class OpenDefinitionDialog extends EntityChooser {
 	
 	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
 	
-	private final ISelection selection;
+	private final Object selection;
+	private IConverter<Definition, Image> imageStore;
 	
-	private static class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
+	public void setImageStore(IConverter<Definition, Image> imageStore) {
+		this.imageStore = imageStore;
+	}
+	
+	private class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element == null)
@@ -47,6 +53,13 @@ public class OpenDefinitionDialog extends EntityChooser {
 			buf.append(obj.id().stringValue(), StyledString.QUALIFIER_STYLER);
 			return buf;
 		}
+		@Override
+		public Image getImage(Object element) {
+			if (imageStore != null && element instanceof Definition)
+				return imageStore.convert((Definition)element);
+			else
+				return null;
+		}
 	}
 	
 	public OpenDefinitionDialog() {
@@ -54,7 +67,13 @@ public class OpenDefinitionDialog extends EntityChooser {
 		
 	}
 	
-	public OpenDefinitionDialog(ISelection selection) {
+	/**
+	 * Create dialog with specified selection. The selection can be a {@link IStructuredSelection} with a {@link IStructuredSelection#getFirstElement()} being an {@link IResource}
+	 * in which case the dialog will be populated with definitions visible from the resource's project.
+	 * Another option is passing an {@link Iterable} of items as the selection which will then be displayed as-is.
+	 * @param selection The selection which can be one of the things specified above
+	 */
+	public OpenDefinitionDialog(Object selection) {
 		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), //$NON-NLS-1$
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		this.selection = selection;
@@ -68,16 +87,16 @@ public class OpenDefinitionDialog extends EntityChooser {
 	}
 
 	@Override
-	protected void fillContentProvider(AbstractContentProvider contentProvider,
-			ItemsFilter itemsFilter, IProgressMonitor progressMonitor)
-			throws CoreException {
+	protected void fillContentProvider(AbstractContentProvider contentProvider, ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			ClonkProjectNature nat = ClonkProjectNature.get(proj);
 			if (nat != null && nat.index() != null)
 				for (Index index : nat.index().relevantIndexes())
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
-		}
+		} else if (selection instanceof Iterable)
+			for (Object o : (Iterable<?>)selection)
+				contentProvider.add(o, itemsFilter);
 	}
 
 	private void fillWithIndexContents(

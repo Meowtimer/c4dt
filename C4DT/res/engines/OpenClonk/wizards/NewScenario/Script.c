@@ -6,4 +6,9 @@
 
 func Initialize()
 {
+	CreateEnvironment();
+}
+
+func CreateEnvironment()
+{
 }

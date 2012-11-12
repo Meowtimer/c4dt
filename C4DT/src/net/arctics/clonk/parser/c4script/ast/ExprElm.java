@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -761,15 +762,13 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		assert(element != null);
 		assert(with != null);
 		
-		if (diff == 0)
-			diff = with.getLength();
-
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++)
 			if (subElms[i] == element) {
 				newSubElms[i] = with;
+				with.setExprRegion(element);
 				differentSubElms = true;
 			} else {
 				newSubElms[i] = subElms[i];
@@ -824,14 +823,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		if (other != null && (other.getClass() == this.getClass() || delegate.differs(this, other, IASTComparisonDelegate.CLASS) == DifferenceHandling.Equal)) {
 			ExprElm[] mySubElements = this.subElements();
 			ExprElm[] otherSubElements = other.subElements();
-			if (mySubElements.length != otherSubElements.length)
-				switch (delegate.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
-				case IgnoreLeftSide: case IgnoreRightSide:
-					break;
-				default:
-					return DifferenceHandling.Differs;
-				}
-
 			int myIndex, otherIndex;
 			ExprElm consumer = null;
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
@@ -874,8 +865,12 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			}
 			if (myIndex == mySubElements.length && otherIndex == otherSubElements.length)
 				return DifferenceHandling.Equal;
-			else
+			else switch (delegate.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
+			case IgnoreLeftSide: case IgnoreRightSide:
+				return DifferenceHandling.Equal;
+			default:
 				return DifferenceHandling.Differs;
+			}
 		} else
 			return DifferenceHandling.Differs;
 	}
@@ -1118,6 +1113,14 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					} else
 						return DifferenceHandling.Differs;
 				}
+				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
+					ExprElm[] mine = a.subElements();
+					ExprElm[] others = b.subElements();
+					for (int i = others.length; i < mine.length; i++)
+						if (!(mine[i] instanceof MatchingPlaceholder && ((MatchingPlaceholder)mine[i]).remainder()))
+							return DifferenceHandling.Differs;
+					return DifferenceHandling.IgnoreLeftSide;
+				}
 				else
 					return DifferenceHandling.Differs;
 			}
@@ -1139,8 +1142,10 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			}
 		}
 		ComparisonDelegate delegate = new ComparisonDelegate();
-		this.compare(other, delegate);
-		return delegate.result;
+		if (this.compare(other, delegate).isEqual())
+			return delegate.result;
+		else
+			return null;
 	}
 	
 	/**
@@ -1203,6 +1208,13 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					return expression;
 			}
 		});
+	}
+	
+	public IRegion absolute() {
+		ExprElm p;
+		for (p = this; p != null && p.parent != null; p = p.parent);
+		Declaration d = p.owningDeclaration();
+		return this.region(d instanceof Function ? ((Function)d).bodyLocation().start() : 0);
 	}
 	
 }

@@ -5,33 +5,37 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.jface.window.Window;
@@ -68,11 +72,49 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
 	
+	private Image imageFor(Definition def) {
+		if (def != null) {
+			Image img = images.get(def.id());
+			if (img == null && !images.containsKey(def.id())) {
+				if (def.definitionFolder() != null)
+					try {
+						Image original = UI.imageForContainer(def.definitionFolder());
+						final int s = 16;
+						if (original != null) try {
+							Image scaled = new Image(Display.getCurrent(), s, s);
+							GC gc = new GC(scaled);
+							try {
+								gc.setAntialias(SWT.ON);
+								gc.setInterpolation(SWT.HIGH);
+								gc.drawImage(original, 0, 0, original.getBounds().width, original.getBounds().height, 0, 0, s, s);
+							} finally {
+								gc.dispose();
+							}
+							img = scaled;
+						} finally {
+							original.dispose();
+						}
+					} catch (Exception e) {
+						// ...
+					}
+				images.put(def.id(), img);
+			}
+			if (img == null)
+				img = UI.definitionIcon(def);
+			return img;
+		}
+		return null;
+	}
+
 	private class DefinitionListEditor {
 
+		private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab";
+		
+		private final IniEntry entry;
 		private final IDArray array;
 		private Table table;
 		private final TableViewer viewer;
+		private final IPredicate<Definition> definitionFilter;
 
 		private void createControl(Composite parent, String label) {
 			Label l = new Label(parent, SWT.NULL);
@@ -122,13 +164,43 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					viewer.refresh();
 				}
 			});
-			
+			final Button inc = new Button(buttons, SWT.PUSH);
+			inc.setText(Messages.ScenarioProperties_Inc);
+			final Button dec = new Button(buttons, SWT.PUSH);
+			dec.setText(Messages.ScenarioProperties_Dec);
+			SelectionAdapter changeAmountListener = new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					int change = 0;
+					if (e.getSource() == inc)
+						change = 1;
+					else if (e.getSource() == dec)
+						change = -1;
+					int[] indices = table.getSelectionIndices();
+					for (int i = indices.length-1; i >= 0; i--) {
+						KeyValuePair<ID, Integer> kv = array.childCollection().get(indices[i]);
+						kv.setValue(kv.value()+change);
+					}
+					viewer.refresh();
+				}
+			};
+			inc.addSelectionListener(changeAmountListener);
+			dec.addSelectionListener(changeAmountListener);
+			tabs.addSelectionListener(new SelectionAdapter() {
+				{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					Core.instance().getPreferenceStore().setValue(SCENARIO_PROPERTIES_MAIN_TAB_PREF, tabs.getSelectionIndex());
+				}
+			});
 		}
 		
-		public DefinitionListEditor(String label, Composite parent, IDArray array) {
+		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
-			this.array = array;
+			this.entry = entry;
+			this.array = (IDArray)entry.value();
 			this.viewer = createViewer();
+			this.definitionFilter = entry.engine().specialRules().configurationEntryDefinitionFilter(entry);
 		}
 
 		private TableViewer createViewer() {
@@ -214,37 +286,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					switch (columnIndex) {
 					case 0:
 						Definition def = scenario.nearestDefinitionWithId(kv.key());
-						if (def != null) {
-							Image img = images.get(kv.key());
-							if (img == null && !images.containsKey(kv.key())) {
-								if (def.definitionFolder() != null)
-									try {
-										Image original = UI.imageForContainer(def.definitionFolder());
-										final int s = 16;
-										if (original != null) try {
-											Image scaled = new Image(Display.getCurrent(), s, s);
-											GC gc = new GC(scaled);
-											try {
-												gc.setAntialias(SWT.ON);
-												gc.setInterpolation(SWT.HIGH);
-												gc.drawImage(original, 0, 0, original.getBounds().width, original.getBounds().height, 0, 0, s, s);
-											} finally {
-												gc.dispose();
-											}
-											img = scaled;
-										} finally {
-											original.dispose();
-										}
-									} catch (Exception e) {
-										// ...
-									}
-								images.put(kv.key(), img);
-							}
-							if (img == null)
-								img = UI.definitionIcon(def);
-							return img;
-						}
-						return null;
+						return imageFor(def);
 					default:
 						return null;
 					}
@@ -266,15 +308,29 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			};
 			viewer.setLabelProvider(new LabelProvider());
 			viewer.setInput(array);
-			CellEditor[] editors = new CellEditor[] {
-				new TextCellEditor()
-			};
-			viewer.setCellEditors(editors);
 			return viewer;
 		}
 		
 		protected void addDefinitions() {
-			OpenDefinitionDialog chooser = new OpenDefinitionDialog(new StructuredSelection(scenario.resource()));
+			final List<Definition> defs = new LinkedList<Definition>();
+			for (Index i : scenario.index().relevantIndexes())
+				i.allDefinitions(new Sink<Definition>() {
+					@Override
+					public void receivedObject(Definition item) {
+						defs.add(item);
+					}
+					@Override
+					public boolean filter(Definition item) {
+						return definitionFilter.test(item);
+					}
+				});
+			OpenDefinitionDialog chooser = new OpenDefinitionDialog(defs);
+			chooser.setImageStore(new IConverter<Definition, Image>() {
+				@Override
+				public Image convert(Definition from) {
+					return imageFor(from);
+				}
+			});
 			switch (chooser.open()) {
 			case Window.OK:
 				for (Definition d : chooser.selectedDefinitions()) {
@@ -315,20 +371,18 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	public void setElement(IAdaptable element) {
 		scenario = Scenario.get((IContainer)element.getAdapter(IContainer.class));
 		scenarioConfiguration = scenario.scenarioConfiguration();
+		scenario.engine().specialRules().processScenarioConfiguration(scenarioConfiguration, ScenarioConfigurationProcessing.Load);
 	}
 	
 	public DefinitionListEditor listEditorFor(Composite parent, String sectionName, String entryName, String friendlyName) {
 		ComplexIniEntry entry;
-		IDArray array;
 		try {
-			entry = as(scenarioConfiguration.sectionWithName(sectionName).subItemByKey(entryName), ComplexIniEntry.class);
+			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).subItemByKey(entryName), ComplexIniEntry.class);
 			if (entry == null)
 				throw new NullPointerException();
 		} catch (NullPointerException itemCreation) {
 			try {
-				IniSection section = scenarioConfiguration.sectionWithName(sectionName);
-				if (section == null)
-					scenarioConfiguration.addSection(null, -1, sectionName, -1);
+				IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
 				IniItem item = section.subItemByKey(entryName);
 				if (item == null)
 					section.addItem(item = new ComplexIniEntry(-1, -1, entryName, new IDArray()));
@@ -337,12 +391,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				return null;
 			}
 		}
-		try {
-			array = (IDArray)entry.value();
-		} catch (Exception e) {
+		if (entry.value() instanceof IDArray)
+			return new DefinitionListEditor(friendlyName, parent, entry);
+		else
 			return null;
-		}
-		return new DefinitionListEditor(friendlyName, parent, array);
 	}
 	
 	private Composite[] makeLanes(Composite parent) {
@@ -362,7 +414,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		game.setLayout(new GridLayout(2, false));
 		{
 			Composite[] lanes = makeLanes(game);
-			listEditorFor(lanes[0], "Game", "Goals", Messages.ScenarioProperties_Goals); //$NON-NLS-1$
+			listEditorFor(lanes[0], "Game", "Goals", Messages.ScenarioProperties_Goals); //$NON-NLS-1$ //$NON-NLS-2$
 			listEditorFor(lanes[1], "Game", "Rules", Messages.ScenarioProperties_Rules); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
@@ -410,7 +462,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	
 	@Override
 	public boolean performOk() {
-		scenarioConfiguration.save();
+		scenario.engine().specialRules().processScenarioConfiguration(scenarioConfiguration, ScenarioConfigurationProcessing.Save);
+		scenarioConfiguration.save(true);
 		return super.performOk();
 	}
 	

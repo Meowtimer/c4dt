@@ -23,11 +23,13 @@ public class Messages extends NLS {
 	public static String ScenarioProperties_Animals;
 	public static String ScenarioProperties_CopyToOtherPlayers;
 	public static String ScenarioProperties_CountColumn;
+	public static String ScenarioProperties_Dec;
 	public static String ScenarioProperties_Definition;
 	public static String ScenarioProperties_EnvironmentTab;
 	public static String ScenarioProperties_EquipmentTab;
 	public static String ScenarioProperties_GameTab;
 	public static String ScenarioProperties_Goals;
+	public static String ScenarioProperties_Inc;
 	public static String ScenarioProperties_InEarth;
 	public static String ScenarioProperties_LandscapeTab;
 	public static String ScenarioProperties_Nests;

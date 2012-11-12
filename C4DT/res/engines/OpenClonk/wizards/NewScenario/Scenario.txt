@@ -22,7 +22,6 @@ Crew=Clonk=1
 Crew=Clonk=1
 
 [Landscape]
-Vegetation=Tree_Coniferous=5;
 VegetationLevel=100,0
 InEarth=Rock=1;Gold=1;Dynamite=2;Loam=2
 InEarthLevel=65

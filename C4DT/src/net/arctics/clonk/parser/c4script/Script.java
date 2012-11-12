@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
@@ -64,6 +66,8 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -1244,6 +1248,31 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Scenario scenario() {
 		return scenario;
+	}
+	
+	public void saveExpressions(final Collection<? extends ExprElm> expressions) {
+		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
+			@Override
+			public Boolean run(IDocument document) {
+				try {
+					List<ExprElm> l = new ArrayList<ExprElm>(expressions);
+					Collections.sort(l, new Comparator<ExprElm>() {
+						@Override
+						public int compare(ExprElm o1, ExprElm o2) {
+							return o2.absolute().getOffset() - o1.absolute().getOffset();
+						}
+					});
+					for (ExprElm e : l) {
+						IRegion region = e.absolute();
+						document.replace(region.getOffset(), region.getLength(), e.toString());
+					}
+					return true;
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+					return false;
+				}
+			}
+		});
 	}
 
 }

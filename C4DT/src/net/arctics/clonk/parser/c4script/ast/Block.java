@@ -6,6 +6,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.util.ArrayUtil;
 
 /**
  * A {} block
@@ -125,6 +126,10 @@ public class Block extends Statement {
 			if (s != null)
 				s.evaluate(context);
 		return null;
+	}
+	
+	public void addStatements(Statement... statements) {
+		this.statements = ArrayUtil.concat(this.statements, statements);
 	}
 
 }

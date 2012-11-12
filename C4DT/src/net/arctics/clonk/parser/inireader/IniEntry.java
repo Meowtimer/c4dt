@@ -34,4 +34,9 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 		return 0;
 	}
 	
+	@Override
+	public boolean isTransient() {
+		return false;
+	}
+	
 }

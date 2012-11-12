@@ -69,7 +69,7 @@ public class IniSection extends Declaration implements
 	public IniItem subItemByKey(String key) {
 		return itemMap.get(key);
 	}
-
+	
 	public List<IniItem> subItemList() {
 		return itemList;
 	}
@@ -111,9 +111,15 @@ public class IniSection extends Declaration implements
 		if (!itemMap.containsKey(item.key())) {
 			itemMap.put(item.key(), item);
 			itemList.add(item);
+			((Declaration)item).setParentDeclaration(this);
 		}
 		else
 			throw new IllegalArgumentException("item");
+	}
+	
+	public void removeItem(IniItem item) {
+		itemMap.remove(item.key());
+		itemList.remove(item);
 	}
 
 	@Override
@@ -170,11 +176,20 @@ public class IniSection extends Declaration implements
 		writer.append(']');
 		writer.append('\n');
 
-		for (IniItem entry : subItemList()) {
-			entry.writeTextRepresentation(writer, indentation + 1);
+		for (IniItem item : subItemList()) {
+			if (item.isTransient())
+				continue;
+			item.writeTextRepresentation(writer, indentation + 1);
 			writer.append('\n');
 		}
 		writer.append('\n');
+	}
+	
+	public boolean hasPersistentItems() {
+		for (IniItem item : subItemList())
+			if (!item.isTransient())
+				return true;
+		return false;
 	}
 
 	@Override
@@ -218,5 +233,10 @@ public class IniSection extends Declaration implements
 	public String infoText(IIndexEntity context) {
 		IniUnit unit = iniUnit();
 		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText(context));
+	}
+
+	@Override
+	public boolean isTransient() {
+		return false;
 	}
 }

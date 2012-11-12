@@ -41,6 +41,7 @@ import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
@@ -50,6 +51,7 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
@@ -67,7 +69,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
  * @author madeen
  *
  */
-public class SpecialEngineRules {
+public abstract class SpecialEngineRules {
 	
 	/**
 	 * Role for SpecialFuncRule: Validate arguments of a function in a special way.
@@ -943,5 +945,7 @@ public class SpecialEngineRules {
 	public void processScenarioConfiguration(ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
 		// do nothing
 	}
+	
+	public abstract IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry);
 	
 }

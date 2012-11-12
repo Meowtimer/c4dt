@@ -102,7 +102,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	public void save(Writer writer, boolean discardEmptySections) throws IOException {
 		for (IniSection section : sectionsList)
-			if (!discardEmptySections || section.subItemList().size() > 0)
+			if (!discardEmptySections || section.hasPersistentItems())
 				section.writeTextRepresentation(writer, -1);
 	}
 	
@@ -509,6 +509,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		IniSection section = new IniSection(new SourceLocation(start, end), name);
 		section.setParentDeclaration(parentSection != null ? parentSection : this);
 		return section;
+	}
+
+	@Override
+	public boolean isTransient() {
+		return false;
 	}
 	
 }

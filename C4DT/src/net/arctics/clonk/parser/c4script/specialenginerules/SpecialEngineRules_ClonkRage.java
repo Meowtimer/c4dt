@@ -12,6 +12,8 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.util.IPredicate;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 	public SpecialEngineRules_ClonkRage() {
@@ -51,5 +53,15 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 			return ID.get(idString);
 		}
 		return null;
+	}
+	
+	@Override
+	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
+		return new IPredicate<Definition>() {
+			@Override
+			public boolean test(Definition item) {
+				return true;
+			}
+		};
 	}
 }

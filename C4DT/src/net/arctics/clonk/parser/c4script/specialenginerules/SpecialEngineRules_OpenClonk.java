@@ -2,7 +2,9 @@ package net.arctics.clonk.parser.c4script.specialenginerules;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,19 +33,23 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
-import net.arctics.clonk.parser.c4script.specialenginerules.SpecialEngineRules_OpenClonk.ComputedScenarioConfigurationEntry.Item;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.UI;
 
@@ -386,17 +392,57 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				super(first, second);
 				this.placeCall = placeCall;
 			}
+			public boolean updatePlaceCall() {
+				NumberLiteral num = num();
+				if (num == null || num.literal().intValue() != value()) {
+					placeCall.replaceSubElement(num, new LongLiteral(value()), 0);
+					return true;
+				} else
+					return false;
+			}
+			private NumberLiteral num() {
+				return placeCall.params().length > 0 ? as(placeCall.params()[0], NumberLiteral.class) : null;
+			}
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		}
+		@Override
+		public boolean isTransient() {
+			return true;
+		}
+		public boolean updatePlaceCalls(Function function, List<ExprElm> modified) {
+			boolean wholeFunc = false;
+			for (KeyValuePair<ID, Integer> kv : ((IDArray)value()).components())
+				if (kv instanceof Item) {
+					Item item = (Item)kv;
+					if (item.updatePlaceCall())
+						modified.add(item.num());
+				} else {
+					Statement newStatement = (Statement)PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
+						"id", new AccessVar(kv.key().stringValue()),
+						"placeCall", new CallDeclaration("Place", new LongLiteral(kv.value()))
+					));
+					wholeFunc = true;
+					function.body().addStatements(newStatement);
+				}
+			return wholeFunc;
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	private static ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
+		IniSection s = unit.sectionWithName(section, true);
+		IniItem i = s.subItemByKey(entry);
+		if (i == null)
+			s.addItem(i = new ComputedScenarioConfigurationEntry(entry, new IDArray()));
+		return as(i, ComputedScenarioConfigurationEntry.class);
+	}
+	
 	@Override
 	public void processScenarioConfiguration(final ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
+		final Scenario scenario = unit.scenario();
+		final Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
+		final ComputedScenarioConfigurationEntry vegetation = entry(unit, "Landscape", "Vegetation");
 		switch (processing) {
 		case Load:
-			final Scenario scenario = unit.scenario();
-			Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
 			if (createEnvironment != null) {
 				final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
 				if (plantLib == null)
@@ -406,37 +452,54 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						public AccessVar id;
 						public CallDeclaration placeCall;
 						public NumberLiteral num;
-						public ExprElm[] params;
 						public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
-						public String section, entry;
+						public ComputedScenarioConfigurationEntry entry;
 						boolean determineConfigurationInsertionPoint() {
 							Definition d = definition();
 							if (d != null)
 								if (d.doesInclude(scenario.index(), plantLib)) {
-									section = "Landscape";
-									entry = "Vegetation";
+									entry = vegetation;
 									return true;
 								}
 							return false;
 						}
 						@Override
 						public void run() {
-							if (PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint()) {
-								IniSection section = unit.sectionWithName(this.section, true);
-								ComputedScenarioConfigurationEntry entry = as(section.subItemByKey(this.entry), ComputedScenarioConfigurationEntry.class);
-								Item i = new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall);
-								if (entry == null)
-									section.addItem(new ComputedScenarioConfigurationEntry(this.entry, new IDArray(i)));
-								else
-									((IDArray)entry.value()).add(i);
-							}
+							if (PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint())
+								((IDArray)entry.value()).add(new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall));
 						}
 					}).run();
 			}
 			break;
 		case Save:
+			List<ExprElm> list = new LinkedList<ExprElm>();
+			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
+			if (wholeFunc || list.size() > 0)
+				scenario.saveExpressions(wholeFunc ? Arrays.asList(createEnvironment.body()) : list);
 			break;
 		}
+	}
+	
+	@Override
+	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+		if (entry.key().equals("Vegetation"))
+			return new IPredicate<Definition>() {
+				final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
+				@Override
+				public boolean test(Definition item) {
+					if (plant != null && item != plant && item.doesInclude(entry.index(), plant))
+						return true;
+					else
+						return false;
+				}
+			};
+		else
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return false;
+				}
+			};
 	}
 
 }
