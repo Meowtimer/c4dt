@@ -2,7 +2,10 @@ package net.arctics.clonk.parser.c4script.specialenginerules;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,6 +54,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
@@ -411,7 +415,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		public boolean updatePlaceCalls(Function function, List<ExprElm> modified) {
 			boolean wholeFunc = false;
-			for (KeyValuePair<ID, Integer> kv : ((IDArray)value()).components())
+			for (KeyValuePair<ID, Integer> kv : value().components())
 				if (kv instanceof Item) {
 					Item item = (Item)kv;
 					if (item.updatePlaceCall())
@@ -425,6 +429,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					function.body().addStatements(newStatement);
 				}
 			return wholeFunc;
+		}
+		@Override
+		public IDArray value() {
+			return (IDArray) super.value();
 		}
 	}
 	
@@ -441,41 +449,91 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		final Scenario scenario = unit.scenario();
 		final Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
 		final ComputedScenarioConfigurationEntry vegetation = entry(unit, "Landscape", "Vegetation");
+		final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
+		if (plantLib == null)
+			return; // no plant library - give up
+		class PlaceMatch {
+			public boolean matched;
+			public AccessVar id;
+			public CallDeclaration placeCall;
+			public NumberLiteral num;
+			public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
+			public ComputedScenarioConfigurationEntry entry;
+			public PlaceMatch(Statement s) {
+				matched = match(s);
+			}
+			boolean determineConfigurationInsertionPoint() {
+				Definition d = definition();
+				if (d != null)
+					if (d.doesInclude(scenario.index(), plantLib)) {
+						entry = vegetation;
+						return true;
+					}
+				return false;
+			}
+			public boolean addComputedEntry() {
+				if (matched) {
+					entry.value().add(new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall));
+					return true;
+				} else
+					return false;
+			}
+			private boolean match(Statement s) {
+				return PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint();
+			}
+			public boolean matchedButNoCorrespondingItem() {
+				return matched && entry.value().find(definition().id()) == null;
+			}
+		}
 		switch (processing) {
 		case Load:
-			if (createEnvironment != null) {
-				final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
-				if (plantLib == null)
-					return; // no plant library - give up
+			if (createEnvironment != null)
 				for (final Statement s : createEnvironment.body().statements())
-					(new Runnable() {
-						public AccessVar id;
-						public CallDeclaration placeCall;
-						public NumberLiteral num;
-						public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
-						public ComputedScenarioConfigurationEntry entry;
-						boolean determineConfigurationInsertionPoint() {
-							Definition d = definition();
-							if (d != null)
-								if (d.doesInclude(scenario.index(), plantLib)) {
-									entry = vegetation;
-									return true;
-								}
-							return false;
-						}
-						@Override
-						public void run() {
-							if (PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint())
-								((IDArray)entry.value()).add(new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall));
-						}
-					}).run();
-			}
+					(new PlaceMatch(s)).addComputedEntry();
 			break;
 		case Save:
 			List<ExprElm> list = new LinkedList<ExprElm>();
 			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
-			if (wholeFunc || list.size() > 0)
-				scenario.saveExpressions(wholeFunc ? Arrays.asList(createEnvironment.body()) : list);
+			final List<Statement> statementsCopy = new ArrayList<Statement>(Arrays.asList(createEnvironment.body().statements()));
+			final List<Pair<Statement, PlaceMatch>> matches = new ArrayList<Pair<Statement, PlaceMatch>>(statementsCopy.size());
+			for (int i = 0; i < statementsCopy.size(); i++)
+				matches.add(new Pair<Statement, PlaceMatch>(statementsCopy.get(i), new PlaceMatch(statementsCopy.get(i))));
+			for (int i = statementsCopy.size()-1; i >= 0; i--)
+				if (matches.get(i).second().matchedButNoCorrespondingItem()) {
+					statementsCopy.remove(i);
+					matches.remove(i);
+					wholeFunc = true;
+				}
+			class C implements Comparator<Statement> {
+				public boolean reordering;
+				private int indexOf(Statement s) {
+					for (int i = 0; i < matches.size(); i++)
+						if (matches.get(i).first() == s && matches.get(i).second().definition() != null) {
+							int ndx = 0;
+							for (KeyValuePair<ID, Integer> kv : vegetation.value().components())
+								if (kv.key().equals(matches.get(i).second().definition().id()))
+									return ndx;
+								else
+									ndx++;
+						}
+					return -1;
+				}
+				@Override
+				public int compare(Statement o1, Statement o2) {
+					int diff = indexOf(o1) - indexOf(o2);
+					reordering |= diff < 0;
+					return diff;
+				}
+			}
+			C comp = new C();
+			Collections.sort(statementsCopy, comp);
+			wholeFunc |= comp.reordering;
+			if (wholeFunc) {
+				createEnvironment.body().setStatements(statementsCopy.toArray(new Statement[statementsCopy.size()]));
+				scenario.saveExpressions(Arrays.asList(createEnvironment.body()));
+			}
+			else if (list.size() > 0)
+				scenario.saveExpressions(list);
 			break;
 		}
 	}
@@ -493,11 +551,25 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						return false;
 				}
 			};
+		else if (entry.key().equals("Animal"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return item.findFunction("IsAnimal") != null;
+				}
+			};
+		else if (entry.key().equals("Crew"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return item.findFunction("IsClonk") != null;
+				}
+			};
 		else
 			return new IPredicate<Definition>() {
 				@Override
 				public boolean test(Definition item) {
-					return false;
+					return true;
 				}
 			};
 	}

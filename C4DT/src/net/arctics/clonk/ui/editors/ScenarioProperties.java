@@ -216,7 +216,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				public void dragSetData(DragSourceEvent event) {
 					ByteBuffer buffer = ByteBuffer.allocate(4*table.getSelectionCount());
 					for (int i = 0; i < table.getSelectionCount(); i++)
-						buffer.putInt(table.getSelectionIndex());
+						buffer.putInt(i*4, table.getSelectionIndices()[i]);
 					event.data = new PluginTransferData(Core.PLUGIN_ID, buffer.array());
 				}
 			});
@@ -226,10 +226,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@Override
 				public boolean validateDrop(Object target, int operation, TransferData transferType) {
 					try {
-						if (target instanceof KeyValuePair) {
-							this.target = (KeyValuePair<ID, Integer>) target;
-							return true;
-						}
+						this.target = as(target, KeyValuePair.class);
+						return true;
 					} catch (Exception e) {}
 					return false;
 				}
@@ -237,23 +235,27 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				public boolean performDrop(Object data) {
 					try {
 						List<KeyValuePair<ID, Integer>> items = DefinitionListEditor.this.array.childCollection();
-						for (int c = 0; c < items.size(); c++)
-							if (items.get(c) == this.target) {
-								PluginTransferData d = (PluginTransferData) data;
-								ByteBuffer b = ByteBuffer.wrap(d.getData());
-								int[] selection = new int[d.getData().length/4];
-								for (int i = 0; i < selection.length; i++)
-									selection[i] = b.getInt(i*4);
-								@SuppressWarnings("unchecked")
-								KeyValuePair<ID, Integer>[] draggedItems = new KeyValuePair[selection.length];
-								for (int i = 0; i < selection.length; i++)
-									draggedItems[i] = items.get(selection[i]);
-								List<KeyValuePair<ID, Integer>> draggedItemsList = Arrays.asList(draggedItems);
-								items.removeAll(draggedItemsList);
-								items.addAll(c, draggedItemsList);
-								DefinitionListEditor.this.viewer.refresh();
-								return true;
-							}
+						int c = items.indexOf(this.target);
+						if (c == -1)
+							c = items.size();
+						
+						PluginTransferData d = (PluginTransferData) data;
+						ByteBuffer b = ByteBuffer.wrap(d.getData());
+						int[] selection = new int[d.getData().length/4];
+						for (int i = 0; i < selection.length; i++)
+							selection[i] = b.getInt(i*4);
+						@SuppressWarnings("unchecked")
+						KeyValuePair<ID, Integer>[] draggedItems = new KeyValuePair[selection.length];
+						for (int i = selection.length-1; i >= 0; i--) {
+							draggedItems[i] = items.get(selection[i]);
+							if (selection[i] < c)
+								c--;
+						}
+						List<KeyValuePair<ID, Integer>> draggedItemsList = Arrays.asList(draggedItems);
+						items.removeAll(draggedItemsList);
+						items.addAll(c, draggedItemsList);
+						DefinitionListEditor.this.viewer.refresh();
+						return true;
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

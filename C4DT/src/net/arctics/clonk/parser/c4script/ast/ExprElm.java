@@ -591,7 +591,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 	@Override
 	public String toString() {
-		return toString(1);
+		return toString(0);
 	}
 	
 	public Comment commentedOut() {

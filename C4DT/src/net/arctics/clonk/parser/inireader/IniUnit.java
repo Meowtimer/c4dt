@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -262,8 +263,10 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	public IniSection sectionWithName(String name, boolean create) {
 		IniSection s = sectionsMap.get(name);
-		if (s == null && create)
+		if (s == null && create) {
 			s = addSection(null, -1, name, -1);
+			s.setSubItems(new HashMap<String, IniItem>(), new ArrayList<IniItem>());
+		}
 		return s;
 	}
 	

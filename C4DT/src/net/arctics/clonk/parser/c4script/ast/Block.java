@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -130,6 +132,12 @@ public class Block extends Statement {
 	
 	public void addStatements(Statement... statements) {
 		this.statements = ArrayUtil.concat(this.statements, statements);
+	}
+	
+	public void removeStatement(Statement s) {
+		List<Statement> l = new ArrayList<Statement>(Arrays.asList(statements));
+		l.remove(s);
+		this.statements = l.toArray(new Statement[l.size()]);
 	}
 
 }
