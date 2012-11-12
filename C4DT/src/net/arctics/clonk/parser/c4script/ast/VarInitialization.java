@@ -99,7 +99,7 @@ public final class VarInitialization extends ExprElm {
 		return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 	}
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
 			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
 		else

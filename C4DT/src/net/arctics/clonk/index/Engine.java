@@ -32,7 +32,7 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
@@ -81,14 +81,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
 	
-	private transient SpecialScriptRules specialScriptRules;
+	private transient SpecialEngineRules specialRules;
 	
 	/**
-	 * Return the {@link SpecialScriptRules} object associated with this engine. It is an instance of SpecialScriptRules_&lt;name&gt;
-	 * @return The {@link SpecialScriptRules} object
+	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
+	 * @return The {@link SpecialEngineRules} object
 	 */
-	public SpecialScriptRules specialScriptRules() {
-		return specialScriptRules;
+	public SpecialEngineRules specialRules() {
+		return specialRules;
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return Whether accepted or not
 	 */
 	public boolean acceptsId(String text) {
-		return specialScriptRules().parseId(new BufferedScanner(text)) != null;
+		return specialRules().parseId(new BufferedScanner(text)) != null;
 	}
 
 	private boolean hasCustomSettings() {
@@ -469,10 +469,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void createSpecialRules() {
 		try {
 			@SuppressWarnings("unchecked")
-			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", Core.PLUGIN_ID, name()));
-			specialScriptRules = rulesClass.newInstance();
-			specialScriptRules.initialize();
+			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
+				String.format("%s.parser.c4script.specialenginerules.SpecialEngineRules_%s", Core.PLUGIN_ID, name()));
+			specialRules = rulesClass.newInstance();
+			specialRules.initialize();
 		} catch (ClassNotFoundException e) {
 			// ignore
 		}

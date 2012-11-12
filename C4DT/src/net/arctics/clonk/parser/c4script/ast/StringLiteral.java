@@ -10,8 +10,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.StringUtil;
@@ -46,7 +46,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
 		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parser.script(), true);
@@ -59,7 +59,7 @@ public final class StringLiteral extends Literal<String> {
 			int myIndex = parentFunc.indexOfParm(this);
 
 			// delegate finding a link to special function rules
-			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(parser, SpecialScriptRules.DECLARATION_LOCATOR);
+			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(parser, SpecialEngineRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
 				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parser, myIndex, offset, this);
 				if (region != null)
@@ -67,7 +67,7 @@ public final class StringLiteral extends Literal<String> {
 			}
 
 		}
-		return super.declarationAt(offset, parser);
+		return super.entityAt(offset, parser);
 	}
 	
 	@Override

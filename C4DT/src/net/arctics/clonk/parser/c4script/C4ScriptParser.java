@@ -32,7 +32,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
@@ -215,7 +215,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
-	private SpecialScriptRules specialScriptRules;
+	private SpecialEngineRules specialEngineRules;
 	private Engine engine;
 	private ClonkBuilder builder;
 	private CachedEngineDeclarations cachedEngineDeclarations;
@@ -223,7 +223,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	public final boolean findDefinitionViaCall() {return findDefinitionViaCall;}
 	public final Engine engine() {return engine;}
-	public final SpecialScriptRules specialScriptRules() {return specialScriptRules;}
+	public final SpecialEngineRules specialEngineRules() {return specialEngineRules;}
 	public boolean allErrorsDisabled() {return allErrorsDisabled;}
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
 	public ClonkBuilder builder() {return builder;}
@@ -431,7 +431,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	protected void initialize() {
 		if (script != null) {
 			engine = script.engine();
-			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
+			specialEngineRules = engine != null ? script.engine().specialRules() : null;
 			cachedEngineDeclarations = engine.cachedDeclarations();
 
 			if (script.index() instanceof ProjectIndex) {
@@ -610,8 +610,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return;
 		function.forceType(PrimitiveType.UNKNOWN);
 
-		if (specialScriptRules != null)
-			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
+		if (specialEngineRules != null)
+			for (SpecialFuncRule eventListener : specialEngineRules.functionEventListeners())
 				eventListener.functionAboutToBeParsed(function, this);
 
 		int oldOffset = this.offset;
@@ -655,8 +655,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
-		if (specialScriptRules != null)
-			for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules())
+		if (specialEngineRules != null)
+			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules())
 				if (funcRule.assignDefaultParmTypes(this, function))
 					break;
 	}
@@ -1155,13 +1155,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Create a new {@link Function}. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
+	 * Create a new {@link Function}. Depending on what {@link SpecialEngineRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
 	protected Function newFunction(String nameWillBe) {
-	    if (specialScriptRules != null)
-			for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules()) {
+	    if (specialEngineRules != null)
+			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
 	    		Function f = funcRule.newFunction(nameWillBe);
 	    		if (f != null)
 	    			return f;
@@ -2488,7 +2488,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				? parseStatement(options)
 				: SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
-				done = currentFunction().isOldStyle() || peek() == '}';
+				Function currentFunction = currentFunction();
+				done = currentFunction == null || currentFunction.isOldStyle() || peek() == '}';
 				if (done)
 					break;
 				if (garbageStart == -1)
@@ -2875,7 +2876,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean parseID() throws ParsingException {
 		ID id;
-		if (offset < size && (id = specialScriptRules != null ? specialScriptRules.parseId(this) : null) != null) {
+		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseId(this) : null) != null) {
 			parsedID = id;
 			return true;
 		} else {
@@ -3246,6 +3247,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		};
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
+	}
+	
+	public static Statement parse(final String statementText) {
+		try {
+			return parseStandaloneStatement(statementText, null, null, null);
+		} catch (ParsingException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**

@@ -1,12 +1,18 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 
 public class ScenarioUnit extends IniUnit {
 
 	public static final String FILENAME = "Scenario.txt"; //$NON-NLS-1$
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	
+	@Override
+	public Scenario scenario() {
+		return iniFile != null ? Scenario.get(iniFile.getParent()) : null;
+	}
 	
 	@Override
 	protected String configurationName() {

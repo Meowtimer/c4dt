@@ -197,12 +197,12 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
 		for (Variable v : this.components())
 			if (v.isAt(absolute))
 				return new EntityRegion(v, v.location().relativeTo(parser.absoluteSourceLocation(0, 0)));
-		return super.declarationAt(offset, parser);
+		return super.entityAt(offset, parser);
 	}
 	
 }

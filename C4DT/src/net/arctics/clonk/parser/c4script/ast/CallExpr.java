@@ -15,30 +15,17 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
  * @author madeen
  *
  */
-public class CallExpr extends ExprElm implements IFunctionCall {
+public class CallExpr extends Tuple implements IFunctionCall {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private ExprElm[] params;
-	
 	public CallExpr(ExprElm[] params) {
-		this.params = params;
-		assignParentToSubElements();
+		super(params);
 	}
 	
 	@Override
 	public ExprElm[] params() {
-		return params;
-	}
-	
-	@Override
-	public ExprElm[] subElements() {
-		return params;
-	}
-	
-	@Override
-	public void setSubElements(ExprElm[] elms) {
-		this.params = elms;
+		return subElements();
 	}
 	
 	@Override
@@ -57,7 +44,7 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 	
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
-		CallDeclaration.printParmString(output, params, depth);
+		CallDeclaration.printParmString(output, subElements(), depth);
 	}
 	
 	@Override
@@ -85,8 +72,8 @@ public class CallExpr extends ExprElm implements IFunctionCall {
 	
 	@Override
 	public int indexOfParm(ExprElm parm) {
-		for (int i = 0; i < params.length; i++)
-			if (params[i] == parm)
+		for (int i = 0; i < elements.length; i++)
+			if (elements[i] == parm)
 				return i;
 		return -1;
 	}

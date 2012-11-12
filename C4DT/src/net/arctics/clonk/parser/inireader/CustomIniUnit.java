@@ -54,7 +54,7 @@ public class CustomIniUnit extends IniUnit {
 	
 	public static void save(Writer writer , Object obj, Object defaults) throws IOException, IllegalArgumentException, IllegalAccessException {
 		CustomIniUnit unit = new CustomIniUnit(configurationForClass(obj.getClass()), obj, defaults);
-		unit.save(writer);
+		unit.save(writer, false);
 	}
 	
 	public CustomIniUnit(IniConfiguration configuration, Object object, Object defaults) throws IllegalArgumentException, IllegalAccessException {
@@ -80,13 +80,12 @@ public class CustomIniUnit extends IniUnit {
 							} catch (NoSuchMethodException e) {
 								ctor = null;
 							}
-							if (ctor != null) {
+							if (ctor != null)
 								try {
 									value = ctor.newInstance(f.get(object));
 								} catch (Exception e) {
 									value = null;
 								}
-							}
 						}
 						if (value != null) {
 							IniSection section = this.requestSection(annot.category(), dataSection);
@@ -101,16 +100,15 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void commitTo(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		for (IniSection section : this.sections()) {
+		for (IniSection section : this.sections())
 			commitSection(object, section, true);
-		}
 	}
 
 	public void commitSection(Object object, IniSection section, boolean takeIntoAccountCategory) {
-		for (IniItem item : section.subItemMap().values()) {
-			if (item instanceof IniSection) {
+		for (IniItem item : section.subItemMap().values())
+			if (item instanceof IniSection)
 				commitSection(object, (IniSection)item, takeIntoAccountCategory);
-			} else if (item instanceof IniEntry) {
+			else if (item instanceof IniEntry) {
 				IniEntry entry = (IniEntry) item;
 				Field f;
 				try {
@@ -136,7 +134,6 @@ public class CustomIniUnit extends IniUnit {
 					}
 				}
 			}
-		}
 	}
 	
 	private void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	

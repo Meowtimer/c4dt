@@ -30,8 +30,8 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -368,9 +368,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		
 		if (innermostCallFunc != null) {
-			SpecialScriptRules rules = parser.specialScriptRules();
+			SpecialEngineRules rules = parser.specialEngineRules();
 			if (rules != null) {
-				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
+				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					ExprElm parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
 					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);

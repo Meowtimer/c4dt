@@ -156,6 +156,11 @@ public class Wildcard extends PropListExpression {
 			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 				s.wildcardMatches.put(wildcard.tag(), expression);
 			}
+
+			@Override
+			public boolean consume(ExprElm consumer, ExprElm extra) {
+				return false;
+			}
 		};
 		if (body.compare(template, d).isEqual())
 			sink.elutriate(s);
@@ -164,9 +169,8 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	public static ExprElm generateReplacement(ExprElm original, ExprElm topLevel, WildcardMatchingSuccess wildcardReplacements) throws CloneNotSupportedException {
-		if (topLevel == null) {
+		if (topLevel == null)
 			topLevel = original.clone();
-		}
 		if (original instanceof Wildcard) {
 			Wildcard w = (Wildcard) original;
 			if (w.tag() != null) {
@@ -178,9 +182,8 @@ public class Wildcard extends PropListExpression {
 						original.parent().replaceSubElement(original, e.clone(), 0);
 			}
 		}
-		for (ExprElm e : original.subElements()) {
+		for (ExprElm e : original.subElements())
 			generateReplacement(e, topLevel, wildcardReplacements);
-		}
 		return topLevel;
 	}
 	

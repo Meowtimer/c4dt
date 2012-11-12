@@ -100,19 +100,20 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			parser = new IniUnitParser(this, input);
 	}
 	
-	public void save(Writer writer) throws IOException {
+	public void save(Writer writer, boolean discardEmptySections) throws IOException {
 		for (IniSection section : sectionsList)
-			section.writeTextRepresentation(writer, -1);
+			if (!discardEmptySections || section.subItemList().size() > 0)
+				section.writeTextRepresentation(writer, -1);
 	}
 	
-	public void save() {
+	public void save(final boolean discardEmptySections) {
 		if (iniFile != null)
 			Core.instance().performActionsOnFileDocument(iniFile, new IDocumentAction<Void>() {
 				@Override
 				public Void run(IDocument document) {
 					StringWriter writer = new StringWriter();
 					try {
-						save(writer);
+						save(writer, discardEmptySections);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -259,8 +260,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return sectionsList.iterator();
 	}
 	
-	public IniSection sectionWithName(String name) {
-		return sectionsMap.get(name);
+	public IniSection sectionWithName(String name, boolean create) {
+		IniSection s = sectionsMap.get(name);
+		if (s == null && create)
+			s = addSection(null, -1, name, -1);
+		return s;
 	}
 	
 	public IniSection sectionMatching(IPredicate<IniSection> predicate) {
@@ -362,7 +366,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	@Override
 	public Declaration findDeclaration(String declarationName) {
-		return sectionWithName(declarationName);
+		return sectionWithName(declarationName, false);
 	}
 	
 	@Override
@@ -472,7 +476,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
-		this.save(writer);
+		this.save(writer, false);
 	}
 
 	@Override

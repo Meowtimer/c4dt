@@ -115,17 +115,17 @@ public class ProjectConverter implements IResourceVisitor {
 				return expression;
 			return (new ITransformer() {
 				@Override
-				public ExprElm transform(ExprElm expression) {
+				public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
 					if (expression == null)
 						return null;
 					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
-						Map<String, ExprElm> matched = ct.template().match(expression);
+						Map<String, Object> matched = ct.template().match(expression);
 						if (matched != null)
 							return ct.transformation().transform(matched);
 					}
 					return expression.transformSubElements(this);
 				}
-			}).transform(expression);
+			}).transform(null, null, expression);
 		}
 	};
 	private boolean skipResource(IResource sourceResource) {

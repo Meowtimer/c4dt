@@ -4,7 +4,11 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.KeyValuePair;
 
 public class IDArray extends KeyValueArrayEntry<ID, Integer> {
-
+	public IDArray() { super(); }
+	public IDArray(KeyValuePair<ID, Integer>... values) {
+		for (KeyValuePair<ID, Integer> v : values)
+			add(v);
+	}
 	@Override
 	public KeyValuePair<ID, Integer> singleComponentFromString(String s) {
 		String[] idAndCount = s.split("="); //$NON-NLS-1$
@@ -17,5 +21,4 @@ public class IDArray extends KeyValueArrayEntry<ID, Integer> {
 			return null;
 		}
 	}
-
 }

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.specialscriptrules;
+package net.arctics.clonk.parser.c4script.specialenginerules;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
@@ -23,18 +25,26 @@ import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
+import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.specialenginerules.SpecialEngineRules_OpenClonk.ComputedScenarioConfigurationEntry.Item;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
+import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
@@ -42,7 +52,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
-public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
+public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private static final String DEFINITION_FUNCTION = "Definition";
 
@@ -271,7 +281,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 	};
 	
-	public SpecialScriptRules_OpenClonk() {
+	public SpecialEngineRules_OpenClonk() {
 		super();
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
@@ -325,7 +335,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(parser.script()), "", processor.editor())); 
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(parser.script()), "", processor.editor())); 
 									}
 								}
 					}
@@ -358,6 +368,75 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return ID.get(idString);
 		}
 		return null;
+	}
+	
+	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
+	
+	private static final ExprElm PLACE_CALL = C4ScriptParser.parse("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)").matchingExpr();
+	
+	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
+		public ComputedScenarioConfigurationEntry(String key, IDArray values) {
+			super(-1, -1, key, values);
+		}
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public static class Item extends KeyValuePair<ID, Integer> {
+			private transient CallDeclaration placeCall;
+			public CallDeclaration placeCall() { return placeCall; }
+			public Item(ID first, Integer second, CallDeclaration placeCall) {
+				super(first, second);
+				this.placeCall = placeCall;
+			}
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void processScenarioConfiguration(final ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
+		switch (processing) {
+		case Load:
+			final Scenario scenario = unit.scenario();
+			Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
+			if (createEnvironment != null) {
+				final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
+				if (plantLib == null)
+					return; // no plant library - give up
+				for (final Statement s : createEnvironment.body().statements())
+					(new Runnable() {
+						public AccessVar id;
+						public CallDeclaration placeCall;
+						public NumberLiteral num;
+						public ExprElm[] params;
+						public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
+						public String section, entry;
+						boolean determineConfigurationInsertionPoint() {
+							Definition d = definition();
+							if (d != null)
+								if (d.doesInclude(scenario.index(), plantLib)) {
+									section = "Landscape";
+									entry = "Vegetation";
+									return true;
+								}
+							return false;
+						}
+						@Override
+						public void run() {
+							if (PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint()) {
+								IniSection section = unit.sectionWithName(this.section, true);
+								ComputedScenarioConfigurationEntry entry = as(section.subItemByKey(this.entry), ComputedScenarioConfigurationEntry.class);
+								Item i = new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall);
+								if (entry == null)
+									section.addItem(new ComputedScenarioConfigurationEntry(this.entry, new IDArray(i)));
+								else
+									((IDArray)entry.value()).add(i);
+							}
+						}
+					}).run();
+			}
+			break;
+		case Save:
+			break;
+		}
 	}
 
 }

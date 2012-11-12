@@ -20,7 +20,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.SubstitutionPoint;
+import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.util.StreamUtil;
 
 /**
@@ -87,7 +87,7 @@ public class ProjectConversionConfiguration {
 			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
 				@Override
 				protected Placeholder makePlaceholder(String placeholder) {
-					return new SubstitutionPoint(placeholder);
+					return new MatchingPlaceholder(placeholder);
 				}
 			};
 			Function context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$

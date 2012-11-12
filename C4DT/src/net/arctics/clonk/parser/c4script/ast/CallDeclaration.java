@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
@@ -34,15 +35,16 @@ import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
@@ -93,7 +95,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public String toString() {
-			return "function " + function + " " + super.toString();
+			return "function " + function + " " + super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		@Override
@@ -236,15 +238,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param depth Indentation level of parameter expressions.
 	 */
 	public static void printParmString(ExprWriter output, ExprElm[] params, int depth) {
-		output.append("("); //$NON-NLS-1$
-		if (params != null)
-			for (int i = 0; i < params.length; i++) {
-				if (params[i] != null)
-					params[i].print(output, depth);
-				if (i < params.length-1)
-					output.append(", "); //$NON-NLS-1$
-			}
-		output.append(")"); //$NON-NLS-1$
+		StringUtil.writeBlock(output, "(", ")", ", ", iterable(params)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
 	@Override
@@ -259,14 +253,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	
 	/**
 	 * Return a {@link SpecialFuncRule} applying to {@link CallDeclaration}s with the same name as this one.
-	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialScriptRules()})
-	 * @param role Role mask passed to {@link SpecialScriptRules#funcRuleFor(String, int)}
+	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialRules()})
+	 * @param role Role mask passed to {@link SpecialEngineRules#funcRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
 	public final SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.script().engine();
-		if (engine != null && engine.specialScriptRules() != null)
-			return engine.specialScriptRules().funcRuleFor(declarationName, role);
+		if (engine != null && engine.specialRules() != null)
+			return engine.specialRules().funcRuleFor(declarationName, role);
 		else
 			return null;
 	}
@@ -305,7 +299,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		if (d instanceof Function) {
 			// Some special rule applies and the return type is set accordingly
-			SpecialFuncRule rule = specialRuleFromContext(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
+			SpecialFuncRule rule = specialRuleFromContext(context, SpecialEngineRules.RETURNTYPE_MODIFIER);
 			if (rule != null)
 				return new CallReturnType(this, rule, context.script());
 			Function f = (Function)d;
@@ -397,9 +391,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (context.script() == null)
-					System.out.println("No container");
+					System.out.println("No container"); //$NON-NLS-1$
 				else if (context.script().index() == null)
-					System.out.println("No index");
+					System.out.println("No index"); //$NON-NLS-1$
 				return null;
 			}
 			// find engine function
@@ -514,7 +508,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					context.script().addUsedScript(f.script());
 				boolean specialCaseHandled = false;
 				
-				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
+				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
 				if (rule != null)
 					specialCaseHandled = rule.validateArguments(this, params, context);
 				
@@ -633,7 +627,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
 			if (!parser.script().engine().settings().supportsProplists && predecessorInSequence() != null)
-				return new CallDeclaration("LocalN", new StringLiteral(declarationName));
+				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
 
@@ -693,7 +687,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		Set<IIndexEntity> list = new HashSet<IIndexEntity>();
 		_obtainDeclaration(list, parser);
 		return new EntityRegion(list, new Region(start(), declarationName.length()));

@@ -43,7 +43,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	 */
 	@Override
 	protected void endParsing() {
-		IniSection controlsDefsSection = sectionWithName("ControlDefs");
+		IniSection controlsDefsSection = sectionWithName("ControlDefs", false);
 		if (controlsDefsSection != null)
 			for (IniItem item : controlsDefsSection.subItemList())
 				if (item instanceof IniSection) {

@@ -210,11 +210,15 @@ public class AccessVar extends AccessDeclaration {
 		super.assignment(expression, context);
 	}
 	
-	private static Definition definitionProxiedBy(Variable var) {
+	private static Definition definitionProxiedBy(Declaration var) {
 		if (var instanceof Definition.ProxyVar)
 			return ((Definition.ProxyVar)var).definition();
 		else
 			return null;
+	}
+	
+	public Definition proxiedDefinition() {
+		return definitionProxiedBy(declaration());
 	}
 
 	@Override

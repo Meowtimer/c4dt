@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.util.ArrayUtil;
 

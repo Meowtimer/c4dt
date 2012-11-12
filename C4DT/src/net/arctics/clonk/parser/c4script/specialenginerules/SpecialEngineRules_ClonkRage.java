@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.specialscriptrules;
+package net.arctics.clonk.parser.c4script.specialenginerules;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,12 +9,12 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
-public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
-	public SpecialScriptRules_ClonkRage() {
+public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
+	public SpecialEngineRules_ClonkRage() {
 		super();
 		putFuncRule(criteriaSearchRule, "FindObject2");
 		putFuncRule(objectCreationRule, "FindObject");

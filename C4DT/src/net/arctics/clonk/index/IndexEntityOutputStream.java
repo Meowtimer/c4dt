@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public class IndexEntityOutputStream extends ObjectOutputStream {

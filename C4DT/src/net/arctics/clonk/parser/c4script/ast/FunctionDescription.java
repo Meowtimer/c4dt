@@ -35,7 +35,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		if (contents == null)
 			return null;
 		String[] parts = contents.split("\\|"); //$NON-NLS-1$

@@ -45,6 +45,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
+import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
@@ -66,7 +67,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
  * @author madeen
  *
  */
-public class SpecialScriptRules {
+public class SpecialEngineRules {
 	
 	/**
 	 * Role for SpecialFuncRule: Validate arguments of a function in a special way.
@@ -151,7 +152,7 @@ public class SpecialScriptRules {
 			}
 			@Override
 			public Object resolve(Index index) {
-				return index.engine().specialScriptRules().rule(name);
+				return index.engine().specialRules().rule(name);
 			}
 		}
 		
@@ -293,7 +294,7 @@ public class SpecialScriptRules {
 		public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
 	}
 	
-	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialScriptRules.SpecialRule>();
+	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialEngineRules.SpecialRule>();
 	private final Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
 	private final Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
 	private final Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
@@ -558,7 +559,7 @@ public class SpecialScriptRules {
 					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null);
 				} catch (ParsingException e) {}
 				if (locator.expressionAtRegion() != null) {
-					EntityRegion reg = locator.expressionAtRegion().declarationAt(offsetInExpression, parser);
+					EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, parser);
 					if (reg != null)
 						return reg.incrementRegionBy(lit.start()+1);
 				}
@@ -932,6 +933,15 @@ public class SpecialScriptRules {
 	 */
 	public ID parseId(BufferedScanner scanner) {
 		return null;
+	}
+	
+	public enum ScenarioConfigurationProcessing {
+		Load,
+		Save
+	}
+	
+	public void processScenarioConfiguration(ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
+		// do nothing
 	}
 	
 }

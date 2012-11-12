@@ -26,6 +26,10 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		components.add(new KeyValuePair<KeyType, ValueType>(id,num));
 	}
 	
+	public void add(KeyValuePair<KeyType, ValueType> pair) {
+		components.add(pair);
+	}
+	
 	public KeyValuePair<KeyType, ValueType> find(KeyType key) {
 		for (KeyValuePair<KeyType, ValueType> kv : components)
 			if (kv.key().equals(key))

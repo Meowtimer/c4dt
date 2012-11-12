@@ -81,15 +81,14 @@ public class IniDescriptionsLoader {
 					try {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
 						unit.parser().parse(false);
-						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
+						IniSection section = unit.sectionWithName("Descriptions", false); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
-							for (Entry<String, IniItem> item : section.subItemMap().entrySet()) {
+							for (Entry<String, IniItem> item : section.subItemMap().entrySet())
 								if (item.getValue() instanceof IniEntry) {
 									IniEntry entry = (IniEntry) item.getValue();
 									result.put(entry.key(), entry.stringValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
 								}
-							}
 							descriptions.put(language, result);
 							return result;
 						}
