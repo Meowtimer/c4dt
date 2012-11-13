@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,8 +20,10 @@ import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
+import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
+import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.IConverter;
@@ -47,6 +50,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -108,7 +112,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 	private class DefinitionListEditor {
 
-		private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab";
+		private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab"; //$NON-NLS-1$
 		
 		private final IniEntry entry;
 		private final IDArray array;
@@ -346,6 +350,52 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				break;
 			}
 		}
+
+		public void copyFrom(DefinitionListEditor other) {
+			array.components().clear();
+			for (int i = 0; i < other.array.components().size(); i++)
+				try {
+					array.add((KeyValuePair<ID, Integer>) other.array.components().get(i).clone());
+				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
+				}
+			viewer.refresh();
+		}
+	}
+	
+	private class EntrySlider implements SelectionListener {
+		private final String section, entry;
+		private final Slider slider;
+		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
+			this.section = section;
+			this.entry = entry;
+			new Label(parent, SWT.NULL).setText(label);
+			this.slider = new Slider(parent, style);
+			this.slider.addSelectionListener(this);
+			this.slider.setMinimum(0);
+			this.slider.setMaximum(100);
+		}
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			try {
+				IniSection s = scenarioConfiguration.sectionWithName(section, true);
+				IniItem i = s.subItemByKey(entry);
+				if (i == null)
+					s.addItem(i = new ComplexIniEntry(-1, -1, entry, new SignedInteger(slider.getThumb())));
+				else if (i instanceof IniEntry)
+					try {
+						((SignedInteger)((ComplexIniEntry)i).value()).setNumber(slider.getThumb());
+					} catch (IniParserException e1) {
+						e1.printStackTrace();
+					}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		@Override
+		public void widgetDefaultSelected(SelectionEvent e) {
+			widgetSelected(e);
+		}
 	}
 	
 	public Slider makeValueSlider(Composite parent, String label, String section, String entry) {
@@ -399,6 +449,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			return null;
 	}
 	
+	public EntrySlider slider(Composite parent, String section, String entry, String label) {
+		return new EntrySlider(parent, SWT.HORIZONTAL, section, entry, label);
+	}
+	
 	private Composite[] makeLanes(Composite parent) {
 		Composite leftLane = new Composite(parent, SWT.NO_SCROLL);
 		leftLane.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -422,24 +476,71 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
 		TabFolder players = new TabFolder(equipment, SWT.BORDER);
 		players.setLayoutData(new GridData(GridData.FILL_BOTH));
+		final Map<Integer, List<DefinitionListEditor>> playerEditors = new HashMap<Integer, List<DefinitionListEditor>>();
 		for (int i = 1; i <= 4; i++) {
+			final int playerIndex = i;
 			TabItem tab = new TabItem(players, SWT.NULL);
 			tab.setText(String.format(Messages.ScenarioProperties_PlayerTabFormat, i));
-			Composite composite = new Composite(players, SWT.NULL);
+			final Composite composite = new Composite(players, SWT.NULL);
+			tab.setControl(composite);
 			composite.setLayout(new GridLayout(2, false));
 			composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-			Composite[] lanes = makeLanes(composite);
-			tab.setControl(composite);
 			String section = String.format("Player%d", i); //$NON-NLS-1$
-			listEditorFor(lanes[0], section, "Crew", Messages.ScenarioProperties_PlayerCrew); //$NON-NLS-1$
-			listEditorFor(lanes[1], section, "Buildings", Messages.ScenarioProperties_PlayerBuildings); //$NON-NLS-1$
-			listEditorFor(lanes[0], section, "Material", Messages.ScenarioProperties_PlayerMaterial); //$NON-NLS-1$
-			listEditorFor(lanes[1], section, "Vehicles", Messages.ScenarioProperties_PlayerVehicles); //$NON-NLS-1$
+			final List<DefinitionListEditor> thisPlayerEditors = new ArrayList<ScenarioProperties.DefinitionListEditor>(8);
+			playerEditors.put(playerIndex, thisPlayerEditors);
+			final Composite[] simpleLanes = makeLanes(composite);
+			thisPlayerEditors.addAll(Arrays.asList(
+				listEditorFor(simpleLanes[0], section, "Crew", Messages.ScenarioProperties_PlayerCrew), //$NON-NLS-1$
+				listEditorFor(simpleLanes[1], section, "Buildings", Messages.ScenarioProperties_PlayerBuildings), //$NON-NLS-1$
+				listEditorFor(simpleLanes[0], section, "Material", Messages.ScenarioProperties_PlayerMaterial), //$NON-NLS-1$
+				listEditorFor(simpleLanes[1], section, "Vehicles", Messages.ScenarioProperties_PlayerVehicles) //$NON-NLS-1$
+			));
+			final Composite[] extendedLanes = makeLanes(composite);
+			thisPlayerEditors.addAll(Arrays.asList(
+				listEditorFor(extendedLanes[0], section, "Knowledge", Messages.ScenarioProperties_Knowledge), //$NON-NLS-1$
+				listEditorFor(extendedLanes[1], section, "Magic", Messages.ScenarioProperties_Magic), //$NON-NLS-1$
+				listEditorFor(extendedLanes[0], section, "HomeBaseMaterial", Messages.ScenarioProperties_HomeBaseMaterial), //$NON-NLS-1$
+				listEditorFor(extendedLanes[1], section, "HomeBaseProduction", Messages.ScenarioProperties_HomeBaseProduction) //$NON-NLS-1$
+			));
 			Composite buttons = new Composite(composite, SWT.NO_SCROLL);
-			buttons.setLayout(new GridLayout(1, false));
+			buttons.setLayout(new GridLayout(2, false));
 			buttons.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 			Button copyToOthers = new Button(buttons, SWT.PUSH);
 			copyToOthers.setText(Messages.ScenarioProperties_CopyToOtherPlayers);
+			copyToOthers.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					for (Map.Entry<Integer, List<DefinitionListEditor>> editors : playerEditors.entrySet())
+						if (editors.getKey() != playerIndex)
+							for (int i = 0; i < thisPlayerEditors.size(); i++)
+								editors.getValue().get(i).copyFrom(thisPlayerEditors.get(i));
+				}
+			});
+			final Button extended = new Button(buttons, SWT.PUSH);
+			extended.addSelectionListener(new SelectionAdapter() {
+				final String[] extendedText = new String[] {Messages.ScenarioProperties_PlayerExtended, Messages.ScenarioProperties_PlayerSimple};
+				boolean extendedOn = false;
+				void setLanesVisible(Composite[] lanes, boolean visible) {
+					for (Composite l : lanes) {
+						l.setVisible(visible);
+						((GridData)l.getLayoutData()).exclude = !visible;
+					}
+					composite.layout();
+				}
+				void setText() {
+					extended.setText(extendedText[extendedOn ? 1 : 0]);
+					composite.layout();
+				}
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					extendedOn = !extendedOn;
+					setLanesVisible(simpleLanes, !extendedOn);
+					setLanesVisible(extendedLanes, extendedOn);
+					setText();
+				}
+				
+				{ setLanesVisible(extendedLanes, false); setText(); }
+			});
 		}
 		equipment.setLayout(new GridLayout(2, false));
 
@@ -447,18 +548,24 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
 		environment.setLayout(new GridLayout(2, false));
 		{
-			Composite leftLane = new Composite(environment, SWT.NO_SCROLL);
-			leftLane.setLayoutData(new GridData(GridData.FILL_BOTH));
-			leftLane.setLayout(new GridLayout(2, false));
-			Composite rightLane = new Composite(environment, SWT.NO_SCROLL);
-			rightLane.setLayoutData(new GridData(GridData.FILL_BOTH));
-			rightLane.setLayout(new GridLayout(2, false));
-			listEditorFor(leftLane, "Animals", "Animal", Messages.ScenarioProperties_Animals); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(rightLane, "Animals", "Nest", Messages.ScenarioProperties_Nests); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(leftLane, "Landscape", "Vegetation", Messages.ScenarioProperties_Vegetation); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(rightLane, "Landscape", "InEarth", Messages.ScenarioProperties_InEarth); //$NON-NLS-1$ //$NON-NLS-2$
+			Composite[] lanes = makeLanes(environment);
+			listEditorFor(lanes[0], "Animals", "Animal", Messages.ScenarioProperties_Animals); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[1], "Animals", "Nest", Messages.ScenarioProperties_Nests); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[0], "Landscape", "Vegetation", Messages.ScenarioProperties_Vegetation); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[1], "Landscape", "InEarth", Messages.ScenarioProperties_InEarth); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
+		weather.setLayout(new GridLayout(2, false));
+		{
+			Composite[] lanes = makeLanes(weather);
+			slider(lanes[0], "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(lanes[0], "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
+			
+			slider(lanes[1], "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(lanes[1], "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(lanes[1], "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(lanes[1], "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 		return tabs;
 	}
 	

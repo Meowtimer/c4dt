@@ -130,4 +130,9 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 	
+	@Override
+	public boolean isEmpty() {
+		return components == null || components.size() == 0;
+	}
+	
 }

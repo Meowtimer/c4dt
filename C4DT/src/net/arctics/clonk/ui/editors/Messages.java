@@ -21,26 +21,38 @@ public class Messages extends NLS {
 	public static String ClonkHyperlink_Label;
 	public static String ScenarioProperties_AddDefinitions;
 	public static String ScenarioProperties_Animals;
+	public static String ScenarioProperties_Climate;
 	public static String ScenarioProperties_CopyToOtherPlayers;
 	public static String ScenarioProperties_CountColumn;
 	public static String ScenarioProperties_Dec;
 	public static String ScenarioProperties_Definition;
+	public static String ScenarioProperties_Earthquake;
 	public static String ScenarioProperties_EnvironmentTab;
 	public static String ScenarioProperties_EquipmentTab;
 	public static String ScenarioProperties_GameTab;
 	public static String ScenarioProperties_Goals;
+	public static String ScenarioProperties_Gravity;
+	public static String ScenarioProperties_HomeBaseMaterial;
+	public static String ScenarioProperties_HomeBaseProduction;
 	public static String ScenarioProperties_Inc;
 	public static String ScenarioProperties_InEarth;
+	public static String ScenarioProperties_Knowledge;
 	public static String ScenarioProperties_LandscapeTab;
+	public static String ScenarioProperties_Magic;
+	public static String ScenarioProperties_Meteorite;
 	public static String ScenarioProperties_Nests;
 	public static String ScenarioProperties_PlayerBuildings;
 	public static String ScenarioProperties_PlayerCrew;
+	public static String ScenarioProperties_PlayerExtended;
 	public static String ScenarioProperties_PlayerMaterial;
+	public static String ScenarioProperties_PlayerSimple;
 	public static String ScenarioProperties_PlayerTabFormat;
 	public static String ScenarioProperties_PlayerVehicles;
 	public static String ScenarioProperties_RemoveDefinitions;
 	public static String ScenarioProperties_Rules;
+	public static String ScenarioProperties_Season;
 	public static String ScenarioProperties_Vegetation;
+	public static String ScenarioProperties_Volcano;
 	public static String ScenarioProperties_WeatherTab;
 	static {
 		// initialize resource bundle

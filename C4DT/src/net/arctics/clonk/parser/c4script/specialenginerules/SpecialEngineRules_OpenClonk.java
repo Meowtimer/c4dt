@@ -391,6 +391,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public static class Item extends KeyValuePair<ID, Integer> {
 			private transient CallDeclaration placeCall;
+			@Override
+			public Item clone() throws CloneNotSupportedException {
+				Item item = (Item)super.clone();
+				item.placeCall = null; // better not to
+				return item;
+			}
 			public CallDeclaration placeCall() { return placeCall; }
 			public Item(ID first, Integer second, CallDeclaration placeCall) {
 				super(first, second);
@@ -545,10 +551,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
 				@Override
 				public boolean test(Definition item) {
-					if (plant != null && item != plant && item.doesInclude(entry.index(), plant))
-						return true;
-					else
-						return false;
+					return plant != null && item != plant && item.doesInclude(entry.index(), plant);
 				}
 			};
 		else if (entry.key().equals("Animal"))
@@ -563,6 +566,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				@Override
 				public boolean test(Definition item) {
 					return item.findFunction("IsClonk") != null;
+				}
+			};
+		else if (entry.key().equals("Goals"))
+			return new IPredicate<Definition>() {
+				final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));;
+				@Override
+				public boolean test(Definition item) {
+					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
 				}
 			};
 		else
