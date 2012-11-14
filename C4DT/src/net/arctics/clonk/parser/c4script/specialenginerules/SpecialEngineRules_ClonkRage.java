@@ -57,11 +57,6 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 	
 	@Override
 	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
-		return new IPredicate<Definition>() {
-			@Override
-			public boolean test(Definition item) {
-				return true;
-			}
-		};
+		return super.configurationEntryDefinitionFilter(entry);
 	}
 }

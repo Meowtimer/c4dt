@@ -41,6 +41,9 @@ import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -945,7 +948,43 @@ public abstract class SpecialEngineRules {
 	public void processScenarioConfiguration(ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
 		// do nothing
 	}
-	
-	public abstract IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry);
+
+	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
+		if (entry.key().equals("Rules"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					DefCoreUnit defCore = item.defCore();
+					ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+					if (category != null)
+						if (category.value() instanceof CategoriesValue) {
+							CategoriesValue categoriesValue = (CategoriesValue) category.value();
+							return categoriesValue.constants() != null && categoriesValue.constants().contains("C4D_Rule");
+						}
+					return false;
+				}
+			};
+		else if (entry.key().equals("Animal"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return item.findFunction("IsAnimal") != null;
+				}
+			};
+		else if (entry.key().equals("Crew"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return item.findFunction("IsClonk") != null;
+				}
+			};
+		else
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					return true;
+				}
+			};
+	}
 	
 }
