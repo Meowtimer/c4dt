@@ -29,8 +29,10 @@ import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -41,6 +43,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 
 /**
  * A Clonk object definition.
@@ -480,6 +484,24 @@ public class Definition extends Script implements IProplistDeclaration {
 	public boolean categorySet(String category) {
 		CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
+	}
+	
+	static {
+		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+					Sink<Definition> sink = new Sink<Definition>() {
+						@Override
+						public void receivedObject(Definition item) {
+							item.chooseLocalizedName();
+						}
+					};
+					for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+						ClonkProjectNature.get(proj).index().allDefinitions(sink);
+				}
+			}
+		});
 	}
 
 }

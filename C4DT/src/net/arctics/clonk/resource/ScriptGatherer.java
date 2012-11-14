@@ -139,7 +139,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				builder.queueScript(script);
 				return true;
 			}
-			else if (processAuxiliaryFiles(file, Script.get(file, true)))
+			else if (processAuxiliaryFiles(file, Script.get(file, false)))
 				return true;
 		}
 		return false;
