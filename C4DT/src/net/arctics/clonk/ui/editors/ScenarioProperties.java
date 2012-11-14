@@ -20,10 +20,9 @@ import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
-import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
-import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.IConverter;
@@ -375,28 +374,31 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
 			this.section = section;
 			this.entry = entry;
-			new Label(parent, SWT.NULL).setText(label);
+			new Label(parent, SWT.HORIZONTAL).setText(label);
 			this.slider = new Slider(parent, style);
 			this.slider.addSelectionListener(this);
 			this.slider.setMinimum(0);
-			this.slider.setMaximum(100);
+			this.slider.setMaximum(100+this.slider.getThumb());
+			this.slider.setSelection(value(0));
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			try {
-				IniSection s = scenarioConfiguration.sectionWithName(section, true);
-				IniItem i = s.subItemByKey(entry);
-				if (i == null)
-					s.addItem(i = new ComplexIniEntry(-1, -1, entry, new SignedInteger(slider.getThumb())));
-				else if (i instanceof IniEntry)
-					try {
-						((SignedInteger)((ComplexIniEntry)i).value()).setNumber(slider.getThumb());
-					} catch (IniParserException e1) {
-						e1.printStackTrace();
-					}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
+			setValue(0, slider.getSelection());
+		}
+		private void setValue(int index, int value) {
+			IniSection s = scenarioConfiguration.sectionWithName(section, true);
+			IniItem i = s.subItemByKey(entry);
+			if (i == null) {
+				int[] values = new int[4];
+				values[index] = value;
+				s.addItem(i = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values)));
+			} else
+				((IntegerArray)((ComplexIniEntry)i).value()).values()[index].setSummedValue(value);
+		}
+		private int value(int index) {
+			IniEntry e = scenarioConfiguration.entryInSection(section, entry);
+			return e instanceof ComplexIniEntry && ((ComplexIniEntry)e).value() instanceof IntegerArray
+				? ((IntegerArray)((ComplexIniEntry)e).value()).values()[index].summedValue() : 0;
 		}
 		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
