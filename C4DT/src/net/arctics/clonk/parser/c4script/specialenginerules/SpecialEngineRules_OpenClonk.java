@@ -556,7 +556,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			};
 		else if (entry.key().equals("Goals"))
 			return new IPredicate<Definition>() {
-				final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));;
+				final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
 				@Override
 				public boolean test(Definition item) {
 					return goal != null && item != goal && item.doesInclude(entry.index(), goal);

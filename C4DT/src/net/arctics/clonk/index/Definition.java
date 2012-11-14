@@ -25,6 +25,8 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasRelatedResource;
@@ -463,6 +465,21 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	public IProplistDeclaration prototype() {
 		return null;
+	}
+	
+	/**
+	 * Return the category of the definition as specified in its DefCore.txt file.
+	 * @return
+	 */
+	public CategoriesValue category() {
+		DefCoreUnit defCore = defCore();
+		ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+		return category != null ? as(category.value(), CategoriesValue.class) : null;
+	}
+	
+	public boolean categorySet(String category) {
+		CategoriesValue cat = category();
+		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
 
 }

@@ -85,6 +85,10 @@ public class CategoriesValue extends IniEntryValueBase {
 		return summedValue;
 	}
 	
+	public void setSummedValue(int summedValue) {
+		this.summedValue = summedValue;
+	}
+	
 	public List<String> constants() {
 		return constants;
 	}

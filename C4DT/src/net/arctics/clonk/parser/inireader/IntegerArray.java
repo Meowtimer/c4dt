@@ -14,6 +14,12 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	public IntegerArray() {
 	}
 	
+	public IntegerArray(int[] values) {
+		this.values = new CategoriesValue[values.length];
+		for (int i = 0; i < values.length; i++)
+			this.values[i] = new CategoriesValue(i);
+	}
+	
 	public IntegerArray(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		setInput(value, entryData, context);
 	}
@@ -53,10 +59,8 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 					}
 				}
 				this.values = values;
-			}
-			else {
+			} else
 				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.ExpectedIntegerArray);
-			}
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.ExpectedIntegerArray);
@@ -89,6 +93,10 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 
 	@Override
 	public Object convertToPrimitive() {
+		return values;
+	}
+	
+	public CategoriesValue[] values() {
 		return values;
 	}
 

@@ -1,5 +1,8 @@
 package net.arctics.clonk.parser.c4script.specialenginerules;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,8 +58,36 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		return null;
 	}
 	
+	private static final Map<String, String> entryToCategoryMap = map(false,
+		"Animal", "C4D_SelectAnimal",
+		"Buildings", "C4D_SelectBuilding",
+		"HomeBaseMaterial", "C4D_SelectHomebase",
+		"Nest", "C4D_SelectNest",
+		"Vehicles", "C4D_SelectVehicle",
+		"Vegetation", "C4D_SelectVegetation"
+	);
+	
 	@Override
-	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
-		return super.configurationEntryDefinitionFilter(entry);
+	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+		{
+			final String category = entryToCategoryMap.get(entry.key());
+			if (category != null)
+				return new IPredicate<Definition>() {
+					@Override
+					public boolean test(Definition item) {
+						return item.categorySet(category);
+					}
+				};
+		}
+		if (entry.key().equals("Goals"))
+			return new IPredicate<Definition>() {
+				final Definition goal = entry.index().anyDefinitionWithID(ID.get("GOAL"));
+				@Override
+				public boolean test(Definition item) {
+					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
+				}
+			};
+		else
+			return super.configurationEntryDefinitionFilter(entry);
 	}
 }
