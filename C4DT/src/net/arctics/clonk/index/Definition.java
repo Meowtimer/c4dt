@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Pair;
@@ -328,6 +329,10 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	public IFile defCoreFile() {
 		return defCoreFile;
+	}
+	
+	public DefCoreUnit defCore() {
+		return as(Structure.pinned(defCoreFile, true, false), DefCoreUnit.class);
 	}
 
 	/**

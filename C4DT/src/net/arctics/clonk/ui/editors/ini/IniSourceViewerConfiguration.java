@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.inireader.Action;
-import net.arctics.clonk.parser.inireader.CategoriesArray;
+import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -133,7 +133,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) editor().unit();
 									declaration = iniUnit.sectionMatching(iniUnit.nameMatcherPredicate(value));
 								}
-								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
+								else if (entryClass == CategoriesValue.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
 										declaration = editor().unit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));

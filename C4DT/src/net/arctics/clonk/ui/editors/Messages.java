@@ -20,6 +20,7 @@ public class Messages extends NLS {
 	public static String ClonkHyperlink_ChooseLinkTargetTitle;
 	public static String ClonkHyperlink_Label;
 	public static String ScenarioProperties_AddDefinitions;
+	public static String ScenarioProperties_AddDefinitionTitle;
 	public static String ScenarioProperties_Animals;
 	public static String ScenarioProperties_Climate;
 	public static String ScenarioProperties_CopyToOtherPlayers;

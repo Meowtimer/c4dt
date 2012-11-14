@@ -66,6 +66,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchPropertyPage;
+import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
@@ -327,6 +328,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 					@Override
 					public boolean filter(Definition item) {
+						for (KeyValuePair<ID, Integer> kv : array.components())
+							if (kv.key().equals(item.id()))
+								return false;
 						return definitionFilter.test(item);
 					}
 				});
@@ -337,6 +341,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					return imageFor(from);
 				}
 			});
+			chooser.setTitle(Messages.ScenarioProperties_AddDefinitionTitle);
+			chooser.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
 			switch (chooser.open()) {
 			case Window.OK:
 				for (Definition d : chooser.selectedDefinitions()) {

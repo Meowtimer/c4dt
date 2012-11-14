@@ -43,7 +43,9 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
@@ -576,6 +578,20 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
 				}
 			};
+		else if (entry.key().equals("Rules"))
+			return new IPredicate<Definition>() {
+				@Override
+				public boolean test(Definition item) {
+					DefCoreUnit defCore = item.defCore();
+					ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+					if (category != null)
+						if (category.value() instanceof CategoriesValue) {
+							CategoriesValue categoriesValue = (CategoriesValue) category.value();
+							return categoriesValue.constants() != null && categoriesValue.constants().contains("C4D_Rule");
+						}
+					return false;
+				}
+			}; 
 		else
 			return new IPredicate<Definition>() {
 				@Override
