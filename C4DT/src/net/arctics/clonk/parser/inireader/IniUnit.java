@@ -102,9 +102,15 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	public void save(Writer writer, boolean discardEmptySections) throws IOException {
-		for (IniSection section : sectionsList)
-			if (!discardEmptySections || section.hasPersistentItems())
+		boolean started = false;
+		for (IniSection section : sectionsList) {
+			if (started)
+				writer.append('\n');
+			if (!discardEmptySections || section.hasPersistentItems()) {
+				started = true;
 				section.writeTextRepresentation(writer, -1);
+			}
+		}
 	}
 	
 	public void save(final boolean discardEmptySections) {

@@ -182,7 +182,6 @@ public class IniSection extends Declaration implements
 			item.writeTextRepresentation(writer, indentation + 1);
 			writer.append('\n');
 		}
-		writer.append('\n');
 	}
 	
 	public boolean hasPersistentItems() {
