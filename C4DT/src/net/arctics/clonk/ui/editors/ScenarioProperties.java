@@ -47,9 +47,13 @@ import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -58,12 +62,15 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
@@ -72,6 +79,7 @@ import org.eclipse.ui.part.PluginTransferData;
 
 public class ScenarioProperties extends PropertyPage implements IWorkbenchPropertyPage {
 	
+	private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab"; //$NON-NLS-1$
 	private Scenario scenario;
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
@@ -112,8 +120,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 	private class DefinitionListEditor {
 
-		private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab"; //$NON-NLS-1$
-		
 		private final IniEntry entry;
 		private final IDArray array;
 		private Table table;
@@ -190,13 +196,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			};
 			inc.addSelectionListener(changeAmountListener);
 			dec.addSelectionListener(changeAmountListener);
-			tabs.addSelectionListener(new SelectionAdapter() {
-				{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					Core.instance().getPreferenceStore().setValue(SCENARIO_PROPERTIES_MAIN_TAB_PREF, tabs.getSelectionIndex());
-				}
-			});
 		}
 		
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
@@ -368,22 +367,68 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 	}
 	
-	private class EntrySlider implements SelectionListener {
+	private class EntrySlider implements SelectionListener, ModifyListener, VerifyListener {
 		private final String section, entry;
-		private final Slider slider;
+		private Scale scale(Composite parent, String label, int index) {
+			new Label(parent, SWT.NULL).setText(label);
+			Scale scale = new Scale(parent, SWT.HORIZONTAL);
+			scale.addSelectionListener(this);
+			scale.setMinimum(0);
+			scale.setMaximum(100);
+			scale.setSelection(value(index));
+			scale.setData(index);
+			GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			scaleLayoutData.grabExcessHorizontalSpace = true;
+			scale.setLayoutData(scaleLayoutData);
+			return scale;
+		}
+		private Text text(Composite parent, String label, int index) {
+			new Label(parent, SWT.NULL).setText(label);
+			Text text = new Text(parent, SWT.SINGLE);
+			text.setText(String.valueOf(value(index)));
+			text.setData(index);
+			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			text.addModifyListener(this);
+			text.addVerifyListener(this);
+			return text;
+		}
 		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
 			this.section = section;
 			this.entry = entry;
-			new Label(parent, SWT.HORIZONTAL).setText(label);
-			this.slider = new Slider(parent, style);
-			this.slider.addSelectionListener(this);
-			this.slider.setMinimum(0);
-			this.slider.setMaximum(100+this.slider.getThumb());
-			this.slider.setSelection(value(0));
+			Group group = new Group(parent, SWT.SHADOW_IN);
+			group.setLayoutData(new GridData(GridData.FILL_BOTH));
+			group.setText(label);
+			group.setLayout(new GridLayout(2, false));
+			
+			scale(group, "Standard", 0);
+			scale(group, "Random", 1);
+			Composite c = new Composite(group, SWT.NULL);
+			c.setLayout(new GridLayout(4, false));
+			GridData layoutData = new GridData(GridData.FILL_BOTH);
+			layoutData.horizontalSpan = 2;
+			layoutData.grabExcessHorizontalSpace = true;
+			c.setLayoutData(layoutData);
+			text(c, "Min", 2);
+			text(c, "Max", 3);
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			setValue(0, slider.getSelection());
+			setValue((Integer) e.widget.getData(), ((Scale)e.widget).getSelection());
+		}
+		@Override
+		public void modifyText(ModifyEvent e) {
+			try {
+				setValue((Integer)e.widget.getData(), Integer.parseInt(((Text)e.widget).getText()));
+			} catch (NumberFormatException x) {}
+		}
+		@Override
+		public void verifyText(VerifyEvent e) {
+			try {
+				Integer.parseInt(((Text)e.widget).getText());
+			} catch (Exception x) {
+				e.doit = false;
+			}
+			e.doit = true;
 		}
 		private void setValue(int index, int value) {
 			IniSection s = scenarioConfiguration.sectionWithName(section, true);
@@ -565,15 +610,23 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
 		weather.setLayout(new GridLayout(2, false));
 		{
-			Composite[] lanes = makeLanes(weather);
-			slider(lanes[0], "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(lanes[0], "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
 			
-			slider(lanes[1], "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(lanes[1], "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(lanes[1], "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(lanes[1], "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+		
+		tabs.addSelectionListener(new SelectionAdapter() {
+			{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Core.instance().getPreferenceStore().setValue(SCENARIO_PROPERTIES_MAIN_TAB_PREF, tabs.getSelectionIndex());
+			}
+		});
+		
 		return tabs;
 	}
 	
