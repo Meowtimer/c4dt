@@ -17,9 +17,9 @@
 		</editor>
 
 		<editor name="%LandscapeTextEditor_Name" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.mapcreator.MapCreatorEditor" id="clonk.editors.MapCreatorEditor"
+			class="net.arctics.clonk.ui.editors.landscapescript.LandscapeScriptEditor" id="clonk.editors.LandscapeScriptEditor"
 			filenames="Landscape.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
+			<contentTypeBinding contentTypeId="net.arctics.clonk.landscapescriptfile" />
 		</editor>
 	</extension>
 	
@@ -53,7 +53,7 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Landscape.txt" id="net.arctics.clonk.mapcreatorfile" name="%LandscapeText_Name"
+			file-names="Landscape.txt" id="net.arctics.clonk.landscapescriptfile" name="%LandscapeText_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"

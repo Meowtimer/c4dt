@@ -1,8 +1,8 @@
-package net.arctics.clonk.parser.mapcreator;
+package net.arctics.clonk.parser.landscapescript;
 
 import net.arctics.clonk.Core;
 
-public class MapPoint extends MapOverlayBase {
+public class Point extends OverlayBase {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	

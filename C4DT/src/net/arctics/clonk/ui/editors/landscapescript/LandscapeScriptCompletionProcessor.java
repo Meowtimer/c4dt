@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.mapcreator;
+package net.arctics.clonk.ui.editors.landscapescript;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
+import net.arctics.clonk.parser.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -20,14 +20,14 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
-public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapCreatorEditor> {
+public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor<LandscapeScriptEditor> {
 
 	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	
-	public MapCreatorCompletionProcessor(MapCreatorEditor editor) {
+	public LandscapeScriptCompletionProcessor(LandscapeScriptEditor editor) {
 		super(editor);
 	}
 
@@ -63,8 +63,8 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		MapOverlayBase overlay = editor().mapCreator().overlayAt(offset);
-		if (overlay == editor().mapCreator())
+		OverlayBase overlay = editor().script().overlayAt(offset);
+		if (overlay == editor().script())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
 
@@ -100,7 +100,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 				}
 			}
 			
-			for (String keyword : MapOverlayBase.DEFAULT_CLASS.keySet()) {
+			for (String keyword : OverlayBase.DEFAULT_CLASS.keySet()) {
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
 			}

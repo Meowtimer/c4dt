@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.mapcreator;
+package net.arctics.clonk.parser.landscapescript;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
@@ -8,7 +8,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
-public class MapCreator extends MapCreatorMap {
+public class LandscapeScript extends Overlay {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -22,7 +22,7 @@ public class MapCreator extends MapCreatorMap {
 		this.file = file;
 	}
 
-	public MapCreator(IFile file) {
+	public LandscapeScript(IFile file) {
 		super();
 		this.file = file;
 	}
@@ -37,10 +37,10 @@ public class MapCreator extends MapCreatorMap {
 			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
-					MapCreator mapCreator = new MapCreator((IFile) resource);
-					MapCreatorParser parser = new MapCreatorParser(mapCreator);
+					LandscapeScript script = new LandscapeScript((IFile) resource);
+					LandscapeScriptParser parser = new LandscapeScriptParser(script);
 					parser.parse();
-					return mapCreator;
+					return script;
 				}
 				return null;
 			}

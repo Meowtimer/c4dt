@@ -1,8 +1,8 @@
-package net.arctics.clonk.ui.editors.mapcreator;
+package net.arctics.clonk.ui.editors.landscapescript;
 
-import net.arctics.clonk.parser.mapcreator.MapCreator;
-import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
-import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
+import net.arctics.clonk.parser.landscapescript.LandscapeScript;
+import net.arctics.clonk.parser.landscapescript.LandscapeScriptLexer;
+import net.arctics.clonk.parser.landscapescript.LandscapeScriptParser;
 import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -20,26 +20,26 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
 
-public class MapCreatorEditor extends ClonkTextEditor {
+public class LandscapeScriptEditor extends ClonkTextEditor {
 	
-	private MapCreator mapCreator;
+	private LandscapeScript script;
 	private boolean parsed;
 	
-	public MapCreatorEditor() {
+	public LandscapeScriptEditor() {
 		super();
 		ColorManager colorManager = new ColorManager();
-		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
+		setSourceViewerConfiguration(new LandscapeScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 	}
 
 	private void reparse() {
 		if (!parsed) {
 			String documentText = getDocumentProvider().getDocument(getEditorInput()).get();
 			CharStream charStream = new ANTLRStringStream(documentText);
-			MapCreatorLexer lexer = new MapCreatorLexer(charStream);
+			LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
 			CommonTokenStream tokenStream = new CommonTokenStream();
 			tokenStream.setTokenSource(lexer);
-			MapCreatorParser parser = new MapCreatorParser(mapCreator, tokenStream);
-			mapCreator.clear();
+			LandscapeScriptParser parser = new LandscapeScriptParser(script, tokenStream);
+			script.clear();
 			parser.parse();
 			parsed = true;
 			try {
@@ -48,11 +48,10 @@ public class MapCreatorEditor extends ClonkTextEditor {
 					IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
 					IFile file = Utilities.fileEditedBy(this);
 					if (
-							mapCreator != null && mapCreator.engine() != null && mapCreator.engine().settings().supportsEmbeddedUtilities &&
+							script != null && script.engine() != null && script.engine().settings().supportsEmbeddedUtilities &&
 							sel != null && sel.getFirstElement().equals(file)
-					) {
+					)
 						view.schedulePreviewUpdaterJob();
-					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -60,28 +59,28 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		}
 	}
 	
-	public MapCreator mapCreator() {
-		if (mapCreator == null)
-			mapCreator = new MapCreator(Utilities.fileEditedBy(this));
-		return mapCreator;
+	public LandscapeScript script() {
+		if (script == null)
+			script = new LandscapeScript(Utilities.fileEditedBy(this));
+		return script;
 		
 	}
 	
 	@Override
-	public MapCreator topLevelDeclaration() {
-		MapCreator result = mapCreator();
+	public LandscapeScript topLevelDeclaration() {
+		LandscapeScript result = script();
 		reparse();
 		return result;
 	}
 	
 	public void silentReparse() {
-		IFile file = mapCreator().file();
-		mapCreator().setFile(null);
+		IFile file = script().file();
+		script().setFile(null);
 		try {
 			reparse();
 		}
 		finally {
-			mapCreator().setFile(file);
+			script().setFile(file);
 		}
 	}
 	

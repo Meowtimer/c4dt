@@ -1,7 +1,7 @@
-package net.arctics.clonk.ui.editors.mapcreator;
+package net.arctics.clonk.ui.editors.landscapescript;
 
-import net.arctics.clonk.parser.mapcreator.MapOverlay;
-import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
+import net.arctics.clonk.parser.landscapescript.OverlayBase;
+import net.arctics.clonk.parser.landscapescript.Overlay;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
@@ -23,23 +23,23 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.source.ISourceViewer;
 
-public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
+public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<LandscapeScriptEditor> {
 
-	public class MapCreatorHyperlinkDetector implements IHyperlinkDetector {
+	public class LandscapeHyperlinkDetector implements IHyperlinkDetector {
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
 				IRegion region, boolean canShowMultipleHyperlinks) {
-			MapOverlayBase overlay = editor().mapCreator().overlayAt(region.getOffset());
+			OverlayBase overlay = editor().script().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
-			if (overlay instanceof MapOverlay && ((MapOverlay)overlay).template() != null && region.getOffset()-overlay.location().start() < ((MapOverlay) overlay).template().name().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.location().getOffset(), ((MapOverlay) overlay).template().name().length()), ((MapOverlay) overlay).template())};
+			if (overlay instanceof Overlay && ((Overlay)overlay).template() != null && region.getOffset()-overlay.location().start() < ((Overlay) overlay).template().name().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.location().getOffset(), ((Overlay) overlay).template().name().length()), ((Overlay) overlay).template())};
 			return null;
 		}
 	}
 
-	private MapCreatorCodeScanner scanner = new MapCreatorCodeScanner(ColorManager.instance());
+	private LandscapeScriptCodeScanner scanner = new LandscapeScriptCodeScanner(ColorManager.instance());
 
-	public MapCreatorSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, MapCreatorEditor textEditor) {
+	public LandscapeScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, LandscapeScriptEditor textEditor) {
 		super(store, colorManager, textEditor);
 	}
 	
@@ -73,7 +73,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
 		try {
 			return new IHyperlinkDetector[] {
-				new MapCreatorHyperlinkDetector()
+				new LandscapeHyperlinkDetector()
 			};
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -86,7 +86,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		MapCreatorCompletionProcessor processor = new MapCreatorCompletionProcessor(editor());
+		LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(editor());
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		
@@ -97,7 +97,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.fileEditedBy(editor()).getName()));
+		assistant.setStatusMessage(String.format(Messages.LandscapeScriptSourceViewerConfiguration_Proposals, Utilities.fileEditedBy(editor()).getName()));
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

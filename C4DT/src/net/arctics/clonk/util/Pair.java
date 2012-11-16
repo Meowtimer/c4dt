@@ -44,6 +44,7 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	public int hashCode() {
 		return (first == null ? 0 : first.hashCode()) ^ (second == null ? 0 : second.hashCode());
 	}
+	@SuppressWarnings("unchecked")
 	@Override
 	public Pair<First, Second> clone() throws CloneNotSupportedException {
 		return (Pair<First, Second>) super.clone();

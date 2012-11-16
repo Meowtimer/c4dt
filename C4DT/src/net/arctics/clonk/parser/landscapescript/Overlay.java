@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.mapcreator;
+package net.arctics.clonk.parser.landscapescript;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -7,7 +7,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 
-public class MapOverlay extends MapOverlayBase {
+public class Overlay extends OverlayBase {
 	
 	public enum Algorithm {
 		solid,
@@ -46,12 +46,16 @@ public class MapOverlay extends MapOverlayBase {
 	public Boolean sub;
 	public Range lambda;
 	
-	private MapOverlay template;
+	private Overlay template;
 	private Operator operator;
+	private boolean isMap;
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	protected List<MapOverlayBase> subOverlays = new LinkedList<MapOverlayBase>();
+	protected List<OverlayBase> subOverlays = new LinkedList<OverlayBase>();
+	
+	public boolean isMap() { return isMap; }
+	public void isMap(boolean isit) { isMap = isit; }
 
 	@Override
 	public Operator operator() {
@@ -63,53 +67,53 @@ public class MapOverlay extends MapOverlayBase {
 	}
 
 	@Override
-	public MapOverlayBase findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public OverlayBase findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
 	@Override
-	public MapOverlayBase findLocalDeclaration(String declarationName,
+	public OverlayBase findLocalDeclaration(String declarationName,
 			Class<? extends Declaration> declarationClass) {
-		if (MapOverlay.class.isAssignableFrom(declarationClass))
-			for (MapOverlayBase o : subOverlays)
+		if (Overlay.class.isAssignableFrom(declarationClass))
+			for (OverlayBase o : subOverlays)
 				if (o.name() != null && o.name().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
 		return null;
 	}
 	
 	@Override
-	public MapOverlayBase findDeclaration(String declarationName) {
-		return findDeclaration(declarationName, MapOverlay.class);
+	public OverlayBase findDeclaration(String declarationName) {
+		return findDeclaration(declarationName, Overlay.class);
 	}
 	
-	public static Class<? extends MapOverlayBase> defaultClass(String type) {
+	public static Class<? extends OverlayBase> defaultClass(String type) {
 		return DEFAULT_CLASS.get(type);
 	}
 	
-	public MapOverlay templateWithName(String name) {
-		for (MapOverlay level = this; level != null; level = (MapOverlay) level.parentDeclaration()) {
-			MapOverlayBase o = level.findDeclaration(name, MapOverlay.class);
-			if (o instanceof MapOverlay)
-				return (MapOverlay) o;
+	public Overlay templateWithName(String name) {
+		for (Overlay level = this; level != null; level = (Overlay) level.parentDeclaration()) {
+			OverlayBase o = level.findDeclaration(name, Overlay.class);
+			if (o instanceof Overlay)
+				return (Overlay) o;
 		}
 		return null;
 	}
 	
 	@Override
-	public MapOverlayBase template() {
+	public OverlayBase template() {
 		return template;
 	}
 	
-	public MapOverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
-		Class<? extends MapOverlayBase> cls = defaultClass(type);
-		MapOverlayBase result;
+	public OverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
+		Class<? extends OverlayBase> cls = defaultClass(type);
+		OverlayBase result;
 		if (cls != null)
 			result = cls.newInstance();
 		else {
-			MapOverlay template = templateWithName(type);
+			Overlay template = templateWithName(type);
 			if (template != null) {
-				result = (MapOverlay) template.clone();
-				((MapOverlay)result).template = template;
+				result = (Overlay) template.clone();
+				((Overlay)result).template = template;
 			}
 			else
 				result = null;
@@ -122,8 +126,8 @@ public class MapOverlay extends MapOverlayBase {
 		return result;
 	}
 	
-	public MapOverlay createOverlay(Class<? extends MapOverlay> cls, String name) throws InstantiationException, IllegalAccessException {
-		MapOverlay result = cls.newInstance();
+	public Overlay createOverlay(Class<? extends Overlay> cls, String name) throws InstantiationException, IllegalAccessException {
+		Overlay result = cls.newInstance();
 		result.name = name;
 		result.setParentDeclaration(this);
 		this.subOverlays.add(result);
@@ -137,7 +141,7 @@ public class MapOverlay extends MapOverlayBase {
 	
 	@Override
 	public String typeName() {
-		MapOverlayBase t;
+		OverlayBase t;
 		for (t = template; t != null && t.template() != null; t = t.template());
 		if (t != null)
 			return t.nodeName();
@@ -151,20 +155,20 @@ public class MapOverlay extends MapOverlayBase {
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		MapOverlay clone = (MapOverlay) super.clone();
+		Overlay clone = (Overlay) super.clone();
 		clone.beAutonomousClone(); // don't copy nested overlays
 		return clone;
 	}
 
 	private void beAutonomousClone() {
-		this.subOverlays = new LinkedList<MapOverlayBase>();
+		this.subOverlays = new LinkedList<OverlayBase>();
 		this.body = null;
 	}
 	
-	public MapOverlayBase overlayAt(int offset) {
-		MapOverlayBase ov;
+	public OverlayBase overlayAt(int offset) {
+		OverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
-			for (MapOverlayBase o : ov.childCollection())
+			for (OverlayBase o : ov.childCollection())
 				if (offset >= o.location().start() && offset < (o.body!=null?o.body:o.location()).end()) {
 					ov = o;
 					continue Outer;
@@ -175,7 +179,7 @@ public class MapOverlay extends MapOverlayBase {
 	}
 
 	@Override
-	public Collection<? extends MapOverlayBase> childCollection() {
+	public Collection<? extends OverlayBase> childCollection() {
 		return this.subOverlays;
 	}
 

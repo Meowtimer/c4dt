@@ -12,12 +12,12 @@
 	<property name="source" value="1.6"/>
 	<path id="Plug-in Dependencies.libraryclasspath">
 		<fileset dir="${env.ECLIPSE_HOME}/plugins" includes="*.jar"/>
-		<pathelement location="lib/antlr-runtime-3.1.3.jar"/>
+		<pathelement location="lib/antlr-runtime-3.4.jar"/>
 	</path>
 	<path id="C4DT.classpath">
 		<path refid="Plug-in Dependencies.libraryclasspath"/>
 		<pathelement location="${user.dir}/bin"/>
-		<pathelement location="lib/antlr-runtime-3.1.3.jar"/>
+		<pathelement location="lib/antlr-runtime-3.4.jar"/>
 	</path>
 	<target name="init">
 		<mkdir dir="${user.dir}/bin"/>

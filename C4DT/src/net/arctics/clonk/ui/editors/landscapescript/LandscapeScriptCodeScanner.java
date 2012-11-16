@@ -1,10 +1,10 @@
-package net.arctics.clonk.ui.editors.mapcreator;
+package net.arctics.clonk.ui.editors.landscapescript;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
+import net.arctics.clonk.parser.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -19,7 +19,7 @@ import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
+public class LandscapeScriptCodeScanner extends ClonkRuleBasedScanner {
 
 
 	private static final class OperatorRule implements IRule {
@@ -76,7 +76,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 	private IRule[] currentRules;
 
-	public MapCreatorCodeScanner(ColorManager manager) {
+	public LandscapeScriptCodeScanner(ColorManager manager) {
 		super(manager, null);
 	}
 
@@ -111,7 +111,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String mapGenKeyword : MapOverlayBase.DEFAULT_CLASS.keySet())
+		for (String mapGenKeyword : OverlayBase.DEFAULT_CLASS.keySet())
 			wordRule.addWord(mapGenKeyword, keyword);
 
 		combinedWordRule.addWordMatcher(wordRule);

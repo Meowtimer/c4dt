@@ -26,3 +26,5 @@ snippets/*
 glob:*.settings/*
 C4DTBuild
 Instance
+CREditor
+

@@ -17,8 +17,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
-import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
-import net.arctics.clonk.parser.mapcreator.MapOverlay;
+import net.arctics.clonk.parser.landscapescript.Overlay;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -114,10 +113,8 @@ public abstract class UI {
 			return variableIcon((Variable)element);
 		if (element instanceof Definition)
 			return definitionIcon((Definition)element);
-		else if (element instanceof MapCreatorMap)
-			return MAP_ICON;
-		else if (element instanceof MapOverlay)
-			return MAPOVERLAY_ICON;
+		else if (element instanceof Overlay)
+			return ((Overlay)element).isMap() ? MAP_ICON : MAPOVERLAY_ICON;
 		else if (element instanceof Script)
 			return SCRIPT_ICON;
 		else if (element instanceof IProplistDeclaration)

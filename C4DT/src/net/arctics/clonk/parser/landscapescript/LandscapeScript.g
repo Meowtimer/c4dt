@@ -1,7 +1,7 @@
-grammar MapCreator;
+grammar LandscapeScript;
 
 @header {
-package net.arctics.clonk.parser.mapcreator;
+package net.arctics.clonk.parser.landscapescript;
 
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
@@ -16,32 +16,32 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 }
 
-@lexer::header {package net.arctics.clonk.parser.mapcreator;}
+@lexer::header {package net.arctics.clonk.parser.landscapescript;}
 
 @members {
-C4MapCreator mapCreator;
-C4MapOverlayBase current;
-C4MapOverlayBase lastOverlay;
+LandscapeScript script;
+OverlayBase current;
+OverlayBase lastOverlay;
 
 Token valueLo, valueHi;
 private boolean createMarkers;
 
-public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
+public LandscapeScriptParser(LandscapeScript script, TokenStream input) {
 	this(input);
-	this.mapCreator = mapCreator;
-	createMarkers = mapCreator.getResource() == null || !C4GroupItem.isLinkedResource(mapCreator.getResource());
-	this.current = mapCreator;
+	this.script = script;
+	createMarkers = script.resource() == null || C4GroupItem.groupItemBackingResource(script.resource()) == null;
+	this.current = script;
 }
 
-public MapCreatorParser(C4MapCreator mapCreator) {
-	this (mapCreator, getTokenStream(mapCreator));
+public LandscapeScriptParser(LandscapeScript script) {
+	this (script, getTokenStream(script));
 }
 
-private static TokenStream getTokenStream(C4MapCreator mapCreator) {
+private static TokenStream getTokenStream(LandscapeScript script) {
 	CharStream charStream;
 	try {
-		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)mapCreator.getResource()).getContents()));
-		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
+		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)script.resource()).getContents()));
+		LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
 		CommonTokenStream tokenStream = new CommonTokenStream();
 		tokenStream.setTokenSource(lexer);
 		return tokenStream;
@@ -66,15 +66,15 @@ private static int endPos(Token t) {
 	return endPos(t, null);
 }
 
-private void setCurrentOverlay(C4MapOverlayBase overlay, Token typeToken, Token nameToken) {
+private void setCurrentOverlay(OverlayBase overlay, Token typeToken, Token nameToken) {
 	current = overlay;
 	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
 }
 
 private void createMapObject(Token typeToken, Token nameToken) {
 	try {
-		if (current instanceof C4MapOverlay) {
-			C4MapOverlayBase newOverlay = ((C4MapOverlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+		if (current instanceof Overlay) {
+			OverlayBase newOverlay = ((Overlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
 			if (newOverlay == null)
 				errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
 			else
@@ -101,19 +101,19 @@ private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
 private void moveLevelUp() {
 	lastOverlay = current;
 	if (current != null)
-		current = (C4MapOverlay) current.getParentDeclaration();
+		current = (Overlay) current.parentDeclaration();
 }
 
 private void assignOperator(String t) {
-	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
-	if (lastOverlay instanceof C4MapOverlay)
-	((C4MapOverlay)lastOverlay).setOperator(op);
+	Overlay.Operator op = Overlay.Operator.valueOf(t.charAt(0));
+	if (lastOverlay instanceof Overlay)
+	((Overlay)lastOverlay).setOperator(op);
 }
 
 private IMarker createMarker(int start, int end, String message, int severity) {
-	if (!createMarkers || mapCreator.getResource() == null) return null;
+	if (!createMarkers || script.resource() == null) return null;
 	try {
-		IMarker marker = mapCreator.getResource().createMarker(IMarker.PROBLEM);
+		IMarker marker = script.resource().createMarker(IMarker.PROBLEM);
 		marker.setAttribute(IMarker.SEVERITY, severity);
 		marker.setAttribute(IMarker.TRANSIENT, false);
 		marker.setAttribute(IMarker.MESSAGE, message);
@@ -130,21 +130,15 @@ private IMarker createErrorMarker(int start, int end, String message) {
 	return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
 }
 
-/*
-private IMarker createWarningMarker(int start, int end, String message) {
-	return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
-}
-*/
-
 private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
-	String problem = code.getErrorString(args);
+	String problem = code.makeErrorString(args);
 	createErrorMarker(errorStart, errorEnd, problem);    	
 }
 
 private void deleteMarkers() {
 	try {
-		if (mapCreator.getResource() != null)
-			mapCreator.getResource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+		if (script.resource() != null)
+			script.resource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 	} catch (CoreException e) {
 		e.printStackTrace();
 	}
