@@ -9,14 +9,14 @@ import org.eclipse.debug.core.sourcelookup.ISourceContainer;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
 import org.eclipse.debug.core.sourcelookup.containers.ProjectSourceContainer;
 
-public class ClonkDebugSourceLookupDirector extends AbstractSourceLookupDirector {
+public class SourceLookupDirector extends AbstractSourceLookupDirector {
 
-	public ClonkDebugSourceLookupDirector() {
+	public SourceLookupDirector() {
 	}
 
 	@Override
 	public void initializeParticipants() {
-		this.addParticipants(new ISourceLookupParticipant[] {new ClonkDebugSourceLookupParticipant()});
+		this.addParticipants(new ISourceLookupParticipant[] {new SourceLookupParticipant()});
 	}
 	
 	@Override

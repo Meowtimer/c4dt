@@ -6,24 +6,24 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
-public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
+public class DebugVariable extends DebugElement implements IVariable {
 
-	private ClonkDebugStackFrame stackFrame;
+	private StackFrame stackFrame;
 	private Variable variable;
-	private ClonkDebugVariableValue value;
+	private DebugVariableValue value;
 	
-	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, Variable variable) {
+	public DebugVariable(StackFrame stackFrame, Variable variable) {
 		super(stackFrame.getTarget());
 		this.stackFrame = stackFrame;
 		this.variable = variable;
-		this.value = new ClonkDebugVariableValue(this);
+		this.value = new DebugVariableValue(this);
 	}
 	
 	public Variable getVariable() {
 		return variable;
 	}
 
-	public ClonkDebugStackFrame getStackFrame() {
+	public StackFrame getStackFrame() {
     	return stackFrame;
     }
 
@@ -38,7 +38,7 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 	}
 
 	@Override
-	public ClonkDebugVariableValue getValue() throws DebugException {
+	public DebugVariableValue getValue() throws DebugException {
 		return value;
 	}
 

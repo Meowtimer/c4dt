@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
+import net.arctics.clonk.debug.Target.Commands;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.Function;
@@ -19,11 +19,11 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
-public class ClonkDebugThread extends ClonkDebugElement implements IThread {
+public class ScriptThread extends DebugElement implements IThread {
 	
-	private static final ClonkDebugStackFrame[] NO_STACKFRAMES = new ClonkDebugStackFrame[0];
+	private static final StackFrame[] NO_STACKFRAMES = new StackFrame[0];
 	
-	private ClonkDebugStackFrame[] stackFrames;
+	private StackFrame[] stackFrames;
 	
 	private Map<Script, Function[]> lineToFunctionMaps = new HashMap<Script, Function[]>(); 
 	
@@ -57,7 +57,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			nullOut();
 			return;
 		}
-		ClonkDebugStackFrame[] newStackFrames = new ClonkDebugStackFrame[stackTrace.size()];
+		StackFrame[] newStackFrames = new StackFrame[stackTrace.size()];
 		int stillToBeReused = stackFrames != null ? stackFrames.length : 0;
 		for (int i = 0; i < stackTrace.size(); i++) {
 			String sourcePath = stackTrace.get(i);
@@ -81,7 +81,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 					continue;
 				}
 			}
-			newStackFrames[i] = new ClonkDebugStackFrame(this, f != null ? f : fullSourcePath, line);
+			newStackFrames[i] = new StackFrame(this, f != null ? f : fullSourcePath, line);
 		}
 		stackFrames = newStackFrames;
 	}
@@ -96,7 +96,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		return line >= 0 && line < map.length ? map[line] : null;
 	}
 
-	public ClonkDebugThread(ClonkDebugTarget target) {
+	public ScriptThread(Target target) {
 		super(target);
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 	}

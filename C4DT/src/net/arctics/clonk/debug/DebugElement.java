@@ -6,17 +6,17 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
 
-public class ClonkDebugElement implements IDebugElement {
+public class DebugElement implements IDebugElement {
 
-	protected static final ClonkDebugVariable[] NO_VARIABLES = new ClonkDebugVariable[0];
+	protected static final DebugVariable[] NO_VARIABLES = new DebugVariable[0];
 	
-	private ClonkDebugTarget target;
+	private Target target;
 
-	public ClonkDebugElement(ClonkDebugTarget target) {
+	public DebugElement(Target target) {
 		this.target = target;
 	}
 
-	public ClonkDebugTarget getTarget() {
+	public Target getTarget() {
 		return target;
 	}
 	

@@ -40,7 +40,7 @@ import org.eclipse.debug.core.model.IThread;
  * @author madeen
  *
  */
-public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget {
+public class Target extends DebugElement implements IDebugTarget {
 
 	/**
 	 * Commands to send through the debug pipe.
@@ -95,7 +95,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		 * @return Hint for the target whether the line should further be processed or not.
 		 * @throws IOException
 		 */
-		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException;
+		public LineReceivedResult lineReceived(String line, Target target) throws IOException;
 		/**
 		 * Returns true if this listener gets exclusive notifications about lines received.
 		 * @return
@@ -112,7 +112,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	private final ILaunch launch;
 	private final IProcess process;
-	private final ClonkDebugThread thread;
+	private final ScriptThread thread;
 	private final IThread[] threads;
 	private Socket socket;
 	private PrintWriter socketWriter;
@@ -200,7 +200,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 							Outer: for (ILineReceivedListener listener : lineReceiveListeners) {
 								if (!listener.active())
 									continue;
-								switch (listener.lineReceived(event, ClonkDebugTarget.this)) {
+								switch (listener.lineReceived(event, Target.this)) {
 								case NotProcessedDontRemove:
 									if (listener.exclusive())
 										break Outer;
@@ -243,7 +243,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		}
 
 		@Override
-		public LineReceivedResult lineReceived(String event, ClonkDebugTarget target) throws IOException {
+		public LineReceivedResult lineReceived(String event, Target target) throws IOException {
 			if (event.startsWith(Commands.POSITION)) { 
 				String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
@@ -270,11 +270,11 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				
 				try {
 					if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
-						ClonkDebugVariable[] varArray = ((ClonkDebugStackFrame)thread.getTopStackFrame()).getVariables();
-						Map<String, ClonkDebugVariable> vars = new HashMap<String, ClonkDebugVariable>(varArray.length);
-						for (ClonkDebugVariable var : varArray)
+						DebugVariable[] varArray = ((StackFrame)thread.getTopStackFrame()).getVariables();
+						Map<String, DebugVariable> vars = new HashMap<String, DebugVariable>(varArray.length);
+						for (DebugVariable var : varArray)
 							vars.put(var.getName(), var);
-						for (ClonkDebugVariable var : vars.values())
+						for (DebugVariable var : vars.values())
 							send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
 						while (!isTerminated() && event != null && !vars.isEmpty()) {
 						//	System.out.println("missing " + vars.toString());
@@ -290,7 +290,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									scanner.read();
 									String varValue = event.substring(scanner.tell());
 									if (varName != null && varType != null && varValue != null) {
-										ClonkDebugVariable var = vars.get(varName);
+										DebugVariable var = vars.get(varName);
 										if (var != null) {
 											var.getValue().setValue(varValue, PrimitiveType.makeType(varType));
 											vars.remove(varName);
@@ -401,13 +401,13 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
-	private static Map<IResource, ClonkDebugTarget> existingTargets = new HashMap<IResource, ClonkDebugTarget>();
+	private static Map<IResource, Target> existingTargets = new HashMap<IResource, Target>();
 	
-	public static ClonkDebugTarget existingDebugTargetForScenario(IResource scenario) {
+	public static Target existingDebugTargetForScenario(IResource scenario) {
 		return existingTargets.get(scenario);
 	}
 	
-	public ClonkDebugTarget(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
+	public Target(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
 		super(null);
 
 		synchronized (existingTargets) {
@@ -417,7 +417,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		
 		this.launch = launch;
 		this.process = process;
-		this.thread = new ClonkDebugThread(this);
+		this.thread = new ScriptThread(this);
 		this.threads = new IThread[] {thread};
 		this.scenario = scenario;
 
@@ -461,7 +461,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-		return breakpoint instanceof ClonkDebugLineBreakpoint;
+		return breakpoint instanceof Breakpoint;
 	}
 
 	@Override
@@ -581,8 +581,8 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	@Override
 	public void breakpointAdded(IBreakpoint breakpoint) {
 		try {
-			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
-				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
+			if (breakpoint instanceof Breakpoint) {
+				Breakpoint bp = (Breakpoint) breakpoint;
 				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ 
 			}
 		} catch (CoreException e) {

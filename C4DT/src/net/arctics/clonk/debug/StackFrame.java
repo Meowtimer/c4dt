@@ -13,14 +13,14 @@ import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
-public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFrame {
+public class StackFrame extends DebugElement implements IStackFrame {
 
 	private static final String NAME_FORMAT = Messages.ClonkDebugStackFrame_StackFrameMessage;
 	
 	private int line;
 	private Object function;
-	private ClonkDebugThread thread;
-	private ClonkDebugVariable[] variables;
+	private ScriptThread thread;
+	private DebugVariable[] variables;
 	
 	public int index() throws DebugException {
 		IStackFrame[] frames = thread.getStackFrames();
@@ -31,7 +31,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		return -1; 
 	}
 	
-	public ClonkDebugStackFrame(ClonkDebugThread thread, Object function, int line) {
+	public StackFrame(ScriptThread thread, Object function, int line) {
 		super(thread.getTarget());
 		this.thread = thread;
 		this.function = function;
@@ -42,15 +42,15 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private void setVariables() {
 		if (function instanceof Function) {
 			Function f = (Function) function;
-			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
+			List<DebugVariable> l = new LinkedList<DebugVariable>();
 			for (Variable parm : f.parameters()) {
 				if (parm.isActualParm())
-					l.add(new ClonkDebugVariable(this, parm));
+					l.add(new DebugVariable(this, parm));
 			}
 			for (Variable local : f.localVars()) {
-				l.add(new ClonkDebugVariable(this, local));
+				l.add(new DebugVariable(this, local));
 			}
-			variables = l.toArray(new ClonkDebugVariable[l.size()]);
+			variables = l.toArray(new DebugVariable[l.size()]);
 		}
 		else {
 			variables = NO_VARIABLES;
@@ -105,7 +105,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 
 	@Override
-	public ClonkDebugVariable[] getVariables() throws DebugException {
+	public DebugVariable[] getVariables() throws DebugException {
 		return variables;
 	}
 
@@ -208,8 +208,8 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ClonkDebugStackFrame) {
-			ClonkDebugStackFrame other = (ClonkDebugStackFrame) obj;
+		if (obj instanceof StackFrame) {
+			StackFrame other = (StackFrame) obj;
 			return other.function.equals(function) && other.line == line;
 		}
 		return false;

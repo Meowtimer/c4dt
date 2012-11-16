@@ -11,15 +11,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.LineBreakpoint;
 
-public class ClonkDebugLineBreakpoint extends LineBreakpoint {
+public class Breakpoint extends LineBreakpoint {
 
-	public static final String ID = ClonkDebugLineBreakpoint.class.getName(); // who needs ids differing from class name -.-
+	public static final String ID = Breakpoint.class.getName(); // who needs ids differing from class name -.-
 
-	public ClonkDebugLineBreakpoint() {
+	public Breakpoint() {
 		super();
 	}
 	
-	public ClonkDebugLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
+	public Breakpoint(final IResource resource, final int lineNumber) throws CoreException {
 		IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
 			@Override
 			public void run(IProgressMonitor monitor) throws CoreException {

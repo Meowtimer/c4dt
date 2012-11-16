@@ -5,7 +5,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdapterFactory;
 
-public class ClonkDebugBreakpointAdapterFactory implements IAdapterFactory {
+public class BreakpointAdapterFactory implements IAdapterFactory {
 
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -13,7 +13,7 @@ public class ClonkDebugBreakpointAdapterFactory implements IAdapterFactory {
 		if (adaptableObject instanceof C4ScriptEditor) {
 			IResource resource = (IResource) ((C4ScriptEditor)adaptableObject).getEditorInput().getAdapter(IResource.class);
 			if (resource != null) {
-				return new ClonkDebugBreakpointAdapter();
+				return new BreakpointAdapter();
 			} 
 		}
 		return null;

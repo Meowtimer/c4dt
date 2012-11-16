@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
-import net.arctics.clonk.debug.ClonkDebugTarget.ILineReceivedListener;
-import net.arctics.clonk.debug.ClonkDebugTarget.LineReceivedResult;
+import net.arctics.clonk.debug.Target.Commands;
+import net.arctics.clonk.debug.Target.ILineReceivedListener;
+import net.arctics.clonk.debug.Target.LineReceivedResult;
 import net.arctics.clonk.util.ICreate;
 
 import org.eclipse.debug.core.DebugException;
@@ -22,7 +22,7 @@ import org.eclipse.debug.core.model.IWatchExpressionResult;
  * @author madeen
  *
  */
-public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchExpressionDelegate {
+public class WatchExpressionDelegate extends Object implements IWatchExpressionDelegate {
 
 	/**
 	 * Listener looking out for evaluation request results sent by the engine.
@@ -62,7 +62,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 		 * Dispatch received line to the appropriate watch expression listener.
 		 */
 		@Override
-		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException {
+		public LineReceivedResult lineReceived(String line, Target target) throws IOException {
 			String toRemove = null;
 			boolean processed = false;
 			for (Entry<String, IWatchExpressionListener> entry : listeners.entrySet()) {
@@ -70,7 +70,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 				IWatchExpressionListener listener = entry.getValue();
 				String s = Commands.EVALUATIONRESULT + " " + expression + "="; //$NON-NLS-1$ //$NON-NLS-2$
 				if (line.startsWith(s)){
-					final ClonkDebugValue value = new ClonkDebugValue(target, line.substring(s.length()));
+					final Value value = new Value(target, line.substring(s.length()));
 					listener.watchEvaluationFinished(new IWatchExpressionResult() {
 
 						@Override
@@ -127,7 +127,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 	 */
 	@Override
 	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
-		ClonkDebugTarget target = (ClonkDebugTarget) context.getDebugTarget();
+		Target target = (Target) context.getDebugTarget();
 		target.requestLineReceivedListener(new ICreate<EvaluationResultListener>() {
 			@Override
 			public Class<EvaluationResultListener> cls() {

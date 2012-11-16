@@ -8,12 +8,12 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
-public class ClonkDebugValue extends ClonkDebugElement implements IValue {
+public class Value extends DebugElement implements IValue {
 	
 	private Object value;
 	private PrimitiveType type;
 	
-	public ClonkDebugValue(ClonkDebugTarget target, Object value) {
+	public Value(Target target, Object value) {
 		super(target);
 		setValue(value, PrimitiveType.typeFrom(value));
 	}
@@ -58,8 +58,8 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ClonkDebugValue) {
-			ClonkDebugValue other = (ClonkDebugValue) obj;
+		if (obj instanceof Value) {
+			Value other = (Value) obj;
 			return Utilities.objectsEqual(other.value, value);
 		}
 		return false;

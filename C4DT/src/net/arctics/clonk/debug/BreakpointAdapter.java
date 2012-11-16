@@ -14,7 +14,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class ClonkDebugBreakpointAdapter implements IToggleBreakpointsTarget {
+public class BreakpointAdapter implements IToggleBreakpointsTarget {
 
 	@Override
 	public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection)  throws CoreException {
@@ -33,7 +33,7 @@ public class ClonkDebugBreakpointAdapter implements IToggleBreakpointsTarget {
 					}
 				}
 			}
-			ClonkDebugLineBreakpoint lineBreakpoint = new ClonkDebugLineBreakpoint(resource, lineNumber + 1);
+			Breakpoint lineBreakpoint = new Breakpoint(resource, lineNumber + 1);
 			DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(lineBreakpoint);
 		}
 	}
