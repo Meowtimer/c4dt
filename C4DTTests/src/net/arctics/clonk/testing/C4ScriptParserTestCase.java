@@ -46,6 +46,7 @@ import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 
@@ -105,7 +106,7 @@ public class C4ScriptParserTestCase {
 					private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 					@Override
-					public SpecialEngineRules specialScriptRules() {
+					public SpecialEngineRules specialRules() {
 						return rules;
 					};
 
@@ -173,13 +174,12 @@ public class C4ScriptParserTestCase {
 	public void testForLoopParsingParsing() {
 		final Block block = new BunchOfStatements(new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
-						new VarDeclarationStatement.VarInitialization("i",
-								LongLiteral.ZERO, 0)), new BinaryOp(
-						Operator.Smaller, new AccessVar("i"),
-						new LongLiteral(100)), new UnaryOp(
-						Operator.Increment, Placement.Postfix, new AccessVar(
+						new VarInitialization("i", LongLiteral.ZERO, 0)), new BinaryOp(
+							Operator.Smaller, new AccessVar("i"),
+							new LongLiteral(100)), new UnaryOp(
+								Operator.Increment, Placement.Postfix, new AccessVar(
 								"i")), new Block(new SimpleStatement(
-						new CallDeclaration("Log", new StringLiteral("Hello"))))));
+									new CallDeclaration("Log", new StringLiteral("Hello"))))));
 		assertParsingYieldsCorrectAST(block);
 	}
 
@@ -209,7 +209,6 @@ public class C4ScriptParserTestCase {
 					public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 						return DifferenceHandling.Differs;
 					}
-
 					@Override
 					public boolean optionEnabled(Option option) {
 						switch (option) {
@@ -219,11 +218,14 @@ public class C4ScriptParserTestCase {
 							return false;
 						}
 					}
-
 					@Override
 					public void wildcardMatched(Wildcard wildcard,
 							ExprElm expression) {
 						// ignore
+					}
+					@Override
+					public boolean consume(ExprElm consumer, ExprElm extra) {
+						return false;
 					}
 				}).isEqual());
 	}
