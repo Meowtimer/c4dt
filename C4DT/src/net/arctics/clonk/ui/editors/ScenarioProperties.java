@@ -42,6 +42,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -56,6 +57,7 @@ import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -437,13 +439,21 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				int[] values = new int[4];
 				values[index] = value;
 				s.addItem(i = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values)));
-			} else
-				((IntegerArray)((ComplexIniEntry)i).value()).values()[index].setSummedValue(value);
+			} else {
+				IntegerArray ints = (IntegerArray)((ComplexIniEntry)i).value();
+				if (ints.values().length <= index)
+					ints.grow(index+1);
+				ints.values()[index].setSummedValue(value);
+			}
 		}
 		private int value(int index) {
 			IniEntry e = scenarioConfiguration.entryInSection(section, entry);
-			return e instanceof ComplexIniEntry && ((ComplexIniEntry)e).value() instanceof IntegerArray
-				? ((IntegerArray)((ComplexIniEntry)e).value()).values()[index].summedValue() : 0;
+			try {
+				return e instanceof ComplexIniEntry && ((ComplexIniEntry)e).value() instanceof IntegerArray
+					? ((IntegerArray)((ComplexIniEntry)e).value()).values()[index].summedValue() : 0;
+			} catch (IndexOutOfBoundsException bounds) {
+				return 0;
+			}
 		}
 		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
@@ -598,6 +608,34 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		equipment.setLayout(new GridLayout(2, false));
 
 		Composite landscape = tab(Messages.ScenarioProperties_LandscapeTab);
+		{
+			landscape.setLayout(new GridLayout(3, false));
+			ScrolledComposite optionsContainer = new ScrolledComposite(landscape, SWT.V_SCROLL|SWT.BORDER);
+			optionsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+			Composite options = new Composite(optionsContainer, SWT.NULL);
+			{
+				optionsContainer.setContent(options);
+				slider(options, "Landscape", "MapWidth", "Width");
+				slider(options, "Landscape", "MapHeight", "Height");
+				slider(options, "Landscape", "MapZoom", "Zoom");
+				slider(options, "Landscape", "Amplitude", "Amplitude");
+				slider(options, "Landscape", "Phase", "Phase");
+				slider(options, "Landscape", "Period", "Period");
+				slider(options, "Landscape", "Random", "Random");
+				slider(options, "Landscape", "LiquidLevel", "Water");
+			}
+			Composite preview = new Composite(landscape, SWT.NO_SCROLL);
+			{
+				new Label(preview, SWT.NULL).setText("Dynamic map");
+			}
+			Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
+			{
+				displayOptions.setLayout(new FillLayout());
+				new Button(displayOptions, SWT.CHECK).setText("Screen size");
+				new Button(displayOptions, SWT.CHECK).setText("Layers");
+			}
+		}
+		
 		Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
 		environment.setLayout(new GridLayout(2, false));
 		{

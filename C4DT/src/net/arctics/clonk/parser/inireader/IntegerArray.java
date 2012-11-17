@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.inireader;
 
 
+import java.util.Arrays;
+
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -105,6 +107,10 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 		values[index] = value instanceof Integer
 			? new CategoriesValue(index)
 			: new CategoriesValue(0);
+	}
+
+	public void grow(int size) {
+		values = Arrays.copyOf(values, Math.max(size, values.length));
 	}
 
 }
