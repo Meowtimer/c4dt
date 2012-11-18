@@ -195,4 +195,16 @@ public class IniUnitParser extends CStyleScanner {
 		return null;
 	}
 	
+	public static String category(IniField annot, Class<?> cls) {
+		if (annot.category().equals(""))
+			return defaultSection(cls);
+		else
+			return annot.category();
+	}
+
+	public static String defaultSection(Class<?> cls) {
+		IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
+		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
+	}
+	
 }

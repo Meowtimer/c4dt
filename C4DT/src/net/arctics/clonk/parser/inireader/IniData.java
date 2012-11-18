@@ -39,21 +39,24 @@ public class IniData {
 			for(int i = 0; i < sectionNodes.getLength(); i++)
 				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
 					IniSectionDefinition section = IniSectionDefinition.createFromXML(sectionNodes.item(i), conf.factory);
-					conf.getSections().put(section.sectionName(), section);
+					conf.sections().put(section.sectionName(), section);
 				}
 			return conf;
 		}
 		
 		public static IniConfiguration createFromClass(Class<?> clazz) {
+			IniDefaultSection annot = clazz.getAnnotation(IniDefaultSection.class);
 			IniConfiguration result = new IniConfiguration();
 			for (Field f : clazz.getFields()) {
 				IniField annotation;
 				if ((annotation = f.getAnnotation(IniField.class)) != null) {
-					IniSectionDefinition section = result.getSections().get(annotation.category());
+					IniSectionDefinition section = result.sections().get(IniUnitParser.category(annotation, clazz));
 					if (section == null) {
 						section = new IniSectionDefinition();
 						section.sectionName = annotation.category();
-						result.sections.put(annotation.category(), section);
+						if (section.sectionName.equals(""))
+							section.sectionName = IniUnitParser.defaultSection(clazz);
+						result.sections.put(section.sectionName, section);
 					}
 					section.entries.put(f.getName(), new IniEntryDefinition(f.getName(), f.getType()));
 				}
@@ -62,11 +65,11 @@ public class IniData {
 			return result;
 		}
 
-		public String getFilename() {
+		public String fileName() {
 			return filename;
 		}
 
-		public Map<String, IniSectionDefinition> getSections() {
+		public Map<String, IniSectionDefinition> sections() {
 			return sections;
 		}
 		
@@ -74,11 +77,11 @@ public class IniData {
 			return sections.containsKey(sectionName);
 		}
 		
-		public String[] getSectionNames() {
+		public String[] sectionNames() {
 			return sections.keySet().toArray(new String[sections.size()]);
 		}
 
-		public IEntryFactory getFactory() {
+		public IEntryFactory factory() {
 			return factory;
 		}
 		
@@ -159,7 +162,7 @@ public class IniData {
 				entryClass = valueType;
 		}
 		
-		private static Class<?> getClass(String name) {
+		private static Class<?> cls(String name) {
 			if (name.equals("C4ID")) //$NON-NLS-1$
 				return ID.class;
 			if (!name.contains("."))
@@ -181,7 +184,7 @@ public class IniData {
 				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
 			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue(); //$NON-NLS-1$
-			Class<?> configClass = getClass(className);
+			Class<?> configClass = cls(className);
 			if (configClass == null)
 				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$ //$NON-NLS-2$
 			entry.entryClass = configClass;
@@ -270,7 +273,7 @@ public class IniData {
 			for (int i = 0; i < nodeList.getLength();i++)
 				try {
 					IniConfiguration conf = IniConfiguration.createFromXML(nodeList.item(i));
-					configurations.put(conf.getFilename(), conf);
+					configurations.put(conf.fileName(), conf);
 				}
 				catch (InvalidIniConfigurationException e) {
 					e.printStackTrace();

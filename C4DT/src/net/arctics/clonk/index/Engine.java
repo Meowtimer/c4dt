@@ -403,7 +403,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					for (IniSection section : unit.sections()) {
 						Declaration declaration = findDeclaration(section.name());
 						if (declaration != null)
-							unit.commitSection(declaration, section, false);
+							section.commit(declaration, false);
 					}
 				} finally {
 					try {

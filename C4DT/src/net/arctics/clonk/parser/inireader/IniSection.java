@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -237,5 +239,59 @@ public class IniSection extends Declaration implements
 	@Override
 	public boolean isTransient() {
 		return false;
+	}
+	
+	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	
+		if (f.getType() == Integer.TYPE)
+			f.set(object, Integer.valueOf(val));
+		else if (f.getType() == Long.TYPE)
+			f.set(object, Long.valueOf(val));
+		else if (f.getType() == java.lang.Boolean.TYPE)
+			f.set(object, java.lang.Boolean.valueOf(val));
+	}
+	
+	public void commit(Object object, boolean takeIntoAccountCategory) {
+		for (IniItem item : subItemMap().values())
+			if (item instanceof IniSection)
+				((IniSection)item).commit(object, takeIntoAccountCategory);
+			else if (item instanceof IniEntry) {
+				IniEntry entry = (IniEntry) item;
+				Field f;
+				try {
+					f = object.getClass().getField(entry.name());
+				} catch (Exception e) {
+					// don't panic - probably unknown field
+					//e.printStackTrace();
+					continue;
+				}
+				IniField annot;
+				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || IniUnitParser.category(annot, object.getClass()).equals(name()))) {
+					Object val = entry.value();
+					if (val instanceof IConvertibleToPrimitive)
+						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+					try {
+						if (f.getType() != String.class && val instanceof String)
+							setFromString(f, object, (String)val);
+						else try {
+							f.set(object, val);
+						} catch (IllegalArgumentException e) {
+							if (val instanceof Long && f.getType() == Integer.TYPE) {
+								f.set(object, (int)(long)(Long)val);
+								continue;
+							}
+							// unboxing failed
+							try {
+								Constructor<?> ctor = f.getType().getConstructor(val.getClass());
+								f.set(object, ctor.newInstance(val));
+							} catch (NoSuchMethodException nsm) {
+								nsm.printStackTrace();
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+				}
+			}
 	}
 }

@@ -5,6 +5,7 @@ import java.io.InvalidClassException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,7 +182,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
 			try {
 				try {
-					Object value = configuration.getFactory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
+					Object value = configuration.factory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
 					return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 				}
 				catch(IniParserException e) { // add offsets and throw through
@@ -231,7 +232,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				return null;
 		} else
 			return configuration() != null
-			? configuration().getSections().get(section.name())
+			? configuration().sections().get(section.name())
 					: null;
 	}
 	
@@ -306,8 +307,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public void addChild(ITreeNode node) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -523,6 +523,57 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	@Override
 	public boolean isTransient() {
 		return false;
+	}
+	
+	public void commit(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		for (IniSection section : this.sections())
+			section.commit(object, true);
+	}
+
+	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		parser().parse(false);
+		commit(obj);
+	}
+	
+	public void readObjectFields(Object object, Object defaults) throws IllegalAccessException {
+		for (Field f : object.getClass().getFields()) {
+			IniField annot;
+			if ((annot = f.getAnnotation(IniField.class)) != null) {
+				String category = IniUnitParser.category(annot, object.getClass());
+				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
+					continue;
+				IniSectionDefinition dataSection = configuration().sections().get(category);
+				if (dataSection != null) {
+					IniDataBase dataItem = dataSection.entryForKey(f.getName());
+					if (dataItem instanceof IniEntryDefinition) {
+						IniEntryDefinition entry = (IniEntryDefinition) dataItem;
+						Constructor<?> ctor;
+						Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
+						if (value == null) {
+							try {
+								ctor = entry.entryClass().getConstructor(f.getType());
+							} catch (SecurityException e) {
+								ctor = null;
+							} catch (NoSuchMethodException e) {
+								ctor = null;
+							}
+							if (ctor != null)
+								try {
+									value = ctor.newInstance(f.get(object));
+								} catch (Exception e) {
+									value = null;
+								}
+						}
+						if (value != null) {
+							IniSection section = this.requestSection(category, dataSection);
+							ComplexIniEntry complEntry = new ComplexIniEntry(0, 0, f.getName(), value);
+							complEntry.setEntryConfig(entry);
+							section.putEntry(complEntry);
+						}
+					}
+				}
+			}
+		}
 	}
 	
 }
