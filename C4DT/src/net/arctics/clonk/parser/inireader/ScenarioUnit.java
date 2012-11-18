@@ -26,7 +26,7 @@ public class ScenarioUnit extends IniUnit {
 	@Override
 	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
 		if (section.name().startsWith("Player")) //$NON-NLS-1$
-			return configuration().getSections().get("Player"); //$NON-NLS-1$
+			return configuration().sections().get("Player"); //$NON-NLS-1$
 		return super.sectionDataFor(section, parentSection);
 	}
 	

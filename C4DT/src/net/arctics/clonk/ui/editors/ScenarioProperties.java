@@ -14,6 +14,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.mapcreator.ClassicMapCreator;
+import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
@@ -57,6 +59,7 @@ import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -85,6 +88,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private Scenario scenario;
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
+	private Image mapPreviewImage;
 	
 	private Image imageFor(Definition def) {
 		if (def != null) {
@@ -122,7 +126,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 	private class DefinitionListEditor {
 
-		private final IniEntry entry;
 		private final IDArray array;
 		private Table table;
 		private final TableViewer viewer;
@@ -202,7 +205,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
-			this.entry = entry;
 			this.array = (IDArray)entry.value();
 			this.viewer = createViewer();
 			this.definitionFilter = entry.engine().specialRules().configurationEntryDefinitionFilter(entry);
@@ -626,7 +628,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			}
 			Composite preview = new Composite(landscape, SWT.NO_SCROLL);
 			{
+				preview.setLayout(new GridLayout(1, false));
 				new Label(preview, SWT.NULL).setText("Dynamic map");
+				Label image = new Label(preview, SWT.BORDER);
+				drawMapPreview();
+				image.setImage(mapPreviewImage);
 			}
 			Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
 			{
@@ -667,6 +673,16 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		
 		return tabs;
 	}
+
+	private void drawMapPreview() {
+		if (mapPreviewImage != null) {
+			mapPreviewImage.dispose();
+			mapPreviewImage = null;
+		}
+		MapCreator mapCreator = new ClassicMapCreator();
+		ImageData data = mapCreator.Create(scenarioConfiguration, true, 1);
+		mapPreviewImage = new Image(Display.getCurrent(), data);
+	}
 	
 	@Override
 	public boolean performOk() {
@@ -683,6 +699,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	
 	@Override
 	public void dispose() {
+		if (mapPreviewImage != null) {
+			mapPreviewImage.dispose();
+			mapPreviewImage = null;
+		}
 		try {
 			for (Image i : images.values())
 				if (i != null)
