@@ -681,7 +681,22 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 		MapCreator mapCreator = new ClassicMapCreator();
 		ImageData data = mapCreator.Create(scenarioConfiguration, true, 1);
-		mapPreviewImage = new Image(Display.getCurrent(), data);
+		Image small = new Image(Display.getCurrent(), data);
+		try {
+			Image scaled = new Image(Display.getCurrent(), small.getBounds().width*4, small.getBounds().height*4);
+			GC gc = new GC(scaled);
+			try {
+				//gc.setAntialias(SWT.OFF);
+				//gc.setInterpolation(SWT.HIGH);
+				gc.drawImage(small, 0, 0, small.getBounds().width, small.getBounds().height, 0, 0,
+					scaled.getBounds().width, scaled.getBounds().height);
+			} finally {
+				gc.dispose();
+			}
+			mapPreviewImage = scaled;
+		} finally {
+			small.dispose();
+		}
 	}
 	
 	@Override

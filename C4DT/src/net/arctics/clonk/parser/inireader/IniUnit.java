@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.StringWriter;
@@ -574,6 +576,20 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				}
 			}
 		}
+	}
+	
+	public <T> T complexValue(String path, Class<T> cls) {
+		String[] p = path.split("\\.");
+		if (p.length < 2)
+			return null;
+		IniSection section = null;
+		for (int i = 0; i < p.length-1; i++) {
+			section = section != null ? as(section.subItemByKey(p[i]), IniSection.class) : this.sectionWithName(p[i], false);
+			if (section == null)
+				return null;
+		}
+		ComplexIniEntry entry = section != null ? as(section.subItemByKey(p[p.length-1]), ComplexIniEntry.class) : null;
+		return entry != null ? as(entry.value(), cls) : null;
 	}
 	
 }
