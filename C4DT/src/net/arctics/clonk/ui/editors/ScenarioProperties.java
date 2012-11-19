@@ -69,8 +69,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
@@ -89,6 +89,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
 	private Image mapPreviewImage;
+	
+	private Image imageForSlider(String entryName) {
+		return scenarioConfiguration.engine().image(entryName);
+	}
 	
 	private Image imageFor(Definition def) {
 		if (def != null) {
@@ -373,28 +377,18 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	
 	private class EntrySlider implements SelectionListener, ModifyListener, VerifyListener {
 		private final String section, entry;
-		private Scale scale(Composite parent, String label, int index) {
+		private Spinner spinner(Composite parent, String label, int index) {
 			new Label(parent, SWT.NULL).setText(label);
-			Scale scale = new Scale(parent, SWT.HORIZONTAL);
-			scale.addSelectionListener(this);
-			scale.setMinimum(0);
-			scale.setMaximum(100);
-			scale.setSelection(value(index));
-			scale.setData(index);
+			Spinner spinner = new Spinner(parent, SWT.NULL);
+			spinner.addSelectionListener(this);
+			spinner.setMinimum(0);
+			spinner.setMaximum(100);
+			spinner.setSelection(value(index));
+			spinner.setData(index);
 			GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			scaleLayoutData.grabExcessHorizontalSpace = true;
-			scale.setLayoutData(scaleLayoutData);
-			return scale;
-		}
-		private Text text(Composite parent, String label, int index) {
-			new Label(parent, SWT.NULL).setText(label);
-			Text text = new Text(parent, SWT.SINGLE);
-			text.setText(String.valueOf(value(index)));
-			text.setData(index);
-			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			text.addModifyListener(this);
-			text.addVerifyListener(this);
-			return text;
+			spinner.setLayoutData(scaleLayoutData);
+			return spinner;
 		}
 		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
 			this.section = section;
@@ -402,22 +396,20 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			Group group = new Group(parent, SWT.SHADOW_IN);
 			group.setLayoutData(new GridData(GridData.FILL_BOTH));
 			group.setText(label);
-			group.setLayout(new GridLayout(2, false));
-			
-			scale(group, "Standard", 0);
-			scale(group, "Random", 1);
-			Composite c = new Composite(group, SWT.NULL);
-			c.setLayout(new GridLayout(4, false));
-			GridData layoutData = new GridData(GridData.FILL_BOTH);
-			layoutData.horizontalSpan = 2;
-			layoutData.grabExcessHorizontalSpace = true;
-			c.setLayoutData(layoutData);
-			text(c, "Min", 2);
-			text(c, "Max", 3);
+			Image img = imageForSlider(entry);
+			group.setLayout(new GridLayout(8+(img!=null?1:0), false));
+			if (img != null) {
+				Label icon = new Label(group, SWT.BORDER);
+				icon.setImage(img);
+			}
+			spinner(group, "Standard", 0);
+			spinner(group, "Random", 1);
+			spinner(group, "Min", 2);
+			spinner(group, "Max", 3);
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			setValue((Integer) e.widget.getData(), ((Scale)e.widget).getSelection());
+			setValue((Integer) e.widget.getData(), ((Spinner)e.widget).getSelection());
 		}
 		@Override
 		public void modifyText(ModifyEvent e) {
@@ -613,9 +605,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		{
 			landscape.setLayout(new GridLayout(3, false));
 			ScrolledComposite optionsContainer = new ScrolledComposite(landscape, SWT.V_SCROLL|SWT.BORDER);
-			optionsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+			optionsContainer.setLayout(new FillLayout());
 			Composite options = new Composite(optionsContainer, SWT.NULL);
 			{
+				options.setLayout(new GridLayout(1, false));
+				optionsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 				optionsContainer.setContent(options);
 				slider(options, "Landscape", "MapWidth", "Width");
 				slider(options, "Landscape", "MapHeight", "Height");
@@ -655,12 +649,16 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		weather.setLayout(new GridLayout(2, false));
 		{
 			slider(weather, "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
-			
 			slider(weather, "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
 			slider(weather, "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "YearSpeed", "Time advance"); //$NON-NLS-1$ //$NON-NLS-2$
 			slider(weather, "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Rain", "Rain"); //$NON-NLS-1$ //$NON-NLS-2$
 			slider(weather, "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Lightning", "Lightning"); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Wind", "Wind"); //$NON-NLS-1$ //$NON-NLS-2$
+			
 		}
 		
 		tabs.addSelectionListener(new SelectionAdapter() {
