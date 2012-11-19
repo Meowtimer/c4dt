@@ -113,6 +113,6 @@ public class TextureMap extends HashMap<String, Integer> {
 	}
 
 	public int GetIndexMatTex(String szMaterialTexture) {
-		return GetIndexMatTex(szMaterialTexture, null, false, null);
+		return GetIndexMatTex(szMaterialTexture, null, true, null);
 	}
 }

@@ -44,7 +44,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -60,14 +59,12 @@ import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Spinner;
@@ -89,6 +86,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
 	private Image mapPreviewImage;
+	private int mapPreviewNumPlayers = 1;
 	
 	private Image imageForSlider(String entryName) {
 		return scenarioConfiguration.engine().image(entryName);
@@ -160,8 +158,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			
 			Composite buttons = new Composite(parent, SWT.NO_SCROLL);
 			buttons.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-			GridLayout buttonsLayout = new GridLayout(1, true);
-			buttonsLayout.verticalSpacing = 2;
+			GridLayout buttonsLayout = noMargin(new GridLayout(1, true));
 			buttonsLayout.makeColumnsEqualWidth = true;
 			buttons.setLayout(buttonsLayout);
 			Button add = new Button(buttons, SWT.PUSH);
@@ -375,10 +372,29 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 	}
 	
+	public static GridLayout noMargin(GridLayout layout) {
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		layout.marginLeft = 0;
+		layout.marginRight = 0;
+		layout.marginBottom = 0;
+		layout.marginTop = 0;
+		layout.verticalSpacing = 0;
+		return layout;
+	}
+	
 	private class EntrySlider implements SelectionListener, ModifyListener, VerifyListener {
 		private final String section, entry;
-		private Spinner spinner(Composite parent, String label, int index) {
-			new Label(parent, SWT.NULL).setText(label);
+		private Runnable updateRunnable;
+		public void setUpdateRunnable(Runnable updateRunnable) {
+			this.updateRunnable = updateRunnable;
+		}
+		private Spinner spinner(final Composite parent, final String label, int index, boolean labelPostfix) {
+			Runnable r = new Runnable()
+				{ @Override public void run()
+					{new Label(parent, SWT.NULL).setText(label);}};
+			if (!labelPostfix)
+				r.run();
 			Spinner spinner = new Spinner(parent, SWT.NULL);
 			spinner.addSelectionListener(this);
 			spinner.setMinimum(0);
@@ -388,28 +404,36 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			scaleLayoutData.grabExcessHorizontalSpace = true;
 			spinner.setLayoutData(scaleLayoutData);
+			if (labelPostfix)
+				r.run();
 			return spinner;
 		}
 		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
 			this.section = section;
 			this.entry = entry;
-			Group group = new Group(parent, SWT.SHADOW_IN);
-			group.setLayoutData(new GridData(GridData.FILL_BOTH));
-			group.setText(label);
 			Image img = imageForSlider(entry);
-			group.setLayout(new GridLayout(8+(img!=null?1:0), false));
+			Composite group = new Composite(parent, SWT.NO_SCROLL);
+			group.setLayout(noMargin(new GridLayout(img != null ? 2 : 1, false)));
+			group.setLayoutData(new GridData(GridData.FILL_BOTH));
 			if (img != null) {
 				Label icon = new Label(group, SWT.BORDER);
 				icon.setImage(img);
 			}
-			spinner(group, "Standard", 0);
-			spinner(group, "Random", 1);
-			spinner(group, "Min", 2);
-			spinner(group, "Max", 3);
+			Composite spinners = new Composite(group, SWT.NO_SCROLL);
+			Label lbl = new Label(spinners, SWT.NULL);
+			lbl.setText(label);
+			lbl.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 8, 1));
+			spinners.setLayout(noMargin(new GridLayout(8, false)));
+			spinner(spinners, "⠛", 0, false); //$NON-NLS-1$
+			spinner(spinners, "δ", 1, false); //$NON-NLS-1$
+			spinner(spinners, "[", 2, false); //$NON-NLS-1$
+			spinner(spinners, "]", 3, true); //$NON-NLS-1$
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			setValue((Integer) e.widget.getData(), ((Spinner)e.widget).getSelection());
+			if (updateRunnable != null)
+				updateRunnable.run();
 		}
 		@Override
 		public void modifyText(ModifyEvent e) {
@@ -467,6 +491,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private TabFolder tabs;
+	private Label mapPreviewLabel;
+	private Button screenSizeCheckbox;
+	private Button layersCheckbox;
 	
 	private Composite tab(String title) {
 		TabItem tab = new TabItem(tabs, SWT.NULL);
@@ -523,13 +550,119 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	@Override
 	protected Control createContents(Composite parent) {
 		tabs = new TabFolder(parent, SWT.BORDER);
-		Composite game = tab(Messages.ScenarioProperties_GameTab);
-		game.setLayout(new GridLayout(2, false));
+		makeGameTab();
+		makeEquipmentTab();
+		makeLandscapeTab();
+		makeEnvironmentTab();
+		makeWeatherTab();
+		
+		tabs.addSelectionListener(new SelectionAdapter() {
+			{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Core.instance().getPreferenceStore().setValue(SCENARIO_PROPERTIES_MAIN_TAB_PREF, tabs.getSelectionIndex());
+			}
+		});
+		return tabs;
+	}
+
+	private void makeWeatherTab() {
+		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
+		GridLayout weatherLayout = new GridLayout(2, false);
+		weather.setLayout(weatherLayout);
 		{
-			Composite[] lanes = makeLanes(game);
-			listEditorFor(lanes[0], "Game", "Goals", Messages.ScenarioProperties_Goals); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(lanes[1], "Game", "Rules", Messages.ScenarioProperties_Rules); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "YearSpeed", Messages.ScenarioProperties_YearSpeed); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Rain", Messages.ScenarioProperties_Rain); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Lightning", Messages.ScenarioProperties_Lightning); //$NON-NLS-1$ //$NON-NLS-2$
+			slider(weather, "Weather", "Wind", Messages.ScenarioProperties_Wind); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+	}
+
+	private void makeEnvironmentTab() {
+		Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
+		environment.setLayout(new GridLayout(2, false));
+		{
+			Composite[] lanes = makeLanes(environment);
+			listEditorFor(lanes[0], "Animals", "Animal", Messages.ScenarioProperties_Animals); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[1], "Animals", "Nest", Messages.ScenarioProperties_Nests); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[0], "Landscape", "Vegetation", Messages.ScenarioProperties_Vegetation); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[1], "Landscape", "InEarth", Messages.ScenarioProperties_InEarth); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+	}
+
+	private void makeLandscapeTab() {
+		Composite landscape = tab(Messages.ScenarioProperties_LandscapeTab);
+		{
+			landscape.setLayout(new GridLayout(3, false));
+			Composite options = new Composite(landscape, SWT.NULL);
+			{
+				options.setLayout(new GridLayout(1, false));
+				EntrySlider[] sliders = new EntrySlider[] {
+					slider(options, "Landscape", "MapWidth", Messages.ScenarioProperties_MapWidth), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "MapHeight", Messages.ScenarioProperties_MapHeight), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "MapZoom", Messages.ScenarioProperties_MapZoom), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "Amplitude", Messages.ScenarioProperties_Amplitude), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "Phase", Messages.ScenarioProperties_Phase), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "Period", Messages.ScenarioProperties_Period), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "Random", Messages.ScenarioProperties_Random), //$NON-NLS-1$ //$NON-NLS-2$
+					slider(options, "Landscape", "LiquidLevel", Messages.ScenarioProperties_LiquidLevel) //$NON-NLS-1$ //$NON-NLS-2$
+				};
+				Runnable r = new Runnable() {
+					@Override
+					public void run() { drawMapPreview(); }
+				};
+				for (EntrySlider s : sliders)
+					s.setUpdateRunnable(r);
+			}
+			Composite preview = new Composite(landscape, SWT.NO_SCROLL);
+			{
+				preview.setLayout(new GridLayout(1, false));
+				new Label(preview, SWT.NULL).setText(Messages.ScenarioProperties_DynamicMap);
+				mapPreviewLabel = new Label(preview, SWT.BORDER);
+			}
+			Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
+			{
+				displayOptions.setLayout(new GridLayout(1, false));
+				displayOptions.setLayoutData(new GridData(GridData.BEGINNING));
+				SelectionAdapter redrawPreview = new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						drawMapPreview();
+					}
+				};
+				screenSizeCheckbox = new Button(displayOptions, SWT.CHECK);
+				screenSizeCheckbox.setText(Messages.ScenarioProperties_ScreenSize);
+				screenSizeCheckbox.addSelectionListener(redrawPreview);
+				layersCheckbox = new Button(displayOptions, SWT.CHECK);
+				layersCheckbox.setSelection(true);
+				layersCheckbox.setText(Messages.ScenarioProperties_Layers);
+				layersCheckbox.addSelectionListener(redrawPreview);
+				new Label(displayOptions, SWT.NULL).setText(Messages.ScenarioProperties_PreviewFor);
+				SelectionAdapter playerPreviewNumListener = new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						mapPreviewNumPlayers = (Integer)e.widget.getData();
+						drawMapPreview();
+					}
+				};
+				for (int i = 1; i <= 4; i++) {
+					Button b = new Button(displayOptions, SWT.RADIO);
+					b.setText(String.format(Messages.ScenarioProperties_PlayerMapPreviewFormat, i));
+					b.setData(i);
+					b.addSelectionListener(playerPreviewNumListener);
+				}
+			}
+		}
+		drawMapPreview();
+	}
+
+	private void makeEquipmentTab() {
 		Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
 		TabFolder players = new TabFolder(equipment, SWT.BORDER);
 		players.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -560,7 +693,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				listEditorFor(extendedLanes[1], section, "HomeBaseProduction", Messages.ScenarioProperties_HomeBaseProduction) //$NON-NLS-1$
 			));
 			Composite buttons = new Composite(composite, SWT.NO_SCROLL);
-			buttons.setLayout(new GridLayout(2, false));
+			buttons.setLayout(noMargin(new GridLayout(2, false)));
 			buttons.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 			Button copyToOthers = new Button(buttons, SWT.PUSH);
 			copyToOthers.setText(Messages.ScenarioProperties_CopyToOtherPlayers);
@@ -600,76 +733,16 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			});
 		}
 		equipment.setLayout(new GridLayout(2, false));
+	}
 
-		Composite landscape = tab(Messages.ScenarioProperties_LandscapeTab);
+	private void makeGameTab() {
+		Composite game = tab(Messages.ScenarioProperties_GameTab);
+		game.setLayout(new GridLayout(2, false));
 		{
-			landscape.setLayout(new GridLayout(3, false));
-			ScrolledComposite optionsContainer = new ScrolledComposite(landscape, SWT.V_SCROLL|SWT.BORDER);
-			optionsContainer.setLayout(new FillLayout());
-			Composite options = new Composite(optionsContainer, SWT.NULL);
-			{
-				options.setLayout(new GridLayout(1, false));
-				optionsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-				optionsContainer.setContent(options);
-				slider(options, "Landscape", "MapWidth", "Width");
-				slider(options, "Landscape", "MapHeight", "Height");
-				slider(options, "Landscape", "MapZoom", "Zoom");
-				slider(options, "Landscape", "Amplitude", "Amplitude");
-				slider(options, "Landscape", "Phase", "Phase");
-				slider(options, "Landscape", "Period", "Period");
-				slider(options, "Landscape", "Random", "Random");
-				slider(options, "Landscape", "LiquidLevel", "Water");
-			}
-			Composite preview = new Composite(landscape, SWT.NO_SCROLL);
-			{
-				preview.setLayout(new GridLayout(1, false));
-				new Label(preview, SWT.NULL).setText("Dynamic map");
-				Label image = new Label(preview, SWT.BORDER);
-				drawMapPreview();
-				image.setImage(mapPreviewImage);
-			}
-			Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
-			{
-				displayOptions.setLayout(new FillLayout());
-				new Button(displayOptions, SWT.CHECK).setText("Screen size");
-				new Button(displayOptions, SWT.CHECK).setText("Layers");
-			}
+			Composite[] lanes = makeLanes(game);
+			listEditorFor(lanes[0], "Game", "Goals", Messages.ScenarioProperties_Goals); //$NON-NLS-1$ //$NON-NLS-2$
+			listEditorFor(lanes[1], "Game", "Rules", Messages.ScenarioProperties_Rules); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		
-		Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
-		environment.setLayout(new GridLayout(2, false));
-		{
-			Composite[] lanes = makeLanes(environment);
-			listEditorFor(lanes[0], "Animals", "Animal", Messages.ScenarioProperties_Animals); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(lanes[1], "Animals", "Nest", Messages.ScenarioProperties_Nests); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(lanes[0], "Landscape", "Vegetation", Messages.ScenarioProperties_Vegetation); //$NON-NLS-1$ //$NON-NLS-2$
-			listEditorFor(lanes[1], "Landscape", "InEarth", Messages.ScenarioProperties_InEarth); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
-		weather.setLayout(new GridLayout(2, false));
-		{
-			slider(weather, "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Disasters", "Earthquake", Messages.ScenarioProperties_Earthquake); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "StartSeason", Messages.ScenarioProperties_Season); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Disasters", "Volcano", Messages.ScenarioProperties_Volcano); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "YearSpeed", "Time advance"); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Disasters", "Meteorite", Messages.ScenarioProperties_Meteorite); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "Rain", "Rain"); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Landscape", "Gravity", Messages.ScenarioProperties_Gravity); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "Lightning", "Lightning"); //$NON-NLS-1$ //$NON-NLS-2$
-			slider(weather, "Weather", "Wind", "Wind"); //$NON-NLS-1$ //$NON-NLS-2$
-			
-		}
-		
-		tabs.addSelectionListener(new SelectionAdapter() {
-			{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Core.instance().getPreferenceStore().setValue(SCENARIO_PROPERTIES_MAIN_TAB_PREF, tabs.getSelectionIndex());
-			}
-		});
-		
-		return tabs;
 	}
 
 	private void drawMapPreview() {
@@ -678,20 +751,23 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			mapPreviewImage = null;
 		}
 		MapCreator mapCreator = new ClassicMapCreator();
-		ImageData data = mapCreator.Create(scenarioConfiguration, true, 1);
+		ImageData data = mapCreator.Create
+			(scenarioConfiguration, layersCheckbox.getSelection(), mapPreviewNumPlayers);
 		Image small = new Image(Display.getCurrent(), data);
 		try {
-			Image scaled = new Image(Display.getCurrent(), small.getBounds().width*4, small.getBounds().height*4);
+			Image scaled = new Image(Display.getCurrent(), 300, 300);
 			GC gc = new GC(scaled);
 			try {
-				//gc.setAntialias(SWT.OFF);
-				//gc.setInterpolation(SWT.HIGH);
+				gc.setAntialias(SWT.ON);
+				gc.setInterpolation(SWT.HIGH);
 				gc.drawImage(small, 0, 0, small.getBounds().width, small.getBounds().height, 0, 0,
 					scaled.getBounds().width, scaled.getBounds().height);
 			} finally {
 				gc.dispose();
 			}
 			mapPreviewImage = scaled;
+			if (mapPreviewLabel != null)
+				mapPreviewLabel.setImage(mapPreviewImage);
 		} finally {
 			small.dispose();
 		}
