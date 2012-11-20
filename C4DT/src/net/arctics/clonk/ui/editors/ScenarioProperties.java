@@ -751,8 +751,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			mapPreviewImage = null;
 		}
 		MapCreator mapCreator = new ClassicMapCreator();
-		ImageData data = mapCreator.Create
-			(scenarioConfiguration, layersCheckbox.getSelection(), mapPreviewNumPlayers);
+		ImageData data;
+		try {
+			data = mapCreator.create(scenarioConfiguration, layersCheckbox.getSelection(), mapPreviewNumPlayers);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
 		Image small = new Image(Display.getCurrent(), data);
 		try {
 			Image scaled = new Image(Display.getCurrent(), 300, 300);

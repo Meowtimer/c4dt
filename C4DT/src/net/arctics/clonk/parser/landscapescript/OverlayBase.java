@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.landscapescript;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -23,12 +22,6 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	public static class Keywords {
-		public static final String Point = "point"; //$NON-NLS-1$
-		public static final String Overlay = "overlay"; //$NON-NLS-1$
-		public static final String Map = "map"; //$NON-NLS-1$
-	}
-	
 	public static final Map<String, Class<? extends OverlayBase>> DEFAULT_CLASS = ArrayUtil.map(
 		false,
 		Keywords.Point   , Point.class, 
@@ -36,126 +29,8 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 		Keywords.Map     , Overlay.class 
 	);
 
-	public enum Operator {
-		Or('|'),
-		And('&'),
-		XOr('^');
-		
-		private final char c;
-		
-		Operator(char c) {
-			this.c = c;
-		}
-		
-		@Override
-		public String toString() {
-			return String.valueOf(c);
-		}
-		
-		public static Operator valueOf(char c) {
-			for (Operator o : values())
-				if (o.c == c)
-					return o;
-			return null;
-		}
-	}
-	
-	public enum Unit {
-		Percent,
-		Pixels;
-		
-		public static Unit parse(String px) {
-			if (px.equals("px")) //$NON-NLS-1$
-				return Pixels;
-			if (px.equals("%")) //$NON-NLS-1$
-				return Percent;
-			return Pixels;
-		}
-		@Override
-		public String toString() {
-		    switch (this) {
-		    case Percent:
-		    	return "%"; //$NON-NLS-1$
-		    case Pixels:
-		    	return "px"; //$NON-NLS-1$
-		    default:
-		    	return super.toString();
-		    }
-		}
-	}
-	
-	public static class NumVal implements Serializable {
-
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		
-		private Unit unit;
-		private int value;
-		public Unit getUnit() {
-        	return unit;
-        }
-		public void setUnit(Unit unit) {
-        	this.unit = unit;
-        }
-		public int getValue() {
-        	return value;
-        }
-		public void setValue(int value) {
-        	this.value = value;
-        }
-		public NumVal(Unit unit, int value) {
-	        super();
-	        this.unit = unit;
-	        this.value = value;
-        }
-		public static NumVal parse(String value) {
-			if (value == null)
-				return null;
-			int i;
-			for (i = value.length()-1; i >= 0 && !Character.isDigit(value.charAt(i)); i--);
-			String unit = value.substring(i+1);
-			String number = value.substring(0, i+1);
-			if (number.length() > 0 && number.charAt(0) == '+')
-				number = number.substring(1); // Integer.parseInt coughs on '+': a lesson in ridiculousness
-			return new NumVal(Unit.parse(unit), Integer.parseInt(number));
-        }
-		@Override
-		public String toString() {
-		    return value+unit.toString();
-		}
-	}
-	
-	public static class Range implements Serializable {
-
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		
-		private final NumVal lo, hi;
-
-		public Range(NumVal lo, NumVal hi) {
-			super();
-			this.lo = lo;
-			this.hi = hi;
-		}
-
-		public NumVal getLo() {
-			return lo;
-		}
-
-		public NumVal getHi() {
-			return hi;
-		}
-		
-		@Override
-		public String toString() {
-			if (lo != null && hi != null)
-				return lo.toString() + " - " + hi.toString(); //$NON-NLS-1$
-			else if (lo != null)
-				return lo.toString();
-			else
-				return "<Empty Range>"; //$NON-NLS-1$
-		}
-	}
-	
 	protected SourceLocation body;
+	protected OverlayBase prev;
 
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
@@ -295,5 +170,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	public String toString() {
 		return typeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
 	}
+	
+	public void evaluate() {}
 
 }

@@ -278,12 +278,16 @@ public class IniSection extends Declaration implements
 							if (val instanceof Long && f.getType() == Integer.TYPE) {
 								f.set(object, (int)(long)(Long)val);
 								continue;
+							} else if (val instanceof Long && f.getType() == java.lang.Boolean.TYPE) {
+								f.set(object, (Long)val != 0);
+								continue;
 							}
 							// unboxing failed
 							try {
 								Constructor<?> ctor = f.getType().getConstructor(val.getClass());
 								f.set(object, ctor.newInstance(val));
 							} catch (NoSuchMethodException nsm) {
+								System.out.println(f.getName());
 								nsm.printStackTrace();
 							}
 						}

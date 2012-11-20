@@ -1,29 +1,24 @@
 package net.arctics.clonk.mapcreator;
 
-import static net.arctics.clonk.util.Utilities.as;
-
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.MaterialUnit;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
 public class TextureMap extends HashMap<String, Integer> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public static final int C4M_MaxTexIndex = 127; 
+	public static final int C4M_MaxTexIndex = 127;
+	public static final String TEXMAP_FILE = "TEXMAP.txt";
 	
 	private final PaletteData palette;
 	
@@ -33,16 +28,15 @@ public class TextureMap extends HashMap<String, Integer> {
 		palette = null;
 	}
 	
-	public TextureMap(IContainer materialGroup) {
-		IFile texMap = as(Utilities.findMemberCaseInsensitively(materialGroup, "TEXMAP.txt"), IFile.class);
-		if (texMap == null)
+	
+	public TextureMap(IFile texMapFile, MaterialMap materials) {
+		if (texMapFile == null)
 			throw new IllegalArgumentException();
 		RGB[] colors = new RGB[256];
 		colors[0] =  new RGB(225, 243, 255);
 		final Pattern linePattern = Pattern.compile("([0-9]+)\\=(\\w+)\\-(\\w+)");
 		final Matcher lineMatcher = linePattern.matcher("");
-		final Map<String, MaterialUnit> materials = new HashMap<String, MaterialUnit>();
-		for (String line : StringUtil.lines(new StringReader(StreamUtil.stringFromFile(texMap)))) {
+		for (String line : StringUtil.lines(new StringReader(StreamUtil.stringFromFile(texMapFile)))) {
 			line = line.trim();
 			if (line.startsWith("#"))
 				continue;
@@ -52,14 +46,6 @@ public class TextureMap extends HashMap<String, Integer> {
 				String texture = lineMatcher.group(3);
 				MaterialUnit unit = materials.get(material);
 				RGB color = null;
-				if (unit == null) {
-					IFile materialDefFile = as(Utilities.findMemberCaseInsensitively(materialGroup, material+".c4m"), IFile.class);
-					if (materialDefFile != null) {
-						unit = (MaterialUnit)Structure.pinned(materialDefFile, true, false);
-						if (unit != null)
-							materials.put(material, unit);
-					}
-				}
 				if (unit != null) {
 					IntegerArray v = unit.complexValue("Material.Color", IntegerArray.class);
 					if (v != null && v.values().length >= 3)
@@ -114,5 +100,9 @@ public class TextureMap extends HashMap<String, Integer> {
 
 	public int GetIndexMatTex(String szMaterialTexture) {
 		return GetIndexMatTex(szMaterialTexture, null, true, null);
+	}
+
+	public int GetIndexMatTex(String name, String tex) {
+		return GetIndexMatTex(name, tex, true, null);
 	}
 }

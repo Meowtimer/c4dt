@@ -26,9 +26,12 @@ public class ScenarioValue {
 		this(0);
 	}
 	public ScenarioValue(CategoriesValue[] array) {
-		Std = array[0].summedValue();
-		Rnd = array[1].summedValue();
-		Min = array[2].summedValue();
-		Max = array[3].summedValue();
+		Std = val(array, 0, 0);
+		Rnd = val(array, 1, 0);
+		Min = val(array, 2, 0);
+		Max = val(array, 3, 100);
+	}
+	private static int val(CategoriesValue[] array, int ndx, int defaultV) {
+		return ndx < array.length ? array[ndx].summedValue() : defaultV;
 	}
 }

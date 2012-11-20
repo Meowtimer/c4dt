@@ -153,7 +153,7 @@ public class LandscapeScriptParser extends Parser {
     }
 
     private void assignOperator(String t) {
-    	Overlay.Operator op = Overlay.Operator.valueOf(t.charAt(0));
+    	Operator op = Operator.valueOf(t.charAt(0));
     	if (lastOverlay instanceof Overlay)
     	((Overlay)lastOverlay).setOperator(op);
     }

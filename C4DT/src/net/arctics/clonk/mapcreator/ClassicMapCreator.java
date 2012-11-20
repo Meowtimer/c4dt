@@ -101,7 +101,7 @@ int GetPix(int x, int y)
 	return MapBuf.getPixel(x,y);
 }
 
-public void Create(ImageData sfcMap,
+public void create(ImageData sfcMap,
                           LandscapeSection rLScape, TextureMap rTexMap,
                           boolean fLayers, int iPlayerNum)
 {
