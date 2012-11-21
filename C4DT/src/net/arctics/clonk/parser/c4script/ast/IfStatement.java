@@ -6,9 +6,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.TypeInfoList;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.TypeEnvironment;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class IfStatement extends ConditionalStatement {
@@ -95,11 +95,11 @@ public class IfStatement extends ConditionalStatement {
 		parser.reportProblemsOf(condition, true);
 		// use two separate typeinfo lists for if and else statement, merging
 		// gathered information afterwards
-		TypeInfoList ifTypeInfos = parser.pushTypeInfos();
+		TypeEnvironment ifTypeInfos = parser.pushTypeInfos();
 		parser.reportProblemsOf(body, true);
 		parser.popTypeInfos(false);
 		if (elseExpr != null) {
-			TypeInfoList elseTypeInfos = parser.pushTypeInfos();
+			TypeEnvironment elseTypeInfos = parser.pushTypeInfos();
 			parser.reportProblemsOf(elseExpr, true);
 			parser.popTypeInfos(false);
 			ifTypeInfos.inject(elseTypeInfos);

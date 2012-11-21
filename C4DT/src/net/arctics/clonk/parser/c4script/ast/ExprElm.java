@@ -881,11 +881,11 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 *
 	 */
 	protected static final class GenericTypeInfo extends TypeInfo {
-		private final ExprElm referenceElm;
+		private final ExprElm expression;
 		
 		public GenericTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
-			this.referenceElm = referenceElm;
+			this.expression = referenceElm;
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
 			if (typeable != null)
 				this.type = typeable.type();
@@ -921,10 +921,10 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
-			if (expr instanceof AccessDeclaration && referenceElm instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)referenceElm).declaration())
+			if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
 				return true;
 			ExprElm chainA, chainB;
-			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
+			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
 					return false;
 			return chainA == null || chainB == null;
@@ -933,7 +933,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
 			if (other instanceof GenericTypeInfo)
-				return ((GenericTypeInfo)other).referenceElm.equals(referenceElm);
+				return ((GenericTypeInfo)other).expression.equals(expression);
 			else
 				return false;
 		}
@@ -948,7 +948,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypeable typeable = typeableFromExpression(referenceElm, parser);
+			ITypeable typeable = typeableFromExpression(expression, parser);
 			if (typeable != null) {
 				// don't apply typing to non-local things if only applying type information softly
 				// this prevents assigning types to instance variables when only hovering over some function or something like that
@@ -966,7 +966,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		
 		@Override
 		public String toString() {
-			return referenceElm.toString() + ": " + super.toString();
+			return expression.toString() + ": " + super.toString();
 		}
 		
 	}

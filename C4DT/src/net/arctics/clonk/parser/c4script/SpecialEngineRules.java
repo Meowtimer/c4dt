@@ -35,7 +35,6 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -524,7 +523,7 @@ public abstract class SpecialEngineRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
-			Script script = objType != null ? TypeSet.objectIngredient(objType) : null;
+			Script script = objType != null ? TypeSet.definition(objType) : null;
 			if (script == null)
 				script = parser.script(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
@@ -532,19 +531,19 @@ public abstract class SpecialEngineRules {
 				try {
 					C4ScriptParser.parseStandaloneStatement((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
 						@Override
-						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
+						public Decision markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
 							switch (code) {
 							// ignore complaining about missing ';' - some genuine errors might slip through but who cares
 							case NotFinished:
 							// also ignore undeclared identifier error - local variables and whatnot, checking for all of this is also overkill
 							case UndeclaredIdentifier:
-								return WhatToDo.DropCharges;
+								return Decision.DropCharges;
 							default:
 								if (parser.errorEnabled(code))
 									try {
 										parser.marker(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
 									} catch (ParsingException e1) {}
-								return WhatToDo.PassThrough;
+								return Decision.PassThrough;
 							}
 						}
 					});

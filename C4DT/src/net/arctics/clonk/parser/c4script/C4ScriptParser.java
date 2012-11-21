@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +28,9 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.IMarkerListener.Decision;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -121,37 +120,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
 	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 	
-	public static class TypeInfoList extends ArrayList<ITypeInfo> {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public TypeInfoList up;
-		public TypeInfoList() {
-			super();
-		}
-		public TypeInfoList(int capacity) {
-			super(capacity);
-		}
-		public TypeInfoList inject(TypeInfoList other) {
-			for (ITypeInfo info : this)
-				for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {
-					ITypeInfo info2 = it.next();
-					if (info2.local()) {
-						it.remove();
-						continue;
-					}
-					if (info2.refersToSameExpression(info)) {
-						info.merge(info2);
-						it.remove();
-					}
-				}
-			this.addAll(other);
-			return this;
-		}
-		public void apply(C4ScriptParser parser, boolean soft) {
-			for (ITypeInfo info : this)
-				info.apply(soft, parser);
-		}
-	}
-	
 	private Function currentFunction;
 	private Declaration currentDeclaration;
 	private ID parsedID;
@@ -159,7 +127,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private String parsedMemberOperator;
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
-	private TypeInfoList typeInfos;
+	private TypeEnvironment typeInfos;
 
 	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	/**
@@ -291,7 +259,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
-		for (TypeInfoList list = typeInfos; list != null; list = list.up) {
+		for (TypeEnvironment list = typeInfos; list != null; list = list.up) {
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					if (!topMostLayer) {
@@ -311,8 +279,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return newlyCreated;
 	}
 	
-	public TypeInfoList pushTypeInfos() {
-		TypeInfoList l = new TypeInfoList();
+	public TypeEnvironment pushTypeInfos() {
+		TypeEnvironment l = new TypeEnvironment();
 		l.up = this.typeInfos;
 		this.typeInfos = l;
 		return l;
@@ -332,7 +300,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public ITypeInfo queryTypeInfo(ExprElm expression) {
 		if (typeInfos == null)
 			return null;
-		for (TypeInfoList list = typeInfos; list != null; list = list.up)
+		for (TypeEnvironment list = typeInfos; list != null; list = list.up)
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					return info;
@@ -3024,41 +2992,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * A listener that will be notified if a marker is about to be created.
-	 * @author madeen
-	 *
-	 */
-	public interface IMarkerListener {
-		/**
-		 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, ParserErrorCode, int, int, int, int, Object...)}
-		 * @author madeen
-		 *
-		 */
-		public enum WhatToDo {
-			/**
-			 * Don't create the marker, the accused is innocent
-			 */
-			DropCharges,
-			/**
-			 * Continue creating the marker
-			 */
-			PassThrough
-		}
-		/**
-		 * Called when a marker is about to be created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
-		 * @param parser The parser the listener is attached to
-		 * @param code the parser error code
-		 * @param markerStart start of the marker region
-		 * @param markerEnd end of the marker region
-		 * @param flags true if the marker wouldn't cause an exception in the parsing process
-		 * @param severity IMarker severity value
-		 * @param args Arguments used to construct the marker message
-		 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
-		 */
-		WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args);
-	}
-	
-	/**
 	 * Report expressions at the offset the parser is currently at.
 	 * This method will try to avoid reparsing the script if the function passed has a cached block that is still valid.
 	 * Validity of the cached block is determined by comparing the hash of the original function block source to the hash of the current source fragment specified by the function's body location.
@@ -3166,7 +3099,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					markerStart += offsetOfScriptFragment;
 					markerEnd += offsetOfScriptFragment;
 				}
-				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == WhatToDo.DropCharges)
+				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
 					return;
 			}
 			super.marker(code, markerStart, markerEnd, flags, severity, args);

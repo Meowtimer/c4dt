@@ -296,7 +296,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		return internalized ? this : PrimitiveType.ANY;
 	}
 
-	public static Definition objectIngredient(IType type) {
+	public static Definition definition(IType type) {
 		for (IType t : type)
 			if (t instanceof Definition)
 				return (Definition) t; // return the first one found

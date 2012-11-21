@@ -33,9 +33,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 	}
 	
 	@Override
-	public void apply(boolean soft, C4ScriptParser parser) {
-		
-	}
+	public void apply(boolean soft, C4ScriptParser parser) {}
 	
 	@Override
 	public void merge(ITypeInfo other) {
