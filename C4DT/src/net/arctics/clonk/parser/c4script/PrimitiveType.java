@@ -255,7 +255,7 @@ public enum PrimitiveType implements IType {
 			case PROPLIST:
 				return this == OBJECT || this == ID;
 			case BOOL:
-				return this == INT;
+				return false;
 			case REFERENCE: case ANY: case UNKNOWN:
 				return true;
 			default:
