@@ -151,8 +151,8 @@ public abstract class Utilities {
 				break;
 			dist++;
 		}
-		Scenario aScenario = Scenario.getAscending(a);
-		Scenario bScenario = Scenario.getAscending(b);
+		Scenario aScenario = Scenario.containingScenario(a);
+		Scenario bScenario = Scenario.containingScenario(b);
 		if (aScenario != bScenario) {
 			dist += 500; // penalty for scenario boundary
 			if (aScenario != null && bScenario != null)

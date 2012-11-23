@@ -90,7 +90,7 @@ public class ReferencesQuery extends SearchQueryBase {
 					result.addMatch(expression, parser, false, false);
 			}
 			else if (expression instanceof StringLiteral) {
-				EntityRegion decRegion = expression.declarationAt(0, parser);
+				EntityRegion decRegion = expression.entityAt(0, parser);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
 					result.addMatch(expression, parser, true, true);
 			}

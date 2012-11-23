@@ -2,10 +2,10 @@ package net.arctics.clonk.util;
 
 import java.util.Collection;
 
-import org.eclipse.core.runtime.IPath;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.inireader.EntrySubItem;
+
+import org.eclipse.core.runtime.IPath;
 
 public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext, ITreeNode {
 
@@ -18,6 +18,14 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	@Override
 	public First key() {
 		return first();
+	}
+	
+	public Second value() {
+		return second();
+	}
+	
+	public void setValue(Second value) {
+		setSecond(value);
 	}
 
 	@Override
@@ -88,5 +96,4 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
-
 }

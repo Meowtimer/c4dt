@@ -17,9 +17,9 @@
 		</editor>
 
 		<editor name="%LandscapeTextEditor_Name" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.mapcreator.MapCreatorEditor" id="clonk.editors.MapCreatorEditor"
+			class="net.arctics.clonk.ui.editors.landscapescript.LandscapeScriptEditor" id="clonk.editors.LandscapeScriptEditor"
 			filenames="Landscape.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
+			<contentTypeBinding contentTypeId="net.arctics.clonk.landscapescriptfile" />
 		</editor>
 	</extension>
 	
@@ -53,7 +53,7 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Landscape.txt" id="net.arctics.clonk.mapcreatorfile" name="%LandscapeText_Name"
+			file-names="Landscape.txt" id="net.arctics.clonk.landscapescriptfile" name="%LandscapeText_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
@@ -350,7 +350,7 @@
 	<extension point="org.eclipse.debug.core.watchExpressionDelegates">
     	<watchExpressionDelegate
     		debugModel="net.arctics.clonk.ui.debug.ClonkDebugModelPresentation"
-			delegateClass="net.arctics.clonk.debug.ClonkDebugWatchExpressionDelegate">
+			delegateClass="net.arctics.clonk.debug.WatchExpressionDelegate">
     	</watchExpressionDelegate>
 	</extension>
 	
@@ -362,7 +362,7 @@
 	
 	<extension point="org.eclipse.debug.core.breakpoints">
     	<breakpoint
-			class="net.arctics.clonk.debug.ClonkDebugLineBreakpoint"
+			class="net.arctics.clonk.debug.Breakpoint"
 			id="net.arctics.clonk.debug.ClonkDebugLineBreakpoint"
 			markerType="net.arctics.clonk.breakpointMarker"
 		/>
@@ -370,7 +370,7 @@
 	
 	<extension point="org.eclipse.core.runtime.adapters">
 		<factory
-			class="net.arctics.clonk.debug.ClonkDebugBreakpointAdapterFactory"
+			class="net.arctics.clonk.debug.BreakpointAdapterFactory"
 			adaptableType="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor">
 			<adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget" />
 		</factory>
@@ -647,7 +647,7 @@
 	
 	<extension point="org.eclipse.debug.core.sourceLocators">
 	    <sourceLocator
-	          class="net.arctics.clonk.debug.ClonkDebugSourceLookupDirector"
+	          class="net.arctics.clonk.debug.SourceLookupDirector"
 	          id="net.arctics.clonk.debug.ClonkDebugSourceLocator"
 	          name="Clonk Debug Source Locator">
 	    </sourceLocator>
@@ -802,5 +802,25 @@
 			contextId="net.arctics.clonk.context"
 			sequence="M1+M3+O">
 		</key>
+		<key
+			commandId="net.arctics.clonk.ui.LookupLocalDeclaration"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+O">
+		</key>
+	</extension>
+	
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			class="net.arctics.clonk.ui.editors.ScenarioProperties"
+			id="net.arctics.clonk.ui.editors.ScenarioProperties"
+			name="%ScenarioProperties">
+			<enabledWhen>
+				<and>
+					<instanceof value="org.eclipse.core.resources.IContainer"/>
+					<test property="net.arctics.clonk.resource.isScenario" />
+				</and>
+			</enabledWhen>
+		</page>
 	</extension>
 </plugin>

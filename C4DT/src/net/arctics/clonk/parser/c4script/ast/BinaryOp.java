@@ -11,7 +11,6 @@ import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class BinaryOp extends OperatorExpression {
@@ -28,7 +27,7 @@ public class BinaryOp extends OperatorExpression {
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
-				return TypeSet.create(leftSideType, rightSideType);
+				return TypeUnification.unify(leftSideType, rightSideType);
 		case Assign:
 			return rightSide().type(context);
 		default:

@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 
 public abstract class TypeInfo implements ITypeInfo, Cloneable {
 
@@ -24,18 +23,12 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 		if (type == PrimitiveType.UNKNOWN)
 			storeType(hint);
 		else if (type == PrimitiveType.ANY)
-			type = TypeSet.create(type, hint);
-		else
-			// false -> wrong hint
-			// true -> hinted type and current type intersect so it is somewhat correct   
-			return type.intersects(hint);
+			type = TypeUnification.unify(type, hint);
 		return true;
 	}
 	
 	@Override
-	public void apply(boolean soft, C4ScriptParser parser) {
-		
-	}
+	public void apply(boolean soft, C4ScriptParser parser) {}
 	
 	@Override
 	public void merge(ITypeInfo other) {
@@ -44,7 +37,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 			storeType(type);
 		else if (!type().equals(other.type()))
 			// assignments of multiple types - construct type set
-			storeType(TypeSet.create(type(), other.type()));
+			storeType(TypeUnification.unify(type(), other.type()));
 	}
 	
 	@Override

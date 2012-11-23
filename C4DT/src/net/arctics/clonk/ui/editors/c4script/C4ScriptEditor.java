@@ -25,10 +25,10 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -257,15 +257,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						final Function f = (Function) fn.latestVersion();
 						C4ScriptParser.visitCode(document, structure, f, null, new IMarkerListener() {
 							@Override
-							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
+							public Decision markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, int flags,
 									int severity, Object... args) {
 								if (!parser.errorEnabled(code))
-									return WhatToDo.DropCharges;
+									return Decision.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.expressionReportingErrors()), args);
-								return WhatToDo.PassThrough;
+								return Decision.PassThrough;
 							}
 						}, VisitCodeFlavour.AlsoStatements, true);
 						for (Variable localVar : f.localVars()) {
@@ -630,16 +630,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (document instanceof IDocument)
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		else if (document instanceof IFile)
-			try {
-				parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<C4ScriptParser>() {
-					@Override
-					public C4ScriptParser run(IDocument document) {
-						return new C4ScriptParser(document.get(), script, script.scriptFile());
-					}
-				});
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
+			parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+				@Override
+				public C4ScriptParser run(IDocument document) {
+					return new C4ScriptParser(document.get(), script, script.scriptFile());
+				}
+			});
 		if (parser == null)
 			throw new InvalidParameterException("document");
 		return parser;

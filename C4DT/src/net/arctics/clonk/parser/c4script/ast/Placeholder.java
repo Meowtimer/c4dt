@@ -10,13 +10,17 @@ import net.arctics.clonk.parser.stringtbl.StringTbl;
 public class Placeholder extends ExprElm {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private String entryName;
+	protected String entryName;
 
 	public Placeholder(String entryName) {
 		this.entryName = entryName;
 	}
 	@Override
 	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return true;
+	}
+	@Override
+	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 		return true;
 	}
 
@@ -30,14 +34,14 @@ public class Placeholder extends ExprElm {
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		StringTbl stringTbl = parser.script().localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			NameValueAssignment entry = stringTbl.map().get(entryName);
 			if (entry != null)
 				return new EntityRegion(entry, this);
 		}
-		return super.declarationAt(offset, parser);
+		return super.entityAt(offset, parser);
 	}
 	
 	@Override

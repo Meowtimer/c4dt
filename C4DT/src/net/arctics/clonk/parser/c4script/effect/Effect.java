@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
@@ -20,10 +19,6 @@ public class Effect extends ProplistDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private final Map<String, EffectFunction> functions = new HashMap<String, EffectFunction>();
-	
-	public Effect(List<Variable> components) {
-		super(components);
-	}
 	
 	public Effect(String name, Iterable<EffectFunction> functions) {
 		super(new ArrayList<Variable>(5));

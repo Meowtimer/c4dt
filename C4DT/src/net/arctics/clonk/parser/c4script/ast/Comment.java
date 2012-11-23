@@ -144,7 +144,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		// parse comment as expression and see what goes
 		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
@@ -162,14 +162,14 @@ public class Comment extends Statement implements Statement.Attachment {
 			commentParser.parseStandaloneStatement(comment, parser.currentFunction(), locator);
 		} catch (ParsingException e) {}
 		if (locator.expressionAtRegion() != null) {
-			EntityRegion reg = locator.expressionAtRegion().declarationAt(offset, parser);
+			EntityRegion reg = locator.expressionAtRegion().entityAt(offset, parser);
 			if (reg != null)
 				return reg.incrementRegionBy(start()+2);
 			else
 				return null;
 		}
 		else
-			return super.declarationAt(offset, parser);
+			return super.entityAt(offset, parser);
 	}
 
 	@Override

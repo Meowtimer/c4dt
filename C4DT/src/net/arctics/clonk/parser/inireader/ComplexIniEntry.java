@@ -62,16 +62,14 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	
 	@Override
 	public void setStringValue(String value, Object context) {
-		if (extendedValue instanceof IIniEntryValue) {
+		if (extendedValue instanceof IIniEntryValue)
 			try {
 				((IIniEntryValue)extendedValue).setInput(value, entryConfig, (IniUnit) context);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}
-		} else {
-			if (extendedValue instanceof String)
-				extendedValue = value;
-		}
+		else if (extendedValue instanceof String)
+			extendedValue = value;
 	}
 
 	@Override
@@ -85,9 +83,8 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 
 	@Override
 	public Collection<? extends INode> childCollection() {
-		if (extendedValue instanceof ITreeNode) {
+		if (extendedValue instanceof ITreeNode)
 			return ((ITreeNode) extendedValue).childCollection();
-		}
 		return null;
 	}
 	
@@ -107,6 +104,11 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	public void validate() {
 		if (extendedValue() instanceof IComplainingIniEntryValue)
 			((IComplainingIniEntryValue)extendedValue()).complain(this);
+	}
+	
+	@Override
+	public boolean isTransient() {
+		return value() instanceof IniEntryValueBase && ((IniEntryValueBase)value()).isEmpty();
 	}
 	
 }

@@ -7,16 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.search.ui.ISearchResult;
-import org.eclipse.search.ui.text.AbstractTextSearchResult;
-import org.eclipse.search.ui.text.Match;
-import org.eclipse.ui.IEditorPart;
-
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
@@ -34,6 +24,16 @@ import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.search.ui.ISearchResult;
+import org.eclipse.search.ui.text.AbstractTextSearchResult;
+import org.eclipse.search.ui.text.Match;
+import org.eclipse.ui.IEditorPart;
+
 /**
  * Query to find potential duplicates of functions.
  * @author madeen
@@ -41,9 +41,9 @@ import net.arctics.clonk.preferences.ClonkPreferences;
  */
 public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDelegate {
 	
-	private Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
-	private Set<Index> indexes = new HashSet<Index>();
-	private Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
+	private final Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
+	private final Set<Index> indexes = new HashSet<Index>();
+	private final Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
 	
 	public Map<Function, List<FindDuplicatesMatch>> getDetectedDupes() {
 		return detectedDupes;
@@ -106,7 +106,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 			for (Function f : fnList)
 				for (Index i : f.index().relevantIndexes())
 					indexes.add(i);
-		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet()) {
+		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet())
 			for (final Function function : entry.getValue()) {
 				for (Index index : indexes)
 					index.loadScriptsContainingDeclarationsNamed(function.name());
@@ -123,7 +123,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 						continue;
 					if (!decs.contains(function)) // happens when a newly-parsed function is not already added to the declaration map
 						continue;
-					for (Declaration d : decs) {
+					for (Declaration d : decs)
 						if (d instanceof Function) {
 							final Function otherFn = (Function) d;
 							if (deemedDuplicate.contains(d))
@@ -145,10 +145,8 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 								deemedDuplicate.add(otherFn);
 							}
 						}
-					}
 				}
 			}
-		}
 		return Status.OK_STATUS;
 	}
 
@@ -186,7 +184,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 			if (a.parent() instanceof BinaryOp && b.parent() instanceof BinaryOp) {
 				BinaryOp opA = (BinaryOp) a.parent();
 				BinaryOp opB = (BinaryOp) b.parent();
-				if (opA.operator() == opB.operator() && opA.operator().isAssociative()) {
+				if (opA.operator() == opB.operator() && opA.operator().isAssociative())
 					if (
 						b == opB.leftSide() || b == opB.rightSide() &&
 						a == opA.leftSide() || a == opA.rightSide()
@@ -208,11 +206,15 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 							public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 								DuplicatesQuery.this.wildcardMatched(wildcard, expression);
 							}
+							@Override
+							public boolean consume(ExprElm consumer, ExprElm extra) {
+								// TODO Auto-generated method stub
+								return false;
+							}
 						};
 						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
 							return DifferenceHandling.EqualShortCircuited;
 					}
-				}
 			}
 		}
 		return DifferenceHandling.Differs;
@@ -268,6 +270,11 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 
 	@Override
 	public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+	}
+
+	@Override
+	public boolean consume(ExprElm consumer, ExprElm extra) {
+		return false;
 	}
 
 }

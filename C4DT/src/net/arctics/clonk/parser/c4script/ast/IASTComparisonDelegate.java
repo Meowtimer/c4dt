@@ -50,6 +50,11 @@ public interface IASTComparisonDelegate {
 	public static final Object SUBELEMENTS_LENGTH = new Object();
 	
 	/**
+	 * Passed as the 'what' parameter to {@link #differs(ExprElm, ExprElm, Object)} if the {@link ExprElm} elements being compared have differen types.
+	 */
+	public static final Object CLASS = new Object();
+	
+	/**
 	 * Called by the caller conducting the comparison when a difference has been detected.
 	 * @param a The element on the left side of the comparison (the one compare is being called on)
 	 * @param b The other element that is being compared to a
@@ -71,4 +76,9 @@ public interface IASTComparisonDelegate {
 	 * @param expression The expression matching the wildcard
 	 */
 	void wildcardMatched(Wildcard wildcard, ExprElm expression);
+	
+	/**
+	 * 
+	 */
+	boolean consume(ExprElm consumer, ExprElm extra);
 }

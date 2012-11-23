@@ -37,9 +37,16 @@ public enum PrimitiveType implements IType {
 	NUM;
 	
 	public static final PrimitiveType[] NILLABLES = {PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST};
+	private String lowercaseName;
+	private final ReferenceType referenceType = new ReferenceType(this);
 	
+	public IType referenceType() { return referenceType; }
+
 	private String scriptName;
 	public String scriptName() {return scriptName;}
+
+	@Override
+	public String toString() { return typeName(false); }
 	
 	private static final Map<String, PrimitiveType> REGULAR_MAP = new HashMap<String, PrimitiveType>();
 	private static final Map<String, PrimitiveType> SPECIAL_MAPPING = map(false,
@@ -259,51 +266,6 @@ public enum PrimitiveType implements IType {
 		};
 	}
 
-	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet)
-			for (IType t2 : this)
-				if (t.canBeAssignedFrom(t2) || t2.canBeAssignedFrom(t))
-					return true;
-		return false;
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		IType simpleType = type.simpleType();
-		if (simpleType == this)
-			return true;
-		if (simpleType instanceof PrimitiveType)
-			switch ((PrimitiveType)simpleType) {
-			case ARRAY:
-			case ID:
-			case OBJECT:
-			case INT:
-			case STRING:
-				return false;
-			case PROPLIST:
-				return this == OBJECT || this == ID;
-			case BOOL:
-				return this == INT;
-			case REFERENCE: case ANY: case UNKNOWN:
-				return true;
-			default:
-				break;
-			}
-		return false;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-	
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		for (IType t : types)
-			if (subsetOf(t))
-				return true;
-		return false;
-	}
-	
 	@Override
 	public int precision() {
 		switch (this) {

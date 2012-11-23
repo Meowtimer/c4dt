@@ -7,8 +7,10 @@ import java.util.ListIterator;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+
 import org.eclipse.core.resources.IMarker;
 
 /**
@@ -16,9 +18,13 @@ import org.eclipse.core.resources.IMarker;
  * @author madeen
  *
  */
-public class CategoriesValue {
+public class CategoriesValue extends IniEntryValueBase {
 	private List<String> constants = null;
 	private int summedValue;
+	
+	public CategoriesValue() {
+		this(0);
+	}
 	
 	public CategoriesValue(int value) {
 		summedValue = value;
@@ -31,12 +37,10 @@ public class CategoriesValue {
 	public void setInput(String input, Engine engine, String constantsPrefix) throws IniParserException {
 		constants = null;
 		String[] parts = input != null ? input.split("\\|") : new String[0]; //$NON-NLS-1$
-		if (parts.length == 1) {
+		if (parts.length == 1)
 			tryIntegerInput(input, parts, engine, constantsPrefix);
-		}
-		else {
+		else
 			tryConstantInput(input, parts, engine, constantsPrefix);
-		}
 	}
 	
 	private void tryIntegerInput(String input, String[] parts, Engine engine, String constantsPrefix) throws IniParserException {
@@ -71,9 +75,8 @@ public class CategoriesValue {
 		else for (String part : parts) {
 			part = part.trim();
 			Variable var = Core.instance().activeEngine().findVariable(part);
-			if (var == null) {
+			if (var == null)
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
-			}
 			constants.add(var.name());
 		}
 	}
@@ -82,7 +85,11 @@ public class CategoriesValue {
 		return summedValue;
 	}
 	
-	public List<String> getConstants() {
+	public void setSummedValue(int summedValue) {
+		this.summedValue = summedValue;
+	}
+	
+	public List<String> constants() {
 		return constants;
 	}
 	
@@ -98,5 +105,10 @@ public class CategoriesValue {
 				builder.append('|');
 		}
 		return builder.toString();
+	}
+
+	@Override
+	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+		setInput(value, context.engine(), entryData.constantsPrefix());
 	}
 }

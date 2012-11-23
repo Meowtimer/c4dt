@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Map;
+import java.util.Map.Entry;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
 import net.arctics.clonk.index.Definition;
@@ -172,7 +173,7 @@ public class ClonkProjectNature implements IProjectNature {
 			index = new ProjectIndex(getProject(), indexFolder());
 			performBuildOnOutdatedProject();
 		} else {
-			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null);
+			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null, settings().engine());
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
 				loadedIndex.setProject(getProject());

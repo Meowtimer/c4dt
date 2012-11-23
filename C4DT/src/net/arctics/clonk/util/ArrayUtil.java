@@ -300,5 +300,13 @@ public class ArrayUtil {
 				return false;
 		return true;
 	}
+	
+	public static <T> int pack(T[] array) {
+		int i, j;
+		for (i = 0, j = 0; i < array.length; i++)
+			if (array[i] != null)
+				array[j++] = array[i];
+		return j;
+	}
 
 }

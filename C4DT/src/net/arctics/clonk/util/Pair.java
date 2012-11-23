@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 
-public class Pair<First, Second> implements Serializable {
+public class Pair<First, Second> implements Serializable, Cloneable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -16,16 +16,16 @@ public class Pair<First, Second> implements Serializable {
 		this.first = first;
 		this.second = second;
 	}
-	public First first() {
+	public final First first() {
 		return first;
 	}
-	public void setFirst(First first) {
+	public final void setFirst(First first) {
 		this.first = first;
 	}
-	public Second second() {
+	public final Second second() {
 		return second;
 	}
-	public void setSecond(Second second) {
+	public final void setSecond(Second second) {
 		this.second = second;
 	}
 	@Override
@@ -43,5 +43,10 @@ public class Pair<First, Second> implements Serializable {
 	@Override
 	public int hashCode() {
 		return (first == null ? 0 : first.hashCode()) ^ (second == null ? 0 : second.hashCode());
+	}
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pair<First, Second> clone() throws CloneNotSupportedException {
+		return (Pair<First, Second>) super.clone();
 	}
 }

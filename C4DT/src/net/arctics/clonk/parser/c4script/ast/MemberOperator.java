@@ -56,7 +56,7 @@ public class MemberOperator extends ExprElm {
 	 * @param dotNotation If true, the operator represents a '.', otherwise '->'
 	 * @param hasTilde Whether '->' is followed by '~'
 	 * @param id {@link ID} specified after '->'. Can be null.
-	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #declarationAt(int, C4ScriptParser)})
+	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, C4ScriptParser)})
 	 */
 	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
 		super();
@@ -146,7 +146,7 @@ public class MemberOperator extends ExprElm {
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
 			return new EntityRegion(parser.script().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
@@ -164,7 +164,7 @@ public class MemberOperator extends ExprElm {
 		EngineSettings settings = parser.script().engine().settings();
 		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(
-				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
+				dotNotation ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID), parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		if (getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)

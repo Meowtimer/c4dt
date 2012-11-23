@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.inireader;
 
 
+import java.util.Arrays;
+
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -12,6 +14,12 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	private CategoriesValue[] values;
 	
 	public IntegerArray() {
+	}
+	
+	public IntegerArray(int[] values) {
+		this.values = new CategoriesValue[values.length];
+		for (int i = 0; i < values.length; i++)
+			this.values[i] = new CategoriesValue(i);
 	}
 	
 	public IntegerArray(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
@@ -53,10 +61,8 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 					}
 				}
 				this.values = values;
-			}
-			else {
+			} else
 				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.ExpectedIntegerArray);
-			}
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.ExpectedIntegerArray);
@@ -91,12 +97,20 @@ public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithC
 	public Object convertToPrimitive() {
 		return values;
 	}
+	
+	public CategoriesValue[] values() {
+		return values;
+	}
 
 	@Override
 	public void setValueOfChildAt(int index, Object value) {
 		values[index] = value instanceof Integer
 			? new CategoriesValue(index)
 			: new CategoriesValue(0);
+	}
+
+	public void grow(int size) {
+		values = Arrays.copyOf(values, Math.max(size, values.length));
 	}
 
 }

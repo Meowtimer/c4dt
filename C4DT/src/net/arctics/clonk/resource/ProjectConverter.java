@@ -2,15 +2,18 @@ package net.arctics.clonk.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprElm.ITransformer;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
@@ -35,6 +38,7 @@ import org.eclipse.jface.text.IDocument;
 public class ProjectConverter implements IResourceVisitor {
 	private final ClonkProjectNature sourceProject, destinationProject;
 	private IProgressMonitor monitor;
+	private final ProjectConversionConfiguration configuration;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
 	private Engine destinationEngine() { return destinationProject.index().engine(); }
 	private final boolean crToOC;
@@ -46,8 +50,9 @@ public class ProjectConverter implements IResourceVisitor {
 	public ProjectConverter(IProject sourceProject, IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
+		this.crToOC = sourceEngine().name().equals("ClonkRage") && destinationEngine().name().equals("OpenClonk");
+		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
 		assert(sourceEngine() != destinationEngine());
-		crToOC = sourceEngine().name().equals("ClonkRage") && destinationEngine().name().equals("OpenClonk");
 	}
 	private IPath convertPath(IPath path) {
 		IPath result = new Path("");
@@ -106,7 +111,21 @@ public class ProjectConverter implements IResourceVisitor {
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
 		protected ExprElm performConversion(C4ScriptParser parser, ExprElm expression) {
-			return expression;
+			if (configuration == null)
+				return expression;
+			return (new ITransformer() {
+				@Override
+				public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+					if (expression == null)
+						return null;
+					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
+						Map<String, Object> matched = ct.template().match(expression);
+						if (matched != null)
+							return ct.transformation().transform(matched);
+					}
+					return expression.transformSubElements(this);
+				}
+			}).transform(null, null, expression);
 		}
 	};
 	private boolean skipResource(IResource sourceResource) {

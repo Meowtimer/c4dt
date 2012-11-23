@@ -8,7 +8,6 @@ import java.util.Map;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.StreamUtil;
 
@@ -58,8 +57,7 @@ public class IniUnitParser extends CStyleScanner {
 				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
-			IniSection section = new IniSection(new SourceLocation(start, end), name);
-			section.setParentDeclaration(parentSection != null ? parentSection : unit);
+			IniSection section = unit.addSection(parentSection, start, name, end);
 			section.setIndentation(indentation);
 			// parse entries
 			IniItem item= null;
@@ -81,7 +79,7 @@ public class IniUnitParser extends CStyleScanner {
 			return null;
 		}
 	}
-	
+
 	protected boolean skipComment() {
 		eatWhitespace();
 		int _r;
@@ -195,6 +193,18 @@ public class IniUnitParser extends CStyleScanner {
 			return sec;
 		
 		return null;
+	}
+	
+	public static String category(IniField annot, Class<?> cls) {
+		if (annot.category().equals(""))
+			return defaultSection(cls);
+		else
+			return annot.category();
+	}
+
+	public static String defaultSection(Class<?> cls) {
+		IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
+		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}
 	
 }

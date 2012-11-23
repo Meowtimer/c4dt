@@ -25,9 +25,14 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -38,7 +43,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 
 /**
  * A Clonk object definition.
@@ -62,10 +68,6 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	protected ID id;
 
-	/**
-	 * Cached picture from Graphics.png
-	 */
-	private transient Image cachedPicture;
 	private transient ConstrainedProplist objectType;
 
 	/**
@@ -175,7 +177,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final List<IHasIncludes> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
-		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.getAscending(((IHasRelatedResource)origin).resource()) : null;
+		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0)
 			for (Index i : contextIndex.relevantIndexes()) {
 				List<Script> appendages = i.appendagesOf(Definition.this);
@@ -193,21 +195,6 @@ public class Definition extends Script implements IProplistDeclaration {
 		return true;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (cachedPicture != null)
-			cachedPicture.dispose();
-		super.finalize();
-	}
-
-	public Image cachedPicture() {
-		return cachedPicture;
-	}
-
-	public void setCachedPicture(Image cachedPicture) {
-		this.cachedPicture = cachedPicture;
-	}
-	
 	public ConstrainedProplist objectType() {
 		if (objectType == null)
 			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false);
@@ -349,6 +336,10 @@ public class Definition extends Script implements IProplistDeclaration {
 	public IFile defCoreFile() {
 		return defCoreFile;
 	}
+	
+	public DefCoreUnit defCore() {
+		return as(Structure.pinned(defCoreFile, true, false), DefCoreUnit.class);
+	}
 
 	/**
 	 * Set the folder the Definition was read from. This will take care of setting session properties on the folder.
@@ -444,8 +435,6 @@ public class Definition extends Script implements IProplistDeclaration {
 	public void processDefinitionFolderFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt"))
 			readNames(StreamUtil.stringFromFileDocument(file));
-		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp"))
-			setCachedPicture(null); // obsolete
 	}
 
 	@Override
@@ -487,4 +476,36 @@ public class Definition extends Script implements IProplistDeclaration {
 		return special ? name() : id != null ? id.stringValue() : PrimitiveType.OBJECT.typeName(false);
 	}
 
+	/**
+	 * Return the category of the definition as specified in its DefCore.txt file.
+	 * @return
+	 */
+	public CategoriesValue category() {
+		DefCoreUnit defCore = defCore();
+		ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+		return category != null ? as(category.value(), CategoriesValue.class) : null;
+	}
+	
+	public boolean categorySet(String category) {
+		CategoriesValue cat = category();
+		return cat != null && cat.constants() != null && cat.constants().contains(category);
+	}
+	
+	static {
+		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+					Sink<Definition> sink = new Sink<Definition>() {
+						@Override
+						public void receivedObject(Definition item) {
+							item.chooseLocalizedName();
+						}
+					};
+					for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+						ClonkProjectNature.get(proj).index().allDefinitions(sink);
+				}
+			}
+		});
+	}
 }

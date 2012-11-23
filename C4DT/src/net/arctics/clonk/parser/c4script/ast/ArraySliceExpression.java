@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -53,8 +52,7 @@ public class ArraySliceExpression extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		IType type = predecessorType(parser);
-		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
-			parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
+		ArrayElementExpression.warnIfNotArray(predecessorInSequence(), parser, type);
 	}
 	
 	@Override

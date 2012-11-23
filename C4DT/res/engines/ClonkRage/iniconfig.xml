@@ -61,7 +61,7 @@
 			<entry name="Name" class="java.lang.String"
 				description="Name des Objekts. Bei Mehrsprachigkeit Names.txt nutzen." />
 			<entry name="Category"
-				class="CategoriesArray"
+				class="CategoriesValue"
 				description="Kategorie des Objekts. Siehe Objektkategorien."
 				constantsPrefix="C4D_" />
 			<entry name="MaxUserSelect" class="SignedInteger"
@@ -123,10 +123,10 @@
 			<entry name="Base" class="Boolean"
 				description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann." />
 			<entry name="Line"
-				class="CategoriesArray"
+				class="CategoriesValue"
 				description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr." />
 			<entry name="LineConnect"
-				class="CategoriesArray"
+				class="CategoriesValue"
 				description="Anschlussfähigkeit für Leitungen.\n  Siehe LineConnect." />
 			<entry name="Prey" class="Boolean"
 				description="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist." />
@@ -145,7 +145,7 @@
 			<entry name="Grab" class="SignedInteger"
 				description="0 kein Anfassen, 1 Anfassen und Verschieben, 2 nur Anfassen." />
 			<entry name="GrabPutGet"
-				class="CategoriesArray"
+				class="CategoriesValue"
 				description="Bitmaske: Bit 0 (Wert 1) Grab und Put, Bit 1 (Wert 2) Grab und Get" />
 			<entry name="Collectible" class="Boolean"
 				description="0 oder 1. Legt fest, ob das Objekt eingesammelt werden kann." />
@@ -238,7 +238,7 @@
 			<entry name="RotatedSolidmasks" class="IntegerArray"
 				description="?" />
 			<entry name="AllowPictureStack"
-				class="CategoriesArray"
+				class="CategoriesValue"
 				description="?"
 				constantsPrefix="APS_" />
 
@@ -513,7 +513,7 @@
 				description="Veraltet. Spielziel: Diese Objekte müssen auf x reduziert werden." />
 			<entry name="ClearMaterials" class="MaterialArray"
 				description="Veraltet. Spielziel: Diese Materialien müssen auf x reduziert werden." />
-			<entry name="BaseFunctionality" class="CategoriesArray"
+			<entry name="BaseFunctionality" class="CategoriesValue"
 				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR."
 				constantsPrefix="BASEFUNC_"/>
 			<entry name="BaseRegenerateEnergyPrice" class="SignedInteger"

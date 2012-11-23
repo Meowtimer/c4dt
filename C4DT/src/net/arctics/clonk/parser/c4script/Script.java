@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
@@ -65,6 +67,8 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -77,7 +81,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
-public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
+public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -413,14 +417,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		requireLoaded();
-		if (Variable.class.isAssignableFrom(declarationClass))
+		if (declarationClass.isAssignableFrom(Variable.class))
 			for (Variable v : variables())
 				if (v.name().equals(declarationName))
 					return v;
-		if (Function.class.isAssignableFrom(declarationClass))
+		if (declarationClass.isAssignableFrom(Function.class))
 			for (Function f : functions())
 				if (f.name().equals(declarationName))
 					return f;
+		if (declarationClass.isAssignableFrom(Effect.class)) {
+			Effect e = effects().get(declarationName);
+			if (e != null)
+				return e;
+		}
 		return null;
 	}
 
@@ -1111,25 +1120,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public boolean canBeAssignedFrom(IType other) {
 		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
 	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		return
-			type == PrimitiveType.OBJECT ||
-			type == PrimitiveType.PROPLIST ||
-			type == this ||
-			(type instanceof IHasConstraint && this.doesInclude(this.index(), ((IHasConstraint)type).constraint())) ||
-			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
-	}
 	
-	@Override
-	public IType eat(IType other) {return this;}
-	
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
-	}
-
 	@Override
 	public int precision() {
 		return PrimitiveType.OBJECT.precision()+3;
@@ -1143,20 +1134,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Iterator<IType> iterator() {
 		return iterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
-	}
-
-	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet) {
-			if (t.canBeAssignedFrom(PrimitiveType.OBJECT))
-				return true;
-			if (t instanceof Definition) {
-				Definition obj = (Definition) t;
-				if (this.doesInclude(obj.index(), obj))
-					return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -1244,7 +1221,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void indexRefresh() {
 		if (loaded) {
 			IResource res = resource();
-			scenario = res != null ? Scenario.getAscending(res) : null;
+			scenario = res != null ? Scenario.containingScenario(res) : null;
 			detectEffects();
 		}
 	}
@@ -1255,6 +1232,36 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public Scenario scenario() {
 		return scenario;
+	}
+	
+	public void saveExpressions(final Collection<? extends ExprElm> expressions) {
+		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
+			@Override
+			public Boolean run(IDocument document) {
+				try {
+					List<ExprElm> l = new ArrayList<ExprElm>(expressions);
+					Collections.sort(l, new Comparator<ExprElm>() {
+						@Override
+						public int compare(ExprElm o1, ExprElm o2) {
+							return o2.absolute().getOffset() - o1.absolute().getOffset();
+						}
+					});
+					for (ExprElm e : l) {
+						IRegion region = e.absolute();
+						document.replace(region.getOffset(), region.getLength(), e.toString());
+					}
+					return true;
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+					return false;
+				}
+			}
+		});
+	}
+	
+	@Override
+	public PrimitiveType primitiveType() {
+		return PrimitiveType.OBJECT;
 	}
 
 }

@@ -41,7 +41,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	public static CodeConverter converter() {
 		return new CodeConverter() {
 			@Override
-			protected ExprElm performConversion(C4ScriptParser parser, net.arctics.clonk.parser.c4script.ast.ExprElm expression) {
+			protected ExprElm performConversion(C4ScriptParser parser, ExprElm expression) {
 				try {
 					return expression.exhaustiveOptimize(parser);
 				} catch (CloneNotSupportedException e) {

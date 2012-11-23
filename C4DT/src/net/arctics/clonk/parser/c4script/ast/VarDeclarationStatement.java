@@ -70,7 +70,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		Function activeFunc = parser.currentFunction();
 		if (activeFunc != null) {
 			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
@@ -82,7 +82,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 					return new EntityRegion(var, new Region(var.location().start()-activeFunc.bodyLocation().start(), var.location().getLength()));
 			}
 		}
-		return super.declarationAt(offset, parser);
+		return super.entityAt(offset, parser);
 	}
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {

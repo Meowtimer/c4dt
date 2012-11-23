@@ -27,7 +27,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -70,7 +70,7 @@ public class C4ScriptParserTestCase {
 			this.script = new Script(new Index() {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				private final Engine engine = new Engine("TestEngine") {
-					private final SpecialScriptRules rules = new SpecialScriptRules() {
+					private final SpecialEngineRules rules = new SpecialEngineRules() {
 						private final Matcher ID_MATCHER = Pattern.compile(
 								"[A-Za-z_][A-Za-z_0-9]*").matcher("");
 
@@ -106,7 +106,7 @@ public class C4ScriptParserTestCase {
 					private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 					@Override
-					public SpecialScriptRules specialScriptRules() {
+					public SpecialEngineRules specialRules() {
 						return rules;
 					};
 
@@ -174,13 +174,12 @@ public class C4ScriptParserTestCase {
 	public void testForLoopParsingParsing() {
 		final Block block = new BunchOfStatements(new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
-						new VarInitialization("i",
-								LongLiteral.ZERO, 0)), new BinaryOp(
-						Operator.Smaller, new AccessVar("i"),
-						new LongLiteral(100)), new UnaryOp(
-						Operator.Increment, Placement.Postfix, new AccessVar(
+						new VarInitialization("i", LongLiteral.ZERO, 0)), new BinaryOp(
+							Operator.Smaller, new AccessVar("i"),
+							new LongLiteral(100)), new UnaryOp(
+								Operator.Increment, Placement.Postfix, new AccessVar(
 								"i")), new Block(new SimpleStatement(
-						new CallDeclaration("Log", new StringLiteral("Hello"))))));
+									new CallDeclaration("Log", new StringLiteral("Hello"))))));
 		assertParsingYieldsCorrectAST(block);
 	}
 
@@ -210,7 +209,6 @@ public class C4ScriptParserTestCase {
 					public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 						return DifferenceHandling.Differs;
 					}
-
 					@Override
 					public boolean optionEnabled(Option option) {
 						switch (option) {
@@ -220,11 +218,14 @@ public class C4ScriptParserTestCase {
 							return false;
 						}
 					}
-
 					@Override
 					public void wildcardMatched(Wildcard wildcard,
 							ExprElm expression) {
 						// ignore
+					}
+					@Override
+					public boolean consume(ExprElm consumer, ExprElm extra) {
+						return false;
 					}
 				}).isEqual());
 	}

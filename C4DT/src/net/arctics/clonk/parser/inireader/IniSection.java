@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -69,7 +71,7 @@ public class IniSection extends Declaration implements
 	public IniItem subItemByKey(String key) {
 		return itemMap.get(key);
 	}
-
+	
 	public List<IniItem> subItemList() {
 		return itemList;
 	}
@@ -101,6 +103,25 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public void addChild(ITreeNode node) {
+		if (node instanceof IniItem)
+			addItem((IniItem)node);
+		else
+			throw new IllegalArgumentException("node");
+	}
+	
+	public void addItem(IniItem item) {
+		if (!itemMap.containsKey(item.key())) {
+			itemMap.put(item.key(), item);
+			itemList.add(item);
+			((Declaration)item).setParentDeclaration(this);
+		}
+		else
+			throw new IllegalArgumentException("item");
+	}
+	
+	public void removeItem(IniItem item) {
+		itemMap.remove(item.key());
+		itemList.remove(item);
 	}
 
 	@Override
@@ -151,17 +172,25 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation)
-			throws IOException {
+	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
 
-		for (IniItem entry : subItemMap().values()) {
-			entry.writeTextRepresentation(writer, indentation + 1);
+		for (IniItem item : subItemList()) {
+			if (item.isTransient())
+				continue;
+			item.writeTextRepresentation(writer, indentation + 1);
 			writer.append('\n');
 		}
+	}
+	
+	public boolean hasPersistentItems() {
+		for (IniItem item : subItemList())
+			if (!item.isTransient())
+				return true;
+		return false;
 	}
 
 	@Override
@@ -205,5 +234,68 @@ public class IniSection extends Declaration implements
 	public String infoText(IIndexEntity context) {
 		IniUnit unit = iniUnit();
 		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText(context));
+	}
+
+	@Override
+	public boolean isTransient() {
+		return false;
+	}
+	
+	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	
+		if (f.getType() == Integer.TYPE)
+			f.set(object, Integer.valueOf(val));
+		else if (f.getType() == Long.TYPE)
+			f.set(object, Long.valueOf(val));
+		else if (f.getType() == java.lang.Boolean.TYPE)
+			f.set(object, java.lang.Boolean.valueOf(val));
+	}
+	
+	public void commit(Object object, boolean takeIntoAccountCategory) {
+		for (IniItem item : subItemMap().values())
+			if (item instanceof IniSection)
+				((IniSection)item).commit(object, takeIntoAccountCategory);
+			else if (item instanceof IniEntry) {
+				IniEntry entry = (IniEntry) item;
+				Field f;
+				try {
+					f = object.getClass().getField(entry.name());
+				} catch (Exception e) {
+					// don't panic - probably unknown field
+					//e.printStackTrace();
+					continue;
+				}
+				IniField annot;
+				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || IniUnitParser.category(annot, object.getClass()).equals(name()))) {
+					Object val = entry.value();
+					if (val instanceof IConvertibleToPrimitive)
+						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+					try {
+						if (f.getType() != String.class && val instanceof String)
+							setFromString(f, object, (String)val);
+						else try {
+							f.set(object, val);
+						} catch (IllegalArgumentException e) {
+							if (val instanceof Long && f.getType() == Integer.TYPE) {
+								f.set(object, (int)(long)(Long)val);
+								continue;
+							} else if (val instanceof Long && f.getType() == java.lang.Boolean.TYPE) {
+								f.set(object, (Long)val != 0);
+								continue;
+							}
+							// unboxing failed
+							try {
+								Constructor<?> ctor = f.getType().getConstructor(val.getClass());
+								f.set(object, ctor.newInstance(val));
+							} catch (NoSuchMethodException nsm) {
+								System.out.println(f.getName());
+								nsm.printStackTrace();
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+				}
+			}
 	}
 }

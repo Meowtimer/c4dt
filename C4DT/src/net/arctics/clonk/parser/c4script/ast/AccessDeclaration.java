@@ -90,7 +90,7 @@ public abstract class AccessDeclaration extends ExprElm {
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		return new EntityRegion(declarationFromContext(parser), region(0));
 	}
 

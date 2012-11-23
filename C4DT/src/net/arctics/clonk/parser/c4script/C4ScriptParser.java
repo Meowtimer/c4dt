@@ -4,12 +4,10 @@ import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +17,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -30,12 +27,11 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
-import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.IMarkerListener.Decision;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
@@ -99,7 +95,6 @@ import net.arctics.clonk.resource.c4group.C4GroupItem;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -127,37 +122,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
 	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 	
-	public static class TypeInfoList extends ArrayList<ITypeInfo> {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public TypeInfoList up;
-		public TypeInfoList() {
-			super();
-		}
-		public TypeInfoList(int capacity) {
-			super(capacity);
-		}
-		public TypeInfoList inject(TypeInfoList other) {
-			for (ITypeInfo info : this)
-				for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {
-					ITypeInfo info2 = it.next();
-					if (info2.local()) {
-						it.remove();
-						continue;
-					}
-					if (info2.refersToSameExpression(info)) {
-						info.merge(info2);
-						it.remove();
-					}
-				}
-			this.addAll(other);
-			return this;
-		}
-		public void apply(C4ScriptParser parser, boolean soft) {
-			for (ITypeInfo info : this)
-				info.apply(soft, parser);
-		}
-	}
-	
 	private Function currentFunction;
 	private Declaration currentDeclaration;
 	private ID parsedID;
@@ -165,8 +129,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private String parsedMemberOperator;
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
-	private TypeInfoList typeInfos;
 	private TypeAnnotation parsedTypeAnnotation;
+	private TypeEnvironment typeInfos;
 
 	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	/**
@@ -229,7 +193,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
-	private SpecialScriptRules specialScriptRules;
+	private SpecialEngineRules specialEngineRules;
 	private Engine engine;
 	private ClonkBuilder builder;
 	private CachedEngineDeclarations cachedEngineDeclarations;
@@ -237,7 +201,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	public final boolean findDefinitionViaCall() {return findDefinitionViaCall;}
 	public final Engine engine() {return engine;}
-	public final SpecialScriptRules specialScriptRules() {return specialScriptRules;}
+	public final SpecialEngineRules specialEngineRules() {return specialEngineRules;}
 	public boolean allErrorsDisabled() {return allErrorsDisabled;}
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
 	public ClonkBuilder builder() {return builder;}
@@ -306,7 +270,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
-		for (TypeInfoList list = typeInfos; list != null; list = list.up) {
+		for (TypeEnvironment list = typeInfos; list != null; list = list.up) {
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					if (!topMostLayer) {
@@ -326,8 +290,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return newlyCreated;
 	}
 	
-	public TypeInfoList pushTypeInfos() {
-		TypeInfoList l = new TypeInfoList();
+	public TypeEnvironment pushTypeInfos() {
+		TypeEnvironment l = new TypeEnvironment();
 		l.up = this.typeInfos;
 		this.typeInfos = l;
 		return l;
@@ -347,7 +311,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public ITypeInfo queryTypeInfo(ExprElm expression) {
 		if (typeInfos == null)
 			return null;
-		for (TypeInfoList list = typeInfos; list != null; list = list.up)
+		for (TypeEnvironment list = typeInfos; list != null; list = list.up)
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					return info;
@@ -450,7 +414,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	protected void initialize() {
 		if (script != null) {
 			engine = script.engine();
-			specialScriptRules = engine != null ? script.engine().specialScriptRules() : null;
+			specialEngineRules = engine != null ? script.engine().specialRules() : null;
 			cachedEngineDeclarations = engine.cachedDeclarations();
 			staticTyping = StaticTyping.Off;
 			if (script.index() instanceof ProjectIndex) {
@@ -636,8 +600,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (!function.staticallyTyped())
 			function.assignType(PrimitiveType.UNKNOWN, false);
 
-		if (specialScriptRules != null)
-			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners())
+		if (specialEngineRules != null)
+			for (SpecialFuncRule eventListener : specialEngineRules.functionEventListeners())
 				eventListener.functionAboutToBeParsed(function, this);
 
 		int oldOffset = this.offset;
@@ -681,8 +645,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
-		if (specialScriptRules != null)
-			for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules())
+		if (specialEngineRules != null)
+			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules())
 				if (funcRule.assignDefaultParmTypes(this, function))
 					break;
 	}
@@ -1299,13 +1263,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Create a new {@link Function}. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
+	 * Create a new {@link Function}. Depending on what {@link SpecialEngineRules} the current {@link Engine} has, the function might be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
 	protected Function newFunction(String nameWillBe) {
-	    if (specialScriptRules != null)
-			for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules()) {
+	    if (specialEngineRules != null)
+			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
 	    		Function f = funcRule.newFunction(nameWillBe);
 	    		if (f != null)
 	    			return f;
@@ -1438,32 +1402,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		this.seek(savedOffset);
 		return false;
-	}
-
-	private static final class TempScript extends Script {
-		private final String expression;
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-		private TempScript(String expression) {
-			super(new Index() {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
-				@Override
-				public Engine engine() {
-					return tempEngine;
-				};
-			});
-			this.expression = expression;
-		}
-
-		@Override
-		public IStorage scriptStorage() {
-			try {
-				return new SimpleScriptStorage(expression, expression);
-			} catch (UnsupportedEncodingException e) {
-				return null;
-			}
-		}
 	}
 
 	/**
@@ -1898,7 +1836,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			
 			String placeholder;
 			if (elm == null && (placeholder = parsePlaceholderString()) != null)
-				elm = new Placeholder(placeholder);
+				elm = makePlaceholder(placeholder);
 			
 			// §{...}
 			if (elm == null)
@@ -1953,6 +1891,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		return result;
 		
+	}
+	
+	protected Placeholder makePlaceholder(String placeholder) {
+		return new Placeholder(placeholder);
 	}
 
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
@@ -2657,7 +2599,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				? parseStatement(options)
 				: SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
-				done = currentFunction().isOldStyle() || peek() == '}';
+				Function currentFunction = currentFunction();
+				done = currentFunction == null || currentFunction.isOldStyle() || peek() == '}';
 				if (done)
 					break;
 				if (garbageStart == -1)
@@ -3044,7 +2987,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean parseID() throws ParsingException {
 		ID id;
-		if (offset < size && (id = specialScriptRules.parseId(this)) != null) {
+		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseId(this) : null) != null) {
 			parsedID = id;
 			return true;
 		} else {
@@ -3086,6 +3029,40 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
 				error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
 			var.forceType(type, true);
+		PrimitiveType type = PrimitiveType.makeType(firstWord);
+		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
+		var.forceType(type, typeLocked);
+		if (type == PrimitiveType.UNKNOWN)
+			//var.setType(C4Type.ANY);
+			var.setName(firstWord);
+		else {
+			eatWhitespace();
+			if (read() == '&') {
+				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
+				var.forceType(ReferenceType.make(type), typeLocked);
+				eatWhitespace();
+			} else
+				unread();
+			int newStart = this.offset;
+			String secondWord = readIdent();
+			if (secondWord.length() > 0) {
+				if (!engine.supportsPrimitiveType(type))
+					error(ParserErrorCode.PrimitiveTypeNotSupported, s, e, NO_THROW, type.typeName(true), script.engine().name());
+				var.setName(secondWord);
+				s = newStart;
+				e = this.offset;
+			}
+			else {
+				
+				if (engine.supportsPrimitiveType(type))
+					// type is name
+					warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
+				var.forceType(PrimitiveType.ANY, typeLocked);
+				var.setName(firstWord);
+				this.seek(e);
+			}
+>>>>>>> other
 		}
 		var.setName(parmName);
 		var.setLocation(new SourceLocation(nameStart, this.offset));
@@ -3171,41 +3148,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	protected String modifyGarbage(String garbage) {
 		return garbage; // normal parser accepts teh garbage
-	}
-	
-	/**
-	 * A listener that will be notified if a marker is about to be created.
-	 * @author madeen
-	 *
-	 */
-	public interface IMarkerListener {
-		/**
-		 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, ParserErrorCode, int, int, int, int, Object...)}
-		 * @author madeen
-		 *
-		 */
-		public enum WhatToDo {
-			/**
-			 * Don't create the marker, the accused is innocent
-			 */
-			DropCharges,
-			/**
-			 * Continue creating the marker
-			 */
-			PassThrough
-		}
-		/**
-		 * Called when a marker is about to be created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
-		 * @param parser The parser the listener is attached to
-		 * @param code the parser error code
-		 * @param markerStart start of the marker region
-		 * @param markerEnd end of the marker region
-		 * @param flags true if the marker wouldn't cause an exception in the parsing process
-		 * @param severity IMarker severity value
-		 * @param args Arguments used to construct the marker message
-		 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
-		 */
-		WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args);
 	}
 	
 	/**
@@ -3316,7 +3258,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					markerStart += offsetOfScriptFragment;
 					markerEnd += offsetOfScriptFragment;
 				}
-				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == WhatToDo.DropCharges)
+				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
 					return;
 			}
 			super.marker(code, markerStart, markerEnd, flags, severity, args);
@@ -3397,6 +3339,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		};
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
+	}
+	
+	public static Statement parse(final String statementText) {
+		try {
+			return parseStandaloneStatement(statementText, null, null, null);
+		} catch (ParsingException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**

@@ -6,5 +6,7 @@ public abstract class IniEntryValueBase implements IIniEntryValue {
 	public Object evaluate(Object context) {
 		return toString();
 	}
+	
+	public boolean isEmpty() { return false; }
 
 }

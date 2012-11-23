@@ -26,7 +26,7 @@ import net.arctics.clonk.util.Utilities;
  * @author madeen
  *
  */
-public class ProplistDeclaration extends Structure implements IType, IHasIncludes, Cloneable, IProplistDeclaration {
+public class ProplistDeclaration extends Structure implements IRefinedPrimitiveType, IHasIncludes, Cloneable, IProplistDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected List<Variable> components;
@@ -178,24 +178,6 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 
 	@Override
-	public boolean intersects(IType typeSet) {
-		return PrimitiveType.PROPLIST.intersects(typeSet);
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		return type.equals(this) || type == PrimitiveType.PROPLIST || type == PrimitiveType.ANY;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return PrimitiveType.PROPLIST.subsetOfAny(types);
-	}
-
-	@Override
 	public int precision() {
 		return PrimitiveType.PROPLIST.precision()+1;
 	}
@@ -306,6 +288,11 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 				list.addAll(adhocComponents);
 			return list;
 		}
+	}
+
+	@Override
+	public PrimitiveType primitiveType() {
+		return PrimitiveType.PROPLIST;
 	}
 
 }

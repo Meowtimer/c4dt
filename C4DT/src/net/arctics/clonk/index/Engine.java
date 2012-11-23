@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +32,7 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
@@ -54,6 +55,7 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
@@ -79,14 +81,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
 	
-	private transient SpecialScriptRules specialScriptRules;
+	private transient SpecialEngineRules specialRules;
 	
 	/**
-	 * Return the {@link SpecialScriptRules} object associated with this engine. It is an instance of SpecialScriptRules_&lt;name&gt;
-	 * @return The {@link SpecialScriptRules} object
+	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
+	 * @return The {@link SpecialEngineRules} object
 	 */
-	public SpecialScriptRules specialScriptRules() {
-		return specialScriptRules;
+	public SpecialEngineRules specialRules() {
+		return specialRules;
 	}
 
 	/**
@@ -182,7 +184,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return Whether accepted or not
 	 */
 	public boolean acceptsId(String text) {
-		return specialScriptRules().parseId(new BufferedScanner(text)) != null;
+		return specialRules().parseId(new BufferedScanner(text)) != null;
 	}
 
 	private boolean hasCustomSettings() {
@@ -401,7 +403,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					for (IniSection section : unit.sections()) {
 						Declaration declaration = findDeclaration(section.name());
 						if (declaration != null)
-							unit.commitSection(declaration, section, false);
+							section.commit(declaration, false);
 					}
 				} finally {
 					try {
@@ -467,10 +469,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void createSpecialRules() {
 		try {
 			@SuppressWarnings("unchecked")
-			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", Core.PLUGIN_ID, name()));
-			specialScriptRules = rulesClass.newInstance();
-			specialScriptRules.initialize();
+			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
+				String.format("%s.parser.c4script.specialenginerules.SpecialEngineRules_%s", Core.PLUGIN_ID, name()));
+			specialRules = rulesClass.newInstance();
+			specialRules.initialize();
 		} catch (ClassNotFoundException e) {
 			// ignore
 		}
@@ -516,7 +518,42 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (!settings().readDocumentationFromRepository)
 			parseEngineScript();
 		loadDeclarationsConfiguration();
+		loadProjectConversionConfigurations();
 		reinitializeDocImporter();
+	}
+
+	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
+	
+	private void loadProjectConversionConfigurations() {
+		for (int i = storageLocations.length-1; i >= 0; i--) {
+			IStorageLocation location = storageLocations[i];
+			List<URL> projectConverterFiles = new ArrayList<URL>();
+			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles);
+			if (projectConverterFiles.size() > 0) {
+				Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
+				for (URL url : projectConverterFiles) {
+					Path path = new Path(url.getPath());
+					String engineName = path.segment(path.segmentCount()-2);
+					if (engineName.equals("projectConverters"))
+						continue; // bogus file next to engine-specific folders
+					List<URL> bucket = buckets.get(engineName);
+					if (bucket == null) {
+						bucket = new ArrayList<URL>();
+						buckets.put(engineName, bucket);
+					}
+					bucket.add(url);
+				}
+				for (Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
+					ProjectConversionConfiguration conf = new ProjectConversionConfiguration();
+					conf.load(bucket.getValue());
+					projectConversionConfigurations.put(bucket.getKey(), conf);
+				}
+			}
+		}
+	}
+	
+	public ProjectConversionConfiguration projectConversionConfigurationForEngine(Engine engine) {
+		return projectConversionConfigurations.get(engine.name());
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {

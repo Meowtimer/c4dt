@@ -24,7 +24,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.parser.mapcreator.MapCreator;
+import net.arctics.clonk.parser.landscapescript.LandscapeScript;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -193,7 +193,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	private void registerStructureClasses() {
 		IniUnit.register();
 		StringTbl.register();
-		MapCreator.register();
+		LandscapeScript.register();
 		SystemScript.register();
 	}
 	
@@ -571,13 +571,22 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		T run(IDocument document);
 	}
 	
-	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) throws CoreException {
+	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) {
 		IDocumentProvider provider = textFileDocumentProvider();
-		provider.connect(file);
+		try {
+			provider.connect(resource);
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
 		try {
 			IDocument document = provider.getDocument(file);
 			T result = action.run(document);
-			provider.saveDocument(null, file, document, true);
+			try {
+				provider.saveDocument(null, resource, document, true);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 			return result;
 		} finally {
 			provider.disconnect(file);

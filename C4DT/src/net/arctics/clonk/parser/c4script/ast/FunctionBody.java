@@ -7,6 +7,9 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
 /**
  * The body of a {@link Function}
  * @author madeen
@@ -28,10 +31,24 @@ public class FunctionBody extends BunchOfStatements {
 		return owner;
 	}
 	@Override
+	public void doPrint(ExprWriter builder, int depth) {
+		if (owner != null && owner.isOldStyle())
+			super.doPrint(builder, depth);
+		else
+			printBlock(statements(), builder, depth);
+	}
+	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		if (postLoaded)
 			return;
 		postLoaded = true;
 		super.postLoad(parent, root);
+	}
+	@Override
+	public IRegion absolute() {
+		if (owner != null && !owner.isOldStyle())
+			return new Region(owner.bodyLocation().start()-1, owner.bodyLocation().getLength()+2);
+		else
+			return super.absolute();
 	}
 }

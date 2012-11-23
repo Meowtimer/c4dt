@@ -18,7 +18,7 @@ import net.arctics.clonk.util.Utilities;
  * @author madeen
  *
  */
-public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclarations, IHasIncludes {
+public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstraint, IHasSubDeclarations, IHasIncludes {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -136,41 +136,6 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet) {
-			if (t == PrimitiveType.PROPLIST)
-				return true;
-			if (canBeAssignedFrom(t))
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		if (type == PrimitiveType.PROPLIST)
-			return true;
-		if (isObject && type == PrimitiveType.OBJECT)
-			return true;
-		if (isType && type == PrimitiveType.ID)
-			return true;
-		if (type instanceof Script)
-			return ((Script)type).doesInclude(((Script)type).index(), constraint);
-		if (type instanceof ConstrainedProplist)
-			//return ((ConstrainedProplist)type).constraint().includes(index(), constraint);
-			return false; // >:o
-		return false;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
-	}
-
-	@Override
 	public int precision() {
 		int spec = PrimitiveType.OBJECT.precision();
 		spec++;
@@ -247,6 +212,11 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	@Override
 	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
 		return constraint.gatherIncludes(contextIndex, origin, set, options);
+	}
+
+	@Override
+	public PrimitiveType primitiveType() {
+		return PrimitiveType.PROPLIST;
 	}
 
 }

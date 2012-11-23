@@ -105,7 +105,7 @@ public class EntityLocator extends ExpressionLocator {
 			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
 			parser = C4ScriptParser.visitCode(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 			if (exprAtRegion != null) {
-				EntityRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
+				EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 			}
 		}

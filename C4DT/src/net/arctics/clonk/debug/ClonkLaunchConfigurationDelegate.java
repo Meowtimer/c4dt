@@ -60,7 +60,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 		
 		// Don't launch engine multiple times
-		if (ClonkDebugTarget.existingDebugTargetForScenario(scenario) != null)
+		if (Target.existingDebugTargetForScenario(scenario) != null)
 			return;
 		
 		// Set up monitor
@@ -93,7 +93,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
 				if (mode.equals(ILaunchManager.DEBUG_MODE))
 					try {
-						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
+						IDebugTarget target = new Target(launch, p, DEFAULT_DEBUG_PORT, scenario);
 						launch.addDebugTarget(target);
 					} catch (Exception e) {
 						e.printStackTrace();

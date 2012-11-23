@@ -100,6 +100,11 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild, Class<T> cls) {
+		return (T)pinned(file, force, duringBuild);
+	}
+	
 	/**
 	 * Remove the structure pinned to the given file
 	 * @param file the file to remove the reference from
@@ -201,13 +206,13 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param path The path to find the {@link Declaration} of
 	 * @return The {@link Declaration} or null if not found.
 	 */
-	public Declaration findDeclarationByPath(String path) {
+	public Declaration findDeclarationByPath(String path, Class<? extends Declaration> cls) {
 		String[] parts = path.split("\\.");
 		Declaration d = this;
 		for (String p : parts) {
 			if (!(d instanceof Structure))
 				return null;
-			Declaration n = ((Structure)d).findLocalDeclaration(p, Declaration.class);
+			Declaration n = ((Structure)d).findLocalDeclaration(p, cls);
 			if (n == null)
 				return null;
 			d = n;

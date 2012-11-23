@@ -39,7 +39,7 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		return new EntityRegion(parser.script().nearestDefinitionWithId(idValue()), region(0));
 	}
 

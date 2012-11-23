@@ -682,14 +682,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param fallbackFileLocation Secondary file location to use if the first one does not exist
 	 * @return The loaded index or null if loading the index failed for any reason.
 	 */
-	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation) {
+	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation, final Engine engine) {
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
 			InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
 			T index;
 			try {
-				ObjectInputStream objStream = new IndexEntityInputStream(null, in);
+				ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public Engine engine() {
+						return engine;
+					}
+				}, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
 					for (IndexEntity e : index.entities())
@@ -887,17 +893,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	private static class EntityDeclaration implements Serializable, ISerializationResolvable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final IndexEntity containingEntity;
 		private final String declarationPath;
-		public EntityDeclaration(Declaration declaration) {
-			this.containingEntity = declaration.firstParentDeclarationOfType(IndexEntity.class);
+		private final Class<? extends Declaration> declarationClass;
+		public EntityDeclaration(Declaration declaration, IndexEntity containingEntity) {
+			this.containingEntity = containingEntity;
 			this.declarationPath = declaration.pathRelativeToIndexEntity();
+			this.declarationClass = declaration.getClass();
 		}
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Declaration resolve(Index index) {
 			if (containingEntity instanceof Structure)
-				return containingEntity.findDeclarationByPath(declarationPath);
+				return containingEntity.findDeclarationByPath(declarationPath, declarationClass);
 			else
 				return null;
 		}
@@ -1015,12 +1023,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 	}
 
-	public Object saveReplacementForEntityDeclaration(Declaration obj) {
+	public Object saveReplacementForEntityDeclaration(Declaration obj, IndexEntity entity) {
 		Index objIndex = obj.index();
-		if (objIndex == null || objIndex == this)
+		IndexEntity owningEntity = obj.firstParentDeclarationOfType(IndexEntity.class);
+		if (objIndex == null || (objIndex == this && entity == owningEntity))
 			return obj;
 		else
-			return new EntityDeclaration(obj);
+			return new EntityDeclaration(obj, owningEntity);
 	}
 
 	public void loadScriptsContainingDeclarationsNamed(final String name) {

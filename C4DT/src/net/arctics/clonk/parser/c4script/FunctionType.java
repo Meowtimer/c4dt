@@ -49,24 +49,6 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public boolean intersects(IType typeSet) {
-		return PrimitiveType.FUNCTION.intersects(typeSet);
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		return type == PrimitiveType.FUNCTION;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
-	}
-
-	@Override
 	public int precision() {
 		return PrimitiveType.FUNCTION.precision()+1;
 	}

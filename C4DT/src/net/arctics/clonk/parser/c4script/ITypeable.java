@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 
 /**
  * Entity that can be assigned a type.
@@ -61,7 +62,7 @@ public interface ITypeable extends IIndexEntity {
 				instance.assignType(type, false);
 			else if (!instance.type().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.assignType(TypeSet.create(type, instance.type()), false);
+				instance.assignType(TypeUnification.unify(type, instance.type()));
 		}
 	}
 }

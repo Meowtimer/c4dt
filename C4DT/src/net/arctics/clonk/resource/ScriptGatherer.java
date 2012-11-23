@@ -64,7 +64,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			Script script;
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-				script = Script.get(file, true);
+				script = Script.get(file, false);
 				if (script == null)
 					// create if new file
 					// script in a system group
@@ -73,7 +73,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				// object script
 					else
 						script = createDefinition(delta.getResource().getParent());
-				if (script != null && delta.getResource().equals(script.scriptStorage()))
+				if (script != null && delta.getResource().equals(script.scriptFile()))
 					builder.queueScript(script);
 				else
 					processAuxiliaryFiles(file, script);
@@ -139,7 +139,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				builder.queueScript(script);
 				return true;
 			}
-			else if (processAuxiliaryFiles(file, Script.get(file, true)))
+			else if (processAuxiliaryFiles(file, Script.get(file, false)))
 				return true;
 		}
 		return false;

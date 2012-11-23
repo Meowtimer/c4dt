@@ -25,7 +25,7 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, Cloneable {
+public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, Cloneable, IHasCode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -424,6 +424,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return new Object[] {parentDeclaration};
 		else
 			return super.occurenceScope(project);
+	}
+	
+	@Override
+	public ExprElm code() {
+		return initializationExpression();
 	}
 	
 }

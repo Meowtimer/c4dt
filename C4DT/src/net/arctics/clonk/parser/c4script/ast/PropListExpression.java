@@ -17,9 +17,11 @@ import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.util.StringUtil;
 
 public class PropListExpression extends ExprElm {
 
+	private static final int MULTILINEPRINTTHRESHOLD = 50;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private ProplistDeclaration definedDeclaration;
@@ -37,29 +39,48 @@ public class PropListExpression extends ExprElm {
 		assignParentToSubElements();
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ExprWriter output_, int depth) {
+		final char FIRSTBREAK = (char)255;
+		final char BREAK = (char)254;
+		final char LASTBREAK = (char)253;
+		final char LONGSUBPROPS = (char)252;
+		final char SHORTSUBPROPS = (char)251;
+		StringBuilder builder = new StringBuilder();
+		ExprWriter output = new AppendableBackedExprWriter(builder);
 		output.append('{');
 		List<Variable> components = components();
-		final boolean singleLine = output.flag(ExprWriter.SINGLE_LINE);
 		for (int i = 0; i < components.size(); i++) {
 			Variable component = components.get(i);
-			if (singleLine) { if (i > 0) output.append(' '); }
-			else output.append('\n');
-			Conf.printIndent(output, depth+1);
+			output.append(i > 0 ? BREAK : FIRSTBREAK);
 			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
-			if (component.initializationExpression() instanceof PropListExpression)
-				Conf.blockPrelude(output, depth+1);
+			int ndx;
+			if (component.initializationExpression() instanceof PropListExpression) {
+				ndx = builder.length();
+				output.append(LONGSUBPROPS);
+			} else
+				ndx = -1;
 			component.initializationExpression().print(output, depth+1);
+			if (ndx != -1 && builder.length() - ndx <= MULTILINEPRINTTHRESHOLD)
+				builder.replace(ndx, ndx+1, String.valueOf(SHORTSUBPROPS));
 			if (i < components.size()-1)
 				output.append(',');
-			else {
-				if (!singleLine)
-					output.append('\n');
-				Conf.printIndent(output, depth);
-			}
+			else
+				output.append(LASTBREAK);
 		}
 		output.append('}');
+		String s = output.toString();
+		if (s.length() > MULTILINEPRINTTHRESHOLD)
+			s = s
+				.replaceAll(String.format("[%c%c]", FIRSTBREAK, LONGSUBPROPS), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
+				.replaceAll(String.valueOf(BREAK), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
+				.replaceAll(String.valueOf(SHORTSUBPROPS), "")
+				.replace(String.valueOf(LASTBREAK), "\n"+StringUtil.multiply(Conf.indentString, depth));
+		else
+			s = s
+				.replaceAll(String.format("[%c%c%c%c]", FIRSTBREAK, LONGSUBPROPS, LASTBREAK, SHORTSUBPROPS), "")
+				.replaceAll(String.valueOf(BREAK), " ");
+		output_.append(s);
 	}
 	@Override
 	public IType unresolvedType(DeclarationObtainmentContext parser) {
@@ -177,12 +198,12 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	@Override
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
 		for (Variable v : this.components())
 			if (v.isAt(absolute))
 				return new EntityRegion(v, v.location().relativeTo(parser.absoluteSourceLocation(0, 0)));
-		return super.declarationAt(offset, parser);
+		return super.entityAt(offset, parser);
 	}
 	
 }

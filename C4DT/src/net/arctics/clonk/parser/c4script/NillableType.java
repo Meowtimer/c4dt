@@ -6,28 +6,30 @@ import java.util.Iterator;
 
 import net.arctics.clonk.Core;
 
-public class NillableType implements IType {
-	
-	public static IType unwrap(IType type) {
-		return type instanceof NillableType ? ((NillableType)type).baseType : type;
-	}
+public class NillableType extends WrappedType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private final IType baseType; 
-	
 	public static IType make(IType baseType) {
 		// gnah, nillable catastrophy
-		return baseType instanceof PrimitiveType ? new NillableType(baseType) : baseType;
+		if (baseType instanceof PrimitiveType)
+			switch ((PrimitiveType)baseType) {
+			case ANY: case UNKNOWN:
+				return baseType;
+			default:
+				return new NillableType(baseType);
+			}
+		else
+			return baseType;
 	}
 	
 	private NillableType(IType baseType) {
-		this.baseType = baseType;
+		super(baseType);
 	}
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable(baseType, PrimitiveType.ANY).iterator(); 
+		return iterable(wrappedType, PrimitiveType.ANY).iterator(); 
 	}
 
 	@Override
@@ -37,26 +39,9 @@ public class NillableType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return special ? baseType.typeName(true) + "?" : baseType.typeName(false);
+		return wrappedType.typeName(special) + "?";
 	}
 
-	@Override
-	public boolean intersects(IType type) {
-		return baseType.intersects(type) || PrimitiveType.ANY.intersects(type);
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		return baseType.subsetOf(type);
-	}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return baseType.subsetOfAny(types);
-	}
-
-	@Override
-	public int precision() {
 		return baseType.precision();
 	}
 
@@ -69,8 +54,4 @@ public class NillableType implements IType {
 	public void setTypeDescription(String description) {
 		baseType.setTypeDescription(description);
 	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-
 }

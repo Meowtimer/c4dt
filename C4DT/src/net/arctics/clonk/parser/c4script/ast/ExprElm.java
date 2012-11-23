@@ -4,16 +4,20 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -21,16 +25,18 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.Utilities;
 
@@ -42,15 +48,45 @@ import org.eclipse.jface.text.Region;
  */
 public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
-	public static class Ticket implements ISerializationResolvable, Serializable {
+	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
+		private final String textRepresentation;
+		private final int depth;
+		private transient ExprElm found;
+		private static int depth(ExprElm elm) {
+			int depth;
+			for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
+			return depth;
+		}
 		public Ticket(Declaration owner, ExprElm elm) {
 			this.owner = owner;
+			this.textRepresentation = elm.toString();
+			this.depth = depth(elm);
 		}
 		@Override
 		public Object resolve(Index index) {
-			return null; // lol i don't know
+			if (owner instanceof IHasCode) {
+				if (owner instanceof IndexEntity)
+					((IndexEntity) owner).requireLoaded();
+				ExprElm code = ((IHasCode) owner).code();
+				if (code != null)
+					code.traverse(this, null);
+				return found;
+			}
+			return null;
+		}
+		@Override
+		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+			int ed = depth(expression);
+			if (ed == depth && textRepresentation.equals(expression.toString())) {
+				found = expression;
+				return TraversalContinuation.Cancel;
+			}
+			else if (ed > depth)
+				return TraversalContinuation.SkipSubElements;
+			else
+				return TraversalContinuation.Continue;
 		}
 	}
 	
@@ -383,22 +419,100 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return a #strict/#strict 2/readability enhanced version of the original expression
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ExprElm optimize(final C4ScriptParser context) throws CloneNotSupportedException {
+		return transformSubElements(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+				if (expression == null)
+					return expression;
+				try {
+					return expression.optimize(context);
+				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
+					return expression;
+				}
+			}
+		});
+	}
+	
+	/**
+	 * Interface for transforming an element in an expression.
+	 * @author madeen
+	 *
+	 */
+	public interface ITransformer {
+		/**
+		 * Canonical object to be returned by {@link #transform(ExprElm, ExprElm, ExprElm)} if the passed element is to be removed
+		 * instead of being replaced.
+		 */
+		static final ExprElm REMOVE = new ExprElm();
+		/**
+		 * Transform the passed expression. For various purposes some context is supplied as well so the transformer can
+		 * see the last expression it was passed and what it transformed it to.
+		 * @param previousExpression The previous expression passed to the transformer
+		 * @param previousTransformationResult The previous transformation result
+		 * @param expression The expression to be transformed now.
+		 * @return The transformed expression, the expression unmodified or some canonical object like {@link #REMOVE}
+		 */
+		ExprElm transform(ExprElm previousExpression, ExprElm previousTransformationResult, ExprElm expression);
+	}
+	
+	/**
+	 * Transform the expression using the supplied transformer.
+	 * @param transformer The transformer whose {@link ITransformer#transform(ExprElm)} will be called on each sub element
+	 * @return Either this element if no transformation took place or a clone with select transformations applied
+	 * @throws CloneNotSupportedException
+	 */
+	public ExprElm transformSubElements(ITransformer transformer) {
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
-		boolean differentSubElms = false;
+		boolean differentSubElms = false, removal = false;
+		ExprElm prev = null;
+		ExprElm prevT = null;
 		for (int i = 0; i < subElms.length; i++) {
-			newSubElms[i] = subElms[i] != null ? subElms[i].optimize(context) : null;
-			if (newSubElms[i] != subElms[i])
+			ExprElm s = subElms[i];
+			ExprElm t = newSubElms[i] = transformer.transform(prev, prevT, s);
+			if (t != s) {
 				differentSubElms = true;
+				if (t == ITransformer.REMOVE)
+					removal = true;
+			}
+			prev = s;
+			prevT = t;
 		}
 		if (differentSubElms) {
 			ExprElm replacement = this.clone();
+			if (removal)
+				newSubElms = ArrayUtil.filter(newSubElms, new IPredicate<ExprElm>() {
+					@Override
+					public boolean test(ExprElm item) {
+						return item != ITransformer.REMOVE;
+					}
+				});
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;
 		}
 		return this; // nothing to be changed
+	}
+	
+	/**
+	 * Call {@link #transformSubElements(ITransformer)} but if transforming on this layer does not work let the transformer
+	 * attempt to transform on nested layers.
+	 * @param transformer The transformer
+	 * @return Recursively transformed expression.
+	 */
+	public ExprElm transformSubElementsRecursively(final ITransformer transformer) {
+		return transformSubElements(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+				ExprElm t = transformer.transform(prev, prevT, expression);
+				if (t != expression)
+					return t;
+				else
+					return expression != null ? expression.transformSubElements(this) : null; 
+			}
+		});
 	}
 
 	/**
@@ -406,16 +520,25 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @param otherType the type to test convertibility to
 	 * @return true if conversion is possible or false if not
 	 */
-	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
+	public static boolean canBeConvertedTo(IType type, IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return type(context) == PrimitiveType.INT && otherType == PrimitiveType.ID;
+		return type == PrimitiveType.INT && otherType == PrimitiveType.ID;
 	}
 
-	public boolean validForType(IType t, C4ScriptParser context) {
-		if (t == null)
+	/**
+	 * Return whether this expression is valid as a value of the specified type.
+	 * @param type The type to test against
+	 * @param context Script parser context
+	 * @return True if valid, false if not.
+	 */
+	public boolean validForType(IType type, C4ScriptParser context) {
+		if (type == null)
 			return true;
 		IType myType = type(context);
-		return t.canBeAssignedFrom(myType) || myType.subsetOf(t) || canBeConvertedTo(t, context);
+		for (IType t : myType)
+			if (type.canBeAssignedFrom(t) || canBeConvertedTo(t, type, context))
+				return true;
+		return false;
 	}
 
 	/**
@@ -449,16 +572,23 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		return result;
 	}
 
+	/**
+	 * Return this expression's region offset by a specified amount.
+	 * @param offset The offset. If 0 the expression itself will be returned since it implements {@link IRegion}
+	 * @return The region offset by the specified amount.
+	 */
 	public IRegion region(int offset) {
-		return new Region(offset+start(), end()-start());
+		return offset == 0 ? this : new Region(offset+start(), end()-start());
 	}
 
-	public EntityRegion declarationAt(int offset, C4ScriptParser parser) {
+	/**
+	 * Return an entity that this expression refers to at the specified relative offset.
+	 * @param offset The offset
+	 * @param parser Script parser context
+	 * @return An object describing the referenced entity or null if no entity is referenced.
+	 */
+	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		return null;
-	}
-
-	public static IType combineTypes(IType first, IType second) {
-		return TypeSet.create(first, second);
 	}
 
 	private static final ExprElm[] exprElmsForTypes = new ExprElm[PrimitiveType.values().length];
@@ -497,7 +627,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 	@Override
 	public String toString() {
-		return toString(1);
+		return toString(0);
 	}
 	
 	public Comment commentedOut() {
@@ -676,15 +806,13 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		assert(element != null);
 		assert(with != null);
 		
-		if (diff == 0)
-			diff = with.getLength();
-
 		ExprElm[] subElms = subElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++)
 			if (subElms[i] == element) {
 				newSubElms[i] = with;
+				with.setExprRegion(element);
 				differentSubElms = true;
 			} else {
 				newSubElms[i] = subElms[i];
@@ -722,47 +850,50 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 		}
+
+		@Override
+		public boolean consume(ExprElm consumer, ExprElm extra) {
+			return false;
+		}
 	};
 	
 	/**
 	 * Compare element with other element. Return true if there are no differences, false otherwise.
 	 * @param other The other expression
-	 * @param listener Listener that gets notified when changes are found.
+	 * @param delegate Listener that gets notified when changes are found.
 	 * @return Whether elements are equal or not.
 	 */
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
-		if (other.getClass() == this.getClass()) {
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate delegate) {
+		if (other != null && (other.getClass() == this.getClass() || delegate.differs(this, other, IASTComparisonDelegate.CLASS) == DifferenceHandling.Equal)) {
 			ExprElm[] mySubElements = this.subElements();
 			ExprElm[] otherSubElements = other.subElements();
-			if (mySubElements.length != otherSubElements.length)
-				switch (listener.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
-				case IgnoreLeftSide: case IgnoreRightSide:
-					break;
-				default:
-					return DifferenceHandling.Differs;
-				}
-
 			int myIndex, otherIndex;
+			ExprElm consumer = null;
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
-				ExprElm a = mySubElements[myIndex];
-				ExprElm b = otherSubElements[otherIndex];
+				ExprElm mine = mySubElements[myIndex];
+				ExprElm others = otherSubElements[otherIndex];
 				
 				// compare elements, taking the possibility into account that one or both of the elements might be null
 				// if only one of both is null, the listener gets to decide what to do now based on a differs call with
 				// the what parameter being set to the index of the null element in the respective array
 				DifferenceHandling handling;
-				if (a != null && b != null)
-					handling = a.compare(b, listener);
-				else if (a == null && b != null)
-					handling = listener.differs(a, b, myIndex);
-				else if (a != null && b == null)
-					handling = listener.differs(a, b, otherIndex);
+				if (mine != null && others != null)
+					handling = mine.compare(others, delegate);
+				else if (mine == null && others != null)
+					handling = delegate.differs(mine, others, myIndex);
+				else if (mine != null && others == null)
+					handling = delegate.differs(mine, others, otherIndex);
 				else // a != null && b != null
 					handling = DifferenceHandling.Equal;
 				
 				switch (handling) {
 				case Differs:
-					return DifferenceHandling.Differs;
+					if (consumer != null && delegate.consume(consumer, others)) {
+						myIndex--;
+						break;
+					}
+					else
+						return DifferenceHandling.Differs;
 				case IgnoreLeftSide:
 					// decrement index for other so the current other element will be compared to the next my element 
 					otherIndex--;
@@ -772,15 +903,20 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					myIndex--;
 					break;
 				default:
+					consumer = mine;
 					break;
 				}
 			}
 			if (myIndex == mySubElements.length && otherIndex == otherSubElements.length)
 				return DifferenceHandling.Equal;
-			else
+			else switch (delegate.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
+			case IgnoreLeftSide: case IgnoreRightSide:
+				return DifferenceHandling.Equal;
+			default:
 				return DifferenceHandling.Differs;
+			}
 		} else
-			return listener.differs(this, other, other);
+			return DifferenceHandling.Differs;
 	}
 	
 	/**
@@ -789,11 +925,11 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 *
 	 */
 	protected static final class GenericTypeInfo extends TypeInfo {
-		private final ExprElm referenceElm;
+		private final ExprElm expression;
 		
 		public GenericTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
-			this.referenceElm = referenceElm;
+			this.expression = referenceElm;
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
 			if (typeable != null)
 				this.type = typeable.type();
@@ -819,15 +955,20 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			@Override
 			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 			}
+
+			@Override
+			public boolean consume(ExprElm consumer, ExprElm extra) {
+				return false;
+			}
 			
 		};
 
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
-			if (expr instanceof AccessDeclaration && referenceElm instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)referenceElm).declaration())
+			if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
 				return true;
 			ExprElm chainA, chainB;
-			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
+			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
 					return false;
 			return chainA == null || chainB == null;
@@ -836,13 +977,13 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public boolean refersToSameExpression(ITypeInfo other) {
 			if (other instanceof GenericTypeInfo)
-				return ((GenericTypeInfo)other).referenceElm.equals(referenceElm);
+				return ((GenericTypeInfo)other).expression.equals(expression);
 			else
 				return false;
 		}
 		
 		public static ITypeable typeableFromExpression(ExprElm referenceElm, C4ScriptParser parser) {
-			EntityRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
+			EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, parser);
 			if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
 				return decRegion.entityAs(ITypeable.class);
 			else
@@ -851,7 +992,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypeable typeable = typeableFromExpression(referenceElm, parser);
+			ITypeable typeable = typeableFromExpression(expression, parser);
 			if (typeable != null) {
 				// don't apply typing to non-local things if only applying type information softly
 				// this prevents assigning types to instance variables when only hovering over some function or something like that
@@ -869,7 +1010,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		
 		@Override
 		public String toString() {
-			return referenceElm.toString() + ": " + super.toString();
+			return expression.toString() + ": " + super.toString();
 		}
 		
 	}
@@ -978,7 +1119,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		return false;
 	}
 	
-	public final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
+	protected final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
 		ExprElm e = this;
 		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
 		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;
@@ -991,5 +1132,133 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	public Declaration owningDeclaration() {
 		return parent != null ? parent.owningDeclaration() : null;
 	}
-
+	
+	/**
+	 * Compare this expression with another one, returning sub elements of the other expression that correspond to {@link Placeholder}s in this one.
+	 * @param other Expression to match against
+	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
+	 */
+	public Map<String, Object> match(ExprElm other) {
+		class ComparisonDelegate implements IASTComparisonDelegate {
+			public Map<String, Object> result;
+			@Override
+			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {}
+			@Override
+			public boolean optionEnabled(Option option) { return false; }
+			@Override
+			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+				if (what == CLASS && a instanceof MatchingPlaceholder) {
+					MatchingPlaceholder mp = (MatchingPlaceholder)a;
+					if (result == null)
+						result = new HashMap<String, Object>();
+					if (mp.satisfiedBy(b)) {
+						result.put(mp.entryName(), mp.remainder() ? new ExprElm[] {b} : b);
+						return DifferenceHandling.Equal;
+					} else
+						return DifferenceHandling.Differs;
+				}
+				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
+					ExprElm[] mine = a.subElements();
+					ExprElm[] others = b.subElements();
+					for (int i = others.length; i < mine.length; i++)
+						if (!(mine[i] instanceof MatchingPlaceholder && ((MatchingPlaceholder)mine[i]).remainder()))
+							return DifferenceHandling.Differs;
+					return DifferenceHandling.IgnoreLeftSide;
+				}
+				else
+					return DifferenceHandling.Differs;
+			}
+			@Override
+			public boolean consume(ExprElm consumer, ExprElm extra) {
+				if (consumer instanceof MatchingPlaceholder && consumer instanceof MatchingPlaceholder) {
+					MatchingPlaceholder mp = (MatchingPlaceholder)consumer;
+					if (mp.remainder()) {
+						Object existing = result.get(mp.entryName());
+						if (existing instanceof ExprElm)
+							existing = new ExprElm[] {(ExprElm)existing, extra};
+						else if (existing instanceof ExprElm[])
+							existing = ArrayUtil.concat((ExprElm[])existing, extra);
+						result.put(mp.entryName(), existing);
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		ComparisonDelegate delegate = new ComparisonDelegate();
+		if (this.compare(other, delegate).isEqual())
+			return delegate.result;
+		else
+			return null;
+	}
+	
+	/**
+	 * Return an instance of a specified class with its public fields set to results from {@link #match(ExprElm)}
+	 * @param other The other expression to match against
+	 * @param resultType Type of the resulting object
+	 */
+	public <T> boolean match(ExprElm other, T match) {
+		Map<String, Object> matches = match(other);
+		if (matches != null) try {
+			for (Map.Entry<String, Object> kv : matches.entrySet())
+				try {
+					Field f = match.getClass().getField(kv.getKey());
+					f.setAccessible(true); // my eyes
+					f.set(match, as(kv.getValue(), f.getType()));
+				} catch (NoSuchFieldException e) {
+					continue; // ignore non-existing fields
+				}
+			return true;
+		} catch (Exception e) {
+			return false;
+		} else
+			return false;
+	}
+	
+	/**
+	 * Transform expression by replacing {@link Placeholder} nodes with corresponding values from the passed map.
+	 * @param substitutions The map to use as source for {@link Placeholder} substitutions
+	 * @return The transformed expression
+	 */
+	public ExprElm transform(final Map<String, Object> substitutions) {
+		return this.transformSubElements(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+				if (expression instanceof Placeholder) {
+					Object substitution = substitutions.get(((Placeholder)expression).entryName());
+					if (substitution instanceof ExprElm)
+						return (ExprElm) substitution;
+				}
+				return expression.transformSubElements(this);
+			}
+		});
+	}
+	
+	/**
+	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
+	 * improved matching capabilities with them.
+	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
+	 */
+	public ExprElm matchingExpr() {
+		return this.transformSubElementsRecursively(new ITransformer() {
+			@Override
+			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+				if (expression instanceof Placeholder)
+					return new MatchingPlaceholder(((Placeholder)expression).entryName());
+				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
+					((MatchingPlaceholder)prevT).setSubElements(((Tuple)expression).transformSubElementsRecursively(this).subElements());
+					return REMOVE;
+				} else
+					return expression;
+			}
+		});
+	}
+	
+	public IRegion absolute() {
+		ExprElm p;
+		for (p = this; p != null && p.parent != null; p = p.parent);
+		Declaration d = p.owningDeclaration();
+		return this.region(d instanceof Function ? ((Function)d).bodyLocation().start() : 0);
+	}
+	
 }

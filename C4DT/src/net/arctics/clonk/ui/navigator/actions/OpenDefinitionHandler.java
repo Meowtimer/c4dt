@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.navigator.actions;
 
-import net.arctics.clonk.Core;
-
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -15,16 +13,15 @@ public class OpenDefinitionHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		OpenDefinitionDialog dialog = new OpenDefinitionDialog(Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell());
+		OpenDefinitionDialog dialog = new OpenDefinitionDialog();
 		switch (dialog.open()) {
 		case Window.OK:
-			for (Definition o : dialog.getSelectedObjects()) {
+			for (Definition o : dialog.selectedDefinitions())
 				try {
 					ClonkTextEditor.openDeclaration(o);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
 			break;
 		}
 		return null;
