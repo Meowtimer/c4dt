@@ -802,6 +802,12 @@
 			contextId="net.arctics.clonk.context"
 			sequence="M1+M3+O">
 		</key>
+		<key
+			commandId="net.arctics.clonk.ui.LookupLocalDeclaration"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+O">
+		</key>
 	</extension>
 	
 	<extension point="org.eclipse.ui.propertyPages">
