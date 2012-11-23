@@ -92,11 +92,6 @@ public enum PrimitiveType implements IType {
 	}
 	
 	@Override
-	public String toString() {
-		return typeName(false);
-	}
-	
-	@Override
 	public String typeName(boolean special) {
 		return scriptName;
 	}

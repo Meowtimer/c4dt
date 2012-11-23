@@ -283,37 +283,33 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void insertTypeAnnotations(final C4ScriptParser parser) {
-		try {
-			Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
-				@Override
-				public Object run(IDocument document) {
-					StringBuilder builder = new StringBuilder(document.get());
-					List<TypeAnnotation> annotations = parser.typeAnnotations();
-					Collections.sort(annotations);
-					for (int i = annotations.size()-1; i >= 0; i--) {
-						TypeAnnotation annot = annotations.get(i);
-						if (annot.type() == null && annot.typeable() != null) {
-							/*System.out.println(String.format(
-								"typeable: %s type: %s enviro: %s",
-								annot.typeable().name(),
-								annot.typeable().type().typeName(false),
-								builder.substring(annot.start()-7, annot.end()+7)
-							));*/
-							builder.delete(annot.start(), annot.end());
-							builder.insert(annot.start(), " ");
-							IType type = annot.typeable().type();
-							if (type == PrimitiveType.UNKNOWN)
-								type = PrimitiveType.ANY;
-							builder.insert(annot.start(), type.typeName(false));
-						}
+		Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
+			@Override
+			public Object run(IDocument document) {
+				StringBuilder builder = new StringBuilder(document.get());
+				List<TypeAnnotation> annotations = parser.typeAnnotations();
+				Collections.sort(annotations);
+				for (int i = annotations.size()-1; i >= 0; i--) {
+					TypeAnnotation annot = annotations.get(i);
+					if (annot.type() == null && annot.typeable() != null) {
+						/*System.out.println(String.format(
+							"typeable: %s type: %s enviro: %s",
+							annot.typeable().name(),
+							annot.typeable().type().typeName(false),
+							builder.substring(annot.start()-7, annot.end()+7)
+						));*/
+						builder.delete(annot.start(), annot.end());
+						builder.insert(annot.start(), " ");
+						IType type = annot.typeable().type();
+						if (type == PrimitiveType.UNKNOWN)
+							type = PrimitiveType.ANY;
+						builder.insert(annot.start(), type.typeName(false));
 					}
-					document.set(builder.toString());
-					return null;
 				}
-			});
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
+				document.set(builder.toString());
+				return null;
+			}
+		});
 	}
 	
 	@Profiled

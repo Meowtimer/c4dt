@@ -42,16 +42,8 @@ public class NillableType extends WrappedType {
 		return wrappedType.typeName(special) + "?";
 	}
 
-		return baseType.precision();
-	}
-
 	@Override
 	public IType simpleType() {
-		return baseType.simpleType();
-	}
-
-	@Override
-	public void setTypeDescription(String description) {
-		baseType.setTypeDescription(description);
+		return wrappedType.simpleType();
 	}
 }

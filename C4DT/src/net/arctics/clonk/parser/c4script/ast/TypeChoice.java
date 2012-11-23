@@ -60,9 +60,9 @@ public final class TypeChoice implements IType {
 	}
 
 	@Override
-	public IType staticType() {
-		IType stLeft = left.staticType();
-		IType stRight = right.staticType();
+	public IType simpleType() {
+		IType stLeft = left.simpleType();
+		IType stRight = right.simpleType();
 		return stLeft == stRight ? stLeft : PrimitiveType.ANY;
 	}
 

@@ -18,8 +18,8 @@ public abstract class WrappedType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
-		return wrappedType.staticType();
+	public IType simpleType() {
+		return wrappedType.simpleType();
 	}
 
 	@Override

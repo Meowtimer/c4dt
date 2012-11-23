@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
@@ -93,7 +94,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 					IType initializationType = initialization.expression.unresolvedType(parser);
 					if (
 						initialization.variable.staticallyTyped() &&
-						!initialization.variable.type().canBeAssignedFrom(initializationType)
+						!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, parser, parser.script()))
 					)
 						parser.error(ParserErrorCode.IncompatibleTypes,
 							initialization.expression,

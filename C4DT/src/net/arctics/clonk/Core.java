@@ -571,10 +571,10 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		T run(IDocument document);
 	}
 	
-	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) {
+	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) {
 		IDocumentProvider provider = textFileDocumentProvider();
 		try {
-			provider.connect(resource);
+			provider.connect(file);
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return null;
@@ -583,7 +583,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			IDocument document = provider.getDocument(file);
 			T result = action.run(document);
 			try {
-				provider.saveDocument(null, resource, document, true);
+				provider.saveDocument(null, file, document, true);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

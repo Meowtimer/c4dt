@@ -78,6 +78,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
@@ -1054,7 +1055,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				eatWhitespace();
 				switch (read()) {
 				case '&':
-					t = ReferenceType.get(t);
+					t = ReferenceType.make(t);
 					break;
 				case '[':
 					if (staticTyping != StaticTyping.Off && t == PrimitiveType.ARRAY) {
@@ -1073,7 +1074,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					eatWhitespace();
 					IType option = parseTypeAnnotation(false, true);
 					if (option != null)
-						t = TypeSet.create(t, option);
+						t = TypeUnification.unify(t, option);
 					else
 						break;
 					eatWhitespace();
@@ -3029,40 +3030,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
 				error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
 			var.forceType(type, true);
-		PrimitiveType type = PrimitiveType.makeType(firstWord);
-		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
-		var.forceType(type, typeLocked);
-		if (type == PrimitiveType.UNKNOWN)
-			//var.setType(C4Type.ANY);
-			var.setName(firstWord);
-		else {
-			eatWhitespace();
-			if (read() == '&') {
-				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-				var.forceType(ReferenceType.make(type), typeLocked);
-				eatWhitespace();
-			} else
-				unread();
-			int newStart = this.offset;
-			String secondWord = readIdent();
-			if (secondWord.length() > 0) {
-				if (!engine.supportsPrimitiveType(type))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, s, e, NO_THROW, type.typeName(true), script.engine().name());
-				var.setName(secondWord);
-				s = newStart;
-				e = this.offset;
-			}
-			else {
-				
-				if (engine.supportsPrimitiveType(type))
-					// type is name
-					warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
-				var.forceType(PrimitiveType.ANY, typeLocked);
-				var.setName(firstWord);
-				this.seek(e);
-			}
->>>>>>> other
 		}
 		var.setName(parmName);
 		var.setLocation(new SourceLocation(nameStart, this.offset));

@@ -62,7 +62,7 @@ public interface ITypeable extends IIndexEntity {
 				instance.assignType(type, false);
 			else if (!instance.type().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.assignType(TypeUnification.unify(type, instance.type()));
+				instance.assignType(TypeUnification.unify(type, instance.type()), false);
 		}
 	}
 }

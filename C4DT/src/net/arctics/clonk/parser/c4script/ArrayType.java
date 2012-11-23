@@ -3,8 +3,6 @@ package net.arctics.clonk.parser.c4script;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.objectsEqual;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
