@@ -9,7 +9,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 
 public class ArrayElementExpression extends ExprElm {
 
@@ -52,11 +51,17 @@ public class ArrayElementExpression extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		IType type = predecessorType(parser);
-		if (type != null && type != PrimitiveType.UNKNOWN && !(type.intersects(PrimitiveType.ARRAY) || type.intersects(PrimitiveType.PROPLIST)))
-			parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
+		warnIfNotArray(predecessorInSequence(), parser, type);
 		ExprElm arg = argument();
 		if (arg == null)
 			parser.warning(ParserErrorCode.MissingExpression, this, 0);
+	}
+
+	public static void warnIfNotArray(ExprElm elm, C4ScriptParser parser, IType type) {
+		if (type != null && type != PrimitiveType.UNKNOWN &&
+			TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
+			TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+			parser.warning(ParserErrorCode.NotAnArrayOrProplist, elm, 0);
 	}
 
 	@Override
@@ -95,7 +100,7 @@ public class ArrayElementExpression extends ExprElm {
 					);
 				else
 					mutation = new ArrayType(
-						TypeSet.create(rightSideType, arrayType.generalElementType()),
+						TypeUnification.unify(rightSideType, arrayType.generalElementType()),
 						ArrayType.NO_PRESUMED_LENGTH
 					);
 				context.storeType(predecessorInSequence(), mutation);

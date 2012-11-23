@@ -40,6 +40,7 @@ import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -473,7 +474,7 @@ public abstract class SpecialEngineRules {
 						if (t != null) for (IType ty : t)
 							types.add(ty);
 					}
-				result = TypeSet.create(types);
+				result = TypeUnification.unify(types.toArray(new IType[types.size()]));
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
 				if (callFunc.params().length >= 1)
@@ -503,7 +504,7 @@ public abstract class SpecialEngineRules {
 									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
-					IType ty = TypeSet.create(types);
+					IType ty = TypeUnification.unify(types.toArray(new IType[types.size()]));
 					if (ty instanceof TypeSet)
 						ty.setTypeDescription(String.format("Types providing '%s'", ev));
 					return ty;

@@ -38,7 +38,6 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
@@ -244,7 +243,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		IType t = type(context);
-		return t.canBeAssignedFrom(TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
+		return t.canBeAssignedFrom(TypeChoice.make(PrimitiveType.REFERENCE, PrimitiveType.UNKNOWN));
 	}
 	@Override
 	public boolean hasSideEffects() {
@@ -551,7 +550,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 							if (types[i] instanceof IHasIncludes)
 								types[i] = new ConstrainedProplist((IHasIncludes) types[i], ConstraintKind.Includes);
 						}
-						IType typeSet = TypeSet.create(types);
+						IType typeSet = TypeUnification.unify(types);
 						predecessorInSequence().expectedToBeOfType(typeSet, context);
 					}
 				}
@@ -736,7 +735,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (f.typeIsInvariant())
 				return null;
 			IType retType = f.returnType();
-			if (retType == null || !retType.subsetOfAny(PrimitiveType.ANY, PrimitiveType.REFERENCE))
+			if (retType == null)
 				return new FunctionReturnTypeInfo((Function)d);
 			if (d.isEngineDeclaration())
 				return null;

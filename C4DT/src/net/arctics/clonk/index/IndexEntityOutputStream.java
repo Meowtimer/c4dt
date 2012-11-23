@@ -25,7 +25,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 			if (obj instanceof IndexEntity)
 				return index.saveReplacementForEntity((IndexEntity)obj);
 			else if (obj instanceof Declaration && !(obj instanceof Index))
-				return index.saveReplacementForEntityDeclaration((Declaration)obj);
+				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
 			else if (obj instanceof SpecialRule)
 				return new SpecialRule.Ticket((SpecialRule)obj);
 			else if (entity != null && obj instanceof ExprElm) {

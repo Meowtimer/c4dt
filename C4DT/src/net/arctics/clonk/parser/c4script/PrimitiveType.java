@@ -32,11 +32,12 @@ public enum PrimitiveType implements IType {
 	NUM;
 	
 	private String lowercaseName;
+	private final ReferenceType referenceType = new ReferenceType(this);
+	
+	public IType referenceType() { return referenceType; }
 	
 	@Override
-	public String toString() {
-		return typeName(false);
-	}
+	public String toString() { return typeName(false); }
 	
 	@Override
 	public String typeName(boolean special) {
@@ -230,51 +231,6 @@ public enum PrimitiveType implements IType {
 		};
 	}
 
-	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet)
-			for (IType t2 : this)
-				if (t.canBeAssignedFrom(t2) || t2.canBeAssignedFrom(t))
-					return true;
-		return false;
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		IType staticType = type.staticType();
-		if (staticType == this)
-			return true;
-		if (staticType instanceof PrimitiveType)
-			switch ((PrimitiveType)staticType) {
-			case ARRAY:
-			case ID:
-			case OBJECT:
-			case INT:
-			case STRING:
-				return false;
-			case PROPLIST:
-				return this == OBJECT || this == ID;
-			case BOOL:
-				return false;
-			case REFERENCE: case ANY: case UNKNOWN:
-				return true;
-			default:
-				break;
-			}
-		return false;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-	
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		for (IType t : types)
-			if (subsetOf(t))
-				return true;
-		return false;
-	}
-	
 	@Override
 	public int precision() {
 		switch (this) {

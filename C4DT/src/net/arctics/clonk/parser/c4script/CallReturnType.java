@@ -41,24 +41,6 @@ public class CallReturnType implements IType, IResolvableType {
 	}
 
 	@Override
-	public boolean intersects(IType type) {
-		for (IType t : type)
-			if (subsetOf(t))
-				return true;
-		return false;
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		return true;
-	}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
-	}
-
-	@Override
 	public int precision() {
 		return PrimitiveType.FUNCTION.precision();
 	}
@@ -71,11 +53,6 @@ public class CallReturnType implements IType, IResolvableType {
 	@Override
 	public void setTypeDescription(String description) {
 		// ...
-	}
-
-	@Override
-	public IType eat(IType other) {
-		return this;
 	}
 
 	@Override

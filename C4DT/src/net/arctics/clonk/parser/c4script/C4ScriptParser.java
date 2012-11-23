@@ -2886,7 +2886,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (read() == '&') {
 				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
 					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-				var.forceType(ReferenceType.get(type), typeLocked);
+				var.forceType(ReferenceType.make(type), typeLocked);
 				eatWhitespace();
 			} else
 				unread();

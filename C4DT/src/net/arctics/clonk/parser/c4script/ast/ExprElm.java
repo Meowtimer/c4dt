@@ -17,6 +17,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -25,6 +26,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -45,15 +47,45 @@ import org.eclipse.jface.text.Region;
  */
 public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
-	public static class Ticket implements ISerializationResolvable, Serializable {
+	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
+		private final String textRepresentation;
+		private final int depth;
+		private transient ExprElm found;
+		private static int depth(ExprElm elm) {
+			int depth;
+			for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
+			return depth;
+		}
 		public Ticket(Declaration owner, ExprElm elm) {
 			this.owner = owner;
+			this.textRepresentation = elm.toString();
+			this.depth = depth(elm);
 		}
 		@Override
 		public Object resolve(Index index) {
-			return null; // lol i don't know
+			if (owner instanceof IHasCode) {
+				if (owner instanceof IndexEntity)
+					((IndexEntity) owner).requireLoaded();
+				ExprElm code = ((IHasCode) owner).code();
+				if (code != null)
+					code.traverse(this, null);
+				return found;
+			}
+			return null;
+		}
+		@Override
+		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+			int ed = depth(expression);
+			if (ed == depth && textRepresentation.equals(expression.toString())) {
+				found = expression;
+				return TraversalContinuation.Cancel;
+			}
+			else if (ed > depth)
+				return TraversalContinuation.SkipSubElements;
+			else
+				return TraversalContinuation.Continue;
 		}
 	}
 	
@@ -487,9 +519,9 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @param otherType the type to test convertibility to
 	 * @return true if conversion is possible or false if not
 	 */
-	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
+	public static boolean canBeConvertedTo(IType type, IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return type(context) == PrimitiveType.INT && otherType == PrimitiveType.ID;
+		return type == PrimitiveType.INT && otherType == PrimitiveType.ID;
 	}
 
 	/**
@@ -502,7 +534,10 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		if (type == null)
 			return true;
 		IType myType = type(context);
-		return type.canBeAssignedFrom(myType) || myType.subsetOf(type) || canBeConvertedTo(type, context);
+		for (IType t : myType)
+			if (type.canBeAssignedFrom(t) || canBeConvertedTo(t, type, context))
+				return true;
+		return false;
 	}
 
 	/**

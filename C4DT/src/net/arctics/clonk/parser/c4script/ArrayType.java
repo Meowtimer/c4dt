@@ -2,15 +2,16 @@ package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -19,7 +20,7 @@ import net.arctics.clonk.util.Utilities;
  * @author madeen
  *
  */
-public class ArrayType implements IType {
+public class ArrayType implements IRefinedPrimitiveType {
 
 	public static final int NO_PRESUMED_LENGTH = -1;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -58,7 +59,7 @@ public class ArrayType implements IType {
 	 * @return
 	 */
 	public IType generalElementType() {
-		return generalElementType != null ? generalElementType : TypeSet.create(elementTypeMapping.values().toArray(new IType[elementTypeMapping.size()]));
+		return generalElementType != null ? generalElementType : TypeUnification.unify(elementTypeMapping.values().toArray(new IType[elementTypeMapping.size()]));
 	}
 	
 	/**
@@ -126,9 +127,8 @@ public class ArrayType implements IType {
 					hadCluster = true;
 					old = min = i;
 					t = it;
-				} else {
+				} else
 					old = i;
-				}
 			}
 			if (presumedLength == NO_PRESUMED_LENGTH) {
 				if (hadCluster)
@@ -144,54 +144,6 @@ public class ArrayType implements IType {
 	}
 
 	@Override
-	public boolean intersects(IType typeSet) {
-		return PrimitiveType.ARRAY.intersects(typeSet);
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		type = NillableType.unwrap(type);
-		if (type == PrimitiveType.ARRAY)
-			return true;
-		else if (type instanceof ArrayType) {
-			ArrayType other = (ArrayType)type;
-			for (Map.Entry<Integer, IType> e : elementTypeMapping.entrySet()) {
-				IType o = other.elementTypeMapping.get(e.getKey());
-				if (o != null && !e.getValue().subsetOf(o))
-					return false;
-			}
-			if (generalElementType != null && other.generalElementType != null)
-				if (!generalElementType.subsetOf(other.generalElementType))
-					return false;
-			return true;
-		} else
-			return false;
-	}
-	
-	@Override
-	public IType eat(IType other) {
-		ArrayType at = as(other, ArrayType.class);
-		if (at != null) {
-			ArrayType result = this;
-			if (at.generalElementType != null && !objectsEqual(this.generalElementType, at.generalElementType)) {
-				result = new ArrayType(TypeSet.create(this.generalElementType,
-					at.generalElementType), presumedLength, this.elementTypeMapping);
-			}
-			for (Map.Entry<Integer, IType> e : at.elementTypeMapping.entrySet()) {
-				IType my = this.elementTypeMapping.get(e.getKey());
-				if (!objectsEqual(my, e.getValue())) {
-					if (result == this)
-						result = new ArrayType(this.generalElementType, presumedLength, this.elementTypeMapping);
-					result.elementTypeMapping.put(e.getKey(), TypeSet.create(my, e.getValue()));
-				}
-			}
-			return result;
-		}
-		else
-			return this;
-	}
-
-	@Override
 	public int precision() {
 		int s = PrimitiveType.ARRAY.precision()+1;
 		if (generalElementType != null)
@@ -204,11 +156,6 @@ public class ArrayType implements IType {
 	@Override
 	public IType staticType() {
 		return PrimitiveType.ARRAY;
-	}
-
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
 	}
 	
 	@Override
@@ -246,11 +193,11 @@ public class ArrayType implements IType {
 	
 	protected void elementTypeHint(int elementIndex, IType type, TypeExpectancyMode mode) {
 		if (elementIndex < 0)
-			generalElementType = TypeSet.create(generalElementType, type);
+			generalElementType = TypeUnification.unify(generalElementType, type);
 		else {
 			IType known = elementTypeMapping.get(elementIndex);
 			if (known != null)
-				elementTypeMapping.put(elementIndex, TypeSet.create(known, type));
+				elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));
 			else
 				elementTypeMapping.put(elementIndex, type);
 		}
@@ -304,7 +251,7 @@ public class ArrayType implements IType {
 			return PrimitiveType.ARRAY;
 		
 		if (sat.presumedLength() == NO_PRESUMED_LENGTH)
-			return new ArrayType(TypeSet.create(this.generalElementType(), sat.generalElementType()), NO_PRESUMED_LENGTH);
+			return new ArrayType(TypeUnification.unify(this.generalElementType(), sat.generalElementType()), NO_PRESUMED_LENGTH);
 		
 		int lo, hi;
 		if (loEv == null)
@@ -322,19 +269,17 @@ public class ArrayType implements IType {
 		
 		if (elementTypeMapping.size() > 0 || sat.elementTypeMapping().size() > 0) {
 			ArrayType result = new ArrayType(generalElementType, presumedLength);
-			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet()) {
+			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet())
 				if (t.getKey() < lo)
 					result.elementTypeMapping.put(t.getKey(), t.getValue());
 				else if (t.getKey() >= hi)
 					result.elementTypeMapping.put(t.getKey()-(hi-lo)+sat.presumedLength(), t.getValue());
-			}
-			if (sat.elementTypeMapping().size() > 0) {
+			if (sat.elementTypeMapping().size() > 0)
 				for (Map.Entry<Integer, IType> t : sat.elementTypeMapping().entrySet())
 					result.elementTypeMapping.put(t.getKey()+lo, t.getValue());
-			} else {
+			else
 				for (int i = lo; i < hi; i++)
 					result.elementTypeMapping.put(i, sat.generalElementType());
-			}
 			return result;
 		} else
 			return new ArrayType(generalElementType,
@@ -364,7 +309,12 @@ public class ArrayType implements IType {
 				elementTypes.add(at.generalElementType());
 			}
 		}
-		return elementTypes != null ? TypeSet.create(elementTypes) : null;
+		return elementTypes != null
+			? TypeUnification.unify(elementTypes.toArray(new IType[elementTypes.size()]))
+			: null;
 	}
+
+	@Override
+	public PrimitiveType primitiveType() { return PrimitiveType.ARRAY; }
 
 }

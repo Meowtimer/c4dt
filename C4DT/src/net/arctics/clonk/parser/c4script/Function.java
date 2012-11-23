@@ -37,7 +37,7 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IRegion, IEvaluationContext {
+public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IRegion, IEvaluationContext, IHasCode {
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private FunctionScope visibility; 
@@ -868,6 +868,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public boolean isLocal() {
 		return true;
+	}
+
+	@Override
+	public ExprElm code() {
+		return body();
 	}
 	
 }

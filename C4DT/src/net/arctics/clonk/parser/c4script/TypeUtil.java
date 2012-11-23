@@ -117,7 +117,4 @@ public class TypeUtil {
 			}
 		};
 	}
-	public static IType combineTypes(IType first, IType second) {
-		return TypeSet.create(first, second);
-	}
 }

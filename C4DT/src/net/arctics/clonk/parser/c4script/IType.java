@@ -24,28 +24,7 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @return The type string
 	 */
 	String typeName(boolean special);
-	
-	/**
-	 * Return whether there is an intersection between this type and the other one.
-	 * @param type The other type or set of types to check intersection of
-	 * @return True or false
-	 */
-	boolean intersects(IType type);
-	
-	/**
-	 * Return whether instances of this type are a subset of the other one.
-	 * @param type The type
-	 * @return True or false.
-	 */
-	boolean subsetOf(IType type);
-	
-	/**
-	 * Return whether any type in the given array of types is contained in this one.
-	 * @param types The other types
-	 * @return True or false.
-	 */
-	boolean subsetOfAny(IType... types);
-	
+		
 	/**
 	 * Return an integer signifying the level of precision. Actual C4Script definitions are supposed to be more specific than {@link PrimitiveType#OBJECT} for example.
 	 * @return The precision of the type as integer
@@ -62,26 +41,6 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @param description The description explaining how this type was constructed
 	 */
 	void setTypeDescription(String description);
-	/**
-	 * Let this type eat another one of less {@link #precision()} and return the result of the combination.
-	 * @param other The other type to be eaten
-	 * @return Combination of both types
-	 */
-	IType eat(IType other);
-	
-	/**
-	 * Helper class defining some default implementations implementors can call.
-	 * @author madeen
-	 *
-	 */
-	public abstract class Default {
-		public static boolean subsetOfAny(IType instance, IType... types) {
-			for (IType t : types)
-				if (instance.subsetOf(t))
-					return true;
-			return false;
-		}
-	}
 	
 	public static final String COMPLEX_TYPE_START = "<";
 	public static final String COMPLEX_TYPE_END = ">";

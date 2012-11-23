@@ -1,22 +1,19 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.map;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * Type that represents a set of multiple possible types.
@@ -26,13 +23,6 @@ import net.arctics.clonk.util.ArrayUtil;
 public class TypeSet implements IType, ISerializationResolvable, IResolvableType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-	private static List<TypeSet> typeSets = new LinkedList<TypeSet>();
-	
-	public static final IType STRING_OR_OBJECT = create(PrimitiveType.STRING, PrimitiveType.OBJECT);
-	public static final IType ARRAY_OR_STRING = create(PrimitiveType.ARRAY, PrimitiveType.STRING);
-	public static final IType REFERENCE_OR_ANY_OR_UNKNOWN = create(PrimitiveType.REFERENCE, PrimitiveType.ANY, PrimitiveType.UNKNOWN);
-	public static final IType OBJECT_OR_ID = create(PrimitiveType.OBJECT, PrimitiveType.ID);
 	
 	private final IType[] types;
 	private boolean internalized;
@@ -65,13 +55,6 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 		return this;
 	}
 	
-	private static final Comparator<IType> precision_COMPARATOR = new Comparator<IType>() {
-		@Override
-		public int compare(IType o1, IType o2) {
-			return o2.precision()-o1.precision();
-		}
-	};
-	
 	public final int size() {
 		return types.length;
 	}
@@ -85,111 +68,6 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			if (t.equals(type))
 				return true;
 		return false;
-	}
-	
-	private static IType[] flatten(IType[] types) {
-		int newCount = types.length;
-		for (IType t : types)
-			if (t == null)
-				newCount--;
-			else if ((t=NillableType.unwrap(t)) instanceof TypeSet)
-				newCount += ((TypeSet)t).size() - 1;
-		IType[] newArray = newCount == types.length ? types : new IType[newCount];
-		int i = 0;
-		for (IType t : types)
-			if (t == null)
-				continue;
-			else if ((t=NillableType.unwrap(t)) instanceof TypeSet)
-				for (IType t2 : ((TypeSet)t))
-					newArray[i++] = t2;
-			else
-				newArray[i++] = t;
-		return newArray;
-	}
-	
-	public static IType create(Collection<IType> types) {
-		return create(types.toArray(new IType[types.size()]));
-	}
-	
-	public static IType create(IType... ingredients) {
-		if (ingredients.length == 0)
-			return PrimitiveType.ANY;
-		
-		// remove null elements most tediously
-		ingredients = flatten(ingredients);
-		int actualCount = ingredients.length;
-		boolean containsAny = false;
-		
-		// remove less specific types that are already contained in more specific ones
-		Arrays.sort(ingredients, precision_COMPARATOR);
-		if (ingredients.length == 1 && ingredients[0] == PrimitiveType.ANY) {
-			actualCount = 0;
-			containsAny = true;
-		} else for (int i = 0; i < actualCount; i++) {
-			IType t = ingredients[i];
-			for (int j = actualCount-1; j > i; j--) {
-				IType other = ingredients[j];
-				if (other == PrimitiveType.ANY) {
-					containsAny = true;
-					for (int z = actualCount-1; z > j; z--)
-						ingredients[z-1] = ingredients[z];
-					actualCount--;
-				}
-				else if (other.equals(t) || (t.precision() >= other.precision() && (t.subsetOf(other) || other.subsetOf(t)))) {
-					ingredients[i] = ingredients[i].eat(other);
-					for (int z = actualCount-1; z > j; z--)
-						ingredients[z-1] = ingredients[z];
-					actualCount--;
-				}
-			}
-		}
-		
-		// expand left-over types into set
-		boolean containsNonStatics = false;
-		List<IType> list = new ArrayList<IType>(actualCount);
-		for (int i = 0; i < actualCount; i++) {
-			IType s = ingredients[i];
-			if (s instanceof TypeSet)
-				for (IType t : s) {
-					containsNonStatics = containsNonStatics || t.staticType() != t;
-					list.add(t);
-				}
-			else {
-				containsNonStatics = containsNonStatics || s.staticType() != s;
-				list.add(s);
-			}
-		}
-		if (list.size() > 1)
-			if (list.remove(PrimitiveType.UNKNOWN))
-				containsAny = true;
-		if (list.size() == 0)
-			return PrimitiveType.ANY;
-		IType t;
-		if (containsNonStatics)
-			t = list.size() == 1 ? list.get(0) : new TypeSet(list.toArray(new IType[list.size()]));
-		else
-			t = createInternal(list, actualCount, ingredients);
-		return containsAny ? NillableType.make(t) : t;
-	}
-
-	private static IType createInternal(List<IType> list, int actualCount, IType... ingredients) {
-		if (list.size() == 0)
-			return PrimitiveType.UNKNOWN;
-		if (list.size() == 1)
-			return list.iterator().next();
-		/*if (set.contains(C4Type.ANY))
-			return C4Type.ANY; */
-		synchronized (typeSets) {
-			for (TypeSet r : typeSets)
-				if (ArrayUtil.elementsEqual(r.types, ingredients))
-					return r;
-			TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
-				? (TypeSet)ingredients[0]
-					: new TypeSet(list.toArray(new IType[list.size()]));
-				n.internalized = true;
-				typeSets.add(n);
-				return n;
-		}
 	}
 	
 	@Override
@@ -210,40 +88,13 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 	}
 
 	@Override
-	public String typeName(boolean special) {
-		StringBuilder builder = new StringBuilder((description != null ? description.length() : 0) + 20);
-		builder.append(IType.COMPLEX_TYPE_START);
-		if (description != null) {
-			builder.append(description);
-			builder.append(": ");
-		}
-		Set<String> typeNames = new HashSet<String>();
-		boolean containsAny = false;
-		for (IType t : this)
-			if (t == PrimitiveType.ANY)
-				containsAny = true;
-			else
-				typeNames.add(t.typeName(special));
-		
-		if (typeNames.size() == 1 && containsAny)
-			return typeNames.iterator().next() + "?";
-		else if (typeNames.size() == 1)
-			return typeNames.iterator().next();
-		boolean started = true;
-		for (String tn : typeNames) {
-			if (started)
-				started = false;
-			else
-				builder.append(Messages.C4TypeSet_Or);
-			builder.append(tn);
-		}
-		builder.append(IType.COMPLEX_TYPE_END);
-		if (containsAny)
-			builder.append('?');
-		if (builder.length() > 200)
-			return description != null ? IType.COMPLEX_TYPE_START + description + IType.COMPLEX_TYPE_END : IType.COMPLEX_TYPE_ABBREVIATED;
-		else
-			return builder.toString();
+	public String typeName(final boolean special) {
+		return StringUtil.blockString("", "", " | ", map(iterable(types), new IConverter<IType, String>() {
+			@Override
+			public String convert(IType from) {
+				return from.typeName(special);
+			}
+		}));
 	}
 	
 	@Override
@@ -257,30 +108,6 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 			return ArrayUtil.elementsEqual(types, ((TypeSet)obj).types);
 		else
 			return false;
-	}
-
-	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : this)
-			if (t.intersects(typeSet))
-				return true;
-		return false;
-	}
-
-	@Override
-	public boolean subsetOf(IType type) {
-		for (IType t : this)
-			if (!t.subsetOf(type))
-				return false;
-		return true;
-	}
-	
-	@Override
-	public IType eat(IType other) {return this;}
-	
-	@Override
-	public boolean subsetOfAny(IType... types) {
-		return IType.Default.subsetOfAny(this, types);
 	}
 	
 	@Override
@@ -314,7 +141,7 @@ public class TypeSet implements IType, ISerializationResolvable, IResolvableType
 				didResolveSomething = true;
 			resolvedTypes[i++] = resolved;
 		}
-		return didResolveSomething ? create(resolvedTypes) : this;
+		return didResolveSomething ? TypeUnification.unify(resolvedTypes) : this;
 	}
 
 }

@@ -164,7 +164,7 @@ public class MemberOperator extends ExprElm {
 		EngineSettings settings = parser.script().engine().settings();
 		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(
-				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
+				dotNotation ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID), parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		if (getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
