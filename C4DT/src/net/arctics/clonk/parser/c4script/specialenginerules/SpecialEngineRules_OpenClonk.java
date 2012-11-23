@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Scenario;
@@ -26,6 +27,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -58,6 +60,7 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -445,6 +448,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	private static ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
 		IniSection s = unit.sectionWithName(section, true);
 		IniItem i = s.subItemByKey(entry);
+		if (i != null && !(i instanceof ComputedScenarioConfigurationEntry)) {
+			s.removeItem(i);
+			i = null;
+		}
 		if (i == null)
 			s.addItem(i = new ComputedScenarioConfigurationEntry(entry, new IDArray()));
 		return as(i, ComputedScenarioConfigurationEntry.class);
@@ -454,6 +461,21 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public void processScenarioConfiguration(final ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
 		final Scenario scenario = unit.scenario();
 		final Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
+		if (createEnvironment == null) {
+			Core.instance().performActionsOnFileDocument(scenario.script().scriptFile(), new IDocumentAction<Void>() {
+				@Override
+				public Void run(IDocument document) {
+					String oldContents = document.get();
+					StringBuilder builder = new StringBuilder(oldContents.length()+100);
+					builder.append(oldContents);
+					for (byte i = 0; i < 2; i++) builder.append('\n');
+					builder.append(Function.scaffoldTextRepresentation(CREATE_ENVIRONMENT, FunctionScope.PUBLIC));
+					document.set(builder.toString());
+					return null;
+				}
+			});
+			return;
+		}
 		final ComputedScenarioConfigurationEntry vegetation = entry(unit, "Landscape", "Vegetation");
 		final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
 		if (plantLib == null)

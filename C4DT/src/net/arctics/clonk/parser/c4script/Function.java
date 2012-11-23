@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -873,6 +874,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ExprElm code() {
 		return body();
+	}
+	
+	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, Variable... parameters) {
+		StringBuilder builder = new StringBuilder();
+		Function f = new Function(functionName, scope);
+		for (Variable p : parameters)
+			f.addParameter(p);
+		f.printHeader(builder);
+		Conf.blockPrelude(new AppendableBackedExprWriter(builder), 0);
+		builder.append("{\n\n}"); //$NON-NLS-1$
+		return builder.toString();
 	}
 	
 }

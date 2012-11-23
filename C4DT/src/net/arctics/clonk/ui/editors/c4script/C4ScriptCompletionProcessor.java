@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
@@ -36,7 +34,6 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
@@ -50,8 +47,6 @@ import net.arctics.clonk.ui.editors.ClonkContextInformation;
 import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
-import net.arctics.clonk.util.Gen;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
@@ -411,41 +406,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return result;
 	}
 
-	public static class ParmInfo {public String name; public IType type;}
-
-	private static final IConverter<ParmInfo, String> PARM_PRINTER = new IConverter<ParmInfo, String>() {
-		@Override
-		public String convert(ParmInfo parmInfo) {
-			return String.format("%s %s", parmInfo.type.typeName(false), parmInfo.name);
-		}
-	};
-
-	private String functionScaffold(String functionName, ParmInfo... parmTypes) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Keywords.Func);
-		builder.append(" "); //$NON-NLS-1$
-		builder.append(functionName);
-		StringUtil.writeBlock(builder, "(", ")", ", ", iterable(map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		switch (Conf.braceStyle) {
-		case NewLine:
-			builder.append("\n"); //$NON-NLS-1$
-			break;
-		case SameLine:
-			builder.append(" "); //$NON-NLS-1$
-			break;
-		}
-		builder.append("{\n\n}"); //$NON-NLS-1$
-		return builder.toString();
-	}
-
-	private ClonkCompletionProposal callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, ParmInfo... parmTypes) {
+	private ClonkCompletionProposal callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, Variable... parmTypes) {
 		ImageRegistry reg = Core.instance().getImageRegistry();
 		if (reg.get("callback") == null)
 			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		String repString = funcSupplied ? (callback!=null?callback:"") : functionScaffold(callback, parmTypes); //$NON-NLS-1$
+		String repString = funcSupplied ? (callback!=null?callback:"") : Function.scaffoldTextRepresentation(callback, FunctionScope.PUBLIC, parmTypes); //$NON-NLS-1$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				null,
 				repString, offset, replacementLength, 
@@ -454,9 +422,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return prop;
 	}
 
-	private static final ParmInfo[] EFFECT_FUNCTION_PARM_BOILERPLATE = new ParmInfo[] {
-		Gen.object(ParmInfo.class, "obj", PrimitiveType.OBJECT),
-		Gen.object(ParmInfo.class, "effect", PrimitiveType.PROPLIST)
+	private static final Variable[] EFFECT_FUNCTION_PARM_BOILERPLATE = {
+		new Variable("obj", PrimitiveType.OBJECT),
+		new Variable("effect", PrimitiveType.PROPLIST)
 	};
 
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
