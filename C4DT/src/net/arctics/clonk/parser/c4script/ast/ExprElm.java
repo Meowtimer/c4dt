@@ -284,10 +284,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return The type of the expression
 	 */
 	public IType unresolvedType(DeclarationObtainmentContext context) {
-		IType t = context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
-		if (t == null)
-			t = PrimitiveType.UNKNOWN;
-		return t;
+		return context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
 	}
 	
 	public final Definition guessObjectType(DeclarationObtainmentContext context) {

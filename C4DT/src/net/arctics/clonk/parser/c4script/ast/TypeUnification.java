@@ -38,7 +38,10 @@ public class TypeUnification {
 			case INT:
 			case STRING:
 			case BOOL:
-				break;
+				if (b == PrimitiveType.ANY)
+					return a;
+				else
+					break;
 			case PROPLIST:
 				if (b instanceof PrimitiveType)
 					switch ((PrimitiveType)b) {
@@ -48,11 +51,13 @@ public class TypeUnification {
 						break;
 					}
 				break;
-			case ANY: case UNKNOWN:
-				if (a == PrimitiveType.ANY && b == PrimitiveType.UNKNOWN)
+			case UNKNOWN:
+				if (b == PrimitiveType.ANY)
 					return PrimitiveType.ANY;
 				else
 					return NillableType.make(b);
+			case ANY:
+				break;
 			case REFERENCE:
 				return b;
 			default:
