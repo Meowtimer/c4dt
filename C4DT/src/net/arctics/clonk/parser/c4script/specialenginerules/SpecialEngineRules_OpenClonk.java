@@ -460,22 +460,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	@Override
 	public void processScenarioConfiguration(final ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
 		final Scenario scenario = unit.scenario();
-		final Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
-		if (createEnvironment == null) {
-			Core.instance().performActionsOnFileDocument(scenario.script().scriptFile(), new IDocumentAction<Void>() {
-				@Override
-				public Void run(IDocument document) {
-					String oldContents = document.get();
-					StringBuilder builder = new StringBuilder(oldContents.length()+100);
-					builder.append(oldContents);
-					for (byte i = 0; i < 2; i++) builder.append('\n');
-					builder.append(Function.scaffoldTextRepresentation(CREATE_ENVIRONMENT, FunctionScope.PUBLIC));
-					document.set(builder.toString());
-					return null;
-				}
-			});
-			return;
-		}
+		Function createEnvironment = scenario.findLocalFunction(CREATE_ENVIRONMENT, false);
 		final ComputedScenarioConfigurationEntry vegetation = entry(unit, "Landscape", "Vegetation");
 		final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
 		if (plantLib == null)
@@ -520,6 +505,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					(new PlaceMatch(s)).addComputedEntry();
 			break;
 		case Save:
+			if (createEnvironment == null)
+				createEnvironment = appendFunction(scenario, CREATE_ENVIRONMENT);
 			List<ExprElm> list = new LinkedList<ExprElm>();
 			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
 			final List<Statement> statementsCopy = new ArrayList<Statement>(Arrays.asList(createEnvironment.body().statements()));
@@ -564,6 +551,32 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				scenario.saveExpressions(list);
 			break;
 		}
+	}
+
+	private Function appendFunction(final Script script, final String name) {
+		Function f;
+		Core.instance().performActionsOnFileDocument(script.scriptFile(), new IDocumentAction<Void>() {
+			@Override
+			public Void run(IDocument document) {
+				String oldContents = document.get();
+				StringBuilder builder = new StringBuilder(oldContents.length()+100);
+				builder.append(oldContents);
+				boolean endsWithEmptyLine = oldContents.endsWith("\n");
+				if (!endsWithEmptyLine)
+					builder.append('\n');
+				builder.append('\n');
+				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC));
+				if (endsWithEmptyLine)
+					builder.append('\n');
+				document.set(builder.toString());
+				return null;
+			}
+		});
+		try {
+			new C4ScriptParser(script).parse();
+		} catch (ParsingException e) {}
+		f = script.findLocalFunction(name, false);
+		return f;
 	}
 	
 	@Override
