@@ -48,7 +48,9 @@ public class Messages extends NLS {
 	public static String ScenarioProperties_MapHeight;
 	public static String ScenarioProperties_MapWidth;
 	public static String ScenarioProperties_MapZoom;
+	public static String ScenarioProperties_Maximum;
 	public static String ScenarioProperties_Meteorite;
+	public static String ScenarioProperties_Minimum;
 	public static String ScenarioProperties_Nests;
 	public static String ScenarioProperties_Period;
 	public static String ScenarioProperties_Phase;
@@ -67,6 +69,7 @@ public class Messages extends NLS {
 	public static String ScenarioProperties_Rules;
 	public static String ScenarioProperties_ScreenSize;
 	public static String ScenarioProperties_Season;
+	public static String ScenarioProperties_Standard;
 	public static String ScenarioProperties_Vegetation;
 	public static String ScenarioProperties_Volcano;
 	public static String ScenarioProperties_WeatherTab;

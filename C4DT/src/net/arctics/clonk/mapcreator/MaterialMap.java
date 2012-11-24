@@ -7,6 +7,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.MaterialUnit;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IContainer;
@@ -30,15 +31,14 @@ public class MaterialMap extends HashMap<String, MaterialUnit>  {
 	}
 	
 	public void load(IContainer materialsContainer) {
+		final String ext = "."+ClonkProjectNature.get(materialsContainer).index().engine().settings().materialExtension;
 		try {
-			for (IResource member : materialsContainer.members()) {
-				final String ext = ".c4m";
+			for (IResource member : materialsContainer.members())
 				if (member instanceof IFile && member.getName().endsWith(ext)) {
 					MaterialUnit unit = (MaterialUnit)Structure.pinned(member, true, false);
 					if (unit != null)
 						put(StringUtil.rawFileName(member.getName()), unit);
 				}
-			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

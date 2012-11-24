@@ -424,10 +424,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			lbl.setText(label);
 			lbl.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 8, 1));
 			spinners.setLayout(noMargin(new GridLayout(8, false)));
-			spinner(spinners, "⠛", 0, false); //$NON-NLS-1$
-			spinner(spinners, "δ", 1, false); //$NON-NLS-1$
-			spinner(spinners, "[", 2, false); //$NON-NLS-1$
-			spinner(spinners, "]", 3, true); //$NON-NLS-1$
+			spinner(spinners, "⠛", 0, false).setToolTipText(Messages.ScenarioProperties_Standard); //$NON-NLS-1$
+			spinner(spinners, "δ", 1, false).setToolTipText(Messages.ScenarioProperties_Random); //$NON-NLS-1$
+			spinner(spinners, "[", 2, false).setToolTipText(Messages.ScenarioProperties_Minimum); //$NON-NLS-1$
+			spinner(spinners, "]", 3, true).setToolTipText(Messages.ScenarioProperties_Maximum); //$NON-NLS-1$
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
