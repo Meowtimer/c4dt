@@ -20,7 +20,6 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
