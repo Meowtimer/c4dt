@@ -59,12 +59,6 @@ public class TypeUnification {
 				break;
 			}
 		
-		if (a instanceof TypeChoice && b instanceof TypeChoice) {
-			TypeChoice ca = (TypeChoice)a;
-			TypeChoice cb = (TypeChoice)b;
-			return TypeChoice.make(unifyNoFlatten(ca.left(), cb.left()), unifyNoFlatten(ca.right(), cb.right()));
-		}
-		
 		if (a instanceof TypeChoice) {
 			IType l = ((TypeChoice)a).left();
 			IType r = ((TypeChoice)a).right();
