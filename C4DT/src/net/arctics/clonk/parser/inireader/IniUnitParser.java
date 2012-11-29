@@ -123,11 +123,11 @@ public class IniUnitParser extends CStyleScanner {
 		try {
 			if (resetScannerWithFileContents)
 				reset();
-			if (modifyMarkers && unit.iniFile() != null)
+			if (modifyMarkers && unit.file() != null)
 				try {
-					unit.iniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+					unit.file().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 					// deactivate creating markers if it's contained in a linked group
-					modifyMarkers = C4GroupItem.groupItemBackingResource(unit.iniFile()) == null;
+					modifyMarkers = C4GroupItem.groupItemBackingResource(unit.file()) == null;
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}

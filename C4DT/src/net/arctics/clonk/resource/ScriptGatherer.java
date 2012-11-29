@@ -4,14 +4,18 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IContainer;
@@ -23,14 +27,30 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
 public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
-	
+
 	private static final boolean INDEX_C4GROUPS = true;
-	
+	private final Set<Script> obsoleted = new HashSet<Script>();
 	private final ClonkBuilder builder;
-	ScriptGatherer(ClonkBuilder clonkBuilder) {
-		builder = clonkBuilder;
+	
+	public ScriptGatherer(ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
+	
+	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, Index index) {
+		index.allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				if (item instanceof Definition) {
+					Definition d = (Definition)item;
+					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted))
+						return;
+				} else if (item.scriptFile() == null || !item.scriptFile().equals(deleted))
+					return;
+				obsoleted.add(item);
+				decision(Decision.AbortIteration);
+			}
+		});
 	}
-	public Definition createDefinition(IContainer folder) {
+	
+	private Definition createDefinition(IContainer folder) {
 		IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
 		IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
 		if (defCore == null && scenario == null)
@@ -60,28 +80,35 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 
 		boolean success = false;
 		If: if (delta.getResource() instanceof IFile) {
-			IFile file = (IFile) delta.getResource();
+			final IFile file = (IFile) delta.getResource();
+			if (!file.getName().endsWith(".c")) {
+				success = true;
+				break If;
+			}
 			Script script;
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
 				script = Script.get(file, false);
-				if (script == null)
+				if (script == null) {
 					// create if new file
 					// script in a system group
 					if (builder.isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
 						script = new SystemScript(builder.index(), file);
-				// object script
+					// definition script
 					else
 						script = createDefinition(delta.getResource().getParent());
-				if (script != null && delta.getResource().equals(script.scriptFile()))
+				} else {
+					script.setScriptFile(file); // ensure files match up
+					obsoleted.remove(script);
+				}
+				if (script != null && file.equals(script.scriptFile()))
 					builder.queueScript(script);
 				else
 					processAuxiliaryFiles(file, script);
 				break;
 			case IResourceDelta.REMOVED:
-				script = SystemScript.scriptCorrespondingTo(file);
-				if (script != null && file.equals(script.scriptStorage()))
-					script.index().removeScript(script);
+				obsoleteCorrespondingScriptFromIndex(file, builder.index());
+				break;
 			}
 			success = true;
 		}
@@ -97,18 +124,17 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				definition = Definition.definitionCorrespondingToFolder(container);
-				if (definition != null)
+				if (definition != null) {
 					definition.setDefinitionFolder(container);
+					obsoleted.remove(definition);
+				}
 				//					else if (isSystemGroup(container))
 				//						for (IResource res : container.members())
 				//							if (isSystemScript(res))
 				//								queueScript(new SystemScript(index(), (IFile)res));
 				break;
 			case IResourceDelta.REMOVED:
-				// remove object when folder is removed
-				definition = Definition.definitionCorrespondingToFolder(container);
-				if (definition != null)
-					definition.index().removeDefinition(definition);
+				obsoleteCorrespondingScriptFromIndex(container, builder.index());
 				break;
 			}
 			success = true;
@@ -167,5 +193,10 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		else
 			result = false;
 		return result;
+	}
+	public void removeObsoleteScripts() {
+		for (Script s : obsoleted)
+			builder.index().removeScript(s);
+		obsoleted.clear();
 	}
 }

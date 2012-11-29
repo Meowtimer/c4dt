@@ -391,23 +391,32 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> void allDefinitionsInternal(Sink<T> sink) {
+	private <T> Sink.Decision allDefinitionsInternal(Sink<T> sink) {
 		Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
 		while (defsIt.hasNext()) {
 			List<Definition> list = defsIt.next();
 			Iterator<Definition> defIt = list.iterator();
 			while (defIt.hasNext())
-				if (sink.elutriate((T)defIt.next()) == Decision.Purge)
+				switch (sink.elutriate((T)defIt.next())) {
+				case PurgeItem:
 					defIt.remove();
+					break;
+				case AbortIteration:
+					return Decision.AbortIteration;
+				default:
+					break;
+				}
 			if (list.size() == 0)
 				defsIt.remove();
 		}
+		return Decision.Continue;
 	}
 
 	public void allScripts(Sink<Script> sink) {
 		startScriptIteration();
 		try {
-			allDefinitionsInternal(sink);
+			if (allDefinitionsInternal(sink) == Decision.AbortIteration)
+				return;
 			ArrayUtil.sink(indexedScripts, sink);
 			ArrayUtil.sink(indexedScenarios, sink);
 		} finally {

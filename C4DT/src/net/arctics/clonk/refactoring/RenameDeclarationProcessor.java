@@ -96,7 +96,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			else if (element instanceof Function)
 				file = (IFile) ((Function)element).script().scriptStorage();
 			else if (element instanceof IniUnit)
-				file = ((IniUnit)element).iniFile();
+				file = ((IniUnit)element).file();
 			else
 				file = null;
 			if (file != null) {

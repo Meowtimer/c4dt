@@ -63,7 +63,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -1070,11 +1069,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		Script script;
 		if (resource == null)
 			return null;
-		try {
-			script = SystemScript.pinned(resource, false);
-		} catch (CoreException e) {
-			script = null;
-		}
+		script = SystemScript.pinned(resource, false);
 		if (script == null)
 			script = Definition.definitionCorrespondingToFolder(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
@@ -1252,5 +1247,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public PrimitiveType primitiveType() {
 		return PrimitiveType.OBJECT;
 	}
+
+	public void setScriptFile(IFile f) {}
 
 }

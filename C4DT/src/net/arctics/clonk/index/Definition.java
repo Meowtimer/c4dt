@@ -316,9 +316,10 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
 	@Override
-	public IFile scriptStorage() {
-		return scriptFile;
-	}
+	public IFile scriptStorage() { return scriptFile; }
+	
+	@Override
+	public void setScriptFile(IFile f) { scriptFile = f; }
 
 	@Override
 	public String scriptText() {
@@ -503,5 +504,5 @@ public class Definition extends Script implements IProplistDeclaration {
 			}
 		});
 	}
-
+	
 }

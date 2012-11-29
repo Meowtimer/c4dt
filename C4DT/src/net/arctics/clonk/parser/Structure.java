@@ -71,8 +71,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param resource the file
 	 * @throws CoreException
 	 */
-	public void pinTo(IResource resource) throws CoreException {
-		resource.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
+	public void pinTo(IResource resource) {
+		try {
+			resource.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -88,18 +92,23 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		Structure result;
 		try {
 			result = (Structure) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
-			if (result == null && force) {
+			if (result != null)
+				result.setFile((IFile)file);
+			else if (force) {
 				result = createStructureForFile(file, duringBuild);
 				if (result != null)
 					result.pinTo(file);
 			}
 			return result;
 		} catch (CoreException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
 	
+	public void setFile(IFile file) {
+		// i'll do that
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild, Class<T> cls) {
 		return (T)pinned(file, force, duringBuild);
@@ -111,10 +120,14 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the previously pinned structure or null if there was none 
 	 * @throws CoreException
 	 */
-	public static Structure unPinFrom(IFile file) throws CoreException {
+	public static Structure unPinFrom(IFile file) {
 		Structure pinned = pinned(file, false, false);
 		if (pinned != null)
-			file.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
+			try {
+				file.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		return pinned;
 	}
 	

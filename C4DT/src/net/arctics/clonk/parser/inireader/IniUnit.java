@@ -139,13 +139,9 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * Returns the file the configuration was read from
 	 * @return the file
 	 */
-	public IFile iniFile() {
-		return iniFile;
-	}
-	
-	public void setIniFile(IFile file) {
-		iniFile = file;
-	}
+	public IFile file() { 	return iniFile; }
+	@Override
+	public void setFile(IFile file) { iniFile = file; }
 	
 	/**
 	 * Checks whether this section name is valid.<br>
@@ -387,8 +383,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	
 	@Override
 	public String toString() {
-		if (iniFile() != null)
-			return iniFile().getFullPath().toOSString();
+		if (file() != null)
+			return file().getFullPath().toOSString();
 		else
 			return super.toString();
 	}
@@ -512,7 +508,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public String infoText(IIndexEntity context) {
 		return String.format(
 			INFO_FORMAT,
-			this.defaultName, this.iniFile().getProjectRelativePath().toOSString()
+			this.defaultName, this.file().getProjectRelativePath().toOSString()
 		);
 	}
 	

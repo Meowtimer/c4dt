@@ -25,8 +25,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
@@ -74,10 +74,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private final Markers markers = new Markers();
 	private int buildKind;
 	private Set<Function> problemReporters;
+	private Index index;
 	
 	public void addGatheredStructure(Structure structure) { gatheredStructures.add(structure); }
 	public Markers markers() { return markers; }
-	public Index index() { return ClonkProjectNature.get(getProject()).index(); }
+	public Index index() { return index; }
 	public IProgressMonitor monitor() { return monitor; }
 
 	public boolean isSystemScript(IResource resource) {
@@ -119,6 +120,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	@Profiled
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+		this.index = ClonkProjectNature.get(getProject()).index();
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
@@ -211,7 +213,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
 			monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
-			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer(this));
+			ScriptGatherer gatherer = new ScriptGatherer(this);
+			visitDeltaOrWholeProject(delta, proj, gatherer);
+			gatherer.removeObsoleteScripts();
 
 			// delete old declarations
 			for (Script script : parserMap.keySet())
