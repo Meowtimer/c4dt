@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.pack;
-import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
@@ -9,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -38,10 +38,7 @@ public class TypeUnification {
 			case INT:
 			case STRING:
 			case BOOL:
-				if (b == PrimitiveType.ANY)
-					return a;
-				else
-					break;
+				break;
 			case PROPLIST:
 				if (b instanceof PrimitiveType)
 					switch ((PrimitiveType)b) {
@@ -50,6 +47,8 @@ public class TypeUnification {
 					default:
 						break;
 					}
+				else if (b instanceof Definition)
+					return b;
 				break;
 			case UNKNOWN:
 				if (b == PrimitiveType.ANY)
@@ -57,7 +56,7 @@ public class TypeUnification {
 				else
 					return NillableType.make(b);
 			case ANY:
-				break;
+				return NillableType.make(b);
 			case REFERENCE:
 				return b;
 			default:
@@ -65,37 +64,38 @@ public class TypeUnification {
 			}
 		
 		if (a instanceof TypeChoice) {
-			IType l = ((TypeChoice)a).left();
-			IType r = ((TypeChoice)a).right();
-			l = unify(l, b);
-			r = unify(r, b);
-			return TypeChoice.make(l, r);
+			TypeChoice tca = (TypeChoice)a;
+			if (b instanceof TypeChoice) {
+				TypeChoice tcb = (TypeChoice)b;
+				return unifyLeft(unifyLeft(tca.left(), tcb.right()), unifyLeft(tcb.left(), tcb.right()));
+			}
+			else {
+				IType l = tca.left();
+				IType r = tca.right();
+				return TypeChoice.make(unifyLeft(l, b), unifyLeft(r, b));
+			}
 		}
 		
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
 			((IRefinedPrimitiveType)a).primitiveType() == b)
 			return a;
 		
-		if (a instanceof ArrayType) {
+		if (a instanceof ArrayType && b instanceof ArrayType) {
 			ArrayType ata = (ArrayType)a;
-			ArrayType atb = as(b, ArrayType.class);
-			if (atb != null) {
-				ArrayType result = ata;
-				if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
-					result = new ArrayType(unifyNoFlatten(ata.generalElementType(),
-						atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
-				for (Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
-					IType my = ata.elementTypeMapping().get(e.getKey());
-					if (!objectsEqual(my, e.getValue())) {
-						if (result == ata)
-							result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
-						result.elementTypeMapping().put(e.getKey(), unifyNoFlatten(my, e.getValue()));
-					}
+			ArrayType atb = (ArrayType)b;
+			ArrayType result = ata;
+			if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
+				result = new ArrayType(unify(ata.generalElementType(),
+					atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
+			for (Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
+				IType my = ata.elementTypeMapping().get(e.getKey());
+				if (!objectsEqual(my, e.getValue())) {
+					if (result == ata)
+						result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
+					result.elementTypeMapping().put(e.getKey(), unify(my, e.getValue()));
 				}
-				return result;
 			}
-			else if (b == PrimitiveType.ARRAY)
-				return a;
+			return result;
 		}
 		
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
@@ -141,16 +141,9 @@ public class TypeUnification {
 			return u;
 		return null;
 	}
-	public static IType unifyNoFlatten(IType a, IType b) {
+	public static IType unify(IType a, IType b) {
 		IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
-	}
-	public static IType unify(IType a, IType b) {
-		IType t = unifyNoFlatten(a, b);
-		if (t instanceof TypeChoice)
-			return ((TypeChoice)t).flatten();
-		else
-			return t;
 	}
 	public static IType unify(IType... ingredients) {
 		if (ingredients.length == 0)
@@ -160,7 +153,7 @@ public class TypeUnification {
 			return ingredients[0];
 		IType unified = ingredients[0];
 		for (int i = 1; i < actualCount; i++)
-			unified = unifyNoFlatten(unified, ingredients[i]);
-		return unified instanceof TypeChoice ? ((TypeChoice)unified).flatten() : unified;
+			unified = unify(unified, ingredients[i]);
+		return unified;
 	}
 }

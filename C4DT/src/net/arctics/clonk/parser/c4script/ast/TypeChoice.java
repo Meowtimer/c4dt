@@ -1,15 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 
 public final class TypeChoice implements IType {
 
@@ -24,7 +22,11 @@ public final class TypeChoice implements IType {
 		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.ID),
 	};
 	
-	public static TypeChoice make(IType left, IType right) {
+	public static IType make(IType left, IType right) {
+		if (left == null)
+			return right;
+		else if (right == null)
+			return left;
 		for (TypeChoice hc : HARD_CHOICES)
 			if (
 				(hc.left == left && hc.right == right) ||
@@ -41,7 +43,7 @@ public final class TypeChoice implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable(left, right).iterator();
+		return flatten().iterator();
 	}
 
 	@Override
@@ -82,15 +84,10 @@ public final class TypeChoice implements IType {
 			types.add(right);
 	}
 	
-	public IType flatten() {
-		if (!(left instanceof TypeChoice || right instanceof TypeChoice))
-			return this;
+	public List<IType> flatten() {
 		LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
-		return
-			types.size() == 2 ? new TypeChoice(types.get(0), types.get(1)) :
-			types.size() == 1 ? types.get(0) :
-			new TypeSet(types.toArray(new IType[types.size()]));
+		return types;
 	}
 	
 	@Override

@@ -117,4 +117,11 @@ public class TypeUtil {
 			}
 		};
 	}
+	public static Definition definition(IType type) {
+		for (IType t : type)
+			if (t instanceof Definition)
+				return (Definition) t; // return the first one found
+		return null;
+	}
+
 }

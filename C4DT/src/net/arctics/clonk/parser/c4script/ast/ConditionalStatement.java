@@ -63,7 +63,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 		parser.reportProblemsOf(condition, true);
 		parser.pushTypeInfos();
 		parser.reportProblemsOf(body, true);
-		parser.popTypeInfos(true);
+		parser.popTypeInfos(true, false);
 		loopConditionWarnings(parser);
 	}
 

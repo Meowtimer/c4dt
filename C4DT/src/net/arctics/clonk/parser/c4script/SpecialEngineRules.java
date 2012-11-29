@@ -505,8 +505,6 @@ public abstract class SpecialEngineRules {
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
 					IType ty = TypeUnification.unify(types.toArray(new IType[types.size()]));
-					if (ty instanceof TypeSet)
-						ty.setTypeDescription(String.format("Types providing '%s'", ev));
 					return ty;
 				}
 			}
@@ -524,7 +522,7 @@ public abstract class SpecialEngineRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
-			Script script = objType != null ? TypeSet.definition(objType) : null;
+			Script script = objType != null ? TypeUtil.definition(objType) : null;
 			if (script == null)
 				script = parser.script(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);

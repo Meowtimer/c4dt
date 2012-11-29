@@ -28,7 +28,6 @@ import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
@@ -43,6 +42,7 @@ import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.True;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
@@ -258,9 +258,10 @@ public class C4ScriptParserTestCase {
 		Setup setup = new Setup(file(callingMethod()));
 		setup.parser.parse();
 		IType t = setup.script.findFunction("TypeInference").findVariable("x").type();
-		assertTrue(t instanceof TypeSet);
-		TypeSet ty = (TypeSet)t;
-		assertTrue(ty.size() == 3 && ty.containsType(PrimitiveType.STRING) && ty.containsType(PrimitiveType.BOOL) && ty.containsType(PrimitiveType.INT));
+		assertTrue(t instanceof TypeChoice);
+		TypeChoice choice = (TypeChoice)t;
+		List<IType> types = choice.flatten();
+		assert(types.size() == 3 && types.contains(PrimitiveType.STRING) && types.contains(PrimitiveType.BOOL) && types.contains(PrimitiveType.INT));
 	}
 	
 	

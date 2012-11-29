@@ -58,7 +58,7 @@ public class ArrayElementExpression extends ExprElm {
 	}
 
 	public static void warnIfNotArray(ExprElm elm, C4ScriptParser parser, IType type) {
-		if (type != null && type != PrimitiveType.UNKNOWN &&
+		if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 			TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
 			TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 			parser.warning(ParserErrorCode.NotAnArrayOrProplist, elm, 0);

@@ -100,8 +100,6 @@ public class ArrayType implements IRefinedPrimitiveType {
 	 */
 	@Override
 	public String typeName(final boolean special) {
-		if (!special)
-			return PrimitiveType.ARRAY.typeName(false);
 		if (elementTypeMapping.size() > 0) {
 			StringBuilder builder = new StringBuilder();
 			builder.append('[');

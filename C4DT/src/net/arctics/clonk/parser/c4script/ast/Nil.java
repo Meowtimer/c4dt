@@ -13,7 +13,7 @@ public class Nil extends Literal<Object> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
 	public IType unresolvedType(DeclarationObtainmentContext context) {
-		return PrimitiveType.ANY;
+		return PrimitiveType.UNKNOWN;
 	};
 	@Override
 	public Object literal() {

@@ -286,9 +286,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return l;
 	}
 	
-	public void popTypeInfos(boolean inject) {
+	public void popTypeInfos(boolean inject, boolean ignoreLocals) {
 		if (inject && typeInfos.up != null)
-			typeInfos.up.inject(typeInfos);
+			typeInfos.up.inject(typeInfos, ignoreLocals);
 		typeInfos = typeInfos.up;
 	}
 	
@@ -2107,7 +2107,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
 		typeInfos.apply(this, onlyTypeLocals);
-		popTypeInfos(true);
+		popTypeInfos(true, true);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
@@ -2125,7 +2125,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						pushTypeInfos();
 						reportProblemsOf(init, true);
 						new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
-						popTypeInfos(true);
+						popTypeInfos(true, true);
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())
 						try {
@@ -2142,7 +2142,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Variable v : script.variables())
 			if (v.scope() == Scope.CONST)
 				v.lockType();
-		popTypeInfos(false);
+		popTypeInfos(false, false);
 	}
 	
 	@Override
@@ -3033,6 +3033,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					for (Variable var : func.localVars())
 						var.setType(PrimitiveType.UNKNOWN);
 				}
+				func.setReturnType(PrimitiveType.UNKNOWN);
 				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 					reportProblemsOf(iterable(cachedBlock.statements()), true);
 				// just traverse... this should be faster than reparsing -.-

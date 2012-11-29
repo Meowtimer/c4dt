@@ -97,15 +97,15 @@ public class IfStatement extends ConditionalStatement {
 		// gathered information afterwards
 		TypeEnvironment ifTypeInfos = parser.pushTypeInfos();
 		parser.reportProblemsOf(body, true);
-		parser.popTypeInfos(false);
+		parser.popTypeInfos(false, false);
 		if (elseExpr != null) {
 			TypeEnvironment elseTypeInfos = parser.pushTypeInfos();
 			parser.reportProblemsOf(elseExpr, true);
-			parser.popTypeInfos(false);
-			ifTypeInfos.inject(elseTypeInfos);
+			parser.popTypeInfos(false, false);
+			ifTypeInfos.inject(elseTypeInfos, false);
 		}
 		if (ifTypeInfos.up != null)
-			ifTypeInfos.up.inject(ifTypeInfos);
+			ifTypeInfos.up.inject(ifTypeInfos, false);
 
 		if (!condition.containsConst()) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(parser.currentFunction()));

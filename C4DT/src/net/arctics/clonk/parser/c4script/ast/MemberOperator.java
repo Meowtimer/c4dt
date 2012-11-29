@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.util.Utilities;
