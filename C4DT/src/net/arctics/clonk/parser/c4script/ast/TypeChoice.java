@@ -7,11 +7,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 
-public final class TypeChoice implements IType {
+public final class TypeChoice implements IType, IResolvableType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -96,6 +99,13 @@ public final class TypeChoice implements IType {
 	@Override
 	public String toString() {
 		return typeName(false);
+	}
+
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		IType rl = TypeUtil.resolve(left, context, callerType);
+		IType rr = TypeUtil.resolve(right, context, callerType);
+		return rl == left && rr == right ? this : new TypeChoice(rl, rr);
 	}
 
 }
