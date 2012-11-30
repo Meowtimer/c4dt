@@ -474,7 +474,7 @@ public abstract class SpecialEngineRules {
 						if (t != null) for (IType ty : t)
 							types.add(ty);
 					}
-				result = TypeUnification.unify(types.toArray(new IType[types.size()]));
+				result = TypeUnification.unify(types);
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
 				if (callFunc.params().length >= 1)
@@ -504,7 +504,7 @@ public abstract class SpecialEngineRules {
 									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
-					IType ty = TypeUnification.unify(types.toArray(new IType[types.size()]));
+					IType ty = TypeUnification.unify(types);
 					return ty;
 				}
 			}

@@ -25,7 +25,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	public static final int NO_PRESUMED_LENGTH = -1;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private IType generalElementType;
+	private final IType generalElementType;
 	private int presumedLength;
 	private final Map<Integer, IType> elementTypeMapping;
 	
@@ -42,16 +42,18 @@ public class ArrayType implements IRefinedPrimitiveType {
 				elementTypeMapping.put(i++, t);
 	}
 	
-	public ArrayType(IType generalElementType, int presumedLength) {
+	private ArrayType(IType generalElementType, int presumedLength, Map<Integer, IType> elementTypeMapping, boolean internal) {
 		this.generalElementType = generalElementType;
 		this.presumedLength = presumedLength;
-		elementTypeMapping = new HashMap<Integer, IType>();
+		this.elementTypeMapping = elementTypeMapping;
+	}
+	
+	public ArrayType(IType generalElementType, int presumedLength) {
+		this(generalElementType, presumedLength, new HashMap<Integer, IType>(), true);
 	}
 	
 	public ArrayType(IType generalElementType, int presumedLength, Map<Integer, IType> typeMapping) {
-		this.generalElementType = generalElementType;
-		this.presumedLength = presumedLength;
-		this.elementTypeMapping = new HashMap<Integer, IType>(typeMapping);
+		this(generalElementType, presumedLength, new HashMap<Integer, IType>(typeMapping), true);
 	}
 
 	/**
@@ -59,7 +61,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	 * @return
 	 */
 	public IType generalElementType() {
-		return generalElementType != null ? generalElementType : TypeUnification.unify(elementTypeMapping.values().toArray(new IType[elementTypeMapping.size()]));
+		return TypeUnification.unify(generalElementType, TypeUnification.unify(elementTypeMapping.values()));
 	}
 	
 	/**
@@ -183,7 +185,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	public IType typeForElementWithIndex(Object evaluateIndexExpression) {
 		IType t = null;
 		if (evaluateIndexExpression instanceof Number)
-			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());;
+			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());
 		if (t == null)
 			t = generalElementType();
 		if (t == null)
@@ -192,15 +194,11 @@ public class ArrayType implements IRefinedPrimitiveType {
 	}
 	
 	protected void elementTypeHint(int elementIndex, IType type, TypeExpectancyMode mode) {
-		if (elementIndex < 0)
-			generalElementType = TypeUnification.unify(generalElementType, type);
-		else {
-			IType known = elementTypeMapping.get(elementIndex);
-			if (known != null)
-				elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));
-			else
-				elementTypeMapping.put(elementIndex, type);
-		}
+		IType known = elementTypeMapping.get(elementIndex);
+		if (known != null)
+			elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));
+		else
+			elementTypeMapping.put(elementIndex, type);
 	}
 
 	/**
@@ -310,7 +308,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 			}
 		}
 		return elementTypes != null
-			? TypeUnification.unify(elementTypes.toArray(new IType[elementTypes.size()]))
+			? TypeUnification.unify(elementTypes)
 			: null;
 	}
 

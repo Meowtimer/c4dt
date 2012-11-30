@@ -42,7 +42,7 @@ public class NillableType extends WrappedType {
 	@Override
 	public String typeName(boolean special) {
 		String tn = wrappedType.typeName(special);
-		return tn.contains(" ") ? "("+tn+")?" : tn + "?";
+		return tn.contains(" ") && !(tn.startsWith("{") || tn.startsWith("[")) ? "("+tn+")?" : tn + "?";
 	}
 
 }

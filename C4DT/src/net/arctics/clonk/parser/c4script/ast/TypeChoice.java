@@ -27,6 +27,8 @@ public final class TypeChoice implements IType {
 			return right;
 		else if (right == null)
 			return left;
+		else if (left.equals(right))
+			return left;
 		for (TypeChoice hc : HARD_CHOICES)
 			if (
 				(hc.left == left && hc.right == right) ||
@@ -93,6 +95,17 @@ public final class TypeChoice implements IType {
 	@Override
 	public String toString() {
 		return typeName(false);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof TypeChoice) {
+			TypeChoice other = (TypeChoice)obj;
+			return
+				(other.left.equals(left) && other.right.equals(right)) ||
+				(other.right.equals(left) && other.right.equals(left));
+		} else
+			return false;
 	}
 
 }

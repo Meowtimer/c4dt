@@ -105,7 +105,7 @@ public class ArrayElementExpression extends ExprElm {
 					);
 				context.storeType(predecessorInSequence(), mutation);
 				break;
-			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY)
+			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
 				predecessorInSequence().expectedToBeOfType(
 					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 					context,

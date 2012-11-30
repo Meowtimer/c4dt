@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.pack;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
@@ -53,12 +53,9 @@ public class TypeUnification {
 					return b;
 				break;
 			case UNKNOWN:
-				if (b == PrimitiveType.ANY)
-					return PrimitiveType.ANY;
-				else
-					return NillableType.make(b);
+				return b;
 			case ANY:
-				return NillableType.make(b);
+				return b;
 			case REFERENCE:
 				return b;
 			default:
@@ -69,12 +66,21 @@ public class TypeUnification {
 			TypeChoice tca = (TypeChoice)a;
 			if (b instanceof TypeChoice) {
 				TypeChoice tcb = (TypeChoice)b;
-				return unifyLeft(unifyLeft(tca.left(), tcb.right()), unifyLeft(tcb.left(), tcb.right()));
+				return unifyLeft(unifyLeft(tca.left(), tcb.left()), unifyLeft(tca.right(), tcb.right()));
 			}
 			else {
 				IType l = tca.left();
 				IType r = tca.right();
-				return TypeChoice.make(unifyLeft(l, b), unifyLeft(r, b));
+				IType l_ = unifyLeft(l, b);
+				IType r_ = unifyLeft(r, b);
+				if (l_ == null && r_ == null)
+					return null;
+				else if (r_ == null)
+					return TypeChoice.make(l_, r);
+				else if (l_ == null)
+					return TypeChoice.make(l, r_);
+				else
+					return TypeChoice.make(l_, r_);
 			}
 		}
 		
@@ -161,15 +167,10 @@ public class TypeUnification {
 		IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
-	public static IType unify(IType... ingredients) {
-		if (ingredients.length == 0)
-			return PrimitiveType.ANY;
-		int actualCount = pack(ingredients);
-		if (actualCount == 1)
-			return ingredients[0];
-		IType unified = ingredients[0];
-		for (int i = 1; i < actualCount; i++)
-			unified = unify(unified, ingredients[i]);
-		return unified;
+	public static IType unify(Iterable<IType> ingredients) {
+		IType unified = null;
+		for (IType t : ingredients)
+			unified = unify(unified, t);
+		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}
 }
