@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.Variable;
 
 /**
  * new <protoype> { ... } expression as syntactic sugar for { Prototype = <prototype>, ... }
@@ -35,8 +36,9 @@ public class NewProplist extends PropListExpression {
 	public ExprElm[] subElements() {
 		ExprElm[] result = new ExprElm[1+components().size()];
 		result[0] = definedDeclaration().implicitPrototype();
-		for (int i = 0; i < components().size(); i++)
-			result[1+i] = components().get(i).initializationExpression();
+		int i = 1;
+		for (Variable c : components())
+			result[i++] = c.initializationExpression();
 		return result;
 	}
 

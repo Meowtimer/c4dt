@@ -4,6 +4,8 @@ import static net.arctics.clonk.util.ArrayUtil.pack;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +103,10 @@ public class TypeUnification {
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
 			final ProplistDeclaration _a = (ProplistDeclaration) a;
 			final ProplistDeclaration _b = (ProplistDeclaration) b;
+			if (_a.numComponents(true) == 0)
+				return _b;
+			else if (_b.numComponents(true) == 0)
+				return _a;
 			return new ProplistDeclaration(new ArrayList<Variable>()) {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
@@ -117,6 +123,16 @@ public class TypeUnification {
 						set.add(_b);
 					}
 					return true;
+				}
+				@Override
+				public Collection<Variable> components(boolean includeAdhocComponents) {
+					Map<String, Variable> vars = new HashMap<String, Variable>();
+					for (Variable v : _a.components(includeAdhocComponents))
+						vars.put(v.name(), v);
+					for (Variable v : _b.components(includeAdhocComponents))
+						if (!vars.containsKey(v.name()))
+							vars.put(v.name(), v);
+					return vars.values();
 				}
 			};
 		}
