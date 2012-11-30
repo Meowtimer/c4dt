@@ -26,6 +26,6 @@ public class Nil extends Literal<Object> {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		if (!parser.engine().settings().supportsNil)
-			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Keywords.Nil);
+			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Keywords.Nil, parser.engine().name());
 	}
 }

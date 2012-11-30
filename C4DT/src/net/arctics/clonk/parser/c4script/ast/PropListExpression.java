@@ -164,7 +164,7 @@ public class PropListExpression extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		if (!parser.script().engine().settings().supportsProplists)
-			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
+			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature, parser.engine().name());
 	}
 	
 	@Override
