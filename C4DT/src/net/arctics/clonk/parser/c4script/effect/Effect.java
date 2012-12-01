@@ -52,12 +52,12 @@ public class Effect extends ProplistDeclaration {
 			return new IType[] {PrimitiveType.STRING, PrimitiveType.OBJECT, this};
 		if (callbackName.equals("Damage"))
 			return new IType[] {PrimitiveType.OBJECT, this, PrimitiveType.INT, PrimitiveType.INT};
-		return null;
+		return new IType[] {PrimitiveType.OBJECT, this};
 	}
 	
 	@Override
 	public String typeName(boolean special) {
-		return name() + " " + super.typeName(special);
+		return name();
 		//return String.format("'%s' proplist", name);
 	}
 

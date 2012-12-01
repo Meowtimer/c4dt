@@ -194,8 +194,13 @@ public class BinaryOp extends OperatorExpression {
 		if (expectedRight != null)
 			rightSide().expectedToBeOfType(expectedRight, context);
 
-		if (operator() == Operator.Assign)
+		switch (operator()) {
+		case Assign: case AssignAdd: case AssignSubtract: case AssignMultiply: case AssignModulo: case AssignDivide:
 			leftSide().assignment(rightSide(), context);
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
