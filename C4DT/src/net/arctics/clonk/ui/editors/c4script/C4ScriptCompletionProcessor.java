@@ -37,6 +37,7 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
@@ -422,11 +423,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return prop;
 	}
 
-	private static final Variable[] EFFECT_FUNCTION_PARM_BOILERPLATE = {
-		new Variable("obj", PrimitiveType.OBJECT),
-		new Variable("effect", PrimitiveType.PROPLIST)
-	};
-
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, Index index) {
@@ -452,8 +448,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 			// propose creating effect functions
 			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix);
-			for (String s : EffectFunction.DEFAULT_CALLBACKS)
-				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE).setCategory(Category.EffectCallbacks);
+			for (String s : EffectFunction.DEFAULT_CALLBACKS) {
+				IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
+				Variable parms[] = new Variable[] {
+					new Variable("obj", parameterTypes[0]),
+					new Variable("effect", parameterTypes[1])
+				};
+				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s),
+					funcSupplied, proposals, wordOffset, parms).setCategory(Category.EffectCallbacks);
+			}
 
 			if (!funcSupplied) {
 

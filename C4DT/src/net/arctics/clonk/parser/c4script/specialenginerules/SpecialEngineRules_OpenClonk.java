@@ -87,7 +87,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
-				fun.assignParameterTypes(fun.effect().parameterTypesForCallback(fun.callbackName()));
+				fun.effect();
+				fun.assignParameterTypes(Effect.parameterTypesForCallback(fun.callbackName(), fun.script(), fun.effect()));
 				return true;
 			}
 			return false;

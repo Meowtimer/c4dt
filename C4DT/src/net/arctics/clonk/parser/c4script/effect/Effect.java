@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 
 public class Effect extends ProplistDeclaration {
@@ -45,14 +46,15 @@ public class Effect extends ProplistDeclaration {
 		functions.put(function.callbackName(), function);
 	}
 	
-	public IType[] parameterTypesForCallback(String callbackName) {
+	public static IType[] parameterTypesForCallback(String callbackName, Script script, IType proplistType) {
+		boolean proplistParameters = script.engine().settings().supportsProplists;
 		if (isAnyOf(callbackName, "Start", "Timer", "Stop"))
-			return new IType[] {PrimitiveType.OBJECT, this};
+			return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
 		if (callbackName.equals("Effect"))
-			return new IType[] {PrimitiveType.STRING, PrimitiveType.OBJECT, this};
+			return new IType[] {PrimitiveType.STRING, PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
 		if (callbackName.equals("Damage"))
-			return new IType[] {PrimitiveType.OBJECT, this, PrimitiveType.INT, PrimitiveType.INT};
-		return new IType[] {PrimitiveType.OBJECT, this};
+			return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT};
+		return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
 	}
 	
 	@Override
