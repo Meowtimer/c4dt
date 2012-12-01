@@ -978,6 +978,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
 					@Override
 					protected Object replaceObject(Object obj) throws IOException {
+						// directives are also directly saved
+						if (obj instanceof Directive)
+							return obj;
 						// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
 						if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
 							return obj;

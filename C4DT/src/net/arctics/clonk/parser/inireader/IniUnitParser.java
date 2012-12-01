@@ -63,7 +63,7 @@ public class IniUnitParser extends CStyleScanner {
 			IniItem item= null;
 			Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
 			List<IniItem> itemList = new LinkedList<IniItem>();
-			section.setSectionData(unit.sectionDataFor(section, parentSection));
+			section.setDefinition(unit.sectionDataFor(section, parentSection));
 			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
 				itemMap.put(item.key(),item);
 				itemList.add(item);

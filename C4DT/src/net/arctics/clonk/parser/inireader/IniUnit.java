@@ -151,7 +151,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	protected boolean isSectionNameValid(String name, IniSection parentSection) {
 		if (parentSection != null)
-			return parentSection.sectionData() == null || parentSection.sectionData().hasSection(name);
+			return parentSection.definition() == null || parentSection.definition().hasSection(name);
 		else {
 			IniConfiguration conf = configuration();
 			return conf == null || conf.hasSection(name);
@@ -170,7 +170,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
-		IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).sectionData();
+		IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).definition();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key()))
@@ -183,7 +183,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					Object value = configuration.factory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
 					return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 				}
-				catch(IniParserException e) { // add offsets and throw through
+				catch (IniParserException e) { // add offsets and throw through
 					// FIXME: whitespace before and after '=' is not taken into account
 					if (e.offset() == 0 || e.endOffset() == 0) {
 						String key = entry.key();
@@ -199,7 +199,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.start(),entry.start() + entry.key().length());
 			}
 		} else
-			throw new IniParserException(IMarker.SEVERITY_ERROR, "Fail");
+			throw new IniParserException(IMarker.SEVERITY_ERROR, String.format("No definition for ini entry '%s'", entry.key()));
 	}
 	
 	public IniSection requestSection(String name, IniSectionDefinition dataSection) {
@@ -208,7 +208,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			result = new IniSection(null, name);
 			result.setSubItems(new HashMap<String, IniItem>(), new LinkedList<IniItem>());
 			result.setParentDeclaration(this);
-			result.setSectionData(dataSection);
+			result.setDefinition(dataSection);
 			sectionsMap.put(name, result);
 			sectionsList.add(result);
 		}
@@ -222,8 +222,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
 		if (parentSection != null) {
-			if (parentSection.sectionData() != null) {
-				IniDataBase dataItem = parentSection.sectionData().entryForKey(section.name());
+			if (parentSection.definition() != null) {
+				IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
 				return dataItem instanceof IniSectionDefinition ? (IniSectionDefinition)dataItem : null;
 			}
 			else
@@ -271,6 +271,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (s == null && create) {
 			s = addSection(null, -1, name, -1);
 			s.setSubItems(new HashMap<String, IniItem>(), new ArrayList<IniItem>());
+			s.setDefinition(sectionDataFor(s, null));
 		}
 		return s;
 	}
@@ -565,7 +566,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 						if (value != null) {
 							IniSection section = this.requestSection(category, dataSection);
 							ComplexIniEntry complEntry = new ComplexIniEntry(0, 0, f.getName(), value);
-							complEntry.setEntryConfig(entry);
+							complEntry.setDefinition(entry);
 							section.putEntry(complEntry);
 						}
 					}

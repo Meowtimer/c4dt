@@ -36,11 +36,17 @@ import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -71,7 +77,6 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
@@ -130,7 +135,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 		private final IDArray array;
 		private Table table;
-		private final TableViewer viewer;
+		private TableViewer viewer;
 		private final IPredicate<Definition> definitionFilter;
 
 		private void createControl(Composite parent, String label) {
@@ -145,16 +150,107 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			TableColumnLayout tableLayout = new TableColumnLayout();
 			tableComposite.setLayout(tableLayout);
 			table = new Table(tableComposite, SWT.FULL_SELECTION|SWT.MULTI);
+			this.viewer = createViewer();
 			table.setHeaderVisible(true);
 			table.setLinesVisible(true);
-			TableColumn imageColumn = new TableColumn(table, SWT.LEFT);
-			TableColumn defColumn = new TableColumn(table, SWT.LEFT);
-			defColumn.setText(Messages.ScenarioProperties_Definition);
-			TableColumn countColumn = new TableColumn(table, SWT.RIGHT);
-			countColumn.setText(Messages.ScenarioProperties_CountColumn);
-			tableLayout.setColumnData(imageColumn, new ColumnWeightData(10));
-			tableLayout.setColumnData(defColumn, new ColumnWeightData(80));
-			tableLayout.setColumnData(countColumn, new ColumnWeightData(10));
+			TableViewerColumn imageColumn = new TableViewerColumn(viewer, SWT.LEFT);
+			imageColumn.setLabelProvider(new StyledCellLabelProvider() {
+				@Override
+				public void update(ViewerCell cell) {
+					@SuppressWarnings("unchecked")
+					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
+					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					cell.setImage(def != null ? imageFor(def) : null);
+				}
+			});
+			TableViewerColumn defColumn = new TableViewerColumn(viewer, SWT.LEFT);
+			defColumn.setLabelProvider(new StyledCellLabelProvider() {
+				@Override
+				public void update(ViewerCell cell) {
+					@SuppressWarnings("unchecked")
+					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
+					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					cell.setText(def != null ? def.name() : kv.key().toString());
+				}
+			});
+			defColumn.setEditingSupport(new EditingSupport(viewer) {
+				@Override
+				protected void setValue(Object element, final Object value) {
+					class DefFinder extends Sink<Definition> {
+						public Definition found;
+						@Override
+						public void receivedObject(Definition item) {
+							if (
+								(item.name() != null && item.name().equals(value)) ||
+								(item.id() != null && item.id().stringValue().equals(value))
+							) {
+								found = item;
+								decision(Decision.AbortIteration);
+							}
+						}
+					}
+					DefFinder finder = new DefFinder();
+					scenario.index().allDefinitions(finder);
+					if (finder.found != null && array.find(finder.found.id()) == null) {
+						@SuppressWarnings("unchecked")
+						KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>)element;
+						int index = array.components().indexOf(kv);
+						array.components().remove(index);
+						array.components().add(index, new KeyValuePair<ID, Integer>(finder.found.id(), kv.value()));
+						viewer.refresh();
+					}
+				}
+				@SuppressWarnings("unchecked")
+				@Override
+				protected Object getValue(Object element) {
+					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
+					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					return def != null ? def.name() : kv.key().toString();
+				}
+				@Override
+				protected CellEditor getCellEditor(Object element) {
+					return new TextCellEditor(viewer.getTable());
+				}
+				@Override
+				protected boolean canEdit(Object element) {
+					return true;
+				}
+			});
+			defColumn.getColumn().setText(Messages.ScenarioProperties_Definition);
+			TableViewerColumn countColumn = new TableViewerColumn(viewer, SWT.RIGHT);
+			countColumn.getColumn().setText(Messages.ScenarioProperties_CountColumn);
+			countColumn.setEditingSupport(new EditingSupport(viewer) {
+				@SuppressWarnings("unchecked")
+				@Override
+				protected void setValue(Object element, Object value) {
+					((KeyValuePair<ID, Integer>)element).setValue(Integer.parseInt(value.toString()));
+					viewer.update(element, null);
+				}
+				@SuppressWarnings("unchecked")
+				@Override
+				protected Object getValue(Object element) {
+					return ((KeyValuePair<ID, Integer>)element).value().toString();
+				}
+				@Override
+				protected CellEditor getCellEditor(Object element) {
+					return new TextCellEditor(viewer.getTable());
+				}
+				@Override
+				protected boolean canEdit(Object element) {
+					return true;
+				}
+			});
+			countColumn.setLabelProvider(new StyledCellLabelProvider() {
+				@Override
+				public void update(ViewerCell cell) {
+					@SuppressWarnings("unchecked")
+					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
+					cell.setText(kv.value().toString());
+				}
+			});
+			tableLayout.setColumnData(imageColumn.getColumn(), new ColumnWeightData(10));
+			tableLayout.setColumnData(defColumn.getColumn(), new ColumnWeightData(80));
+			tableLayout.setColumnData(countColumn.getColumn(), new ColumnWeightData(10));
 			
 			Composite buttons = new Composite(parent, SWT.NO_SCROLL);
 			buttons.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
@@ -207,8 +303,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
 			this.array = (IDArray)entry.value();
-			this.viewer = createViewer();
 			this.definitionFilter = entry.engine().specialRules().configurationEntryDefinitionFilter(entry);
+			this.viewer.setInput(array);
 		}
 
 		private TableViewer createViewer() {
@@ -317,7 +413,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 			};
 			viewer.setLabelProvider(new LabelProvider());
-			viewer.setInput(array);
 			return viewer;
 		}
 		
@@ -521,7 +616,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
 				IniItem item = section.subItemByKey(entryName);
 				if (item == null)
-					section.addItem(item = new ComplexIniEntry(-1, -1, entryName, new IDArray()));
+					item = section.addItem(new ComplexIniEntry(-1, -1, entryName, new IDArray()));
 				entry = (ComplexIniEntry)item;
 			} catch (Exception fail) {
 				return null;
@@ -615,7 +710,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				};
 				Runnable r = new Runnable() {
 					@Override
-					public void run() { drawMapPreview(); }
+					public void run() { drawMapPreviewFailsafe(); }
 				};
 				for (EntrySlider s : sliders)
 					s.setUpdateRunnable(r);
@@ -633,7 +728,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				SelectionAdapter redrawPreview = new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						drawMapPreview();
+						drawMapPreviewFailsafe();
 					}
 				};
 				screenSizeCheckbox = new Button(displayOptions, SWT.CHECK);
@@ -648,7 +743,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						mapPreviewNumPlayers = (Integer)e.widget.getData();
-						drawMapPreview();
+						drawMapPreviewFailsafe();
 					}
 				};
 				for (int i = 1; i <= 4; i++) {
@@ -659,7 +754,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 			}
 		}
-		drawMapPreview();
+		drawMapPreviewFailsafe();
 	}
 
 	private void makeEquipmentTab() {
@@ -745,6 +840,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 	}
 
+	private void drawMapPreviewFailsafe() {
+		try {
+			drawMapPreview();
+		} catch (Exception e) {
+			e.printStackTrace(); // oh well
+		}
+	}
+	
 	private void drawMapPreview() {
 		if (mapPreviewImage != null) {
 			mapPreviewImage.dispose();

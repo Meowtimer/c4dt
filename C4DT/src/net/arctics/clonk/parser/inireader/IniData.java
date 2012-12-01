@@ -28,7 +28,7 @@ public class IniData {
 		
 		protected IniConfiguration() {}
 		
-		public static IniConfiguration createFromXML(Node fileNode) throws InvalidIniConfigurationException {
+		public static IniConfiguration fromXML(Node fileNode) throws InvalidIniConfigurationException {
 			IniConfiguration conf = new IniConfiguration();
 			if (fileNode.getAttributes() == null ||  fileNode.getAttributes().getNamedItem("name") == null) //$NON-NLS-1$
 				throw new InvalidIniConfigurationException("A <file> tag must have a name"); //$NON-NLS-1$
@@ -38,14 +38,13 @@ public class IniData {
 			NodeList sectionNodes = fileNode.getChildNodes();
 			for(int i = 0; i < sectionNodes.getLength(); i++)
 				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
-					IniSectionDefinition section = IniSectionDefinition.createFromXML(sectionNodes.item(i), conf.factory);
+					IniSectionDefinition section = IniSectionDefinition.fromXML(sectionNodes.item(i), conf.factory);
 					conf.sections().put(section.sectionName(), section);
 				}
 			return conf;
 		}
 		
 		public static IniConfiguration createFromClass(Class<?> clazz) {
-			IniDefaultSection annot = clazz.getAnnotation(IniDefaultSection.class);
 			IniConfiguration result = new IniConfiguration();
 			for (Field f : clazz.getFields()) {
 				IniField annotation;
@@ -95,7 +94,7 @@ public class IniData {
 		
 		protected IniSectionDefinition() {}
 		
-		public static IniSectionDefinition createFromXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+		public static IniSectionDefinition fromXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
 			IniSectionDefinition section = new IniSectionDefinition();
 			if (sectionNode.getAttributes() == null || 
 					sectionNode.getAttributes().getLength() == 0 || 
@@ -107,11 +106,11 @@ public class IniData {
 				Node node = entryNodes.item(i);
 				// there was a '==' comparison all the time :D - did work by chance or what?
 				if (node.getNodeName().equals("entry")) { //$NON-NLS-1$
-					IniEntryDefinition entry = IniEntryDefinition.createFromXML(node, factory);
-					section.entries().put(entry.entryName(), entry);
+					IniEntryDefinition entry = IniEntryDefinition.fromXML(node, factory);
+					section.entries().put(entry.name(), entry);
 				}
 				else if (node.getNodeName().equals("section")) {
-					IniSectionDefinition sec = IniSectionDefinition.createFromXML(node, factory);
+					IniSectionDefinition sec = IniSectionDefinition.fromXML(node, factory);
 					section.entries().put(sec.sectionName(), sec);
 				}
 			}
@@ -142,16 +141,17 @@ public class IniData {
 	}
 	
 	public static final class IniEntryDefinition extends IniDataBase {
-		protected String entryName;
+		protected String name;
 		protected Class<?> entryClass;
-		protected String entryDescription;
-		protected Object extraData;
+		protected String description;
+		protected String categoryFilter;
+		protected String constantsPrefix;
+		protected Map<String, Integer> enumValues;
 		
-		protected IniEntryDefinition() {
-		}
+		protected IniEntryDefinition() {}
 		
 		public IniEntryDefinition(String name, Class<?> valueType) {
-			entryName = name;
+			this.name = name;
 			if (valueType == String.class)
 				entryClass = valueType;
 			else if (valueType == Integer.TYPE || valueType == Long.TYPE)
@@ -174,7 +174,7 @@ public class IniData {
 			}
 		}
 		
-		public static IniEntryDefinition createFromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+		public static IniEntryDefinition fromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
 			Node n;
 			IniEntryDefinition entry = new IniEntryDefinition();
 			if (entryNode.getAttributes() == null || 
@@ -182,65 +182,33 @@ public class IniData {
 					entryNode.getAttributes().getNamedItem("name") == null || //$NON-NLS-1$
 					entryNode.getAttributes().getNamedItem("class") == null)
 				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
-			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
+			entry.name = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue(); //$NON-NLS-1$
 			Class<?> configClass = cls(className);
 			if (configClass == null)
 				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$ //$NON-NLS-2$
 			entry.entryClass = configClass;
 			if ((n = entryNode.getAttributes().getNamedItem("description")) != null)
-				entry.entryDescription = n.getNodeValue();
-			if (
-				(n = entryNode.getAttributes().getNamedItem("flags")) != null || //$NON-NLS-1$
-				(n = entryNode.getAttributes().getNamedItem("enumValues")) != null //$NON-NLS-1$
-			)
-				entry.extraData = ArrayUtil.mapValueToIndex(n.getNodeValue().split(",")); //$NON-NLS-1$
+				entry.description = n.getNodeValue();
+			if ((n = entryNode.getAttributes().getNamedItem("enumValues")) != null) //$NON-NLS-1$
+				entry.enumValues = ArrayUtil.mapValueToIndex(n.getNodeValue().split(",")); //$NON-NLS-1$
 			if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null)
-				entry.extraData = n.getNodeValue();
+				entry.constantsPrefix = n.getNodeValue();
+			if ((n = entryNode.getAttributes().getNamedItem("categoryFilter")) != null)
+				entry.categoryFilter = n.getNodeValue();
 			return entry;
 		}
 		
-		public String entryName() {
-			return entryName;
-		}
-
-		public Class<?> entryClass() {
-			return entryClass;
-		}
-		public String description() {
-			return entryDescription;
-		}
-		
-		public void setEntryClass(Class<?> cls) {
-			entryClass = cls;
-		}
-		public void setEntryName(String name) {
-			entryName = name;
-		}
-		public void setDescription(String desc) {
-			entryDescription = desc;
-		}
-		
-		public String constantsPrefix() {
-			try {
-				return (String) extraData;
-			} catch (ClassCastException e) {
-				return null;
-			}
-		}
-		
-		@SuppressWarnings("unchecked")
-		public Map<String, Integer> enumValues() {
-			try {
-				return (Map<String, Integer>) extraData;
-			} catch (ClassCastException e) {
-				return null;
-			}
-		}
+		public String name() { return name; }
+		public Class<?> entryClass() { return entryClass; }
+		public String description() { return description; }
+		public String categoryFilter() { return categoryFilter; }
+		public String constantsPrefix() { return constantsPrefix; }
+		public Map<String, Integer> enumValues() { return enumValues; }
 		
 		@Override
 		public String toString() {
-			return String.format("%s: %s", entryName, entryClass != null ? entryClass.getSimpleName() : "?");
+			return String.format("%s: %s", name, entryClass != null ? entryClass.getSimpleName() : "?");
 		}
 		
 	}
@@ -272,7 +240,7 @@ public class IniData {
 			NodeList nodeList = doc.getElementsByTagName("file"); //$NON-NLS-1$
 			for (int i = 0; i < nodeList.getLength();i++)
 				try {
-					IniConfiguration conf = IniConfiguration.createFromXML(nodeList.item(i));
+					IniConfiguration conf = IniConfiguration.fromXML(nodeList.item(i));
 					configurations.put(conf.fileName(), conf);
 				}
 				catch (InvalidIniConfigurationException e) {

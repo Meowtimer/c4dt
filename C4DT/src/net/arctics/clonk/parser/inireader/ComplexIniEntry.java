@@ -15,7 +15,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private Object extendedValue;
-	private IniEntryDefinition entryConfig;
+	private IniEntryDefinition definition;
 
 	protected ComplexIniEntry(int pos, int endPos, String key, String value) {
 		super(pos,endPos, key,value);
@@ -30,17 +30,17 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		return extendedValue;
 	}
 	
-	public void setEntryConfig(IniEntryDefinition entryConfig) {
-		this.entryConfig = entryConfig;
+	public void setDefinition(IniEntryDefinition entryConfig) {
+		this.definition = entryConfig;
 	}
 	
-	public IniEntryDefinition entryConfig() {
-		return entryConfig;
+	public IniEntryDefinition definition() {
+		return definition;
 	}
 	
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniEntryDefinition config, boolean createErrorMarkers) {
 		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
-		cmpl.entryConfig = config;
+		cmpl.definition = config;
 		cmpl.extendedValue = extendedValue;
 		cmpl.setParentDeclaration(entry.parentDeclaration());
 		return cmpl;
@@ -64,7 +64,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	public void setStringValue(String value, Object context) {
 		if (extendedValue instanceof IIniEntryValue)
 			try {
-				((IIniEntryValue)extendedValue).setInput(value, entryConfig, (IniUnit) context);
+				((IIniEntryValue)extendedValue).setInput(value, definition, (IniUnit) context);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}

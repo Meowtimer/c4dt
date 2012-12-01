@@ -42,6 +42,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -945,13 +946,14 @@ public abstract class SpecialEngineRules {
 		// do nothing
 	}
 
-	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
-		if (entry.key().equals("Rules"))
+	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+		if (entry instanceof ComplexIniEntry && ((ComplexIniEntry)entry).definition() != null && ((ComplexIniEntry)entry).definition().categoryFilter() != null)
 			return new IPredicate<Definition>() {
+				final String filter = ((ComplexIniEntry)entry).definition().categoryFilter();
 				@Override
 				public boolean test(Definition item) {
 					CategoriesValue category = item.category();
-					return category != null && category.constants() != null && category.constants().contains("C4D_Rule");
+					return category != null && category.constants() != null && category.constants().contains(filter);
 				}
 			};
 		else if (entry.key().equals("Animal"))

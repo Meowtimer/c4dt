@@ -1,8 +1,5 @@
 package net.arctics.clonk.parser.c4script.specialenginerules;
 
-import static net.arctics.clonk.util.ArrayUtil.map;
-
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,10 +12,9 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.inireader.IniEntry;
-import net.arctics.clonk.util.IPredicate;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
+	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");
 	public SpecialEngineRules_ClonkRage() {
 		super();
 		putFuncRule(criteriaSearchRule, "FindObject2");
@@ -40,9 +36,6 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 			};
 		}, "ObjectSetAction");
 	}
-	
-	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");
-	
 	@Override
 	public ID parseId(BufferedScanner scanner) {
 		Matcher idMatcher = ID_PATTERN.matcher(scanner.buffer().substring(scanner.tell()));
@@ -56,38 +49,5 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 			return ID.get(idString);
 		}
 		return null;
-	}
-	
-	private static final Map<String, String> entryToCategoryMap = map(false,
-		"Animal", "C4D_SelectAnimal",
-		"Buildings", "C4D_SelectBuilding",
-		"HomeBaseMaterial", "C4D_SelectHomebase",
-		"Nest", "C4D_SelectNest",
-		"Vehicles", "C4D_SelectVehicle",
-		"Vegetation", "C4D_SelectVegetation"
-	);
-	
-	@Override
-	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		{
-			final String category = entryToCategoryMap.get(entry.key());
-			if (category != null)
-				return new IPredicate<Definition>() {
-					@Override
-					public boolean test(Definition item) {
-						return item.categorySet(category);
-					}
-				};
-		}
-		if (entry.key().equals("Goals"))
-			return new IPredicate<Definition>() {
-				final Definition goal = entry.index().anyDefinitionWithID(ID.get("GOAL"));
-				@Override
-				public boolean test(Definition item) {
-					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
-				}
-			};
-		else
-			return super.configurationEntryDefinitionFilter(entry);
 	}
 }
