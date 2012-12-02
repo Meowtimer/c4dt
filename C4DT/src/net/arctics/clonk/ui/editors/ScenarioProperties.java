@@ -175,6 +175,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 			});
 			defColumn.setEditingSupport(new EditingSupport(viewer) {
+				private Object nudgedElement;
 				@Override
 				protected void setValue(Object element, final Object value) {
 					class DefFinder extends Sink<Definition> {
@@ -210,11 +211,18 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 				@Override
 				protected CellEditor getCellEditor(Object element) {
+					nudgedElement = null;
 					return new TextCellEditor(viewer.getTable());
 				}
 				@Override
 				protected boolean canEdit(Object element) {
-					return true;
+					if (nudgedElement == null || nudgedElement != element) {
+						nudgedElement = element;
+						return false;
+					} else {
+						nudgedElement = null;
+						return true;
+					}
 				}
 			});
 			defColumn.getColumn().setText(Messages.ScenarioProperties_Definition);
@@ -298,7 +306,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					int[] indices = table.getSelectionIndices();
 					for (int i = indices.length-1; i >= 0; i--) {
 						KeyValuePair<ID, Integer> kv = array.childCollection().get(indices[i]);
-						kv.setValue(kv.value()+change);
+						kv.setValue(Math.max(1, kv.value()+change));
 					}
 					viewer.refresh();
 				}
