@@ -208,7 +208,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		Index index = nature.index();
 
-		final Function activeFunc = getActiveFunc(doc, offset);
+		final Function activeFunc = funcAt(doc, offset);
 		this._activeFunc = activeFunc;
 
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
@@ -242,10 +242,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
-			IDocument doc, String prefix,
-			List<ICompletionProposal> proposals, Index index,
-			final Function activeFunc) {
-
+		IDocument doc, String prefix,
+		List<ICompletionProposal> proposals, Index index,
+		final Function activeFunc
+	) {
 		Script editorScript = Utilities.scriptForEditor(editor);
 		contextExpression = null;
 		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
@@ -429,11 +429,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
-		boolean directiveExpectingObject =
+		boolean directiveExpectingDefinition =
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) ||
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString());
 
-		if (!directiveExpectingObject) {
+		if (!directiveExpectingDefinition) {
 			// propose creating functions for standard callbacks
 			for(String callback : editor().script().engine().settings().callbackFunctions()) {
 				if (prefix != null)
@@ -491,7 +491,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		// propose objects for #include or something
-		if (directiveExpectingObject) {
+		if (directiveExpectingDefinition) {
 			if (prefix == null)
 				prefix = "";
 			for (Index i : index.relevantIndexes())
@@ -526,7 +526,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
-	protected Function getActiveFunc(IDocument document, int offset) {
+	protected Function funcAt(IDocument document, int offset) {
 		Script thisScript = Utilities.scriptForEditor(editor);
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}
