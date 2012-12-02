@@ -81,10 +81,6 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		boolean success = false;
 		If: if (delta.getResource() instanceof IFile) {
 			final IFile file = (IFile) delta.getResource();
-			if (!file.getName().endsWith(".c")) {
-				success = true;
-				break If;
-			}
 			Script script;
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
@@ -98,7 +94,8 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					else
 						script = createDefinition(delta.getResource().getParent());
 				} else {
-					script.setScriptFile(file); // ensure files match up
+					if (file.getName().endsWith(".c"))
+						script.setScriptFile(file); // ensure files match up
 					obsoleted.remove(script);
 				}
 				if (script != null && file.equals(script.scriptFile()))
