@@ -35,6 +35,7 @@ import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.internal.text.revisions.Colors;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -149,7 +150,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			tableComposite.setLayoutData(tableLayoutData);
 			TableColumnLayout tableLayout = new TableColumnLayout();
 			tableComposite.setLayout(tableLayout);
-			table = new Table(tableComposite, SWT.FULL_SELECTION|SWT.MULTI);
+			table = new Table(tableComposite, SWT.FULL_SELECTION|SWT.MULTI|SWT.BORDER);
 			this.viewer = createViewer();
 			table.setHeaderVisible(true);
 			table.setLinesVisible(true);
@@ -257,6 +258,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			GridLayout buttonsLayout = noMargin(new GridLayout(1, true));
 			buttonsLayout.makeColumnsEqualWidth = true;
 			buttons.setLayout(buttonsLayout);
+			GridData buttonData = new GridData(SWT.BEGINNING);
+			buttonData.grabExcessHorizontalSpace = true;
 			Button add = new Button(buttons, SWT.PUSH);
 			add.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -264,6 +267,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					addDefinitions();
 				}
 			});
+			add.setLayoutData(buttonData);
 			add.setText(Messages.ScenarioProperties_AddDefinitions);
 			Button remove = new Button(buttons, SWT.PUSH);
 			remove.setText(Messages.ScenarioProperties_RemoveDefinitions);
@@ -276,10 +280,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					viewer.refresh();
 				}
 			});
+			remove.setLayoutData(buttonData);
 			final Button inc = new Button(buttons, SWT.PUSH);
 			inc.setText(Messages.ScenarioProperties_Inc);
+			inc.setLayoutData(buttonData);
 			final Button dec = new Button(buttons, SWT.PUSH);
 			dec.setText(Messages.ScenarioProperties_Dec);
+			dec.setLayoutData(buttonData);
 			SelectionAdapter changeAmountListener = new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -490,7 +497,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					{new Label(parent, SWT.NULL).setText(label);}};
 			if (!labelPostfix)
 				r.run();
-			Spinner spinner = new Spinner(parent, SWT.NULL);
+			Spinner spinner = new Spinner(parent, SWT.BORDER);
 			spinner.addSelectionListener(this);
 			spinner.setMinimum(-100);
 			spinner.setMaximum(+100);
@@ -510,18 +517,21 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			Image img = imageForSlider(entry);
 			Composite group = new Composite(parent, SWT.NO_SCROLL);
 			group.setLayout(noMargin(new GridLayout(img != null ? 2 : 1, false)));
-			group.setLayoutData(new GridData(GridData.FILL_BOTH));
+			GridData groupData = new GridData(GridData.FILL_BOTH);
+			groupData.grabExcessHorizontalSpace = true;
+			group.setLayoutData(groupData);
 			if (img != null) {
 				Label icon = new Label(group, SWT.BORDER);
 				icon.setImage(img);
 			}
 			Composite spinners = new Composite(group, SWT.NO_SCROLL);
+			spinners.setLayoutData(groupData);
 			Label lbl = new Label(spinners, SWT.NULL);
 			lbl.setText(label);
 			lbl.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 8, 1));
 			spinners.setLayout(noMargin(new GridLayout(8, false)));
-			spinner(spinners, "⠛", 0, false, Messages.ScenarioProperties_Standard); //$NON-NLS-1$
-			spinner(spinners, "δ", 1, false, Messages.ScenarioProperties_Random); //$NON-NLS-1$
+			spinner(spinners, "V", 0, false, Messages.ScenarioProperties_Standard); //$NON-NLS-1$
+			spinner(spinners, "R", 1, false, Messages.ScenarioProperties_Random); //$NON-NLS-1$
 			spinner(spinners, "[", 2, false, Messages.ScenarioProperties_Minimum); //$NON-NLS-1$
 			spinner(spinners, "]", 3, true, Messages.ScenarioProperties_Maximum); //$NON-NLS-1$
 		}
@@ -646,7 +656,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	
 	@Override
 	protected Control createContents(Composite parent) {
-		tabs = new TabFolder(parent, SWT.BORDER);
+		tabs = new TabFolder(parent, SWT.NULL);
 		makeGameTab();
 		makeEquipmentTab();
 		makeLandscapeTab();
@@ -666,6 +676,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private void makeWeatherTab() {
 		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
 		GridLayout weatherLayout = new GridLayout(2, false);
+		//weather.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		weather.setLayout(weatherLayout);
 		{
 			slider(weather, "Weather", "Climate", Messages.ScenarioProperties_Climate); //$NON-NLS-1$ //$NON-NLS-2$
@@ -761,7 +772,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 	private void makeEquipmentTab() {
 		Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
-		TabFolder players = new TabFolder(equipment, SWT.BORDER);
+		TabFolder players = new TabFolder(equipment, SWT.NULL);
 		players.setLayoutData(new GridData(GridData.FILL_BOTH));
 		final Map<Integer, List<DefinitionListEditor>> playerEditors = new HashMap<Integer, List<DefinitionListEditor>>();
 		for (int i = 1; i <= 4; i++) {
