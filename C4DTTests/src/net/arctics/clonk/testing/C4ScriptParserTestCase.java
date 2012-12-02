@@ -223,10 +223,6 @@ public class C4ScriptParserTestCase {
 							ExprElm expression) {
 						// ignore
 					}
-					@Override
-					public boolean consume(ExprElm consumer, ExprElm extra) {
-						return false;
-					}
 				}).isEqual());
 	}
 

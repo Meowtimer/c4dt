@@ -35,7 +35,6 @@ import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.internal.text.revisions.Colors;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnWeightData;

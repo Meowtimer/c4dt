@@ -845,11 +845,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 		}
-
-		@Override
-		public boolean consume(ExprElm consumer, ExprElm extra) {
-			return false;
-		}
 	};
 	
 	/**
@@ -863,7 +858,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			ExprElm[] mySubElements = this.subElements();
 			ExprElm[] otherSubElements = other.subElements();
 			int myIndex, otherIndex;
-			ExprElm consumer = null;
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
 				ExprElm mine = mySubElements[myIndex];
 				ExprElm others = otherSubElements[otherIndex];
@@ -883,12 +877,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 				
 				switch (handling) {
 				case Differs:
-					if (consumer != null && delegate.consume(consumer, others)) {
-						myIndex--;
-						break;
-					}
-					else
-						return DifferenceHandling.Differs;
+					return DifferenceHandling.Differs;
 				case IgnoreLeftSide:
 					// decrement index for other so the current other element will be compared to the next my element 
 					otherIndex--;
@@ -898,7 +887,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					myIndex--;
 					break;
 				default:
-					consumer = mine;
 					break;
 				}
 			}
@@ -949,11 +937,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 			@Override
 			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
-			}
-
-			@Override
-			public boolean consume(ExprElm consumer, ExprElm extra) {
-				return false;
 			}
 			
 		};
@@ -1160,6 +1143,8 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					} else
 						return DifferenceHandling.Differs;
 				}
+				else if (what == SUBELEMENTS_LENGTH && a instanceof MatchingPlaceholder)
+					return DifferenceHandling.IgnoreRightSide;
 				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
 					ExprElm[] mine = a.subElements();
 					ExprElm[] others = b.subElements();
@@ -1168,11 +1153,22 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 							return DifferenceHandling.Differs;
 					return DifferenceHandling.IgnoreLeftSide;
 				}
+				else if (what == SUBELEMENTS_LENGTH && a.subElements().length < b.subElements().length) {
+					ExprElm[] mine = a.subElements();
+					ExprElm[] others = b.subElements();
+					MatchingPlaceholder remainder = mine.length > 0 ? as(mine[mine.length-1], MatchingPlaceholder.class) : null;
+					if (remainder != null && remainder.remainder()) {
+						for (int i = mine.length; i < others.length; i++)
+							if (!consume(remainder, others[i]))
+								return DifferenceHandling.Differs;
+						return DifferenceHandling.IgnoreRightSide;
+					} else
+						return DifferenceHandling.Differs; 
+				}
 				else
 					return DifferenceHandling.Differs;
 			}
-			@Override
-			public boolean consume(ExprElm consumer, ExprElm extra) {
+			private boolean consume(ExprElm consumer, ExprElm extra) {
 				if (consumer instanceof MatchingPlaceholder && consumer instanceof MatchingPlaceholder) {
 					MatchingPlaceholder mp = (MatchingPlaceholder)consumer;
 					if (mp.remainder()) {

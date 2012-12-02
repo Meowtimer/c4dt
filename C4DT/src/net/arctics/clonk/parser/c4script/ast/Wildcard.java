@@ -156,11 +156,6 @@ public class Wildcard extends PropListExpression {
 			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 				s.wildcardMatches.put(wildcard.tag(), expression);
 			}
-
-			@Override
-			public boolean consume(ExprElm consumer, ExprElm extra) {
-				return false;
-			}
 		};
 		if (body.compare(template, d).isEqual())
 			sink.elutriate(s);

@@ -76,9 +76,4 @@ public interface IASTComparisonDelegate {
 	 * @param expression The expression matching the wildcard
 	 */
 	void wildcardMatched(Wildcard wildcard, ExprElm expression);
-	
-	/**
-	 * 
-	 */
-	boolean consume(ExprElm consumer, ExprElm extra);
 }
