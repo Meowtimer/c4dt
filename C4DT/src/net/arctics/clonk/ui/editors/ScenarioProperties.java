@@ -484,7 +484,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		public void setUpdateRunnable(Runnable updateRunnable) {
 			this.updateRunnable = updateRunnable;
 		}
-		private Spinner spinner(final Composite parent, final String label, int index, boolean labelPostfix) {
+		private Spinner spinner(final Composite parent, final String label, int index, boolean labelPostfix, String toolTipText) {
 			Runnable r = new Runnable()
 				{ @Override public void run()
 					{new Label(parent, SWT.NULL).setText(label);}};
@@ -492,13 +492,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				r.run();
 			Spinner spinner = new Spinner(parent, SWT.NULL);
 			spinner.addSelectionListener(this);
-			spinner.setMinimum(0);
-			spinner.setMaximum(100);
+			spinner.setMinimum(-100);
+			spinner.setMaximum(+100);
 			spinner.setSelection(value(index));
 			spinner.setData(index);
 			GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			scaleLayoutData.grabExcessHorizontalSpace = true;
 			spinner.setLayoutData(scaleLayoutData);
+			spinner.setToolTipText(toolTipText);
 			if (labelPostfix)
 				r.run();
 			return spinner;
@@ -519,14 +520,15 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			lbl.setText(label);
 			lbl.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 8, 1));
 			spinners.setLayout(noMargin(new GridLayout(8, false)));
-			spinner(spinners, "⠛", 0, false).setToolTipText(Messages.ScenarioProperties_Standard); //$NON-NLS-1$
-			spinner(spinners, "δ", 1, false).setToolTipText(Messages.ScenarioProperties_Random); //$NON-NLS-1$
-			spinner(spinners, "[", 2, false).setToolTipText(Messages.ScenarioProperties_Minimum); //$NON-NLS-1$
-			spinner(spinners, "]", 3, true).setToolTipText(Messages.ScenarioProperties_Maximum); //$NON-NLS-1$
+			spinner(spinners, "⠛", 0, false, Messages.ScenarioProperties_Standard); //$NON-NLS-1$
+			spinner(spinners, "δ", 1, false, Messages.ScenarioProperties_Random); //$NON-NLS-1$
+			spinner(spinners, "[", 2, false, Messages.ScenarioProperties_Minimum); //$NON-NLS-1$
+			spinner(spinners, "]", 3, true, Messages.ScenarioProperties_Maximum); //$NON-NLS-1$
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			setValue((Integer) e.widget.getData(), ((Spinner)e.widget).getSelection());
+			Integer ndx = (Integer) e.widget.getData();
+			setValue(ndx, ((Spinner)e.widget).getSelection());
 			if (updateRunnable != null)
 				updateRunnable.run();
 		}
