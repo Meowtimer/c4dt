@@ -78,7 +78,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		if (delta == null) 
 			return false;
 
-		boolean success = false;
+		boolean visitChildren = false;
 		If: if (delta.getResource() instanceof IFile) {
 			final IFile file = (IFile) delta.getResource();
 			Script script;
@@ -107,13 +107,13 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				obsoleteCorrespondingScriptFromIndex(file, builder.index());
 				break;
 			}
-			success = true;
+			visitChildren = true;
 		}
 		else if (delta.getResource() instanceof IContainer) {
 			IContainer container = (IContainer)delta.getResource();
 			if (!INDEX_C4GROUPS)
 				if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
-					success = false;
+					visitChildren = false;
 					break If;
 				}
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
@@ -125,19 +125,15 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					definition.setDefinitionFolder(container);
 					obsoleted.remove(definition);
 				}
-				//					else if (isSystemGroup(container))
-				//						for (IResource res : container.members())
-				//							if (isSystemScript(res))
-				//								queueScript(new SystemScript(index(), (IFile)res));
 				break;
 			case IResourceDelta.REMOVED:
 				obsoleteCorrespondingScriptFromIndex(container, builder.index());
 				break;
 			}
-			success = true;
+			visitChildren = true;
 		}
 		builder.monitor().worked(1);
-		return success;
+		return visitChildren;
 	}
 	@Override
 	public boolean visit(IResource resource) throws CoreException {

@@ -320,6 +320,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	
 	@Override
 	public void setScriptFile(IFile f) { scriptFile = f; }
+	public void setDefCoreFile(IFile defCoreFile) { this.defCoreFile = defCoreFile; }
 
 	@Override
 	public String scriptText() {
