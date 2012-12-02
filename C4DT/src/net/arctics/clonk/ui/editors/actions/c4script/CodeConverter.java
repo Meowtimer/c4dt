@@ -99,6 +99,12 @@ public abstract class CodeConverter {
 			for (Declaration d : decs)
 				try {
 					ExprElm elms = codeFor(d);
+					if (d instanceof Function) {
+						Function f = (Function)d;
+						StringBuilder header = new StringBuilder(f.header().getLength()+10);
+						f.printHeader(header, false);
+						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
+					}
 					replaceExpression(d, document, elms, parser, textChange);
 				} catch (CloneNotSupportedException e1) {
 					e1.printStackTrace();
