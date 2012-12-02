@@ -582,24 +582,33 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	@Override
 	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		if (entry.key().equals("Vegetation"))
-			return new IPredicate<Definition>() {
-				final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
-				@Override
-				public boolean test(Definition item) {
-					return plant != null && item != plant && item.doesInclude(entry.index(), plant);
-				}
-			};
-		else if (entry.key().equals("Goals"))
-			return new IPredicate<Definition>() {
-				final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
-				@Override
-				public boolean test(Definition item) {
-					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
-				}
-			};
-		else
-			return super.configurationEntryDefinitionFilter(entry);
+		final IPredicate<Definition> basePredicate =
+			entry.key().equals("Vegetation") ?
+				new IPredicate<Definition>() {
+					final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
+					@Override
+					public boolean test(Definition item) {
+						return plant != null && item != plant && item.doesInclude(entry.index(), plant);
+					}
+				} :
+			entry.key().equals("Goals") ?
+				new IPredicate<Definition>() {
+					final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
+					@Override
+					public boolean test(Definition item) {
+						return goal != null && item != goal && item.doesInclude(entry.index(), goal);
+					}
+				} :
+			super.configurationEntryDefinitionFilter(entry);
+		return basePredicate != null ? new IPredicate<Definition>() {
+			@Override
+			public boolean test(Definition item) {
+				if (item.id() != null && item.id().stringValue().startsWith("Library_"))
+					return false;
+				else
+					return basePredicate.test(item);
+			}
+		} : null;
 	}
 
 }
