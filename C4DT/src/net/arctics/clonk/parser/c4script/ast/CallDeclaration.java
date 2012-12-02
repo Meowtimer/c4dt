@@ -154,7 +154,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		@Override
 		public boolean local() {
-			return true;
+			return varFunction.name().equals("Var");
 		}
 	}
 
@@ -723,7 +723,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
-		if (isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
+		if (isAnyOf(d, cache.VarAccessFunctions)) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
 				if (ev instanceof Number)

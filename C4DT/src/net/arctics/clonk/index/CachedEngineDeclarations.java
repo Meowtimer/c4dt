@@ -46,6 +46,10 @@ public class CachedEngineDeclarations {
 	 * Functions used to dynamically call functions on an object or in the {@link Scenario} script (GameCall, PrivateCall, ProtectedCall, Call)
 	 */
 	public final Function[] CallFunctions;
+	/**
+	 * Functions used to access variables. (Local, Par, Var)
+	 */
+	public final Function[] VarAccessFunctions;
 
 	/**
 	 * Create new {@link CachedEngineDeclarations} for some {@link Engine}.
@@ -74,6 +78,7 @@ public class CachedEngineDeclarations {
 			ProtectedCall,
 			PrivateCall
 		};
+		VarAccessFunctions = new Function[] {Local, Var, Par};
 	}
 
 }

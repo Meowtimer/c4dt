@@ -31,6 +31,8 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -93,7 +95,12 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 
 	public static final ExprElm NULL_EXPR = new ExprElm();
 	public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
-	public static final Object EVALUATION_COMPLEX = new Object();
+	public static final Object EVALUATION_COMPLEX = new Object() {
+		@Override
+		public boolean equals(Object obj) {
+			return false; // never!
+		};
+	};
 	
 	public static final int PROPERLY_FINISHED = 1;
 	public static final int STATEMENT_REACHED = 2;
@@ -954,7 +961,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
-				return true;
+				return !Utilities.isAnyOf(((AccessDeclaration)expr).declaration(), parser.cachedEngineDeclarations().VarAccessFunctions);
 			ExprElm chainA, chainB;
 			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
@@ -999,6 +1006,14 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		@Override
 		public String toString() {
 			return expression.toString() + ": " + super.toString();
+		}
+		
+		@Override
+		public boolean local() {
+			return
+				expression instanceof AccessVar &&
+				((AccessVar)expression).declaration() instanceof Variable &&
+				((Variable)((AccessVar)expression).declaration()).scope() == Scope.VAR;
 		}
 		
 	}
