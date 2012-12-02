@@ -193,7 +193,7 @@ are then taken into account in various places
 -Shortcuts contributed by plugin put into shortcut context "Clonk Editing" to not conflict with Java shortcuts etc
 -Default shortcuts for various commands
 1.7.6:
--Preliminary Scenario properties dialog (right on some scenario, select properties and then the scenario section)
+-Preliminary Scenario properties dialog (right-click on some scenario, select properties and then the scenario section)
 -Renaming definition folders should work better (or at all)
 -Type Inference changed, not necessarily improved
 -Lookup Declaration: Engine functions also listed; when selecting them the documentation page is opened
