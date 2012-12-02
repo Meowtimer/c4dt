@@ -156,7 +156,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

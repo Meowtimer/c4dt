@@ -1023,7 +1023,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

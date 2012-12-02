@@ -90,7 +90,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

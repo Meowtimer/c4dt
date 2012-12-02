@@ -47,7 +47,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

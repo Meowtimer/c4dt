@@ -326,7 +326,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

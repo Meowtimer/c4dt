@@ -89,7 +89,7 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

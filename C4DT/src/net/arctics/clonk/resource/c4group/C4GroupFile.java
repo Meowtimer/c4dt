@@ -320,7 +320,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	public IPath getFullPath() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

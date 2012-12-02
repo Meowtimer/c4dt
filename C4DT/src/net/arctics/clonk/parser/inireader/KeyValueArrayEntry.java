@@ -122,7 +122,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 	
 	@Override
