@@ -63,7 +63,6 @@ public class ReferencesQuery extends SearchQueryBase {
 	}
 	
 	private class Visitor implements IResourceVisitor, IASTVisitor {
-
 		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;
@@ -71,7 +70,6 @@ public class ReferencesQuery extends SearchQueryBase {
 			}
 			return false;
 		}
-		
 		@Override
 		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
 			if (expression instanceof AccessDeclaration) {
@@ -96,7 +94,6 @@ public class ReferencesQuery extends SearchQueryBase {
 			}
 			return TraversalContinuation.Continue;
 		}
-		
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
@@ -106,7 +103,6 @@ public class ReferencesQuery extends SearchQueryBase {
 			}
 			return true;
 		}
-		
 		public void searchScript(IResource resource, Script script) {
 			if (script.scriptFile() != null) {
 				C4ScriptParser parser;
@@ -134,7 +130,6 @@ public class ReferencesQuery extends SearchQueryBase {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 
 	@Override
