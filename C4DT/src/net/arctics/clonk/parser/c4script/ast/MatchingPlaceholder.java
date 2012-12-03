@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
@@ -65,10 +67,11 @@ public class MatchingPlaceholder extends Placeholder {
 	public boolean satisfiedBy(ExprElm element) {
 		if (requiredClass != null && !requiredClass.isInstance(element))
 			return false;
-		if (stringRepresentationPattern != null)
-			if (element instanceof AccessDeclaration &&
-				!stringRepresentationPattern.matcher(((AccessDeclaration)element).declarationName()).matches())
+		if (stringRepresentationPattern != null) {
+			IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
+			if (target == null || !stringRepresentationPattern.matcher(target.patternMatchingText()).matches())
 				return false;
+		}
 		return true;
 	}
 	

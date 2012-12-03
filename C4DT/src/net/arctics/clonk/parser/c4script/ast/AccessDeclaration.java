@@ -19,7 +19,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public abstract class AccessDeclaration extends ExprElm {
+public abstract class AccessDeclaration extends ExprElm implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected transient Declaration declaration;
@@ -153,6 +153,11 @@ public abstract class AccessDeclaration extends ExprElm {
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		declarationFromContext(root);
+	}
+	
+	@Override
+	public String patternMatchingText() {
+		return declarationName();
 	}
 	
 }
