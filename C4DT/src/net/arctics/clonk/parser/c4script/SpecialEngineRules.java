@@ -967,6 +967,9 @@ public abstract class SpecialEngineRules {
 			return new IPredicate<Definition>() {
 				@Override
 				public boolean test(Definition item) {
+					for (Directive d : item.directives())
+						if (d.type() == DirectiveType.APPENDTO)
+							return false; // ignore definitions that append
 					return item.findFunction("IsClonk") != null;
 				}
 			};
