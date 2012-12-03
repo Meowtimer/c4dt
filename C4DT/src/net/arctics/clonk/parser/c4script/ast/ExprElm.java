@@ -509,11 +509,9 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		return transformSubElements(new ITransformer() {
 			@Override
 			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
-				ExprElm t = transformer.transform(prev, prevT, expression);
-				if (t != expression)
-					return t;
-				else
-					return expression != null ? expression.transformSubElements(this) : null; 
+				expression = expression != null ? expression.transformSubElements(this) : null;
+				expression = transformer.transform(prev, prevT, expression);
+				return expression;
 			}
 		});
 	}
@@ -1245,9 +1243,11 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 				if (expression instanceof Placeholder)
 					return new MatchingPlaceholder(((Placeholder)expression).entryName());
 				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
-					((MatchingPlaceholder)prevT).setSubElements(((Tuple)expression).transformSubElementsRecursively(this).subElements());
+					((MatchingPlaceholder)prevT).setSubElements(expression.transformSubElementsRecursively(this).subElements());
 					return REMOVE;
-				} else
+				} else if (expression instanceof Sequence && ((Sequence)expression).subElements().length == 1 && ((Sequence)expression).subElements()[0] instanceof MatchingPlaceholder)
+					return ((Sequence)expression).subElements()[0];
+				else
 					return expression;
 			}
 		});

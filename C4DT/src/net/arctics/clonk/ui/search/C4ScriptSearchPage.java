@@ -66,7 +66,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		customTemplateLabel.setText("Custom Template");
 		customTemplateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		
-		templateText = new Text(ctrl, SWT.BORDER);
+		templateText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_templateText = new GridData(GridData.FILL_BOTH);
 		gd_templateText.widthHint = 527;
 		gd_templateText.heightHint = 150;
@@ -81,13 +81,17 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		gd_replacementText.heightHint = 168;
 		replacementText.setLayoutData(gd_replacementText);
 	}
+	
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		container.setActiveEditorCanProvideScopeSelection(true);
+	}
 
 	@Override
 	public boolean performAction() {
 		IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IStructuredSelection sel = new StructuredSelection(fileEditedBy(editor));
-		if (sel == null)
-			return false;
 		final List<Script> scope = new LinkedList<Script>();
 		Set<IProject> projects = new HashSet<IProject>();
 		switch (container.getSelectedScope()) {
