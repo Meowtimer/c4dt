@@ -20,18 +20,40 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 public class C4ScriptSearchQuery extends SearchQueryBase {
+	
+	public static class Match extends ClonkSearchMatch {
+		private final ExprElm matched;
+		private final Map<String, Object> subst;
+		public ExprElm matched() { return matched; }
+		public Map<String, Object> subst() { return subst; }
+		public Match(String line, int lineOffset, Object element, int offset, int length, ExprElm matched, Map<String, Object> subst) {
+			super(line, lineOffset, element, offset, length, false, false);
+			this.matched = matched;
+			this.subst = subst;
+		}
+	}
+	
+	private void addMatch(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
+		String line = parser.bufferSubstringAtRegion(lineRegion);
+		result.addMatch(new Match(line.trim(), lineRegion.getOffset(), parser.script(), s, l, match, subst));
+	}
 
 	private final String templateText;
 	private final ExprElm template;
 	private final ExprElm replacement;
 	private final Iterable<Script> scope;
+
+	public ExprElm replacement() { return replacement; }
+	public ExprElm template() { return template; }
 	
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) {
 		this.templateText = templateExpressionText;
 		this.template = C4ScriptParser.parse(templateExpressionText).matchingExpr();
-		this.replacement = replacementExpressionText != null ? C4ScriptParser.parse(replacementExpressionText) : null;
+		this.replacement = replacementExpressionText != null ? C4ScriptParser.parse(replacementExpressionText).matchingExpr() : null;
 		this.scope = scope;
 	}
 	
@@ -66,7 +88,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 						Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							IRegion r = expression.absolute();
-							result.addMatch(expression, parser, false, false, r.getOffset(), r.getLength());
+							addMatch(expression, parser, r.getOffset(), r.getLength(), subst);
 							return TraversalContinuation.SkipSubElements;
 						} else
 							return TraversalContinuation.Continue;

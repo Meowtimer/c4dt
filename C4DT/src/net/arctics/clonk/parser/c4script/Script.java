@@ -1223,7 +1223,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return scenario;
 	}
 	
-	public void saveExpressions(final Collection<? extends ExprElm> expressions) {
+	public void saveExpressions(final Collection<? extends ExprElm> expressions, final boolean absoluteLocations) {
 		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
 			@Override
 			public Boolean run(IDocument document) {
@@ -1232,11 +1232,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					Collections.sort(l, new Comparator<ExprElm>() {
 						@Override
 						public int compare(ExprElm o1, ExprElm o2) {
-							return o2.absolute().getOffset() - o1.absolute().getOffset();
+							IRegion r1 = absoluteLocations ? o1.absolute() : o1;
+							IRegion r2 = absoluteLocations ? o2.absolute() : o2;
+							return r2.getOffset() - r1.getOffset();
 						}
 					});
 					for (ExprElm e : l) {
-						IRegion region = e.absolute();
+						IRegion region = absoluteLocations ? e.absolute() : e;
 						document.replace(region.getOffset(), region.getLength(), e.toString());
 					}
 					return true;

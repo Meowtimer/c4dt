@@ -425,7 +425,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	public ExprElm optimize(final C4ScriptParser context) throws CloneNotSupportedException {
 		return transformSubElements(new ITransformer() {
 			@Override
-			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 				if (expression == null)
 					return expression;
 				try {
@@ -457,7 +457,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		 * @param expression The expression to be transformed now.
 		 * @return The transformed expression, the expression unmodified or some canonical object like {@link #REMOVE}
 		 */
-		ExprElm transform(ExprElm previousExpression, ExprElm previousTransformationResult, ExprElm expression);
+		Object transform(ExprElm previousExpression, Object previousTransformationResult, ExprElm expression);
 	}
 	
 	/**
@@ -471,14 +471,28 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false, removal = false;
 		ExprElm prev = null;
-		ExprElm prevT = null;
-		for (int i = 0; i < subElms.length; i++) {
+		Object prevT = null;
+		for (int i = 0, j = 0; i < subElms.length; i++, j++) {
 			ExprElm s = subElms[i];
-			ExprElm t = newSubElms[i] = transformer.transform(prev, prevT, s);
-			if (t != s) {
+			Object t = transformer.transform(prev, prevT, s);
+			if (t instanceof ExprElm[] && ((ExprElm[])t).length == 1)
+				t = ((ExprElm[])t)[0];
+			if (t instanceof ExprElm) {
+				newSubElms[j] = (ExprElm)t;
+				if (t != s) {
+					differentSubElms = true;
+					if (t == ITransformer.REMOVE)
+						removal = true;
+				}
+			}
+			else if (t instanceof ExprElm[]) {
 				differentSubElms = true;
-				if (t == ITransformer.REMOVE)
-					removal = true;
+				ExprElm[] multi = (ExprElm[])t;
+				ExprElm[] newNew = new ExprElm[j+multi.length+newSubElms.length-j-1];
+				System.arraycopy(subElms, 0, newNew, 0, j);
+				System.arraycopy(multi, 0, newNew, j, multi.length);
+				newSubElms = newNew;
+				j += multi.length-1;
 			}
 			prev = s;
 			prevT = t;
@@ -505,15 +519,14 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @param transformer The transformer
 	 * @return Recursively transformed expression.
 	 */
-	public ExprElm transformSubElementsRecursively(final ITransformer transformer) {
-		return transformSubElements(new ITransformer() {
+	public ExprElm transformRecursively(final ITransformer transformer) {
+		return (ExprElm)new ITransformer() {
 			@Override
-			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 				expression = expression != null ? expression.transformSubElements(this) : null;
-				expression = transformer.transform(prev, prevT, expression);
-				return expression;
+				return transformer.transform(prev, prevT, expression);
 			}
-		});
+		}.transform(null, null, this);
 	}
 
 	/**
@@ -1141,7 +1154,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 					} else
 						return DifferenceHandling.Differs;
 				}
-				else if (what == SUBELEMENTS_LENGTH && a instanceof MatchingPlaceholder)
+				else if (what == SUBELEMENTS_LENGTH && a instanceof MatchingPlaceholder && a.subElements().length == 0)
 					return DifferenceHandling.IgnoreRightSide;
 				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
 					ExprElm[] mine = a.subElements();
@@ -1218,15 +1231,15 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return The transformed expression
 	 */
 	public ExprElm transform(final Map<String, Object> substitutions) {
-		return this.transformSubElements(new ITransformer() {
+		return transformRecursively(new ITransformer() {
 			@Override
-			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 				if (expression instanceof Placeholder) {
 					Object substitution = substitutions.get(((Placeholder)expression).entryName());
-					if (substitution instanceof ExprElm)
-						return (ExprElm) substitution;
+					if (substitution != null)
+						return substitution;
 				}
-				return expression.transformSubElements(this);
+				return expression;
 			}
 		});
 	}
@@ -1237,16 +1250,21 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
 	public ExprElm matchingExpr() {
-		return this.transformSubElementsRecursively(new ITransformer() {
+		return this.transformRecursively(new ITransformer() {
 			@Override
-			public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 				if (expression instanceof Placeholder)
 					return new MatchingPlaceholder(((Placeholder)expression).entryName());
 				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
-					((MatchingPlaceholder)prevT).setSubElements(expression.transformSubElementsRecursively(this).subElements());
+					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
 					return REMOVE;
-				} else if (expression instanceof Sequence && ((Sequence)expression).subElements().length == 1 && ((Sequence)expression).subElements()[0] instanceof MatchingPlaceholder)
-					return ((Sequence)expression).subElements()[0];
+				} else if (
+					expression instanceof Sequence &&
+					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
+				)
+					return expression.subElements()[0];
+				else if (expression instanceof SimpleStatement)
+					return ((SimpleStatement)expression).expression();
 				else
 					return expression;
 			}

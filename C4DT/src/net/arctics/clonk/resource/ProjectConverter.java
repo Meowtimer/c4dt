@@ -113,9 +113,9 @@ public class ProjectConverter implements IResourceVisitor {
 		protected ExprElm performConversion(C4ScriptParser parser, ExprElm expression) {
 			if (configuration == null)
 				return expression;
-			return (new ITransformer() {
+			return (ExprElm)(new ITransformer() {
 				@Override
-				public ExprElm transform(ExprElm prev, ExprElm prevT, ExprElm expression) {
+				public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 					if (expression == null)
 						return null;
 					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
@@ -128,9 +128,7 @@ public class ProjectConverter implements IResourceVisitor {
 			}).transform(null, null, expression);
 		}
 	};
-	private boolean skipResource(IResource sourceResource) {
-		return false;
-	}
+	private boolean skipResource(IResource sourceResource) { return false; }
 	private void convertFileContents(IFile sourceFile, IFile destinationFile) throws CoreException {
 		if (crToOC) {
 			final Script script = Script.get(sourceFile, true);

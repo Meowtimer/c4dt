@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
@@ -10,11 +11,13 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -22,12 +25,15 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.search.ui.IReplacePage;
 import org.eclipse.search.ui.ISearchPage;
 import org.eclipse.search.ui.ISearchPageContainer;
+import org.eclipse.search.ui.ISearchResultViewPart;
 import org.eclipse.search.ui.NewSearchUI;
+import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
@@ -118,8 +124,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		container.setActiveEditorCanProvideScopeSelection(true);
 	}
 
-	@Override
-	public boolean performAction() {
+	private C4ScriptSearchQuery newQuery() {
 		IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IStructuredSelection sel = new StructuredSelection(fileEditedBy(editor));
 		final List<Script> scope = new LinkedList<Script>();
@@ -163,16 +168,52 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			}
 			break;
 		default:
-			return false;
+			return null;
 		}
-		NewSearchUI.runQueryInBackground(new C4ScriptSearchQuery(templateText.getText(), null, scope));
+		return new C4ScriptSearchQuery(templateText.getText(), replacementText.getText(), scope);
+	}
+	
+	@Override
+	public boolean performAction() {
+		NewSearchUI.runQueryInBackground(newQuery());
 		return true;
 	}
 	
 	@Override
 	public boolean performReplace() {
-		// TODO Auto-generated method stub
-		return false;
+		final C4ScriptSearchQuery query = newQuery();
+		IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
+		if (status.matches(IStatus.CANCEL))
+			return false;
+
+		Display.getCurrent().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
+				if (view != null) {
+					ClonkSearchResultPage page = as(view.getActivePage(), ClonkSearchResultPage.class);
+					if (page != null) {
+						ClonkSearchResult result = (ClonkSearchResult)page.getInput();
+						for (Object element : result.getElements()) {
+							Script script = as(element, Script.class);
+							if (script == null)
+								continue;
+							Match[] matches = result.getMatches(element);
+							List<ExprElm> replacements = new LinkedList<ExprElm>();
+							for (Match m : matches)
+								if (m instanceof C4ScriptSearchQuery.Match) {
+									C4ScriptSearchQuery.Match qm = (C4ScriptSearchQuery.Match) m;
+									ExprElm repl = query.replacement().transform(qm.subst());
+									repl.setExprRegion(qm.getOffset(), qm.getOffset()+qm.getLength());
+									replacements.add(repl);
+								}
+							script.saveExpressions(replacements, false);
+						}
+					}
+				}
+			}
+		});
+		return true;
 	}
 	
 	@Override
