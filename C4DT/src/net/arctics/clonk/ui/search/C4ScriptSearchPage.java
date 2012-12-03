@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.util.HashSet;
@@ -7,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Sink;
@@ -32,6 +34,11 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
 public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
+	
+	public static final String PREF_TEMPLATE_TEXT = C4ScriptSearchPage.class.getSimpleName()+".templateText";
+	public static final String PREF_REPLACEMENT_TEXT = C4ScriptSearchPage.class.getSimpleName()+".replacementText";
+	public static final String PREF_SCOPE = C4ScriptSearchPage.class.getSimpleName()+".scope";
+	
 	private Text templateText;
 	private Text replacementText;
 	private ISearchPageContainer container;
@@ -48,6 +55,29 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 
 	@Override
 	public void createControl(Composite parent) {
+		createTextFields(parent);
+		readConfiguration();
+	}
+
+	private void readConfiguration() {
+		templateText.setText(defaulting(Core.instance().getPreferenceStore().getString(PREF_TEMPLATE_TEXT), ""));
+		replacementText.setText(defaulting(Core.instance().getPreferenceStore().getString(PREF_REPLACEMENT_TEXT), ""));
+		container.setSelectedScope(Core.instance().getPreferenceStore().getInt(PREF_SCOPE));
+	}
+	
+	private void writeConfiguration() {
+		Core.instance().getPreferenceStore().setValue(PREF_TEMPLATE_TEXT, templateText.getText());
+		Core.instance().getPreferenceStore().setValue(PREF_REPLACEMENT_TEXT, replacementText.getText());
+		Core.instance().getPreferenceStore().setValue(PREF_SCOPE, container.getSelectedScope());
+	}
+	
+	@Override
+	public void dispose() {
+		writeConfiguration();
+		super.dispose();
+	}
+
+	private void createTextFields(Composite parent) {
 		Composite ctrl = new Composite(parent, SWT.NONE);
 		setControl(ctrl);
 		GridLayout gl_ctrl = new GridLayout(2, false);
