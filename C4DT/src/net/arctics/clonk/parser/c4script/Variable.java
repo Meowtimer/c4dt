@@ -234,7 +234,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
+			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(true)),
 				name(),
 				initializationExpression != null
 					? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))

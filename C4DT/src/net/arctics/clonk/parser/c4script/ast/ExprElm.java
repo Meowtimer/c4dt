@@ -141,7 +141,6 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 	 * One should not forget calling this when creating sub elements.
 	 */
 	protected void assignParentToSubElements() {
-		// cheap man's solution to the mutability-of-exprelms problem:
 		// Clone sub elements if they look like they might belong to some other parent
 		ExprElm[] subElms = subElements();
 		boolean modified = false;
@@ -1020,7 +1019,7 @@ public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrin
 			return false;
 	}
 	
-	public Statement containingStatementOrThis() {
+	public Statement statement() {
 		ExprElm p;
 		for (p = this; p != null && !(p instanceof Statement); p = p.parent());
 		return (Statement)p;

@@ -435,7 +435,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
 			final C4ScriptParser parser = C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, true);
 			ExprElm offendingExpression = locator.expressionAtRegion();
-			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
+			Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
 			
 			if (offendingExpression != null && topLevel != null) {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);

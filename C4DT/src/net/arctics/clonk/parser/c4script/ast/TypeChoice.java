@@ -23,6 +23,8 @@ public final class TypeChoice implements IType, IResolvableType {
 	
 	private static final TypeChoice[] HARD_CHOICES = {
 		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.ID),
+		new TypeChoice(PrimitiveType.BOOL, PrimitiveType.INT),
+		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.PROPLIST)
 	};
 	
 	public static IType make(IType left, IType right) {
