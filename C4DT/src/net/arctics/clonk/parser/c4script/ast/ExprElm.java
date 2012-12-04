@@ -47,7 +47,7 @@ import org.eclipse.jface.text.Region;
 /**
  * Base class for making expression trees
  */
-public class ExprElm extends SourceLocation implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
+public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
 	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

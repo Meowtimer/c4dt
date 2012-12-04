@@ -93,19 +93,19 @@ public class IfStatement extends ConditionalStatement {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		parser.reportProblemsOf(condition, true);
-		// use two separate typeinfo lists for if and else statement, merging
+		// use two separate type environments for if and else statement, merging
 		// gathered information afterwards
-		TypeEnvironment ifTypeInfos = parser.pushTypeInfos();
+		TypeEnvironment ifEnvironment = parser.newTypeEnvironment();
 		parser.reportProblemsOf(body, true);
-		parser.popTypeInfos(false, false);
+		parser.endTypeEnvironment(false, false);
 		if (elseExpr != null) {
-			TypeEnvironment elseTypeInfos = parser.pushTypeInfos();
+			TypeEnvironment elseEnvironment = parser.newTypeEnvironment();
 			parser.reportProblemsOf(elseExpr, true);
-			parser.popTypeInfos(false, false);
-			ifTypeInfos.inject(elseTypeInfos, false);
+			parser.endTypeEnvironment(false, false);
+			ifEnvironment.inject(elseEnvironment, false);
 		}
-		if (ifTypeInfos.up != null)
-			ifTypeInfos.up.inject(ifTypeInfos, false);
+		if (ifEnvironment.up != null)
+			ifEnvironment.up.inject(ifEnvironment, false);
 
 		if (!condition.containsConst()) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(parser.currentFunction()));

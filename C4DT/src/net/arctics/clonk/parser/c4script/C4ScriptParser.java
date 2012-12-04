@@ -127,7 +127,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private String parsedMemberOperator;
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
-	private TypeEnvironment typeInfos;
+	private TypeEnvironment typeEnvironments;
 
 	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	/**
@@ -255,11 +255,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
-		if (typeInfos == null)
+		if (typeEnvironments == null)
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
-		for (TypeEnvironment list = typeInfos; list != null; list = list.up) {
+		for (TypeEnvironment list = typeEnvironments; list != null; list = list.up) {
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					if (!topMostLayer) {
@@ -274,22 +274,22 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (newlyCreated != null) {
 			if (base != null)
 				newlyCreated.merge(base);
-			typeInfos.add(newlyCreated);
+			typeEnvironments.add(newlyCreated);
 		}
 		return newlyCreated;
 	}
 	
-	public TypeEnvironment pushTypeInfos() {
+	public TypeEnvironment newTypeEnvironment() {
 		TypeEnvironment l = new TypeEnvironment();
-		l.up = this.typeInfos;
-		this.typeInfos = l;
+		l.up = this.typeEnvironments;
+		this.typeEnvironments = l;
 		return l;
 	}
 	
-	public void popTypeInfos(boolean inject, boolean ignoreLocals) {
-		if (inject && typeInfos.up != null)
-			typeInfos.up.inject(typeInfos, ignoreLocals);
-		typeInfos = typeInfos.up;
+	public void endTypeEnvironment(boolean inject, boolean ignoreLocals) {
+		if (inject && typeEnvironments.up != null)
+			typeEnvironments.up.inject(typeEnvironments, ignoreLocals);
+		typeEnvironments = typeEnvironments.up;
 	}
 	
 	/**
@@ -298,9 +298,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The typeinfo or null if nothing was found
 	 */
 	public ITypeInfo queryTypeInfo(ExprElm expression) {
-		if (typeInfos == null)
+		if (typeEnvironments == null)
 			return null;
-		for (TypeEnvironment list = typeInfos; list != null; list = list.up)
+		for (TypeEnvironment list = typeEnvironments; list != null; list = list.up)
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					return info;
@@ -2103,18 +2103,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	public void reportProblemsOf(Iterable<Statement> statements, boolean onlyTypeLocals) {
-		pushTypeInfos(); 
+		newTypeEnvironment(); 
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
-		typeInfos.apply(this, onlyTypeLocals);
-		popTypeInfos(true, true);
+		typeEnvironments.apply(this, onlyTypeLocals);
+		endTypeEnvironment(true, true);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
 	
 	private final Object reportingMonitor = new Object();
 
 	public void reportProblems() {
-		pushTypeInfos();
+		newTypeEnvironment();
 		for (Variable v : script.variables())
 			synchronized (reportingMonitor) {
 				setCurrentFunction(null);
@@ -2122,10 +2122,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (init != null) {
 					Function owningFunc = as(init.owningDeclaration(), Function.class);
 					if (owningFunc == null) {
-						pushTypeInfos();
+						newTypeEnvironment();
 						reportProblemsOf(init, true);
 						new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
-						popTypeInfos(true, true);
+						endTypeEnvironment(true, true);
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())
 						try {
@@ -2138,11 +2138,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				setCurrentFunction(f);
 				reportProblemsOfFunction(f);
 			}
-		typeInfos.apply(this, false);
+		typeEnvironments.apply(this, false);
 		for (Variable v : script.variables())
 			if (v.scope() == Scope.CONST)
 				v.lockType();
-		popTypeInfos(false, false);
+		endTypeEnvironment(false, false);
 	}
 	
 	@Override
