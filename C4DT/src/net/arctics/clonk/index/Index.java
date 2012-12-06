@@ -256,6 +256,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		detectAppendages(script, detectedAppendages);
 	}
+	
+	public void addStaticVariables(Collection<? extends Variable> variables) { 
+		staticVariables.addAll(variables);
+		for (Variable v : variables)
+			addToDeclarationMap(v);
+	}
 
 	/**
 	 * Call {@link #refreshIndex(boolean)} when not post-loading the index.

@@ -981,5 +981,7 @@ public abstract class SpecialEngineRules {
 				}
 			};
 	}
+
+	public void refreshIndex(Index index) {}
 	
 }
