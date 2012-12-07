@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -15,7 +16,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 
 	@Override
 	public void storeType(IType type) {
-		this.type = type;
+		this.type = defaulting(type, PrimitiveType.UNKNOWN);
 	}
 
 	@Override

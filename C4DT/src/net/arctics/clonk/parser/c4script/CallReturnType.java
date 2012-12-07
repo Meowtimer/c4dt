@@ -68,9 +68,14 @@ public class CallReturnType implements IType, IResolvableType {
 			if (contextScript == originalFunc.script() && !(originalFunc.returnType() instanceof IResolvableType))
 				return originalFunc.returnType();
 			IType predType = call.unresolvedPredecessorType();
-			IType ct = TypeUtil.resolve(predType != null ? predType : callerType, context, callerType);
-			Function func = contextScript == originalFunc.script() ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
-			return func != null ? TypeUtil.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
+			context.pushCurrentFunctionCall(call);
+			try {
+				IType ct = predType != null ? TypeUtil.resolve(predType, context, callerType) : callerType;
+				Function func = contextScript == originalFunc.script() ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
+				return func != null ? TypeUtil.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
+			} finally {
+				context.popCurrentFunctionCall();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return PrimitiveType.UNKNOWN;

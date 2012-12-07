@@ -373,7 +373,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (String line : new String[] {
 			"<i>"+scriptPath+"</i><br/>", //$NON-NLS-1$ //$NON-NLS-2$
-			"<b>"+longParameterString(true, false)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			"<b>"+longParameterString(true, true)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$

@@ -145,11 +145,6 @@ public abstract class AccessDeclaration extends ExprElm implements IPlaceholderP
 	}
 	
 	@Override
-	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		return super.createStoredTypeInformation(parser);
-	}
-	
-	@Override
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		declarationFromContext(root);

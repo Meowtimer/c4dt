@@ -32,7 +32,6 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
@@ -270,8 +269,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	public final IType type(DeclarationObtainmentContext context) {
-		return TypeUtil.resolve(unresolvedType(context), context, callerType(context));
+	public IType type(DeclarationObtainmentContext context) {
+		IType urt = unresolvedType(context);
+		return TypeUtil.resolve(urt, context, callerType(context));
 	}
 
 	/**
@@ -731,7 +731,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return false;
 	}
 
-	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
 		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
 		if (d != null)
 			return new GenericTypeInfo(this, parser);
@@ -1006,7 +1006,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			return
 				expression instanceof AccessVar &&
 				((AccessVar)expression).declaration() instanceof Variable &&
-				((Variable)((AccessVar)expression).declaration()).scope() == Scope.VAR;
+				((Variable)((AccessVar)expression).declaration()).scope().isLocal();
 		}
 		
 	}

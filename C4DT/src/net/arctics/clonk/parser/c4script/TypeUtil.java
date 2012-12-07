@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
@@ -12,32 +13,47 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 public class TypeUtil {
-	private static ThreadLocal<Set<IResolvableType>> recursion = new ThreadLocal<Set<IResolvableType>>();
-	public static IType resolve(IType t, DeclarationObtainmentContext context, IType callerType) {
-		if (t instanceof IResolvableType) {
-			IResolvableType rt = (IResolvableType)t;
-			Set<IResolvableType> r = recursion.get();
-			if (r == null)
-				recursion.set(r = new HashSet<IResolvableType>());
-			else if (r.contains(rt))
-				return t;
-			r.add(rt);
-			try {
-				return rt.resolve(context, callerType);
-			} finally {
-				r.remove(rt);
+	private static ThreadLocal<Set<IResolvableType>> recursion = new ThreadLocal<Set<IResolvableType>>() {
+		@Override
+		protected Set<IResolvableType> initialValue() {
+			return new HashSet<IResolvableType>();
+		};
+	};
+	public static IType resolveInternal(IType type, DeclarationObtainmentContext context, IType callerType, Set<IResolvableType> recursionCatcher) {
+		boolean makingProgress;
+		do {
+			makingProgress = false;
+			If: if (type instanceof IResolvableType) {
+				IResolvableType rt = (IResolvableType)type;
+				if (recursionCatcher.contains(rt))
+					break If;
+				recursionCatcher.add(rt);
+				try {
+					IType resolved = rt.resolve(context, callerType);
+					if (!Utilities.objectsEqual(resolved, rt)) {
+						makingProgress = true;
+						type = resolved;
+					}
+				} finally {
+					recursionCatcher.remove(rt);
+				}
 			}
-		} else
-			return t;
+		} while (makingProgress);
+		return type;
+	}
+	public static IType resolve(IType type, DeclarationObtainmentContext context, IType callerType) {
+		return resolveInternal(type, context, callerType, recursion.get());
 	}
 	public static IType resolve(IType type, IIndexEntity context, Declaration defaultDeclaration) {
 		Declaration dec = defaulting(as(context, Declaration.class), defaultDeclaration);
-		return TypeUtil.resolve(type, declarationObtainmentContext(dec), dec.script());
+		return resolve(type, declarationObtainmentContext(dec), dec.script());
 	}
 	
 	public static DeclarationObtainmentContext declarationObtainmentContext(final Declaration context) {
@@ -115,6 +131,14 @@ public class TypeUtil {
 			public void setCurrentFunction(Function function) {
 				// ignore
 			}
+
+			private final Stack<IFunctionCall> functionCall = new Stack<IFunctionCall>();
+			@Override
+			public void pushCurrentFunctionCall(IFunctionCall call) { functionCall.push(call); }
+			@Override
+			public void popCurrentFunctionCall() { functionCall.pop(); }
+			@Override
+			public IFunctionCall currentFunctionCall() { return functionCall.isEmpty() ? null : functionCall.peek(); }
 		};
 	}
 	public static Definition definition(IType type) {

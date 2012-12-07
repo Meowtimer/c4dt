@@ -243,7 +243,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		IType t = type(context);
-		return t.canBeAssignedFrom(TypeChoice.make(PrimitiveType.REFERENCE, PrimitiveType.UNKNOWN));
+		return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
 	}
 	@Override
 	public boolean hasSideEffects() {
@@ -279,6 +279,16 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return ((FunctionType)type).prototype().returnType();
 		else
 			return type;
+	}
+	
+	@Override
+	public IType type(DeclarationObtainmentContext context) {
+		context.pushCurrentFunctionCall(this);
+		try {
+			return super.type(context);
+		} finally {
+			context.popCurrentFunctionCall();
+		}
 	}
 
 	private IType declarationType(DeclarationObtainmentContext context) {
@@ -505,11 +515,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				Function f = (Function)declaration;
 				if (f.visibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
 					context.script().addUsedScript(f.script());
-				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
-				if (rule != null)
-					specialCaseHandled = rule.validateArguments(this, params, context);
+				boolean specialCaseHandled =
+					rule != null &&
+					rule.validateArguments(this, params, context);
 				
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
@@ -720,7 +730,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return null;
 	}
 	@Override
-	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
 		if (isAnyOf(d, cache.VarAccessFunctions)) {
@@ -742,7 +752,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		else if (d != null)
 			return new GenericTypeInfo(this, parser);
-		return super.createStoredTypeInformation(parser);
+		return super.createTypeInfo(parser);
 	}
 	
 	@Override
@@ -766,7 +776,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			for (IType type : ((Variable)declaration).type())
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
-		return as(declaration(), Function.class);
+		return function();
 	}
 	
 	public final Function function(DeclarationObtainmentContext context) {
@@ -774,6 +784,18 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	public final Function function() {
-		return (Function)declaration;
+		return as(declaration, Function.class);
 	}
+
+	@Override
+	public IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context) {
+		if (declaration instanceof Function) {
+			Function f = (Function)declaration;
+			int ndx = f.parameters().indexOf(parameter);
+			if (ndx != -1 && ndx < params.length)
+				return params[ndx].type(context);
+		}
+		return PrimitiveType.UNKNOWN;
+	}
+	
 }

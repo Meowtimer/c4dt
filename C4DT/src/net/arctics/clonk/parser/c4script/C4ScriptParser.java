@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.Vector;
 
 import net.arctics.clonk.Core;
@@ -57,6 +58,7 @@ import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
@@ -270,7 +272,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						return info;
 			topMostLayer = false;
 		}
-		ITypeInfo newlyCreated = expression.createStoredTypeInformation(this);
+		ITypeInfo newlyCreated = expression.createTypeInfo(this);
 		if (newlyCreated != null) {
 			if (base != null)
 				newlyCreated.merge(base);
@@ -626,7 +628,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (specialEngineRules != null)
 			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules())
 				if (funcRule.assignDefaultParmTypes(this, function))
-					break;
+					return;
 	}
 
 	/**
@@ -674,7 +676,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Variable addVarParmsParm(Function func) {
 		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParentDeclaration(func);
-		v.setScope(Variable.Scope.VAR);
+		v.setScope(Variable.Scope.PARAMETER);
 		func.addParameter(v);
 		return v;
 	}
@@ -886,7 +888,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 									break;
 								}
 								break;
-							case VAR:
+							case VAR: case PARAMETER:
 								//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
 								break;
 							}
@@ -945,6 +947,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		result = new Variable(varName, scope);
 		switch (scope) {
+		case PARAMETER:
+			result.setParentDeclaration(currentFunction());
+			currentFunction().parameters().add(result);
+			break;
 		case VAR:
 			result.setParentDeclaration(currentFunction());
 			currentFunction().localVars().add(result);
@@ -2103,7 +2109,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	public void reportProblemsOf(Iterable<Statement> statements, boolean onlyTypeLocals) {
-		newTypeEnvironment(); 
+		newTypeEnvironment();
+		Function f = currentFunction();
+		if (f != null)
+			for (Variable p : f.parameters())
+				if (p.type() == PrimitiveType.UNKNOWN)
+					requestTypeInfo(new AccessVar(p)).storeType(p.parameterType());
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
 		typeEnvironments.apply(this, onlyTypeLocals);
@@ -2874,7 +2885,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return null;
 			}
 		int e = this.offset;
-		Variable var = new Variable(null, Scope.VAR);
+		Variable var = new Variable(null, Scope.PARAMETER);
 		PrimitiveType type = PrimitiveType.makeType(firstWord);
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
@@ -3249,5 +3260,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// yes
 	}
+	
+	private final Stack<IFunctionCall> functionCall = new Stack<IFunctionCall>();
+	@Override
+	public void pushCurrentFunctionCall(IFunctionCall call) { functionCall.push(call); }
+	@Override
+	public void popCurrentFunctionCall() { functionCall.pop(); }
+	@Override
+	public IFunctionCall currentFunctionCall() { return functionCall.isEmpty() ? null : functionCall.peek(); }
 
 }

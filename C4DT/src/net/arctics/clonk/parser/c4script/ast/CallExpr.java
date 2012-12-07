@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
 
 /**
  * Call the sequence
@@ -54,7 +55,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 
 	@Override
 	public Function quasiCalledFunction(DeclarationObtainmentContext context) {
-		for (IType type : predecessorInSequence().unresolvedType(context))
+		for (IType type : predecessorInSequence().type(context))
 			if (type instanceof FunctionType)
 				return ((FunctionType)type).prototype();
 		return null;
@@ -87,6 +88,17 @@ public class CallExpr extends Tuple implements IFunctionCall {
 			if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 				parser.error(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
 		}
+	}
+
+	@Override
+	public IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context) {
+		Function f = quasiCalledFunction(context);
+		if (f != null) {
+			int ndx = f.parameters().indexOf(parameter);
+			if (ndx != -1 && ndx < elements.length)
+				return elements[ndx].type(context);
+		}
+		return PrimitiveType.UNKNOWN;
 	}
 	
 }

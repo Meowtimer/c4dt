@@ -5,6 +5,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public interface DeclarationObtainmentContext extends IEvaluationContext {
@@ -19,4 +20,7 @@ public interface DeclarationObtainmentContext extends IEvaluationContext {
 	Declaration currentDeclaration();
 	SourceLocation absoluteSourceLocationFromExpr(ExprElm expression);
 	CachedEngineDeclarations cachedEngineDeclarations();
+	void pushCurrentFunctionCall(IFunctionCall call);
+	void popCurrentFunctionCall();
+	IFunctionCall currentFunctionCall();
 }

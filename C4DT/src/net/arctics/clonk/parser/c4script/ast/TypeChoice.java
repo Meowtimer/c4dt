@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.util.IPredicate;
 
 public final class TypeChoice implements IType, IResolvableType {
 
@@ -40,7 +41,21 @@ public final class TypeChoice implements IType, IResolvableType {
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
-		return new TypeChoice(left, right);
+		final TypeChoice r = new TypeChoice(left, right);
+		return remove(r, new IPredicate<IType>() {
+			private final List<IType> flattened = r.flatten();
+			private final boolean[] mask = new boolean[flattened.size()];
+			@Override
+			public boolean test(IType item) {
+				int ndx = flattened.indexOf(item);
+				if (ndx < 0)
+					return false;
+				if (mask[ndx])
+					return true;
+				mask[ndx] = true;
+				return false;
+			}
+		});
 	}
 	
 	private TypeChoice(IType left, IType right) {
@@ -91,6 +106,28 @@ public final class TypeChoice implements IType, IResolvableType {
 			types.add(right);
 	}
 	
+	public static IType remove(IType type, IPredicate<? super IType> predicate) {
+		if (predicate.test(type))
+			return null;
+		else if (type instanceof TypeChoice) {
+			TypeChoice c = (TypeChoice)type;
+			IType left = remove(c.left(), predicate);
+			IType right = remove(c.right(), predicate);
+			if (left == c.left() && right == c.right())
+				return c;
+			else if (left == null && right == null)
+				return null;
+			else if (left == null)
+				return right;
+			else if (right == null)
+				return left;
+			else
+				return TypeChoice.make(left, right);
+		}
+		else
+			return type;
+	}
+	
 	public List<IType> flatten() {
 		LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
@@ -99,7 +136,7 @@ public final class TypeChoice implements IType, IResolvableType {
 	
 	@Override
 	public String toString() {
-		return typeName(false);
+		return typeName(true);
 	}
 	
 	@Override
@@ -117,7 +154,7 @@ public final class TypeChoice implements IType, IResolvableType {
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		IType rl = TypeUtil.resolve(left, context, callerType);
 		IType rr = TypeUtil.resolve(right, context, callerType);
-		return rl == left && rr == right ? this : new TypeChoice(rl, rr);
+		return rl == left && rr == right ? this : TypeChoice.make(rl, rr);
 	}
 
 }

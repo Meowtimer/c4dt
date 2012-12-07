@@ -64,24 +64,18 @@ public class TypeUnification {
 		
 		if (a instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
-			if (b instanceof TypeChoice) {
-				TypeChoice tcb = (TypeChoice)b;
-				return unifyLeft(unifyLeft(tca.left(), tcb.left()), unifyLeft(tca.right(), tcb.right()));
-			}
-			else {
-				IType l = tca.left();
-				IType r = tca.right();
-				IType l_ = unifyLeft(l, b);
-				IType r_ = unifyLeft(r, b);
-				if (l_ == null && r_ == null)
-					return null;
-				else if (r_ == null)
-					return TypeChoice.make(l_, r);
-				else if (l_ == null)
-					return TypeChoice.make(l, r_);
-				else
-					return TypeChoice.make(l_, r_);
-			}
+			IType l = tca.left();
+			IType r = tca.right();
+			IType l_ = unifyLeft(l, b);
+			IType r_ = unifyLeft(r, b);
+			if (l_ == null && r_ == null)
+				return null;
+			else if (r_ == null)
+				return TypeChoice.make(l_, r);
+			else if (l_ == null)
+				return TypeChoice.make(l, r_);
+			else
+				return TypeChoice.make(l_, r_);
 		}
 		
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
@@ -151,6 +145,9 @@ public class TypeUnification {
 				else if (a instanceof ReferenceType)
 					return ReferenceType.make(u);
 		}
+		
+		if (a instanceof Variable.ParameterType)
+			return TypeChoice.make(a, b);
 		
 		return null;
 	}

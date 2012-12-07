@@ -44,8 +44,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return elements != null && elements.length > 0 && elements[elements.length-1].isModifiable(context);
 	}
 	@Override
-	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
-		return super.createStoredTypeInformation(parser);
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
+		return super.createTypeInfo(parser);
 		/*ExprElm last = getLastElement();
 		if (last != null)
 			// things in sequences should take into account their predecessors

@@ -108,7 +108,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		String formatString;
 		switch (constraintKind) {
 		case CallerType:
-			formatString = isType ? Messages.ConstrainedProplist_CurrentType : Messages.ConstrainedProplist_ObjectOfCurrentType;
+			formatString = String.format(isType ? Messages.ConstrainedProplist_CurrentType : Messages.ConstrainedProplist_ObjectOfCurrentType, constraint.name());
 			break;
 		case Exact:
 			formatString = isType ? Messages.ConstrainedProplist_ExactType : "'%s'"; //$NON-NLS-1$
@@ -149,6 +149,8 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == this)
+			return true;
 		if (obj instanceof ConstrainedProplist) {
 			ConstrainedProplist cobj = (ConstrainedProplist) obj;
 			return cobj.constraintKind == this.constraintKind && cobj.constraint != null && cobj.constraint.equals(this.constraint);
