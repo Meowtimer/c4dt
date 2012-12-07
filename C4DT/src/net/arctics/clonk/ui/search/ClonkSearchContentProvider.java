@@ -112,17 +112,17 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		if (element instanceof ClonkSearchMatch) try {
 			StyledString result = new StyledString();
 			ClonkSearchMatch match = (ClonkSearchMatch) element;
-			String firstHalf = match.getLine().substring(0, match.getOffset()-match.getLineOffset());
-			String matchStr = match.getLine().substring(match.getOffset()-match.getLineOffset(), match.getOffset()-match.getLineOffset()+match.getLength());
-			String secondHalf = match.getLine().substring(match.getOffset()-match.getLineOffset()+match.getLength(), match.getLine().length());
+			String firstHalf = match.line().substring(0, match.getOffset()-match.lineOffset());
+			String matchStr = match.line().substring(match.getOffset()-match.lineOffset(), match.getOffset()-match.lineOffset()+match.getLength());
+			String secondHalf = match.line().substring(match.getOffset()-match.lineOffset()+match.getLength(), match.line().length());
 			result.append(firstHalf);
 			result.append(matchStr, StyledString.DECORATIONS_STYLER);
 			result.append(secondHalf);
 			result.append(" - ");
-			result.append(match.getStructure().resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+			result.append(match.structure().resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			return result;
 		} catch (Exception e) {
-			return new StyledString(((ClonkSearchMatch)element).getLine());
+			return new StyledString(((ClonkSearchMatch)element).line());
 		}
 		else if (element instanceof Function) {
 			return new StyledString(((Function)element).qualifiedName());
