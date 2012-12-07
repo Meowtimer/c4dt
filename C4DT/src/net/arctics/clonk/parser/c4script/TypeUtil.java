@@ -28,24 +28,28 @@ public class TypeUtil {
 	};
 	public static IType resolveInternal(IType type, DeclarationObtainmentContext context, IType callerType, Set<IResolvableType> recursionCatcher) {
 		boolean makingProgress;
-		do {
-			makingProgress = false;
-			If: if (type instanceof IResolvableType) {
-				IResolvableType rt = (IResolvableType)type;
-				if (recursionCatcher.contains(rt))
-					break If;
-				recursionCatcher.add(rt);
-				try {
+		IType[] schluss = new IType[5];
+		int passes = 0;
+		try {
+			do {
+				makingProgress = false;
+				If: if (type instanceof IResolvableType) {
+					IResolvableType rt = (IResolvableType)type;
+					if (recursionCatcher.contains(rt))
+						break If;
+					recursionCatcher.add(rt);
+					schluss[passes++] = rt;
 					IType resolved = rt.resolve(context, callerType);
 					if (!Utilities.objectsEqual(resolved, rt)) {
 						makingProgress = true;
 						type = resolved;
 					}
-				} finally {
-					recursionCatcher.remove(rt);
 				}
-			}
-		} while (makingProgress);
+			} while (makingProgress && passes < schluss.length-1);
+		} finally {
+			for (int i = passes-1; i >= 0; i--)
+				recursionCatcher.remove(schluss[i]);
+		}
 		return type;
 	}
 	public static IType resolve(IType type, DeclarationObtainmentContext context, IType callerType) {
