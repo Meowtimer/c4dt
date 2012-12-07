@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -1196,7 +1197,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 		ComparisonDelegate delegate = new ComparisonDelegate();
 		if (this.compare(other, delegate).isEqual())
-			return delegate.result;
+			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
 		else
 			return null;
 	}

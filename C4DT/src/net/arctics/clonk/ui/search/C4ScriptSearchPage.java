@@ -1,18 +1,18 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IProject;
@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.search.ui.IReplacePage;
@@ -36,7 +37,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
 
 public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
@@ -125,35 +127,39 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	}
 
 	private C4ScriptSearchQuery newQuery() {
-		IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		IStructuredSelection sel = new StructuredSelection(fileEditedBy(editor));
+		ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
+		ISelection sel = selectionService.getSelection();
 		final List<Script> scope = new LinkedList<Script>();
-		Set<IProject> projects = new HashSet<IProject>();
 		switch (container.getSelectedScope()) {
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:
-			for (Object s : sel.toArray())
-				if (s instanceof IResource) {
-					IProject proj = ((IResource)s).getProject();
-					if (projects.contains(proj))
-						continue;
-					projects.add(proj);
-					ClonkProjectNature nature = ClonkProjectNature.get(proj);
-					if (nature != null)
-						nature.index().allScripts(new Sink<Script>() {
-							@Override
-							public void receivedObject(Script item) {
-								scope.add(item);
-							}
-						});
+			for (ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), new IConverter<String, ClonkProjectNature>() {
+				@Override
+				public ClonkProjectNature convert(String from) {
+					return ClonkProjectNature.get(from);
 				}
+			}))
+				if (nature != null)
+					nature.index().allScripts(new Sink<Script>() {
+						@Override
+						public void receivedObject(Script item) {
+							scope.add(item);
+						}
+					});
 			break;
 		case ISearchPageContainer.SELECTION_SCOPE:
-			for (Object s : sel.toArray())
-				if (s instanceof IResource) {
-					Script script = Script.get((IResource)s, true);
-					if (script != null)
-						scope.add(script);
-				}
+			IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
+			IStructuredSelection ssel;
+			if (input != null)
+				ssel = new StructuredSelection(input.getFile());
+			else
+				ssel = as(sel, IStructuredSelection.class);
+			if (ssel != null)
+				for (Object s : ssel.toArray())
+					if (s instanceof IResource) {
+						Script script = Script.get((IResource)s, true);
+						if (script != null)
+							scope.add(script);
+					}
 			break;
 		case ISearchPageContainer.WORKSPACE_SCOPE:
 			for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {

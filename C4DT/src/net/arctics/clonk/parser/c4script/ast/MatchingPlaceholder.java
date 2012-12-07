@@ -75,7 +75,10 @@ public class MatchingPlaceholder extends Placeholder {
 			return false;
 		if (stringRepresentationPattern != null) {
 			IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
-			if (target == null || !stringRepresentationPattern.matcher(target.patternMatchingText()).matches())
+			if (target == null)
+				return false;
+			String patternMatchingText = target.patternMatchingText();
+			if (patternMatchingText == null || !stringRepresentationPattern.matcher(patternMatchingText).matches())
 				return false;
 		}
 		return true;

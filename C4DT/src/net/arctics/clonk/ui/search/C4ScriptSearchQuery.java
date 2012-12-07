@@ -39,7 +39,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	private void addMatch(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
 		String line = parser.bufferSubstringAtRegion(lineRegion);
-		result.addMatch(new Match(line.trim(), lineRegion.getOffset(), parser.script(), s, l, match, subst));
+		result.addMatch(new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst));
 	}
 
 	private final String templateText;
