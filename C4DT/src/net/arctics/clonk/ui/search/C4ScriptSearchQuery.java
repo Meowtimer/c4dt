@@ -95,7 +95,8 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 					}
 				}
 				for (final Script s : scope)
-					item.execute(new ScriptSearcher(s));
+					if (s.scriptFile() != null)
+						item.execute(new ScriptSearcher(s));
 			}
 		}, 20);
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, "C4Script Search Success", null);
