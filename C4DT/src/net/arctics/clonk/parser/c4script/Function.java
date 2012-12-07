@@ -24,10 +24,12 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -285,12 +287,18 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (numParameters() > 0) {
 			for(Variable par : parameters()) {
-				IType staticType = engineCompatible ? par.type().staticType() : par.type();
+				IType type = engineCompatible ? par.type().staticType() : par.type();
+				type = TypeChoice.remove(type, new IPredicate<IType>() {
+					@Override
+					public boolean test(IType item) {
+						return item instanceof Variable.ParameterType;
+					}
+				});
 				if (engineCompatible && !par.isActualParm())
 					continue;
-				if (staticType != PrimitiveType.UNKNOWN && staticType != null) {
-					if (!engineCompatible || (staticType instanceof PrimitiveType && staticType != PrimitiveType.ANY)) {
-						output.append(staticType.typeName(false));
+				if (type != PrimitiveType.UNKNOWN && type != null) {
+					if (!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)) {
+						output.append(type.typeName(true));
 						output.append(' ');
 					}
 					output.append(par.name());
