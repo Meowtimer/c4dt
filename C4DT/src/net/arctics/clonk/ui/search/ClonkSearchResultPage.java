@@ -53,7 +53,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
 		ClonkSearchMatch clonkMatch = (ClonkSearchMatch) match;
 		ClonkTextEditor editor;
-		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.getStructure(), activate);
+		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.structure(), activate);
 		editor.selectAndReveal(currentOffset, currentLength);
 	}
 
