@@ -17,10 +17,10 @@ import net.arctics.clonk.parser.c4script.TempScript;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.util.StreamUtil;
 
 /**
@@ -50,7 +50,7 @@ public class ProjectConversionConfiguration {
 				BinaryOp op = (BinaryOp)unwrapped;
 				this.template = op.leftSide();
 				this.transformation = op.rightSide();
-			} else 
+			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", transformationStatement.toString()));
 		}
 	}
@@ -86,7 +86,7 @@ public class ProjectConversionConfiguration {
 			Script script = new TempScript(text);
 			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
 				@Override
-				protected Placeholder makePlaceholder(String placeholder) {
+				protected Placeholder makePlaceholder(String placeholder) throws ParsingException {
 					return new MatchingPlaceholder(placeholder);
 				}
 			};

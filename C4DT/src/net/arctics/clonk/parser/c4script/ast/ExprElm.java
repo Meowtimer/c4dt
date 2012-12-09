@@ -1250,11 +1250,16 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
 	public ExprElm matchingExpr() {
-		return this.transformRecursively(new ITransformer() {
+		ExprElm result = this.transformRecursively(new ITransformer() {
 			@Override
 			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
-				if (expression instanceof Placeholder)
-					return new MatchingPlaceholder(((Placeholder)expression).entryName());
+				if (expression != null && expression.getClass() == Placeholder.class)
+					try {
+						return new MatchingPlaceholder(((Placeholder)expression).entryName());
+					} catch (ParsingException e) {
+						e.printStackTrace();
+						return expression;
+					}
 				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
 					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
 					return REMOVE;
@@ -1263,12 +1268,14 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
 				)
 					return expression.subElements()[0];
-				else if (expression instanceof SimpleStatement)
-					return ((SimpleStatement)expression).expression();
 				else
 					return expression;
 			}
 		});
+		if (result instanceof SimpleStatement)
+			return ((SimpleStatement)result).expression();
+		else
+			return result;
 	}
 	
 	public IRegion absolute() {

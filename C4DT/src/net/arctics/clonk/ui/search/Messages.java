@@ -4,6 +4,9 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.search.messages"; //$NON-NLS-1$
+	public static String C4ScriptSearchPage_Recents;
+	public static String C4ScriptSearchPage_Replacement;
+	public static String C4ScriptSearchPage_Template;
 	public static String ClonkSearchQuery_SearchFor;
 	public static String ClonkSearchQuery_Success;
 	public static String FindDuplicatesMatch_PotentialDuplicateLabel;

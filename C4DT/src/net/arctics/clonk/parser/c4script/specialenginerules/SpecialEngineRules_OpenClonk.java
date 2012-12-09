@@ -393,7 +393,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 	
-	private static final ExprElm PLACE_CALL = C4ScriptParser.parse("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)").matchingExpr();
+	private static final ExprElm PLACE_CALL = C4ScriptParser.matchingExpr("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)");
 	
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
 		public ComputedScenarioConfigurationEntry(String key, IDArray values) {

@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.token;
+
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not
  * and controlling how comparisons are conducted to some degree.
@@ -47,12 +49,12 @@ public interface IASTComparisonDelegate {
 	/**
 	 * Passed as the 'what' parameter to {@link #differs(ExprElm, ExprElm, Object)} if length of respective sub elements differs.
 	 */
-	public static final Object SUBELEMENTS_LENGTH = new Object();
+	public static final Object SUBELEMENTS_LENGTH = token("SUBELEMENTS_LENGTH");
 	
 	/**
 	 * Passed as the 'what' parameter to {@link #differs(ExprElm, ExprElm, Object)} if the {@link ExprElm} elements being compared have differen types.
 	 */
-	public static final Object CLASS = new Object();
+	public static final Object CLASS = token("CLASS");
 	
 	/**
 	 * Called by the caller conducting the comparison when a difference has been detected.

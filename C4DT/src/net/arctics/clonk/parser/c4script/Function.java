@@ -291,7 +291,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				type = TypeChoice.remove(type, new IPredicate<IType>() {
 					@Override
 					public boolean test(IType item) {
-						return item instanceof Variable.ParameterType;
+						return item instanceof ParameterType;
 					}
 				});
 				if (engineCompatible && !par.isActualParm())

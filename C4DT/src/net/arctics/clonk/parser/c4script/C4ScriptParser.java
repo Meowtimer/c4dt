@@ -1482,8 +1482,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw misplacedErrorOrNoFileToAttachMarkerTo
-				? new SilentParsingException(Reason.SilenceRequested, problem)
-				: new ParsingException(problem);
+				? new SilentParsingException(Reason.SilenceRequested, problem, this)
+				: new ParsingException(problem, this);
 	}
 	
 	public IMarker todo(String todoText, int markerStart, int markerEnd, int priority) {
@@ -1756,7 +1756,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 	}
 	
-	protected Placeholder makePlaceholder(String placeholder) {
+	protected Placeholder makePlaceholder(String placeholder) throws ParsingException {
 		return new Placeholder(placeholder);
 	}
 
@@ -3194,9 +3194,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
 	}
 	
-	public static Statement parse(final String statementText) {
+	public static Statement parse(final String statementText) throws ParsingException {
+		return parseStandaloneStatement(statementText, null, null, null);
+	}
+	
+	public static ExprElm matchingExpr(final String statementText) {
 		try {
-			return parseStandaloneStatement(statementText, null, null, null);
+			return parse(statementText).matchingExpr();
 		} catch (ParsingException e) {
 			e.printStackTrace();
 			return null;

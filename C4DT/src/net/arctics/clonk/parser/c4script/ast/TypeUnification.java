@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.NillableType;
+import net.arctics.clonk.parser.c4script.ParameterType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ReferenceType;
@@ -146,7 +147,7 @@ public class TypeUnification {
 					return ReferenceType.make(u);
 		}
 		
-		if (a instanceof Variable.ParameterType)
+		if (a instanceof ParameterType)
 			return TypeChoice.make(a, b);
 		
 		return null;

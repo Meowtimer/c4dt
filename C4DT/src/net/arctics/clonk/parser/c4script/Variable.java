@@ -1,10 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
-import java.util.Iterator;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
@@ -14,7 +12,6 @@ import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -436,57 +433,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return initializationExpression();
 	}
 	
-	public class ParameterType implements IResolvableType {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-		public Variable parameter() { return Variable.this; }
-		
-		@Override
-		public boolean equals(Object obj) {
-			return obj instanceof ParameterType && ((ParameterType)obj).parameter() == this.parameter();
-		}
-		
-		@Override
-		public Iterator<IType> iterator() {
-			return iterable(PrimitiveType.UNKNOWN, this).iterator();
-		}
-
-		@Override
-		public boolean canBeAssignedFrom(IType other) {
-			return true;
-		}
-
-		@Override
-		public String typeName(boolean special) {
-			if (special)
-				return String.format("Type of parameter '%s'", name());
-			else
-				return PrimitiveType.UNKNOWN.typeName(false);
-		}
-		
-		@Override
-		public String toString() { return typeName(true); }
-
-		@Override
-		public int precision() { return 1; }
-		@Override
-		public IType staticType() { return PrimitiveType.UNKNOWN; }
-		@Override
-		public void setTypeDescription(String description) {}
-
-		@Override
-		public IType resolve(DeclarationObtainmentContext context, IType callerType) {
-			IFunctionCall call = context.currentFunctionCall();
-			if (call != null && call.quasiCalledFunction(context) == parameter().parentDeclaration())
-				return call.concreteParameterType(Variable.this, context);
-			else
-				return this;
-		}
-	}
-	
 	public IType parameterType() {
 		return scope == Scope.PARAMETER && type() == PrimitiveType.UNKNOWN
-			? new ParameterType()
+			? new ParameterType(this)
 			: type(); 
 	}
 	
