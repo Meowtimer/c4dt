@@ -503,7 +503,7 @@ global func int GetBreath(object pObj);
 global func bool Kill(object pObj, bool fForced);
 global func bool Punch(object pObj, int iX);
 global func int SetAlive(bool fAlive, object pObj);
-global func bool CrewMember(id id);
+global func bool CrewMember(object pObj);
 global func bool DoCrewExp(int iChange, object pObj);
 global func object GetCaptain(int iPlayer);
 global func int GetController(object pObj);
