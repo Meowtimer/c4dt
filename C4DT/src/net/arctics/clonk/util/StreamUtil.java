@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.net.URL;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
@@ -25,9 +26,8 @@ public class StreamUtil {
 		int read;
 		StringBuilder builder = new StringBuilder(1024);
 		try {
-			while ((read = reader.read(buffer)) > 0) {
+			while ((read = reader.read(buffer)) > 0)
 				builder.append(buffer, 0, read);
-			}
 		} catch (IOException e) {
 			return "";
 		}
@@ -49,6 +49,25 @@ public class StreamUtil {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return "";
+		}
+	}
+	
+	public static String stringFromURL(URL url) {
+		InputStream stream;
+		try {
+			stream = url.openStream();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return null;
+		}
+		try {
+			return StreamUtil.stringFromInputStream(stream);
+		} finally {
+			try {
+				stream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -121,13 +140,12 @@ public class StreamUtil {
 	public static void transfer(InputStream source, OutputStream dest) throws IOException {
 		byte[] buffer = new byte[1024];
 		int read;
-		while ((read = source.read(buffer)) != -1) {
+		while ((read = source.read(buffer)) != -1)
 			dest.write(buffer, 0, read);
-		}
 	}
 	public static FilenameFilter patternFilter(final String pattern) {
 		return new FilenameFilter() {
-			private Pattern p = StringUtil.patternFromRegExOrWildcard(pattern);
+			private final Pattern p = StringUtil.patternFromRegExOrWildcard(pattern);
 			@Override
 			public boolean accept(File dir, String name) {
 				return p.matcher(name).matches();

@@ -82,7 +82,7 @@ public class Command {
 	public static void registerCommandsFromClass(Script script, Class<?> classs) {
 		for (Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
-				addCommand(m);
+				addCommand(script, m);
 	}
 
 	private static class NativeCommandFunction extends Function {

@@ -12,8 +12,10 @@ import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ExprElm.ITransformer;
+import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
@@ -118,6 +120,12 @@ public class ProjectConverter implements IResourceVisitor {
 				public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 					if (expression == null)
 						return null;
+					Definition d;
+					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (d = ((AccessVar)expression).proxiedDefinition()) != null)) {
+						String mapped = configuration.idMap().get(expression.toString());
+						if (mapped != null)
+							return new AccessVar(mapped);
+					}
 					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
 						Map<String, Object> matched = ct.template().match(expression);
 						if (matched != null)

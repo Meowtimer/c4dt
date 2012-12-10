@@ -1235,9 +1235,12 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			@Override
 			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 				if (expression instanceof Placeholder) {
+					MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
 					Object substitution = substitutions.get(((Placeholder)expression).entryName());
 					if (substitution != null)
-						return substitution;
+						return mp != null ? mp.transformSubstitution(substitution) : substitution;
+					else
+						return REMOVE;
 				}
 				return expression;
 			}

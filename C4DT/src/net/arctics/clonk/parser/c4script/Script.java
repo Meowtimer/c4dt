@@ -1185,6 +1185,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	public void generateFindDeclarationCache() {
+		//populateDictionary();
 		cachedFunctionMap = new HashMap<String, Function>();
 		cachedVariableMap = new HashMap<String, Variable>();
 		_generateFindDeclarationCache();

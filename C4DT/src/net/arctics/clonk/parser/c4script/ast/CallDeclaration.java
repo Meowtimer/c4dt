@@ -758,7 +758,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
-	    	Object[] args = ArrayUtil.map(params(), Object.class, Conf.EVALUATE_EXPR);
+	    	Object[] args = new Object[params().length];
+	    	for (int i = 0; i < args.length; i++)
+				try {
+					args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
+				} catch (ControlFlowException e) {
+					args[i] = null;
+					e.printStackTrace();
+				}
 	    	return ((Function)declaration).invoke(args);
 	    }
 	    else

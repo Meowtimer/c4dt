@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
+import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -679,9 +680,47 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param args the arguments to pass to the function
 	 * @return the result
 	 */
-	public Object invoke(Object... args) {
+	public Object invoke(final Object... args) {
 		try {
-			return body != null ? body.evaluate(this) : null;
+			return body != null ? body.evaluate(new IEvaluationContext() {
+				@Override
+				public Object valueForVariable(String varName) {
+					int i = 0;
+					for (Variable v : parameters) {
+						if (v.name().equals(varName))
+							return args[i];
+						i++;
+					}
+					return null;
+				}
+				
+				@Override
+				public Script script() {
+					return Function.this.script();
+				}
+				
+				@Override
+				public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+					Function.this.reportOriginForExpression(expression, location, file);
+				}
+				
+				@Override
+				public Function function() {
+					return Function.this;
+				}
+				
+				@Override
+				public int codeFragmentOffset() {
+					return Function.this.codeFragmentOffset();
+				}
+				
+				@Override
+				public Object[] arguments() {
+					return args;
+				}
+			}) : null;
+		} catch (ReturnException result) {
+			return result.result();
 		} catch (ControlFlowException e) {
 			e.printStackTrace();
 			return null;
