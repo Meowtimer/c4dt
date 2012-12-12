@@ -200,7 +200,7 @@ public class MatchingPlaceholder extends Placeholder {
 		if (stringRepresentationPattern != null) {
 			IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
 			String patternMatchingText = target != null ? target.patternMatchingText() : element.toString();
-			if (!stringRepresentationPattern.matcher(patternMatchingText).matches())
+			if (patternMatchingText == null || !stringRepresentationPattern.matcher(patternMatchingText).matches())
 				return false;
 		}
 		if (parameterPattern != null) {
