@@ -548,7 +548,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					bucket.add(url);
 				}
 				for (Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
-					ProjectConversionConfiguration conf = new ProjectConversionConfiguration();
+					ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
 					conf.load(bucket.getValue());
 					projectConversionConfigurations.put(bucket.getKey(), conf);
 				}

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
@@ -51,10 +52,21 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	public ExprElm replacement() { return replacement; }
 	public ExprElm template() { return template; }
 	
+	private Engine commonEngine(Iterable<Script> scripts) {
+		Engine e = null;
+		for (Script s : scripts)
+			if (e == null)
+				e = s.engine();
+			else if (e != s.engine())
+				throw new IllegalArgumentException("Scripts from different engines");
+		return e;
+	}
+	
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
-		this.template = C4ScriptParser.parse(templateExpressionText).matchingExpr();
-		this.replacement = replacementExpressionText != null ? C4ScriptParser.parse(replacementExpressionText).matchingExpr() : null;
+		Engine engine = commonEngine(scope);
+		this.template = C4ScriptParser.matchingExpr(templateExpressionText, engine);
+		this.replacement = replacementExpressionText != null ? C4ScriptParser.matchingExpr(replacementExpressionText, engine) : null;
 		this.scope = scope;
 	}
 	
