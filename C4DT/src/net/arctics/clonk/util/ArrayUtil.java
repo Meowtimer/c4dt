@@ -285,11 +285,19 @@ public class ArrayUtil {
 		return result;
 	}
 
-	public static <T> void sink(Iterable<? extends T> iterable, Sink<T> sink) {
+	public static <T> Decision sink(Iterable<? extends T> iterable, Sink<T> sink) {
 		Iterator<? extends T> it = iterable.iterator();
 		while (it.hasNext())
-			if (sink.elutriate(it.next()) == Decision.Purge)
+			switch (sink.elutriate(it.next())) {
+			case PurgeItem:
 				it.remove();
+				break;
+			case AbortIteration:
+				return Decision.AbortIteration;
+			default:
+				break;
+			}
+		return Decision.Continue;
 	}
 	
 	public static <T> boolean elementsEqual(T[] a, T[] b) {

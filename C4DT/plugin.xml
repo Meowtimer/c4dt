@@ -636,14 +636,15 @@
 			class="net.arctics.clonk.ui.search.FindDuplicatesSearchResultPage" />
 	</extension>
 	
-	<!--
 	<extension point="org.eclipse.search.searchPages">
 		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
     		id="net.arcitcs.clonk.ui.ClonkSearchPage"
 			label="%SearchPage_Title"
-			icon="icons/c4scriptIcon.png">
+			icon="icons/c4scriptIcon.png"
+			showScopeSection="true"
+			canSearchEnclosingProjects="true">
 		</page>
-	</extension> !-->
+	</extension>
 	
 	<extension point="org.eclipse.debug.core.sourceLocators">
 	    <sourceLocator

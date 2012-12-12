@@ -378,4 +378,13 @@ public abstract class Utilities {
 		}
 	}
 	
+	public static Object token(final String token) {
+		return new Object() {
+			@Override
+			public String toString() {
+				return token;
+			}
+		};
+	}
+	
 }

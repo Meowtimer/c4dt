@@ -549,15 +549,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 
-		if (result == null && cachedScript == null) {
+		boolean needsReparsing = false;
+		if (result == null && cachedScript.get() == null) {
 			result = new ScratchScript(this);
+			needsReparsing = true;
+		}
+		cachedScript = new WeakReference<Script>(result);
+		if (needsReparsing)
 			try {
 				reparseWithDocumentContents(null, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-		cachedScript = new WeakReference<Script>(result);
 		return result;
 	}
 	
@@ -616,6 +619,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.script().generateFindDeclarationCache();
 		//if (!onlyDeclarations)
 			parser.parseCodeOfFunctionsAndValidate();
+		if (!onlyDeclarations)
+			parser.reportProblems();
 		if (storedLocalsTypeInformation != null)
 			for (ITypeInfo info : storedLocalsTypeInformation)
 				info.apply(false, parser);

@@ -15,11 +15,11 @@ public class TypeEnvironment extends ArrayList<ITypeInfo> {
 	public TypeEnvironment(int capacity) {
 		super(capacity);
 	}
-	public TypeEnvironment inject(TypeEnvironment other) {
+	public TypeEnvironment inject(TypeEnvironment other, boolean ignoreLocals) {
 		for (ITypeInfo info : this)
 			for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {
 				ITypeInfo info2 = it.next();
-				if (info2.local()) {
+				if (ignoreLocals && info2.local()) {
 					it.remove();
 					continue;
 				}

@@ -42,6 +42,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -474,7 +475,7 @@ public abstract class SpecialEngineRules {
 						if (t != null) for (IType ty : t)
 							types.add(ty);
 					}
-				result = TypeUnification.unify(types.toArray(new IType[types.size()]));
+				result = TypeUnification.unify(types);
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
 				if (callFunc.params().length >= 1)
@@ -504,9 +505,7 @@ public abstract class SpecialEngineRules {
 									if (def != null)
 										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 								}
-					IType ty = TypeUnification.unify(types.toArray(new IType[types.size()]));
-					if (ty instanceof TypeSet)
-						ty.setTypeDescription(String.format("Types providing '%s'", ev));
+					IType ty = TypeUnification.unify(types);
 					return ty;
 				}
 			}
@@ -524,7 +523,7 @@ public abstract class SpecialEngineRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
-			Script script = objType != null ? TypeSet.definition(objType) : null;
+			Script script = objType != null ? TypeUtil.definition(objType) : null;
 			if (script == null)
 				script = parser.script(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
@@ -947,13 +946,14 @@ public abstract class SpecialEngineRules {
 		// do nothing
 	}
 
-	public IPredicate<Definition> configurationEntryDefinitionFilter(IniEntry entry) {
-		if (entry.key().equals("Rules"))
+	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+		if (entry instanceof ComplexIniEntry && ((ComplexIniEntry)entry).definition() != null && ((ComplexIniEntry)entry).definition().categoryFilter() != null)
 			return new IPredicate<Definition>() {
+				final String filter = ((ComplexIniEntry)entry).definition().categoryFilter();
 				@Override
 				public boolean test(Definition item) {
 					CategoriesValue category = item.category();
-					return category != null && category.constants() != null && category.constants().contains("C4D_Rule");
+					return category != null && category.constants() != null && category.constants().contains(filter);
 				}
 			};
 		else if (entry.key().equals("Animal"))
@@ -967,6 +967,9 @@ public abstract class SpecialEngineRules {
 			return new IPredicate<Definition>() {
 				@Override
 				public boolean test(Definition item) {
+					for (Directive d : item.directives())
+						if (d.type() == DirectiveType.APPENDTO)
+							return false; // ignore definitions that append
 					return item.findFunction("IsClonk") != null;
 				}
 			};
@@ -978,5 +981,7 @@ public abstract class SpecialEngineRules {
 				}
 			};
 	}
+
+	public void refreshIndex(Index index) {}
 	
 }

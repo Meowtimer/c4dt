@@ -23,11 +23,11 @@ public class ClonkSearchMatch extends Match {
 		this.indirect = indirect;
 	}
 	
-	public String getLine() {
+	public String line() {
 		return line;
 	}
 
-	public Structure getStructure() {
+	public Structure structure() {
 		Structure s = (Structure) getElement();
 		if (s != null)
 			return (Structure) s.latestVersion();
@@ -35,7 +35,7 @@ public class ClonkSearchMatch extends Match {
 			return null;
 	}
 
-	public int getLineOffset() {
+	public int lineOffset() {
 		return lineOffset;
 	}
 

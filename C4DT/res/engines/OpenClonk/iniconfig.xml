@@ -1,762 +1,455 @@
+<?xml version="1.0"?>
 <clonkiniconfig>
 	<file name="ActMap.txt">
 		<section name="Action">
-			<entry name="Name" class="java.lang.String" description="Name der Aktivität. Siehe " />
-			<entry name="Procedure" class="java.lang.String"
-				description="Interne Standardprozedur. Siehe " />
-			<entry name="Directions" class="SignedInteger"
-				description="Anzahl der Animationsrichtungen. Animationreihen vertikal in Graphics.png." />
-			<entry name="FlipDir" class="SignedInteger"
-				description="Wenn ungleich 0, gibt dieser Wert die erste Animationsrichtung an, die durch Spiegelung einer davor liegenden Animationsrichtung gezeichnet wird. So wird bei Wert 1 für die Richtung 1 (rechts) die gespiegelte Grafik der Richtung 0 (links) verwendet (siehe Clonks). Bei Wert 7 wird für Richtungen &gt;= 7 die gespiegelte Grafik der Richtung 6 - n verwendet, d.h. bei höheren Richtungsnummern wird wieder rückwärts nach oben gezählt (siehe Banner im Ritterpack)." />
-			<entry name="Length" class="SignedInteger"
-				description="Anzahl der Animationsphasen dieser Aktivität (horizontal in Graphics.png)." />
-			<entry name="Reverse" class="Boolean"
-				description="0 oder 1. Bei Wert 1 werden die Animationsphasen rückwärts angezeigt." />
-			<entry name="Delay" class="SignedInteger"
-				description="Wartezeit in Frames (Ticks) zwischen zwei Animationsphasen." />
-			<entry name="Attach" class="SignedInteger"
-				description="Festhalten an Oberflächen: " />
-			<entry name="Facet" class="IntegerArray"
-				description="Animationsgrafik: Zielrechteck aus Graphics.png auf Objektposition." />
-			<entry name="FacetBase" class="Boolean"
-				description="0 oder 1. Bei Wert 1 wird Facet mit der Standardobjektgrafik unterlegt." />
-			<entry name="FacetTopFace" class="Boolean"
-				description="0 oder 1. Bei 1 wird das TopFace (siehe " />
-			<entry name="FacetTargetStretch" class="Boolean"
-				description="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht." />
-			<entry name="NextAction" class="Action"
-				description="Nächste Aktivität nach Ablauf der Animationsphasen." />
-			<entry name="TurnAction" class="Action"
-				description="Aktivitität fürs Umdrehen." />
-			<entry name="NoOtherAction" class="Boolean"
-				description="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />
-			<entry name="StartCall" class="FunctionEntry"
-				description="Objektscriptfunktion, die beim Start der Aktivität aufgerufen wird." />
-			<entry name="EndCall" class="FunctionEntry"
-				description="Wird am Ende der Aktivität aufgerufen." />
-			<entry name="PhaseCall" class="FunctionEntry"
-				description="Wird bei jedem Phasenschritt aufgerufen." />
-			<entry name="AbortCall" class="FunctionEntry"
-				description="Wird aufgerufen, wenn die Aktivität vor ihrem Ende durch eine andere ersetzt wird." />
-			<entry name="InLiquidAction" class="Action"
-				description="Auszuführende Aktion, wenn das Objekt in Flüssigkeiten eintaucht." />
-			<entry name="Sound" class="java.lang.String"
-				description="Dauerhaftes Geräusch dieser Aktivität." />
-			<entry name="ObjectDisabled" class="Boolean"
-				description="0 oder 1. Eingeschränkte Fähigkeit des Objekts während dieser Aktion." />
-			<entry name="DigFree" class="SignedInteger"
-				description="Freigraben während dieser Aktion. Objektrechteck 1, sonst Kreisradius." />
-			<entry name="EnergyUsage" class="SignedInteger"
-				description="Nötige Energie für diese Aktion. Maschinen 500." />
-			<entry name="Step" class="UnsignedInteger"
-				description="Bei Step=n nur jedes n-te Bild aus der Animationsgrafik zeichnen." />
+			<entry name="Name" class="java.lang.String" description="Name der Aktivit&#xE4;t. Siehe "/>
+			<entry name="Procedure" class="java.lang.String" description="Interne Standardprozedur. Siehe "/>
+			<entry name="Directions" class="SignedInteger" description="Anzahl der Animationsrichtungen. Animationreihen vertikal in Graphics.png."/>
+			<entry name="FlipDir" class="SignedInteger" description="Wenn ungleich 0, gibt dieser Wert die erste Animationsrichtung an, die durch Spiegelung einer davor liegenden Animationsrichtung gezeichnet wird. So wird bei Wert 1 f&#xFC;r die Richtung 1 (rechts) die gespiegelte Grafik der Richtung 0 (links) verwendet (siehe Clonks). Bei Wert 7 wird f&#xFC;r Richtungen &gt;= 7 die gespiegelte Grafik der Richtung 6 - n verwendet, d.h. bei h&#xF6;heren Richtungsnummern wird wieder r&#xFC;ckw&#xE4;rts nach oben gez&#xE4;hlt (siehe Banner im Ritterpack)."/>
+			<entry name="Length" class="SignedInteger" description="Anzahl der Animationsphasen dieser Aktivit&#xE4;t (horizontal in Graphics.png)."/>
+			<entry name="Reverse" class="Boolean" description="0 oder 1. Bei Wert 1 werden die Animationsphasen r&#xFC;ckw&#xE4;rts angezeigt."/>
+			<entry name="Delay" class="SignedInteger" description="Wartezeit in Frames (Ticks) zwischen zwei Animationsphasen."/>
+			<entry name="Attach" class="SignedInteger" description="Festhalten an Oberfl&#xE4;chen: "/>
+			<entry name="Facet" class="IntegerArray" description="Animationsgrafik: Zielrechteck aus Graphics.png auf Objektposition."/>
+			<entry name="FacetBase" class="Boolean" description="0 oder 1. Bei Wert 1 wird Facet mit der Standardobjektgrafik unterlegt."/>
+			<entry name="FacetTopFace" class="Boolean" description="0 oder 1. Bei 1 wird das TopFace (siehe "/>
+			<entry name="FacetTargetStretch" class="Boolean" description="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht."/>
+			<entry name="NextAction" class="Action" description="N&#xE4;chste Aktivit&#xE4;t nach Ablauf der Animationsphasen."/>
+			<entry name="TurnAction" class="Action" description="Aktivitit&#xE4;t f&#xFC;rs Umdrehen."/>
+			<entry name="NoOtherAction" class="Boolean" description="0 oder 1. Bei 1 ist keine Aktivit&#xE4;t nach dieser m&#xF6;glich (z.B. Tod, Zerst&#xF6;rung)."/>
+			<entry name="StartCall" class="FunctionEntry" description="Objektscriptfunktion, die beim Start der Aktivit&#xE4;t aufgerufen wird."/>
+			<entry name="EndCall" class="FunctionEntry" description="Wird am Ende der Aktivit&#xE4;t aufgerufen."/>
+			<entry name="PhaseCall" class="FunctionEntry" description="Wird bei jedem Phasenschritt aufgerufen."/>
+			<entry name="AbortCall" class="FunctionEntry" description="Wird aufgerufen, wenn die Aktivit&#xE4;t vor ihrem Ende durch eine andere ersetzt wird."/>
+			<entry name="InLiquidAction" class="Action" description="Auszuf&#xFC;hrende Aktion, wenn das Objekt in Fl&#xFC;ssigkeiten eintaucht."/>
+			<entry name="Sound" class="java.lang.String" description="Dauerhaftes Ger&#xE4;usch dieser Aktivit&#xE4;t."/>
+			<entry name="ObjectDisabled" class="Boolean" description="0 oder 1. Eingeschr&#xE4;nkte F&#xE4;higkeit des Objekts w&#xE4;hrend dieser Aktion."/>
+			<entry name="DigFree" class="SignedInteger" description="Freigraben w&#xE4;hrend dieser Aktion. Objektrechteck 1, sonst Kreisradius."/>
+			<entry name="EnergyUsage" class="SignedInteger" description="N&#xF6;tige Energie f&#xFC;r diese Aktion. Maschinen 500."/>
+			<entry name="Step" class="UnsignedInteger" description="Bei Step=n nur jedes n-te Bild aus der Animationsgrafik zeichnen."/>
 		</section>
 	</file>
 	<file name="DefCore.txt">
 		<section name="DefCore">
-			<entry name="id" class="C4ID"
-				description="Id des Objekts." />
-			<entry name="Version" class="IntegerArray"
-				description="Minimale vom Objekt benötigte Engine-Version. Dieser Eintrag sollte bei jeder Änderung auf die jeweils\n  aktuelle Clonk-Version gesetzt werden, damit ersichtlich ist, zu welchem Zeitpunkt das Objekt erschienen ist." />
-			<entry name="Category"
-				class="CategoriesValue"
-				description="Kategorie des Objekts. Siehe Objektkategorien."
-				constantsPrefix="C4D_" />
-			<entry name="TimerCall" class="FunctionEntry"
-				description="Regelmäßig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte." />
-			<entry name="Timer" class="SignedInteger"
-				description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35." />
-			<entry name="ContactCalls" class="Boolean"
-				description="0 oder 1. Legt fest, ob Kontaktaufrufe im Objektscript getätigt werden." />
-			<entry name="Width" class="SignedInteger"
-				description="Breite des Objekts." />
-			<entry name="Height" class="SignedInteger"
-				description="Höhe des Objekts." />
-			<entry name="Offset" class="IntegerArray"
-				description="Koordinatenabstand der linken oberen Ecke zur Objektmitte." />
-			<entry name="Value" class="SignedInteger"
-				description="Wert des Objekts in Geldpunkten." />
-			<entry name="Mass" class="SignedInteger"
-				description="Gewicht des Objekts. Stein 10, Clonk 50, Hütte 1000, Burg 10000." />
-			<entry name="Components" class="IDArray"
-				description="Elemente, aus denen das Objekt zusammen gesetzt ist.\n  Im Bau oder Wachstum befindliche Objekte enthalten nur anteilige Komponenten." />
-			<entry name="SolidMask" class="IntegerArray"
-				description="Massivbereiche des Objekts. Zielrechteck aus Graphics.bmp aufs Objekt." />
-			<entry name="TopFace" class="IntegerArray"
-				description="Verdeckende Oberflächen. Zielrechteck aus Graphics.bmp aufs Objekt." />
-			<entry name="Picture" class="IntegerArray"
-				description="Repräsentativgrafik des Objekts. Rechteck aus Graphics.bmp." />
-			<entry name="Vertices" class="SignedInteger"
-				description="Anzahl der Eckpunkte des Objekts. 1 bis 30." />
-			<entry name="VertexX" class="IntegerArray"
-				description="Liste der horizontalen Koordinaten der Eckpunkte des Objekts.\n  Siehe Vertices." />
-			<entry name="VertexY" class="IntegerArray"
-				description="Liste der vertikalen Koordinaten der Eckpunkte des Objekts." />
-			<entry name="VertexCNAT" class="IntegerArray"
-				description="Liste der Ausrichtungsbestimmungen der Eckpunkte.\n  Siehe CNAT." />
-			<entry name="VertexFriction" class="IntegerArray"
-				description="Liste der Reibungswerte der Eckpunkte, jeweils 1 bis 100." />
-			<entry name="Entrance" class="IntegerArray"
-				description="Koordinaten des Eingangsbereichs des Objekts relativ zur Objektmitte." />
-			<entry name="Collection" class="IntegerArray"
-				description="Koordinaten des Aufnahmebereichs des Objekts relativ zur Objektmitte." />
-			<entry name="CollectionLimit" class="SignedInteger"
-				description="Anzahl der maximal aufnehmbaren Objekte, 0 für uneingeschränkt." />
-			<entry name="FireTop" class="SignedInteger"
-				description="Flammenabstand zur Objektunterkante." />
-			<entry name="Placement" class="SignedInteger"
-				description="Platzierung: 0 Oberfläche, 1 in Flüssigkeit, 2 in der Luft." />
-			<entry name="Exclusive" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert." />
-			<entry name="ContactIncinerate" class="SignedInteger"
-				description="Kontaktentzündlichkeit: 0 keine, 1 (hoch) bis 5 (niedrig)" />
-			<entry name="BlastIncinerate" class="SignedInteger"
-				description="Explosionsentzündlichkeit: 0 keine, sonst bei angegebenem Schadenswert" />
-			<entry name="BurnTo" class="C4ID"
-				description="Definitionswechsel bei Entzündung." />
-			<entry name="Base" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann." />
-			<entry name="Line"
-				class="CategoriesValue"
-				description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr." />
-			<entry name="LineConnect"
-				class="CategoriesValue"
-				description="Anschlussfähigkeit für Leitungen.\n  Siehe LineConnect." />
-			<entry name="Prey" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist." />
-			<entry name="Edible" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt essbar ist (noch nicht unterstützt)." />
-			<entry name="CrewMember" class="Boolean"
-				description="0 oder 1. Wenn 1, wird das Objekt beim Kauf der Mannschaft hinzugefügt.\n  Mit CreateObject erzeugte CrewMember-Objekte müssen mit MakeCrewMember\n  der Mannschaft eines Spielers hinzugefügt werden." />
-			<entry name="Growth" class="SignedInteger"
-				description="Wachstum des Objekts. Baum 1-4, Lebewesen 15." />
-			<entry name="Rebuy" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt nach Verkauf zurückgekauft werden kann." />
-			<entry name="Construction" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann." />
-			<entry name="ConstructTo" class="C4ID"
-				description="Definitionswechsel beim Bau." />
-			<entry name="Grab" class="SignedInteger"
-				description="0 kein Anfassen, 1 Anfassen und Verschieben, 2 nur Anfassen." />
-			<entry name="GrabPutGet"
-				class="CategoriesValue"
-				description="Bitmaske: Bit 0 (Wert 1) Grab und Put, Bit 1 (Wert 2) Grab und Get" />
-			<entry name="Collectible" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt eingesammelt werden kann." />
-			<entry name="Rotate" class="SignedInteger"
-				description="0 keine Rotation, 1 volle Rotation, 2-360 eingeschränkte Rotation" />
-			<entry name="Chop" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt gefällt werden kann." />
-			<entry name="Float" class="SignedInteger"
-				description="Auftrieb in Flüssigkeiten: 0 kein Auftrieb, sonst Auftriebshöhe über Mitte" />
-			<entry name="ContainBlast" class="Boolean"
-				description="0 oder 1. Legt fest, ob Explosionen im Inneren nach außen wirken." />
-			<entry name="ColorByOwner" class="Boolean"
-				description="0 oder 1. Bei Wert 1 wird das Ausgangsblau, bzw. die Overlay.png, nach dem Besitzer gefärbt." />
-			<entry name="ColorByMaterial" class="java.lang.String"
-				description="Name des Materials, nach dem das Objekt gefärbt wird." />
-			<entry name="HorizontalFix" class="Boolean"
-				description="0 oder 1. Bei Wert 1 kann das Objekt sich nur vertikal bewegen." />
-			<entry name="BorderBound" class="SignedInteger"
-				description="Bitmaske: Bit 0 (1) Stop an Seiten, Bit 1 (2) Stop oben, Bit 2 (4) Stop unten" />
-			<entry name="UprightAttach" class="SignedInteger"
-				description="Wenn ungleich 0 (8-10) sitzt das Objekt aufgerichtet auf Massivbereichen auf." />
-			<entry name="StretchGrowth" class="Boolean"
-				description="0 oder 1. Bei Wert 1 wird das Objekt wie ein Lebewesen vergrößert (abhängig von der Fertigstellung.\n  Siehe GetCon)" />
-			<entry name="Basement" class="SignedInteger"
-				description="0 kein Fundament, 1 Fundament, andere Werte speziell" />
-			<entry name="NoBurnDecay" class="Boolean"
-				description="0 oder 1. Bei Wert 1 verbrennt das Objekt nicht." />
-			<entry name="IncompleteActivity" class="Boolean"
-				description="0 oder 1. Wert 1 für Lebewesen, die auch im Wachstum aktiv sein können." />
-			<entry name="Oversize" class="Boolean"
-				description="0 oder 1. Das Objekt kann mit DoCon auf Übergröße vergrößert werden." />
-			<entry name="AttractLightning" class="Boolean"
-				description="0 oder 1. Das Objekt zieht Blitze an." />
-			<entry name="Fragile" class="Boolean"
-				description="0 oder 1. Objekt sollte nicht geworfen werden." />
-			<entry name="NoPushEnter" class="Boolean"
-				description="0 oder 1. Das Objekt kann nicht durch Anfassen und Steuerung Rauf in andere Objekte hineingeschoben werden\n  (z.B. Fahrstuhlkorb)." />
-			<entry name="VehicleControl" class="SignedInteger"
-				description="Bitmaske: Bit 0 (Wert 1) das Objekt kann durch Anfassen von außen und/oder Bit 1 (Wert 2) von innen gesteuert\n  werden. Bei aktiviertem VehicleControl werden die selbständig auszuführenden Befehle (Commands) eines Clonks\n  als ControlCommand-Aufrufe an das Script des entsprechenden Fahrzeugs weitergeleitet und können von diesem\n  ausgewertet und abgefangen werden.\n  Siehe Control-Funktionen." />
-			<entry name="Pathfinder" class="SignedInteger"
-				description="1 - 10. Beeinflusst die Suchtiefe des Wegfindungsalgorithmus (Standard: 1). Vorsicht: hohe Werte sind sehr rechenintensiv.\n  Mit diesem Wert setzen auch Objekte ohne CrewMember-Wert bei der Ausführung von Kommandos (z.B. MoveTo)\n  den internen Wegfindungsalgorithmus ein. Erweitert ab 4.95.4." />
-			<entry name="NoComponentMass" class="Boolean"
-				description="0 oder 1. Bei 1 zählt der Inhalt des Objekts nicht mit zur Gesamtmasse. Dadurch lässt sich zum Beispiel\n  verhindern, dass Rucksäcke oder Köcher durch ihren Inhalt mörderische Wurfwaffen werden." />
-			<entry name="NoStabilize" class="Boolean"
-				description="0 oder 1. Bei 1 richtet sich das Objekt nicht automatisch auf 0° Drehung auf, wenn es nur sehr leicht gedreht ist." />
-			<entry name="ClosedContainer" class="Boolean"
-				description="0 oder 1. Bei 1 können enthaltene Clonks bei aktiviertem Fog Of War nicht herausschauen." />
-			<entry name="SilentCommands" class="Boolean"
-				description="0 oder 1. Bei 1 werden bei fehlgeschlagenen Commands keine Meldungen ausgegeben." />
-			<entry name="NoBurnDamage" class="Boolean"
-				description="0 oder 1. Bei 1 wird dem Objekt kein Schaden zugefügt, wenn es brennt." />
-			<entry name="TemporaryCrew" class="Boolean"
-				description="0 oder 1. Bei 1 wird das Objekt nicht in die Dauerhafte Crew des Spielers eingetragen." />
-			<entry name="SmokeRate" class="SignedInteger"
-				description="0 bis 200: Gibt die Rauchmenge an, die das Objekt im Brandfall verursacht. 0 ist kein Rauch, 100 ist die Standardmenge.\n  Bei Werten ungleich 0 wird allerdings immer die Maximalmenge Rauch produziert, wenn das Objekt in schneller Bewegung ist\n  (zum Beispiel Brandpfeile)." />
-			<entry name="BlitMode" class="Boolean"
-				description="0 oder 1. Bei 1 wird das Objekt additiv gezeichnet." />
-			<entry name="NoBreath" class="Boolean"
-				description="0 oder 1. Bei 1 atmet das Objekt nicht, selbst wenn es ein Lebewesen ist." />
-			<entry name="ConSizeOff" class="SignedInteger"
-				description="Wert &gt;=0. Abzug des benötigten Bauplatzes von oben." />
-			<entry name="NoSell" class="Boolean"
-				description="0 oder 1. Bei 1 kann das Objekt nicht verkauft werden." />
-			<entry name="NoGet" class="Boolean"
-				description="0 oder 1. Bei 1 kann das Objekt nicht manuell aus anderen Objekten heraus genommen werden.01." />
-			<entry name="NoFight" class="Boolean"
-				description="0 oder 1. Bei 1 kämpft das Objekt nicht mit anderen Lebewesen, selbst wenn es selber ein Lebewesen ist." />
-			<entry name="LiftTop" class="SignedInteger"
-				description="Wird ein Objekt bei einer Action mit der Procedure 'LIFT' mehr als die angegebene Höhe\n  über der Objektmitte angehoben, wird die Funktion LiftTop im Script aufgerufen." />
-			<entry name="RotatedEntrance" class="SignedInteger"
-				description="0 Eingang ist nur bei aufgerichtetem Objekt geöffnet, 1 Eingang ist immer geöffnet, 2-360 Eingang ist innerhalb des entsprechenden Bereichs geöffnet. Ab 4.95.4." />
-			<entry name="MoveToRange" class="SignedInteger"
-				description="Maximale Distanz, mit der ein Bewegungskommando einen Zielpunkt treffen muss, damit das Bewegungskommando als erfüllt gilt. Vorgabewert 5. Ab 4.95.4." />
-			<entry name="NoTransferZones" class="Boolean"
-				description="0 oder 1. Bei 1 berücksichtigt die Wegfindung des Objekts keine Transferzonen an Gebäuden. Ab 4.95.4." />
-			<entry name="AutoContextMenu" class="Boolean"
-				description="0 oder 1. Bei 1 wird für dieses Gebäude beim Betreten automatisch das Kontextmenü geöffnet. Ab 4.9.7.7." />
-			<entry name="DragImagePicture" class="Boolean"
-				description="0 oder 1" />
-			<entry name="Explosive" class="Boolean"
-				description="0 oder 1" />
-			<entry name="Projectile" class="Boolean"
-				description="0 oder 1" />
-			<entry name="LineIntersect" class="Boolean"
-				description="0 oder 1" />
-			<entry name="NeededGfxMode" class="Boolean"
-				description="0 oder 1" />
-			<entry name="PictureFE" class="IntegerArray"
-				description="?" />
-			<entry name="RotatedSolidmasks" class="IntegerArray"
-				description="?" />
-			<entry name="AllowPictureStack"
-				class="CategoriesValue"
-				description="?" />
+			<entry name="id" class="C4ID" description="Id des Objekts."/>
+			<entry name="Version" class="IntegerArray" description="Minimale vom Objekt ben&#xF6;tigte Engine-Version. Dieser Eintrag sollte bei jeder &#xC4;nderung auf die jeweils\n  aktuelle Clonk-Version gesetzt werden, damit ersichtlich ist, zu welchem Zeitpunkt das Objekt erschienen ist."/>
+			<entry name="Category" class="CategoriesValue" description="Kategorie des Objekts. Siehe Objektkategorien." constantsPrefix="C4D_"/>
+			<entry name="TimerCall" class="FunctionEntry" description="Regelm&#xE4;&#xDF;ig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte."/>
+			<entry name="Timer" class="SignedInteger" description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35."/>
+			<entry name="ContactCalls" class="Boolean" description="0 oder 1. Legt fest, ob Kontaktaufrufe im Objektscript get&#xE4;tigt werden."/>
+			<entry name="Width" class="SignedInteger" description="Breite des Objekts."/>
+			<entry name="Height" class="SignedInteger" description="H&#xF6;he des Objekts."/>
+			<entry name="Offset" class="IntegerArray" description="Koordinatenabstand der linken oberen Ecke zur Objektmitte."/>
+			<entry name="Value" class="SignedInteger" description="Wert des Objekts in Geldpunkten."/>
+			<entry name="Mass" class="SignedInteger" description="Gewicht des Objekts. Stein 10, Clonk 50, H&#xFC;tte 1000, Burg 10000."/>
+			<entry name="Components" class="IDArray" description="Elemente, aus denen das Objekt zusammen gesetzt ist.\n  Im Bau oder Wachstum befindliche Objekte enthalten nur anteilige Komponenten."/>
+			<entry name="SolidMask" class="IntegerArray" description="Massivbereiche des Objekts. Zielrechteck aus Graphics.bmp aufs Objekt."/>
+			<entry name="TopFace" class="IntegerArray" description="Verdeckende Oberfl&#xE4;chen. Zielrechteck aus Graphics.bmp aufs Objekt."/>
+			<entry name="Picture" class="IntegerArray" description="Repr&#xE4;sentativgrafik des Objekts. Rechteck aus Graphics.bmp."/>
+			<entry name="Vertices" class="SignedInteger" description="Anzahl der Eckpunkte des Objekts. 1 bis 30."/>
+			<entry name="VertexX" class="IntegerArray" description="Liste der horizontalen Koordinaten der Eckpunkte des Objekts.\n  Siehe Vertices."/>
+			<entry name="VertexY" class="IntegerArray" description="Liste der vertikalen Koordinaten der Eckpunkte des Objekts."/>
+			<entry name="VertexCNAT" class="IntegerArray" description="Liste der Ausrichtungsbestimmungen der Eckpunkte.\n  Siehe CNAT."/>
+			<entry name="VertexFriction" class="IntegerArray" description="Liste der Reibungswerte der Eckpunkte, jeweils 1 bis 100."/>
+			<entry name="Entrance" class="IntegerArray" description="Koordinaten des Eingangsbereichs des Objekts relativ zur Objektmitte."/>
+			<entry name="Collection" class="IntegerArray" description="Koordinaten des Aufnahmebereichs des Objekts relativ zur Objektmitte."/>
+			<entry name="CollectionLimit" class="SignedInteger" description="Anzahl der maximal aufnehmbaren Objekte, 0 f&#xFC;r uneingeschr&#xE4;nkt."/>
+			<entry name="FireTop" class="SignedInteger" description="Flammenabstand zur Objektunterkante."/>
+			<entry name="Placement" class="SignedInteger" description="Platzierung: 0 Oberfl&#xE4;che, 1 in Fl&#xFC;ssigkeit, 2 in der Luft."/>
+			<entry name="Exclusive" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert."/>
+			<entry name="ContactIncinerate" class="SignedInteger" description="Kontaktentz&#xFC;ndlichkeit: 0 keine, 1 (hoch) bis 5 (niedrig)"/>
+			<entry name="BlastIncinerate" class="SignedInteger" description="Explosionsentz&#xFC;ndlichkeit: 0 keine, sonst bei angegebenem Schadenswert"/>
+			<entry name="BurnTo" class="C4ID" description="Definitionswechsel bei Entz&#xFC;ndung."/>
+			<entry name="Base" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann."/>
+			<entry name="Line" class="CategoriesValue" description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr."/>
+			<entry name="LineConnect" class="CategoriesValue" description="Anschlussf&#xE4;higkeit f&#xFC;r Leitungen.\n  Siehe LineConnect."/>
+			<entry name="Prey" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist."/>
+			<entry name="Edible" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt essbar ist (noch nicht unterst&#xFC;tzt)."/>
+			<entry name="CrewMember" class="Boolean" description="0 oder 1. Wenn 1, wird das Objekt beim Kauf der Mannschaft hinzugef&#xFC;gt.\n  Mit CreateObject erzeugte CrewMember-Objekte m&#xFC;ssen mit MakeCrewMember\n  der Mannschaft eines Spielers hinzugef&#xFC;gt werden."/>
+			<entry name="Growth" class="SignedInteger" description="Wachstum des Objekts. Baum 1-4, Lebewesen 15."/>
+			<entry name="Rebuy" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt nach Verkauf zur&#xFC;ckgekauft werden kann."/>
+			<entry name="Construction" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann."/>
+			<entry name="ConstructTo" class="C4ID" description="Definitionswechsel beim Bau."/>
+			<entry name="Grab" class="SignedInteger" description="0 kein Anfassen, 1 Anfassen und Verschieben, 2 nur Anfassen."/>
+			<entry name="GrabPutGet" class="CategoriesValue" description="Bitmaske: Bit 0 (Wert 1) Grab und Put, Bit 1 (Wert 2) Grab und Get"/>
+			<entry name="Collectible" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt eingesammelt werden kann."/>
+			<entry name="Rotate" class="SignedInteger" description="0 keine Rotation, 1 volle Rotation, 2-360 eingeschr&#xE4;nkte Rotation"/>
+			<entry name="Chop" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt gef&#xE4;llt werden kann."/>
+			<entry name="Float" class="SignedInteger" description="Auftrieb in Fl&#xFC;ssigkeiten: 0 kein Auftrieb, sonst Auftriebsh&#xF6;he &#xFC;ber Mitte"/>
+			<entry name="ContainBlast" class="Boolean" description="0 oder 1. Legt fest, ob Explosionen im Inneren nach au&#xDF;en wirken."/>
+			<entry name="ColorByOwner" class="Boolean" description="0 oder 1. Bei Wert 1 wird das Ausgangsblau, bzw. die Overlay.png, nach dem Besitzer gef&#xE4;rbt."/>
+			<entry name="ColorByMaterial" class="java.lang.String" description="Name des Materials, nach dem das Objekt gef&#xE4;rbt wird."/>
+			<entry name="HorizontalFix" class="Boolean" description="0 oder 1. Bei Wert 1 kann das Objekt sich nur vertikal bewegen."/>
+			<entry name="BorderBound" class="SignedInteger" description="Bitmaske: Bit 0 (1) Stop an Seiten, Bit 1 (2) Stop oben, Bit 2 (4) Stop unten"/>
+			<entry name="UprightAttach" class="SignedInteger" description="Wenn ungleich 0 (8-10) sitzt das Objekt aufgerichtet auf Massivbereichen auf."/>
+			<entry name="StretchGrowth" class="Boolean" description="0 oder 1. Bei Wert 1 wird das Objekt wie ein Lebewesen vergr&#xF6;&#xDF;ert (abh&#xE4;ngig von der Fertigstellung.\n  Siehe GetCon)"/>
+			<entry name="Basement" class="SignedInteger" description="0 kein Fundament, 1 Fundament, andere Werte speziell"/>
+			<entry name="NoBurnDecay" class="Boolean" description="0 oder 1. Bei Wert 1 verbrennt das Objekt nicht."/>
+			<entry name="IncompleteActivity" class="Boolean" description="0 oder 1. Wert 1 f&#xFC;r Lebewesen, die auch im Wachstum aktiv sein k&#xF6;nnen."/>
+			<entry name="Oversize" class="Boolean" description="0 oder 1. Das Objekt kann mit DoCon auf &#xDC;bergr&#xF6;&#xDF;e vergr&#xF6;&#xDF;ert werden."/>
+			<entry name="AttractLightning" class="Boolean" description="0 oder 1. Das Objekt zieht Blitze an."/>
+			<entry name="Fragile" class="Boolean" description="0 oder 1. Objekt sollte nicht geworfen werden."/>
+			<entry name="NoPushEnter" class="Boolean" description="0 oder 1. Das Objekt kann nicht durch Anfassen und Steuerung Rauf in andere Objekte hineingeschoben werden\n  (z.B. Fahrstuhlkorb)."/>
+			<entry name="VehicleControl" class="SignedInteger" description="Bitmaske: Bit 0 (Wert 1) das Objekt kann durch Anfassen von au&#xDF;en und/oder Bit 1 (Wert 2) von innen gesteuert\n  werden. Bei aktiviertem VehicleControl werden die selbst&#xE4;ndig auszuf&#xFC;hrenden Befehle (Commands) eines Clonks\n  als ControlCommand-Aufrufe an das Script des entsprechenden Fahrzeugs weitergeleitet und k&#xF6;nnen von diesem\n  ausgewertet und abgefangen werden.\n  Siehe Control-Funktionen."/>
+			<entry name="Pathfinder" class="SignedInteger" description="1 - 10. Beeinflusst die Suchtiefe des Wegfindungsalgorithmus (Standard: 1). Vorsicht: hohe Werte sind sehr rechenintensiv.\n  Mit diesem Wert setzen auch Objekte ohne CrewMember-Wert bei der Ausf&#xFC;hrung von Kommandos (z.B. MoveTo)\n  den internen Wegfindungsalgorithmus ein. Erweitert ab 4.95.4."/>
+			<entry name="NoComponentMass" class="Boolean" description="0 oder 1. Bei 1 z&#xE4;hlt der Inhalt des Objekts nicht mit zur Gesamtmasse. Dadurch l&#xE4;sst sich zum Beispiel\n  verhindern, dass Rucks&#xE4;cke oder K&#xF6;cher durch ihren Inhalt m&#xF6;rderische Wurfwaffen werden."/>
+			<entry name="NoStabilize" class="Boolean" description="0 oder 1. Bei 1 richtet sich das Objekt nicht automatisch auf 0&#xB0; Drehung auf, wenn es nur sehr leicht gedreht ist."/>
+			<entry name="ClosedContainer" class="Boolean" description="0 oder 1. Bei 1 k&#xF6;nnen enthaltene Clonks bei aktiviertem Fog Of War nicht herausschauen."/>
+			<entry name="SilentCommands" class="Boolean" description="0 oder 1. Bei 1 werden bei fehlgeschlagenen Commands keine Meldungen ausgegeben."/>
+			<entry name="NoBurnDamage" class="Boolean" description="0 oder 1. Bei 1 wird dem Objekt kein Schaden zugef&#xFC;gt, wenn es brennt."/>
+			<entry name="TemporaryCrew" class="Boolean" description="0 oder 1. Bei 1 wird das Objekt nicht in die Dauerhafte Crew des Spielers eingetragen."/>
+			<entry name="SmokeRate" class="SignedInteger" description="0 bis 200: Gibt die Rauchmenge an, die das Objekt im Brandfall verursacht. 0 ist kein Rauch, 100 ist die Standardmenge.\n  Bei Werten ungleich 0 wird allerdings immer die Maximalmenge Rauch produziert, wenn das Objekt in schneller Bewegung ist\n  (zum Beispiel Brandpfeile)."/>
+			<entry name="BlitMode" class="Boolean" description="0 oder 1. Bei 1 wird das Objekt additiv gezeichnet."/>
+			<entry name="NoBreath" class="Boolean" description="0 oder 1. Bei 1 atmet das Objekt nicht, selbst wenn es ein Lebewesen ist."/>
+			<entry name="ConSizeOff" class="SignedInteger" description="Wert &gt;=0. Abzug des ben&#xF6;tigten Bauplatzes von oben."/>
+			<entry name="NoSell" class="Boolean" description="0 oder 1. Bei 1 kann das Objekt nicht verkauft werden."/>
+			<entry name="NoGet" class="Boolean" description="0 oder 1. Bei 1 kann das Objekt nicht manuell aus anderen Objekten heraus genommen werden.01."/>
+			<entry name="NoFight" class="Boolean" description="0 oder 1. Bei 1 k&#xE4;mpft das Objekt nicht mit anderen Lebewesen, selbst wenn es selber ein Lebewesen ist."/>
+			<entry name="LiftTop" class="SignedInteger" description="Wird ein Objekt bei einer Action mit der Procedure 'LIFT' mehr als die angegebene H&#xF6;he\n  &#xFC;ber der Objektmitte angehoben, wird die Funktion LiftTop im Script aufgerufen."/>
+			<entry name="RotatedEntrance" class="SignedInteger" description="0 Eingang ist nur bei aufgerichtetem Objekt ge&#xF6;ffnet, 1 Eingang ist immer ge&#xF6;ffnet, 2-360 Eingang ist innerhalb des entsprechenden Bereichs ge&#xF6;ffnet. Ab 4.95.4."/>
+			<entry name="MoveToRange" class="SignedInteger" description="Maximale Distanz, mit der ein Bewegungskommando einen Zielpunkt treffen muss, damit das Bewegungskommando als erf&#xFC;llt gilt. Vorgabewert 5. Ab 4.95.4."/>
+			<entry name="NoTransferZones" class="Boolean" description="0 oder 1. Bei 1 ber&#xFC;cksichtigt die Wegfindung des Objekts keine Transferzonen an Geb&#xE4;uden. Ab 4.95.4."/>
+			<entry name="AutoContextMenu" class="Boolean" description="0 oder 1. Bei 1 wird f&#xFC;r dieses Geb&#xE4;ude beim Betreten automatisch das Kontextmen&#xFC; ge&#xF6;ffnet. Ab 4.9.7.7."/>
+			<entry name="DragImagePicture" class="Boolean" description="0 oder 1"/>
+			<entry name="Explosive" class="Boolean" description="0 oder 1"/>
+			<entry name="Projectile" class="Boolean" description="0 oder 1"/>
+			<entry name="LineIntersect" class="Boolean" description="0 oder 1"/>
+			<entry name="NeededGfxMode" class="Boolean" description="0 oder 1"/>
+			<entry name="PictureFE" class="IntegerArray" description="?"/>
+			<entry name="RotatedSolidmasks" class="IntegerArray" description="?"/>
+			<entry name="AllowPictureStack" class="CategoriesValue" description="?"/>
 
 		</section>
 		<section name="Physical">
-			<entry name="Energy" class="SignedInteger"
-				description="0-100000. Maximale Energie bzw. Lebensenergie." />
-			<entry name="Breath" class="SignedInteger"
-				description="0-100000. Maximaler Atem." />
-			<entry name="Walk" class="SignedInteger"
-				description="0-100000. Laufgeschwindigkeit." />
-			<entry name="Jump" class="SignedInteger"
-				description="0-100000. Sprungkraft." />
-			<entry name="Scale" class="SignedInteger"
-				description="0-100000. Klettergeschwindigkeit." />
-			<entry name="Hangle" class="SignedInteger"
-				description="0-100000. Hangelgeschwindigkeit." />
-			<entry name="Dig" class="SignedInteger"
-				description="0-100000. Grabgeschwindigkeit." />
-			<entry name="Swim" class="SignedInteger"
-				description="0-100000. Schwimmgeschwindigkeit." />
-			<entry name="Throw" class="SignedInteger"
-				description="0-100000. Wurfkraft." />
-			<entry name="Push" class="SignedInteger"
-				description="0-100000. Schiebekraft." />
-			<entry name="Fight" class="SignedInteger"
-				description="0-100000. Kampfkraft." />
-			<entry name="Magic" class="SignedInteger"
-				description="0-100000. Maximale Zauberenergie." />
-			<entry name="Float" class="SignedInteger"
-				description="0-100. Fluggeschwindigkeit." />
-			<entry name="CanScale" class="Boolean"
-				description="0 oder 1. Klettern." />
-			<entry name="CanHangle" class="Boolean"
-				description="0 oder 1. Hangeln." />
-			<entry name="CanDig" class="Boolean"
-				description="0 oder 1. Graben." />
-			<entry name="CanConstruct" class="Boolean"
-				description="0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert" />
-			<entry name="CanChop" class="Boolean"
-				description="0 oder 1. Fällen." />
-			<entry name="CorrosionResist" class="Boolean"
-				description="0 oder 1. Legt fest, ob das Objekt Säure widersteht." />
-			<entry name="BreatheWater" class="SignedInteger"
-				description="0 Objekt atmet Luft, 1 Objekt atmet Wasser." />
-			<entry name="CanFly" class="SignedInteger"
-				description="0 Objekt kann nicht fliegen, 1 Objekt kann fliegen." />
+			<entry name="Energy" class="SignedInteger" description="0-100000. Maximale Energie bzw. Lebensenergie."/>
+			<entry name="Breath" class="SignedInteger" description="0-100000. Maximaler Atem."/>
+			<entry name="Walk" class="SignedInteger" description="0-100000. Laufgeschwindigkeit."/>
+			<entry name="Jump" class="SignedInteger" description="0-100000. Sprungkraft."/>
+			<entry name="Scale" class="SignedInteger" description="0-100000. Klettergeschwindigkeit."/>
+			<entry name="Hangle" class="SignedInteger" description="0-100000. Hangelgeschwindigkeit."/>
+			<entry name="Dig" class="SignedInteger" description="0-100000. Grabgeschwindigkeit."/>
+			<entry name="Swim" class="SignedInteger" description="0-100000. Schwimmgeschwindigkeit."/>
+			<entry name="Throw" class="SignedInteger" description="0-100000. Wurfkraft."/>
+			<entry name="Push" class="SignedInteger" description="0-100000. Schiebekraft."/>
+			<entry name="Fight" class="SignedInteger" description="0-100000. Kampfkraft."/>
+			<entry name="Magic" class="SignedInteger" description="0-100000. Maximale Zauberenergie."/>
+			<entry name="Float" class="SignedInteger" description="0-100. Fluggeschwindigkeit."/>
+			<entry name="CanScale" class="Boolean" description="0 oder 1. Klettern."/>
+			<entry name="CanHangle" class="Boolean" description="0 oder 1. Hangeln."/>
+			<entry name="CanDig" class="Boolean" description="0 oder 1. Graben."/>
+			<entry name="CanConstruct" class="Boolean" description="0 oder 1. Bauen. Bei Werten gr&#xF6;&#xDF;er 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert"/>
+			<entry name="CanChop" class="Boolean" description="0 oder 1. F&#xE4;llen."/>
+			<entry name="CorrosionResist" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt S&#xE4;ure widersteht."/>
+			<entry name="BreatheWater" class="SignedInteger" description="0 Objekt atmet Luft, 1 Objekt atmet Wasser."/>
+			<entry name="CanFly" class="SignedInteger" description="0 Objekt kann nicht fliegen, 1 Objekt kann fliegen."/>
 		</section>
 	</file>
 	<file name="Particle.txt">
 		<section name="Particle">
-			<entry name="Name" class="java.lang.String"
-				description="Name des Partikeltyps. Dieser Name dient zugleich zur Referenzierung in Scripten. Für Mehrsprachigkeit im Frontend sollte die Names.txt benutzt werden." />
-			<entry name="MaxCount" class="SignedInteger"
-				description="Maximale Instanzzahl für diesen Partikeltyp. Siehe Mengenkontrolle." />
-			<entry name="MinLifetime" class="SignedInteger"
-				description="Nur für Rauchpartikel: Untere Grenze für die Lebensdauer, die nach Zufall zwischen MinLifetime und MaxLifetime gesetzt wird." />
-			<entry name="MaxLifetime" class="SignedInteger"
-				description="Nur für Rauchpartikel: Obere Grenze für die Lebensdauer, die nach Zufall zwischen MinLifetime und MaxLifetime gesetzt wird." />
-			<entry name="InitFn" class="java.lang.String"
-				description="Identifikator für die Funktion, die zur Initialisierung des Partikels verwendet wird. Für gültige Funktionen siehe Sektion Partikelfunktionen." />
-			<entry name="ExecFn" class="java.lang.String"
-				description="Identifikator für die Funktion, die jedes Frame zur Ausführung des Partikels verwendet wird. Für gültige Funktionen siehe Sektion Partikelfunktionen." />
-			<entry name="DrawFn" class="java.lang.String"
-				description="Identifikator für die Funktion, die zum Zeichnen des Partikels verwendet wird. Für gültige Funktionen siehe Sektion Zeichenfunktionen." />
-			<entry name="CollisionFn" class="java.lang.String"
-				description="Identifikator für die Funktion, die Kollision des Partikels mit der Landschaft aufgerufen wird. Siehe auch Kollisionsabfrage" />
-			<entry name="Face" class="IntegerArray"
-				description="Zielrechteck für die Grafik in der Graphics.png. Siehe Partikelgrafik." />
-			<entry name="YOff" class="SignedInteger"
-				description="Obere Grenze für diesen Partikeltyp. An dieser Stelle werden die Partikel abgeschnitten, als wäre die Landschaft schon dort zu Ende. Nur StdExec." />
-			<entry name="Delay" class="SignedInteger"
-				description="Wartezeit zwischen den Animationsphasen. Bei Delay=0 wird eine Zufallsphase dauerhaft benutzt." />
-			<entry name="Repeats" class="SignedInteger"
-				description="Anzahl der Animationswiederholungen, bis sich das Partikel zerstört." />
-			<entry name="Reverse" class="SignedInteger"
-				description="0 oder 1. Bei 1 wird jede zweite Animation rückwärts abgespielt." />
-			<entry name="FadeOutLen" class="SignedInteger"
-				description="Falls angegeben, wird diese Anzahl der Animationsphasen von hinten abgenommen und für eine Endanimation reserviert, die nach Repeats Abläufen der Standardanimation ausgeführt wird." />
-			<entry name="FadeOutDelay" class="SignedInteger"
-				description="Wartezeit zwischen zwei in FadeOutLen angegebenen Animationsphasen." />
-			<entry name="RByV" class="SignedInteger"
-				description="0 bis 3. 0 für keine Partikel-Drehung. Bei 1 dreht sich das Partikel nach Bewegungsrichtung; vorne ist dabei oben. Bei 2 dienen die Geschwindigkeitparameter nur der Ausrichtung; das Partikel bewegt sich nicht. Bei 3 dreht sich das Partikel zufällig (ab 4.9.8.0)." />
-			<entry name="GravityAcc" class="SignedInteger"
-				description="Gravitationsauswirkung. Bei 0 wird das Partikel gar nicht von der Gravitation beschleunigt, bei 100 normal. Negative Werte sind ebenfalls möglich." />
-			<entry name="WindDrift" class="SignedInteger"
-				description="Abtrieb durch Wind. Wie die gleichnamige Materialeigenschaft. Ab CR 4.9.8.4." />
-			<entry name="VertexCount" class="SignedInteger"
-				description="0 oder 1. Bei 1 wird eine Kollisionsabfrage durchgeführt." />
-			<entry name="VertexY" class="SignedInteger"
-				description="Prozentualer Wert fürs Y-Offset des Abfragepunktes für Kollisionen mit der Landschaft. Siehe auch Kollisionsabfrage." />
-			<entry name="Additive" class="SignedInteger"
-				description="0 oder 1. Bei 1 wird das Partikel additiv gezeichnet." />
-			<entry name="AlphaFade" class="SignedInteger"
-				description="0 bis 40. Ausfaden pro Frame. Wenn das Partikel vollends ausgefadet ist, verschwindet es." />
-			<entry name="Parallaxity" class="IntegerArray"
-				description="Parallaxität in X- und in Y-Richtung. 0 ist fest mit dem Bildschirm; 100 ist Standard (fest mit der Landschaft)." />
-			<entry name="Attach" class="SignedInteger"
-				description="0 oder 1. Bei 1 bewegt sich das Partikel bei angegebenem Zielobjekt relativ zu diesem. Ab 4.95.4." />
-			<entry name="FadeDelay" class="SignedInteger" />
+			<entry name="Name" class="java.lang.String" description="Name des Partikeltyps. Dieser Name dient zugleich zur Referenzierung in Scripten. F&#xFC;r Mehrsprachigkeit im Frontend sollte die Names.txt benutzt werden."/>
+			<entry name="MaxCount" class="SignedInteger" description="Maximale Instanzzahl f&#xFC;r diesen Partikeltyp. Siehe Mengenkontrolle."/>
+			<entry name="MinLifetime" class="SignedInteger" description="Nur f&#xFC;r Rauchpartikel: Untere Grenze f&#xFC;r die Lebensdauer, die nach Zufall zwischen MinLifetime und MaxLifetime gesetzt wird."/>
+			<entry name="MaxLifetime" class="SignedInteger" description="Nur f&#xFC;r Rauchpartikel: Obere Grenze f&#xFC;r die Lebensdauer, die nach Zufall zwischen MinLifetime und MaxLifetime gesetzt wird."/>
+			<entry name="InitFn" class="java.lang.String" description="Identifikator f&#xFC;r die Funktion, die zur Initialisierung des Partikels verwendet wird. F&#xFC;r g&#xFC;ltige Funktionen siehe Sektion Partikelfunktionen."/>
+			<entry name="ExecFn" class="java.lang.String" description="Identifikator f&#xFC;r die Funktion, die jedes Frame zur Ausf&#xFC;hrung des Partikels verwendet wird. F&#xFC;r g&#xFC;ltige Funktionen siehe Sektion Partikelfunktionen."/>
+			<entry name="DrawFn" class="java.lang.String" description="Identifikator f&#xFC;r die Funktion, die zum Zeichnen des Partikels verwendet wird. F&#xFC;r g&#xFC;ltige Funktionen siehe Sektion Zeichenfunktionen."/>
+			<entry name="CollisionFn" class="java.lang.String" description="Identifikator f&#xFC;r die Funktion, die Kollision des Partikels mit der Landschaft aufgerufen wird. Siehe auch Kollisionsabfrage"/>
+			<entry name="Face" class="IntegerArray" description="Zielrechteck f&#xFC;r die Grafik in der Graphics.png. Siehe Partikelgrafik."/>
+			<entry name="YOff" class="SignedInteger" description="Obere Grenze f&#xFC;r diesen Partikeltyp. An dieser Stelle werden die Partikel abgeschnitten, als w&#xE4;re die Landschaft schon dort zu Ende. Nur StdExec."/>
+			<entry name="Delay" class="SignedInteger" description="Wartezeit zwischen den Animationsphasen. Bei Delay=0 wird eine Zufallsphase dauerhaft benutzt."/>
+			<entry name="Repeats" class="SignedInteger" description="Anzahl der Animationswiederholungen, bis sich das Partikel zerst&#xF6;rt."/>
+			<entry name="Reverse" class="SignedInteger" description="0 oder 1. Bei 1 wird jede zweite Animation r&#xFC;ckw&#xE4;rts abgespielt."/>
+			<entry name="FadeOutLen" class="SignedInteger" description="Falls angegeben, wird diese Anzahl der Animationsphasen von hinten abgenommen und f&#xFC;r eine Endanimation reserviert, die nach Repeats Abl&#xE4;ufen der Standardanimation ausgef&#xFC;hrt wird."/>
+			<entry name="FadeOutDelay" class="SignedInteger" description="Wartezeit zwischen zwei in FadeOutLen angegebenen Animationsphasen."/>
+			<entry name="RByV" class="SignedInteger" description="0 bis 3. 0 f&#xFC;r keine Partikel-Drehung. Bei 1 dreht sich das Partikel nach Bewegungsrichtung; vorne ist dabei oben. Bei 2 dienen die Geschwindigkeitparameter nur der Ausrichtung; das Partikel bewegt sich nicht. Bei 3 dreht sich das Partikel zuf&#xE4;llig (ab 4.9.8.0)."/>
+			<entry name="GravityAcc" class="SignedInteger" description="Gravitationsauswirkung. Bei 0 wird das Partikel gar nicht von der Gravitation beschleunigt, bei 100 normal. Negative Werte sind ebenfalls m&#xF6;glich."/>
+			<entry name="WindDrift" class="SignedInteger" description="Abtrieb durch Wind. Wie die gleichnamige Materialeigenschaft. Ab CR 4.9.8.4."/>
+			<entry name="VertexCount" class="SignedInteger" description="0 oder 1. Bei 1 wird eine Kollisionsabfrage durchgef&#xFC;hrt."/>
+			<entry name="VertexY" class="SignedInteger" description="Prozentualer Wert f&#xFC;rs Y-Offset des Abfragepunktes f&#xFC;r Kollisionen mit der Landschaft. Siehe auch Kollisionsabfrage."/>
+			<entry name="Additive" class="SignedInteger" description="0 oder 1. Bei 1 wird das Partikel additiv gezeichnet."/>
+			<entry name="AlphaFade" class="SignedInteger" description="0 bis 40. Ausfaden pro Frame. Wenn das Partikel vollends ausgefadet ist, verschwindet es."/>
+			<entry name="Parallaxity" class="IntegerArray" description="Parallaxit&#xE4;t in X- und in Y-Richtung. 0 ist fest mit dem Bildschirm; 100 ist Standard (fest mit der Landschaft)."/>
+			<entry name="Attach" class="SignedInteger" description="0 oder 1. Bei 1 bewegt sich das Partikel bei angegebenem Zielobjekt relativ zu diesem. Ab 4.95.4."/>
+			<entry name="FadeDelay" class="SignedInteger"/>
 		</section>
 	</file>
 	<file name="Material.txt">
 		<section name="Material">
-			<entry name="Name" class="java.lang.String" description="Name des Materials." />
-			<entry name="Color" class="IntegerArray"
-				description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)." />
-			<entry name="ColorX" class="IntegerArray"
-				description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)." />
-			<entry name="ColorAnimation" class="SignedInteger"
-				description="0 oder 1. Farbanimation." />
-			<entry name="Shape" class="Enum"
-				description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh."
-				enumValues="Flat,TopFlat,Smooth,Rough,Octagon,Smoother"
-			/>
-			<entry name="Density" class="SignedInteger"
-				description="Dichte: 50 fest, 25 flüssig (andere Werte nicht zulässig)." />
-			<entry name="Friction" class="SignedInteger"
-				description="0-100. Reibung." />
-			<entry name="DigFree" class="SignedInteger"
-				description="0 oder 1. Bestimmt, ob das Material freigegraben werden kann." />
-			<entry name="BlastFree" class="SignedInteger"
-				description="0 oder 1. Bestimmt, ob das Material freigesprengt werden kann." />
-			<entry name="Blast2Object" class="C4ID"
-				description="Freigesprengte Objekte." />
-			<entry name="Dig2Object" class="C4ID"
-				description="Freigegrabene Objekte." />
-			<entry name="Dig2ObjectRatio" class="SignedInteger"
-				description="ca. 100-500. Massenverhältnis beim Freigraben." />
-			<entry name="Dig2ObjectRequest" class="SignedInteger"
-				description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben." />
-			<entry name="Dig2ObjectCollect" class="SignedInteger" />
-			<entry name="Blast2ObjectRatio" class="SignedInteger"
-				description="ca. 100-500. Massenverhältnis beim Freisprengen." />
-			<entry name="Blast2PXSRatio" class="SignedInteger"
-				description="Massenverhältnis beim Freisprengen von Kleinmaterial." />
-			<entry name="Instable" class="SignedInteger"
-				description="0 oder 1. Stabilität." />
-			<entry name="MaxAirSpeed" class="SignedInteger"
-				description="ca. 10-100. Fallgeschwindigkeit." />
-			<entry name="MaxSlide" class="SignedInteger"
-				description="Rutschreichweite." />
-			<entry name="WindDrift" class="SignedInteger"
-				description="Abtrieb durch Wind." />
-			<entry name="Inflammable" class="SignedInteger"
-				description="Entzündbarkeit." />
-			<entry name="Incindiary" class="SignedInteger"
-				description="Entzündung durch dieses Material." />
-			<entry name="Corrode" class="SignedInteger"
-				description="Verätzung durch dieses Material." />
-			<entry name="Corrosive" class="SignedInteger"
-				description="Ätzbarkeit." />
-			<entry name="Extinguisher" class="SignedInteger"
-				description="Feuerlöschkraft." />
-			<entry name="Soil" class="SignedInteger"
-				description="Nährboden für Pflanzen." />
-			<entry name="TempConvStrength" class="SignedInteger"
-				description="Stärke der Temperaturumwandlung." />
-			<entry name="BlastShiftTo" class="java.lang.String"
-				description="Materialverwandlung bei Sprengung." />
-			<entry name="InMatConvert" class="java.lang.String"
-				description="In diesem Material verwandelt sich das Material..." />
-			<entry name="InMatConvertTo" class="java.lang.String"
-				description="...in dieses Material..." />
-			<entry name="InMatConvertDepth" class="SignedInteger"
-				description="...wenn das Materialpixel zur angegebenen Tiefe im angegebenen Material ist. Ab CE." />
-			<entry name="AboveTempConvert" class="SignedInteger"
-				description="Oberhalb dieser Temperatur verwandelt sich das Material..." />
-			<entry name="AboveTempConvertTo" class="java.lang.String"
-				description="...in dieses Material." />
-			<entry name="AboveTempConvertDir" class="SignedInteger"
-				description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
-			<entry name="BelowTempConvert" class="SignedInteger"
-				description="Unterhalb dieser Temperatur verwandelt sich das Material..." />
-			<entry name="BelowTempConvertTo" class="java.lang.String"
-				description="...in dieses Material." />
-			<entry name="BelowTempConvertDir" class="SignedInteger"
-				description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
-			<entry name="Alpha" class="IntegerArray"
-				description="Durchsichtigkeit für die drei Materialfarben ober- und unterirdisch." />
-			<entry name="Placement" class="SignedInteger"
-				description="0-100. Dieser Wert wird für die Nachbeleuchtung der Landschaft verwendet, und wird normalerweise automatisch aus den anderen Materialwerten berechnet." />
-			<entry name="TextureOverlay" class="java.lang.String"
-				description="Standardtextur für dieses Material, die vom Landschaftsgenerator zusätzlich benutzt wird." />
-			<entry name="OverlayType" class="SignedInteger"
-				description="Bitmaske für die Berechnung der Textur auf dem Material. Bit 0 (1): Exakt (kein Zoom), Bit 1 (2): Keine Textur, Bit 2 (4): Extragroß gezoomt, Bit 3 (8): Textur auf Graustufen aufrechnen." />
-			<entry name="PXSGfx" class="java.lang.String"
-				description="Grafik für lose Materialpixel. Die Grafik sollte als Materialtextur geladen sein." />
-			<entry name="PXSGfxRt" class="IntegerArray"
-				description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
-			<entry name="PXSGfxSize" class="UnsignedInteger"
-				description="Size"/>
-			<entry name="MinHeightCount" class="UnsignedInteger"
-				description="Minimale Dicke bis es gezählt wird"/>
-			<entry name="ShapeTexture" class="java.lang.String"
-				description="Texture of the shape"/>
+			<entry name="Name" class="java.lang.String" description="Name des Materials."/>
+			<entry name="Color" class="IntegerArray" description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)."/>
+			<entry name="ColorX" class="IntegerArray" description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)."/>
+			<entry name="ColorAnimation" class="SignedInteger" description="0 oder 1. Farbanimation."/>
+			<entry name="Shape" class="Enum" description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh." enumValues="Flat,TopFlat,Smooth,Rough,Octagon,Smoother"/>
+			<entry name="Density" class="SignedInteger" description="Dichte: 50 fest, 25 fl&#xFC;ssig (andere Werte nicht zul&#xE4;ssig)."/>
+			<entry name="Friction" class="SignedInteger" description="0-100. Reibung."/>
+			<entry name="DigFree" class="SignedInteger" description="0 oder 1. Bestimmt, ob das Material freigegraben werden kann."/>
+			<entry name="BlastFree" class="SignedInteger" description="0 oder 1. Bestimmt, ob das Material freigesprengt werden kann."/>
+			<entry name="Blast2Object" class="C4ID" description="Freigesprengte Objekte."/>
+			<entry name="Dig2Object" class="C4ID" description="Freigegrabene Objekte."/>
+			<entry name="Dig2ObjectRatio" class="SignedInteger" description="ca. 100-500. Massenverh&#xE4;ltnis beim Freigraben."/>
+			<entry name="Dig2ObjectRequest" class="SignedInteger" description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben."/>
+			<entry name="Dig2ObjectCollect" class="SignedInteger"/>
+			<entry name="Blast2ObjectRatio" class="SignedInteger" description="ca. 100-500. Massenverh&#xE4;ltnis beim Freisprengen."/>
+			<entry name="Blast2PXSRatio" class="SignedInteger" description="Massenverh&#xE4;ltnis beim Freisprengen von Kleinmaterial."/>
+			<entry name="Instable" class="SignedInteger" description="0 oder 1. Stabilit&#xE4;t."/>
+			<entry name="MaxAirSpeed" class="SignedInteger" description="ca. 10-100. Fallgeschwindigkeit."/>
+			<entry name="MaxSlide" class="SignedInteger" description="Rutschreichweite."/>
+			<entry name="WindDrift" class="SignedInteger" description="Abtrieb durch Wind."/>
+			<entry name="Inflammable" class="SignedInteger" description="Entz&#xFC;ndbarkeit."/>
+			<entry name="Incindiary" class="SignedInteger" description="Entz&#xFC;ndung durch dieses Material."/>
+			<entry name="Corrode" class="SignedInteger" description="Ver&#xE4;tzung durch dieses Material."/>
+			<entry name="Corrosive" class="SignedInteger" description="&#xC4;tzbarkeit."/>
+			<entry name="Extinguisher" class="SignedInteger" description="Feuerl&#xF6;schkraft."/>
+			<entry name="Soil" class="SignedInteger" description="N&#xE4;hrboden f&#xFC;r Pflanzen."/>
+			<entry name="TempConvStrength" class="SignedInteger" description="St&#xE4;rke der Temperaturumwandlung."/>
+			<entry name="BlastShiftTo" class="java.lang.String" description="Materialverwandlung bei Sprengung."/>
+			<entry name="InMatConvert" class="java.lang.String" description="In diesem Material verwandelt sich das Material..."/>
+			<entry name="InMatConvertTo" class="java.lang.String" description="...in dieses Material..."/>
+			<entry name="InMatConvertDepth" class="SignedInteger" description="...wenn das Materialpixel zur angegebenen Tiefe im angegebenen Material ist. Ab CE."/>
+			<entry name="AboveTempConvert" class="SignedInteger" description="Oberhalb dieser Temperatur verwandelt sich das Material..."/>
+			<entry name="AboveTempConvertTo" class="java.lang.String" description="...in dieses Material."/>
+			<entry name="AboveTempConvertDir" class="SignedInteger" description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)"/>
+			<entry name="BelowTempConvert" class="SignedInteger" description="Unterhalb dieser Temperatur verwandelt sich das Material..."/>
+			<entry name="BelowTempConvertTo" class="java.lang.String" description="...in dieses Material."/>
+			<entry name="BelowTempConvertDir" class="SignedInteger" description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)"/>
+			<entry name="Alpha" class="IntegerArray" description="Durchsichtigkeit f&#xFC;r die drei Materialfarben ober- und unterirdisch."/>
+			<entry name="Placement" class="SignedInteger" description="0-100. Dieser Wert wird f&#xFC;r die Nachbeleuchtung der Landschaft verwendet, und wird normalerweise automatisch aus den anderen Materialwerten berechnet."/>
+			<entry name="TextureOverlay" class="java.lang.String" description="Standardtextur f&#xFC;r dieses Material, die vom Landschaftsgenerator zus&#xE4;tzlich benutzt wird."/>
+			<entry name="OverlayType" class="SignedInteger" description="Bitmaske f&#xFC;r die Berechnung der Textur auf dem Material. Bit 0 (1): Exakt (kein Zoom), Bit 1 (2): Keine Textur, Bit 2 (4): Extragro&#xDF; gezoomt, Bit 3 (8): Textur auf Graustufen aufrechnen."/>
+			<entry name="PXSGfx" class="java.lang.String" description="Grafik f&#xFC;r lose Materialpixel. Die Grafik sollte als Materialtextur geladen sein."/>
+			<entry name="PXSGfxRt" class="IntegerArray" description="Zielrechteck auf die Grafik f&#xFC;r lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgr&#xF6;&#xDF;e einnehmen."/>
+			<entry name="PXSGfxSize" class="UnsignedInteger" description="Size"/>
+			<entry name="MinHeightCount" class="UnsignedInteger" description="Minimale Dicke bis es gez&#xE4;hlt wird"/>
+			<entry name="ShapeTexture" class="java.lang.String" description="Texture of the shape"/>
 		</section>
 		<section name="Reaction">
-			<entry name="Type" class="java.lang.String" />
-			<entry name="TargetSpec" class="java.lang.String" />
-			<entry name="ConvertMat" class="java.lang.String" />
-			<entry name="ScriptFunc" class="java.lang.String"
-				description="Nur für Reaktionstyp Script: Name der Scriptfunktion, die das Verhalten bestimmt." />
-			<entry name="ExecMask" class="SignedInteger"
-				description="Bitmaske, die angibt, in welcher Situation die Reaktion stattfindet. Bitindizes sind die Reaktionsereignisse. Standardwert -1 für alle Ereignisse." />
-			<entry name="Reverse" class="Boolean"
-				description="Normalerweise gibt die Reaktion an, was mit losem Material der Definition, in der die Reaktion definiert ist, passiert, wenn es auf festes Material vom in TargetSpec angegebenen Typ trifft. Ist Reverse gesetzt, so wird die Definition umgekehrt." />
-			<entry name="InverseSpec" class="Boolean"
-				description="Wenn wahr, wird die Reaktion für alle anderen Materialien (inklusive 'Sky'), die die Bedingung in TargetSpec nicht erfüllen, verwendet." />
-			<entry name="CheckSlide" class="Boolean"
-				description="Wenn wahr, wird vor dem Aufruf der Reaktion das Standardverhalten (Sprenkeln am Boden und Abrutschen nach MaxSlide) ausgeführt." />
-			<entry name="Depth" class="SignedInteger"
-				description="Nur für Reaktionstyp Convert: Tiefe im Zielmaterial, ab der Material umgewandelt wird." />
-			<entry name="ConvertMat" class="java.lang.String"
-				description="Nur für Reaktionstyp Convert: Material, in das umgewandelt wird. Bei Angabe von Sky wird das Material vernichtet." />
-			<entry name="CorrosionRate" class="SignedInteger"
-				description="Nur für Reaktionstyp Corrode: Chance darauf, dass verätzt wird." />
+			<entry name="Type" class="java.lang.String"/>
+			<entry name="TargetSpec" class="java.lang.String"/>
+			<entry name="ConvertMat" class="java.lang.String"/>
+			<entry name="ScriptFunc" class="java.lang.String" description="Nur f&#xFC;r Reaktionstyp Script: Name der Scriptfunktion, die das Verhalten bestimmt."/>
+			<entry name="ExecMask" class="SignedInteger" description="Bitmaske, die angibt, in welcher Situation die Reaktion stattfindet. Bitindizes sind die Reaktionsereignisse. Standardwert -1 f&#xFC;r alle Ereignisse."/>
+			<entry name="Reverse" class="Boolean" description="Normalerweise gibt die Reaktion an, was mit losem Material der Definition, in der die Reaktion definiert ist, passiert, wenn es auf festes Material vom in TargetSpec angegebenen Typ trifft. Ist Reverse gesetzt, so wird die Definition umgekehrt."/>
+			<entry name="InverseSpec" class="Boolean" description="Wenn wahr, wird die Reaktion f&#xFC;r alle anderen Materialien (inklusive 'Sky'), die die Bedingung in TargetSpec nicht erf&#xFC;llen, verwendet."/>
+			<entry name="CheckSlide" class="Boolean" description="Wenn wahr, wird vor dem Aufruf der Reaktion das Standardverhalten (Sprenkeln am Boden und Abrutschen nach MaxSlide) ausgef&#xFC;hrt."/>
+			<entry name="Depth" class="SignedInteger" description="Nur f&#xFC;r Reaktionstyp Convert: Tiefe im Zielmaterial, ab der Material umgewandelt wird."/>
+			<entry name="ConvertMat" class="java.lang.String" description="Nur f&#xFC;r Reaktionstyp Convert: Material, in das umgewandelt wird. Bei Angabe von Sky wird das Material vernichtet."/>
+			<entry name="CorrosionRate" class="SignedInteger" description="Nur f&#xFC;r Reaktionstyp Corrode: Chance darauf, dass ver&#xE4;tzt wird."/>
 		</section>
 	</file>
 	<file name="Scenario.txt">
 		<section name="Head">
-			<entry name="Icon" class="SignedInteger"
-				description="Standard-Icon des Szenarios. Siehe Szenarioeigenschaften im Menüsystem." />
-			<entry name="Title" class="java.lang.String"
-				description="Titel des Szenarios. Wird durch die Einträge in Title.txt ersetzt." />
-			<entry name="Version" class="IntegerArray"
-				description="Vom Szenario benötigte Version der Engine." />
-			<entry name="RoundOptions" class="SignedInteger"
-				description="0 oder 1. Freigabe der Szenarioeigenschaften im Menüsystem für andere Spieler." />
-			<entry name="MaxPlayer" class="SignedInteger"
-				description="Maximale Anzahl der Spieler." />
-			<entry name="NoInitialize" class="Boolean"
-				description="0 oder 1. Bei 1 werden alle Objekte, die genau einmal erzeugt werden sollten, nicht platziert. Automatisch für Spielstände und gespeicherte Szenarien gesetzt, um eine erneute Erzeugung von Vegetation, Spielzielen und ähnlichem zu vermeiden. Es werden unter anderem die Werte Buildings, Vehicles, Material, Vegetation, InEarth und Animals ignoriert." />
-			<entry name="MissionAccess" class="java.lang.String"
-				description="Szenario kann nur gestartet werden, wenn ein Spieler zuvor dieses Zugangspasswort in einem anderen Szenario erspielt hat. Siehe Scriptfunktion GainMissionAccess()." />
-			<entry name="Replay" class="Boolean"
-				description="Wird von der Engine automatisch gesetzt, und markiert eine Aufnahme." />
-			<entry name="Film" class="SignedInteger"
-				description="0 oder 1 und nur bei Aufnahmen. Bei 1 folgt die Sicht nur dem ersten Spieler und alle Spielerkontrollen werden ausgeblendet." />
-			<entry name="ForcedGfxMode" class="SignedInteger"
-				description="0-2. 0: Jede Engine möglich; 1: Nur NewGfx (OpenGL/D3D); 2: Nur OldGfx (8Bit-DDraw)." />
-			<entry name="DefCrewStrength" class="UnsignedInteger"
-				description="Standard Crew-Stärke"/>
-			<entry name="EnableRemoveFlag" class="Boolean"
-				description="Flagge abnehmen erlaubt"/>
-			<entry name="GainMissionAccess" class="java.lang.String"
-				description="Zugangscode, der durch Bezwingen dieses Szenarios freigeschaltet wird"/>
-			<entry name="Difficulty" class="UnsignedInteger"
-				description="Schwierigkeit" />
-			<entry name="Loader" class="java.lang.String" />
-			<entry name="Origin" class="java.lang.String" />
-			<entry name="Access" class="java.lang.String" />
-			<entry name="MaxPlayerLeague" class="UnsignedInteger" />
-			<entry name="MinPlayer" class="UnsignedInteger" />
-			<entry name="MaxPlayer" class="UnsignedInteger" />
-			<entry name="ForcedNoCrew" class="UnsignedInteger" />
-			<entry name="ForcedFairCrew" class="Boolean" />
-			<entry name="StartupPlayerCount" class="UnsignedInteger" />
-			<entry name="RandomSeed" class="SignedInteger" />
-			<entry name="SaveGame" class="Boolean" />
+			<entry name="Icon" class="SignedInteger" description="Standard-Icon des Szenarios. Siehe Szenarioeigenschaften im Men&#xFC;system."/>
+			<entry name="Title" class="java.lang.String" description="Titel des Szenarios. Wird durch die Eintr&#xE4;ge in Title.txt ersetzt."/>
+			<entry name="Version" class="IntegerArray" description="Vom Szenario ben&#xF6;tigte Version der Engine."/>
+			<entry name="RoundOptions" class="SignedInteger" description="0 oder 1. Freigabe der Szenarioeigenschaften im Men&#xFC;system f&#xFC;r andere Spieler."/>
+			<entry name="MaxPlayer" class="SignedInteger" description="Maximale Anzahl der Spieler."/>
+			<entry name="NoInitialize" class="Boolean" description="0 oder 1. Bei 1 werden alle Objekte, die genau einmal erzeugt werden sollten, nicht platziert. Automatisch f&#xFC;r Spielst&#xE4;nde und gespeicherte Szenarien gesetzt, um eine erneute Erzeugung von Vegetation, Spielzielen und &#xE4;hnlichem zu vermeiden. Es werden unter anderem die Werte Buildings, Vehicles, Material, Vegetation, InEarth und Animals ignoriert."/>
+			<entry name="MissionAccess" class="java.lang.String" description="Szenario kann nur gestartet werden, wenn ein Spieler zuvor dieses Zugangspasswort in einem anderen Szenario erspielt hat. Siehe Scriptfunktion GainMissionAccess()."/>
+			<entry name="Replay" class="Boolean" description="Wird von der Engine automatisch gesetzt, und markiert eine Aufnahme."/>
+			<entry name="Film" class="SignedInteger" description="0 oder 1 und nur bei Aufnahmen. Bei 1 folgt die Sicht nur dem ersten Spieler und alle Spielerkontrollen werden ausgeblendet."/>
+			<entry name="ForcedGfxMode" class="SignedInteger" description="0-2. 0: Jede Engine m&#xF6;glich; 1: Nur NewGfx (OpenGL/D3D); 2: Nur OldGfx (8Bit-DDraw)."/>
+			<entry name="DefCrewStrength" class="UnsignedInteger" description="Standard Crew-St&#xE4;rke"/>
+			<entry name="EnableRemoveFlag" class="Boolean" description="Flagge abnehmen erlaubt"/>
+			<entry name="GainMissionAccess" class="java.lang.String" description="Zugangscode, der durch Bezwingen dieses Szenarios freigeschaltet wird"/>
+			<entry name="Difficulty" class="UnsignedInteger" description="Schwierigkeit"/>
+			<entry name="Loader" class="java.lang.String"/>
+			<entry name="Origin" class="java.lang.String"/>
+			<entry name="Access" class="java.lang.String"/>
+			<entry name="MaxPlayerLeague" class="UnsignedInteger"/>
+			<entry name="MinPlayer" class="UnsignedInteger"/>
+			<entry name="MaxPlayer" class="UnsignedInteger"/>
+			<entry name="ForcedNoCrew" class="UnsignedInteger"/>
+			<entry name="ForcedFairCrew" class="Boolean"/>
+			<entry name="StartupPlayerCount" class="UnsignedInteger"/>
+			<entry name="RandomSeed" class="SignedInteger"/>
+			<entry name="SaveGame" class="Boolean"/>
 		</section>
 		<section name="Game">
-			<entry name="Rules" class="IDArray"
-				description="Spielregeln." />
-			<entry name="Goals" class="IDArray"
-				description="Spielziele." />
-			<entry name="ValueOverloads" class="IDArray"
-				description="Liste der Definitionen, dessen Wert für diese Runde geändert sein soll. Die Menge gibt den neuen Wert an." />
-			<entry name="FoWColor" class="SignedInteger"
-				description="Farbe des Fog of War." />
-			<entry name="Mode" class="SignedInteger"
-				description="Veraltet. 0 Kooperativ, 1 Melee, 2 Teamwork-Melee." />
-			<entry name="Elimination" class="SignedInteger"
-				description="Veraltet. Spielereliminierung durch 0 Verlust Captain, 1 Verlust Crew, 2 Verlust Flagge." />
-			<entry name="CooperativeGoal" class="SignedInteger"
-				description="Veraltet. Wert der Auswahl Spielziel im Menüsystem (0-4)." />
-			<entry name="CreateObjects" class="IDArray"
-				description="Veraltet. Spielziel: Diese Objekte müssen mindestens vorhanden sein." />
-			<entry name="ClearObjects" class="IDArray"
-				description="Veraltet. Spielziel: Diese Objekte müssen auf x reduziert werden." />
-			<entry name="ClearMaterials" class="MaterialArray"
-				description="Veraltet. Spielziel: Diese Materialien müssen auf x reduziert werden." />
-			<entry name="BaseFunctionality" class="CategoriesValue"
-				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR."
-				constantsPrefix="BASEFUNC_"/>
-			<entry name="BaseRegenerateEnergyPrice" class="SignedInteger"
-				description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR." />
-			<entry name="EnableSurrender" class="Boolean" />
-			<entry name="StructNeedEnergy" class="Boolean" />
-			<entry name="EnableRemoveFlag" class="Boolean" />
-			<entry name="StructNeedMaterial" class="Boolean" />
+			<entry name="Rules" class="IDArray" description="Spielregeln." categoryFilter="C4D_Rule"/>
+			<entry name="Goals" class="IDArray" description="Spielziele." categoryFilter="C4D_Goal"/>
+			<entry name="ValueOverloads" class="IDArray" description="Liste der Definitionen, dessen Wert f&#xFC;r diese Runde ge&#xE4;ndert sein soll. Die Menge gibt den neuen Wert an."/>
+			<entry name="FoWColor" class="SignedInteger" description="Farbe des Fog of War."/>
+			<entry name="Mode" class="SignedInteger" description="Veraltet. 0 Kooperativ, 1 Melee, 2 Teamwork-Melee."/>
+			<entry name="Elimination" class="SignedInteger" description="Veraltet. Spielereliminierung durch 0 Verlust Captain, 1 Verlust Crew, 2 Verlust Flagge."/>
+			<entry name="CooperativeGoal" class="SignedInteger" description="Veraltet. Wert der Auswahl Spielziel im Men&#xFC;system (0-4)."/>
+			<entry name="CreateObjects" class="IDArray" description="Veraltet. Spielziel: Diese Objekte m&#xFC;ssen mindestens vorhanden sein."/>
+			<entry name="ClearObjects" class="IDArray" description="Veraltet. Spielziel: Diese Objekte m&#xFC;ssen auf x reduziert werden."/>
+			<entry name="ClearMaterials" class="MaterialArray" description="Veraltet. Spielziel: Diese Materialien m&#xFC;ssen auf x reduziert werden."/>
+			<entry name="BaseFunctionality" class="CategoriesValue" description="Bitmaske, die angibt, welche Funktionen eine Basis erf&#xFC;llt. Siehe Basisfunktionalit&#xE4;ten. Ab CR." constantsPrefix="BASEFUNC_"/>
+			<entry name="BaseRegenerateEnergyPrice" class="SignedInteger" description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR."/>
+			<entry name="EnableSurrender" class="Boolean"/>
+			<entry name="StructNeedEnergy" class="Boolean"/>
+			<entry name="EnableRemoveFlag" class="Boolean"/>
+			<entry name="StructNeedMaterial" class="Boolean"/>
 		</section>
 		<section name="Player">
-			<entry name="Wealth" class="IntegerArray"
-				description="Startkapital." />
-			<entry name="Position" class="IntegerArray"
-				description="Startposition in Koordinaten der ungezoomten Landkarte. Beide -1 für Zufall." />
-			<entry name="Crew" class="IDArray"
-				description="Art und Anzahl der Mannschaftsmitglieder." />
-			<entry name="Buildings" class="IDArray"
-				description="Zu Spielbeginn vorhandene Gebäude." />
-			<entry name="Vehicles" class="IDArray"
-				description="Zu Spielbeginn vorhandene Fahrzeuge." />
-			<entry name="Material" class="IDArray"
-				description="Zu Spielbeginn vorhandenes Material." />
-			<entry name="Knowledge" class="IDArray"
-				description="Vom Spieler erzeugbare Objekte." />
-			<entry name="HomeBaseMaterial" class="IDArray"
-				description="Zu Spielbeginn in der Heimatbasis kaufbares Material." />
-			<entry name="HomeBaseProduction" class="IDArray"
-				description="Nachproduktion von Material für die Heimatbasis." />
-			<entry name="Magic" class="IDArray"
-				description="Zur Verfügung stehende Zauber. Sind keine Zauber angegeben, werden alle verfügbaren Zauber geladen (Abwärtskompatibilität zu älteren Szenarien)." />
-			<entry name="Clonks" class="IntegerArray" />
-			<entry name="Position" class="IntegerArray" />
-			<entry name="EnforcePosition" class="Boolean" />
+			<entry name="Wealth" class="IntegerArray" description="Startkapital."/>
+			<entry name="Position" class="IntegerArray" description="Startposition in Koordinaten der ungezoomten Landkarte. Beide -1 f&#xFC;r Zufall."/>
+			<entry name="Crew" class="IDArray" description="Art und Anzahl der Mannschaftsmitglieder."/>
+			<entry name="Buildings" class="IDArray" description="Zu Spielbeginn vorhandene Geb&#xE4;ude."/>
+			<entry name="Vehicles" class="IDArray" description="Zu Spielbeginn vorhandene Fahrzeuge."/>
+			<entry name="Material" class="IDArray" description="Zu Spielbeginn vorhandenes Material."/>
+			<entry name="Knowledge" class="IDArray" description="Vom Spieler erzeugbare Objekte."/>
+			<entry name="HomeBaseMaterial" class="IDArray" description="Zu Spielbeginn in der Heimatbasis kaufbares Material."/>
+			<entry name="HomeBaseProduction" class="IDArray" description="Nachproduktion von Material f&#xFC;r die Heimatbasis."/>
+			<entry name="Magic" class="IDArray" description="Zur Verf&#xFC;gung stehende Zauber. Sind keine Zauber angegeben, werden alle verf&#xFC;gbaren Zauber geladen (Abw&#xE4;rtskompatibilit&#xE4;t zu &#xE4;lteren Szenarien)."/>
+			<entry name="Clonks" class="IntegerArray"/>
+			<entry name="Position" class="IntegerArray"/>
+			<entry name="EnforcePosition" class="Boolean"/>
 		</section>
 		<section name="Landscape">
-			<entry name="Vegetation" class="IDArray"
-				description="Vegetationstypen und relative Anteile." />
-			<entry name="VegetationLevel" class="IntegerArray"
-				description="0-100. Menge Vegetation." />
-			<entry name="InEarth" class="IDArray"
-				description="Typen und relative Anteile der Objekte im Erdreich." />
-			<entry name="InEarthLevel" class="IntegerArray"
-				description="0-100. Menge Erdreich-Objekte." />
-			<entry name="Sky" class="java.lang.String"
-				description="Himmeltextur wie in der Graphics.c4g vorhanden (ohne Dateierweiterung)." />
-			<entry name="SkyFade" class="IntegerArray"
-				description="Himmelfarbverlauf von RGB nach RGB. Werte von 0-255. Sind alle Werte 0, wird das Vorgabe-Blau der Clonk-Farbpalette verwendet." />
-			<entry name="BottomOpen" class="Boolean"
-				description="0 oder 1. Legt fest, ob die Spielwelt unten offen ist." />
-			<entry name="TopOpen" class="Boolean"
-				description="0 oder 1. Legt fest, ob die Spielwelt oben offen ist." />
-			<entry name="LeftOpen" class="Boolean"
-				description="Öffnung des linken Randes bis zum Abstand in Pixel von der Oberkante." />
-			<entry name="RightOpen" class="Boolean"
-				description="Öffnung des rechten Randes bis zum Abstand in Pixel von der Oberkante." />
-			<entry name="AutoScanSideOpen" class="Boolean"
-				description="0 oder 1. Bei 1 werden LeftOpen und RightOpen automatisch angepasst." />
-			<entry name="MapWidth" class="IntegerArray"
-				description="Ausgangsbreite der dynamischen Karte." />
-			<entry name="MapHeight" class="IntegerArray"
-				description="Ausgangshöhe der dynamischen Karte." />
-			<entry name="MapZoom" class="IntegerArray"
-				description="Vergrößerungsfaktor der Karte auf die tatsächliche Spiellandschaft. Wert 10." />
-			<entry name="Amplitude" class="IntegerArray"
-				description="0-100 und Abweichung. Hügelhöhe bei dynamischen Karten." />
-			<entry name="Phase" class="IntegerArray"
-				description="0-100 und Abweichung. Hügelverschiebung bei dynamischen Karten." />
-			<entry name="Period" class="IntegerArray"
-				description="0-100 und Abweichung. Hügelabstand bei dynamischen Karten." />
-			<entry name="Random" class="IntegerArray"
-				description="0-100 und Abweichung. Zufallsabweichung bei dynamischen Karten." />
-			<entry name="Material" class="java.lang.String"
-				description="Material-Textur-Definition des Basismaterials (Erdreich) bei dynamischen Karten." />
-			<entry name="Liquid" class="java.lang.String"
-				description="Material-Textur-Definition der Flüssigkeit in dynamischen Karten." />
-			<entry name="LiquidLevel" class="IntegerArray"
-				description="0-100 und Abweichung. Flüssigkeitsstand in dynamischen Karten." />
-			<entry name="MapPlayerExtend" class="SignedInteger"
-				description="0 oder 1. Legt fest, ob die dynamische Karte in der Breite angepasst wird." />
-			<entry name="Layers" class="MaterialArray"
-				description="Materialschichten im Erdreich bei dynamischen Karten." />
-			<entry name="ExactLandscape" class="IntegerArray"
-				description="0 oder 1. Gibt an, ob Landscape.bmp eine tatsächliche Spiellandschaft ist." />
-			<entry name="Gravity" class="IntegerArray"
-				description="10-200: Gravitation. 100 ist Standard." />
-			<entry name="NoScan" class="Boolean"
-				description="0 oder 1. Bei 1 werden keine Überprüfungen innerhalb der Landschaft durchgeführt, wie beispielsweise Schneeschmelze oder Festwerden von Lava in Vulkanen." />
-			<entry name="KeepMapCreator" class="Boolean"
-				description="0 oder 1. Bei 1 wird der interne MapCreator nicht nach dem Start entladen, so dass Befehle wie DrawDefMap zur Verfügung stehen." />
-			<entry name="SkyScrollMode" class="SignedInteger"
-				description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax." />
-			<entry name="FoWRes" class="SignedInteger"
-				description="Größe der Blöcke, in denen der Kriegsnebel (Fog of War) berechnet wird. Standardwert 64. Achtung: Kleinere Werte verbessern zwar die Darstellung des Kriegsnebels, erhöhen aber auch die benötigte Rechenleistung bei hohen Bildschirmauflösungen. Ab CR." />
-			<entry name="NewStyleLandscape" class="UnsignedInteger"
-				description="NewStyle landscape mode"/>
+			<entry name="Vegetation" class="IDArray" description="Vegetationstypen und relative Anteile."/>
+			<entry name="VegetationLevel" class="IntegerArray" description="0-100. Menge Vegetation."/>
+			<entry name="InEarth" class="IDArray" description="Typen und relative Anteile der Objekte im Erdreich."/>
+			<entry name="InEarthLevel" class="IntegerArray" description="0-100. Menge Erdreich-Objekte."/>
+			<entry name="Sky" class="java.lang.String" description="Himmeltextur wie in der Graphics.c4g vorhanden (ohne Dateierweiterung)."/>
+			<entry name="SkyFade" class="IntegerArray" description="Himmelfarbverlauf von RGB nach RGB. Werte von 0-255. Sind alle Werte 0, wird das Vorgabe-Blau der Clonk-Farbpalette verwendet."/>
+			<entry name="BottomOpen" class="Boolean" description="0 oder 1. Legt fest, ob die Spielwelt unten offen ist."/>
+			<entry name="TopOpen" class="Boolean" description="0 oder 1. Legt fest, ob die Spielwelt oben offen ist."/>
+			<entry name="LeftOpen" class="Boolean" description="&#xD6;ffnung des linken Randes bis zum Abstand in Pixel von der Oberkante."/>
+			<entry name="RightOpen" class="Boolean" description="&#xD6;ffnung des rechten Randes bis zum Abstand in Pixel von der Oberkante."/>
+			<entry name="AutoScanSideOpen" class="Boolean" description="0 oder 1. Bei 1 werden LeftOpen und RightOpen automatisch angepasst."/>
+			<entry name="MapWidth" class="IntegerArray" description="Ausgangsbreite der dynamischen Karte."/>
+			<entry name="MapHeight" class="IntegerArray" description="Ausgangsh&#xF6;he der dynamischen Karte."/>
+			<entry name="MapZoom" class="IntegerArray" description="Vergr&#xF6;&#xDF;erungsfaktor der Karte auf die tats&#xE4;chliche Spiellandschaft. Wert 10."/>
+			<entry name="Amplitude" class="IntegerArray" description="0-100 und Abweichung. H&#xFC;gelh&#xF6;he bei dynamischen Karten."/>
+			<entry name="Phase" class="IntegerArray" description="0-100 und Abweichung. H&#xFC;gelverschiebung bei dynamischen Karten."/>
+			<entry name="Period" class="IntegerArray" description="0-100 und Abweichung. H&#xFC;gelabstand bei dynamischen Karten."/>
+			<entry name="Random" class="IntegerArray" description="0-100 und Abweichung. Zufallsabweichung bei dynamischen Karten."/>
+			<entry name="Material" class="java.lang.String" description="Material-Textur-Definition des Basismaterials (Erdreich) bei dynamischen Karten."/>
+			<entry name="Liquid" class="java.lang.String" description="Material-Textur-Definition der Fl&#xFC;ssigkeit in dynamischen Karten."/>
+			<entry name="LiquidLevel" class="IntegerArray" description="0-100 und Abweichung. Fl&#xFC;ssigkeitsstand in dynamischen Karten."/>
+			<entry name="MapPlayerExtend" class="SignedInteger" description="0 oder 1. Legt fest, ob die dynamische Karte in der Breite angepasst wird."/>
+			<entry name="Layers" class="MaterialArray" description="Materialschichten im Erdreich bei dynamischen Karten."/>
+			<entry name="ExactLandscape" class="IntegerArray" description="0 oder 1. Gibt an, ob Landscape.bmp eine tats&#xE4;chliche Spiellandschaft ist."/>
+			<entry name="Gravity" class="IntegerArray" description="10-200: Gravitation. 100 ist Standard."/>
+			<entry name="NoScan" class="Boolean" description="0 oder 1. Bei 1 werden keine &#xDC;berpr&#xFC;fungen innerhalb der Landschaft durchgef&#xFC;hrt, wie beispielsweise Schneeschmelze oder Festwerden von Lava in Vulkanen."/>
+			<entry name="KeepMapCreator" class="Boolean" description="0 oder 1. Bei 1 wird der interne MapCreator nicht nach dem Start entladen, so dass Befehle wie DrawDefMap zur Verf&#xFC;gung stehen."/>
+			<entry name="SkyScrollMode" class="SignedInteger" description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax."/>
+			<entry name="FoWRes" class="SignedInteger" description="Gr&#xF6;&#xDF;e der Bl&#xF6;cke, in denen der Kriegsnebel (Fog of War) berechnet wird. Standardwert 64. Achtung: Kleinere Werte verbessern zwar die Darstellung des Kriegsnebels, erh&#xF6;hen aber auch die ben&#xF6;tigte Rechenleistung bei hohen Bildschirmaufl&#xF6;sungen. Ab CR."/>
+			<entry name="NewStyleLandscape" class="UnsignedInteger" description="NewStyle landscape mode"/>
 		</section>
 		<section name="Animals">
-			<entry name="Animal" class="IDArray"
-				description="Freilaufende Lebewesen." />
-			<entry name="Nest" class="IDArray"
-				description="Nester im Erdreich." />
+			<entry name="Animal" class="IDArray" description="Freilaufende Lebewesen."/>
+			<entry name="Nest" class="IDArray" description="Nester im Erdreich."/>
 		</section>
 		<section name="Weather">
-			<entry name="Climate" class="IntegerArray"
-				description="0-100 und Abweichung. Durchschnittstemperatur. 0 warm, 100 kalt." />
-			<entry name="StartSeason" class="IntegerArray"
-				description="0-100 und Abweichung. Startjahreszeit." />
-			<entry name="YearSpeed" class="IntegerArray"
-				description="0-100 und Abweichung. Geschwindigkeit des Jahreszeitenwechsels." />
-			<entry name="Rain" class="IntegerArray"
-				description="0-100 und Abweichung. Regenwahrscheinlichkeit." />
-			<entry name="Wind" class="IntegerArray"
-				description="-100-100 und Abweichung. Windrichtung und -stärke." />
-			<entry name="Lightning" class="IntegerArray"
-				description="0-100 und Abweichung. Blitzwahrscheinlichkeit." />
-			<entry name="Precipitation" class="java.lang.String"
-				description="Einfache Materialdefinition Niederschlag." />
-			<entry name="NoGamma" class="SignedInteger"
-				description="0 oder 1. Bei 1 wirken sich die Jahreszeiten nicht auf die Bildschirmfärbung aus." />
+			<entry name="Climate" class="IntegerArray" description="0-100 und Abweichung. Durchschnittstemperatur. 0 warm, 100 kalt."/>
+			<entry name="StartSeason" class="IntegerArray" description="0-100 und Abweichung. Startjahreszeit."/>
+			<entry name="YearSpeed" class="IntegerArray" description="0-100 und Abweichung. Geschwindigkeit des Jahreszeitenwechsels."/>
+			<entry name="Rain" class="IntegerArray" description="0-100 und Abweichung. Regenwahrscheinlichkeit."/>
+			<entry name="Wind" class="IntegerArray" description="-100-100 und Abweichung. Windrichtung und -st&#xE4;rke."/>
+			<entry name="Lightning" class="IntegerArray" description="0-100 und Abweichung. Blitzwahrscheinlichkeit."/>
+			<entry name="Precipitation" class="java.lang.String" description="Einfache Materialdefinition Niederschlag."/>
+			<entry name="NoGamma" class="SignedInteger" description="0 oder 1. Bei 1 wirken sich die Jahreszeiten nicht auf die Bildschirmf&#xE4;rbung aus."/>
 		</section>
 		<section name="Disasters">
-			<entry name="Meteorite" class="IntegerArray"
-				description="0-100 und Abweichung. Meteoritenwahrscheinlichkeit." />
-			<entry name="Volcano" class="IntegerArray"
-				description="0-100 und Abweichung. Vulkanwahrscheinlichkeit." />
-			<entry name="Earthquake" class="IntegerArray"
-				description="0-100 und Abweichung. Erdbebenwahrscheinlichkeit." />
+			<entry name="Meteorite" class="IntegerArray" description="0-100 und Abweichung. Meteoritenwahrscheinlichkeit."/>
+			<entry name="Volcano" class="IntegerArray" description="0-100 und Abweichung. Vulkanwahrscheinlichkeit."/>
+			<entry name="Earthquake" class="IntegerArray" description="0-100 und Abweichung. Erdbebenwahrscheinlichkeit."/>
 		</section>
 		<section name="Environment">
-			<entry name="Objects" class="IDArray"
-				description="Umweltsteuerungsobjekte, die am Anfang der Runde platziert werden." />
+			<entry name="Objects" class="IDArray" description="Umweltsteuerungsobjekte, die am Anfang der Runde platziert werden."/>
 		</section>
 		<section name="Definitions">
-			<entry name="LocalOnly" class="SignedInteger"
-				description="Wenn LocalOnly den Wert 1 hat, werden alle angegebenen Objektdefinitions-pakete ignoriert und nur lokale Objektdefinitionen geladen." />
-			<entry name="Definition1" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition2" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition3" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition4" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition5" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition6" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition7" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition8" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition9" class="DefinitionPack"
-				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />	
-			<entry name="SkipDefs" class="IDArray"
-				description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So lässt sich beispielsweise die Erforschung bestimmter Objekte verhindern." />
+			<entry name="LocalOnly" class="SignedInteger" description="Wenn LocalOnly den Wert 1 hat, werden alle angegebenen Objektdefinitions-pakete ignoriert und nur lokale Objektdefinitionen geladen."/>
+			<entry name="Definition1" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition2" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition3" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition4" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition5" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition6" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition7" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition8" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>
+			<entry name="Definition9" class="DefinitionPack" description="&#xDC;ber Definitionx-Eintr&#xE4;ge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete m&#xFC;ssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Men&#xFC;system bestimmte Auswahl ignoriert."/>	
+			<entry name="SkipDefs" class="IDArray" description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So l&#xE4;sst sich beispielsweise die Erforschung bestimmter Objekte verhindern."/>
 		</section>
 	</file>
 	<file name="PlayerControls.txt">
 		<section name="ControlDefs">
 			<section name="ControlDef">
-				<entry name="Identifier" class="java.lang.String" />
-					<entry name="DefaultDisabled" class="Boolean" />
-				<entry name="GUIDesc" class="java.lang.String" />
-				<entry name="GUIName" class="java.lang.String" />
-				<entry name="Action" class="java.lang.String" />
-				<entry name="Hold" class="UnsignedInteger" />
-				<entry name="RepeatDelay" class="UnsignedInteger" />
-				<entry name="SendCursorPos" class="UnsignedInteger" />
-				<entry name="RepeatDelay" class="UnsignedInteger" />
-				<entry name="CoordinateSpace" class="java.lang.String" />
+				<entry name="Identifier" class="java.lang.String"/>
+					<entry name="DefaultDisabled" class="Boolean"/>
+				<entry name="GUIDesc" class="java.lang.String"/>
+				<entry name="GUIName" class="java.lang.String"/>
+				<entry name="Action" class="java.lang.String"/>
+				<entry name="Hold" class="UnsignedInteger"/>
+				<entry name="RepeatDelay" class="UnsignedInteger"/>
+				<entry name="SendCursorPos" class="UnsignedInteger"/>
+				<entry name="RepeatDelay" class="UnsignedInteger"/>
+				<entry name="CoordinateSpace" class="java.lang.String"/>
 			</section>
 		</section>
 		<section name="ControlSets">
 			<section name="ControlSet">
-				<entry name="GUIName" class="java.lang.String" />
-				<entry name="Name" class="java.lang.String" />
-				<entry name="Keyboard" class="UnsignedInteger" />
-				<entry name="Mouse" class="UnsignedInteger" />
-				<entry name="Gamepad" class="UnsignedInteger" />
+				<entry name="GUIName" class="java.lang.String"/>
+				<entry name="Name" class="java.lang.String"/>
+				<entry name="Keyboard" class="UnsignedInteger"/>
+				<entry name="Mouse" class="UnsignedInteger"/>
+				<entry name="Gamepad" class="UnsignedInteger"/>
 				<section name="Assignment">
-					<entry name="Priority" class="UnsignedInteger" />			
-					<entry name="Key" class="java.lang.String" />
-					<entry name="Control" class="java.lang.String" />
-					<entry name="Group" class="Boolean" />
-					<entry name="GUIGroup" class="UnsignedInteger" />
-					<entry name="GUIName" class="java.lang.String" />
-					<entry name="GUIDesc" class="java.lang.String" />
-					<entry name="GUIDisabled" class="Boolean" />
+					<entry name="Priority" class="UnsignedInteger"/>			
+					<entry name="Key" class="java.lang.String"/>
+					<entry name="Control" class="java.lang.String"/>
+					<entry name="Group" class="Boolean"/>
+					<entry name="GUIGroup" class="UnsignedInteger"/>
+					<entry name="GUIName" class="java.lang.String"/>
+					<entry name="GUIDesc" class="java.lang.String"/>
+					<entry name="GUIDisabled" class="Boolean"/>
 				</section>
 			</section>
 		</section>
 	</file>
 	<file name="FolderMap.txt">
 		<section name="FolderMap">
-			<entry name="MinResX" class="UnsignedInteger" />
-			<entry name="MinResY" class="UnsignedInteger" />
-			<entry name="ScenInfoArea" class="IntegerArray" />
-			<entry name="FullscreenBG" class="Boolean" />
+			<entry name="MinResX" class="UnsignedInteger"/>
+			<entry name="MinResY" class="UnsignedInteger"/>
+			<entry name="ScenInfoArea" class="IntegerArray"/>
+			<entry name="FullscreenBG" class="Boolean"/>
 			<section name="AccessGfx">
-				<entry name="Access" class="java.lang.String" />
-				<entry name="OverlayImage" class="java.lang.String" />
-				<entry name="Area" class="IntegerArray" />
+				<entry name="Access" class="java.lang.String"/>
+				<entry name="OverlayImage" class="java.lang.String"/>
+				<entry name="Area" class="IntegerArray"/>
 			</section>
 			<section name="Scenario">
-				<entry name="File" class="java.lang.String" />
-				<entry name="BaseImage" class="java.lang.String" />
-				<entry name="OverlayImage" class="java.lang.String" />
-				<entry name="Area" class="IntegerArray" />
-				<entry name="Title" class="java.lang.String" />
-				<entry name="TitleFontSize" class="java.lang.String" />
-				<entry name="TitleColorInactive" class="UnsignedInteger" />
-				<entry name="TitleColorActive" class="UnsignedInteger" />
-				<entry name="TitleOffX" class="SignedInteger" />
-				<entry name="TitleOffY" class="SignedInteger" />
-				<entry name="TitleAlign" class="SignedInteger" />
-				<entry name="TitleUseBookFont" class="Boolean" />
+				<entry name="File" class="java.lang.String"/>
+				<entry name="BaseImage" class="java.lang.String"/>
+				<entry name="OverlayImage" class="java.lang.String"/>
+				<entry name="Area" class="IntegerArray"/>
+				<entry name="Title" class="java.lang.String"/>
+				<entry name="TitleFontSize" class="java.lang.String"/>
+				<entry name="TitleColorInactive" class="UnsignedInteger"/>
+				<entry name="TitleColorActive" class="UnsignedInteger"/>
+				<entry name="TitleOffX" class="SignedInteger"/>
+				<entry name="TitleOffY" class="SignedInteger"/>
+				<entry name="TitleAlign" class="SignedInteger"/>
+				<entry name="TitleUseBookFont" class="Boolean"/>
 			</section>
 		</section>
 	</file>
 	<file name="Teams.txt">
 		<section name="Teams">
-			<entry name="AllowHostilityChange" class="Boolean" />
-			<entry name="AllowTeamSwitch" class="Boolean" />
-			<entry name="TeamColors" class="Boolean" />
-			<entry name="TeamDistribution" class="UnsignedInteger" />
-			<entry name="LastTeamID" class="UnsignedInteger" />
-			<entry name="Active" class="Boolean" />
-			<entry name="Custom" class="Boolean" />
-			<entry name="AutoGenerateTeams" class="Boolean" />
+			<entry name="AllowHostilityChange" class="Boolean"/>
+			<entry name="AllowTeamSwitch" class="Boolean"/>
+			<entry name="TeamColors" class="Boolean"/>
+			<entry name="TeamDistribution" class="UnsignedInteger"/>
+			<entry name="LastTeamID" class="UnsignedInteger"/>
+			<entry name="Active" class="Boolean"/>
+			<entry name="Custom" class="Boolean"/>
+			<entry name="AutoGenerateTeams" class="Boolean"/>
 			<entry name="TeamDistribution" class="Enum" enumValues="Free,Host,None,Random,RandomInv"/>
 			<entry name="MaxScriptPlayers" class="SignedInteger"/>
 			<entry name="ScriptPlayerNames" class="java.lang.String"/>
 			<entry name="FreeForAll" class="Boolean"/>
 			<section name="Team">
-				<entry name="id" class="SignedInteger" />
-				<entry name="Name" class="java.lang.String" />
-				<entry name="IconSpec" class="IconSpec" />
-				<entry name="PlrStartIndex" class="SignedInteger" />
-				<entry name="Color" class="SignedInteger" />
-				<entry name="MaxPlayer" class="SignedInteger" />
-				<entry name="PlayerCount" class="UnsignedInteger" />
-				<entry name="Players" class="UnsignedInteger" />
+				<entry name="id" class="SignedInteger"/>
+				<entry name="Name" class="java.lang.String"/>
+				<entry name="IconSpec" class="IconSpec"/>
+				<entry name="PlrStartIndex" class="SignedInteger"/>
+				<entry name="Color" class="SignedInteger"/>
+				<entry name="MaxPlayer" class="SignedInteger"/>
+				<entry name="PlayerCount" class="UnsignedInteger"/>
+				<entry name="Players" class="UnsignedInteger"/>
 			</section>
 		</section>
 	</file>

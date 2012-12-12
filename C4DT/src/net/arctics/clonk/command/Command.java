@@ -73,18 +73,18 @@ public class Command {
 		};
 
 		for (Class<?> c : Command.class.getDeclaredClasses())
-			registerCommandsFromClass(c);
-		registerCommandsFromClass(StaticTypingUtil.class);
+			registerCommandsFromClass(COMMAND_BASESCRIPT, c);
+		registerCommandsFromClass(COMMAND_BASESCRIPT, StaticTypingUtil.class);
 	}
 	
 	public static ExecutableScript executableScriptFromCommand(String command) {
 		return new ExecutableScript("command", String.format(Command.COMMAND_SCRIPT_TEMPLATE, command), Command.COMMANDS_INDEX);
 	}
 
-	private static void registerCommandsFromClass(Class<?> classs) {
+	public static void registerCommandsFromClass(Script script, Class<?> classs) {
 		for (Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
-				addCommand(m);
+				addCommand(script, m);
 	}
 
 	private static class NativeCommandFunction extends Function {
@@ -110,8 +110,12 @@ public class Command {
 
 	}
 
+	public static void addCommand(Script script, Method method) {
+		script.addDeclaration(new NativeCommandFunction(script, method));
+	}
+	
 	public static void addCommand(Method method) {
-		COMMAND_BASESCRIPT.addDeclaration(new NativeCommandFunction(COMMAND_BASESCRIPT, method));
+		addCommand(COMMAND_BASESCRIPT, method);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -15,7 +15,7 @@ import net.arctics.clonk.util.Utilities;
  *
  * @param <T> The type of value this literal represents
  */
-public abstract class Literal<T> extends ExprElm {
+public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -74,6 +74,11 @@ public abstract class Literal<T> extends ExprElm {
 			return listener.differs(this, other, "literal");
 		else
 			return DifferenceHandling.Equal;
+	}
+	
+	@Override
+	public String patternMatchingText() {
+		return literal() != null ? literal().toString() : null;
 	}
 
 }

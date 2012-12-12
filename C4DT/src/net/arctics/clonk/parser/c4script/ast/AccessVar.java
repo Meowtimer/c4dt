@@ -134,6 +134,8 @@ public class AccessVar extends AccessDeclaration {
 							parser.warning(ParserErrorCode.VarUsedBeforeItsDeclaration, this, 0, var.name());
 					}
 					break;
+				case PARAMETER:
+					break;
 			}
 		} else if (declaration instanceof Function)
 			if (!parser.script().engine().settings().supportsFunctionRefs)
@@ -268,6 +270,45 @@ public class AccessVar extends AccessDeclaration {
 		}
 		else
 			return false;
+	}
+	
+	@Override
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
+		if (declaration instanceof Variable && declaration.parentDeclaration() instanceof Function) {
+			class LocalVariableInfo extends TypeInfo {
+				public LocalVariableInfo() {
+					this.type = PrimitiveType.UNKNOWN;
+				}
+				public AccessVar origin() { return AccessVar.this; }
+				@Override
+				public boolean local() {
+					return ((Variable)origin().declaration()).scope() != Scope.PARAMETER;
+				}
+				@Override
+				public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+					return expr instanceof AccessVar && ((AccessVar)expr).declaration() == declaration();
+				}
+				@Override
+				public boolean refersToSameExpression(ITypeInfo other) {
+					return
+						other instanceof LocalVariableInfo &&
+						((LocalVariableInfo)other).origin().declaration() == declaration();
+				}
+				@Override
+				public void apply(boolean soft, C4ScriptParser parser) {
+					Variable v = (Variable)origin().declaration();
+					if (!(soft || v.scope() == Scope.PARAMETER))
+						return;
+					v.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+				}
+				@Override
+				public void storeType(IType type) {
+					super.storeType(type);
+				}
+			}
+			return new LocalVariableInfo();
+		} else
+			return super.createTypeInfo(parser);
 	}
 	
 	@Override

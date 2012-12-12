@@ -37,7 +37,7 @@ public abstract class MapCreator {
 			TextureMap textureMap = new TextureMap(
 				(IFile)Utilities.findMemberCaseInsensitively(materialsContainer, TextureMap.TEXMAP_FILE),
 				materials
-				);
+			);
 			ImageData data = new ImageData(size[0], size[1], 8, textureMap.palette());
 			create(data, section, textureMap, layers, numPlayers);
 			return data;

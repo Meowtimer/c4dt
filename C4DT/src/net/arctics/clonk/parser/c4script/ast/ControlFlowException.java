@@ -8,7 +8,7 @@ public class ControlFlowException extends Exception {
 
 	private ControlFlow controlFlow;
 
-	public ControlFlow getControlFlow() {
+	public ControlFlow controlFlow() {
 		return controlFlow;
 	}
 

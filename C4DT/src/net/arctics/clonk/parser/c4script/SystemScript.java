@@ -48,7 +48,8 @@ public class SystemScript extends Script implements Serializable {
 		}
 	}
 	
-	public void setScriptFile(IFile f) throws CoreException {
+	@Override
+	public void setScriptFile(IFile f) {
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
@@ -66,9 +67,9 @@ public class SystemScript extends Script implements Serializable {
 		return scriptFilePath;
 	}
 	
-	public static SystemScript pinned(IResource resource, boolean duringBuild) throws CoreException {
+	public static SystemScript pinned(IResource resource, boolean duringBuild) {
 		Structure s = Structure.pinned(resource, true, duringBuild);
-		return s instanceof SystemScript ? (SystemScript) s : null;
+		return as(s, SystemScript.class);
 	}
 	
 	@Override
@@ -77,7 +78,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 	
 	@Override
-	public void pinTo(IResource resource) throws CoreException {
+	public void pinTo(IResource resource) {
 		assert(resource instanceof IFile);
 		setScriptFile((IFile) resource);
 	}

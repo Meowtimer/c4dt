@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
@@ -30,7 +30,7 @@ public class PropListExpression extends ExprElm {
 		return definedDeclaration;
 	}
 	
-	public List<Variable> components() {
+	public Collection<Variable> components() {
 		return definedDeclaration.components(false);
 	}
 	
@@ -48,9 +48,9 @@ public class PropListExpression extends ExprElm {
 		StringBuilder builder = new StringBuilder();
 		ExprWriter output = new AppendableBackedExprWriter(builder);
 		output.append('{');
-		List<Variable> components = components();
-		for (int i = 0; i < components.size(); i++) {
-			Variable component = components.get(i);
+		Collection<Variable> components = components();
+		int i = 0;
+		for (Variable component : components) {
 			output.append(i > 0 ? BREAK : FIRSTBREAK);
 			output.append(component.name());
 			output.append(": "); //$NON-NLS-1$
@@ -67,6 +67,7 @@ public class PropListExpression extends ExprElm {
 				output.append(',');
 			else
 				output.append(LASTBREAK);
+			i++;
 		}
 		output.append('}');
 		String s = output.toString();
@@ -98,19 +99,21 @@ public class PropListExpression extends ExprElm {
 	public ExprElm[] subElements() {
 		if (definedDeclaration == null)
 			return EMPTY_EXPR_ARRAY;
-		List<Variable> components = components();
+		Collection<Variable> components = components();
 		ExprElm[] result = new ExprElm[components.size()];
-		for (int i = 0; i < result.length; i++)
-			result[i] = components.get(i).initializationExpression();
+		int i = 0;
+		for (Variable c : components)
+			result[i++] = c.initializationExpression();
 		return result;
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
 		if (definedDeclaration == null)
 			return;
-		List<Variable> components = components();
-		for (int i = 0; i < Math.min(elms.length, components.size()); i++)
-			components.get(i).setInitializationExpression(elms[i]);
+		Collection<Variable> components = components();
+		int i = 0;
+		for (Variable c : components)
+			c.setInitializationExpression(elms[i++]);
 	}
 	@Override
 	public boolean isConstant() {
@@ -123,7 +126,7 @@ public class PropListExpression extends ExprElm {
 	
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
-		List<Variable> components = components();
+		Collection<Variable> components = components();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components)
 			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
@@ -165,7 +168,7 @@ public class PropListExpression extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		if (!parser.script().engine().settings().supportsProplists)
-			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
+			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature, parser.engine().name());
 	}
 	
 	@Override

@@ -1,9 +1,10 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.ArrayList;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -63,8 +64,11 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	}
 	
 	@Override
-	public Object evaluate(IEvaluationContext context) {
-		return ArrayUtil.map(elements, Object.class, Conf.EVALUATE_EXPR);
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		ArrayList<Object> elm = new ArrayList<Object>(elements.length);
+		for (int i = 0; i < elements.length; i++)
+			elm.set(i, elements[i] != null ? elements[i].evaluate(context) : null);
+		return elm;
 	}
 
 }

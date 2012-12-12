@@ -174,6 +174,11 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public String typeName(boolean special) {
+		if (special) {
+			String s = StringUtil.blockString("{", "}", ", ", components(true));
+			if (s.length() < 50)
+				return s;
+		}
 		return PrimitiveType.PROPLIST.typeName(special);
 	}
 
@@ -280,13 +285,22 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public List<Variable> components(boolean includeAdhocComponents) {
+	public Collection<Variable> components(boolean includeAdhocComponents) {
 		synchronized(components) {
 			ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&adhocComponents!=null?adhocComponents.size():0));
 			list.addAll(components);
 			if (includeAdhocComponents && adhocComponents != null)
 				list.addAll(adhocComponents);
 			return list;
+		}
+	}
+	
+	public int numComponents(boolean includeAdhocComponents) {
+		synchronized(components) {
+			int result = components.size();
+			if (includeAdhocComponents && adhocComponents != null)
+				result += adhocComponents.size();
+			return result;
 		}
 	}
 

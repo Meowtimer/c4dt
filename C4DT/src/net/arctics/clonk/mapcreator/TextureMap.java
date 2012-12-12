@@ -60,6 +60,10 @@ public class TextureMap extends HashMap<String, Integer> {
 				this.put(material+"-"+texture, index);
 			}
 		}
+		final RGB nullColor = new RGB(0, 0, 0);
+		for (int i = 0; i < colors.length; i++)
+			if (colors[i] == null)
+				colors[i] = nullColor;
 		this.palette = new PaletteData(colors);
 	}
 	

@@ -14,7 +14,7 @@ public class SameTypeAsSomeTypeable implements IType {
 	}
 
 	protected IType actualType() {
-		return typeable != null ? typeable.type() : PrimitiveType.ANY;
+		return typeable != null ? typeable.type() : PrimitiveType.UNKNOWN;
 	}
 	
 	@Override

@@ -19,6 +19,8 @@ public class NillableType extends WrappedType {
 			default:
 				return new NillableType(baseType);
 			}
+		else if (!(baseType instanceof NillableType))
+			return new NillableType(baseType);
 		else
 			return baseType;
 	}
@@ -39,7 +41,8 @@ public class NillableType extends WrappedType {
 
 	@Override
 	public String typeName(boolean special) {
-		return wrappedType.typeName(special) + "?";
+		String tn = wrappedType.typeName(special);
+		return tn.contains(" ") && !(tn.startsWith("{") || tn.startsWith("[")) ? "("+tn+")?" : tn + "?";
 	}
 
 	@Override

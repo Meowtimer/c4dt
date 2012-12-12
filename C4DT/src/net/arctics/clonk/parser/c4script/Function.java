@@ -23,10 +23,13 @@ import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
+import net.arctics.clonk.parser.c4script.ast.ReturnException;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -286,11 +289,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (numParameters() > 0) {
 			for(Variable par : parameters()) {
 				IType type = engineCompatible ? par.type().simpleType() : par.type();
+				type = TypeChoice.remove(type, new IPredicate<IType>() {
+					@Override
+					public boolean test(IType item) {
+						return item instanceof ParameterType;
+					}
+				});
 				if (engineCompatible && !par.isActualParm())
 					continue;
 				if (type != PrimitiveType.UNKNOWN && type != null) {
 					if (!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)) {
-						output.append(type.typeName(false));
+						output.append(type.typeName(true));
 						output.append(' ');
 					}
 					output.append(par.name());
@@ -373,7 +382,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (String line : new String[] {
 			"<i>"+scriptPath+"</i><br/>", //$NON-NLS-1$ //$NON-NLS-2$
-			"<b>"+longParameterString(true, false)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			"<b>"+longParameterString(true, true)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -680,9 +689,47 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param args the arguments to pass to the function
 	 * @return the result
 	 */
-	public Object invoke(Object... args) {
+	public Object invoke(final Object... args) {
 		try {
-			return body != null ? body.evaluate(this) : null;
+			return body != null ? body.evaluate(new IEvaluationContext() {
+				@Override
+				public Object valueForVariable(String varName) {
+					int i = 0;
+					for (Variable v : parameters) {
+						if (v.name().equals(varName))
+							return args[i];
+						i++;
+					}
+					return null;
+				}
+				
+				@Override
+				public Script script() {
+					return Function.this.script();
+				}
+				
+				@Override
+				public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+					Function.this.reportOriginForExpression(expression, location, file);
+				}
+				
+				@Override
+				public Function function() {
+					return Function.this;
+				}
+				
+				@Override
+				public int codeFragmentOffset() {
+					return Function.this.codeFragmentOffset();
+				}
+				
+				@Override
+				public Object[] arguments() {
+					return args;
+				}
+			}) : null;
+		} catch (ReturnException result) {
+			return result.result();
 		} catch (ControlFlowException e) {
 			e.printStackTrace();
 			return null;

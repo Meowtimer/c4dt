@@ -3,10 +3,10 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -81,7 +81,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			return assistant;
 		
 		assistant = new ClonkContentAssistant();
-		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(),assistant);
+		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(), assistant);
 		for (String s : ClonkPartitionScanner.PARTITIONS)
 			assistant.setContentAssistProcessor(processor, s);
 		assistant.install(sourceViewer);

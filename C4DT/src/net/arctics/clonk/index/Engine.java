@@ -518,7 +518,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (!settings().readDocumentationFromRepository)
 			parseEngineScript();
 		loadDeclarationsConfiguration();
-		loadProjectConversionConfigurations();
+		try {
+			loadProjectConversionConfigurations();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		reinitializeDocImporter();
 	}
 

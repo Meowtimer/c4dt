@@ -1,20 +1,23 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.pack;
-import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.NillableType;
+import net.arctics.clonk.parser.c4script.ParameterType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ReferenceType;
@@ -47,12 +50,13 @@ public class TypeUnification {
 					default:
 						break;
 					}
+				else if (b instanceof Definition)
+					return b;
 				break;
-			case ANY: case UNKNOWN:
-				if (a == PrimitiveType.ANY && b == PrimitiveType.UNKNOWN)
-					return PrimitiveType.ANY;
-				else
-					return NillableType.make(b);
+			case UNKNOWN:
+				return b;
+			case ANY:
+				return b;
 			case REFERENCE:
 				return b;
 			default:
@@ -60,42 +64,50 @@ public class TypeUnification {
 			}
 		
 		if (a instanceof TypeChoice) {
-			IType l = ((TypeChoice)a).left();
-			IType r = ((TypeChoice)a).right();
-			l = unify(l, b);
-			r = unify(r, b);
-			return TypeChoice.make(l, r);
+			TypeChoice tca = (TypeChoice)a;
+			IType l = tca.left();
+			IType r = tca.right();
+			IType l_ = unifyLeft(l, b);
+			IType r_ = unifyLeft(r, b);
+			if (l_ == null && r_ == null)
+				return null;
+			else if (r_ == null)
+				return TypeChoice.make(l_, r);
+			else if (l_ == null)
+				return TypeChoice.make(l, r_);
+			else
+				return TypeChoice.make(l_, r_);
 		}
 		
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
 			((IRefinedPrimitiveType)a).primitiveType() == b)
 			return a;
 		
-		if (a instanceof ArrayType) {
+		if (a instanceof ArrayType && b instanceof ArrayType) {
 			ArrayType ata = (ArrayType)a;
-			ArrayType atb = as(b, ArrayType.class);
-			if (atb != null) {
-				ArrayType result = ata;
-				if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
-					result = new ArrayType(unifyNoFlatten(ata.generalElementType(),
-						atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
-				for (Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
-					IType my = ata.elementTypeMapping().get(e.getKey());
-					if (!objectsEqual(my, e.getValue())) {
-						if (result == ata)
-							result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
-						result.elementTypeMapping().put(e.getKey(), unifyNoFlatten(my, e.getValue()));
-					}
+			ArrayType atb = (ArrayType)b;
+			ArrayType result = ata;
+			if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
+				result = new ArrayType(unify(ata.generalElementType(),
+					atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
+			for (Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
+				IType my = ata.elementTypeMapping().get(e.getKey());
+				if (!objectsEqual(my, e.getValue())) {
+					if (result == ata)
+						result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
+					result.elementTypeMapping().put(e.getKey(), unify(my, e.getValue()));
 				}
-				return result;
 			}
-			else if (b == PrimitiveType.ARRAY)
-				return a;
+			return result;
 		}
 		
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
 			final ProplistDeclaration _a = (ProplistDeclaration) a;
 			final ProplistDeclaration _b = (ProplistDeclaration) b;
+			if (_a.numComponents(true) == 0)
+				return _b;
+			else if (_b.numComponents(true) == 0)
+				return _a;
 			return new ProplistDeclaration(new ArrayList<Variable>()) {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
@@ -113,6 +125,16 @@ public class TypeUnification {
 					}
 					return true;
 				}
+				@Override
+				public Collection<Variable> components(boolean includeAdhocComponents) {
+					Map<String, Variable> vars = new HashMap<String, Variable>();
+					for (Variable v : _a.components(includeAdhocComponents))
+						vars.put(v.name(), v);
+					for (Variable v : _b.components(includeAdhocComponents))
+						if (!vars.containsKey(v.name()))
+							vars.put(v.name(), v);
+					return vars.values();
+				}
 			};
 		}
 		
@@ -125,6 +147,9 @@ public class TypeUnification {
 					return ReferenceType.make(u);
 		}
 		
+		if (a instanceof ParameterType)
+			return TypeChoice.make(a, b);
+		
 		return null;
 	}
 	public static IType unifyNoChoice(IType a, IType b) {
@@ -136,26 +161,14 @@ public class TypeUnification {
 			return u;
 		return null;
 	}
-	public static IType unifyNoFlatten(IType a, IType b) {
+	public static IType unify(IType a, IType b) {
 		IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
-	public static IType unify(IType a, IType b) {
-		IType t = unifyNoFlatten(a, b);
-		if (t instanceof TypeChoice)
-			return ((TypeChoice)t).flatten();
-		else
-			return t;
-	}
-	public static IType unify(IType... ingredients) {
-		if (ingredients.length == 0)
-			return PrimitiveType.ANY;
-		int actualCount = pack(ingredients);
-		if (actualCount == 1)
-			return ingredients[0];
-		IType unified = ingredients[0];
-		for (int i = 1; i < actualCount; i++)
-			unified = unifyNoFlatten(unified, ingredients[i]);
-		return unified instanceof TypeChoice ? ((TypeChoice)unified).flatten() : unified;
+	public static IType unify(Iterable<IType> ingredients) {
+		IType unified = null;
+		for (IType t : ingredients)
+			unified = unify(unified, t);
+		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}
 }

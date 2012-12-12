@@ -37,6 +37,7 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
@@ -207,7 +208,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		Index index = nature.index();
 
-		final Function activeFunc = getActiveFunc(doc, offset);
+		final Function activeFunc = funcAt(doc, offset);
 		this._activeFunc = activeFunc;
 
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
@@ -241,10 +242,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
-			IDocument doc, String prefix,
-			List<ICompletionProposal> proposals, Index index,
-			final Function activeFunc) {
-
+		IDocument doc, String prefix,
+		List<ICompletionProposal> proposals, Index index,
+		final Function activeFunc
+	) {
 		Script editorScript = Utilities.scriptForEditor(editor);
 		contextExpression = null;
 		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
@@ -422,22 +423,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return prop;
 	}
 
-	private static final Variable[] EFFECT_FUNCTION_PARM_BOILERPLATE = {
-		new Variable("obj", PrimitiveType.OBJECT),
-		new Variable("effect", PrimitiveType.PROPLIST)
-	};
-
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, Index index) {
 
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
-		boolean directiveExpectingObject =
+		boolean directiveExpectingDefinition =
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) ||
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString());
 
-		if (!directiveExpectingObject) {
+		if (!directiveExpectingDefinition) {
 			// propose creating functions for standard callbacks
 			for(String callback : editor().script().engine().settings().callbackFunctions()) {
 				if (prefix != null)
@@ -452,8 +448,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 			// propose creating effect functions
 			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix);
-			for (String s : EffectFunction.DEFAULT_CALLBACKS)
-				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE).setCategory(Category.EffectCallbacks);
+			for (String s : EffectFunction.DEFAULT_CALLBACKS) {
+				IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
+				Variable parms[] = new Variable[] {
+					new Variable("obj", parameterTypes[0]),
+					new Variable("effect", parameterTypes[1])
+				};
+				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s),
+					funcSupplied, proposals, wordOffset, parms).setCategory(Category.EffectCallbacks);
+			}
 
 			if (!funcSupplied) {
 
@@ -488,7 +491,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		// propose objects for #include or something
-		if (directiveExpectingObject) {
+		if (directiveExpectingDefinition) {
 			if (prefix == null)
 				prefix = "";
 			for (Index i : index.relevantIndexes())
@@ -523,7 +526,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
-	protected Function getActiveFunc(IDocument document, int offset) {
+	protected Function funcAt(IDocument document, int offset) {
 		Script thisScript = Utilities.scriptForEditor(editor);
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}

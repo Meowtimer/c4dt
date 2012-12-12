@@ -34,10 +34,9 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		/**
 		 * Map mapping expression string to corresponding watch expression listener.
 		 */
-		private Map<String, IWatchExpressionListener> listeners = new HashMap<String, IWatchExpressionListener>();
+		private final Map<String, IWatchExpressionListener> listeners = new HashMap<String, IWatchExpressionListener>();
 
-		EvaluationResultListener(IDebugElement context) {
-		}
+		EvaluationResultListener(IDebugElement context) {}
 
 		@Override
 		public String toString() {
@@ -72,27 +71,22 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 				if (line.startsWith(s)){
 					final Value value = new Value(target, line.substring(s.length()));
 					listener.watchEvaluationFinished(new IWatchExpressionResult() {
-
 						@Override
 						public boolean hasErrors() {
 							return false;
 						}
-
 						@Override
 						public IValue getValue() {
 							return value;
 						}
-
 						@Override
 						public String getExpressionText() {
 							return expression;
 						}
-
 						@Override
 						public DebugException getException() {
 							return null;
 						}
-
 						@Override
 						public String[] getErrorMessages() {
 							return null;

@@ -16,6 +16,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
@@ -23,6 +24,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
@@ -52,6 +54,7 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
+import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -60,7 +63,11 @@ import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -88,7 +95,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
-				fun.assignParameterTypes(fun.effect().parameterTypesForCallback(fun.callbackName()));
+				fun.effect();
+				fun.assignParameterTypes(Effect.parameterTypesForCallback(fun.callbackName(), fun.script(), fun.effect()));
 				return true;
 			}
 			return false;
@@ -385,7 +393,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 	
-	private static final ExprElm PLACE_CALL = C4ScriptParser.parse("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)").matchingExpr();
+	private static final ExprElm PLACE_CALL = C4ScriptParser.matchingExpr("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)");
 	
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
 		public ComputedScenarioConfigurationEntry(String key, IDArray values) {
@@ -545,10 +553,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			wholeFunc |= comp.reordering;
 			if (wholeFunc) {
 				createEnvironment.body().setStatements(statementsCopy.toArray(new Statement[statementsCopy.size()]));
-				scenario.saveExpressions(Arrays.asList(createEnvironment.body()));
+				scenario.saveExpressions(Arrays.asList(createEnvironment.body()), true);
 			}
 			else if (list.size() > 0)
-				scenario.saveExpressions(list);
+				scenario.saveExpressions(list, true);
 			break;
 		}
 	}
@@ -581,24 +589,61 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	@Override
 	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		if (entry.key().equals("Vegetation"))
-			return new IPredicate<Definition>() {
-				final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
+		final IPredicate<Definition> basePredicate =
+			entry.key().equals("Vegetation") ?
+				new IPredicate<Definition>() {
+					final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
+					@Override
+					public boolean test(Definition item) {
+						return plant != null && item != plant && item.doesInclude(entry.index(), plant);
+					}
+				} :
+			entry.key().equals("Goals") ?
+				new IPredicate<Definition>() {
+					final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
+					@Override
+					public boolean test(Definition item) {
+						return goal != null && item != goal && item.doesInclude(entry.index(), goal);
+					}
+				} :
+			super.configurationEntryDefinitionFilter(entry);
+		return basePredicate != null ? new IPredicate<Definition>() {
+			@Override
+			public boolean test(Definition item) {
+				if (item.id() != null && item.id().stringValue().startsWith("Library_"))
+					return false;
+				else
+					return basePredicate.test(item);
+			}
+		} : null;
+	}
+	
+	private void readVariablesFromPlayerControlsFile(final Index index) {
+		try {
+			index.project().accept(new IResourceVisitor() {
 				@Override
-				public boolean test(Definition item) {
-					return plant != null && item != plant && item.doesInclude(entry.index(), plant);
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource instanceof IContainer)
+						return true;
+					else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
+						PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
+						if (unit != null)
+							index.addStaticVariables(unit.controlVariables());
+						return true;
+					}
+					else
+						return false;
 				}
-			};
-		else if (entry.key().equals("Goals"))
-			return new IPredicate<Definition>() {
-				final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
-				@Override
-				public boolean test(Definition item) {
-					return goal != null && item != goal && item.doesInclude(entry.index(), goal);
-				}
-			};
-		else
-			return super.configurationEntryDefinitionFilter(entry);
+			});
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void refreshIndex(Index index) {
+		super.refreshIndex(index);
+		readVariablesFromPlayerControlsFile(index);
 	}
 
 }

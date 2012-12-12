@@ -30,7 +30,7 @@ public class IniSection extends Declaration implements
 
 	private Map<String, IniItem> itemMap;
 	private List<IniItem> itemList;
-	private IniSectionDefinition sectionData;
+	private IniSectionDefinition definition;
 	private int indentation;
 	private int sectionEnd;
 
@@ -42,12 +42,12 @@ public class IniSection extends Declaration implements
 		this.sectionEnd = sectionEnd;
 	}
 
-	public IniSectionDefinition sectionData() {
-		return sectionData;
+	public IniSectionDefinition definition() {
+		return definition;
 	}
 
-	public void setSectionData(IniSectionDefinition sectionData) {
-		this.sectionData = sectionData;
+	public void setDefinition(IniSectionDefinition sectionData) {
+		this.definition = sectionData;
 	}
 
 	protected IniSection(SourceLocation location, String name) {
@@ -109,11 +109,19 @@ public class IniSection extends Declaration implements
 			throw new IllegalArgumentException("node");
 	}
 	
-	public void addItem(IniItem item) {
+	@SuppressWarnings("unchecked")
+	public <T extends IniItem> T addItem(T item) {
 		if (!itemMap.containsKey(item.key())) {
 			itemMap.put(item.key(), item);
 			itemList.add(item);
 			((Declaration)item).setParentDeclaration(this);
+			try {
+				return item instanceof IniEntry
+					? (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false)
+					: item;
+			} catch (IniParserException e) {
+				return null;
+			}
 		}
 		else
 			throw new IllegalArgumentException("item");
@@ -141,7 +149,7 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public IPath path() {
-		return ITreeNode.Default.getPath(this);
+		return ITreeNode.Default.path(this);
 	}
 
 	@Override

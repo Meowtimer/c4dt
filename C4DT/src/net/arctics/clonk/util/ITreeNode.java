@@ -11,9 +11,8 @@ public interface ITreeNode extends INodeWithPath {
 	Collection<? extends INode> childCollection();
 	boolean subNodeOf(ITreeNode node);
 	void addChild(ITreeNode node);	
-	
 	public static class Default {
-		public static IPath getPath(INodeWithPath node) {
+		public static IPath path(INodeWithPath node) {
 			return node.parentNode() != null ? node.parentNode().path().append(node.nodeName()) : new Path(node.nodeName());
 		}
 		public static boolean subNodeOf(ITreeNode node, ITreeNode other) {
@@ -34,5 +33,4 @@ public interface ITreeNode extends INodeWithPath {
 			return node.parentNode() != null && node.parentNode() != superNode ? relativePath(node.parentNode(), superNode).append(node.nodeName()) : new Path(node.nodeName());
 		}
 	}
-	
 }

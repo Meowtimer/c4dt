@@ -206,11 +206,6 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 							public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 								DuplicatesQuery.this.wildcardMatched(wildcard, expression);
 							}
-							@Override
-							public boolean consume(ExprElm consumer, ExprElm extra) {
-								// TODO Auto-generated method stub
-								return false;
-							}
 						};
 						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
 							return DifferenceHandling.EqualShortCircuited;
@@ -270,11 +265,6 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 
 	@Override
 	public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
-	}
-
-	@Override
-	public boolean consume(ExprElm consumer, ExprElm extra) {
-		return false;
 	}
 
 }

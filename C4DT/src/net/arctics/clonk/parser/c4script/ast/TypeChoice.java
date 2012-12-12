@@ -1,18 +1,17 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.util.IPredicate;
 
 public final class TypeChoice implements IType, IResolvableType {
 
@@ -25,16 +24,38 @@ public final class TypeChoice implements IType, IResolvableType {
 	
 	private static final TypeChoice[] HARD_CHOICES = {
 		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.ID),
+		new TypeChoice(PrimitiveType.BOOL, PrimitiveType.INT),
+		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.PROPLIST)
 	};
 	
-	public static TypeChoice make(IType left, IType right) {
+	public static IType make(IType left, IType right) {
+		if (left == null)
+			return right;
+		else if (right == null)
+			return left;
+		else if (left.equals(right))
+			return left;
 		for (TypeChoice hc : HARD_CHOICES)
 			if (
 				(hc.left == left && hc.right == right) ||
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
-		return new TypeChoice(left, right);
+		final TypeChoice r = new TypeChoice(left, right);
+		return remove(r, new IPredicate<IType>() {
+			private final List<IType> flattened = r.flatten();
+			private final boolean[] mask = new boolean[flattened.size()];
+			@Override
+			public boolean test(IType item) {
+				int ndx = flattened.indexOf(item);
+				if (ndx < 0)
+					return false;
+				if (mask[ndx])
+					return true;
+				mask[ndx] = true;
+				return false;
+			}
+		});
 	}
 	
 	private TypeChoice(IType left, IType right) {
@@ -44,7 +65,7 @@ public final class TypeChoice implements IType, IResolvableType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable(left, right).iterator();
+		return flatten().iterator();
 	}
 
 	@Override
@@ -85,27 +106,55 @@ public final class TypeChoice implements IType, IResolvableType {
 			types.add(right);
 	}
 	
-	public IType flatten() {
-		if (!(left instanceof TypeChoice || right instanceof TypeChoice))
-			return this;
+	public static IType remove(IType type, IPredicate<? super IType> predicate) {
+		if (predicate.test(type))
+			return null;
+		else if (type instanceof TypeChoice) {
+			TypeChoice c = (TypeChoice)type;
+			IType left = remove(c.left(), predicate);
+			IType right = remove(c.right(), predicate);
+			if (left == c.left() && right == c.right())
+				return c;
+			else if (left == null && right == null)
+				return null;
+			else if (left == null)
+				return right;
+			else if (right == null)
+				return left;
+			else
+				return TypeChoice.make(left, right);
+		}
+		else
+			return type;
+	}
+	
+	public List<IType> flatten() {
 		LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
-		return
-			types.size() == 2 ? new TypeChoice(types.get(0), types.get(1)) :
-			types.size() == 1 ? types.get(0) :
-			new TypeSet(types.toArray(new IType[types.size()]));
+		return types;
 	}
 	
 	@Override
 	public String toString() {
-		return typeName(false);
+		return typeName(true);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof TypeChoice) {
+			TypeChoice other = (TypeChoice)obj;
+			return
+				(other.left.equals(left) && other.right.equals(right)) ||
+				(other.right.equals(left) && other.right.equals(left));
+		} else
+			return false;
 	}
 
 	@Override
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		IType rl = TypeUtil.resolve(left, context, callerType);
 		IType rr = TypeUtil.resolve(right, context, callerType);
-		return rl == left && rr == right ? this : new TypeChoice(rl, rr);
+		return rl == left && rr == right ? this : TypeChoice.make(rl, rr);
 	}
 
 }

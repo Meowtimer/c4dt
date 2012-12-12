@@ -51,17 +51,36 @@ public class ArrayElementExpression extends ExprElm {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		IType type = predecessorType(parser);
-		warnIfNotArray(predecessorInSequence(), parser, type);
+		if (type == null)
+			type = PrimitiveType.UNKNOWN;
 		ExprElm arg = argument();
 		if (arg == null)
 			parser.warning(ParserErrorCode.MissingExpression, this, 0);
+		else if (PrimitiveType.UNKNOWN != type && PrimitiveType.ANY != type) {
+			IType argType = arg.type(parser);
+			if (argType == PrimitiveType.STRING) {
+				if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+					parser.warning(ParserErrorCode.NotAProplist, predecessorInSequence(), 0);
+				else
+					predecessorInSequence().expectedToBeOfType(PrimitiveType.PROPLIST, parser);
+			}
+			else if (argType == PrimitiveType.INT)
+				if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
+					parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
+				else
+					predecessorInSequence().expectedToBeOfType(PrimitiveType.ARRAY, parser);
+		}
 	}
 
 	public static void warnIfNotArray(ExprElm elm, C4ScriptParser parser, IType type) {
-		if (type != null && type != PrimitiveType.UNKNOWN &&
+		if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 			TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
 			TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+		{
+			TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type);
+			TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type);
 			parser.warning(ParserErrorCode.NotAnArrayOrProplist, elm, 0);
+		}
 	}
 
 	@Override
@@ -105,7 +124,7 @@ public class ArrayElementExpression extends ExprElm {
 					);
 				context.storeType(predecessorInSequence(), mutation);
 				break;
-			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY || predType == PrimitiveType.ANY)
+			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
 				predecessorInSequence().expectedToBeOfType(
 					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 					context,

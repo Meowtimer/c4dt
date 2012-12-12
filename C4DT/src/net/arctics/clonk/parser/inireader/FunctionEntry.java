@@ -14,7 +14,7 @@ public class FunctionEntry extends NamedReference implements IComplainingIniEntr
 		if (toString().equals("None") || toString().equals("")) // special null value //$NON-NLS-1$ //$NON-NLS-2$
 			return;
 		IniUnit iniUnit = context.iniUnit();
-		IFile f = iniUnit.iniFile();
+		IFile f = iniUnit.file();
 		if (f != null) {
 			Definition obj = Definition.definitionCorrespondingToFolder(f.getParent());
 			if (obj != null && obj.findFunction(this.toString()) == null)

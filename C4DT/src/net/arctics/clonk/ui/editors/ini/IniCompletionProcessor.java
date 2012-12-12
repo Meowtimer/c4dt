@@ -98,21 +98,21 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 		if (!assignment) {
 			if (section != null) {
-				IniSectionDefinition d = section.sectionData();
+				IniSectionDefinition d = section.definition();
 				if (d != null)
 					proposalsForSection(proposals, prefix, wordOffset, d);
-				if (section.parentSection() != null && section.parentSection().sectionData() != null)
+				if (section.parentSection() != null && section.parentSection().definition() != null)
 					// also propose new sections
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().sectionData().entries().values());
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.parentSection().definition().entries().values());
 				else if (section.parentDeclaration() instanceof IniUnit)
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.parentDeclaration()).configuration().sections().values());
 				int indentation = editor().unit().parser().indentationAt(offset);
 				if (indentation == section.indentation()+1)
-					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.sectionData().entries().values());
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.definition().entries().values());
 			}
 		}
 		else if (assignment && section != null) {
-			IniDataBase itemData = section.sectionData().entryForKey(entryName);
+			IniDataBase itemData = section.definition().entryForKey(entryName);
 			if (itemData instanceof IniEntryDefinition) {
 				IniEntryDefinition entryDef = (IniEntryDefinition) itemData;
 				Class<?> entryClass = entryDef.entryClass();
@@ -154,7 +154,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		Index index = ProjectIndex.fromResource(editor().unit().iniFile());
+		Index index = ProjectIndex.fromResource(editor().unit().file());
 		if (index != null)
 			for (Index i : index.relevantIndexes())
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
@@ -187,9 +187,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (IniDataBase entry : sectionData.entries().values())
 			if (entry instanceof IniEntryDefinition) {
 				IniEntryDefinition e = (IniEntryDefinition) entry;
-				if (!e.entryName().toLowerCase().contains(prefix))
+				if (!e.name().toLowerCase().contains(prefix))
 					continue;
-				proposals.add(new CompletionProposal(e.entryName(), wordOffset, prefix.length(), e.entryName().length(), null, e.entryName(), null, e.description()));
+				proposals.add(new CompletionProposal(e.name(), wordOffset, prefix.length(), e.name().length(), null, e.name(), null, e.description()));
 			}
 			else if (entry instanceof IniSectionDefinition) {
 				// FIXME

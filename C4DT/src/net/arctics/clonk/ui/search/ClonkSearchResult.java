@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -12,7 +13,7 @@ import org.eclipse.search.ui.text.IFileMatchAdapter;
 
 public class ClonkSearchResult extends AbstractTextSearchResult {
 	
-	private SearchQueryBase query;
+	private final SearchQueryBase query;
 	
 	public ClonkSearchResult(SearchQueryBase query) {
 		this.query = query;
@@ -48,14 +49,14 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 		return null;
 	}
 	
-	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect, int s, int l) {
+	public void addMatch(C4ScriptParser parser, boolean potential, boolean indirect, int s, int l) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
 		String line = parser.bufferSubstringAtRegion(lineRegion);
-		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.script(), s, l, potential, indirect));
+		addMatch(new ClonkSearchMatch(line.trim(), lineRegion.getOffset(), parser.script(), s, l, potential, indirect));
 	}
 	
 	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect) {
-		addMatch(match, parser, potential, indirect, match.identifierStart()+parser.bodyOffset(), match.identifierLength());
+		addMatch(parser, potential, indirect, match.identifierStart()+parser.bodyOffset(), match.identifierLength());
 	}
 
 }

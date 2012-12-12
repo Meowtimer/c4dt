@@ -1,10 +1,11 @@
 package net.arctics.clonk.index;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
@@ -17,11 +18,12 @@ import net.arctics.clonk.parser.c4script.TempScript;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * Helper class containing information about how to transform a Clonk project written for one engine to one consumable by another engine. 
@@ -50,12 +52,13 @@ public class ProjectConversionConfiguration {
 				BinaryOp op = (BinaryOp)unwrapped;
 				this.template = op.leftSide();
 				this.transformation = op.rightSide();
-			} else 
+			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", transformationStatement.toString()));
 		}
 	}
 	
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
+	private final Map<String, String> idMap = new HashMap<String, String>();
 	
 	private void addTransformationFromStatement(Statement statement) {
 		try {
@@ -67,26 +70,37 @@ public class ProjectConversionConfiguration {
 	
 	public void load(List<URL> files) {
 		URL codeTransformations = null;
+		URL idMap = null;
 		for (URL f : files)
 			if (f.getFile().endsWith("codeTransformations.c"))
 				codeTransformations = f;
+			else if (f.getFile().endsWith("idMap.txt"))
+				idMap = f;
 		if (codeTransformations != null)
 			loadCodeTransformations(codeTransformations);
+		if (idMap != null)
+			loadIDMap(idMap);
 	}
 	
+	private void loadIDMap(URL idMap) {
+		String text = StreamUtil.stringFromURL(idMap);
+		if (text != null)
+			for (String line : StringUtil.lines(new StringReader(text))) {
+				String[] mapping = line.split("=");
+				if (mapping.length == 2)
+					this.idMap.put(mapping[0], mapping[1]);
+			}
+	}
+
 	private void loadCodeTransformations(URL transformationsFile) {
 		try {
-			InputStream stream = transformationsFile.openStream();
-			String text;
-			try {
-				text = StreamUtil.stringFromInputStream(stream);
-			} finally {
-				stream.close();
-			}
+			String text = StreamUtil.stringFromURL(transformationsFile);
+			if (text == null)
+				return;
 			Script script = new TempScript(text);
 			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
 				@Override
-				protected Placeholder makePlaceholder(String placeholder) {
+				protected Placeholder makePlaceholder(String placeholder) throws ParsingException {
 					return new MatchingPlaceholder(placeholder);
 				}
 			};
@@ -101,9 +115,11 @@ public class ProjectConversionConfiguration {
 				addTransformationFromStatement(s);
 		} catch (ParsingException e) {
 			e.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
 		}
+	}
+	
+	public Map<String, String> idMap() {
+		return idMap;
 	}
 	
 	public List<CodeTransformation> transformations() {

@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
@@ -118,9 +120,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public void forceType(IType type) {
-		if (type == null)
-			type = PrimitiveType.UNKNOWN;
-		this.type = type;
+		this.type = defaulting(type, PrimitiveType.UNKNOWN);
 	}
 	
 	public void forceType(IType type, boolean typeLocked) {
@@ -199,7 +199,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		STATIC,
 		LOCAL,
 		VAR,
-		CONST;
+		CONST,
+		PARAMETER;
 		
 		public static Scope makeScope(String scopeString) {
 			if (scopeString.equals(Keywords.VarNamed)) return Scope.VAR;
@@ -224,6 +225,15 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 				return null;
 			}
 		}
+
+		public final boolean isLocal() {
+			switch (this) {
+			case PARAMETER: case VAR:
+				return true;
+			default:
+				return false;
+			}
+		}
 	}
 	
 	@Override
@@ -240,7 +250,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
+			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(true)),
 				name(),
 				initializationExpression != null
 					? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))
@@ -414,9 +424,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public boolean isLocal() {
-		return scope == Scope.VAR;
-	}
+	public boolean isLocal() { return scope.isLocal(); }
 	
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
@@ -429,6 +437,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public ExprElm code() {
 		return initializationExpression();
+	}
+	
+	public IType parameterType() {
+		return scope == Scope.PARAMETER && type() == PrimitiveType.UNKNOWN
+			? new ParameterType(this)
+			: type(); 
 	}
 	
 }

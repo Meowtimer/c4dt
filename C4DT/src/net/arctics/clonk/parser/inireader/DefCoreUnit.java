@@ -1,7 +1,10 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {
 	
@@ -33,6 +36,13 @@ public class DefCoreUnit extends IniUnit {
 	@Override
 	public boolean requiresScriptReparse() {
 		return true; // i guess
+	}
+	
+	@Override
+	public void commitTo(Script script, ClonkBuilder builder) {
+		super.commitTo(script, builder);
+		if (script instanceof Definition)
+			((Definition)script).setDefCoreFile(iniFile);
 	}
 	
 }

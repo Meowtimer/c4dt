@@ -2,10 +2,8 @@ package net.arctics.clonk.debug;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -314,58 +312,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		
 	}
 	
-	private class ConnectionJob extends Job {
-
-		private final int port;
-		
-		public ConnectionJob(String name, int port) {
-			super(name);
-			this.port = port;
-		}
-
-		@Override
-		protected IStatus run(IProgressMonitor monitor) {
-			boolean success = false;
-			// try several times to give the engine a chance to load
-			for (int attempts = 0; attempts < 30 && !monitor.isCanceled(); attempts++) {
-				Socket socket;
-				try {
-					socket = new Socket("localhost", port); //$NON-NLS-1$
-				} catch (Exception e) {
-					if (e instanceof UnknownHostException || e instanceof IOException) {
-						try {Thread.sleep(CONNECTION_ATTEMPT_WAITTIME);} catch (InterruptedException interrupt) {}
-						continue;
-					}
-					else {
-						e.printStackTrace();
-						return Status.CANCEL_STATUS;
-					}
-				}
-				PrintWriter socketWriter = null;
-				BufferedReader socketReader = null;
-				try {
-					socketWriter = new PrintWriter(socket.getOutputStream());
-					socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				setConnectionObjects(socket, socketWriter, socketReader);
-				success = true;
-				break;
-			}
-			if (!success) {
-				System.out.println("Clonk Debugger: Connecting to engine failed"); //$NON-NLS-1$
-				terminated();
-				return Status.CANCEL_STATUS;
-			} else {
-				System.out.println("Clonk Debugger: Connected successfully!"); //$NON-NLS-1$
-				return Status.OK_STATUS;
-			}
-		}
-		
-	}
-	
-	synchronized private void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
+	synchronized void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
 		this.socketReader = socketReader_;
@@ -421,7 +368,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		this.threads = new IThread[] {thread};
 		this.scenario = scenario;
 
-		new ConnectionJob("Clonk Debugger Connection Job", port).schedule(); //$NON-NLS-1$
+		new ConnectionJob(this, "Clonk Debugger Connection Job", port).schedule(); //$NON-NLS-1$
 
 		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
@@ -531,12 +478,14 @@ public class Target extends DebugElement implements IDebugTarget {
 		return suspended;
 	}
 	
-	public synchronized void send(String command, ILineReceivedListener listener) {
+	public void send(String command, ILineReceivedListener listener) {
 		if (listener != null)
 			addLineReceiveListener(listener);
-		System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
-		socketWriter.println(command);
-		socketWriter.flush();
+		synchronized (socketWriter) {
+			System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
+			socketWriter.println(command);
+			socketWriter.flush();
+		}
 	}
 	
 	public final void send(String command) {

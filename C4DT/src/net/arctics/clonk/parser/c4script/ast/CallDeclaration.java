@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.HashSet;
 import java.util.List;
@@ -154,7 +155,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		@Override
 		public boolean local() {
-			return true;
+			return varFunction.name().equals("Var");
 		}
 	}
 
@@ -243,7 +244,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		IType t = type(context);
-		return t.canBeAssignedFrom(TypeChoice.make(PrimitiveType.REFERENCE, PrimitiveType.UNKNOWN));
+		return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
 	}
 	@Override
 	public boolean hasSideEffects() {
@@ -279,6 +280,16 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return ((FunctionType)type).prototype().returnType();
 		else
 			return type;
+	}
+	
+	@Override
+	public IType type(DeclarationObtainmentContext context) {
+		context.pushCurrentFunctionCall(this);
+		try {
+			return super.type(context);
+		} finally {
+			context.popCurrentFunctionCall();
+		}
 	}
 
 	private IType declarationType(DeclarationObtainmentContext context) {
@@ -505,11 +516,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				Function f = (Function)declaration;
 				if (f.visibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
 					context.script().addUsedScript(f.script());
-				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
-				if (rule != null)
-					specialCaseHandled = rule.validateArguments(this, params, context);
+				boolean specialCaseHandled =
+					rule != null &&
+					rule.validateArguments(this, params, context);
 				
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
@@ -550,7 +561,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 							if (types[i] instanceof IHasIncludes)
 								types[i] = new ConstrainedProplist((IHasIncludes) types[i], ConstraintKind.Includes);
 						}
-						IType typeSet = TypeUnification.unify(types);
+						IType typeSet = TypeUnification.unify(iterable(types));
 						predecessorInSequence().expectedToBeOfType(typeSet, context);
 					}
 				}
@@ -720,10 +731,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			return null;
 	}
 	@Override
-	public ITypeInfo createStoredTypeInformation(C4ScriptParser parser) {
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
 		Declaration d = declaration();
 		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
-		if (d == cache.Var || d == cache.Local || d == cache.Par) {
+		if (isAnyOf(d, cache.VarAccessFunctions)) {
 			Object ev;
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
 				if (ev instanceof Number)
@@ -742,13 +753,20 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		else if (d != null)
 			return new GenericTypeInfo(this, parser);
-		return super.createStoredTypeInformation(parser);
+		return super.createTypeInfo(parser);
 	}
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
-	    	Object[] args = ArrayUtil.map(params(), Object.class, Conf.EVALUATE_EXPR);
+	    	Object[] args = new Object[params().length];
+	    	for (int i = 0; i < args.length; i++)
+				try {
+					args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
+				} catch (ControlFlowException e) {
+					args[i] = null;
+					e.printStackTrace();
+				}
 	    	return ((Function)declaration).invoke(args);
 	    }
 	    else
@@ -766,7 +784,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			for (IType type : ((Variable)declaration).type())
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
-		return as(declaration(), Function.class);
+		return function();
 	}
 	
 	public final Function function(DeclarationObtainmentContext context) {
@@ -774,6 +792,18 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	public final Function function() {
-		return (Function)declaration;
+		return as(declaration, Function.class);
 	}
+
+	@Override
+	public IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context) {
+		if (declaration instanceof Function) {
+			Function f = (Function)declaration;
+			int ndx = f.parameters().indexOf(parameter);
+			if (ndx != -1 && ndx < params.length)
+				return params[ndx].type(context);
+		}
+		return PrimitiveType.UNKNOWN;
+	}
+	
 }

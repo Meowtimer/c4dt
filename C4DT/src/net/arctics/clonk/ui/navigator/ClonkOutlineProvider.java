@@ -14,8 +14,8 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.util.UI;
 
@@ -118,7 +118,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			Function func = ((Function)element);
 			result.append(func.longParameterString(true, false));
 			IType retType = func.returnType();
-			if (retType != null && retType != PrimitiveType.UNKNOWN && retType != PrimitiveType.ANY) {
+			if (retType != null && retType != PrimitiveType.UNKNOWN) {
 				if (context != null) {
 					context.setCurrentFunction(func);
 					retType = TypeUtil.resolve(retType, context, as(root, Script.class));
