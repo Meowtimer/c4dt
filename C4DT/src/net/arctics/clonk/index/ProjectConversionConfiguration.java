@@ -59,6 +59,11 @@ public class ProjectConversionConfiguration {
 	
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
 	private final Map<String, String> idMap = new HashMap<String, String>();
+	private final Engine sourceEngine;
+	
+	public ProjectConversionConfiguration(Engine sourceEngine) {
+		this.sourceEngine = sourceEngine;
+	}
 	
 	private void addTransformationFromStatement(Statement statement) {
 		try {
@@ -97,7 +102,7 @@ public class ProjectConversionConfiguration {
 			String text = StreamUtil.stringFromURL(transformationsFile);
 			if (text == null)
 				return;
-			Script script = new TempScript(text);
+			Script script = new TempScript(text, sourceEngine);
 			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
 				@Override
 				protected Placeholder makePlaceholder(String placeholder) throws ParsingException {

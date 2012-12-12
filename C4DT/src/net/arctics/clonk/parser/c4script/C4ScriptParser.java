@@ -3178,9 +3178,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
-	public static Statement parseStandaloneStatement(final String statementText, Function context, IASTVisitor listener, final IMarkerListener markerListener) throws ParsingException {
+	public static Statement parseStandaloneStatement(
+		final String statementText,
+		Function context,
+		IASTVisitor listener,
+		final IMarkerListener markerListener,
+		Engine engine
+	) throws ParsingException {
 		if (context == null) {
-			Script tempScript = new TempScript(statementText);
+			Script tempScript = new TempScript(statementText, engine);
 			context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 			context.setBodyLocation(new SourceLocation(0, statementText.length()));
@@ -3194,13 +3200,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
 	}
 	
-	public static Statement parse(final String statementText) throws ParsingException {
-		return parseStandaloneStatement(statementText, null, null, null);
+	public static Statement parse(final String statementText, Engine engine) throws ParsingException {
+		return parseStandaloneStatement(statementText, null, null, null, engine);
 	}
 	
-	public static ExprElm matchingExpr(final String statementText) {
+	public static ExprElm matchingExpr(final String statementText, Engine engine) {
 		try {
-			return parse(statementText).matchingExpr();
+			return parse(statementText, engine).matchingExpr();
 		} catch (ParsingException e) {
 			e.printStackTrace();
 			return null;

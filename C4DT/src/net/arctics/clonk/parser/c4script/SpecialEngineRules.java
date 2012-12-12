@@ -546,7 +546,7 @@ public abstract class SpecialEngineRules {
 								return Decision.PassThrough;
 							}
 						}
-					});
+					}, parser.engine());
 				} catch (ParsingException e) {
 					// that on slipped through - pretend nothing happened
 				}
@@ -558,7 +558,7 @@ public abstract class SpecialEngineRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null);
+					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null, parser.engine());
 				} catch (ParsingException e) {}
 				if (locator.expressionAtRegion() != null) {
 					EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, parser);
