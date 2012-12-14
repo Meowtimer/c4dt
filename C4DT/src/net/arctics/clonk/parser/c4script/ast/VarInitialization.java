@@ -17,7 +17,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public final class VarInitialization extends ExprElm {
+public final class VarInitialization extends ExprElm implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -99,6 +99,7 @@ public final class VarInitialization extends ExprElm {
 		VarInitialization[] sisters = parentOfType(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 	}
+
 	@Override
 	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
@@ -106,4 +107,10 @@ public final class VarInitialization extends ExprElm {
 		else
 			return new EntityRegion(variable, this);
 	}
+
+	@Override
+	public String patternMatchingText() {
+		return name;
+	}
+	
 }

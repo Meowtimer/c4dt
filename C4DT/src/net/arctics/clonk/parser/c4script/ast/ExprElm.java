@@ -1191,7 +1191,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			private boolean consume(ExprElm consumer, ExprElm extra) {
 				if (consumer instanceof MatchingPlaceholder && consumer instanceof MatchingPlaceholder) {
 					MatchingPlaceholder mp = (MatchingPlaceholder)consumer;
-					if (mp.remainder()) {
+					if (mp.remainder() && mp.satisfiedBy(extra) && mp.compare(extra, this).isEqual()) {
 						Object existing = result.get(mp.entryName());
 						if (existing instanceof ExprElm)
 							existing = new ExprElm[] {(ExprElm)existing, extra};
