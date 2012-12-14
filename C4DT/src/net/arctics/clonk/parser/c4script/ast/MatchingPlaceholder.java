@@ -178,7 +178,7 @@ public class MatchingPlaceholder extends Placeholder {
 					substitution = Arrays.asList((ExprElm[])substitution);
 				substitution = transformation.invoke(substitution);
 				if (substitution instanceof List)
-					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List) substitution).size()]);
+					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List<ExprElm>) substitution).size()]);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

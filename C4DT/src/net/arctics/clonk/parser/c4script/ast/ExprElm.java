@@ -579,6 +579,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				break;
 			case TraverseSubElements: case Cancel:
 				result = TraversalContinuation.Cancel;
+				break;
 			default:
 				break;
 			}

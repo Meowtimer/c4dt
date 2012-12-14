@@ -5,6 +5,7 @@ import net.arctics.clonk.util.KeyValuePair;
 
 public class IDArray extends KeyValueArrayEntry<ID, Integer> {
 	public IDArray() { super(); }
+	@SafeVarargs
 	public IDArray(KeyValuePair<ID, Integer>... values) {
 		for (KeyValuePair<ID, Integer> v : values)
 			add(v);
