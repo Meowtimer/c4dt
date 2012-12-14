@@ -295,7 +295,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				Collections.sort(annotations);
 				for (int i = annotations.size()-1; i >= 0; i--) {
 					TypeAnnotation annot = annotations.get(i);
-					if (annot.type() == null && annot.typeable() != null) {
+					if (annot.type() == null && annot.target() != null) {
 						/*System.out.println(String.format(
 							"typeable: %s type: %s enviro: %s",
 							annot.typeable().name(),
@@ -304,7 +304,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						));*/
 						builder.delete(annot.start(), annot.end());
 						builder.insert(annot.start(), " ");
-						IType type = annot.typeable().type();
+						IType type = annot.target().type();
 						if (type == PrimitiveType.UNKNOWN)
 							type = PrimitiveType.ANY;
 						builder.insert(annot.start(), type.typeName(false));

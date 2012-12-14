@@ -38,7 +38,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this(Arrays.asList(varInitializations), scope);
 	}
 	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, Scope scope) {
-		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
+		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null)), scope);
 	}
 	@Override
 	public String keyword() {

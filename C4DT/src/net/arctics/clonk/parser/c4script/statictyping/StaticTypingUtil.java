@@ -128,7 +128,7 @@ public class StaticTypingUtil {
 	public static void MigrateToStaticTyping(Object context, String projectName) {
 		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 		if (nature != null)
-			if (nature.settings().staticTyping == StaticTyping.Off) {
+			if (nature.settings().staticTyping != StaticTyping.On) {
 				nature.settings().staticTyping = StaticTyping.Migrating;
 				nature.saveSettings();
 				new WorkspaceJob(String.format("Migrating '%s' to static typing", projectName)) {

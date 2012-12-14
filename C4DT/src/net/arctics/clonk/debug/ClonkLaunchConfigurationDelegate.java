@@ -15,7 +15,6 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
 
@@ -213,7 +212,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		
 		File tempFolder = null;
 		try {
-			if (nature.settings().staticTyping != StaticTyping.Off) {
+			if (nature.settings().staticTyping.allowsNonParameterAnnotations()) {
 				tempFolder = Files.createTempDirectory("c4dt").toFile();
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tempFolder, true);
 			}

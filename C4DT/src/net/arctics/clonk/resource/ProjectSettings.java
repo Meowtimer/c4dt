@@ -19,12 +19,23 @@ public class ProjectSettings extends SettingsBase {
 
 	/** Static Typing mode */
 	public enum StaticTyping {
-		/** No Static Typing */
+		/** Static typing completely disabled. No parameter annotations allowed. */
 		Off,
-		/** No Static Typing yet, but migrating */
+		/** Allow type annotations for parameters, as the engine does. */
+		Engine,
+		/** No Static Typing yet, but migrating. Allow type annotations but do not require them. */
 		Migrating,
 		/** Statically typed */
-		On
+		On;
+
+		public boolean allowsNonParameterAnnotations() {
+			switch (this) {
+			case Migrating: case On:
+				return true;
+			default:
+				return false;
+			}
+		}
 	}
 	
 	/** Name of engine to use for this project */
@@ -35,13 +46,12 @@ public class ProjectSettings extends SettingsBase {
 	public String disabledErrors;
 	/** Static typing mode for this project. */
 	@IniField
-	public StaticTyping staticTyping = StaticTyping.Off;
+	public StaticTyping staticTyping = StaticTyping.Engine;
 	
 	private Engine cachedEngine;
 	private HashSet<ParserErrorCode> disabledErrorsSet;
 	
-	public ProjectSettings() {
-	}
+	public ProjectSettings() {}
 	
 	public Engine engine() {
 		if (cachedEngine == null) {

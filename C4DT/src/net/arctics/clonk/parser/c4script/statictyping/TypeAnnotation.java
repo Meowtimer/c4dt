@@ -3,14 +3,24 @@ package net.arctics.clonk.parser.c4script.statictyping;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
+import net.arctics.clonk.parser.c4script.Script;
 
+/**
+ * A type annotation in a {@link Script}.
+ * @author madeen
+ *
+ */
 public final class TypeAnnotation extends SourceLocation {
 	private static final long serialVersionUID = 1L;
 	private ITypeable typeable;
 	private IType type;
-	public ITypeable typeable() {return typeable;}
-	public void setTypeable(ITypeable typeable) {this.typeable = typeable;}
+	/** The typeable element this annotation is targeted at */
+	public ITypeable target() {return typeable;}
+	/** Set the target of this annotation. */
+	public void setTarget(ITypeable typeable) {this.typeable = typeable;}
+	/** The type this annotation refers to. */
 	public IType type() {return type;}
+	/** Set the type of this annotation. */
 	public void setType(IType type) {this.type = type;}
 	public TypeAnnotation(int start, int end) {super(start, end);}
 }
