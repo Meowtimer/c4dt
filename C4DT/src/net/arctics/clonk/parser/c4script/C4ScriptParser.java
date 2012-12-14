@@ -1915,31 +1915,42 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	private void parseRestOfTuple(List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
 		boolean expectingComma = false;
-		while (!reachedEOF()) {
+		Loop: while (!reachedEOF()) {
 			eatWhitespace();
-			int c = read();
-			if (c == ')') {
+			switch (read()) {
+			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
 					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0, this));
-				break;
-			} else if (c == ',') {
+				break Loop;
+			case ',':
 				if (!expectingComma)
 					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0, this));
 				expectingComma = false;
-			} else {
+				break;
+			default:
 				unread();
 				if (listToAddElementsTo.size() > 100)
 					error(ParserErrorCode.InternalError, this.offset, this.offset, 0, Messages.InternalError_WayTooMuch);
 				//	break;
-				ExprElm arg = parseExpression(reportErrors);
+				ExprElm arg = parseTupleElement(reportErrors);
 				if (arg == null) {
 					error(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1, NO_THROW);
 					break;
-				} else
+				} else {
+					if (arg instanceof SimpleStatement) {
+						arg = ((SimpleStatement)arg).expression();
+						arg.setParent(null);
+					}
+					arg.setFinishedProperly(true);
 					listToAddElementsTo.add(arg);
+				}
 				expectingComma = true;
 			}
 		}
+	}
+	
+	protected ExprElm parseTupleElement(boolean reportErrors) throws ParsingException {
+		return parseExpression(reportErrors);
 	}
 	
 	private ExprElm parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
@@ -2302,7 +2313,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The parsed statement or null if parsing was unsuccessful.
 	 * @throws ParsingException
 	 */
-	private Statement parseStatement() throws ParsingException {
+	protected Statement parseStatement() throws ParsingException {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
 
@@ -3195,6 +3206,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			@Override
 			public int bodyOffset() {
 				return 0;
+			}
+			@Override
+			protected ExprElm parseTupleElement(boolean reportErrors) throws ParsingException {
+				Statement s = parseStatement();
+				if (s instanceof SimpleStatement)
+					return ((SimpleStatement)s).expression();
+				else
+					return s;
 			}
 		};
 		return tempParser.parseStandaloneStatement(statementText, context, listener);

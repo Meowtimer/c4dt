@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IStorage;
 
@@ -217,7 +218,22 @@ public class MatchingPlaceholder extends Placeholder {
 
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		super.doPrint(builder, depth);
+		builder.append("$");
+		builder.append(entryName);
+		List<String> attribs = new ArrayList<String>(4);
+		if (requiredClass != null)
+			attribs.add(requiredClass.getSimpleName());
+		if (stringRepresentationPattern != null)
+			attribs.add(stringRepresentationPattern.pattern());
+		if (property != null)
+			attribs.add('>'+property);
+		if (transformation != null)
+			attribs.add('!'+transformation.body().subElements()[0].subElements()[0].toString());
+		if (attribs.size() > 0) {
+			builder.append(":");
+			builder.append(StringUtil.blockString("", "", ",", attribs));
+			builder.append('$');
+		}
 		if (subElements != null)
 			CallDeclaration.printParmString(builder, subElements, depth);
 	}
