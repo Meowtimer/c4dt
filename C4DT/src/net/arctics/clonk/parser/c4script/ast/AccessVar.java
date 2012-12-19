@@ -297,8 +297,6 @@ public class AccessVar extends AccessDeclaration {
 				@Override
 				public void apply(boolean soft, C4ScriptParser parser) {
 					Variable v = (Variable)origin().declaration();
-					if (!(soft || v.scope() == Scope.PARAMETER))
-						return;
 					v.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 				}
 				@Override
