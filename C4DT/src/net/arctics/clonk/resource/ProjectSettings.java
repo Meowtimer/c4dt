@@ -21,18 +21,14 @@ public class ProjectSettings extends SettingsBase {
 	public enum Typing {
 		/** Static typing completely disabled. No parameter annotations allowed. */
 		Dynamic,
-		/** Migrating to dynamic typing where no type annotations exist at all. **/
-		MigratingToDynamic,
 		/** Allow type annotations for parameters, as the engine does. */
 		ParametersOptionallyTyped,
-		/** No Static Typing yet, but migrating. Allow type annotations but do not require them. */
-		MigratingToStatic,
 		/** Statically typed */
 		Static;
 
 		public boolean allowsNonParameterAnnotations() {
 			switch (this) {
-			case MigratingToStatic: case Static:
+			case Static:
 				return true;
 			default:
 				return false;
@@ -49,6 +45,9 @@ public class ProjectSettings extends SettingsBase {
 	/** Typing mode for this project. */
 	@IniField
 	public Typing typing = Typing.ParametersOptionallyTyped;
+	/** Typing this project is in the process of being migrated to */
+	@IniField(category="Migration")
+	public Typing migrationTyping = null;
 	
 	private Engine cachedEngine;
 	private HashSet<ParserErrorCode> disabledErrorsSet;
@@ -130,5 +129,10 @@ public class ProjectSettings extends SettingsBase {
 			if (best == null || entry.getValue() > best.getValue())
 				best = entry;
 		setEngineName(best.getKey());
+	}
+
+	public void concludeTypingMigration() {
+		typing = migrationTyping;
+		migrationTyping = null;
 	}
 }

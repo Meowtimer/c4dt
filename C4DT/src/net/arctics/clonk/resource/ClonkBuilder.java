@@ -30,7 +30,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -251,8 +250,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			final ProjectSettings settings = nature.settings();
 			if (buildKind == FULL_BUILD)
-				switch (settings.typing) {
-				case MigratingToStatic:
+				if (settings.migrationTyping != null) switch (settings.migrationTyping) {
+				case Static:
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -264,7 +263,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 					});
 					break;
-				case MigratingToDynamic:
+				case Dynamic:
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -296,7 +295,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						insertTypeAnnotations(parser);
 					monitor.worked(1);
 				}
-				settings.typing = Typing.Static;
+				settings.concludeTypingMigration();
 				nature.saveSettings();
 				return Status.OK_STATUS;
 			}
@@ -342,11 +341,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						removeTypeAnnotations(parser);
 					monitor.worked(1);
 				}
-				settings.typing = Typing.Dynamic;
+				settings.concludeTypingMigration();
 				nature.saveSettings();
 				return Status.OK_STATUS;
 			}
 			private void removeTypeAnnotations(final C4ScriptParser parser) {
+				if (parser.typeAnnotations() == null)
+					return;
 				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
@@ -355,7 +356,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						Collections.sort(annotations);
 						for (int i = annotations.size()-1; i >= 0; i--) {
 							TypeAnnotation annot = annotations.get(i);
-							builder.delete(annot.start(), annot.end());
+							int end = annot.end();
+							if (end < builder.length() && Character.isWhitespace(builder.charAt(end)))
+								end++;
+							builder.delete(annot.start(), end);
 						}
 						document.set(builder.toString());
 						return null;

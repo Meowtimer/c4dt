@@ -128,23 +128,11 @@ public class StaticTypingUtil {
 	@CommandFunction
 	public static void MigrateToTyping(Object context, String projectName, String typingMode) {
 		Typing typing = Typing.valueOf(typingMode);
-		Typing migratingMode;
-		switch (typing) {
-		case Dynamic:
-			migratingMode = Typing.MigratingToDynamic;
-			break;
-		case Static:
-			migratingMode = Typing.MigratingToStatic;
-			break;
-		default:
-			UI.message(String.format("Cannot migrate to '%s'", typing));
-			return;
-		}
 		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 		if (nature != null) {
 			ProjectSettings s = nature.settings();
 			if (s.typing != typing) {
-				s.typing = migratingMode;
+				s.migrationTyping = typing;
 				nature.saveSettings();
 				new WorkspaceJob(String.format("Migrating '%s' to static typing", projectName)) {
 					@Override
@@ -154,7 +142,7 @@ public class StaticTypingUtil {
 					}
 				}.schedule();
 			} else
-				UI.message(String.format("'%s' is already statically typed", projectName));
+				UI.message(String.format("'%s' is already in that typing mode", projectName));
 		}
 	}
 	

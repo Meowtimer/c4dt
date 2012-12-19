@@ -176,7 +176,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Whether to parse the script with static typing rules.
 	 */
-	protected Typing staticTyping;
+	protected Typing typing;
+	protected Typing migrationTyping;
 	/**
 	 * Whether the script contains an #appendto
 	 */
@@ -208,7 +209,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public boolean allErrorsDisabled() {return allErrorsDisabled;}
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
 	public ClonkBuilder builder() {return builder;}
-	public final Typing staticTyping() { return staticTyping; }
+	public final Typing staticTyping() { return typing; }
 	
 	/**
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
@@ -419,13 +420,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			engine = script.engine();
 			specialEngineRules = engine != null ? script.engine().specialRules() : null;
 			cachedEngineDeclarations = engine.cachedDeclarations();
-			staticTyping = Typing.ParametersOptionallyTyped;
+			typing = Typing.ParametersOptionallyTyped;
+			migrationTyping = null;
 			if (script.index() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) script.index();
 				ClonkProjectNature nature = projIndex.nature();
 				if (nature != null) {
 					errorsDisabledByProjectSettings = nature.settings().getDisabledErrorsSet();
-					staticTyping = nature.settings().typing;
+					typing = nature.settings().typing;
+					migrationTyping = nature.settings().migrationTyping;
 				}
 			}
 			strictLevel = script.strictLevel();
@@ -509,7 +512,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseDeclarations() {
 		strictLevel = script.strictLevel();
-		if (staticTyping.allowsNonParameterAnnotations())
+		if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
 			typeAnnotations = new ArrayList<TypeAnnotation>();
 		this.seek(0);
 		enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
@@ -807,9 +810,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						int bt = parser.offset;
 						returnType = parser.parseTypeAnnotation(true, true);
 						typeAnnotation = parser.parsedTypeAnnotation;
-						if (parser.staticTyping == Typing.Static && returnType == null)
+						if (parser.typing == Typing.Static && returnType == null)
 							returnType = PrimitiveType.INT;
-						else if (parser.staticTyping == Typing.ParametersOptionallyTyped && !parser.isEngine && returnType != PrimitiveType.REFERENCE)
+						else if (parser.typing == Typing.ParametersOptionallyTyped && !parser.isEngine && returnType != PrimitiveType.REFERENCE)
 							parser.seek(bt);
 						parser.eatWhitespace();
 						nameStart = parser.offset;
@@ -888,26 +891,32 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				int bt = this.offset;
 				int typeExpectedAt = -1;
 				// when parsing an engine script from (res/engines/...), allow specifying the type directly
-				if (isEngine || staticTyping.allowsNonParameterAnnotations()) {
+				if (isEngine || typing.allowsNonParameterAnnotations()) {
 					staticType = parseTypeAnnotation(true, false);
 					if (staticType != null) {
 						typeAnnotation = parsedTypeAnnotation;
 						eatWhitespace();
 					}
-					else if (staticTyping == Typing.Static) {
+					else if (typing == Typing.Static) {
 						typeExpectedAt = this.offset;
 						staticType = PrimitiveType.INT;
 					}
 				}
-				else
+				else {
+					if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
+						typeAnnotation = new TypeAnnotation(this.offset, this.offset);
+						if (typeAnnotations != null)
+							typeAnnotations.add(typeAnnotation);
+					}
 					staticType = null;
+				}
 
 				int s = this.offset;
 				String varName = readIdent();
 				if (s > bt && (
 					varName.length() == 0 ||
 					// ugh - for (var object in ...) workaround
-					(staticTyping == Typing.MigratingToStatic && varName.equals(Keywords.In))
+					(migrationTyping == Typing.Static && varName.equals(Keywords.In))
 				)) {
 					seek(s = bt);
 					typeAnnotation = null;
@@ -1051,10 +1060,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
 			PrimitiveType pt;
-			t = pt = PrimitiveType.fromString(str, isEngine||staticTyping==Typing.Static);
+			t = pt = PrimitiveType.fromString(str, isEngine||typing==Typing.Static);
 			if (pt != null && !script.engine().supportsPrimitiveType(pt))
 				t = null;
-			else if (t == null && staticTyping.allowsNonParameterAnnotations())
+			else if (t == null && typing.allowsNonParameterAnnotations())
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
 			if (t != null) {
@@ -1065,8 +1074,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					t = ReferenceType.make(t);
 					break;
 				case '[':
-					switch (staticTyping) {
-					case MigratingToStatic: case Static:
+					if (typing == Typing.Static || migrationTyping == Typing.Static)
 						if (t == PrimitiveType.ARRAY) {
 							eatWhitespace();
 							IType elementType = parseTypeAnnotation(false, true);
@@ -1075,10 +1083,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								t = new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
 							break RefinementIndicator;
 						}
-						break;
-					default:
-						break;
-					}
+					break;
 					//$FALL-THROUGH$
 				default:
 					seek(p);
@@ -1089,7 +1094,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (read() != '|') {
 						seek(s);
 						break;
-					}
+					} else
+						eatWhitespace();
 					IType option = parseTypeAnnotation(false, true);
 					if (option != null)
 						t = TypeUnification.unify(t, option);
@@ -1106,21 +1112,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		}
 		if (t == null) {
-			switch (staticTyping) {
-			case Static:
+			if (typing == Typing.Static)
 				if (required) {
 					error(ParserErrorCode.InvalidType, start, offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
 					return null;
 				}
-				break;
-			case MigratingToStatic:
+			if (migrationTyping == Typing.Static)
 				if (topLevel && typeAnnotations != null)
 					// placeholder annotation
 					typeAnnotations.add(parsedTypeAnnotation = new TypeAnnotation(backtrack, backtrack));
-				break;
-			default:
-				break;
-			}
 			this.seek(backtrack);
 		}
 		return t;
@@ -1617,7 +1617,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (!errorEnabled(code))
 			return;
 		// C4ScriptST: Incompatible type warnings always errors
-		if (staticTyping == Typing.Static && code == ParserErrorCode.IncompatibleTypes)
+		if (typing == Typing.Static && code == ParserErrorCode.IncompatibleTypes)
 			severity = IMarker.SEVERITY_ERROR; 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			int offs = bodyOffset();
@@ -3038,11 +3038,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private Variable parseParameter(Function function) throws ParsingException {
 		
-		if (isEngine && parseEllipsis())
-			return addVarParmsParm(function);
-		
 		int backtrack = this.offset;
 		eatWhitespace();
+		if (isEngine && parseEllipsis()) {
+			seek(backtrack);
+			return addVarParmsParm(function);
+		}
+		if (peek() == ')') {
+			seek(backtrack);
+			return null;
+		}
+		
 		int typeStart = this.offset;
 		IType type = parseTypeAnnotation(true, false);
 		int typeEnd = this.offset;
@@ -3057,7 +3063,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (parmName.length() == 0)
 				return null;
 		}
-		switch (staticTyping) {
+		switch (typing) {
 		case Static:
 			if (type == null)
 				typeRequiredAt(typeStart);
