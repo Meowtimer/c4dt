@@ -104,8 +104,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		return buildTask(text, getProject());
 	}
 
+	private boolean allowFullBuild = true;
+	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
+		allowFullBuild = true;
 		System.out.println(buildTask(Messages.ClonkBuilder_CleaningProject));
 		// clean up this project
 		if (monitor != null)
@@ -127,13 +130,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	@Profiled
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+		IProject proj = getProject();
+		if (kind == FULL_BUILD) {
+			if (!allowFullBuild)
+				return new IProject[] { proj };
+			allowFullBuild = false;
+		}
+		
 		this.index = ClonkProjectNature.get(getProject()).index();
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
+		
 		//clearUIOfReferencesBeforeBuild();
-		IProject proj = getProject();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
