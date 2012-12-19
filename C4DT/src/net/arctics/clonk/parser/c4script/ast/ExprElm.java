@@ -537,7 +537,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public static boolean canBeConvertedTo(IType type, IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return type == PrimitiveType.INT && otherType == PrimitiveType.ID;
+		return type == PrimitiveType.INT && otherType == PrimitiveType.ID && context.engine().settings().integersConvertibleToIDs;
 	}
 
 	/**
