@@ -17,20 +17,22 @@ import org.eclipse.core.resources.IProject;
 
 public class ProjectSettings extends SettingsBase {
 
-	/** Static Typing mode */
-	public enum StaticTyping {
+	/** Typing mode */
+	public enum Typing {
 		/** Static typing completely disabled. No parameter annotations allowed. */
-		Off,
+		Dynamic,
+		/** Migrating to dynamic typing where no type annotations exist at all. **/
+		MigratingToDynamic,
 		/** Allow type annotations for parameters, as the engine does. */
-		Engine,
+		ParametersOptionallyTyped,
 		/** No Static Typing yet, but migrating. Allow type annotations but do not require them. */
-		Migrating,
+		MigratingToStatic,
 		/** Statically typed */
-		On;
+		Static;
 
 		public boolean allowsNonParameterAnnotations() {
 			switch (this) {
-			case Migrating: case On:
+			case MigratingToStatic: case Static:
 				return true;
 			default:
 				return false;
@@ -44,9 +46,9 @@ public class ProjectSettings extends SettingsBase {
 	/** String containing list of {@link ParserErrorCode}s that will be disabled when building the project */
 	@IniField
 	public String disabledErrors;
-	/** Static typing mode for this project. */
+	/** Typing mode for this project. */
 	@IniField
-	public StaticTyping staticTyping = StaticTyping.Engine;
+	public Typing typing = Typing.ParametersOptionallyTyped;
 	
 	private Engine cachedEngine;
 	private HashSet<ParserErrorCode> disabledErrorsSet;

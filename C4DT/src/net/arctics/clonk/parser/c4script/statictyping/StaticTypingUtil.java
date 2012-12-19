@@ -15,7 +15,8 @@ import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
+import net.arctics.clonk.resource.ProjectSettings;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
@@ -125,11 +126,25 @@ public class StaticTypingUtil {
 	}
 	
 	@CommandFunction
-	public static void MigrateToStaticTyping(Object context, String projectName) {
+	public static void MigrateToTyping(Object context, String projectName, String typingMode) {
+		Typing typing = Typing.valueOf(typingMode);
+		Typing migratingMode;
+		switch (typing) {
+		case Dynamic:
+			migratingMode = Typing.MigratingToDynamic;
+			break;
+		case Static:
+			migratingMode = Typing.MigratingToStatic;
+			break;
+		default:
+			UI.message(String.format("Cannot migrate to '%s'", typing));
+			return;
+		}
 		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
-		if (nature != null)
-			if (nature.settings().staticTyping != StaticTyping.On) {
-				nature.settings().staticTyping = StaticTyping.Migrating;
+		if (nature != null) {
+			ProjectSettings s = nature.settings();
+			if (s.typing != typing) {
+				s.typing = migratingMode;
 				nature.saveSettings();
 				new WorkspaceJob(String.format("Migrating '%s' to static typing", projectName)) {
 					@Override
@@ -140,11 +155,20 @@ public class StaticTypingUtil {
 				}.schedule();
 			} else
 				UI.message(String.format("'%s' is already statically typed", projectName));
+		}
 	}
 	
 	@CommandFunction
 	public static void NoSTMirror(Object context, String project, String destinationFolder) {
 		IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
 		mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
+	}
+	
+	@CommandFunction
+	public static  void SetTyping(Object context, String projectName, String typingMode) {
+		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+		Typing typing = Typing.valueOf(typingMode);
+		nature.settings().typing = typing;
+		nature.saveSettings();
 	}
 }

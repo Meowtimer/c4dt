@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 
 public class ReturnStatement extends KeywordStatement {
 
@@ -116,7 +116,7 @@ public class ReturnStatement extends KeywordStatement {
 		if (activeFunc == null)
 			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
-			if (parser.staticTyping() == StaticTyping.On && currentFunction.staticallyTyped()) {
+			if (parser.staticTyping() == Typing.Static && currentFunction.staticallyTyped()) {
 				if (!returnExpr.validForType(currentFunction.returnType(), parser))
 					parser.error(ParserErrorCode.IncompatibleTypes, returnExpr, C4ScriptParser.NO_THROW,
 						currentFunction.returnType().typeName(true), returnExpr.type(parser));

@@ -212,7 +212,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		
 		File tempFolder = null;
 		try {
-			if (nature.settings().staticTyping.allowsNonParameterAnnotations()) {
+			if (nature.settings().typing.allowsNonParameterAnnotations()) {
 				tempFolder = Files.createTempDirectory("c4dt").toFile();
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tempFolder, true);
 			}

@@ -30,7 +30,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -250,18 +250,35 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			new SaveScriptsJob(proj, scripts).schedule();
 			
 			final ProjectSettings settings = nature.settings();
-			if (settings.staticTyping == StaticTyping.Migrating && buildKind == FULL_BUILD)
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-							String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
-							"Migration to Static Typing"
-						))
-							migrateToStaticTyping(parsers, settings);
-					}
-				});
-			
+			if (buildKind == FULL_BUILD)
+				switch (settings.typing) {
+				case MigratingToStatic:
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+								String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
+								"Migration to Static Typing"
+							))
+								migrateToStaticTyping(parsers, settings);
+						}
+					});
+					break;
+				case MigratingToDynamic:
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+								String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
+								"Migration to Dynamic Typing"
+							))
+								migrateToDynamicTyping(parsers, settings);
+						}
+					});
+					break;
+				default:
+					break;
+				}
 			return scripts;
 		} finally {
 			monitor.done();
@@ -279,43 +296,75 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						insertTypeAnnotations(parser);
 					monitor.worked(1);
 				}
-				settings.staticTyping = StaticTyping.On;
+				settings.typing = Typing.Static;
 				nature.saveSettings();
 				return Status.OK_STATUS;
+			}
+			private void insertTypeAnnotations(final C4ScriptParser parser) {
+				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
+					@Override
+					public Object run(IDocument document) {
+						StringBuilder builder = new StringBuilder(document.get());
+						List<TypeAnnotation> annotations = parser.typeAnnotations();
+						Collections.sort(annotations);
+						for (int i = annotations.size()-1; i >= 0; i--) {
+							TypeAnnotation annot = annotations.get(i);
+							if (annot.type() == null && annot.target() != null) {
+								/*System.out.println(String.format(
+									"typeable: %s type: %s enviro: %s",
+									annot.typeable().name(),
+									annot.typeable().type().typeName(false),
+									builder.substring(annot.start()-7, annot.end()+7)
+								));*/
+								builder.delete(annot.start(), annot.end());
+								builder.insert(annot.start(), " ");
+								IType type = annot.target().type();
+								if (type == PrimitiveType.UNKNOWN)
+									type = PrimitiveType.ANY;
+								builder.insert(annot.start(), type.typeName(false));
+							}
+						}
+						document.set(builder.toString());
+						return null;
+					}
+				});
+			}
+		}.schedule();
+	}
+	
+	private void migrateToDynamicTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
+		new Job("Dynamic Typing Migration") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				monitor.beginTask("Dynamic Typing Migration", parsers.length);
+				for (C4ScriptParser parser : parsers) {
+					if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
+						removeTypeAnnotations(parser);
+					monitor.worked(1);
+				}
+				settings.typing = Typing.Dynamic;
+				nature.saveSettings();
+				return Status.OK_STATUS;
+			}
+			private void removeTypeAnnotations(final C4ScriptParser parser) {
+				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
+					@Override
+					public Object run(IDocument document) {
+						StringBuilder builder = new StringBuilder(document.get());
+						List<TypeAnnotation> annotations = parser.typeAnnotations();
+						Collections.sort(annotations);
+						for (int i = annotations.size()-1; i >= 0; i--) {
+							TypeAnnotation annot = annotations.get(i);
+							builder.delete(annot.start(), annot.end());
+						}
+						document.set(builder.toString());
+						return null;
+					}
+				});
 			}
 		}.schedule();
 	}
 
-	private void insertTypeAnnotations(final C4ScriptParser parser) {
-		Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
-			@Override
-			public Object run(IDocument document) {
-				StringBuilder builder = new StringBuilder(document.get());
-				List<TypeAnnotation> annotations = parser.typeAnnotations();
-				Collections.sort(annotations);
-				for (int i = annotations.size()-1; i >= 0; i--) {
-					TypeAnnotation annot = annotations.get(i);
-					if (annot.type() == null && annot.target() != null) {
-						/*System.out.println(String.format(
-							"typeable: %s type: %s enviro: %s",
-							annot.typeable().name(),
-							annot.typeable().type().typeName(false),
-							builder.substring(annot.start()-7, annot.end()+7)
-						));*/
-						builder.delete(annot.start(), annot.end());
-						builder.insert(annot.start(), " ");
-						IType type = annot.target().type();
-						if (type == PrimitiveType.UNKNOWN)
-							type = PrimitiveType.ANY;
-						builder.insert(annot.start(), type.typeName(false));
-					}
-				}
-				document.set(builder.toString());
-				return null;
-			}
-		});
-	}
-	
 	@Profiled
 	private void phaseOne(Index index) {
 		// parse declarations

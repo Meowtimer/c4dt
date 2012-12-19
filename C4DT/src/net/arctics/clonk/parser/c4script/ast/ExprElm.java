@@ -35,7 +35,7 @@ import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.resource.ProjectSettings.StaticTyping;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
@@ -679,7 +679,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
-		if (context.staticTyping() == StaticTyping.On) {
+		if (context.staticTyping() == Typing.Static) {
 			IType left = this.type(context);
 			IType right = rightSide.type(context); 
 			if (!left.canBeAssignedFrom(right))
