@@ -61,6 +61,13 @@ public class MatchingPlaceholder extends Placeholder {
 		public static Object concat(Object context, Object a, Object b) {
 			return a.toString()+b.toString();
 		}
+		@CommandFunction
+		public static Object substring(Object context, String str, Long index, Long length) {
+			if (length != null)
+				return str.substring(index.intValue(), length.intValue());
+			else
+				return str.substring(index.intValue());
+		}
 	}
 	
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
