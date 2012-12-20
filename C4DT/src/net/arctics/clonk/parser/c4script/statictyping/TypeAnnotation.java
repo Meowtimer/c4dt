@@ -17,7 +17,12 @@ public final class TypeAnnotation extends SourceLocation {
 	/** The typeable element this annotation is targeted at */
 	public ITypeable target() {return typeable;}
 	/** Set the target of this annotation. */
-	public void setTarget(ITypeable typeable) {this.typeable = typeable;}
+	public void setTarget(ITypeable typeable) {
+		if (this.typeable != null && this.typeable != typeable)
+			throw new IllegalArgumentException();
+		else
+			this.typeable = typeable;
+	}
 	/** The type this annotation refers to. */
 	public IType type() {return type;}
 	/** Set the type of this annotation. */

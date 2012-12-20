@@ -72,6 +72,10 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		this.isType = isType;
 		this.isObject = isObject;
 	}
+	
+	public static ConstrainedProplist object(IHasIncludes obligatoryInclude, ConstraintKind constraintKind) {
+		return new ConstrainedProplist(obligatoryInclude, constraintKind, false, true);
+	}
 
 	@Override
 	public synchronized Iterator<IType> iterator() {
@@ -106,7 +110,10 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		if (constraint == null)
 			return PrimitiveType.OBJECT.typeName(special);
 		if (!special)
-			return (constraint instanceof Definition ? constraint : PrimitiveType.OBJECT).typeName(false);
+			if (isType)
+				return PrimitiveType.ID.typeName(false);
+			else
+				return (constraint instanceof Definition ? constraint : PrimitiveType.OBJECT).typeName(false);
 		String formatString;
 		switch (constraintKind) {
 		case CallerType:
@@ -146,7 +153,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 
 	@Override
 	public IType simpleType() {
-		return PrimitiveType.OBJECT;
+		return isType ? PrimitiveType.ID : PrimitiveType.OBJECT;
 	}
 	
 	@Override

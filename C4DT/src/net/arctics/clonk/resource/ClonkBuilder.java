@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -143,7 +144,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
-		//clearUIOfReferencesBeforeBuild();
+		clearUIOfReferencesBeforeBuild();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
@@ -273,7 +274,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 					});
 					break;
-				case Dynamic:
+				case Dynamic: case ParametersOptionallyTyped:
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -298,13 +299,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void migrateToStaticTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
 		new Job("Static Typing Migration") {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
+			protected IStatus run(final IProgressMonitor monitor) {
 				monitor.beginTask("Static Typing Migration", parsers.length);
-				for (C4ScriptParser parser : parsers) {
-					if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
-						insertTypeAnnotations(parser);
-					monitor.worked(1);
-				}
+				runWithoutAutoBuild(new Runnable() { @Override public void run() {
+					for (C4ScriptParser parser : parsers) {
+						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
+							insertTypeAnnotations(parser);
+						monitor.worked(1);
+					}
+				}});
 				settings.concludeTypingMigration();
 				nature.saveSettings();
 				return Status.OK_STATUS;
@@ -344,13 +347,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void migrateToDynamicTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
 		new Job("Dynamic Typing Migration") {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
+			protected IStatus run(final IProgressMonitor monitor) {
 				monitor.beginTask("Dynamic Typing Migration", parsers.length);
-				for (C4ScriptParser parser : parsers) {
-					if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
-						removeTypeAnnotations(parser);
-					monitor.worked(1);
-				}
+				runWithoutAutoBuild(new Runnable() { @Override public void run() {
+					for (C4ScriptParser parser : parsers) {
+						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
+							removeTypeAnnotations(parser);
+						monitor.worked(1);
+					}
+				}});
 				settings.concludeTypingMigration();
 				nature.saveSettings();
 				return Status.OK_STATUS;

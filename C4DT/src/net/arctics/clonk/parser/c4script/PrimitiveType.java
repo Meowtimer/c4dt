@@ -92,7 +92,10 @@ public enum PrimitiveType implements IType {
 	
 	@Override
 	public String typeName(boolean special) {
-		return scriptName;
+		if (!special && this == UNKNOWN)
+			return ANY.typeName(false);
+		else
+			return scriptName;
 	}
 
 	private static final Pattern NILLABLE_PATTERN = Pattern.compile("Nillable\\<(.*?)\\>");

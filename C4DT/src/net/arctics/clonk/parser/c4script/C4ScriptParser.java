@@ -270,7 +270,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
-		if (typeEnvironments == null)
+		if (typeEnvironments == null || typing == Typing.Static)
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
@@ -886,8 +886,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			int rewind = this.offset;
 			do {
 				eatWhitespace();
+				parsedTypeAnnotation = null;
 				IType staticType;
-				TypeAnnotation typeAnnotation = null;
+				TypeAnnotation typeAnnotation;
 				int bt = this.offset;
 				int typeExpectedAt = -1;
 				// when parsing an engine script from (res/engines/...), allow specifying the type directly
@@ -898,16 +899,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						eatWhitespace();
 					}
 					else if (typing == Typing.Static) {
+						typeAnnotation = null;
 						typeExpectedAt = this.offset;
 						staticType = PrimitiveType.INT;
-					}
+					} else
+						typeAnnotation = null;
 				}
 				else {
-					if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
-						typeAnnotation = new TypeAnnotation(this.offset, this.offset);
-						if (typeAnnotations != null)
-							typeAnnotations.add(typeAnnotation);
-					}
+					typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
 					staticType = null;
 				}
 
@@ -995,6 +994,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		
 		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
+	}
+	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
+		TypeAnnotation typeAnnotation;
+		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
+			typeAnnotation = new TypeAnnotation(offset, offset);
+			if (typeAnnotations != null)
+				typeAnnotations.add(typeAnnotation);
+		} else
+			typeAnnotation = null;
+		return typeAnnotation;
 	}
 	
 	private void typeRequiredAt(int typeExpectedAt) throws ParsingException {
@@ -3057,9 +3066,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			type = null;
 			seek(nameStart = backtrack);
 			eatWhitespace();
+			int ta = this.offset;
 			parmName = readIdent();
 			if (parmName.length() == 0)
 				return null;
+			parsedTypeAnnotation = placeholderTypeAnnotationIfMigrating(ta);
 		}
 		switch (typing) {
 		case Static:

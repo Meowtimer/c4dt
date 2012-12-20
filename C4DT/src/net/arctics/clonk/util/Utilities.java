@@ -17,6 +17,9 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
@@ -385,6 +388,32 @@ public abstract class Utilities {
 				return token;
 			}
 		};
+	}
+	
+	private static Object autoBuildDisablingLock = new Object();
+	
+	public static void runWithoutAutoBuild(Runnable runnable) {
+		synchronized (autoBuildDisablingLock) {
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceDescription workspaceDescription = workspace.getDescription();
+			boolean autoBuilding = workspaceDescription.isAutoBuilding();
+			workspaceDescription.setAutoBuilding(false);
+			try {
+				workspace.setDescription(workspaceDescription);
+			} catch (CoreException e2) {
+				e2.printStackTrace();
+			}
+			try {
+				runnable.run();
+			} finally {
+				workspaceDescription.setAutoBuilding(autoBuilding);
+				try {
+					workspace.setDescription(workspaceDescription);
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 }

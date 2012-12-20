@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
+import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -22,9 +24,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceDescription;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -94,17 +93,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										e.printStackTrace();
 									}
 							}
-							// temporarily disable incremental building to minimize false errors
-							IWorkspace workspace = ResourcesPlugin.getWorkspace();
-							IWorkspaceDescription workspaceDescription = workspace.getDescription();
-							boolean autoBuilding = workspaceDescription.isAutoBuilding();
-							workspaceDescription.setAutoBuilding(false);
-							try {
-								workspace.setDescription(workspaceDescription);
-							} catch (CoreException e2) {
-								e2.printStackTrace();
-							}
-							try {
+							runWithoutAutoBuild(new Runnable() { @Override public void run() {
 								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 								for (IContainer container : selectedContainers)
 									try {
@@ -156,14 +145,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										e.printStackTrace();
 									}
 								monitor.done();
-							} finally {
-								workspaceDescription.setAutoBuilding(autoBuilding);
-								try {
-									workspace.setDescription(workspaceDescription);
-								} catch (CoreException e) {
-									e.printStackTrace();
-								}
-							}
+							}});
 						}
 					});
 				} catch (InvocationTargetException e) {

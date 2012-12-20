@@ -1,9 +1,12 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -12,6 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.StringUtil;
 
 public final class TypeChoice implements IType, IResolvableType {
 
@@ -75,7 +79,16 @@ public final class TypeChoice implements IType, IResolvableType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("%s | %s", left.typeName(special), right.typeName(special));
+		if (special)
+			return String.format("%s | %s", left.typeName(special), right.typeName(special));
+		else {
+			List<IType> types = new ArrayList<>(10);
+			collect(types);
+			Set<String> typeNames = new HashSet<>(types.size());
+			for (IType t : types)
+				typeNames.add(t.typeName(false));
+			return StringUtil.blockString("", "", " | ", typeNames);
+		}
 	}
 
 	@Override

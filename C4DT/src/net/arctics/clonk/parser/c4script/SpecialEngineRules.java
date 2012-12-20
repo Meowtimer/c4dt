@@ -407,7 +407,7 @@ public abstract class SpecialEngineRules {
 					case Exact:
 						return ct.constraint();
 					case Includes: case CallerType:
-						return new ConstrainedProplist(ct.constraint(), ct.constraintKind());
+						return ConstrainedProplist.object(ct.constraint(), ct.constraintKind());
 					}
 				}
 			}
@@ -488,22 +488,22 @@ public abstract class SpecialEngineRules {
 					List<IType> types = new ArrayList<IType>(functions.size());
 					for (Declaration f : functions)
 						if (f.script() instanceof Definition)
-							types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
+							types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
 						else for (Directive directive : f.script().directives())
 							if (directive.type() == DirectiveType.APPENDTO) {
 								Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 								if (def != null)
-									types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
+									types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
 							}
 					for (Index index : context.script().index().relevantIndexes())
 						for (Function f : index.declarationsWithName((String)ev, Function.class))
 							if (f.script() instanceof Definition)
-								types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
+								types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
 							else for (Directive directive : f.script().directives())
 								if (directive.type() == DirectiveType.APPENDTO) {
 									Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 									if (def != null)
-										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
+										types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
 								}
 					IType ty = TypeUnification.unify(types);
 					return ty;
