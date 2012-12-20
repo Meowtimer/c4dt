@@ -61,6 +61,13 @@ public class MatchingPlaceholder extends Placeholder {
 		public static Object concat(Object context, Object a, Object b) {
 			return a.toString()+b.toString();
 		}
+		@CommandFunction
+		public static Object substring(Object context, String str, Long index, Long length) {
+			if (length != null)
+				return str.substring(index.intValue(), length.intValue());
+			else
+				return str.substring(index.intValue());
+		}
 	}
 	
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
@@ -178,7 +185,7 @@ public class MatchingPlaceholder extends Placeholder {
 					substitution = Arrays.asList((ExprElm[])substitution);
 				substitution = transformation.invoke(substitution);
 				if (substitution instanceof List)
-					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List) substitution).size()]);
+					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List<ExprElm>) substitution).size()]);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

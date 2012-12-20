@@ -154,6 +154,7 @@ public enum PrimitiveType implements IType {
 					case OBJECT:
 						if (t == PROPLIST)
 							return true; // nya nya
+						break;
 					default:
 						break;
 					}

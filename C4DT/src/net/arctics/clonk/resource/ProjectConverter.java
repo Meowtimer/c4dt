@@ -43,7 +43,6 @@ public class ProjectConverter implements IResourceVisitor {
 	private final ProjectConversionConfiguration configuration;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
 	private Engine destinationEngine() { return destinationProject.index().engine(); }
-	private final boolean crToOC;
 	/**
 	 * Create a new converter by specifying source and destination.
 	 * @param sourceProject Source project
@@ -52,7 +51,6 @@ public class ProjectConverter implements IResourceVisitor {
 	public ProjectConverter(IProject sourceProject, IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
-		this.crToOC = sourceEngine().name().equals("ClonkRage") && destinationEngine().name().equals("OpenClonk");
 		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
 		assert(sourceEngine() != destinationEngine());
 	}
@@ -138,20 +136,18 @@ public class ProjectConverter implements IResourceVisitor {
 	};
 	private boolean skipResource(IResource sourceResource) { return false; }
 	private void convertFileContents(IFile sourceFile, IFile destinationFile) throws CoreException {
-		if (crToOC) {
-			final Script script = Script.get(sourceFile, true);
-			if (script != null)
-				Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
-					@Override
-					public Object run(IDocument document) {
-						codeConverter.runOnDocument(script, null, new C4ScriptParser(script), document);
-						if (script instanceof Definition) {
-							Definition def = (Definition) script;
-							ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
-						}
-						return null;
+		final Script script = Script.get(sourceFile, true);
+		if (script != null)
+			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
+				@Override
+				public Object run(IDocument document) {
+					codeConverter.runOnDocument(script, null, new C4ScriptParser(script), document);
+					if (script instanceof Definition) {
+						Definition def = (Definition) script;
+						ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
 					}
-				});
-		}
+					return null;
+				}
+			});
 	}
 }

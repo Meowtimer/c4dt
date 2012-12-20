@@ -76,7 +76,7 @@ public enum Algorithm {
 		case rndchecker:
 			// randomly set squares with size of 10
 			iX /= (z*10); iY /= (z*10);
-			// fall-through
+			//$FALL-THROUGH$
 		case random:
 			return ((((s ^ (iX<<2) ^ (iY<<5))^((s>>16)+1+iX+(iY<<2)))/17)%(a.evaluate(100)+2)) == 0 ? true : false;
 		case lines:

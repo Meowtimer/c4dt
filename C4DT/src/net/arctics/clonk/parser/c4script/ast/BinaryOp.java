@@ -215,10 +215,12 @@ public class BinaryOp extends OperatorExpression {
 					// false && <anything> => false
 					if (leftSide.equals(false))
 						return false;
+					break;
 				case Or:
 					// true || <anything> => true 
 					if (leftSide.equals(true))
 						return true;
+					break;
 				default:
 					break;
 				}
