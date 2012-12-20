@@ -118,8 +118,7 @@ public class ProjectConverter implements IResourceVisitor {
 				public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
 					if (expression == null)
 						return null;
-					Definition d;
-					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (d = ((AccessVar)expression).proxiedDefinition()) != null)) {
+					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
 						String mapped = configuration.idMap().get(expression.toString());
 						if (mapped != null)
 							return new AccessVar(mapped);

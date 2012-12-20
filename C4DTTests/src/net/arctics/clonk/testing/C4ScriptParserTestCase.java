@@ -174,7 +174,7 @@ public class C4ScriptParserTestCase {
 	public void testForLoopParsingParsing() {
 		final Block block = new BunchOfStatements(new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
-						new VarInitialization("i", LongLiteral.ZERO, 0)), new BinaryOp(
+						new VarInitialization("i", LongLiteral.ZERO, 0, 0, null)), new BinaryOp(
 							Operator.Smaller, new AccessVar("i"),
 							new LongLiteral(100)), new UnaryOp(
 								Operator.Increment, Placement.Postfix, new AccessVar(

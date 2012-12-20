@@ -923,8 +923,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					staticType = null;
 					varName = readIdent();
 				}
-				int e = this.offset;
-				
 				if (varName.length() == 0) {
 					seek(backtrack);
 					return null;

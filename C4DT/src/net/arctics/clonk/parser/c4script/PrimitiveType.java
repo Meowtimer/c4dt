@@ -37,7 +37,6 @@ public enum PrimitiveType implements IType {
 	NUM;
 	
 	public static final PrimitiveType[] NILLABLES = {PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST};
-	private String lowercaseName;
 	private final ReferenceType referenceType = new ReferenceType(this);
 	
 	public IType referenceType() { return referenceType; }
