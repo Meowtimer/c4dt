@@ -270,7 +270,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
-		if (typeEnvironments == null || typing == Typing.Static)
+		if (typeEnvironments == null || typing == Typing.Static || typing == Typing.Dynamic)
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
@@ -806,12 +806,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
 						int bt = parser.offset;
-						returnType = parser.parseTypeAnnotation(true, true);
-						typeAnnotation = parser.parsedTypeAnnotation;
-						if (parser.typing == Typing.Static && returnType == null)
-							returnType = PrimitiveType.INT;
-						else if (parser.typing == Typing.ParametersOptionallyTyped && !parser.isEngine && returnType != PrimitiveType.REFERENCE)
-							parser.seek(bt);
+						if (parser.typing != Typing.Dynamic) {
+							returnType = parser.parseTypeAnnotation(true, true);
+							typeAnnotation = parser.parsedTypeAnnotation;
+						}
+						switch (parser.typing) {
+						case Static:
+							if (returnType == null) {
+								returnType = PrimitiveType.ANY;
+								parser.seek(bt);
+								parser.error(ParserErrorCode.TypeExpected, bt,bt+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+							}
+							break;
+						case ParametersOptionallyTyped:
+							if (!parser.isEngine && returnType != PrimitiveType.REFERENCE) {
+								returnType = PrimitiveType.ANY;
+								parser.seek(bt);
+							}
+							break;
+						default:
+							break;
+						}
 						parser.eatWhitespace();
 						nameStart = parser.offset;
 						s = parser.parseIdentifier();
