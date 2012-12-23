@@ -61,14 +61,9 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		return constraintKind;
 	}
 	
-	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind) {
-		super();
-		this.constraint = obligatoryInclude;
+	public ConstrainedProplist(IHasIncludes constraint, ConstraintKind constraintKind, boolean isType, boolean isObject) {
+		this.constraint = constraint;
 		this.constraintKind = constraintKind;
-	}
-	
-	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind, boolean isType, boolean isObject) {
-		this(obligatoryInclude, constraintKind);
 		this.isType = isType;
 		this.isObject = isObject;
 	}
@@ -134,13 +129,11 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	public static ConstrainedProplist get(Script script, ConstraintKind kind) {
 			return (kind == ConstraintKind.Exact) && script instanceof Definition
 				? ((Definition)script).objectType()
-				: new ConstrainedProplist(script, kind);
+				: ConstrainedProplist.object(script, kind);
 	}
 	
 	@Override
-	public String toString() {
-		return typeName(false);
-	}
+	public String toString() { return typeName(true); }
 
 	@Override
 	public int precision() {
@@ -175,7 +168,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		switch (constraintKind()) {
 		case CallerType:
 			if (callerType == null)
-				return new ConstrainedProplist(constraint, ConstraintKind.Includes);
+				return ConstrainedProplist.object(constraint, ConstraintKind.Includes);
 			else if (callerType != constraint() || context.script() != constraint())
 				return callerType;
 			else

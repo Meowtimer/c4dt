@@ -599,8 +599,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private void parseCodeOfFunction(Function function) throws ParsingException {
-		// parser not yet ready to parse functions - deny
-		// function is weird or does not belong here - ignore
 		if (function.bodyLocation() == null)
 			return;
 		if (!function.staticallyTyped())
@@ -2286,8 +2284,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Function f = currentFunction();
 		if (f != null)
 			for (Variable p : f.parameters())
-				if (p.type() == PrimitiveType.UNKNOWN)
-					requestTypeInfo(new AccessVar(p)).storeType(p.parameterType());
+				if (p.type() == PrimitiveType.UNKNOWN) {
+					ITypeInfo varTypeInfo = requestTypeInfo(new AccessVar(p));
+					if (varTypeInfo != null)
+						varTypeInfo.storeType(p.parameterType());
+				}
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
 		typeEnvironments.apply(this, onlyTypeLocals);

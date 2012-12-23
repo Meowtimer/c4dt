@@ -559,7 +559,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						for (int i = 0; i < types.length; i++) {
 							types[i] = as(decs.get(i).parentDeclaration(), IType.class);
 							if (types[i] instanceof IHasIncludes)
-								types[i] = new ConstrainedProplist((IHasIncludes) types[i], ConstraintKind.Includes);
+								types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
 						}
 						IType typeSet = TypeUnification.unify(iterable(types));
 						predecessorInSequence().expectedToBeOfType(typeSet, context);
