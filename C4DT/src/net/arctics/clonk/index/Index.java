@@ -94,6 +94,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 
 	protected File folder;
+	protected boolean built;
+	
+	public boolean built() { return built; }
+	public void built(boolean b) { built = b; }
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
@@ -643,6 +647,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		entities.clear();
 		entityIdCounter = 0;
 		refreshIndex(false);
+		built(false);
 	}
 
 	private void clearEntityFiles() {
