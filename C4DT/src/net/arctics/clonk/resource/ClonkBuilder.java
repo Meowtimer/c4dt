@@ -120,13 +120,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	@Profiled
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+		IProject proj = getProject();
 		this.index = ClonkProjectNature.get(getProject()).index();
+		if (kind == FULL_BUILD) {
+			if (index.built())
+				return new IProject[] { proj };
+			index.built(true);
+		}
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		clearUIOfReferencesBeforeBuild();
-		IProject proj = getProject();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
