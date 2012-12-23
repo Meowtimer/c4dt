@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -52,10 +51,9 @@ public class ClonkContextInformationValidator implements
 	        e.printStackTrace();
         }
 
-		if (fCurrentParameter != -1) {
+		if (fCurrentParameter != -1)
 			if (currentParameter == fCurrentParameter)
 				return false;
-		}
 
 		presentation.clear();
 		fCurrentParameter= currentParameter;
@@ -124,13 +122,12 @@ public class ClonkContextInformationValidator implements
 				case '/':
 					if (offset < end) {
 						char next= document.getChar(offset);
-						if (next == '*') {
+						if (next == '*')
 							// a comment starts, advance to the comment end
 							offset= getCommentEnd(document, offset + 1, end);
-						} else if (next == '/') {
+						else if (next == '/')
 							// '//'-comment: nothing to do anymore on this line
 							offset= end;
-						}
 					}
 					break;
 				case '*':
@@ -155,6 +152,7 @@ public class ClonkContextInformationValidator implements
 						}
 						break;
 					}
+					break;
 				case ']':
 					if (considerNesting) {
 						if (nestingMode == BRACKET)
@@ -162,6 +160,7 @@ public class ClonkContextInformationValidator implements
 								nestingMode= NONE;
 						break;
 					}
+					break;
 				case '(':
 					if (considerNesting) {
 						if (nestingMode == ANGLE) {
@@ -175,6 +174,7 @@ public class ClonkContextInformationValidator implements
 						}
 						break;
 					}
+					break;
 				case ')':
 					if (considerNesting) {
 						if (nestingMode == PAREN)
@@ -182,6 +182,7 @@ public class ClonkContextInformationValidator implements
 								nestingMode= NONE;
 						break;
 					}
+					break;
 				case '{':
 					if (considerNesting) {
 						if (nestingMode == ANGLE) {
@@ -195,6 +196,7 @@ public class ClonkContextInformationValidator implements
 						}
 						break;
 					}
+					break;
 				case '}':
 					if (considerNesting) {
 						if (nestingMode == BRACE)
@@ -202,18 +204,16 @@ public class ClonkContextInformationValidator implements
 								nestingMode= NONE;
 						break;
 					}
-
+					break;
 				default:
 					if (nestingLevel != 0)
 						continue;
 
-					if (increments.indexOf(curr) >= 0) {
+					if (increments.indexOf(curr) >= 0)
 						++ charCount;
-					}
 
-					if (decrements.indexOf(curr) >= 0) {
+					if (decrements.indexOf(curr) >= 0)
 						-- charCount;
-					}
 			}
 		}
 
@@ -224,11 +224,9 @@ public class ClonkContextInformationValidator implements
 		while (pos < end) {
 			char curr= d.getChar(pos);
 			pos++;
-			if (curr == '*') {
-				if (pos < end && d.getChar(pos) == '/') {
+			if (curr == '*')
+				if (pos < end && d.getChar(pos) == '/')
 					return pos + 1;
-				}
-			}
 		}
 		return end;
 	}
@@ -237,12 +235,11 @@ public class ClonkContextInformationValidator implements
 		while (pos < end) {
 			char curr= d.getChar(pos);
 			pos++;
-			if (curr == '\\') {
+			if (curr == '\\')
 				// ignore escaped characters
 				pos++;
-			} else if (curr == ch) {
+			else if (curr == ch)
 				return pos;
-			}
 		}
 		return end;
 	}

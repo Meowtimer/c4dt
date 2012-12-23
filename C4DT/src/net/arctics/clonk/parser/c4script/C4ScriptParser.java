@@ -2628,6 +2628,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				case Cancel:
 					listener = null; // listener doesn't want to hear from me anymore? fine!
 					//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
+					break;
 				default:
 					break;
 				}
