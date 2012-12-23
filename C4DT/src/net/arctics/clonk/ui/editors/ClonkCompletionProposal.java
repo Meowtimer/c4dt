@@ -1,20 +1,24 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalExtension2;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
-public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6 {
+public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 	
 	public enum Category {
 		Functions,
@@ -257,6 +261,39 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	
 	public int cursorPosition() {
 		return cursorPosition;
+	}
+	
+	@Override
+	public boolean validate(IDocument document, int offset, DocumentEvent event) {
+		if (declaration == null)
+			return false;
+		try {
+			int replaceOffset = getReplacementOffset();
+			if (offset >= replaceOffset) {
+				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				if (declaration.name().toLowerCase().contains(content))
+					return true;
+				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
+					return true;
+			}
+		} catch (BadLocationException e) {
+			// concurrent modification - ignore
+		}
+		return false;
+	}
+
+	@Override
+	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+		replacementLength = offset - replacementOffset;
+		apply(viewer.getDocument());
+	}
+
+	@Override
+	public void selected(ITextViewer viewer, boolean smartToggle) {
+	}
+
+	@Override
+	public void unselected(ITextViewer viewer) {
 	}
 	
 }
