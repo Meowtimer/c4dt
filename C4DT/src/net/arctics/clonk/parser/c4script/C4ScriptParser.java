@@ -2097,7 +2097,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				ExprElm arg = parseTupleElement(reportErrors);
 				if (arg == null) {
 					error(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1, NO_THROW);
-					break;
+					break Loop;
 				} else {
 					if (arg instanceof SimpleStatement) {
 						arg = ((SimpleStatement)arg).expression();
