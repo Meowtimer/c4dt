@@ -14,6 +14,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
@@ -27,6 +28,7 @@ import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IPredicate;
@@ -555,9 +557,20 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
-			if (staticallyTyped && returnType != null) {
+			Typing typing = Typing.ParametersOptionallyTyped;
+			if (index() instanceof ProjectIndex)
+				typing = ((ProjectIndex)index()).nature().settings().typing;
+			switch (typing) {
+			case Dynamic:
+				break;
+			case ParametersOptionallyTyped:
+				if (returnType == PrimitiveType.REFERENCE)
+					output.append(" &");
+				break;
+			case Static:
 				output.append(" ");
 				output.append(returnType.typeName(false));
+				break;
 			}
 		}
 		output.append(" "); //$NON-NLS-1$

@@ -130,9 +130,14 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		else if (element instanceof Variable) {
 			Variable var = (Variable)element;
 			result.append(var.name());
-			if (var.type() != null && var.type() != PrimitiveType.UNKNOWN && var.type() != PrimitiveType.ANY) {
+			IType type = var.type();
+			if (type != null && type != PrimitiveType.UNKNOWN) {
+				if (context != null && var.parentDeclaration() instanceof Function) {
+					context.setCurrentFunction((Function)var.parentDeclaration());
+					type = TypeUtil.resolve(type, context, as(root, Script.class));
+				}
 				result.append(" : ");
-				result.append(var.type().typeName(true));
+				result.append(type.typeName(true));
 			}
 		}
 		else if (element != null)

@@ -123,7 +123,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		default:
 			return IType.ERRONEOUS_TYPE;
 		}
-		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(false) : constraint.toString());
+		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(special) : constraint.toString());
 	}
 	
 	public static ConstrainedProplist get(Script script, ConstraintKind kind) {

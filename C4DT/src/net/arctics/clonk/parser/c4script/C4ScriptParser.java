@@ -266,7 +266,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Requests type information for an expression
 	 * @param expression the expression
-	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
