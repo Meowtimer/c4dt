@@ -441,7 +441,7 @@ public abstract class SpecialEngineRules {
 				script = Utilities.as(cobj.constraint(), Script.class);
 			}
 			
-			return script != null ? ConstrainedProplist.get(script, constraintKind) : PrimitiveType.ID;
+			return script != null ? ConstrainedProplist.definition(script, constraintKind) : PrimitiveType.ID;
 		}
 	};
 	
