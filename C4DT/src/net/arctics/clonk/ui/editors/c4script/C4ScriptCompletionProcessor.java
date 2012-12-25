@@ -63,6 +63,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
@@ -164,6 +165,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		IDocument doc = viewer.getDocument();
 		String prefix = null;
 		try {
+			ITypedRegion region = doc.getPartition(wordOffset);
+			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
+				return null;
 			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
 				return null;
 			if (wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
