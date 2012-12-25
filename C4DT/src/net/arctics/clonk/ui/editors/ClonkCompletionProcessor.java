@@ -63,7 +63,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
 	
-	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
+	protected void proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
 		if (prefix != null)
 			if (!func.name().toLowerCase().startsWith(prefix))
 				return;

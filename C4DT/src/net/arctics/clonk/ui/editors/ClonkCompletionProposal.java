@@ -143,7 +143,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		displayStringRecomputationNecessary = true;
 	}
 	
-	public Declaration getDeclaration() {
+	public Declaration declaration() {
 		return declaration;
 	}
 
@@ -167,6 +167,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	@Override
 	public Point getSelection(IDocument document) {
+		getDisplayString();
 		return new Point(replacementOffset + cursorPosition, 0);
 	}
 

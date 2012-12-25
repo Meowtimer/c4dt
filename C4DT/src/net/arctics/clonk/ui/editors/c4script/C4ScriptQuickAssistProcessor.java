@@ -524,7 +524,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						for (ICompletionProposal p : possible)
 							if (p instanceof ClonkCompletionProposal) {
 								ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
-								Declaration dec = clonkProposal.getDeclaration();
+								Declaration dec = clonkProposal.declaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
 								int similarity = StringUtil.similarityOf(dec.name(), accessDec.declarationName());

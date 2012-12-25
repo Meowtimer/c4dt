@@ -84,7 +84,6 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
-	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {};
 	
 	/*static {
 		List<Character> chars = new ArrayList<Character>(256);
@@ -187,6 +186,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		IDocument doc = viewer.getDocument();
 		String prefix = null;
 		try {
+			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
+				return null;
 			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || Character.isLetter(doc.getChar(wordOffset)))
 				wordOffset--;
 			wordOffset++;
@@ -593,7 +594,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS;
+		return new char[] {'.', '>'};
 	}
 
 	@Override

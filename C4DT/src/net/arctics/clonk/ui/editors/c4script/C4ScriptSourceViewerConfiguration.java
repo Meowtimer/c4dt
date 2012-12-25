@@ -85,18 +85,15 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		for (String s : ClonkPartitionScanner.PARTITIONS)
 			assistant.setContentAssistProcessor(processor, s);
 		assistant.install(sourceViewer);
-		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-
 		assistant.setRepeatedInvocationMode(true);
-		// key sequence is set in constructor of ClonkCompletionProcessor
-		
 		assistant.setStatusLineVisible(true);
 		assistant.setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_StandardProposals);
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);
 		assistant.enableAutoActivation(true);
+		assistant.setAutoActivationDelay(0);
 		
 		assistant.enableColoredLabels(true);
 		

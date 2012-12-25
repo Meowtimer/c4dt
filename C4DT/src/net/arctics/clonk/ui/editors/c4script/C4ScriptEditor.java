@@ -519,9 +519,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
-			public void run() {
-				showContentAssistance();
-			}
+			public void run() { showContentAssistance(); }
 		});
 		super.completionProposalApplied(proposal);
 	}
