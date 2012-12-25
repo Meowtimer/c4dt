@@ -21,14 +21,14 @@ import org.eclipse.swt.graphics.Point;
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 	
 	public enum Category {
-		Functions,
 		Variables,
+		Keywords,
+		Functions,
 		Definitions,
 		NewFunction,
 		Callbacks,
 		EffectCallbacks,
-		Directives,
-		Keywords
+		Directives
 	}
 	
 	/** Associated declaration */
@@ -266,16 +266,13 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
-		if (declaration == null)
-			return false;
 		try {
 			int replaceOffset = getReplacementOffset();
 			if (offset >= replaceOffset) {
-				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (declaration.name().toLowerCase().contains(content))
-					return true;
-				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
-					return true;
+				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				for (String s : identifiers())
+					if (s.toLowerCase().contains(prefix))
+						return true;
 			}
 		} catch (BadLocationException e) {
 			// concurrent modification - ignore
@@ -295,6 +292,19 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	@Override
 	public void unselected(ITextViewer viewer) {
+	}
+	
+	public String[] identifiers() {
+		if (declaration != null) {
+			String decName = declaration.name();
+			if (declaration instanceof Function)
+				decName += "()";
+			if (declaration instanceof Definition)
+				return new String[] {getReplacementString(), decName, ((Definition)declaration).id().stringValue()};
+			else
+				return new String[] {getReplacementString(), decName};
+		}
+		return new String[] {getReplacementString()};
 	}
 	
 }

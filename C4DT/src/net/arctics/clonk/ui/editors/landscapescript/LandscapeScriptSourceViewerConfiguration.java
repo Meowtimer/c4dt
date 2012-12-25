@@ -1,11 +1,11 @@
 package net.arctics.clonk.ui.editors.landscapescript;
 
-import net.arctics.clonk.parser.landscapescript.OverlayBase;
 import net.arctics.clonk.parser.landscapescript.Overlay;
-import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.parser.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
+import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.util.Utilities;
 
@@ -37,7 +37,7 @@ public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerC
 		}
 	}
 
-	private LandscapeScriptCodeScanner scanner = new LandscapeScriptCodeScanner(ColorManager.instance());
+	private final LandscapeScriptCodeScanner scanner = new LandscapeScriptCodeScanner(ColorManager.instance());
 
 	public LandscapeScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, LandscapeScriptEditor textEditor) {
 		super(store, colorManager, textEditor);
@@ -86,7 +86,7 @@ public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerC
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(editor());
+		LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(editor(), assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		

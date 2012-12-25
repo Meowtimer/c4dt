@@ -81,61 +81,39 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
  * @author madeen
  *
  */
-public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
+public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
-	
-	/*static {
-		List<Character> chars = new ArrayList<Character>(256);
-		int i;
-		for (i = 'A'; i <= 'Z'; i++)
-			chars.add((char)i);
-		for (i = 'a'; i <= 'z'; i++)
-			chars.add((char)i);
-		chars.add('_');
-		for (i = '0'; i <= '9'; i++)
-			chars.add((char)i);
-		COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[chars.size()];
-		for (i = 0; i < chars.size(); i++)
-			COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS[i] = chars.get(i);
-	}*/
 
-	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
+	@Override
+	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
-		@Override
-		public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-		}
+	@Override
+	public void assistSessionStarted(ContentAssistEvent event) { proposalCycle = ProposalCycle.ALL; }
 
-		@Override
-		public void assistSessionStarted(ContentAssistEvent event) {
-			proposalCycle = ProposalCycle.ALL;
-		}
+	@Override
+	public void assistSessionEnded(ContentAssistEvent event) {}
 
-		@Override
-		public void assistSessionEnded(ContentAssistEvent event) {
-		}
-
-		@Override
-		public void assistSessionRestarted(ContentAssistEvent event) {
-			// needs to be reversed because it gets cycled after computing the proposals...
-			proposalCycle = proposalCycle.reverseCycle();
-		}
-
+	@Override
+	public void assistSessionRestarted(ContentAssistEvent event) {
+		// needs to be reversed because it gets cycled after computing the proposals...
+		proposalCycle = proposalCycle.reverseCycle();
 	}
 
 	private final ContentAssistant assistant;
 	private ExprElm contextExpression;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
+	
 	private String untamperedPrefix;
 
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
-		super(editor);
+		super(editor, assistant);
 		this.assistant = assistant;
 
 		if (assistant != null) {
 			assistant.setRepeatedInvocationTrigger(iterationBinding());
-			assistant.addCompletionListener(new ClonkCompletionListener());
+			assistant.addCompletionListener(this);
 		}
 
 	}
@@ -188,12 +166,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
 				return null;
+			if (wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
+				return null;
 			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || Character.isLetter(doc.getChar(wordOffset)))
 				wordOffset--;
 			wordOffset++;
 			if (wordOffset < offset) {
 				prefix = doc.get(wordOffset, offset - wordOffset);
-
 				offset = wordOffset;
 			}
 		} catch (BadLocationException e) {
@@ -203,6 +182,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		this.untamperedPrefix = prefix;
 		if (prefix != null)
 			prefix = prefix.toLowerCase();
+		this.prefix = prefix;
 
 		ClonkProjectNature nature = ClonkProjectNature.get(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
@@ -239,9 +219,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) //$NON-NLS-1$ 
 			};
 
-		return sortProposals(proposals);
+		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
-
+	
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
 		IDocument doc, String prefix,
 		List<ICompletionProposal> proposals, Index index,
@@ -380,7 +360,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null)
-					if (!keyword.toLowerCase().startsWith(prefix)) continue;
+					if (!stringMatchesPrefix(keyword, prefix))
+						continue;
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
 				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
@@ -438,7 +419,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			// propose creating functions for standard callbacks
 			for(String callback : editor().script().engine().settings().callbackFunctions()) {
 				if (prefix != null)
-					if (!callback.toLowerCase().startsWith(prefix))
+					if (!stringMatchesPrefix(callback, prefix))
 						continue;
 				callbackProposal(prefix, callback, funcSupplied, proposals, offset).setCategory(Category.Callbacks);
 			}
@@ -464,7 +445,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				// propose declaration keywords (var, static, ...)
 				for(String declarator : BuiltInDefinitions.DECLARATORS) {
 					if (prefix != null)
-						if (!declarator.toLowerCase().startsWith(prefix)) continue;
+						if (!stringMatchesPrefix(declarator, prefix))
+							continue;
 					ImageRegistry reg = Core.instance().getImageRegistry();
 					if (reg.get("declarator") == null)
 						reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -478,7 +460,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				// propose directives (#include, ...)
 				for(String directive : BuiltInDefinitions.DIRECTIVES) {
 					if (prefix != null)
-						if (!directive.toLowerCase().contains(prefix)) continue;
+						if (!stringMatchesPrefix(directive, prefix))
+							continue;
 					ImageRegistry reg = Core.instance().getImageRegistry();
 					if (reg.get("directive") == null)
 						reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -594,7 +577,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return new char[] {'.', '>'};
+		return "_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray();
 	}
 
 	@Override
@@ -619,5 +602,4 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public String getErrorMessage() {
 		return null;
 	}
-
 }

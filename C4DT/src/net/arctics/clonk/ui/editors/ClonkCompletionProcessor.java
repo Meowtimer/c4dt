@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.Arrays;
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Collection;
-import java.util.Comparator;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -12,20 +12,21 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.ui.IFileEditorInput;
 
-public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
-
-	public EditorType editor() {
-		return editor;
-	}
+public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected EditorType editor;
+	protected String prefix;
 	
-	public ClonkCompletionProcessor(EditorType editor) {
+	public EditorType editor() { return editor; }
+	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
 		this.editor = editor;
+		assistant.setSorter(this);
 	}
 	
 	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
@@ -35,10 +36,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			if (prefix != null)
 				if (!(
-					def.name().toLowerCase().contains(prefix) ||
-					def.id().stringValue().toLowerCase().contains(prefix) ||
+					stringMatchesPrefix(def.name(), prefix) ||
+					stringMatchesPrefix(def.id().stringValue(), prefix) ||
 					// also check if the user types in the folder name
-					(def instanceof Definition && def.definitionFolder() != null && def.definitionFolder().getName().contains(prefix))
+					(def instanceof Definition && def.definitionFolder() != null &&
+					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))
 				))
 					return;
 			String displayString = def.name();
@@ -63,9 +65,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
 	
+	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
+		return name.toLowerCase().contains(lowercasedPrefix);
+	}
+	
 	protected void proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
 		if (prefix != null)
-			if (!func.name().toLowerCase().startsWith(prefix))
+			if (!stringMatchesPrefix(func.name(), prefix))
 				return;
 		int replacementLength = prefix != null ? prefix.length() : 0;
 
@@ -79,7 +85,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 	
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
-		if (prefix != null && !var.name().toLowerCase().contains(prefix))
+		if (prefix != null && !stringMatchesPrefix(var.name(), prefix))
 			return null;
 		String displayString = var.name();
 		int replacementLength = 0;
@@ -96,22 +102,44 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return prop;
 	}
 
-	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
-		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
-		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
-			@Override
-			public int compare(ICompletionProposal a, ICompletionProposal b) {
-				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal)
-					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
-				return 1;
-			}
-		});
-		return arr;
-	}
-	
 	@Override
 	public String getErrorMessage() {
 		return null;
+	}
+	
+	@Override
+	public int compare(ICompletionProposal a, ICompletionProposal b) {
+		ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
+		ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
+		if (ca != null && cb != null) {
+			if (prefix != null) {
+				class Match {
+					boolean startsWith, match, local;
+					Match(ClonkCompletionProposal proposal) {
+						for (String s : proposal.identifiers())
+							if (s.toLowerCase().startsWith(prefix)) {
+								startsWith = true;
+								if (s.length() == prefix.length()) {
+									match = true;
+									break;
+								}
+							} 
+						local = proposal.declaration() != null && !proposal.declaration().isGlobal();
+					}
+				}
+				Match ma = new Match(ca), mb = new Match(cb);
+				if (ma.match && !mb.match)
+					return -1;
+				else if (mb.match && !ma.match)
+					return +1;
+				else if (ma.startsWith && !mb.startsWith)
+					return -1;
+				else if (mb.startsWith && !ma.startsWith)
+					return +1;
+			}
+			return ca.compareTo(cb);
+		}
+		return 1;
 	}
 
 }

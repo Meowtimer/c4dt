@@ -82,8 +82,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		
 		assistant = new ClonkContentAssistant();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(), assistant);
-		for (String s : ClonkPartitionScanner.PARTITIONS)
-			assistant.setContentAssistProcessor(processor, s);
+		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		assistant.setRepeatedInvocationMode(true);
