@@ -1268,4 +1268,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public void setScriptFile(IFile f) {}
+	
+	@Override
+	public boolean isGlobal() { return true; }
 }
