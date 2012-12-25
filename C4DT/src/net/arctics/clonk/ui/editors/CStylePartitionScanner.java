@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.*;
 
-public class ClonkPartitionScanner extends RuleBasedPartitionScanner {
+public class CStylePartitionScanner extends RuleBasedPartitionScanner {
 	public final static String COMMENT = "__c4s_comment"; //$NON-NLS-1$
 	public final static String MULTI_LINE_COMMENT = "__c4s_multi_comment"; //$NON-NLS-1$
 	public final static String CODEBODY = "__c4s_codebody"; //$NON-NLS-1$
@@ -15,7 +15,7 @@ public class ClonkPartitionScanner extends RuleBasedPartitionScanner {
 		IDocument.DEFAULT_CONTENT_TYPE
 	};
 
-	public ClonkPartitionScanner() {
+	public CStylePartitionScanner() {
 
 		IToken singleLineComment = new Token(COMMENT);
 		IToken multiLineComment = new Token(MULTI_LINE_COMMENT);

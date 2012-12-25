@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.editors.landscapescript;
 
 import net.arctics.clonk.parser.landscapescript.Overlay;
 import net.arctics.clonk.parser.landscapescript.OverlayBase;
+import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
@@ -51,20 +51,20 @@ public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerC
 		
 		DefaultDamagerRepairer dr =
 			new DefaultDamagerRepairer(scanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.CODEBODY);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.CODEBODY);
+		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
+		reconciler.setRepairer(dr, CStylePartitionScanner.CODEBODY);
 		
 		dr = new DefaultDamagerRepairer(scanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.STRING);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.STRING);
+		reconciler.setDamager(dr, CStylePartitionScanner.STRING);
+		reconciler.setRepairer(dr, CStylePartitionScanner.STRING);
 		
 		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		dr = new DefaultDamagerRepairer(commentScanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.COMMENT);
+		reconciler.setDamager(dr, CStylePartitionScanner.COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.COMMENT);
 		
 		return reconciler;
 	}

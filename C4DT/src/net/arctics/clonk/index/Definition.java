@@ -70,6 +70,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	protected ID id;
 
 	private transient ConstrainedProplist objectType;
+	private transient ConstrainedProplist thisType;
 
 	/**
 	 * Creates a new C4Object
@@ -206,6 +207,12 @@ public class Definition extends Script implements IProplistDeclaration {
 				}
 			};
 		return objectType;
+	}
+	
+	public synchronized ConstrainedProplist thisType() {
+		if (thisType == null)
+			thisType = new ConstrainedProplist(this, ConstraintKind.CallerType, true, true);
+		return thisType;
 	}
 	
 	@Override

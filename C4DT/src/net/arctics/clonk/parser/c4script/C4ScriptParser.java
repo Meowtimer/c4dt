@@ -819,7 +819,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							break;
 						case ParametersOptionallyTyped:
 							if (!parser.isEngine && returnType != PrimitiveType.REFERENCE) {
-								returnType = PrimitiveType.ANY;
+								returnType = null;
 								parser.seek(bt);
 							}
 							break;

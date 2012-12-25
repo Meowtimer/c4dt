@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -63,7 +63,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
-		return ClonkPartitionScanner.PARTITIONS;
+		return CStylePartitionScanner.PARTITIONS;
 	}
 	
 	@Override
@@ -126,28 +126,28 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		
 		DefaultDamagerRepairer dr =
 			new DefaultDamagerRepairer(scanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.CODEBODY);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.CODEBODY);
+		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
+		reconciler.setRepairer(dr, CStylePartitionScanner.CODEBODY);
 		
 		dr = new DefaultDamagerRepairer(scanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.STRING);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.STRING);
+		reconciler.setDamager(dr, CStylePartitionScanner.STRING);
+		reconciler.setRepairer(dr, CStylePartitionScanner.STRING);
 		
 		dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		dr = new DefaultDamagerRepairer(new ScriptCommentScanner(getColorManager(), "JAVADOCCOMMENT"));
-		reconciler.setDamager(dr, ClonkPartitionScanner.JAVADOC_COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.JAVADOC_COMMENT);
+		reconciler.setDamager(dr, CStylePartitionScanner.JAVADOC_COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.JAVADOC_COMMENT);
 		
 		dr = new DefaultDamagerRepairer(commentScanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.COMMENT);
+		reconciler.setDamager(dr, CStylePartitionScanner.COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.COMMENT);
 		
 		dr = new DefaultDamagerRepairer(commentScanner);
-		reconciler.setDamager(dr, ClonkPartitionScanner.MULTI_LINE_COMMENT);
-		reconciler.setRepairer(dr, ClonkPartitionScanner.MULTI_LINE_COMMENT);
+		reconciler.setDamager(dr, CStylePartitionScanner.MULTI_LINE_COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.MULTI_LINE_COMMENT);
 		
 		return reconciler;
 	}

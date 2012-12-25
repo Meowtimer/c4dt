@@ -154,7 +154,10 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = declarationFromContext(context);
 		// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return ConstrainedProplist.object(context.script(), ConstraintKind.CallerType);
+			if (context.script() instanceof Definition)
+				return ((Definition)context.script()).thisType();
+			else
+				return new ConstrainedProplist(context.script(), ConstraintKind.CallerType, true, true);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
