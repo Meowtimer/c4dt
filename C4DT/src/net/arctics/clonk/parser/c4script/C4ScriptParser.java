@@ -3230,15 +3230,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			// traverse block using the listener
 			if (cachedBlock != null) {
-				if (func != null) {
-					for (Variable parm : func.parameters())
-						parm.assignType(PrimitiveType.UNKNOWN);
-					for (Variable var : func.localVars())
-						var.assignType(PrimitiveType.UNKNOWN);
-					func.assignType(PrimitiveType.UNKNOWN, false);
-				}
-				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true)) {
+					newTypeEnvironment();
+					if (func != null) {
+						for (Variable parm : func.parameters())
+							storeType(new AccessVar(parm), PrimitiveType.UNKNOWN);
+						for (Variable var : func.localVars())
+							storeType(new AccessVar(var), PrimitiveType.UNKNOWN);
+						func.assignType(PrimitiveType.UNKNOWN, false);
+					}
 					reportProblemsOf(iterable(cachedBlock.statements()), true);
+					endTypeEnvironment(true, false);
+				}
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)
 					cachedBlock.traverse(listener, this);
