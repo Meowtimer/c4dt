@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 
+
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -26,7 +27,7 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 
 	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
-		return ClonkPartitionScanner.PARTITIONS;
+		return CStylePartitionScanner.PARTITIONS;
 	}
 
 	public EditorType editor() {
