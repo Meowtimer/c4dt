@@ -58,6 +58,7 @@ public class Messages extends NLS {
 	public static String OnlyRefAllopwedAsReturnType;
 	public static String StringNotClosed;
 	public static String StringTooLong;
+	public static String UnexpectedBlock;
 	public static String UnexpectedToken;
 	public static String NotFinished;
 	public static String NotSupported;
