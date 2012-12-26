@@ -252,10 +252,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		String dispB = other.displayString();
 		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
 		boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
-		if (bracketStartA && !bracketStartB)
-			return 1;
-		else if (bracketStartB && !bracketStartA)
-			return -1;
+		if (bracketStartA != bracketStartB)
+			return bracketStartA ? +1 : -1;
 		else
 			return dispA.compareToIgnoreCase(dispB);
 	}

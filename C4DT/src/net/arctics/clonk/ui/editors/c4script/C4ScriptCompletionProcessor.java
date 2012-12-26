@@ -65,7 +65,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
@@ -84,8 +83,22 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
  */
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
 
-	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
+	private final ContentAssistant assistant;
+	private ExprElm contextExpression;
+	private ProposalCycle proposalCycle = ProposalCycle.ALL;
+	private Function _activeFunc;
+	private Script _currentEditorScript;
+	private String untamperedPrefix;
 
+	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
+		super(editor, assistant);
+		this.assistant = assistant;
+		if (assistant != null) {
+			assistant.setRepeatedInvocationTrigger(iterationBinding());
+			assistant.addCompletionListener(this);
+		}
+	}
+	
 	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
@@ -99,24 +112,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public void assistSessionRestarted(ContentAssistEvent event) {
 		// needs to be reversed because it gets cycled after computing the proposals...
 		proposalCycle = proposalCycle.reverseCycle();
-	}
-
-	private final ContentAssistant assistant;
-	private ExprElm contextExpression;
-	private ProposalCycle proposalCycle = ProposalCycle.ALL;
-	private Function _activeFunc;
-	
-	private String untamperedPrefix;
-
-	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
-		super(editor, assistant);
-		this.assistant = assistant;
-
-		if (assistant != null) {
-			assistant.setRepeatedInvocationTrigger(iterationBinding());
-			assistant.addCompletionListener(this);
-		}
-
 	}
 
 	protected void doCycle() {
@@ -137,10 +132,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			Scenario s2 = _activeFunc.scenario();
 			if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
 				for (Function func : index.globalFunctions()) {
-					if (func == null) {
-						System.out.println("D:");
-						continue;
-					}
 					Scenario s1 = func.scenario();
 					if (s1 != null && s2 != null && s1 != s2)
 						continue;
@@ -165,13 +156,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		IDocument doc = viewer.getDocument();
 		String prefix = null;
 		try {
-			ITypedRegion region = doc.getPartition(wordOffset);
-			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
-				return null;
-			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
-				return null;
-			if (wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
-				return null;
 			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || Character.isLetter(doc.getChar(wordOffset)))
 				wordOffset--;
 			wordOffset++;
@@ -179,9 +163,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				prefix = doc.get(wordOffset, offset - wordOffset);
 				offset = wordOffset;
 			}
-		} catch (BadLocationException e) {
-			prefix = null;
-		}
+		} catch (BadLocationException e) { }
 
 		this.untamperedPrefix = prefix;
 		if (prefix != null)
@@ -202,10 +184,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
-		if (activeFunc == null)
-			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index);
-		else
-			proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
+		boolean returnProposals = activeFunc == null
+			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
+			: proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
+		if (!returnProposals)
+			return null;
 
 		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_ShownData);
 		for(String message : statusMessages) {
@@ -218,23 +201,33 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		doCycle();
 
-		if (proposals.size() == 0)
-			return new ICompletionProposal[] {
-				new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) //$NON-NLS-1$ 
-			};
-
-		return proposals.toArray(new ICompletionProposal[proposals.size()]);
+		if (proposals.size() > 0)
+			return proposals.toArray(new ICompletionProposal[proposals.size()]);
+		else
+			return null;
 	}
 	
-	private void proposalsInsideOfFunction(int offset, int wordOffset,
+	private boolean proposalsInsideOfFunction(int offset, int wordOffset,
 		IDocument doc, String prefix,
 		List<ICompletionProposal> proposals, Index index,
 		final Function activeFunc
 	) {
+		try {
+			ITypedRegion region = doc.getPartition(wordOffset);
+			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
+				return false;
+			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
+				return false;
+			if (wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
+				return false;
+		} catch (BadLocationException bl) {
+			return false;
+		}
 		Script editorScript = Utilities.scriptForEditor(editor);
 		contextExpression = null;
 		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
 				index, activeFunc, editorScript, null);
+		return true;
 	}
 
 	@Override
@@ -246,9 +239,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		else
 			return null;
 	}
-
-	// this is all messed up and hacky
-	private Script _currentEditorScript;
 
 	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
 		IDocument doc, String prefix, List<ICompletionProposal> proposals,
@@ -409,10 +399,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return prop;
 	}
 
-	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
-			int wordOffset, String prefix,
-			List<ICompletionProposal> proposals, Index index) {
-
+	private boolean proposalsOutsideOfFunction(
+		ITextViewer viewer, int offset,
+		int wordOffset, String prefix,
+		List<ICompletionProposal> proposals, Index index
+	) {
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
 		boolean directiveExpectingDefinition =
@@ -485,6 +476,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.STATIC_VARIABLES);
 		}
+		
+		return true;
 	}
 
 	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
@@ -586,7 +579,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
-		return CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS;
+		return new char[] {'('};
 	}
 
 	@Override

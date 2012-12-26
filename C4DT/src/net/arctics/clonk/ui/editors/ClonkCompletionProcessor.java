@@ -37,10 +37,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (prefix != null)
 				if (!(
 					stringMatchesPrefix(def.name(), prefix) ||
-					stringMatchesPrefix(def.id().stringValue(), prefix) ||
-					// also check if the user types in the folder name
+					stringMatchesPrefix(def.id().stringValue(), prefix)
+					/* // also check if the user types in the folder name 
 					(def instanceof Definition && def.definitionFolder() != null &&
-					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))
+					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
 			String displayString = def.name();
@@ -128,14 +128,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					}
 				}
 				Match ma = new Match(ca), mb = new Match(cb);
-				if (ma.match && !mb.match)
-					return -1;
-				else if (mb.match && !ma.match)
-					return +1;
-				else if (ma.startsWith && !mb.startsWith)
-					return -1;
-				else if (mb.startsWith && !ma.startsWith)
-					return +1;
+				if (ma.match != mb.match)
+					return ma.match ? -1 : +1;
+				else if (ma.startsWith != mb.startsWith)
+					return ma.startsWith ? -1 : +1;
+				else if (ma.local != mb.local)
+					return ma.local ? -1 : +1;
 			}
 			return ca.compareTo(cb);
 		}
