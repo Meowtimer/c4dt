@@ -501,8 +501,24 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					eatWhitespace();
 					if (!reachedEOF()) {
 						int start = this.offset;
-						String tokenText = parseTokenAndReturnAsString();
-						error(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
+						if (peek() == '{') {
+							read();
+							for (int depth = 1; depth > 0 && !reachedEOF();) {
+								eatWhitespace();
+								switch (read()) {
+								case '}':
+									depth--;
+									break;
+								case '{':
+									depth++;
+									break;
+								}
+							}
+							error(ParserErrorCode.UnexpectedBlock, start, this.offset, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+						} else {
+							String tokenText = parseTokenAndReturnAsString();
+							error(ParserErrorCode.CommaOrSemicolonExpected, this.offset, this.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION, tokenText);
+						}
 					}
 				}
 				eatWhitespace();
