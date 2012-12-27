@@ -216,9 +216,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			ITypedRegion region = doc.getPartition(wordOffset);
 			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
 				return false;
-			if (wordOffset >= 1 && doc.getChar(wordOffset) == '>' && doc.getChar(wordOffset-1) != '-')
-				return false;
-			if (wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
+			boolean arrow = false;
+			{
+				int arrowOffset = wordOffset - 1;
+				if (arrowOffset >= 1 && doc.getChar(arrowOffset) == '>') {
+					if (doc.getChar(arrowOffset-1) != '-')
+						return false;
+					arrow = true;
+				}
+			}
+			if (!arrow && wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
 				return false;
 		} catch (BadLocationException bl) {
 			return false;
