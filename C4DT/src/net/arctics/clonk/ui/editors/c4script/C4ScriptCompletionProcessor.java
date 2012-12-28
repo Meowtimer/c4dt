@@ -217,13 +217,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
 				return false;
 			boolean arrow = false;
-			{
-				int arrowOffset = wordOffset - 1;
-				if (arrowOffset >= 1 && doc.getChar(arrowOffset) == '>') {
+			for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
+				char c = doc.getChar(arrowOffset);
+				if (c == '>') {
 					if (doc.getChar(arrowOffset-1) != '-')
 						return false;
 					arrow = true;
-				}
+				} else if (Character.isWhitespace(c))
+					continue;
+				else
+					break;
 			}
 			if (!arrow && wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
 				return false;
