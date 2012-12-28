@@ -81,14 +81,6 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		return pref.equals("DE") ? "de" : "en";
 	}
 	
-	public static void commitDefaultsToPrefStore(IPreferenceStore store) {
-		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
-		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
-		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
-		store.setDefault(ANALYZE_CODE, true);
-		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, true);
-	}
-
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = Core.instance().getPreferenceStore();
@@ -96,7 +88,6 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
 		store.setDefault(ANALYZE_CODE, true);
-		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, true);
 	}
 	
 }
