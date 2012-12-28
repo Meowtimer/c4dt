@@ -27,6 +27,7 @@ public class ClonkPreferences {
 	public static final String IGNORE_SIMPLE_FUNCTION_DUPES = "ignoreSimpleFunctionDupes"; //$NON-NLS-1$
 	public static final String ANALYZE_CODE = "analyzeCode";
 	public static final String JAVA_STYLE_BLOCKS = "javaStyleBlocks";
+	public static final String INSTANT_C4SCRIPT_COMPLETIONS = "instantC4ScriptCompletions";
 	
 	// defaults
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
@@ -35,8 +36,12 @@ public class ClonkPreferences {
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
-	public static String valueOrDefault(String prefName) {
-		String def;
+	public static String value(String prefName) {
+        return value(prefName, ClonkPreferences.<String>defaultValue(prefName), null);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected static <T> T defaultValue(String prefName) {
 		try {
 			Field prefField = valueFieldMapping.get(prefName);
 			if (prefField == null)
@@ -47,12 +52,11 @@ public class ClonkPreferences {
 							valueFieldMapping.put(prefName, f);
 							break;
 						}
-	        Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null; //$NON-NLS-1$
-	        def = f != null ? f.get(null).toString() : null;
-        } catch (Exception e) {
-	        def = null;
-        }
-        return value(prefName, def, null);
+			Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null; //$NON-NLS-1$
+			return f != null ? (T)f.get(null) : null;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	
 	public static String value(String prefName, String def, IScopeContext[] contexts) {
@@ -63,16 +67,12 @@ public class ClonkPreferences {
 		}
 	}
 	
-	public static String value(String prefName) {
-		return value(prefName, null, null);
-	}
-	
 	public static boolean toggle(String toggleName, boolean defaultValue) {
 		return Platform.getPreferencesService().getBoolean(Core.PLUGIN_ID, toggleName, defaultValue, null);
 	}
 	
 	public static String languagePref() {
-		return valueOrDefault(PREFERRED_LANGID);
+		return value(PREFERRED_LANGID);
 	}
 	
 	public static String getLanguagePrefForDocumentation() {
