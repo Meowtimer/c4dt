@@ -113,7 +113,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		parser.newTypeEnvironment();
 		if (loopVariable != null) {
 			if (elmType != null)
-				new AccessVar(loopVariable).expectedToBeOfType(elmType, parser);
+				new AccessVar(loopVariable).typingJudgement(elmType, parser);
 			loopVariable.setUsed(true);
 		}
 		parser.reportProblemsOf(body, true);

@@ -2339,7 +2339,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (owningFunc == null) {
 						newTypeEnvironment();
 						reportProblemsOf(init, true);
-						new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
+						new AccessVar(v).typingJudgement(init.type(this), this, TypeExpectancyMode.Force);
 						endTypeEnvironment(true, true);
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())

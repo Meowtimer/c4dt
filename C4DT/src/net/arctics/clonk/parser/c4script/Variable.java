@@ -66,7 +66,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
-	private Variable(String name, PrimitiveType type, String desc) {
+	private Variable(String name, IType type, String desc) {
 		this(name, type, desc, Scope.VAR);
 		staticallyTyped = true;
 	}

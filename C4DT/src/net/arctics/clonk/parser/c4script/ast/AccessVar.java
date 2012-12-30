@@ -182,10 +182,10 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
 		if (declaration() == Variable.THIS)
-			return;
-		super.expectedToBeOfType(type, context, mode, errorWhenFailed);
+			return true;
+		return super.typingJudgement(type, context, mode);
 	}
 
 	@Override
