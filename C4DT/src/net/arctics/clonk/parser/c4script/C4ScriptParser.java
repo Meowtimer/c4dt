@@ -3079,10 +3079,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		int backtrack = this.offset;
 		eatWhitespace();
-		if (isEngine && parseEllipsis()) {
-			seek(backtrack);
+		if (isEngine && parseEllipsis())
 			return addVarParmsParm(function);
-		}
 		if (peek() == ')') {
 			seek(backtrack);
 			return null;
