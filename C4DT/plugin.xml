@@ -280,7 +280,7 @@
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.preferences">
-		<initializer class="net.arctics.clonk.preferences.PreferenceInitializer" />
+		<initializer class="net.arctics.clonk.preferences.ClonkPreferences" />
 	</extension>
 
 	<extension point="org.eclipse.ui.views">

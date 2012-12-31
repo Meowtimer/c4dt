@@ -131,7 +131,7 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 				remainder = true;
 				break;
-			case '…':
+			case 8230: // ellipsis unicode, OSX likes to substitute this for three dots
 				remainder = true;
 				break;
 			case '!':

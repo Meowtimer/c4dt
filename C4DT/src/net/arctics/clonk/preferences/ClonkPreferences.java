@@ -7,13 +7,14 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * Constant definitions for clonk preferences
  */
-public class ClonkPreferences {
+public class ClonkPreferences extends AbstractPreferenceInitializer {
 	
 	// options that are actually stored in the default pref store
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
@@ -80,7 +81,9 @@ public class ClonkPreferences {
 		return pref.equals("DE") ? "de" : "en";
 	}
 	
-	public static void commitDefaultsToPrefStore(IPreferenceStore store) {
+	@Override
+	public void initializeDefaultPreferences() {
+		IPreferenceStore store = Core.instance().getPreferenceStore();
 		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
