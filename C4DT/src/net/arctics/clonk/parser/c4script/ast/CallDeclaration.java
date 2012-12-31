@@ -534,7 +534,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						if (!given.validForType(parm.type(), context))
 							context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
 						else
-							given.expectedToBeOfType(parm.type(), context);
+							given.typingJudgement(parm.type(), context);
 					}
 				}				
 			}
@@ -562,7 +562,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 								types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
 						}
 						IType typeSet = TypeUnification.unify(iterable(types));
-						predecessorInSequence().expectedToBeOfType(typeSet, context);
+						predecessorInSequence().typingJudgement(typeSet, context);
 					}
 				}
 		}

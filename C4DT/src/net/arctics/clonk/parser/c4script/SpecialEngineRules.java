@@ -614,7 +614,7 @@ public abstract class SpecialEngineRules {
 						if (!given.validForType(parmType, parser))
 							parser.warning(ParserErrorCode.IncompatibleTypes, given, 0, parmType, given.type(parser));
 						else
-							given.expectedToBeOfType(parmType, parser);
+							given.typingJudgement(parmType, parser);
 					}
 					return true;
 				}

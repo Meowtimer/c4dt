@@ -166,37 +166,39 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	public void reportProblems(C4ScriptParser context) throws ParsingException {
+		final Operator op = operator();
 		// sanity
 		setExprRegion(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C
-		if (operator().modifiesArgument() && !leftSide().isModifiable(context))
+		if (op.modifiesArgument() && !leftSide().isModifiable(context))
 			context.error(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
 		// obsolete operators in #strict 2
-		if ((operator() == Operator.StringEqual || operator() == Operator.ne) && (context.strictLevel() >= 2))
-			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, operator().operatorName());
+		if ((op == Operator.StringEqual || op == Operator.ne) && (context.strictLevel() >= 2))
+			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, op.operatorName());
 		// wrong parameter types
-		if (!leftSide().validForType(operator().firstArgType(), context))
-			context.warning(ParserErrorCode.IncompatibleTypes, leftSide(), 0, operator().firstArgType(), leftSide().type(context));
-		if (!rightSide().validForType(operator().secondArgType(), context))
-			context.warning(ParserErrorCode.IncompatibleTypes, rightSide(), 0, operator().secondArgType(), rightSide().type(context));
+		if (!leftSide().validForType(op.firstArgType(), context))
+			context.warning(ParserErrorCode.IncompatibleTypes, leftSide(), 0, op.firstArgType(), leftSide().type(context));
+		if (!rightSide().validForType(op.secondArgType(), context))
+			context.warning(ParserErrorCode.IncompatibleTypes, rightSide(), 0, op.secondArgType(), rightSide().type(context));
 
 		IType expectedLeft, expectedRight;
-		switch (operator()) {
+		switch (op) {
 		case Assign: case Equal:
 			expectedLeft = expectedRight = null;
 			break;
 		default:
-			expectedLeft  = operator().firstArgType();
-			expectedRight = operator().secondArgType();
+			expectedLeft  = op.firstArgType();
+			expectedRight = op.secondArgType();
 		}
 		
 		if (expectedLeft != null)
-			leftSide().expectedToBeOfType(expectedLeft, context);
+			leftSide().typingJudgement(expectedLeft, context);
 		if (expectedRight != null)
-			rightSide().expectedToBeOfType(expectedRight, context);
+			rightSide().typingJudgement(expectedRight, context);
 
-		switch (operator()) {
-		case Assign: case AssignAdd: case AssignSubtract: case AssignMultiply: case AssignModulo: case AssignDivide:
+		switch (op) {
+		case Assign: case AssignAdd: case AssignSubtract:
+		case AssignMultiply: case AssignModulo: case AssignDivide:
 			leftSide().assignment(rightSide(), context);
 			break;
 		default:
