@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.search;
 
 import static net.arctics.clonk.util.Utilities.threadPool;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -39,9 +40,15 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	}
 	
 	private void addMatch(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+		Match m = match(match, parser, s, l, subst);
+		result.addMatch(m);
+	}
+
+	protected static Match match(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
 		String line = parser.bufferSubstringAtRegion(lineRegion);
-		result.addMatch(new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst));
+		Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
+		return m;
 	}
 
 	private final String templateText;
@@ -77,6 +84,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 			public void receivedObject(ExecutorService item) {
 				class ScriptSearcher implements Runnable, IASTVisitor {
 					private final C4ScriptParser parser;
+					private final Map<String, Match> matches = new HashMap<String, Match>();
 					public ScriptSearcher(Script script) {
 						C4ScriptParser p = null;
 						try {
@@ -90,11 +98,20 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 					public void run() {
 						if (parser == null)
 							return;
-						for (Function f : parser.script().functions())
+						for (Function f : parser.script().functions()) {
 							f.code().traverse(this, parser);
+							commitMatches();
+						}
 						for (Variable v : parser.script().variables())
-							if (v.initializationExpression() != null)
+							if (v.initializationExpression() != null) {
 								v.initializationExpression().traverse(this, parser);
+								commitMatches();
+							}
+					}
+					private void commitMatches() {
+						for (Match m : matches.values())
+							result.addMatch(m);
+						matches.clear();
 					}
 					@Override
 					public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {

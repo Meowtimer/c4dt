@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -70,16 +71,28 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 	}
 	
+	/**
+	 * Some extra flags specified via [...] after placeholder name
+	 * @author madeen
+	 *
+	 */
+	public enum Flag {
+		/** Accumulate matches found in function block instead of listing matches on their own */
+		Accumulative
+	}
+	
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
 
 	private Class<? extends ExprElm> requiredClass;
 	private Pattern stringRepresentationPattern;
 	private boolean remainder;
 	private ExprElm[] subElements;
-	private Function transformation;
+	private Function code;
 	private Pattern parameterPattern;
 	private String property;
-
+	private EnumSet<Flag> flags;
+	
+	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
 	public Class<? extends ExprElm> requiredClass() { return requiredClass; }
 	public boolean remainder() { return remainder; }
@@ -118,19 +131,19 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 				remainder = true;
 				break;
-			case '…':
+			case 8230: // ellipsis unicode, OSX likes to substitute this for three dots
 				remainder = true;
 				break;
 			case '!':
-				transformation = new SelfContainedScript(entry, String.format("func Transform(value) { return %s; }",
+				code = new SelfContainedScript(entry, String.format("func Transform(value) { return %s; }",
 					scanner.readString(scanner.bufferSize()-scanner.tell())), new Index())
-				{
-					private static final long serialVersionUID = 1L;
-					@Override
-					public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
-						return Arrays.asList(TRANSFORMATIONS);
-					};
-				}.findFunction("Transform");
+					{
+						private static final long serialVersionUID = 1L;
+						@Override
+						public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
+							return Arrays.asList(TRANSFORMATIONS);
+						};
+					}.findFunction("Transform");
 				break;
 			case '^': {
 				int start = scanner.tell();
@@ -150,6 +163,21 @@ public class MatchingPlaceholder extends Placeholder {
 				property = scanner.readStringAt(start, end);
 				break;
 			}
+			case '[':
+				int end = start;
+				while (!scanner.reachedEOF() && scanner.peek() != ']') {
+					scanner.read();
+					end++;
+				}
+				if (end > start) {
+					String[] attribs = scanner.readStringAt(start, end).split(",");
+					this.flags = EnumSet.noneOf(Flag.class);
+					for (int i = 0; i < attribs.length; i++) {
+						String a = attribs[i].trim();
+						flags.add(Flag.valueOf(Character.toUpperCase(a.charAt(0))+a.substring(1)));
+					}
+				}
+				break;
 			default:
 				scanner.unread();
 				String className = scanner.readIdent();
@@ -179,11 +207,11 @@ public class MatchingPlaceholder extends Placeholder {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		if (transformation != null)
+		if (code != null)
 			try {
 				if (substitution instanceof ExprElm[])
 					substitution = Arrays.asList((ExprElm[])substitution);
-				substitution = transformation.invoke(substitution);
+				substitution = code.invoke(substitution);
 				if (substitution instanceof List)
 					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List<ExprElm>) substitution).size()]);
 			} catch (Exception e) {
@@ -234,8 +262,8 @@ public class MatchingPlaceholder extends Placeholder {
 			attribs.add(stringRepresentationPattern.pattern());
 		if (property != null)
 			attribs.add('>'+property);
-		if (transformation != null)
-			attribs.add('!'+transformation.body().subElements()[0].subElements()[0].toString());
+		if (code != null)
+			attribs.add('!'+code.body().subElements()[0].subElements()[0].toString());
 		if (attribs.size() > 0) {
 			builder.append(":");
 			builder.append(StringUtil.blockString("", "", ",", attribs));

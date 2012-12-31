@@ -264,6 +264,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
+		if (declaration == null)
+			return false;
 		try {
 			int replaceOffset = getReplacementOffset();
 			if (offset >= replaceOffset) {
@@ -271,6 +273,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 				for (String s : identifiers())
 					if (s.toLowerCase().contains(prefix))
 						return true;
+				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				if (declaration.name().toLowerCase().contains(content))
+					return true;
+				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
+					return true;
 			}
 		} catch (BadLocationException e) {
 			// concurrent modification - ignore
