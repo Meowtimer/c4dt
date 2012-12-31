@@ -185,6 +185,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
+		try {
+			ITypedRegion region = doc.getPartition(wordOffset);
+			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
+				return null;
+		} catch (BadLocationException e) {}
+		
 		boolean returnProposals = activeFunc == null
 			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
 			: proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
@@ -214,9 +220,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		final Function activeFunc
 	) {
 		try {
-			ITypedRegion region = doc.getPartition(wordOffset);
-			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
-				return false;
 			boolean arrow = false;
 			for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
 				char c = doc.getChar(arrowOffset);
