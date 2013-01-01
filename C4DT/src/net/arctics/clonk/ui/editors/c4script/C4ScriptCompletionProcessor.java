@@ -50,7 +50,6 @@ import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.Profiled;
-import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -74,6 +73,7 @@ import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -398,21 +398,38 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return result;
 	}
 
-	private ClonkCompletionProposal callbackProposal(String prefix, final String callback, final boolean funcSupplied, List<ICompletionProposal> proposals, int offset, final Variable... parmTypes) {
-		ImageRegistry reg = Core.instance().getImageRegistry();
-		if (reg.get("callback") == null) //$NON-NLS-1$
-			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+	private ClonkCompletionProposal callbackProposal(
+		final String prefix,
+		final String callback,
+		final String nameFormat,
+		final String displayString,
+		final boolean funcSupplied,
+		final List<ICompletionProposal> proposals,
+		final int offset,
+		final Variable... parameters
+	) {
+		Image img = UI.imageForPath("icons/callback.png"); //$NON-NLS-1$
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			null, "", offset, replacementLength,  //$NON-NLS-1$
-			0, reg.get("callback") , callback != null ? callback : Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, //$NON-NLS-1$
+			0, img, callback != null ? callback : displayString,
 			null, null, Messages.C4ScriptCompletionProcessor_Callback, editor()
 		) {
 			@Override
 			public boolean validate(IDocument document, int offset, DocumentEvent event) {
-				return callback == null ? true : super.validate(document, offset, event);
+				if (callback == null)
+					return true;
+				else {
+					int replaceOffset = getReplacementOffset();
+					try {
+						String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+						return stringMatchesPrefix(callback, prefix);
+					} catch (BadLocationException e) {
+						return false;
+					}
+				}
 			}
 			@Override
 			public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
@@ -425,9 +442,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						e.printStackTrace();
 						return;
 					}
+				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
-					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, parmTypes); //$NON-NLS-1$
+					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, parameters); //$NON-NLS-1$
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}
@@ -453,23 +471,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (prefix != null)
 					if (!stringMatchesPrefix(callback, prefix))
 						continue;
-				callbackProposal(prefix, callback, funcSupplied, proposals, offset).setCategory(Category.Callbacks);
+				callbackProposal(prefix, callback, "%s", null, funcSupplied, proposals, offset).setCategory(Category.Callbacks); //$NON-NLS-1$
 			}
 
 			// propose to just create function with the name already typed
 			if (untamperedPrefix != null && untamperedPrefix.length() > 0)
-				callbackProposal(prefix, null, funcSupplied, proposals, offset).setCategory(Category.NewFunction);
+				callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, proposals, offset).setCategory(Category.NewFunction); //$NON-NLS-1$
 
 			// propose creating effect functions
-			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix);
 			for (String s : EffectFunction.DEFAULT_CALLBACKS) {
 				IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
 				Variable parms[] = new Variable[] {
 					new Variable("obj", parameterTypes[0]), //$NON-NLS-1$
 					new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
 				};
-				callbackProposal(prefix, EffectFunction.functionName(capitalizedPrefix, s),
-					funcSupplied, proposals, wordOffset, parms).setCategory(Category.EffectCallbacks);
+				callbackProposal(prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
+					String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, proposals, wordOffset, parms).setCategory(Category.EffectCallbacks);
 			}
 
 			if (!funcSupplied) {
