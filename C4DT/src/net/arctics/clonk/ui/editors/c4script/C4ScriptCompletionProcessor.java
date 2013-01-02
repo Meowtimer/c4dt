@@ -419,16 +419,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		) {
 			@Override
 			public boolean validate(IDocument document, int offset, DocumentEvent event) {
-				if (callback == null)
-					return true;
-				else {
-					int replaceOffset = getReplacementOffset();
-					try {
-						String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-						return stringMatchesPrefix(callback, prefix);
-					} catch (BadLocationException e) {
-						return false;
-					}
+				int replaceOffset = getReplacementOffset();
+				try {
+					String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+					for (String kw : BuiltInDefinitions.DECLARATORS)
+						if (kw.toLowerCase().equals(prefix))
+							return false;
+					return callback == null || stringMatchesPrefix(callback, prefix);
+				} catch (BadLocationException e) {
+					return false;
 				}
 			}
 			@Override
@@ -464,6 +463,23 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		boolean directiveExpectingDefinition =
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) || //$NON-NLS-1$
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString()); //$NON-NLS-1$
+		
+		for (String kw: BuiltInDefinitions.DECLARATORS)
+			if (precededBy(viewer, offset, kw))
+				return false;
+		
+		IDocument doc = viewer.getDocument();
+		Check: for (int i = offset; i >= 0; i--)
+			try {
+				switch (doc.getChar(i)) {
+				case '(': case ',': case '=': case ':':
+					return false;
+				case '\n': case '\r':
+					break Check;
+				}
+			} catch (BadLocationException e) {
+				break;
+			}
 
 		if (!directiveExpectingDefinition) {
 			// propose creating functions for standard callbacks
@@ -473,7 +489,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						continue;
 				callbackProposal(prefix, callback, "%s", null, funcSupplied, proposals, offset).setCategory(Category.Callbacks); //$NON-NLS-1$
 			}
-
 			// propose to just create function with the name already typed
 			if (untamperedPrefix != null && untamperedPrefix.length() > 0)
 				callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, proposals, offset).setCategory(Category.NewFunction); //$NON-NLS-1$
@@ -490,7 +505,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 
 			if (!funcSupplied) {
-
 				// propose declaration keywords (var, static, ...)
 				for(String declarator : BuiltInDefinitions.DECLARATORS) {
 					if (prefix != null)
@@ -505,7 +519,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					prop.setCategory(Category.Keywords);
 					proposals.add(prop);
 				}
-
 				// propose directives (#include, ...)
 				for(String directive : BuiltInDefinitions.DIRECTIVES) {
 					if (prefix != null)
@@ -522,7 +535,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 			}
 		}
-
 		// propose objects for #include or something
 		if (directiveExpectingDefinition) {
 			if (prefix == null)
@@ -530,13 +542,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.STATIC_VARIABLES);
 		}
-		
 		return true;
 	}
 
 	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
 		try {
-			return offset >= 5 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  
+			return offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  
 		} catch (BadLocationException e) {
 			return false;
 		}

@@ -549,7 +549,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					}
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited))
-						context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
+						context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 				} else if (context.findDefinitionViaCall() && predecessorInSequence() != null) {
 					Index index = context.script().index();
 					index.loadScriptsContainingDeclarationsNamed(declarationName);

@@ -270,6 +270,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			int replaceOffset = getReplacementOffset();
 			if (offset >= replaceOffset) {
 				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				if (prefix.length() == 0)
+					return false;
 				for (String s : identifiers())
 					if (s.toLowerCase().contains(prefix))
 						return true;
