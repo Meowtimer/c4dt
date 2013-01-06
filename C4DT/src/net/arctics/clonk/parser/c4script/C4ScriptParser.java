@@ -1691,7 +1691,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					} else {
 						ExprElm firstExpr = parseExpression(reportErrors);
 						if (firstExpr == null) {
-							firstExpr = ExprElm.nullExpr(this.offset, 0, this);
+							firstExpr = ExprElm.whitespace(this.offset, 0, this);
 							// might be disabled
 							error(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
 						}
@@ -1931,16 +1931,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	private void parseRestOfTuple(List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
 		boolean expectingComma = false;
+		int lastStart = this.offset;
 		Loop: while (!reachedEOF()) {
 			eatWhitespace();
 			switch (read()) {
 			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0, this));
+					listToAddElementsTo.add(ExprElm.whitespace(lastStart, this.offset-lastStart, this));
 				break Loop;
 			case ',':
 				if (!expectingComma)
-					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0, this));
+					listToAddElementsTo.add(ExprElm.whitespace(lastStart, this.offset-lastStart, this));
 				expectingComma = false;
 				break;
 			default:
@@ -1962,6 +1963,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 				expectingComma = true;
 			}
+			lastStart = this.offset;
 		}
 	}
 	
@@ -2822,7 +2824,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		ExprElm condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.nullExpr(this.offset, 0, this); // while () is valid
+			condition = ExprElm.whitespace(this.offset, 0, this); // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
@@ -2846,7 +2848,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		ExprElm condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.nullExpr(this.offset, 0, this); // if () is valid
+			condition = ExprElm.whitespace(this.offset, 0, this); // if () is valid
 		eatWhitespace();
 		expect(')');
 		int offsetBeforeWhitespace = this.offset;
