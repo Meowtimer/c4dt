@@ -114,8 +114,8 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parser Parser used to adjust the expression location to be relative to the function body
 	 * @return The constructed null expression
 	 */
-	public static final ExprElm nullExpr(int start, int length, C4ScriptParser parser) {
-		ExprElm result = new ExprElm();
+	public static final ExprElm whitespace(int start, int length, C4ScriptParser parser) {
+		ExprElm result = new Whitespace();
 		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
 		return result;
 	}
