@@ -8,12 +8,14 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
@@ -23,9 +25,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 
 	protected EditorType editor;
+	protected Image defIcon;
 	
 	public ClonkCompletionProcessor(EditorType editor) {
 		this.editor = editor;
+		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
 	}
 	
 	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
@@ -45,13 +49,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(def.toString());
-		}
+		} catch (Exception e) {}
 	}
 	
 	protected IFile pivotFile() {
