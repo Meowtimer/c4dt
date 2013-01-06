@@ -193,7 +193,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return The first parent of the given class or null if such parent does not exist
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends ExprElm> T parentOfType(Class<T> cls) {
+	public <T> T parentOfType(Class<T> cls) {
 		ExprElm e;
 		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;

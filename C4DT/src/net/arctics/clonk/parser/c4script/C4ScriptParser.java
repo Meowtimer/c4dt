@@ -141,10 +141,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private boolean statementReached;
 	/**
-	 * Stores the current loop the parser is parsing.
-	 */
-	private LoopType currentLoop;
-	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
@@ -2572,7 +2568,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (expression != null) {
 							result = new SimpleStatement(expression);
 							if (!options.contains(ParseStatementOption.InitializationStatement))
-								result = statementNeedingSemicolon(result);
+								result = needsSemicolon(result);
 						}
 						else
 							result = null;
@@ -2772,7 +2768,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
-	private <T extends Statement> T statementNeedingSemicolon(T statement) {
+	private <T extends Statement> T needsSemicolon(T statement) {
 		statement.setFinishedProperly(parseSemicolonOrReturnFalse());
 		return statement;
 	}
@@ -2794,16 +2790,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result = parseDoWhile();
 		else if (keyWord.equals(Keywords.For))
 			result = parseFor();
-		else if (keyWord.equals(Keywords.Continue)) {
-			result = statementNeedingSemicolon(new ContinueStatement());
-			if (currentLoop == null)
-				result.setFlagsEnabled(ExprElm.MISPLACED, true);
-		}
-		else if (keyWord.equals(Keywords.Break)) {
-			result = statementNeedingSemicolon(new BreakStatement());
-			if (currentLoop == null)
-				result.setFlagsEnabled(ExprElm.MISPLACED, true);
-		}
+		else if (keyWord.equals(Keywords.Continue))
+			result = needsSemicolon(new ContinueStatement());
+		else if (keyWord.equals(Keywords.Break))
+			result = needsSemicolon(new BreakStatement());
 		else if (keyWord.equals(Keywords.Return))
 			result = parseReturn();
 		else
@@ -2966,7 +2956,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		expect(')');
 		eatWhitespace();
 		savedOffset = this.offset;
-		currentLoop = loopType;
 		body = parseStatement();
 		if (body == null)
 			error(ParserErrorCode.StatementExpected, savedOffset, savedOffset+4, NO_THROW);
@@ -2991,12 +2980,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private WhileStatement parseWhile() throws ParsingException {
 		int offset;
 		WhileStatement result;
-		currentLoop = LoopType.While;
-		//			if (!readWord.equals(readWord.toLowerCase())) {
-		//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-		//				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-		//				throw new ParsingException(problem);
-		//			}
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
