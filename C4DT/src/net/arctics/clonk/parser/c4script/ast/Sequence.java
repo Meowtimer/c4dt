@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
@@ -89,5 +91,17 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			if (elements[i] == element)
 				return i+1 < elements.length ? elements[i+1] : null;
 		return null;
+	}
+	@Override
+	public void reportProblems(C4ScriptParser parser) throws ParsingException {
+		ExprElm p = null;
+		for (ExprElm e : elements) {
+			if (
+				(e != null && !e.isValidInSequence(p, parser)) ||
+				(p != null && !p.allowsSequenceSuccessor(parser, e))
+			)
+				parser.error(ParserErrorCode.NotAllowedHere, e, C4ScriptParser.NO_THROW, e);
+			p = e;
+		}
 	}
 }

@@ -1520,7 +1520,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int off = this.offset;
 		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
 			off--;
-		error(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION, token);
+		error(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, token);
 	}
 	
 	private boolean parseStaticFieldOperator_() {
@@ -1942,6 +1942,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				break;
 			default:
 				unread();
+				if (expectingComma)
+					tokenExpectedError(",");
 				if (listToAddElementsTo.size() > 100)
 					error(ParserErrorCode.InternalError, this.offset, this.offset, 0, Messages.InternalError_WayTooMuch);
 				//	break;
