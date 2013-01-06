@@ -140,13 +140,7 @@ public abstract class Utilities {
 		return false;
 	}
 	
-	/**
-	 * Return the hops needed to get to a parent folder of a that also contains b
-	 * @param a
-	 * @param b
-	 * @return The distance to a container that both a and b are contained in
-	 */
-	public static int distanceToCommonContainer(IResource a, IResource b) {
+	private static int distanceToCommonContainer(IResource a, IResource b, Scenario aScenario, Scenario bScenario) {
 		IContainer c;
 		int dist = 0;
 		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
@@ -154,8 +148,10 @@ public abstract class Utilities {
 				break;
 			dist++;
 		}
-		Scenario aScenario = Scenario.containingScenario(a);
-		Scenario bScenario = Scenario.containingScenario(b);
+		if (aScenario == null)
+			aScenario = Scenario.containingScenario(a);
+		if (bScenario == null)
+			bScenario = Scenario.containingScenario(b);
 		if (aScenario != bScenario) {
 			dist += 500; // penalty for scenario boundary
 			if (aScenario != null && bScenario != null)
@@ -172,22 +168,26 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(Iterable<T> fromList, IResource resource, IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(List<T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
-		if (fromList != null)
+		if (fromList != null) {
+			if (fromList.size() == 1)
+				return fromList.get(0);
+			Scenario scen = Scenario.containingScenario(resource);
 			for (T o : fromList) {
 				if (filter != null && !filter.test(o))
 					continue;
 				IResource res = o.resource();
 				int newDist = res != null
-					? distanceToCommonContainer(resource, res)
-					: 10000;
+					? distanceToCommonContainer(resource, res, scen, null)
+					: Integer.MAX_VALUE;
 				if (best == null || newDist < bestDist) {
 					best = o;
 					bestDist = newDist;
 				}
 			}
+		}
 		return best;
 	}
 	

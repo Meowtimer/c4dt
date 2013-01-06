@@ -8,6 +8,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
@@ -16,16 +17,19 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected EditorType editor;
 	protected String prefix;
+	protected Image defIcon;
 	
 	public EditorType editor() { return editor; }
 	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
 		this.editor = editor;
+		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
 		assistant.setSorter(this);
 	}
 	
@@ -47,13 +51,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(def.toString());
-		}
+		} catch (Exception e) {}
 	}
 	
 	protected IFile pivotFile() {
@@ -135,7 +136,16 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				else if (ma.local != mb.local)
 					return ma.local ? -1 : +1;
 			}
-			return ca.compareTo(cb);
+			if (cb.category() != null && ca.category() != null && cb.category() != ca.category())
+				return ca.category().ordinal() - cb.category().ordinal();
+			String dispA = ca.displayString();
+			String dispB = cb.displayString();
+			boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
+			boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
+			if (bracketStartA != bracketStartB)
+				return bracketStartA ? +1 : -1;
+			else
+				return dispA.compareToIgnoreCase(dispB);
 		}
 		return 1;
 	}

@@ -419,7 +419,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		) {
 			@Override
 			public boolean validate(IDocument document, int offset, DocumentEvent event) {
-				int replaceOffset = getReplacementOffset();
+				int replaceOffset = replacementOffset();
 				try {
 					String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
 					for (String kw : BuiltInDefinitions.DECLARATORS)
@@ -432,7 +432,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			@Override
 			public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
-				int replaceOffset = getReplacementOffset();
+				int replaceOffset = replacementOffset();
 				String cb = callback;
 				if (cb == null)
 					try {

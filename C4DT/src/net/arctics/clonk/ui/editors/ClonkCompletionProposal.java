@@ -66,17 +66,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.editor = editor;
 	}
 	
-	public String getReplacementString() {
-		return replacementString;
-	}
-
-	public int getReplacementOffset() {
-		return replacementOffset;
-	}
-
-	public int getReplacementLength() {
-		return replacementLength;
-	}
+	public String replacementString() { return replacementString; }
+	public int replacementOffset() { return replacementOffset; }
+	public int replacementLength() { return replacementLength; }
+	public final Category category() { return category;}
+	public void setCategory(Category category) { this.category = category; }
+	public int cursorPosition() { return cursorPosition; }
 
 	/**
 	 * Creates a new completion proposal based on the provided information. The replacement string is
@@ -207,7 +202,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return displayString();
 	}
 
-	private String displayString() {
+	public String displayString() {
 		if (displayString != null)
 			return displayString;
 		return replacementString;
@@ -237,37 +232,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return result;
 	}
 	
-	public Category category() {
-		return category;
-	}
-	
-	public void setCategory(Category category) {
-		this.category = category;
-	}
-	
-	public int compareTo(ClonkCompletionProposal other) {
-		if (other.category != null && this.category != null && other.category != this.category)
-			return this.category.ordinal() - other.category.ordinal();
-		String dispA = this.displayString();
-		String dispB = other.displayString();
-		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
-		boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
-		if (bracketStartA != bracketStartB)
-			return bracketStartA ? +1 : -1;
-		else
-			return dispA.compareToIgnoreCase(dispB);
-	}
-	
-	public int cursorPosition() {
-		return cursorPosition;
-	}
-	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		if (declaration == null)
 			return false;
 		try {
-			int replaceOffset = getReplacementOffset();
+			int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
 				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
 				if (prefix.length() == 0)
@@ -307,11 +277,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			if (declaration instanceof Function)
 				decName += "()";
 			if (declaration instanceof Definition)
-				return new String[] {getReplacementString(), decName, ((Definition)declaration).id().stringValue()};
+				return new String[] {replacementString(), decName, ((Definition)declaration).id().stringValue()};
 			else
-				return new String[] {getReplacementString(), decName};
+				return new String[] {replacementString(), decName};
 		}
-		return new String[] {getReplacementString()};
+		return new String[] {replacementString()};
 	}
 	
 }

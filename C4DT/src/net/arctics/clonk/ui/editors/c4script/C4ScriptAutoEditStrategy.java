@@ -285,18 +285,18 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		AutoInsertedRegion newOne = null;
-		if (proposal.getReplacementString().endsWith(")") && proposal.cursorPosition() < proposal.getReplacementString().length())
+		if (proposal.replacementString().endsWith(")") && proposal.cursorPosition() < proposal.replacementString().length())
 			overrideRegions.add(newOne = new AutoInsertedRegion(
-				proposal.getReplacementOffset()+proposal.getReplacementString().length()-1, 1,
-				new MutableRegion(proposal.getReplacementOffset()+proposal.getReplacementString().length()-2, proposal.getReplacementLength())
+				proposal.replacementOffset()+proposal.replacementString().length()-1, 1,
+				new MutableRegion(proposal.replacementOffset()+proposal.replacementString().length()-2, proposal.replacementLength())
 			));
-		if (proposal.getReplacementLength() > 0)
-			regionDeleted(proposal.getReplacementOffset(), proposal.getReplacementLength(), newOne, null, null);
+		if (proposal.replacementLength() > 0)
+			regionDeleted(proposal.replacementOffset(), proposal.replacementLength(), newOne, null, null);
 		for (MutableRegion r : overrideRegions) {
 			if (r == newOne)
 				continue;
-			if (r.getOffset() >= proposal.getReplacementOffset())
-				r.incOffset(proposal.getReplacementString().length());
+			if (r.getOffset() >= proposal.replacementOffset())
+				r.incOffset(proposal.replacementString().length());
 		}
 	}
 
