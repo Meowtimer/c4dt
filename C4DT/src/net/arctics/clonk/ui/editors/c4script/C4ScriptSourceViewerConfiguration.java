@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
@@ -18,6 +17,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -32,6 +32,36 @@ import org.eclipse.swt.widgets.Shell;
 
 public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<C4ScriptEditor> {
 	
+	public final class C4ScriptContentAssistant extends ContentAssistant {
+		public C4ScriptContentAssistant(ISourceViewer sourceViewer) {
+			C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(), this);
+			for (String s : CStylePartitionScanner.PARTITIONS)
+				setContentAssistProcessor(processor, s);
+			install(sourceViewer);
+			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
+			setRepeatedInvocationMode(true);
+			setStatusLineVisible(true);
+			setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_StandardProposals);
+			enablePrefixCompletion(false);
+			enableAutoInsert(true);
+			enableAutoActivation(true);
+			setAutoActivationDelay(0);
+			enableColoredLabels(true);
+			setInformationControlCreator(new IInformationControlCreator() {
+				@Override
+				public IInformationControl createInformationControl(Shell parent) {
+					DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
+					return def;
+				}
+			});
+		}
+		// make these public
+		@Override
+		public void hide() { super.hide(); }
+		@Override
+		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
+	}
+
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
@@ -72,46 +102,18 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
 		return doubleClickStrategy;
 	}
-
-	private ClonkContentAssistant assistant;
 	
+	private ContentAssistant contentAssistant;
+
 	@Override
-	public ClonkContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-		if (assistant != null)
-			return assistant;
-		
-		assistant = new ClonkContentAssistant();
-		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(editor(), assistant);
-		for (String s : CStylePartitionScanner.PARTITIONS)
-			assistant.setContentAssistProcessor(processor, s);
-		assistant.install(sourceViewer);
-		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-		assistant.setRepeatedInvocationMode(true);
-		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_StandardProposals);
-		
-		assistant.enablePrefixCompletion(false);
-		assistant.enableAutoInsert(true);
-		assistant.enableAutoActivation(true);
-		assistant.setAutoActivationDelay(0);
-		
-		assistant.enableColoredLabels(true);
-		
-		assistant.setInformationControlCreator(new IInformationControlCreator() {
-			@Override
-			public IInformationControl createInformationControl(Shell parent) {
-//				BrowserInformationControl control = new BrowserInformationControl(parent, "Arial", "Press 'Tab' from proposal table or click for focus");
-				DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
-				return def;
-			}
-		});
-		
-		
-		return assistant;
+	public ContentAssistant getContentAssistant(final ISourceViewer sourceViewer) {
+		if (contentAssistant == null)
+			contentAssistant = new C4ScriptContentAssistant(sourceViewer);
+		return contentAssistant;
 	}
 	
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unn�tz
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new C4ScriptQuickAssistProcessor());
 		return assistant;

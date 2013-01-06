@@ -44,10 +44,10 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
-import net.arctics.clonk.ui.editors.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.ClonkContextInformation;
 import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.UI;
@@ -627,9 +627,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			// HACK: if changed, hide the old one -.-
 			if (!Utilities.objectsEqual(prevInformation, info)) {
-				ClonkContentAssistant assistant = this.editor().getContentAssistant();
-				//if (!assistant.isProposalPopupActive())
-				assistant.hide();
+				C4ScriptContentAssistant assistant = as(this.editor().contentAssistant(), C4ScriptContentAssistant.class);
+				if (assistant != null)
+					assistant.hide();
 			}
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {
