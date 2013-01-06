@@ -1,9 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 /**
  * Base class for statements which begin with a keyword.
@@ -31,12 +28,5 @@ public abstract class KeywordStatement extends Statement {
 		if (!(body instanceof EmptyStatement))
 			Conf.blockPrelude(builder, depth);
 		body.print(builder, depth);
-	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		if (flagsEnabled(MISPLACED))
-			parser.error(ParserErrorCode.KeywordInWrongPlace, this, C4ScriptParser.NO_THROW, this.toString());
 	}
 }
