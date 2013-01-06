@@ -80,13 +80,8 @@ public class ArraySliceExpression extends ExprElm {
 	}
 	
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return true;
-	}
-	
+	public boolean isModifiable(C4ScriptParser context) { return true; }
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-		return predecessor != null;
-	}
+	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor != null; }
 	
 }

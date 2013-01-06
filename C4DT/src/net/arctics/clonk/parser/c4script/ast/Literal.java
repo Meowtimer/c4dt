@@ -40,11 +40,6 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	}
 
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-		return predecessor == null;
-	}
-
-	@Override
 	public boolean isConstant() {
 		return true;
 	}
@@ -80,5 +75,10 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	public String patternMatchingText() {
 		return literal() != null ? literal().toString() : null;
 	}
+	
+	@Override
+	public boolean allowsSequenceSuccessor(C4ScriptParser context, ExprElm successor) { return false; }
+	@Override
+	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor == null; }
 
 }

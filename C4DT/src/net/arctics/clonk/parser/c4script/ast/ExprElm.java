@@ -258,13 +258,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		print(new AppendableBackedExprWriter(builder), depth);
 	}
 
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-		return predecessor == null;
-	}
-	
-	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
-		return true;
-	}
+	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor == null; }
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return true; }
+	public boolean allowsSequenceSuccessor(C4ScriptParser context, ExprElm successor) { return true; }
 	
 	/**
 	 * Return type of the expression, adjusting the result of obtainType under some circumstances
