@@ -37,13 +37,13 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.ui.editors.ClonkContextInformation;
 import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
@@ -280,6 +280,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
 				innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
+				cats.defaultOrdering();
+				if (innermostCallFunc != null && innermostCallFunc == contextExpression.parent()) {
+					// elevate definition proposals for parameters of id type
+					Variable parm = innermostCallFunc.parmDefinitionForParmExpression(contextExpression);
+					if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
+						TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null)
+						cats.Definitions = -1;
+				}
 				if (
 					contextExpression instanceof MemberOperator ||
 					(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
@@ -487,11 +495,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (prefix != null)
 					if (!stringMatchesPrefix(callback, prefix))
 						continue;
-				callbackProposal(prefix, callback, "%s", null, funcSupplied, proposals, offset).setCategory(Category.Callbacks); //$NON-NLS-1$
+				callbackProposal(prefix, callback, "%s", null, funcSupplied, proposals, offset).setCategory(cats.Callbacks); //$NON-NLS-1$
 			}
 			// propose to just create function with the name already typed
 			if (untamperedPrefix != null && untamperedPrefix.length() > 0)
-				callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, proposals, offset).setCategory(Category.NewFunction); //$NON-NLS-1$
+				callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, proposals, offset).setCategory(cats.NewFunction); //$NON-NLS-1$
 
 			// propose creating effect functions
 			for (String s : EffectFunction.DEFAULT_CALLBACKS) {
@@ -501,7 +509,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
 				};
 				callbackProposal(prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
-					String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, proposals, wordOffset, parms).setCategory(Category.EffectCallbacks);
+					String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, proposals, wordOffset, parms).setCategory(cats.EffectCallbacks);
 			}
 
 			if (!funcSupplied) {
@@ -516,7 +524,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
-					prop.setCategory(Category.Keywords);
+					prop.setCategory(cats.Keywords);
 					proposals.add(prop);
 				}
 				// propose directives (#include, ...)
@@ -530,7 +538,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
-					prop.setCategory(Category.Directives);
+					prop.setCategory(cats.Directives);
 					proposals.add(prop);
 				}
 			}

@@ -20,17 +20,6 @@ import org.eclipse.swt.graphics.Point;
 
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 	
-	public enum Category {
-		Variables,
-		Keywords,
-		Functions,
-		Definitions,
-		NewFunction,
-		Callbacks,
-		EffectCallbacks,
-		Directives
-	}
-	
 	/** Associated declaration */
 	private final Declaration declaration;
 	
@@ -58,7 +47,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	private ClonkTextEditor editor;
 	
 	/** Category for sorting */
-	private Category category;
+	private int category;
 	
 	private boolean displayStringRecomputationNecessary;
 
@@ -69,8 +58,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	public String replacementString() { return replacementString; }
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
-	public final Category category() { return category;}
-	public void setCategory(Category category) { this.category = category; }
+	public final int category() { return category;}
+	public void setCategory(int category) { this.category = category; }
 	public int cursorPosition() { return cursorPosition; }
 
 	/**
@@ -282,6 +271,14 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 				return new String[] {replacementString(), decName};
 		}
 		return new String[] {replacementString()};
+	}
+	
+	public String primaryComparisonIdentifier() {
+		if (declaration instanceof Definition)
+			return ((Definition)declaration).id().stringValue();
+		if (displayString != null)
+			return displayString;
+		return replacementString;
 	}
 	
 }

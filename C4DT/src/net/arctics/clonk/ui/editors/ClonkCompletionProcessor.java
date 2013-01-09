@@ -9,7 +9,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
@@ -25,6 +24,31 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected EditorType editor;
 	protected String prefix;
 	protected Image defIcon;
+	
+	protected static class CategoryOrdering {
+		public int
+			Variables,
+			Keywords,
+			Functions,
+			Definitions,
+			NewFunction,
+			Callbacks,
+			EffectCallbacks,
+			Directives;
+		public void defaultOrdering() {
+			int i = 0;
+			Variables = ++i;
+			Keywords = ++i;
+			Functions = ++i;
+			Definitions = ++i;
+			NewFunction = ++i;
+			Callbacks = ++i;
+			EffectCallbacks = ++i;
+			Directives = ++i;
+		}
+		{ defaultOrdering(); }
+	}
+	protected final CategoryOrdering cats = new CategoryOrdering();
 	
 	public EditorType editor() { return editor; }
 	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
@@ -52,7 +76,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
-			prop.setCategory(Category.Definitions);
+			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {}
 	}
@@ -81,7 +105,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			func, replacement, offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
 		);
-		prop.setCategory(Category.Functions);
+		prop.setCategory(cats.Functions);
 		proposals.add(prop);
 	}
 	
@@ -98,7 +122,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()
 		);
-		prop.setCategory(Category.Variables);
+		prop.setCategory(cats.Variables);
 		proposals.add(prop);
 		return prop;
 	}
@@ -136,16 +160,18 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				else if (ma.local != mb.local)
 					return ma.local ? -1 : +1;
 			}
-			if (cb.category() != null && ca.category() != null && cb.category() != ca.category())
-				return ca.category().ordinal() - cb.category().ordinal();
-			String dispA = ca.displayString();
-			String dispB = cb.displayString();
-			boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
-			boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
+			if (cb.category() != ca.category()) {
+				int diff = Math.abs(cb.category()-ca.category()) * 1000;
+				return cb.category() > ca.category() ? -diff : +diff;
+			}
+			String idA = ca.primaryComparisonIdentifier();
+			String idB = cb.primaryComparisonIdentifier();
+			boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
+			boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
 			if (bracketStartA != bracketStartB)
 				return bracketStartA ? +1 : -1;
 			else
-				return dispA.compareToIgnoreCase(dispB);
+				return idA.compareToIgnoreCase(idB);
 		}
 		return 1;
 	}
