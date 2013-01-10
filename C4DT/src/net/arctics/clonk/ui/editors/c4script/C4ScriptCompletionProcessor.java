@@ -73,6 +73,8 @@ import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
@@ -644,17 +646,35 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			prevInformation = info;
 		}
 	}
+	
+	private char[] proposalAutoActivationCharacters, contextInformationAutoActivationCharacters;
+	
+	private void configureActivation() {
+		proposalAutoActivationCharacters = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
+			? "_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
+			: new char[0];
+		contextInformationAutoActivationCharacters = new char[] {'('};
+	}
+	
+	{
+		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
+					configureActivation();
+			}
+		});
+		configureActivation();
+	}
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? "_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray() //$NON-NLS-1$
-			: new char[0];
+		return proposalAutoActivationCharacters;
 	}
 
 	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
-		return new char[] {'('};
+		return contextInformationAutoActivationCharacters;
 	}
 
 	@Override
@@ -674,4 +694,5 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public String getErrorMessage() {
 		return null;
 	}
+
 }
