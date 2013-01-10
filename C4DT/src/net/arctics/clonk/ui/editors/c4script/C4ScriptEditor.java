@@ -54,6 +54,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
+import net.arctics.clonk.ui.search.C4ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -466,7 +467,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			FindReferencesAction.class,
 			RenameDeclarationAction.class,
 			FindDuplicatesAction.class,
-			ToggleCommentAction.class
+			ToggleCommentAction.class,
+			C4ScriptSearchAction.class
 		);
 	}
 

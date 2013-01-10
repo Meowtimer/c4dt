@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -110,24 +111,32 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return template;
 		}
 	}
+	
+	public static final int MAX_RECENTS = 20;
 
 	private void addRecent() {
 		Recent recent = new Recent(templateText.getText(), replacementText.getText());
 		ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList((Recent[])recentsCombo.getInput()));
-		if (list.indexOf(recent) != -1)
-			return;
+		int ndx = list.indexOf(recent);
+		if (ndx != -1)
+			list.remove(ndx);
 		list.add(recent);
+		while (list.size() > MAX_RECENTS)
+			list.remove(0);
 		recentsCombo.setInput(list.toArray(new Recent[list.size()]));
 		IPreferenceStore prefs = Core.instance().getPreferenceStore();
-		prefs.setValue(PREF_RECENTS, defaulting(prefs.getString(PREF_RECENTS), "") + //$NON-NLS-1$
-			recent.template + RECENTS_SEPARATOR + recent.replacement + RECENTS_SEPARATOR);
+		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list, new IConverter<Recent, String>() {
+			@Override
+			public String convert(Recent recent) {
+				return recent.template + RECENTS_SEPARATOR + recent.replacement + RECENTS_SEPARATOR;
+			}
+		})));
 	}
 	
 	private void readConfiguration() {
 		IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		templateText.setText(defaulting(prefs.getString(PREF_TEMPLATE_TEXT), "")); //$NON-NLS-1$
 		replacementText.setText(defaulting(prefs.getString(PREF_REPLACEMENT_TEXT), "")); //$NON-NLS-1$
-		container.setSelectedScope(prefs.getInt(PREF_SCOPE));
 		
 		//prefs.setValue(PREF_RECENTS, "");
 		String s = prefs.getString(PREF_RECENTS);
@@ -202,6 +211,9 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		container.setActiveEditorCanProvideScopeSelection(true);
+		container.setPerformActionEnabled(true);
+		templateText.setFocus();
+		templateText.selectAll();
 	}
 
 	private C4ScriptSearchQuery newQuery() {

@@ -470,6 +470,11 @@
 			description="%OpenDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			name="%OpenDeclaration_Name" />
+		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%OpenC4ScriptSearch_Desc"
+			id="net.arctics.clonk.ui.editors.actions.C4ScriptSearch"
+			name="%OpenC4ScriptSearch_Name" />
 
 		<command categoryId="net.arctics.clonk.commands"
 			description="%FindReferences_Desc"
@@ -638,11 +643,12 @@
 	
 	<extension point="org.eclipse.search.searchPages">
 		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
-    		id="net.arcitcs.clonk.ui.ClonkSearchPage"
+    		id="net.arctics.clonk.ui.C4ScriptSearchPage"
 			label="%SearchPage_Title"
 			icon="icons/c4scriptIcon.png"
 			showScopeSection="true"
-			canSearchEnclosingProjects="true">
+			canSearchEnclosingProjects="true"
+			enabled="true">
 		</page>
 	</extension>
 	
@@ -772,6 +778,12 @@
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="net.arctics.clonk.context"
 			sequence="F3">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.C4ScriptSearch"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M3+F">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.TidyUpCode"
