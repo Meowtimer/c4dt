@@ -130,7 +130,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		IProject proj = getProject();
 		this.index = ClonkProjectNature.get(getProject()).index();
-		
+
 		if (kind == FULL_BUILD) {
 			if (index.built())
 				return new IProject[] { proj };
