@@ -79,7 +79,7 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
@@ -2339,7 +2339,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (owningFunc == null) {
 						newTypeEnvironment();
 						reportProblemsOf(init, true);
-						new AccessVar(v).typingJudgement(init.type(this), this, TypeExpectancyMode.Force);
+						new AccessVar(v).typingJudgement(init.type(this), this, TypingJudgementMode.Force);
 						endTypeEnvironment(true, true);
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())

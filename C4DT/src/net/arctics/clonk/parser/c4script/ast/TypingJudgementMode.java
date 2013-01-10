@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.c4script.ITypeable;
  * @author madeen
  *
  */
-public enum TypeExpectancyMode {
+public enum TypingJudgementMode {
 	/**
 	 * Expected but not required.
 	 */

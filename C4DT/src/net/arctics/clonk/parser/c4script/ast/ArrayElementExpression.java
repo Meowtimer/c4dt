@@ -128,7 +128,7 @@ public class ArrayElementExpression extends ExprElm {
 				predecessorInSequence().typingJudgement(
 					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 					context,
-					TypeExpectancyMode.Force
+					TypingJudgementMode.Force
 				);
 		}
 	}

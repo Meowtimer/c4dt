@@ -647,13 +647,13 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
 	}
 	
-	public boolean typingJudgement(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		ITypeInfo info;
 		switch (mode) {
 		case Expect: case Force:
 			info = context.requestTypeInfo(this);
 			if (info != null)
-				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
+				if (mode == TypingJudgementMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
 					info.storeType(type);
 					return true;
 				}
@@ -669,7 +669,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 	
 	public final boolean typingJudgement(IType type, C4ScriptParser context) {
-		return typingJudgement(type, context, TypeExpectancyMode.Expect);
+		return typingJudgement(type, context, TypingJudgementMode.Expect);
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
@@ -996,7 +996,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				if (index == null || index != parser.script().index())
 					return;
 
-				typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+				typeable.expectedToBeOfType(type, TypingJudgementMode.Expect);
 			}
 		}
 		

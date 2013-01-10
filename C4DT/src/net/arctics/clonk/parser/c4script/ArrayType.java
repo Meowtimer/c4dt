@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
@@ -195,7 +195,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 		return t;
 	}
 	
-	protected void elementTypeHint(int elementIndex, IType type, TypeExpectancyMode mode) {
+	protected void elementTypeHint(int elementIndex, IType type, TypingJudgementMode mode) {
 		IType known = elementTypeMapping.get(elementIndex);
 		if (known != null)
 			elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));

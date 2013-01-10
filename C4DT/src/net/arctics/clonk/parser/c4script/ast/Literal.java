@@ -19,7 +19,7 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public boolean typingJudgement(IType type, C4ScriptParser parser, TypeExpectancyMode mode) {
+	public boolean typingJudgement(IType type, C4ScriptParser parser, TypingJudgementMode mode) {
 		// constantly steadfast do i resist the pressure of expectancy lied upon me
 		return true;
 	}

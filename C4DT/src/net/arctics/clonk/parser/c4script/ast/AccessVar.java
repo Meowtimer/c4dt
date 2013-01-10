@@ -182,7 +182,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public boolean typingJudgement(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		if (declaration() == Variable.THIS)
 			return true;
 		return super.typingJudgement(type, context, mode);
@@ -300,7 +300,7 @@ public class AccessVar extends AccessDeclaration {
 				@Override
 				public void apply(boolean soft, C4ScriptParser parser) {
 					Variable v = (Variable)origin().declaration();
-					v.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+					v.expectedToBeOfType(type, TypingJudgementMode.Expect);
 				}
 				@Override
 				public void storeType(IType type) {

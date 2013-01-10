@@ -13,7 +13,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
@@ -267,7 +267,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
 		// engine objects should not be altered
 		if (!staticallyTyped && !(script() instanceof Engine))
 			ITypeable.Default.expectedToBeOfType(this, t);
@@ -417,7 +417,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	public void initializeFromAssignment(ExprElm referee, ExprElm expression, DeclarationObtainmentContext context) {
 		IType type = expression.type(context);
-		expectedToBeOfType(type, TypeExpectancyMode.Expect);
+		expectedToBeOfType(type, TypingJudgementMode.Expect);
 		setLocation(context.absoluteSourceLocationFromExpr(referee));
 		forceType(type);
 		setInitializationExpression(expression);
