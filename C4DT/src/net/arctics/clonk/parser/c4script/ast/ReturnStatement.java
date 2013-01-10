@@ -122,6 +122,6 @@ public class ReturnStatement extends KeywordStatement {
 						currentFunction.returnType().typeName(true), returnExpr.type(parser));
 			}
 			else
-				currentFunction.expectedToBeOfType(returnExpr.unresolvedType(parser), TypeExpectancyMode.Force);
+				currentFunction.expectedToBeOfType(returnExpr.unresolvedType(parser), TypingJudgementMode.Force);
 	}
 }

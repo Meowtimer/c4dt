@@ -18,7 +18,7 @@ import org.eclipse.jface.text.Region;
 
 /**
  * Either '->' or '.' operator. As a middleman, this operator delegates some of its operations to its predecessor, like
- * type expectations ({@link #typeJudgement(IType, C4ScriptParser, TypeExpectancyMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(DeclarationObtainmentContext)}).<br/>
+ * type expectations ({@link #typeJudgement(IType, C4ScriptParser, TypingJudgementMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(DeclarationObtainmentContext)}).<br/>
  * Different typing assumptions are made based on the notation.
  * @author madeen
  *
@@ -135,10 +135,10 @@ public class MemberOperator extends ExprElm {
 	
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode, net.arctics.clonk.parser.ParserErrorCode)
+	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
 	 */
 	@Override
-	public boolean typingJudgement(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		// delegate to predecessor
 		if (predecessorInSequence() != null)
 			return predecessorInSequence().typingJudgement(type, context, mode);
@@ -165,7 +165,7 @@ public class MemberOperator extends ExprElm {
 		EngineSettings settings = parser.script().engine().settings();
 		if (pred != null) {
 			IType requiredType = dotNotation ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID);
-			if (!pred.sequenceTilMe().typingJudgement(requiredType, parser, TypeExpectancyMode.Hint))
+			if (!pred.sequenceTilMe().typingJudgement(requiredType, parser, TypingJudgementMode.Hint))
 				parser.warning(dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject, this, 0,
 					pred.sequenceTilMe().type(parser).typeName(false));
 		}

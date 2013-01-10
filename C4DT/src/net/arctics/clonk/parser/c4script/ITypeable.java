@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 
 /**
@@ -13,9 +13,9 @@ public interface ITypeable extends IIndexEntity {
 	/**
 	 * The outside world expects this entity to be of the specified type. Act accordingly.
 	 * @param t The type this entity is expected to be of
-	 * @param mode Strength of expectancy expressed in {@link TypeExpectancyMode} values
+	 * @param mode Strength of expectancy expressed in {@link TypingJudgementMode} values
 	 */
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode);
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode);
 	/**
 	 * Return the current type the entity is deemed to be of.
 	 * @return The current type

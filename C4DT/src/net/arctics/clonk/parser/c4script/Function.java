@@ -26,7 +26,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
@@ -603,8 +603,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
-		if (mode == TypeExpectancyMode.Force)
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
+		if (mode == TypingJudgementMode.Force)
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 
