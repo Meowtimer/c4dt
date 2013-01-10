@@ -20,17 +20,6 @@ import org.eclipse.swt.graphics.Point;
 
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 	
-	public enum Category {
-		Functions,
-		Variables,
-		Definitions,
-		NewFunction,
-		Callbacks,
-		EffectCallbacks,
-		Directives,
-		Keywords
-	}
-	
 	/** Associated declaration */
 	private final Declaration declaration;
 	
@@ -58,7 +47,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	private ClonkTextEditor editor;
 	
 	/** Category for sorting */
-	private Category category;
+	private int category;
 	
 	private boolean displayStringRecomputationNecessary;
 
@@ -69,8 +58,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	public String replacementString() { return replacementString; }
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
-	public final Category category() { return category;}
-	public void setCategory(Category category) { this.category = category; }
+	public final int category() { return category;}
+	public void setCategory(int category) { this.category = category; }
 	public int cursorPosition() { return cursorPosition; }
 
 	/**
@@ -138,7 +127,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		displayStringRecomputationNecessary = true;
 	}
 	
-	public Declaration getDeclaration() {
+	public Declaration declaration() {
 		return declaration;
 	}
 
@@ -162,6 +151,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	@Override
 	public Point getSelection(IDocument document) {
+		getDisplayString();
 		return new Point(replacementOffset + cursorPosition, 0);
 	}
 
@@ -231,21 +221,6 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return result;
 	}
 	
-	public int compareTo(ClonkCompletionProposal other) {
-		if (other.category != null && this.category != null && other.category != this.category)
-			return this.category.ordinal() - other.category.ordinal();
-		String dispA = this.displayString();
-		String dispB = other.displayString();
-		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
-		boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
-		if (bracketStartA && !bracketStartB)
-			return 1;
-		else if (bracketStartB && !bracketStartA)
-			return -1;
-		else
-			return dispA.compareToIgnoreCase(dispB);
-	}
-	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		if (declaration == null)
@@ -253,6 +228,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		try {
 			int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
+				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				if (prefix.length() == 0)
+					return false;
+				for (String s : identifiers())
+					if (s.toLowerCase().contains(prefix))
+						return true;
 				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
 				if (declaration.name().toLowerCase().contains(content))
 					return true;
@@ -277,6 +258,27 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	@Override
 	public void unselected(ITextViewer viewer) {
+	}
+	
+	public String[] identifiers() {
+		if (declaration != null) {
+			String decName = declaration.name();
+			if (declaration instanceof Function)
+				decName += "()";
+			if (declaration instanceof Definition)
+				return new String[] {replacementString(), decName, ((Definition)declaration).id().stringValue()};
+			else
+				return new String[] {replacementString(), decName};
+		}
+		return new String[] {replacementString()};
+	}
+	
+	public String primaryComparisonIdentifier() {
+		if (declaration instanceof Definition)
+			return ((Definition)declaration).id().stringValue();
+		if (displayString != null)
+			return displayString;
+		return replacementString;
 	}
 	
 }

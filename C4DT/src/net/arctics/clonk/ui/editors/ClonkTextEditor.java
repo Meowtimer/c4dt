@@ -26,6 +26,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.source.Annotation;
@@ -337,8 +338,8 @@ public class ClonkTextEditor extends TextEditor {
 		setPreferenceStore(EditorsUI.getPreferenceStore());
 	}
 	
-	public ClonkContentAssistant getContentAssistant() {
-		return (ClonkContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
+	public ContentAssistant contentAssistant() {
+		return (ContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
 	}
 	
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {}

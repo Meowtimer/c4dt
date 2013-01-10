@@ -40,6 +40,7 @@ public class Messages extends NLS {
 	public static String DocURLTemplateDefault;
 	public static String TogglesPreferencePage_AnalyzeCode;
 	public static String TogglesPreferencePage_IgnoreSimpleFunctionDupes;
+	public static String TogglesPreferencePage_InstantCompletions;
 	public static String TogglesPreferencePage_JavaStyleBlocks;
 	static {
 		// initialize resource bundle

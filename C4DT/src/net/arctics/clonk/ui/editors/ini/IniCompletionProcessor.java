@@ -57,9 +57,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private IniSection section;
 
 	public IniCompletionProcessor(IniTextEditor editor, ContentAssistant assistant) {
-		super(editor);
+		super(editor, assistant);
 	}
-
+	
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		Collection<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
@@ -92,6 +92,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			wordOffset = lineStart + m.start(1);
 		}
 		prefix = prefix.toLowerCase();	
+		this.prefix = prefix;
 
 		editor().ensureIniUnitUpToDate();
 		section = editor().unit().sectionAtOffset(offset);
@@ -143,7 +144,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 
-		return sortProposals(proposals);
+		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
 
 	private void proposalsForCategoriesValue(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniEntryDefinition entryDef) {

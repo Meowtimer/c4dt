@@ -86,7 +86,7 @@ public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerC
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(editor());
+		LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(editor(), assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		

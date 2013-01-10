@@ -16,6 +16,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
@@ -27,8 +28,8 @@ public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor
 	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	
-	public LandscapeScriptCompletionProcessor(LandscapeScriptEditor editor) {
-		super(editor);
+	public LandscapeScriptCompletionProcessor(LandscapeScriptEditor editor, ContentAssistant assistant) {
+		super(editor, assistant);
 	}
 
 	@Override
@@ -77,11 +78,9 @@ public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor
 				// enum recommendations
 				if (attr.getType().getSuperclass() == Enum.class) {
 					Enum<?>[] values = Utilities.enumValues(attr.getType());
-					for (Enum<?> v : values) {
-						if (v.name().toLowerCase().startsWith(attrValStart)) {
+					for (Enum<?> v : values)
+						if (v.name().toLowerCase().startsWith(attrValStart))
 							proposals.add(new CompletionProposal(v.name(), lineStart+m.start(2), attrValStart.length(), v.name().length()));
-						}
-					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -91,22 +90,18 @@ public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor
 			String prefix = m.group(1).toLowerCase();
 			if (overlay != null) {
 				Field[] fields = overlay.getClass().getFields();
-				for (Field f : fields) {
-					if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
-						if (f.getName().toLowerCase().startsWith(prefix)) {
+				for (Field f : fields)
+					if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers()))
+						if (f.getName().toLowerCase().startsWith(prefix))
 							proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
-						}
-					}
-				}
 			}
 			
-			for (String keyword : OverlayBase.DEFAULT_CLASS.keySet()) {
+			for (String keyword : OverlayBase.DEFAULT_CLASS.keySet())
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
-			}
 		}
 		
-		return sortProposals(proposals);
+		return proposals.toArray(new ICompletionProposal[proposals.size()]); 
 	}
 
 	@Override

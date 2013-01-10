@@ -1,35 +1,60 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.Arrays;
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Collection;
-import java.util.Comparator;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IFileEditorInput;
 
-public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
-
-	public EditorType editor() {
-		return editor;
-	}
+public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected EditorType editor;
+	protected String prefix;
 	protected Image defIcon;
 	
-	public ClonkCompletionProcessor(EditorType editor) {
+	protected static class CategoryOrdering {
+		public int
+			Variables,
+			Keywords,
+			Functions,
+			Definitions,
+			NewFunction,
+			Callbacks,
+			EffectCallbacks,
+			Directives;
+		public void defaultOrdering() {
+			int i = 0;
+			Variables = ++i;
+			Keywords = ++i;
+			Functions = ++i;
+			Definitions = ++i;
+			NewFunction = ++i;
+			Callbacks = ++i;
+			EffectCallbacks = ++i;
+			Directives = ++i;
+		}
+		{ defaultOrdering(); }
+	}
+	protected final CategoryOrdering cats = new CategoryOrdering();
+	
+	public EditorType editor() { return editor; }
+	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
 		this.editor = editor;
 		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
+		assistant.setSorter(this);
 	}
 	
 	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
@@ -39,10 +64,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			if (prefix != null)
 				if (!(
-					def.name().toLowerCase().contains(prefix) ||
-					def.id().stringValue().toLowerCase().contains(prefix) ||
-					// also check if the user types in the folder name
-					(def instanceof Definition && def.definitionFolder() != null && def.definitionFolder().getName().contains(prefix))
+					stringMatchesPrefix(def.name(), prefix) ||
+					stringMatchesPrefix(def.id().stringValue(), prefix)
+					/* // also check if the user types in the folder name 
+					(def instanceof Definition && def.definitionFolder() != null &&
+					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
 			String displayString = def.name();
@@ -50,7 +76,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
-			prop.setCategory(Category.Definitions);
+			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {}
 	}
@@ -64,9 +90,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
 	
-	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
+	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
+		return name.toLowerCase().contains(lowercasedPrefix);
+	}
+	
+	protected void proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
 		if (prefix != null)
-			if (!func.name().toLowerCase().startsWith(prefix))
+			if (!stringMatchesPrefix(func.name(), prefix))
 				return;
 		int replacementLength = prefix != null ? prefix.length() : 0;
 
@@ -75,12 +105,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			func, replacement, offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
 		);
-		prop.setCategory(Category.Functions);
+		prop.setCategory(cats.Functions);
 		proposals.add(prop);
 	}
 	
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
-		if (prefix != null && !var.name().toLowerCase().contains(prefix))
+		if (prefix != null && !stringMatchesPrefix(var.name(), prefix))
 			return null;
 		String displayString = var.name();
 		int replacementLength = 0;
@@ -92,27 +122,58 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()
 		);
-		prop.setCategory(Category.Variables);
+		prop.setCategory(cats.Variables);
 		proposals.add(prop);
 		return prop;
 	}
 
-	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
-		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
-		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
-			@Override
-			public int compare(ICompletionProposal a, ICompletionProposal b) {
-				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal)
-					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
-				return 1;
-			}
-		});
-		return arr;
-	}
-	
 	@Override
 	public String getErrorMessage() {
 		return null;
+	}
+	
+	@Override
+	public int compare(ICompletionProposal a, ICompletionProposal b) {
+		ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
+		ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
+		if (ca != null && cb != null) {
+			if (prefix != null) {
+				class Match {
+					boolean startsWith, match, local;
+					Match(ClonkCompletionProposal proposal) {
+						for (String s : proposal.identifiers())
+							if (s.toLowerCase().startsWith(prefix)) {
+								startsWith = true;
+								if (s.length() == prefix.length()) {
+									match = true;
+									break;
+								}
+							} 
+						local = proposal.declaration() != null && !proposal.declaration().isGlobal();
+					}
+				}
+				Match ma = new Match(ca), mb = new Match(cb);
+				if (ma.match != mb.match)
+					return ma.match ? -1 : +1;
+				else if (ma.startsWith != mb.startsWith)
+					return ma.startsWith ? -1 : +1;
+				else if (ma.local != mb.local)
+					return ma.local ? -1 : +1;
+			}
+			if (cb.category() != ca.category()) {
+				int diff = Math.abs(cb.category()-ca.category()) * 1000;
+				return cb.category() > ca.category() ? -diff : +diff;
+			}
+			String idA = ca.primaryComparisonIdentifier();
+			String idB = cb.primaryComparisonIdentifier();
+			boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
+			boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
+			if (bracketStartA != bracketStartB)
+				return bracketStartA ? +1 : -1;
+			else
+				return idA.compareToIgnoreCase(idB);
+		}
+		return 1;
 	}
 
 }

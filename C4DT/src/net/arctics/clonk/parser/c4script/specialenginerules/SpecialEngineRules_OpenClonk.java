@@ -40,9 +40,10 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -439,10 +440,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					if (item.updatePlaceCall())
 						modified.add(item.num());
 				} else {
-					Statement newStatement = (Statement)PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
+					Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
 						"id", new AccessVar(kv.key().stringValue()),
 						"placeCall", new CallDeclaration("Place", new LongLiteral(kv.value()))
-					));
+					)));
 					wholeFunc = true;
 					function.body().addStatements(newStatement);
 				}
@@ -481,7 +482,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			public NumberLiteral num;
 			public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
 			public ComputedScenarioConfigurationEntry entry;
-			public PlaceMatch(Statement s) {
+			public PlaceMatch(ExprElm s) {
 				matched = match(s);
 			}
 			boolean determineConfigurationInsertionPoint() {
@@ -500,7 +501,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				} else
 					return false;
 			}
-			private boolean match(Statement s) {
+			private boolean match(ExprElm s) {
 				return PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint();
 			}
 			public boolean matchedButNoCorrespondingItem() {
@@ -511,7 +512,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		case Load:
 			if (createEnvironment != null)
 				for (final Statement s : createEnvironment.body().statements())
-					(new PlaceMatch(s)).addComputedEntry();
+					(new PlaceMatch(SimpleStatement.unwrap(s))).addComputedEntry();
 			break;
 		case Save:
 			if (createEnvironment == null)

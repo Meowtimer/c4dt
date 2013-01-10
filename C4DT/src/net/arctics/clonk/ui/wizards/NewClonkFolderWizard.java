@@ -49,7 +49,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = new HashMap<String, String>();
 		result.put("$$Name$$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
-		result.put("$$Author$$", ClonkPreferences.valueOrDefault(ClonkPreferences.AUTHOR));
+		result.put("$$Author$$", ClonkPreferences.value(ClonkPreferences.AUTHOR));
 		return result;
 	}
 	

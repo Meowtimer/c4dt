@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
@@ -52,6 +53,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -339,10 +341,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		// show parameter help
 		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
-			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
-				if (!getContentAssistant().isProposalPopupActive())
+			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
+				C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
+				if (a != null && !a.isProposalPopupActive())
 					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
 						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+			}
 		} catch (NullPointerException nullP) {
 			// might just be not that much of an issue
 		}
@@ -519,9 +523,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
-			public void run() {
-				showContentAssistance();
-			}
+			public void run() { showContentAssistance(); }
 		});
 		super.completionProposalApplied(proposal);
 	}
