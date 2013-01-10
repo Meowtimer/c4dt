@@ -62,6 +62,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+		super.computeCompletionProposals(viewer, offset);
 		Collection<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 
 		IDocument doc = viewer.getDocument();

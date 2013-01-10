@@ -156,6 +156,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	@Profiled
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+		super.computeCompletionProposals(viewer, offset);
 		int wordOffset = offset - 1;
 		IDocument doc = viewer.getDocument();
 		String prefix = null;

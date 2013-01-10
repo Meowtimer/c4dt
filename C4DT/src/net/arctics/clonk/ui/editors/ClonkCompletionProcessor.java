@@ -12,6 +12,7 @@ import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
@@ -53,8 +54,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	public EditorType editor() { return editor; }
 	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
 		this.editor = editor;
-		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
 		assistant.setSorter(this);
+	}
+	
+	@Override
+	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
+		return null;
 	}
 	
 	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
