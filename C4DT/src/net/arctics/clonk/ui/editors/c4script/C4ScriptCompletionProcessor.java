@@ -284,9 +284,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (innermostCallFunc != null && innermostCallFunc == contextExpression.parent()) {
 					// elevate definition proposals for parameters of id type
 					Variable parm = innermostCallFunc.parmDefinitionForParmExpression(contextExpression);
-					if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
-						TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null)
-						cats.Definitions = -1;
+					if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN)
+						if (TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null)
+							cats.Definitions = -1;
 				}
 				if (
 					contextExpression instanceof MemberOperator ||
