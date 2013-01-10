@@ -521,6 +521,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
+		try {
+			reparseWithDocumentContents(null, true);
+		} catch (IOException | ParsingException e) {
+			e.printStackTrace();
+		}
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
 			public void run() { showContentAssistance(); }
@@ -588,6 +593,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (script() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
+		if (textChangeListener != null)
+			textChangeListener.cancelReparsingTimer();
 		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, script(), new Runnable() {
 			@Override
 			public void run() {

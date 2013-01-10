@@ -88,7 +88,7 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
 		store.setDefault(ANALYZE_CODE, true);
-		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, true);
+		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, false);
 	}
 	
 }
