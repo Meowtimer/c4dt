@@ -172,8 +172,10 @@ public abstract class Utilities {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
 		if (fromList != null) {
-			if (fromList.size() == 1)
-				return fromList.get(0);
+			if (fromList.size() == 1) {
+				T soleItem = fromList.get(0);
+				return filter.test(soleItem) ? soleItem : null;
+			}
 			Scenario scen = Scenario.containingScenario(resource);
 			for (T o : fromList) {
 				if (filter != null && !filter.test(o))
