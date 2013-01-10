@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aspectj.lang.Signature;
 
@@ -23,20 +22,21 @@ public aspect Profiling {
 	private static pointcut allMethods(): !profiledMethods() && !profilingMethods() && execution(* *(..));
 	
 	private static class ProfilingFrame {
-		public Map<Signature, Long> times = new HashMap<Signature, Long>();
-		public String name;
-		public ProfilingFrame(String name) {
-			this.name = name;
+		public final Thread thread;
+		public final Map<Signature, Long> times = new HashMap<Signature, Long>();
+		public ProfilingFrame() {
+			thread = Thread.currentThread();
 		}
 	}
 	
-	private static final ThreadLocal<Stack<ProfilingFrame>> framesThreadLocal = new ThreadLocal<Stack<ProfilingFrame>>();
+	private static final ThreadLocal<Stack<ProfilingFrame>> framesThreadLocal = new ThreadLocal<Stack<ProfilingFrame>>() {
+		protected Stack<ProfilingFrame> initialValue() {
+			return new Stack<ProfilingFrame>();
+		};
+	};
 	
 	public static Stack<ProfilingFrame> frames() {
-		Stack<ProfilingFrame> frames = framesThreadLocal.get();
-		if (frames == null)
-			framesThreadLocal.set(frames = new Stack<ProfilingFrame>());
-		return frames;
+		return framesThreadLocal.get();
 	}
 	
 	before(): profiledMethods() {
@@ -47,9 +47,36 @@ public aspect Profiling {
 		end(thisJoinPoint.getSignature().getName());
 	}
 	
+	// handle threads spawned by profiled methods
+	
+	private static final Map<Runnable, ProfilingFrame> profiledRunnables = new HashMap<Runnable, ProfilingFrame>();
+
+	after(Runnable runnable) returning: this(runnable) && initialization(Runnable+.new(..)) {
+		final Stack<ProfilingFrame> frames = frames();
+		if (frames.empty())
+			return;
+		profiledRunnables.put(runnable, frames.peek());
+	}
+	
+	void around(Runnable runnable): target(runnable) && execution(void Runnable+.run()) {
+		final ProfilingFrame frame = profiledRunnables.get(runnable);
+		final boolean profiled = frame != null && frame.thread != Thread.currentThread();
+		final Stack<ProfilingFrame> frames = frames();
+		if (profiled)
+			frames.push(frame);
+		try {
+			proceed(runnable);
+		} finally {
+			if (profiled) {
+				frames.pop();
+				profiledRunnables.remove(runnable);
+			}
+		}
+	}
+	
 	public static void start(String name) {
 		System.out.println("Start " + name);
-		frames().push(new ProfilingFrame(name));
+		frames().push(new ProfilingFrame());
 	}
 	
 	Object around(): allMethods() {
@@ -60,8 +87,8 @@ public aspect Profiling {
 			long start = System.currentTimeMillis();
 			Object r = proceed();
 			long took = System.currentTimeMillis() - start;
-			synchronized (frames) {
-				Map<Signature, Long> times = frames.peek().times;
+			Map<Signature, Long> times = frames.peek().times;
+			synchronized (times) {
 				Long s = times.get(thisJoinPoint.getSignature());
 				if (s == null)
 					s = took;
@@ -86,8 +113,11 @@ public aspect Profiling {
 		System.out.println("End " + name);
 		List<Entry<Signature, Long>> list;
 		final Stack<ProfilingFrame> frames = frames();
-		synchronized (frames) {
-			Map<Signature, Long> times = frames.pop().times;
+		ProfilingFrame frame = frames.pop();
+		if (frame.thread != Thread.currentThread())
+			return; // sanity
+		Map<Signature, Long> times = frame.times;
+		synchronized (times) {
 			list = new ArrayList<Entry<Signature, Long>>(times.size());
 			for (Entry<Signature, Long> s : times.entrySet())
 				list.add(s);
