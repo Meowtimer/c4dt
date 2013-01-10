@@ -238,7 +238,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				script.clearDeclarations();
 			index.refreshIndex(false);
 
-			phaseOne(index);
+			parseDeclarations(index);
 
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
@@ -246,10 +246,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 			
-			phaseTwo(scripts);
+			parseFunctions(scripts);
 			
 			if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
-				phaseThree(parsers, scripts);
+				reportProblems(parsers, scripts);
 			
 			for (C4ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)
@@ -383,7 +383,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	@Profiled
-	private void phaseOne(Index index) {
+	private void parseDeclarations(Index index) {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
@@ -397,17 +397,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Utilities.threadPool(new Sink<ExecutorService>() {
 				@Override
 				public void receivedObject(ExecutorService pool) {
-					for (final Script script : newlyEnqueuedParsers.keySet()) {
-						if (monitor.isCanceled())
-							break;
+					for (final Script script : newlyEnqueuedParsers.keySet())
 						pool.execute(new Runnable() {
 							@Override
 							public void run() {
-								performBuildPhaseOne(script);
+								if (monitor.isCanceled())
+									return;
+								performParseDeclarations(script);
 								monitor.worked(1);
 							}
 						});
-					}
 				}
 			}, 20);
 			Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
@@ -428,7 +427,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	@Profiled
-	private void phaseTwo(final Script[] scripts) {
+	private void parseFunctions(final Script[] scripts) {
 		// parse function code
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
 		for (C4ScriptParser parser : parserMap.values())
@@ -441,23 +440,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		Utilities.threadPool(new Sink<ExecutorService> () {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				for (final Script script : scripts) {
-					if (monitor.isCanceled())
-						break;
+				for (final Script script : scripts)
 					pool.execute(new Runnable() {
 						@Override
 						public void run() {
-							performBuildPhaseTwo(script);
+							if (monitor.isCanceled())
+								return;
+							performParseFunctions(script);
 							monitor.worked(1);
 						}
 					});
-				}
 			}
 		}, 20);
 	}
 	
 	@Profiled
-	private void phaseThree(final C4ScriptParser[] parsers, Script[] scripts) {
+	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		problemReporters = new HashSet<Function>();
@@ -465,13 +463,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			@Override
 			public void receivedObject(ExecutorService pool) {
 				for (final C4ScriptParser p : parsers) {
-					if (monitor.isCanceled())
-						break;
 					if (p == null)
 						continue;
 					pool.execute(new Runnable() {
 						@Override
 						public void run() {
+							if (monitor.isCanceled())
+								return;
 							p.reportProblems();
 							monitor.worked(1);
 						}
@@ -581,7 +579,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		return result;
 	}
 
-	private void performBuildPhaseOne(Script script) {
+	private void performParseDeclarations(Script script) {
 		C4ScriptParser parser;
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
@@ -597,7 +595,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 * An attempt is made to parse included scripts before the passed one.
 	 * @param script The script to parse
 	 */
-	private void performBuildPhaseTwo(Script script) {
+	private void performParseFunctions(Script script) {
 		C4ScriptParser parser;
 		synchronized (parserMap) {
 			parser = parserMap.containsKey(script) ? parserMap.remove(script) : null;
@@ -607,7 +605,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				// parse #included scripts before this one
 				for (IHasIncludes include : script.includes(nature.index(), script, 0))
 					if (include instanceof Script)
-						performBuildPhaseTwo((Script) include);
+						performParseFunctions((Script) include);
 				parser.parseCodeOfFunctionsAndValidate();
 			} catch (ParsingException e) {
 				e.printStackTrace();
