@@ -32,7 +32,7 @@ public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 				Messages.ConvertLinkedGroupsHandler_ConfirmationText,
 				Messages.ConvertLinkedGroupsHandler_ConfirmationTitle
 			)) {
-				for (Object sel : ((IStructuredSelection)selection).toList()) {
+				for (Object sel : ((IStructuredSelection)selection).toList())
 					if (sel instanceof IContainer) {
 						IContainer container = (IContainer) sel;
 						IFileStore store = EFS.getStore(container.getLocationURI());
@@ -48,13 +48,11 @@ public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 							container.delete(true, new NullProgressMonitor());
 						}
 					}
-				}
-				for (Map.Entry<IContainer, List<File>> entry : filesToReimport.entrySet()) {
+				for (Map.Entry<IContainer, List<File>> entry : filesToReimport.entrySet())
 					QuickImportHandler.importFiles(
 							HandlerUtil.getActiveShell(event),
 							entry.getKey(), entry.getValue().toArray(new File[entry.getValue().size()])
 					);
-				}
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();

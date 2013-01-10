@@ -39,8 +39,8 @@ import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
@@ -363,8 +363,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (document.getDocumentPartitioner() == null) {
 			IDocumentPartitioner partitioner =
 				new FastPartitioner(
-					new ClonkPartitionScanner(),
-					ClonkPartitionScanner.PARTITIONS
+					new CStylePartitionScanner(),
+					CStylePartitionScanner.PARTITIONS
 				);
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);
@@ -563,6 +563,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		return result;
 	}
+	
 	@Override
 	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
 		return textChangeListener;
@@ -634,7 +635,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (document instanceof IDocument)
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		else if (document instanceof IFile)
-			parser = Core.instance().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+			parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<C4ScriptParser>() {
 				@Override
 				public C4ScriptParser run(IDocument document) {
 					return new C4ScriptParser(document.get(), script, script.scriptFile());

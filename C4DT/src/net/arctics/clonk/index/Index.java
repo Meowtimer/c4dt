@@ -355,7 +355,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	/**
 	 * Add an {@link Definition} to the index.<br>
-	 * {@link #refreshIndex()} will need to be called manually after this.
+	 * {@link #refreshIndex(boolean)} will need to be called manually after this.
 	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
 	public void addDefinition(Definition definition) {
@@ -654,7 +654,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
-		refreshIndex();
+		refreshIndex(false);
+		built(false);
 	}
 
 	private void clearEntityFiles() {

@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
@@ -532,7 +533,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public static boolean canBeConvertedTo(IType type, IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return type == PrimitiveType.INT && otherType == PrimitiveType.ID;
+		return type == PrimitiveType.INT && otherType == PrimitiveType.ID && context.engine().settings().integersConvertibleToIDs;
 	}
 
 	/**
@@ -646,36 +647,41 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
 	}
 	
-	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
-		/*if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
-			return; // expecting it to be of any or unknown type? come back when you can be more specific please
-		 */
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		ITypeInfo info;
 		switch (mode) {
 		case Expect: case Force:
 			info = context.requestTypeInfo(this);
 			if (info != null)
-				if (mode == TypeExpectancyMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY)
+				if (mode == TypingJudgementMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
 					info.storeType(type);
-			break;
+					return true;
+				}
+				else
+					return false;
+			return true;
 		case Hint:
 			info = context.queryTypeInfo(this);
-			if (info != null && !info.hint(type) && errorWhenFailed != null)
-				context.warning(errorWhenFailed, this, 0, info.type().typeName(false));
-			break;
+			return info == null || info.hint(type);
+		default:
+			return false;
 		}
 	}
 	
-	public final void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
-		expectedToBeOfType(type, context, mode, null);
-	}
-	
-	public final void expectedToBeOfType(IType type, C4ScriptParser context) {
-		expectedToBeOfType(type, context, TypeExpectancyMode.Expect, null);
+	public final boolean typingJudgement(IType type, C4ScriptParser context) {
+		return typingJudgement(type, context, TypingJudgementMode.Expect);
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
-		context.storeType(this, rightSide.type(context));
+		if (context.staticTyping() == Typing.Static) {
+			IType left = this.type(context);
+			IType right = rightSide.type(context); 
+			if (!left.canBeAssignedFrom(right))
+				try {
+					context.error(ParserErrorCode.IncompatibleTypes, rightSide, C4ScriptParser.NO_THROW, left, right);
+				} catch (ParsingException e) {}
+		} else
+			context.storeType(this, rightSide.type(context));
 	}
 
 	public ControlFlow controlFlow() {
@@ -731,7 +737,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
 		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
-		if (d != null)
+		if (d != null && !d.staticallyTyped())
 			return new GenericTypeInfo(this, parser);
 		return null;
 	}
@@ -990,7 +996,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				if (index == null || index != parser.script().index())
 					return;
 
-				typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+				typeable.expectedToBeOfType(type, TypingJudgementMode.Expect);
 			}
 		}
 		

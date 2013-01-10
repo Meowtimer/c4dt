@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ClonkProjectNature.ProjectSettings;
+import net.arctics.clonk.resource.ProjectSettings;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 

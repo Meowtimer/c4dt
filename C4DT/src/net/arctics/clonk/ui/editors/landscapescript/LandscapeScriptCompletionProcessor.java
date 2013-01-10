@@ -76,7 +76,7 @@ public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor
 				Field attr = overlay.getClass().getField(attrName);
 				// enum recommendations
 				if (attr.getType().getSuperclass() == Enum.class) {
-					Enum<?>[] values = Utilities.valuesOfEnum(attr.getType());
+					Enum<?>[] values = Utilities.enumValues(attr.getType());
 					for (Enum<?> v : values) {
 						if (v.name().toLowerCase().startsWith(attrValStart)) {
 							proposals.add(new CompletionProposal(v.name(), lineStart+m.start(2), attrValStart.length(), v.name().length()));

@@ -15,7 +15,7 @@ public class Value extends DebugElement implements IValue {
 	
 	public Value(Target target, Object value) {
 		super(target);
-		setValue(value, PrimitiveType.typeFrom(value));
+		setValue(value, PrimitiveType.correspondingToInstance(value));
 	}
 
 	public Object getValue() {

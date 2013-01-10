@@ -59,8 +59,7 @@ public class Effect extends ProplistDeclaration {
 	
 	@Override
 	public String typeName(boolean special) {
-		return name();
-		//return String.format("'%s' proplist", name);
+		return special ? name() : PrimitiveType.PROPLIST.typeName(false);
 	}
 
 }

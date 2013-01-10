@@ -91,6 +91,8 @@ public class EngineSettings extends SettingsBase {
 	/** Treat 0 as being of type ANY so assigning 0 to object variables and such does not result in warnings */
 	@IniField(category=INTRINSIC)
 	public boolean zeroIsAny;
+	@IniField(category=INTRINSIC)
+	public boolean integersConvertibleToIDs;
 	
 	// Settings that are actually intended to be user-configurable
 	

@@ -40,6 +40,7 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Statement;
@@ -233,12 +234,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
 		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ExprElm saved = parser.problemReporter;			
+			ExprElm saved = parser.problemReporter();			
 			try {
 				if (parmIndex+1 >= arguments.length) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.problemReporter = arguments[0];
+					parser.setProblemReporter(arguments[0]);
 					if (evTracer.tracedFile.equals(parser.script().scriptFile())) {
 						parser.error(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
 								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
@@ -250,12 +251,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
 					if (evTracer.tracedFile == null)
 						return true;
-					parser.problemReporter = arguments[parmIndex+1];
+					parser.setProblemReporter(arguments[parmIndex+1]);
 					parser.error(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
 						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
-				parser.problemReporter = saved;
+				parser.setProblemReporter(saved);
 			}
 			return false;
 		}
@@ -316,13 +317,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
-					if (actMapLocal != null && actMapLocal.type() != null)
-						for (IType ty : actMapLocal.type()) if (ty instanceof IProplistDeclaration) {
-							IProplistDeclaration proplDecl = (IProplistDeclaration) ty;
-							Variable action = proplDecl.findComponent((String)parmEv);
-							if (action != null)
-								return new EntityRegion(action, parmExpression);
-						}
+					if (actMapLocal != null && actMapLocal.initializationExpression() instanceof PropListExpression) {
+						IProplistDeclaration proplDecl = ((PropListExpression)actMapLocal.initializationExpression()).definedDeclaration();
+						Variable action = proplDecl.findComponent((String)parmEv);
+						if (action != null)
+							return new EntityRegion(action, parmExpression);
+					}
 				}
 				return null;
 			};

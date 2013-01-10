@@ -43,7 +43,7 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.REFERENCE;
 	}
 	

@@ -43,12 +43,17 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
+import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
@@ -407,7 +412,7 @@ public abstract class SpecialEngineRules {
 					case Exact:
 						return ct.constraint();
 					case Includes: case CallerType:
-						return new ConstrainedProplist(ct.constraint(), ct.constraintKind());
+						return ConstrainedProplist.object(ct.constraint(), ct.constraintKind());
 					}
 				}
 			}
@@ -441,7 +446,7 @@ public abstract class SpecialEngineRules {
 				script = Utilities.as(cobj.constraint(), Script.class);
 			}
 			
-			return script != null ? ConstrainedProplist.get(script, constraintKind) : PrimitiveType.ID;
+			return script != null ? ConstrainedProplist.definition(script, constraintKind) : PrimitiveType.ID;
 		}
 	};
 	
@@ -488,22 +493,22 @@ public abstract class SpecialEngineRules {
 					List<IType> types = new ArrayList<IType>(functions.size());
 					for (Declaration f : functions)
 						if (f.script() instanceof Definition)
-							types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
+							types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
 						else for (Directive directive : f.script().directives())
 							if (directive.type() == DirectiveType.APPENDTO) {
 								Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 								if (def != null)
-									types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
+									types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
 							}
 					for (Index index : context.script().index().relevantIndexes())
 						for (Function f : index.declarationsWithName((String)ev, Function.class))
 							if (f.script() instanceof Definition)
-								types.add(new ConstrainedProplist(f.script(), ConstraintKind.Includes));
+								types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
 							else for (Directive directive : f.script().directives())
 								if (directive.type() == DirectiveType.APPENDTO) {
 									Definition def = f.script().index().definitionNearestTo(context.script().resource(), directive.contentAsID());
 									if (def != null)
-										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
+										types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
 								}
 					IType ty = TypeUnification.unify(types);
 					return ty;
@@ -609,7 +614,7 @@ public abstract class SpecialEngineRules {
 						if (!given.validForType(parmType, parser))
 							parser.warning(ParserErrorCode.IncompatibleTypes, given, 0, parmType, given.type(parser));
 						else
-							given.expectedToBeOfType(parmType, parser);
+							given.typingJudgement(parmType, parser);
 					}
 					return true;
 				}
@@ -906,6 +911,45 @@ public abstract class SpecialEngineRules {
 			}
 			return new ArrayType(PrimitiveType.ANY, arrayLength);
 		};
+	};
+	
+	@AppliedTo(functions={"GetScenarioVal"})
+	public final SpecialFuncRule scenarioValResultRule = new SpecialFuncRule() {
+		@Override
+		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
+			if (callFunc.params().length > 0 && callFunc.params()[0] instanceof StringLiteral) {
+				String entryName = ((StringLiteral)callFunc.params()[0]).stringValue();
+				String sectionName =
+					callFunc.params().length > 1 &&
+					callFunc.params()[1] instanceof StringLiteral ?
+						((StringLiteral)callFunc.params()[1]).stringValue() : null;
+				IniConfiguration conf = context.script().engine().iniConfigurations().configurationFor("Scenario.txt");
+				IniEntryDefinition entry = null;
+				for (IniSectionDefinition def : conf.sections().values())
+					if (sectionName != null && sectionName.equals(def.sectionName())) {
+						IniEntryDefinition trueEntry = as(def.entries().get(entryName), IniEntryDefinition.class);
+						if (trueEntry != null) {
+							entry = trueEntry;
+							break;
+						}
+					}
+					else {
+						IniEntryDefinition ersatz = as(def.entries().get(entryName), IniEntryDefinition.class);
+						if (ersatz != null)
+							entry = ersatz;
+					}
+				if (entry != null)
+					return typeFromEntryClass(entry.entryClass());
+			}
+			return PrimitiveType.ANY;
+		}
+		private IType typeFromEntryClass(Class<?> cls) {
+			if (SignedInteger.class.isAssignableFrom(cls))
+				return PrimitiveType.INT;
+			if (IDArray.class == cls)
+				return PrimitiveType.ID;
+			return PrimitiveType.ANY;
+		}
 	};
 
 	/**

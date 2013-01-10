@@ -53,6 +53,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.IPredicate;
@@ -100,6 +101,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	private Set<String> dictionary;
 	
+	private List<TypeAnnotation> typeAnnotations;
+	
+	public List<TypeAnnotation> typeAnnotations() {
+		return typeAnnotations;
+	}
+
+	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
+		this.typeAnnotations = typeAnnotations;
+	}
+
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
 	 * It can be queried before {@link #requireLoaded()} was called, enabling one to look before-hand whether the script contains
@@ -967,8 +978,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
 			Variable[] p = new Variable[parms.getLength()];
 			for (int j = 0; j < p.length; j++)
-				p[j] = new Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.makeType(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			Function f = new Function(function.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.makeType(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
+				p[j] = new Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
+			Function f = new Function(function.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
 			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
@@ -977,7 +988,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
-			Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
+			Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
 			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? Scope.CONST : Scope.STATIC); //$NON-NLS-1$
 			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
@@ -1117,7 +1128,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public String typeName(boolean special) {
-		return name();
+		return special ? name() : PrimitiveType.OBJECT.typeName(false);
 	}
 
 	@Override
@@ -1126,7 +1137,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.OBJECT;
 	}
 	
@@ -1257,5 +1268,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public void setScriptFile(IFile f) {}
-
+	
+	@Override
+	public boolean isGlobal() { return true; }
 }

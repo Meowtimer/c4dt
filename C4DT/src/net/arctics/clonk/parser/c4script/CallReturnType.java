@@ -32,7 +32,10 @@ public class CallReturnType implements IType, IResolvableType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("Result of %s", call != null ? call.toString() : "<Unknown>");
+		if (special)
+			return String.format("Result of %s", call != null ? call.toString() : "<Unknown>");
+		else
+			return call != null && call.function() != null ? call.function().returnType().typeName(false) : PrimitiveType.ANY.typeName(false);
 	}
 	
 	@Override
@@ -46,7 +49,7 @@ public class CallReturnType implements IType, IResolvableType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.ANY;
 	}
 
@@ -77,7 +80,7 @@ public class CallReturnType implements IType, IResolvableType {
 				context.popCurrentFunctionCall();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return PrimitiveType.UNKNOWN;
 		}
 	}

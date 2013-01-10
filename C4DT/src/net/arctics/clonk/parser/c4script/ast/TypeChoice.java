@@ -1,9 +1,12 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -12,6 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.StringUtil;
 
 public final class TypeChoice implements IType, IResolvableType {
 
@@ -25,7 +29,9 @@ public final class TypeChoice implements IType, IResolvableType {
 	private static final TypeChoice[] HARD_CHOICES = {
 		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.ID),
 		new TypeChoice(PrimitiveType.BOOL, PrimitiveType.INT),
-		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.PROPLIST)
+		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.PROPLIST),
+		new TypeChoice(PrimitiveType.ID, PrimitiveType.INT),
+		new TypeChoice(PrimitiveType.STRING, PrimitiveType.INT)
 	};
 	
 	public static IType make(IType left, IType right) {
@@ -75,7 +81,16 @@ public final class TypeChoice implements IType, IResolvableType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("%s | %s", left.typeName(special), right.typeName(special));
+		if (special)
+			return String.format("%s | %s", left.typeName(special), right.typeName(special));
+		else {
+			List<IType> types = new ArrayList<>(10);
+			collect(types);
+			Set<String> typeNames = new HashSet<>(types.size());
+			for (IType t : types)
+				typeNames.add(t.typeName(false));
+			return StringUtil.blockString("", "", " | ", typeNames);
+		}
 	}
 
 	@Override
@@ -84,9 +99,9 @@ public final class TypeChoice implements IType, IResolvableType {
 	}
 
 	@Override
-	public IType staticType() {
-		IType stLeft = left.staticType();
-		IType stRight = right.staticType();
+	public IType simpleType() {
+		IType stLeft = left.simpleType();
+		IType stRight = right.simpleType();
 		return stLeft == stRight ? stLeft : PrimitiveType.ANY;
 	}
 

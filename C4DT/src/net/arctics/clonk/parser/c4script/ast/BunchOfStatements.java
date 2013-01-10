@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.Conf;
 
 public class BunchOfStatements extends Block {
 

@@ -290,7 +290,7 @@ public class Target extends DebugElement implements IDebugTarget {
 									if (varName != null && varType != null && varValue != null) {
 										DebugVariable var = vars.get(varName);
 										if (var != null) {
-											var.getValue().setValue(varValue, PrimitiveType.makeType(varType));
+											var.getValue().setValue(varValue, PrimitiveType.fromString(varType));
 											vars.remove(varName);
 										}
 									}

@@ -4,6 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
@@ -40,24 +41,16 @@ public final class VarInitialization extends ExprElm implements IPlaceholderPatt
 	 * Create a new {@link VarInitialization}.
 	 * @param name Name of variable
 	 * @param expression Expression. Can be null.
-	 * @param namePos Position of name. Used for setting the region of this expression ({@link #setExprRegion(int, int)}})
+	 * @param start Start location.
+	 * @param end End location.
+	 * @param var Variable. May be null.
 	 */
-	public VarInitialization(String name, ExprElm expression, int namePos) {
+	public VarInitialization(String name, ExprElm expression, int start, int end, Variable var) {
 		super();
 		this.name = name;
 		this.expression = expression;
-		setExprRegion(namePos, expression != null ? expression.end() : namePos + name.length());
+		setExprRegion(start, end);
 		assignParentToSubElements();
-	}
-	/**
-	 * Creat a new {@link VarInitialization}. Calls {@link VarInitialization#VarInitialization(String, ExprElm, int)}, additionally assigning {@link #variable} the passed var.
-	 * @param name Name of variable
-	 * @param expression Expression. Can be null.
-	 * @param namePos Position of name. Used for setting the region of this expression ({@link #setExprRegion(int, int)}})
-	 * @param var Variable to assign to {@link #variable}
-	 */
-	public VarInitialization(String name, ExprElm expression, int namePos, Variable var) {
-		this(name, expression, namePos);
 		this.variable = var;
 	}
 	@Override

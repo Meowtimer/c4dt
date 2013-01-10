@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
-
+import static net.arctics.clonk.util.Utilities.defaulting;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
@@ -83,7 +83,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		if (other == PrimitiveType.ARRAY)
+		if (other == PrimitiveType.ARRAY || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
 			return true;
 		else if (other instanceof ArrayType) {
 			ArrayType otherArrayType = (ArrayType) other;
@@ -102,6 +102,8 @@ public class ArrayType implements IRefinedPrimitiveType {
 	 */
 	@Override
 	public String typeName(final boolean special) {
+		if (!special)
+			return String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(generalElementType(), PrimitiveType.ANY).typeName(false));
 		if (elementTypeMapping.size() > 0) {
 			StringBuilder builder = new StringBuilder();
 			builder.append('[');
@@ -156,7 +158,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.ARRAY;
 	}
 	
@@ -193,7 +195,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 		return t;
 	}
 	
-	protected void elementTypeHint(int elementIndex, IType type, TypeExpectancyMode mode) {
+	protected void elementTypeHint(int elementIndex, IType type, TypingJudgementMode mode) {
 		IType known = elementTypeMapping.get(elementIndex);
 		if (known != null)
 			elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));

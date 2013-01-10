@@ -4,9 +4,11 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 
 public class ReturnStatement extends KeywordStatement {
 
@@ -109,10 +111,17 @@ public class ReturnStatement extends KeywordStatement {
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
-		Function activeFunc = parser.currentFunction();
+		Function currentFunction = parser.currentFunction();
+		Function activeFunc = currentFunction;
 		if (activeFunc == null)
 			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		else if (returnExpr != null)
-			parser.currentFunction().expectedToBeOfType(returnExpr.unresolvedType(parser), TypeExpectancyMode.Force);
+			if (parser.staticTyping() == Typing.Static && currentFunction.staticallyTyped()) {
+				if (!returnExpr.validForType(currentFunction.returnType(), parser))
+					parser.error(ParserErrorCode.IncompatibleTypes, returnExpr, C4ScriptParser.NO_THROW,
+						currentFunction.returnType().typeName(true), returnExpr.type(parser));
+			}
+			else
+				currentFunction.expectedToBeOfType(returnExpr.unresolvedType(parser), TypingJudgementMode.Force);
 	}
 }

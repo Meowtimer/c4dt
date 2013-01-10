@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.IRegion;
 
-public class SourceLocation implements IRegion, Serializable, Cloneable {
+public class SourceLocation implements IRegion, Serializable, Cloneable, Comparable<SourceLocation> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -33,6 +33,11 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	public SourceLocation(int offset, IRegion relativeLocation) {
 		start = offset+relativeLocation.getOffset();
 		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
+	}
+	public SourceLocation(String stringRepresentation) {
+		int comma = stringRepresentation.indexOf(",");
+		start = Integer.parseInt(stringRepresentation.substring(1, comma));
+		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
 	}
 	
 	/**
@@ -80,7 +85,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	
 	@Override
 	public String toString() {
-		return "("+start()+", "+end()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		return "("+start+", "+end+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-
@@ -100,6 +105,11 @@ public class SourceLocation implements IRegion, Serializable, Cloneable {
 	
 	public SourceLocation relativeTo(IRegion other) {
 		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
+	}
+
+	@Override
+	public int compareTo(SourceLocation o) {
+		return start - o.start;
 	}
 	
 	public SourceLocation add(IRegion other) {

@@ -45,4 +45,8 @@ public class NillableType extends WrappedType {
 		return tn.contains(" ") && !(tn.startsWith("{") || tn.startsWith("[")) ? "("+tn+")?" : tn + "?";
 	}
 
+	@Override
+	public IType simpleType() {
+		return wrappedType.simpleType();
+	}
 }

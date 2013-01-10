@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.Conf;
 
 /**
  * Base class for statements which begin with a keyword.

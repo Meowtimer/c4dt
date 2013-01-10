@@ -13,7 +13,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
@@ -49,7 +49,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * Explicit type, not to be changed by weird type inference
 	 */
-	private transient boolean typeLocked;
+	private transient boolean staticallyTyped;
 	
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
@@ -66,9 +66,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
-	private Variable(String name, PrimitiveType type, String desc) {
+	private Variable(String name, IType type, String desc) {
 		this(name, type, desc, Scope.VAR);
-		typeLocked = true;
+		staticallyTyped = true;
 	}
 	
 	public Variable(String name, IType type) {
@@ -125,17 +125,23 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	public void forceType(IType type, boolean typeLocked) {
 		forceType(type);
-		this.typeLocked = typeLocked;
+		this.staticallyTyped = typeLocked;
 	}
 	
 	public void lockType() {
-		typeLocked = true;
+		staticallyTyped = true;
 	}
 	
-	public void setType(IType type) {
-		if (typeLocked)
-			return;
-		forceType(type);
+	public void assignType(IType type) {
+		assignType(type, false);
+	}
+	
+	@Override
+	public void assignType(IType type, boolean _static) {
+		if (!staticallyTyped || _static) {
+			forceType(type);
+			staticallyTyped = _static;
+		}
 	}
 
 	/**
@@ -261,9 +267,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
 		// engine objects should not be altered
-		if (!typeLocked && !(script() instanceof Engine))
+		if (!staticallyTyped && !(script() instanceof Engine))
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
@@ -302,8 +308,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	private void ensureTypeLockedIfPredefined(Declaration declaration) {
-		if (!typeLocked && declaration instanceof Engine)
-			typeLocked = true;
+		if (!staticallyTyped && declaration instanceof Engine)
+			staticallyTyped = true;
 	}
 	
 	@Override
@@ -356,8 +362,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public boolean typeIsInvariant() {
-		return typeLocked || isEngineDeclaration();
+	public boolean staticallyTyped() {
+		return staticallyTyped || isEngineDeclaration();
 	}
 	
 	/**
@@ -411,7 +417,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	public void initializeFromAssignment(ExprElm referee, ExprElm expression, DeclarationObtainmentContext context) {
 		IType type = expression.type(context);
-		expectedToBeOfType(type, TypeExpectancyMode.Expect);
+		expectedToBeOfType(type, TypingJudgementMode.Expect);
 		setLocation(context.absoluteSourceLocationFromExpr(referee));
 		forceType(type);
 		setInitializationExpression(expression);

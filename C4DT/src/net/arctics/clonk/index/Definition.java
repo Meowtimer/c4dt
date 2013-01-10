@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
@@ -69,6 +70,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	protected ID id;
 
 	private transient ConstrainedProplist objectType;
+	private transient ConstrainedProplist thisType;
 
 	/**
 	 * Creates a new C4Object
@@ -195,15 +197,27 @@ public class Definition extends Script implements IProplistDeclaration {
 		return true;
 	}
 
-	public ConstrainedProplist objectType() {
+	public synchronized ConstrainedProplist objectType() {
 		if (objectType == null)
-			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false);
+			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false) {
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+				@Override
+				public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+					return this; // don't resolve
+				}
+			};
 		return objectType;
 	}
 	
+	public synchronized ConstrainedProplist thisType() {
+		if (thisType == null)
+			thisType = new ConstrainedProplist(this, ConstraintKind.CallerType, true, true);
+		return thisType;
+	}
+	
 	@Override
-	public IType staticType() {
-		return PrimitiveType.ID;
+	public IType simpleType() {
+		return PrimitiveType.OBJECT;
 	}
 	
 	/**
@@ -245,7 +259,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		}
 
 		@Override
-		public boolean typeIsInvariant() {
+		public boolean staticallyTyped() {
 			return true;
 		}
 		
@@ -473,6 +487,11 @@ public class Definition extends Script implements IProplistDeclaration {
 		return null;
 	}
 	
+	@Override
+	public String typeName(boolean special) {
+		return special && id != null ? id.stringValue() : PrimitiveType.OBJECT.typeName(false);
+	}
+
 	/**
 	 * Return the category of the definition as specified in its DefCore.txt file.
 	 * @return
@@ -505,5 +524,4 @@ public class Definition extends Script implements IProplistDeclaration {
 			}
 		});
 	}
-	
 }

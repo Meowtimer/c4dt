@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CallReturnType;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -103,7 +104,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return;
 			function = (Function) function.latestVersion();
 			if (!soft && !function.isEngineDeclaration())
-				function.forceType(type());
+				function.assignType(type(), false);
 		}
 		
 	}
@@ -533,7 +534,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						if (!given.validForType(parm.type(), context))
 							context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
 						else
-							given.expectedToBeOfType(parm.type(), context);
+							given.typingJudgement(parm.type(), context);
 					}
 				}				
 			}
@@ -558,10 +559,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						for (int i = 0; i < types.length; i++) {
 							types[i] = as(decs.get(i).parentDeclaration(), IType.class);
 							if (types[i] instanceof IHasIncludes)
-								types[i] = new ConstrainedProplist((IHasIncludes) types[i], ConstraintKind.Includes);
+								types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
 						}
 						IType typeSet = TypeUnification.unify(iterable(types));
-						predecessorInSequence().expectedToBeOfType(typeSet, context);
+						predecessorInSequence().typingJudgement(typeSet, context);
 					}
 				}
 		}
@@ -742,7 +743,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
-			if (f.typeIsInvariant())
+			if (f.staticallyTyped())
 				return null;
 			IType retType = f.returnType();
 			if (retType == null)

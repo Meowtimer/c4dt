@@ -45,7 +45,7 @@ public class ParameterType implements IResolvableType {
 	@Override
 	public int precision() { return 1; }
 	@Override
-	public IType staticType() { return PrimitiveType.UNKNOWN; }
+	public IType simpleType() { return PrimitiveType.UNKNOWN; }
 	@Override
 	public void setTypeDescription(String description) {}
 

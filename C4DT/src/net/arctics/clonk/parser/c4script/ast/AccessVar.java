@@ -154,7 +154,10 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = declarationFromContext(context);
 		// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return new ConstrainedProplist(context.script(), ConstraintKind.CallerType);
+			if (context.script() instanceof Definition)
+				return ((Definition)context.script()).thisType();
+			else
+				return new ConstrainedProplist(context.script(), ConstraintKind.CallerType, true, true);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
@@ -179,10 +182,10 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
+	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		if (declaration() == Variable.THIS)
-			return;
-		super.expectedToBeOfType(type, context, mode, errorWhenFailed);
+			return true;
+		return super.typingJudgement(type, context, mode);
 	}
 
 	@Override
@@ -297,9 +300,7 @@ public class AccessVar extends AccessDeclaration {
 				@Override
 				public void apply(boolean soft, C4ScriptParser parser) {
 					Variable v = (Variable)origin().declaration();
-					if (!(soft || v.scope() == Scope.PARAMETER))
-						return;
-					v.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+					v.expectedToBeOfType(type, TypingJudgementMode.Expect);
 				}
 				@Override
 				public void storeType(IType type) {

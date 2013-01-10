@@ -87,6 +87,8 @@ public enum ParserErrorCode {
 	DuplicateDeclaration(Messages.DuplicateDeclaration, Messages.DuplicateDeclarationName),
 	PrimitiveTypeNotSupported(Messages.PrimitiveTypeNotSupported),
 	NonConstGlobalVarAssignment(Messages.NonConstGlobalVarAssignment),
+	TypeExpected(Messages.TypeExpected),
+	InvalidType(Messages.InvalidType),
 	UnexpectedBlock(Messages.UnexpectedBlock);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$

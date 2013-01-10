@@ -5,9 +5,12 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
@@ -22,7 +25,7 @@ import org.eclipse.jface.text.Region;
 public class VarDeclarationStatement extends KeywordStatement {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private VarInitialization[] varInitializations;
+	VarInitialization[] varInitializations;
 	private final Scope scope;
 	
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
@@ -35,7 +38,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this(Arrays.asList(varInitializations), scope);
 	}
 	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, Scope scope) {
-		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
+		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null)), scope);
 	}
 	@Override
 	public String keyword() {
@@ -87,10 +90,22 @@ public class VarDeclarationStatement extends KeywordStatement {
 		super.reportProblems(parser);
 		for (VarInitialization initialization : varInitializations)
 			if (initialization.variable != null)
-				if (initialization.expression != null)
-					parser.storeType(
-						new AccessVar(initialization.variable),
-						initialization.expression.unresolvedType(parser)
-					);
+				if (initialization.expression != null) {
+					IType initializationType = initialization.expression.unresolvedType(parser);
+					if (
+						initialization.variable.staticallyTyped() &&
+						!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, parser, parser.script()))
+					)
+						parser.error(ParserErrorCode.IncompatibleTypes,
+							initialization.expression,
+							C4ScriptParser.NO_THROW,
+							initialization.variable.type().typeName(false), initializationType.typeName(false)
+						);
+					else
+						parser.storeType(
+							new AccessVar(initialization.variable),
+							initializationType
+						);
+				}
 	}
 }

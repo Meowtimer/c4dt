@@ -62,13 +62,13 @@ public class ArrayElementExpression extends ExprElm {
 				if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 					parser.warning(ParserErrorCode.NotAProplist, predecessorInSequence(), 0);
 				else
-					predecessorInSequence().expectedToBeOfType(PrimitiveType.PROPLIST, parser);
+					predecessorInSequence().typingJudgement(PrimitiveType.PROPLIST, parser);
 			}
 			else if (argType == PrimitiveType.INT)
 				if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 					parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
 				else
-					predecessorInSequence().expectedToBeOfType(PrimitiveType.ARRAY, parser);
+					predecessorInSequence().typingJudgement(PrimitiveType.ARRAY, parser);
 		}
 	}
 
@@ -125,10 +125,10 @@ public class ArrayElementExpression extends ExprElm {
 				context.storeType(predecessorInSequence(), mutation);
 				break;
 			} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
-				predecessorInSequence().expectedToBeOfType(
+				predecessorInSequence().typingJudgement(
 					new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 					context,
-					TypeExpectancyMode.Force
+					TypingJudgementMode.Force
 				);
 		}
 	}

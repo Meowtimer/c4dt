@@ -4,6 +4,7 @@ import java.io.InvalidClassException;
 
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
+import net.arctics.clonk.util.Utilities;
 
 public enum EntryFactory implements IEntryFactory {
 	
@@ -28,7 +29,9 @@ public enum EntryFactory implements IEntryFactory {
 				e.printStackTrace();
 			}
 			throw new InvalidClassException(this.getClass().getName() + " seems not to be capable of constructing objects of type '" + type.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
-		} else
+		} else if (type.isEnum())
+			return Utilities.enumValueFromString(type, value);
+		else
 			throw new InvalidClassException(this.getClass().getName() + " is not capable of constructing objects of type '" + type.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 

@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 
 /**
@@ -13,9 +13,9 @@ public interface ITypeable extends IIndexEntity {
 	/**
 	 * The outside world expects this entity to be of the specified type. Act accordingly.
 	 * @param t The type this entity is expected to be of
-	 * @param mode Strength of expectancy expressed in {@link TypeExpectancyMode} values
+	 * @param mode Strength of expectancy expressed in {@link TypingJudgementMode} values
 	 */
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode);
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode);
 	/**
 	 * Return the current type the entity is deemed to be of.
 	 * @return The current type
@@ -27,10 +27,16 @@ public interface ITypeable extends IIndexEntity {
 	 */
 	public void forceType(IType type);
 	/**
-	 * Returns true if the type of this entity cannot be changed anymore. 
-	 * @return True for type invariance, false otherwise
+	 * Assign a type. Calling this method will not have an effect if {@link #staticallyTyped()} is already set to true.
+	 * @param type The type to assign
+	 * @param _static Whether to assign the type and seal the type of this {@link ITypeable} as {@link #staticallyTyped()} afterwards, preventing further reassignments
 	 */
-	boolean typeIsInvariant();
+	public void assignType(IType type, boolean _static);
+	/**
+	 * Returns true if the type of this entity cannot be changed anymore. 
+	 * @return True for static typedness, false otherwise
+	 */
+	boolean staticallyTyped();
 	
 	/**
 	 * Whether this typeable can only be accessed from some restricted area (i.e. a parameter or local variable)
@@ -53,10 +59,10 @@ public interface ITypeable extends IIndexEntity {
 		public static void expectedToBeOfType(ITypeable instance, IType type) {
 			if (instance.type() == PrimitiveType.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
-				instance.forceType(type);
+				instance.assignType(type, false);
 			else if (!instance.type().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.forceType(TypeUnification.unify(type, instance.type()));
+				instance.assignType(TypeUnification.unify(type, instance.type()), false);
 		}
 	}
 }

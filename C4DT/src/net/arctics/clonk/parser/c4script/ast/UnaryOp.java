@@ -71,7 +71,7 @@ public class UnaryOp extends OperatorExpression {
 			context.error(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
 		if (!argument().validForType(operator().firstArgType(), context))
 			context.warning(ParserErrorCode.IncompatibleTypes, argument(), 0, operator().firstArgType(), argument().type(context));
-		argument().expectedToBeOfType(operator().firstArgType(), context, TypeExpectancyMode.Expect, ParserErrorCode.InternalError);
+		argument().typingJudgement(operator().firstArgType(), context, TypingJudgementMode.Expect);
 	}
 
 	@Override

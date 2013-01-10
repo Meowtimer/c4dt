@@ -106,7 +106,7 @@ public class CPPSourceDeclarationsImporter {
 							String typeString = constMapEntryMatcher.group(i++);
 							PrimitiveType type;
 							try {
-								type = PrimitiveType.makeType(typeString.substring(4).toLowerCase());
+								type = PrimitiveType.fromString(typeString.substring(4).toLowerCase());
 							} catch (Exception e) {
 								type = PrimitiveType.INT;
 							}
@@ -131,12 +131,12 @@ public class CPPSourceDeclarationsImporter {
 							//String oldPointer = fnMapMatcher.group(i++);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new DocumentedFunction(name, PrimitiveType.makeType(retType.substring(4).toLowerCase(), true), origin);
+								fun = new DocumentedFunction(name, PrimitiveType.fromString(retType.substring(4).toLowerCase(), true), origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 								String[] p = parms.split(","); //$NON-NLS-1$
 								List<Variable> parList = new ArrayList<Variable>(p.length);
 								for (String pa : p)
-									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
+									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.fromString(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
 							}
@@ -157,7 +157,7 @@ public class CPPSourceDeclarationsImporter {
 						String parms = fnDeclarationMatcher.group(i++);
 						Function fun = importsContainer.findLocalFunction(name, false);
 						if (fun == null) {
-							fun = new DocumentedFunction(name, PrimitiveType.typeFromCPPType(returnType), origin);
+							fun = new DocumentedFunction(name, PrimitiveType.fromCPPString(returnType), origin);
 							fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 							String[] parmStrings = parms != null ? parms.split("\\,") : null;
 							List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
@@ -167,7 +167,7 @@ public class CPPSourceDeclarationsImporter {
 									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
 									String pname = parm.substring(x+1);
 									String type = parm.substring(0, x+1).trim();
-									parList.add(new Variable(pname, PrimitiveType.typeFromCPPType(type)));
+									parList.add(new Variable(pname, PrimitiveType.fromCPPString(type)));
 								}
 							fun.setParameters(parList);
 							importsContainer.addDeclaration(fun);

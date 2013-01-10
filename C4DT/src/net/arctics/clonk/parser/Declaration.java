@@ -25,7 +25,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
-import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
@@ -407,15 +406,6 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			else
 				return null;
 		}
-	}
-	
-	/**
-	 * Take internal state from other declaration and make it your own. This will mess up ownership relations so discard of the absorbed one
-	 * @param declaration
-	 */
-	public void absorb(Declaration declaration) {
-		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription)
-			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).obtainUserDescription());
 	}
 	
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {

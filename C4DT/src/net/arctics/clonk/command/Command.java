@@ -25,9 +25,10 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
+import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectConverter;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
@@ -73,6 +74,7 @@ public class Command {
 
 		for (Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(COMMAND_BASESCRIPT, c);
+		registerCommandsFromClass(COMMAND_BASESCRIPT, StaticTypingUtil.class);
 	}
 	
 	public static ExecutableScript executableScriptFromCommand(String command) {
@@ -116,14 +118,15 @@ public class Command {
 		addCommand(COMMAND_BASESCRIPT, method);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void setFieldValue(Object obj, String name, Object value) {
 		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
 			Field f = c.getField(name);
 			if (value instanceof Long && f.getType() == Integer.TYPE)
 				value = ((Long)value).intValue();
-			else if (value instanceof String && f.getType().getSuperclass() == Enum.class)
-				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value); //$NON-NLS-1$
+			else if (value instanceof String && f.getType().isEnum())
+				value = Enum.valueOf((Class<Enum>)f.getType(), (String)value);
 			f.set(obj, value);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -200,8 +203,8 @@ public class Command {
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			Engine engine = Core.instance().activeEngine();
 			setFieldValue(
-					engine.intrinsicSettings(), name,
-					engine.settings().getClass().getField(name).get(engine.settings())
+				engine.intrinsicSettings(), name,
+				engine.settings().getClass().getField(name).get(engine.settings())
 			);
 		}
 	}

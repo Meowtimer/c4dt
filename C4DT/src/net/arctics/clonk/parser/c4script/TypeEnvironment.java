@@ -9,12 +9,7 @@ import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 public class TypeEnvironment extends ArrayList<ITypeInfo> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public TypeEnvironment up;
-	public TypeEnvironment() {
-		super();
-	}
-	public TypeEnvironment(int capacity) {
-		super(capacity);
-	}
+	public TypeEnvironment() { super(5); }
 	public TypeEnvironment inject(TypeEnvironment other, boolean ignoreLocals) {
 		for (ITypeInfo info : this)
 			for (Iterator<ITypeInfo> it = other.iterator(); it.hasNext();) {

@@ -17,6 +17,9 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
@@ -237,8 +240,20 @@ public abstract class Utilities {
 		return null;
 	}
 	
-	public static Enum<?>[] valuesOfEnum(Class<?> enumClass) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
+	public static Enum<?>[] enumValues(Class<?> enumClass) {
+		try {
+			return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
+		} catch (IllegalAccessException | IllegalArgumentException
+			| InvocationTargetException | NoSuchMethodException
+			| SecurityException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T> T enumValueFromString(Class<T> enumClass, String value) {
+		return (T) Enum.valueOf((Class<Enum>)enumClass, value);
 	}
 	
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
@@ -253,7 +268,7 @@ public abstract class Utilities {
 		}
 	}
 
-	public static <S, T extends S> boolean isAnyOf(S something, T... things) {
+	public static <S, T extends S> boolean isAnyOf(S something, @SuppressWarnings("unchecked") T... things) {
 		if (something != null)
 			for (Object o : things)
 				if (something.equals(o))
@@ -373,6 +388,32 @@ public abstract class Utilities {
 				return token;
 			}
 		};
+	}
+	
+	private static Object autoBuildDisablingLock = new Object();
+	
+	public static void runWithoutAutoBuild(Runnable runnable) {
+		synchronized (autoBuildDisablingLock) {
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceDescription workspaceDescription = workspace.getDescription();
+			boolean autoBuilding = workspaceDescription.isAutoBuilding();
+			workspaceDescription.setAutoBuilding(false);
+			try {
+				workspace.setDescription(workspaceDescription);
+			} catch (CoreException e2) {
+				e2.printStackTrace();
+			}
+			try {
+				runnable.run();
+			} finally {
+				workspaceDescription.setAutoBuilding(autoBuilding);
+				try {
+					workspace.setDescription(workspaceDescription);
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 }

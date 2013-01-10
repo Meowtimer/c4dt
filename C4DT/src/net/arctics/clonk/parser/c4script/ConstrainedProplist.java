@@ -11,6 +11,7 @@ import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -29,12 +30,12 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	/**
 	 * Instances of this type can be {@link Definition}s
 	 */
-	private boolean isType = true;
+	private boolean definition = true;
 	
 	/**
 	 * Instances of this type can be objects
 	 */
-	private boolean isObject = true;
+	private boolean object = true;
 	
 	/**
 	 * The script an instance of this type is known to include.
@@ -61,16 +62,22 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		return constraintKind;
 	}
 	
-	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind) {
-		super();
-		this.constraint = obligatoryInclude;
+	public ConstrainedProplist(IHasIncludes constraint, ConstraintKind constraintKind, boolean isType, boolean isObject) {
+		this.constraint = constraint;
 		this.constraintKind = constraintKind;
+		this.definition = isType;
+		this.object = isObject;
 	}
 	
-	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind, boolean isType, boolean isObject) {
-		this(obligatoryInclude, constraintKind);
-		this.isType = isType;
-		this.isObject = isObject;
+	public static ConstrainedProplist definition(IHasIncludes constraint, ConstraintKind constraintKind) {
+		return new ConstrainedProplist(constraint, constraintKind, true, false);
+	}
+	
+	public static ConstrainedProplist object(IHasIncludes constraint, ConstraintKind constraintKind) {
+		if (constraintKind == ConstraintKind.Exact && constraint instanceof Definition)
+			return ((Definition)constraint).objectType();
+		else
+			return new ConstrainedProplist(constraint, constraintKind, false, true);
 	}
 
 	@Override
@@ -78,9 +85,9 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		if (iterable == null) {
 			List<IType> types = new ArrayList<IType>(4);
 			types.add(PrimitiveType.PROPLIST);
-			if (isObject)
+			if (object)
 				types.add(PrimitiveType.OBJECT);
-			if (isType)
+			if (definition)
 				types.add(PrimitiveType.ID);
 			types.add(constraint);
 			iterable = types;
@@ -90,28 +97,39 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return
-			(isObject && other == PrimitiveType.OBJECT) ||
-			other == PrimitiveType.ANY ||
-			other == PrimitiveType.UNKNOWN ||
-			other == PrimitiveType.PROPLIST ||
-			other.canBeAssignedFrom(PrimitiveType.PROPLIST) ||
-			(isType && other == PrimitiveType.ID) ||
-			other instanceof Script ||
-			other instanceof ConstrainedProplist;
+		if (object)
+			if (other instanceof PrimitiveType)
+				switch ((PrimitiveType)other) {
+				case ANY: case UNKNOWN: case PROPLIST: case OBJECT:
+					return true;
+				default:
+					return false;
+				}
+			else if (other.canBeAssignedFrom(PrimitiveType.PROPLIST))
+				return true;
+		if (definition)
+			if (other == PrimitiveType.ID || other instanceof Script || other instanceof ConstrainedProplist)
+				return true;
+		return false;
 	}
 
 	@Override
 	public String typeName(boolean special) {
+		IType simpleType = primitiveType();
 		if (constraint == null)
-			return IType.ERRONEOUS_TYPE;
+			return simpleType.typeName(special);
+		if (!special)
+			if (simpleType == PrimitiveType.ID)
+				return simpleType.typeName(false);
+			else if (simpleType == PrimitiveType.OBJECT)
+				return (constraint instanceof Definition ? constraint : simpleType).typeName(false);
 		String formatString;
 		switch (constraintKind) {
 		case CallerType:
-			formatString = String.format(isType ? Messages.ConstrainedProplist_CurrentType : Messages.ConstrainedProplist_ObjectOfCurrentType, constraint.name());
+			formatString = String.format(definition ? Messages.ConstrainedProplist_CurrentType : Messages.ConstrainedProplist_ObjectOfCurrentType, constraint.name());
 			break;
 		case Exact:
-			formatString = isType ? Messages.ConstrainedProplist_ExactType : "'%s'"; //$NON-NLS-1$
+			formatString = definition ? Messages.ConstrainedProplist_ExactType : "'%s'"; //$NON-NLS-1$
 			break;
 		case Includes:
 			formatString = Messages.ConstrainedProplist_Including;
@@ -119,23 +137,15 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		default:
 			return IType.ERRONEOUS_TYPE;
 		}
-		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(false) : constraint.toString());
-	}
-	
-	public static ConstrainedProplist get(Script script, ConstraintKind kind) {
-			return (kind == ConstraintKind.Exact) && script instanceof Definition
-				? ((Definition)script).objectType()
-				: new ConstrainedProplist(script, kind);
+		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(special) : constraint.toString());
 	}
 	
 	@Override
-	public String toString() {
-		return typeName(false);
-	}
+	public String toString() { return typeName(true); }
 
 	@Override
 	public int precision() {
-		int spec = PrimitiveType.OBJECT.precision();
+		int spec = simpleType().precision();
 		spec++;
 		if (constraintKind == ConstraintKind.Exact)
 			spec++;
@@ -143,8 +153,15 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	}
 
 	@Override
-	public IType staticType() {
-		return PrimitiveType.OBJECT;
+	public IType simpleType() {
+		if (definition && !object)
+			return PrimitiveType.ID;
+		else if (!definition && object)
+			return PrimitiveType.OBJECT;
+		else if (definition && object)
+			return TypeChoice.make(PrimitiveType.ID, PrimitiveType.OBJECT);
+		else
+			return PrimitiveType.ANY;
 	}
 	
 	@Override
@@ -166,7 +183,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		switch (constraintKind()) {
 		case CallerType:
 			if (callerType == null)
-				return new ConstrainedProplist(constraint, ConstraintKind.Includes);
+				return ConstrainedProplist.object(constraint, ConstraintKind.Includes);
 			else if (callerType != constraint() || context.script() != constraint())
 				return callerType;
 			else

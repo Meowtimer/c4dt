@@ -14,20 +14,21 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IPredicate;
@@ -56,6 +57,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private String returnDescription;
 	private boolean isCallback;
 	private boolean isOldStyle;
+	private boolean staticallyTyped;
 	private SourceLocation bodyLocation, header;
 	
 	/**
@@ -93,7 +95,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param pars
 	 */
 	public Function(String name, String type, String desc, Variable... pars) {
-		this(name, PrimitiveType.makeType(type), pars);
+		this(name, PrimitiveType.fromString(type), pars);
 		description = desc;
 		parentDeclaration = null; // since engine function only
 		localVars = null;
@@ -288,7 +290,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (numParameters() > 0) {
 			for(Variable par : parameters()) {
-				IType type = engineCompatible ? par.type().staticType() : par.type();
+				IType type = engineCompatible ? par.type().simpleType() : par.type();
 				type = TypeChoice.remove(type, new IPredicate<IType>() {
 					@Override
 					public boolean test(IType item) {
@@ -555,6 +557,21 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
+			Typing typing = Typing.ParametersOptionallyTyped;
+			if (index() instanceof ProjectIndex)
+				typing = ((ProjectIndex)index()).nature().settings().typing;
+			switch (typing) {
+			case Dynamic:
+				break;
+			case ParametersOptionallyTyped:
+				if (returnType == PrimitiveType.REFERENCE)
+					output.append(" &");
+				break;
+			case Static:
+				output.append(" ");
+				output.append(returnType.typeName(false));
+				break;
+			}
 		}
 		output.append(" "); //$NON-NLS-1$
 		output.append(name());
@@ -586,8 +603,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
-		if (mode == TypeExpectancyMode.Force)
+	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
+		if (mode == TypingJudgementMode.Force)
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 
@@ -598,11 +615,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public void forceType(IType type) {
-		setReturnType(type);
+		this.returnType = type;
+		this.staticallyTyped = true;
 	}
 	
-	public void setReturnType(IType returnType) {
-		this.returnType = returnType;
+	@Override
+	public void assignType(IType returnType, boolean _static) {
+		if (!staticallyTyped || _static) {
+			this.returnType = returnType;
+			this.staticallyTyped = _static;
+		}
 	}
 	
 	public void setObjectType(Definition object) {
@@ -728,18 +750,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public void absorb(Declaration declaration) {
-		if (declaration instanceof Function) {
-			Function f = (Function) declaration;
-			if (f.parameters.size() >= this.parameters.size())
-				this.parameters = f.parameters;
-			this.setReturnType(f.returnType);
-			f.parameters = null;
-		}
-		super.absorb(declaration);
-	}
-	
-	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(visibility().toKeyword());
 		builder.append(" "); //$NON-NLS-1$
@@ -802,8 +812,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	@Override
-	public boolean typeIsInvariant() {
-		return isEngineDeclaration();
+	public boolean staticallyTyped() {
+		return staticallyTyped||(staticallyTyped=isEngineDeclaration());
 	}
 
 	public void resetLocalVarTypes() {

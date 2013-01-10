@@ -79,7 +79,8 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
-import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
@@ -87,9 +88,11 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
 import org.eclipse.core.resources.IFile;
@@ -129,19 +132,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private String parsedMemberOperator;
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
+	private TypeAnnotation parsedTypeAnnotation;
 	private TypeEnvironment typeEnvironments;
 
 	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	/**
 	 * Whether the current statement is not reached
 	 */
-	public boolean statementReached;
+	private boolean statementReached;
 	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
-	public int numUnnamedParameters;
-	public ExprElm problemReporter;
+	private int numUnnamedParameters;
+	private ExprElm problemReporter;
+	
+	public ExprElm problemReporter() {return problemReporter;}
+	public void setProblemReporter(ExprElm reporter) {problemReporter=reporter;}
 
 	public static final int MAX_PAR = 10;
 	public static final int MAX_NUMVAR = 20;
@@ -162,6 +169,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Cached strict level from #strict directive.
 	 */
 	protected int strictLevel;
+	/**
+	 * Whether to parse the script with static typing rules.
+	 */
+	protected Typing typing;
+	protected Typing migrationTyping;
 	/**
 	 * Whether the script contains an #appendto
 	 */
@@ -193,6 +205,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public boolean allErrorsDisabled() {return allErrorsDisabled;}
 	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
 	public ClonkBuilder builder() {return builder;}
+	public final Typing staticTyping() { return typing; }
 	
 	/**
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
@@ -249,11 +262,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Requests type information for an expression
 	 * @param expression the expression
-	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
-		if (typeEnvironments == null)
+		if (typeEnvironments == null || typing == Typing.Static || typing == Typing.Dynamic)
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
@@ -391,6 +403,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		initialize();
 	}
 	
+	private List<TypeAnnotation> typeAnnotations;
+	
+	public List<TypeAnnotation> typeAnnotations() {return typeAnnotations;}
+	
 	/**
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
 	 */
@@ -399,16 +415,20 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			engine = script.engine();
 			specialEngineRules = engine != null ? script.engine().specialRules() : null;
 			cachedEngineDeclarations = engine.cachedDeclarations();
-
+			typing = Typing.ParametersOptionallyTyped;
+			migrationTyping = null;
 			if (script.index() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) script.index();
-				ClonkProjectNature nature = projIndex.getNature();
-				if (nature != null)
+				ClonkProjectNature nature = projIndex.nature();
+				if (nature != null) {
 					errorsDisabledByProjectSettings = nature.settings().getDisabledErrorsSet();
+					typing = nature.settings().typing;
+					migrationTyping = nature.settings().migrationTyping;
+				}
 			}
-
 			strictLevel = script.strictLevel();
 			script.containsGlobals = false;
+			script.setTypeAnnotations(null);
 		}
 		statementReached = true;
 		if (scriptFile != null)
@@ -487,6 +507,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseDeclarations() {
 		strictLevel = script.strictLevel();
+		if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
+			typeAnnotations = new ArrayList<TypeAnnotation>();
 		this.seek(0);
 		enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 		try {
@@ -523,9 +545,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		catch (ParsingException e) {
 			return;
 		}
-		enableError(ParserErrorCode.StringNotClosed, true);
-		if (markers != null)
-			markers.deploy();
+		finally {
+			enableError(ParserErrorCode.StringNotClosed, true);
+			if (markers != null)
+				markers.deploy();
+		}
 	}
 
 	private void parseInitialSourceComment() {
@@ -586,11 +610,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private void parseCodeOfFunction(Function function) throws ParsingException {
-		// parser not yet ready to parse functions - deny
-		// function is weird or does not belong here - ignore
 		if (function.bodyLocation() == null)
 			return;
-		function.forceType(PrimitiveType.UNKNOWN);
+		if (!function.staticallyTyped())
+			function.assignType(PrimitiveType.UNKNOWN, false);
 
 		if (specialEngineRules != null)
 			for (SpecialFuncRule eventListener : specialEngineRules.functionEventListeners())
@@ -701,6 +724,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	protected boolean parseDeclaration() throws ParsingException {
 		final int startOfDeclaration = this.offset;
 		int readByte = read();
+		boolean success = false;
 		if (readByte == '#') {
 			// directive
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
@@ -708,7 +732,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (type == null) {
 				warning(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
-				return true;
+				success = true;
 			}
 			else {
 				String content = parseDirectiveParms();
@@ -717,22 +741,32 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				script.addDeclaration(directive);
 				if (type == DirectiveType.APPENDTO)
 					appendTo = true;
-				return true;
+				success = true;
 			}
 		}
 		else {
 			this.seek(startOfDeclaration);
-			FunctionHeader functionHeader = FunctionHeader.parse(this, true);
-			String word;
-			if (functionHeader != null) {
-				if (parseFunctionDeclaration(functionHeader))
-					return true;
+			
+			if (!success) {
+				FunctionHeader functionHeader = FunctionHeader.parse(this, true);
+				if (functionHeader != null)
+					if (parseFunctionDeclaration(functionHeader))
+						success = true;
 			}
-			else if ((word = readIdent()) != null && parseVariableDeclaration(false, true, Scope.makeScope(word), collectPrecedingComment(startOfDeclaration)) != null)
-				return true;
+			
+			if (!success) {
+				String word = readIdent();
+				Scope scope = word != null ? Scope.makeScope(word) : null;
+				if (scope != null) {
+					List<VarInitialization> v = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
+					if (v != null)
+						success = true;
+				}
+			}
 		}
-		this.seek(startOfDeclaration);
-		return false;
+		if (!success)
+			this.seek(startOfDeclaration);
+		return success;
 	}
 
 	private String parseDirectiveParms() {
@@ -751,8 +785,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		public boolean isOldStyle;
 		public int nameStart;
 		public int start;
-		public PrimitiveType returnType;
-		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, PrimitiveType returnType) {
+		public IType returnType;
+		public TypeAnnotation typeAnnotation;
+		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, IType returnType, TypeAnnotation typeAnnotation) {
 			super();
 			this.start = start;
 			this.name = name;
@@ -760,6 +795,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.isOldStyle = isOldStyle;
 			this.nameStart = nameStart;
 			this.returnType = returnType;
+			this.typeAnnotation = typeAnnotation;
 		}
 		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ParsingException {
 			int initialOffset = parser.offset;
@@ -767,7 +803,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			boolean isOldStyle = false;
 			String name = null;
 			String s = parser.parseIdentifier();
-			PrimitiveType returnType = null;
+			IType returnType = null;
+			TypeAnnotation typeAnnotation = null;
 			if (s != null) {
 				FunctionScope scope = FunctionScope.makeScope(s);
 				if (scope != null) {
@@ -779,10 +816,36 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (s != null)
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
-						returnType = parser.parseFunctionReturnType();
-						nameStart = parser.offset;
+						int bt = parser.offset;
+						if (parser.typing != Typing.Dynamic) {
+							returnType = parser.parseTypeAnnotation(true, true);
+							typeAnnotation = parser.parsedTypeAnnotation;
+						}
+						switch (parser.typing) {
+						case Static:
+							if (returnType == null) {
+								returnType = PrimitiveType.ANY;
+								parser.seek(bt);
+								parser.error(ParserErrorCode.TypeExpected, bt,bt+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+							}
+							break;
+						case ParametersOptionallyTyped:
+							if (!parser.isEngine && returnType != PrimitiveType.REFERENCE) {
+								returnType = null;
+								parser.seek(bt);
+							}
+							break;
+						default:
+							break;
+						}
 						parser.eatWhitespace();
+						nameStart = parser.offset;
 						s = parser.parseIdentifier();
+						if (s == null) {
+							parser.seek(bt);
+							returnType = null;
+							s = parser.parseIdentifier();
+						}
 						if (s != null) {
 							name = s;
 							isOldStyle = false;
@@ -798,9 +861,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
 						parser.seek(backtrack);
 						if (isProperLabel)
-							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType);
+							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType, typeAnnotation);
 					} else if (parser.peekAfterWhitespace() == '(')
-						return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType);
+						return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType, typeAnnotation);
 			}
 			parser.seek(initialOffset);
 			return null;
@@ -809,130 +872,166 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			func.setOldStyle(isOldStyle);
 			func.setName(name);
 			func.setVisibility(scope);
-			func.setReturnType(returnType);
+			func.assignType(returnType, returnType != null);
+			if (typeAnnotation != null)
+				typeAnnotation.setTarget(func);
 		}
 	}
 
 	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ParsingException {
-		if (scope != null) {
-			
-			final int offset = this.offset;
-
-			List<VarInitialization> createdVariables = null;
-			Function currentFunc = currentFunction();
-			
-			eatWhitespace();
-			switch (scope) {
-			case STATIC:
-				int pos = this.offset;
-				if (readIdent().equals(Keywords.Const))
-					scope = Scope.CONST;
-				else
-					this.seek(pos);
-				break;
-			case VAR:
-				if (currentFunc == null) {
-					error(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
-					scope = Scope.LOCAL;
-				}
-			default:
-				break;
-			}
-			
-			{
-				int rewind = this.offset;
-				do {
-					eatWhitespace();
-					IType typeOfNewVar;
-					// when parsing an engine script from (res/engines/...), allow specifying the type directly
-					if (isEngine) {
-						typeOfNewVar = parseFunctionReturnType();
-						if (typeOfNewVar != null)
-							eatWhitespace();
-					}
-					else
-						typeOfNewVar = null;
-
-					int s = this.offset;
-					String varName = readIdent();
-					int e = this.offset;
-					Declaration outerDec = currentDeclaration();
-					try {
-						Variable var = createVarInScope(varName, scope, s, e, comment);
-						setCurrentDeclaration(var);
-						VarInitialization varInitialization;
-						ExprElm initializationExpression = null;
-						{
-							eatWhitespace();
-							if (peek() == '=') {
-								if (scope != Variable.Scope.CONST && currentFunc == null && !engine.settings().supportsNonConstGlobalVarAssignment)
-									error(ParserErrorCode.NonConstGlobalVarAssignment, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW);
-								read();
-								eatWhitespace();
-								// parse initialization value with all errors disabled so no false errors 
-								boolean old = allErrorsDisabled;
-								allErrorsDisabled |= !reportErrors;
-								try {
-									initializationExpression = parseExpression(reportErrors);
-								} finally {
-									allErrorsDisabled = old;
-								}
-								var.setInitializationExpression(initializationExpression);
-								typeOfNewVar = initializationExpression instanceof IType
-									? (IType)initializationExpression
-									: PrimitiveType.UNKNOWN;
-							} else if (scope == Scope.CONST && !isEngine)
-								error(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, NO_THROW);
-							else if (scope == Scope.STATIC && isEngine)
-								var.forceType(PrimitiveType.INT); // most likely
-						}
-						varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
-						if (createdVariables == null)
-							createdVariables = new LinkedList<VarInitialization>();
-						createdVariables.add(varInitialization);
-						if (typeOfNewVar != null)
-							switch (scope) {
-							case CONST: case STATIC:
-								script.containsGlobals = true;
-							case LOCAL:
-								if (currentFunc == null) {
-									varInitialization.variable.forceType(typeOfNewVar);
-									break;
-								}
-								break;
-							case VAR: case PARAMETER:
-								//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
-								break;
-							}
-						rewind = this.offset;
-						eatWhitespace();
-					} finally {
-						setCurrentDeclaration(outerDec);
-					}
-				} while(read() == ',');
-				seek(rewind);
-			}
-			
-			if (checkForFinalSemicolon) {
-				int rewind = this.offset;
-				eatWhitespace();
-				if (read() != ';') {
-					seek(rewind);
-					error(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset, NO_THROW);
-				}
-			}
-			
-			// look for comment following directly and decorate the newly created variables with it
-			String inlineComment = textOfInlineComment();
-			if (inlineComment != null) {
-				inlineComment = inlineComment.trim();
-				for (VarInitialization v : createdVariables)
-					v.variable.setUserDescription(inlineComment);
-			}
-			
-			return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
-		} else
+		if (scope == null)
 			return null;
+			
+		final int backtrack = this.offset;
+
+		List<VarInitialization> createdVariables = null;
+		Function currentFunc = currentFunction();
+		
+		eatWhitespace();
+		switch (scope) {
+		case STATIC:
+			int pos = this.offset;
+			if (readIdent().equals(Keywords.Const))
+				scope = Scope.CONST;
+			else
+				this.seek(pos);
+			break;
+		case VAR:
+			if (currentFunc == null) {
+				error(ParserErrorCode.VarOutsideFunction, backtrack-scope.toKeyword().length(), backtrack, NO_THROW|ABSOLUTE_MARKER_LOCATION, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
+				scope = Scope.LOCAL;
+			}
+			break;
+		default:
+			break;
+		}
+		
+		{
+			int rewind = this.offset;
+			do {
+				eatWhitespace();
+				parsedTypeAnnotation = null;
+				IType staticType;
+				TypeAnnotation typeAnnotation;
+				int bt = this.offset;
+				int typeExpectedAt = -1;
+				// when parsing an engine script from (res/engines/...), allow specifying the type directly
+				if (isEngine || typing.allowsNonParameterAnnotations()) {
+					staticType = parseTypeAnnotation(true, false);
+					if (staticType != null) {
+						typeAnnotation = parsedTypeAnnotation;
+						eatWhitespace();
+					}
+					else if (typing == Typing.Static) {
+						typeAnnotation = null;
+						typeExpectedAt = this.offset;
+						staticType = PrimitiveType.INT;
+					} else
+						typeAnnotation = null;
+				}
+				else {
+					typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
+					staticType = null;
+				}
+
+				int s = this.offset;
+				String varName = readIdent();
+				if (s > bt && (
+					varName.length() == 0 ||
+					// ugh - for (var object in ...) workaround
+					(migrationTyping == Typing.Static && varName.equals(Keywords.In))
+				)) {
+					seek(s = bt);
+					typeAnnotation = null;
+					staticType = null;
+					varName = readIdent();
+				}
+				if (varName.length() == 0) {
+					seek(backtrack);
+					return null;
+				} else if (typeExpectedAt != -1)
+					typeRequiredAt(typeExpectedAt);
+				
+				Declaration outerDec = currentDeclaration();
+				try {
+					Variable var = createVarInScope(varName, scope, bt, this.offset, comment);
+					if (typeAnnotation != null)
+						typeAnnotation.setTarget(var);
+					if (staticType != null)
+						var.assignType(staticType, true);
+					if (parsedTypeAnnotation != null)
+						parsedTypeAnnotation.setTarget(var);
+					setCurrentDeclaration(var);
+					VarInitialization varInitialization;
+					ExprElm initializationExpression = null;
+					{
+						eatWhitespace();
+						if (peek() == '=') {
+							if (scope != Variable.Scope.CONST && currentFunc == null && !engine.settings().supportsNonConstGlobalVarAssignment)
+								error(ParserErrorCode.NonConstGlobalVarAssignment, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW);
+							read();
+							eatWhitespace();
+
+							// parse initialization value with all errors disabled so no false errors 
+							boolean old = allErrorsDisabled;
+							allErrorsDisabled |= !reportErrors;
+							try {
+								initializationExpression = parseExpression(reportErrors);
+							} finally {
+								allErrorsDisabled = old;
+							}
+							var.setInitializationExpression(initializationExpression);
+						} else if (scope == Scope.CONST && !isEngine)
+							error(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, NO_THROW);
+						else if (scope == Scope.STATIC && isEngine)
+							var.forceType(PrimitiveType.INT); // most likely
+					}
+					varInitialization = new VarInitialization(varName, initializationExpression, bt-bodyOffset(), this.offset-bodyOffset(), var);
+					varInitialization.type = staticType;
+					if (createdVariables == null)
+						createdVariables = new LinkedList<VarInitialization>();
+					createdVariables.add(varInitialization);
+					rewind = this.offset;
+					eatWhitespace();
+				} finally {
+					setCurrentDeclaration(outerDec);
+				}
+			} while(read() == ',');
+			seek(rewind);
+		}
+		
+		if (checkForFinalSemicolon) {
+			int rewind = this.offset;
+			eatWhitespace();
+			if (read() != ';') {
+				seek(rewind);
+				error(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset, NO_THROW);
+			}
+		}
+		
+		// look for comment following directly and decorate the newly created variables with it
+		String inlineComment = textOfInlineComment();
+		if (inlineComment != null) {
+			inlineComment = inlineComment.trim();
+			for (VarInitialization v : createdVariables)
+				v.variable.setUserDescription(inlineComment);
+		}
+		
+		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
+	}
+	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
+		TypeAnnotation typeAnnotation;
+		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
+			typeAnnotation = new TypeAnnotation(offset, offset);
+			if (typeAnnotations != null)
+				typeAnnotations.add(typeAnnotation);
+		} else
+			typeAnnotation = null;
+		return typeAnnotation;
+	}
+	
+	private void typeRequiredAt(int typeExpectedAt) throws ParsingException {
+		error(ParserErrorCode.TypeExpected, typeExpectedAt, typeExpectedAt+1,  ABSOLUTE_MARKER_LOCATION|NO_THROW);
 	}
 	
 	private Variable findVar(String name, Scope scope) {
@@ -976,24 +1075,86 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return result;
 	}
 
-	private PrimitiveType parseFunctionReturnType() throws ParsingException {
+	private IType parseTypeAnnotation(boolean topLevel, boolean required) throws ParsingException {
+		if (topLevel)
+			parsedTypeAnnotation = null;
 		final int backtrack = this.offset;
-		eatWhitespace();
+		int start = this.offset;
 		String str;
+		IType t = null;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs)
 				error(ParserErrorCode.PrimitiveTypeNotSupported, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW,
 					'&', script.engine().name());
 			read();
-			return PrimitiveType.REFERENCE;
+			t = PrimitiveType.REFERENCE;
 		}
-		else if (isEngine && (str = parseIdentifier()) != null) {
-			PrimitiveType t = PrimitiveType.makeType(str, true);
-			if (t != PrimitiveType.UNKNOWN)
-				return t;
+		else if ((str = parseIdentifier()) != null || (parseID() && (str = parsedID.stringValue()) != null)) {
+			PrimitiveType pt;
+			t = pt = PrimitiveType.fromString(str, isEngine||typing==Typing.Static);
+			if (pt != null && !script.engine().supportsPrimitiveType(pt))
+				t = null;
+			else if (t == null && typing.allowsNonParameterAnnotations())
+				if (script.index() != null && engine.acceptsId(str))
+					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
+			if (t != null) {
+				int p = offset;
+				eatWhitespace();
+				RefinementIndicator: switch (read()) {
+				case '&':
+					t = ReferenceType.make(t);
+					break;
+				case '[':
+					if (typing == Typing.Static || migrationTyping == Typing.Static)
+						if (t == PrimitiveType.ARRAY) {
+							eatWhitespace();
+							IType elementType = parseTypeAnnotation(false, true);
+							expect(']');
+							if (elementType != null)
+								t = new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
+							break RefinementIndicator;
+						}
+					break;
+					//$FALL-THROUGH$
+				default:
+					seek(p);
+				}
+				while (true) {
+					int s = this.offset;
+					eatWhitespace();
+					if (read() != '|') {
+						seek(s);
+						break;
+					} else
+						eatWhitespace();
+					IType option = parseTypeAnnotation(false, true);
+					if (option != null)
+						t = TypeUnification.unify(t, option);
+					else
+						break;
+					eatWhitespace();
+				}
+				if (topLevel)
+					if (typeAnnotations != null) {
+						parsedTypeAnnotation = new TypeAnnotation(backtrack, this.offset);
+						parsedTypeAnnotation.setType(t);
+						typeAnnotations.add(parsedTypeAnnotation);
+					}
+			}
 		}
-		this.seek(backtrack);
-		return null;
+		if (t == null) {
+			if (typing == Typing.Static)
+				if (required) {
+					error(ParserErrorCode.InvalidType, start, offset, NO_THROW|ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
+					return null;
+				}
+			if (migrationTyping == Typing.Static)
+				if (topLevel && typeAnnotations != null)
+					// placeholder annotation
+					typeAnnotations.add(parsedTypeAnnotation = new TypeAnnotation(backtrack, backtrack));
+			this.seek(backtrack);
+		}
+		return t;
 	}
 	
 	/**
@@ -1024,8 +1185,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				{} // old style funcs have no named parameters
 			else
 				tokenExpectedError("("); //$NON-NLS-1$
-		} else
+		} else {
 			// get parameters
+			boolean parmExpected = false;
 			do {
 				eat(WHITESPACE_CHARS);
 				Comment parameterCommentPre = parseCommentObject();
@@ -1044,15 +1206,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						commentBuilder.append(parameterCommentPost.text());
 					}
 					parm.setUserDescription(commentBuilder.toString());
-				}
+				} else if (parmExpected)
+					error(ParserErrorCode.NameExpected, this.offset, offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
+				parmExpected = false;
 				int readByte = read();
 				if (readByte == ')')
 					break; // all parameters parsed
 				else if (readByte == ',')
-					continue; // parse another parameter
+					parmExpected = true;
 				else
 					error(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$ 
 			} while(!reachedEOF());
+		}
 		endOfHeader = this.offset;
 		lastComment = null;
 		eatWhitespace();
@@ -1086,6 +1251,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				eatWhitespace();
 				int offsetBeforeToken = this.offset;
 				String word;
+				Scope scope;
 				if (FunctionHeader.parse(this, header.isOldStyle) != null || reachedEOF()) {
 					if (header.isOldStyle)
 						seek(endBody);
@@ -1094,7 +1260,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						error(ParserErrorCode.MissingBrackets, header.nameStart, header.nameStart+header.name.length(), NO_THROW, blockDepth+1, '}');
 					seek(offsetBeforeToken);
 				}
-				else if ((word = parseIdentifier()) != null && parseVariableDeclaration(false, false, Variable.Scope.makeScope(word), collectPrecedingComment(offsetBeforeToken)) != null)
+				else if (
+					(word = parseIdentifier()) != null &&
+					(scope = Scope.makeScope(word)) != null &&
+					scope != Scope.VAR &&
+					parseVariableDeclaration(false, false, scope, collectPrecedingComment(offsetBeforeToken)) != null
+				)
 					/* boy, am i glad to have parsed this variable declaration */;
 				else if (parseString() == null) {
 					int c = read();
@@ -1476,6 +1647,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void marker(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
 		if (!errorEnabled(code))
 			return;
+		// C4ScriptST: Incompatible type warnings always errors
+		if (typing == Typing.Static && code == ParserErrorCode.IncompatibleTypes)
+			severity = IMarker.SEVERITY_ERROR; 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			int offs = bodyOffset();
 			markerStart += offs;
@@ -1523,7 +1697,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		error(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, token);
 	}
 	
-	private boolean parseStaticFieldOperator_() {
+	private boolean parseStaticFieldOperator() {
 		final int offset = this.offset;
 		String o = this.readString(2);
 		if (o != null && o.equals("::")) //$NON-NLS-1$
@@ -1663,7 +1837,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					int idOffset;
 					eatWhitespace();
 					idOffset = offset;
-					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_())
+					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator())
 						idOffset -= fieldOperatorStart;
 					else {
 						parsedID = null; // reset because that call could have been successful (GetX would be recognized as id)
@@ -2140,8 +2314,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Function f = currentFunction();
 		if (f != null)
 			for (Variable p : f.parameters())
-				if (p.type() == PrimitiveType.UNKNOWN)
-					requestTypeInfo(new AccessVar(p)).storeType(p.parameterType());
+				if (p.type() == PrimitiveType.UNKNOWN) {
+					ITypeInfo varTypeInfo = requestTypeInfo(new AccessVar(p));
+					if (varTypeInfo != null)
+						varTypeInfo.storeType(p.parameterType());
+				}
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
 		typeEnvironments.apply(this, onlyTypeLocals);
@@ -2162,7 +2339,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (owningFunc == null) {
 						newTypeEnvironment();
 						reportProblemsOf(init, true);
-						new AccessVar(v).expectedToBeOfType(init.type(this), this, TypeExpectancyMode.Force);
+						new AccessVar(v).typingJudgement(init.type(this), this, TypingJudgementMode.Force);
 						endTypeEnvironment(true, true);
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())
@@ -2467,6 +2644,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				case Cancel:
 					listener = null; // listener doesn't want to hear from me anymore? fine!
 					//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
+					break;
 				default:
 					break;
 				}
@@ -2886,57 +3064,58 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private Variable parseParameter(Function function) throws ParsingException {
 		
+		int backtrack = this.offset;
+		eatWhitespace();
 		if (isEngine && parseEllipsis())
 			return addVarParmsParm(function);
-		
-		int s = this.offset;
-		String firstWord = readIdent();
-		if (firstWord.length() == 0)
-			if (read() == '&')
-				firstWord = "&"; //$NON-NLS-1$
-			else {
-				unread();
-				return null;
-			}
-		int e = this.offset;
-		Variable var = new Variable(null, Scope.PARAMETER);
-		PrimitiveType type = PrimitiveType.makeType(firstWord);
-		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
-		var.forceType(type, typeLocked);
-		if (type == PrimitiveType.UNKNOWN)
-			//var.setType(C4Type.ANY);
-			var.setName(firstWord);
-		else {
-			eatWhitespace();
-			if (read() == '&') {
-				if (!engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-				var.forceType(ReferenceType.make(type), typeLocked);
-				eatWhitespace();
-			} else
-				unread();
-			int newStart = this.offset;
-			String secondWord = readIdent();
-			if (secondWord.length() > 0) {
-				if (!engine.supportsPrimitiveType(type))
-					error(ParserErrorCode.PrimitiveTypeNotSupported, s, e, NO_THROW, type.typeName(true), script.engine().name());
-				var.setName(secondWord);
-				s = newStart;
-				e = this.offset;
-			}
-			else {
-				
-				if (engine.supportsPrimitiveType(type))
-					// type is name
-					warning(ParserErrorCode.TypeAsName, s, e, ABSOLUTE_MARKER_LOCATION, firstWord);
-				var.forceType(PrimitiveType.ANY, typeLocked);
-				var.setName(firstWord);
-				this.seek(e);
-			}
+		if (peek() == ')') {
+			seek(backtrack);
+			return null;
 		}
-		var.setLocation(new SourceLocation(s, e));
+		
+		int typeStart = this.offset;
+		IType type = parseTypeAnnotation(true, false);
+		int typeEnd = this.offset;
+		eatWhitespace();
+		int nameStart = this.offset;
+		String parmName = readIdent();
+		if (parmName.length() == 0) {
+			type = null;
+			seek(nameStart = backtrack);
+			eatWhitespace();
+			int ta = this.offset;
+			parmName = readIdent();
+			if (parmName.length() == 0)
+				return null;
+			parsedTypeAnnotation = placeholderTypeAnnotationIfMigrating(ta);
+		}
+		switch (typing) {
+		case Static:
+			if (type == null)
+				typeRequiredAt(typeStart);
+			break;
+		case Dynamic:
+			if (type != null)
+				error(ParserErrorCode.NotSupported, typeStart, typeEnd, NO_THROW|ABSOLUTE_MARKER_LOCATION, readStringAt(typeStart, typeEnd), engine().name() + " with no type annotations");
+			break;
+		default:
+			break;
+		}
+		Variable var = new Variable(null, Scope.PARAMETER);
+		if (parsedTypeAnnotation != null)
+			parsedTypeAnnotation.setTarget(var);
+		if (type != null) {
+			if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+				error(ParserErrorCode.PrimitiveTypeNotSupported, offset-1, offset, NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
+			var.forceType(type, true);
+		}
+		var.setName(parmName);
+		var.setLocation(new SourceLocation(nameStart, this.offset));
 		var.setParentDeclaration(function);
+		if (parsedTypeAnnotation != null)
+			parsedTypeAnnotation.setTarget(var);
 		function.addParameter(var);
+		eatWhitespace();
 		return var;
 	}
 	
@@ -3052,15 +3231,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 			// traverse block using the listener
 			if (cachedBlock != null) {
-				if (func != null) {
-					for (Variable parm : func.parameters())
-						parm.setType(PrimitiveType.UNKNOWN);
-					for (Variable var : func.localVars())
-						var.setType(PrimitiveType.UNKNOWN);
-					func.setReturnType(PrimitiveType.UNKNOWN);
-				}
-				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+				if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true)) {
+					newTypeEnvironment();
+					if (func != null) {
+						for (Variable parm : func.parameters())
+							storeType(new AccessVar(parm), PrimitiveType.UNKNOWN);
+						for (Variable var : func.localVars())
+							storeType(new AccessVar(var), PrimitiveType.UNKNOWN);
+						func.assignType(PrimitiveType.UNKNOWN, false);
+					}
 					reportProblemsOf(iterable(cachedBlock.statements()), true);
+					endTypeEnvironment(true, false);
+				}
 				// just traverse... this should be faster than reparsing -.-
 				if (listener != null)
 					cachedBlock.traverse(listener, this);

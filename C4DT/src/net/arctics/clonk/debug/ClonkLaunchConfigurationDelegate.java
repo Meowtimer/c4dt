@@ -2,6 +2,7 @@ package net.arctics.clonk.debug;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
@@ -194,22 +196,38 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 * @throws CoreException
 	 */
 	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IFolder scenario, File engine, String mode) throws CoreException {
+		
+		Scenario scenarioObj;
+		Engine engineObj;
+		ClonkProjectNature nature;
+		try {
+			scenarioObj = Scenario.get(scenario);
+			engineObj = scenarioObj.engine();
+			nature = ClonkProjectNature.get(scenario);
+		} catch (Exception e) {
+			return null;
+		}
+		if (engineObj == null)
+			return null;
+		
+		File tempFolder = null;
+		try {
+			if (nature.settings().typing.allowsNonParameterAnnotations()) {
+				tempFolder = Files.createTempDirectory("c4dt").toFile();
+				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tempFolder, true);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		args.add(resFilePath(scenario));
-		
-		Engine engineObj;
-		try {
-			engineObj = Scenario.get(scenario).engine();
-		} catch (Exception e) {
-			return null;
-		}
-		if (engineObj == null)
-			return null;
+		addWorkspaceDependency(scenario, nature, args, tempFolder);
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
@@ -221,7 +239,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 							GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
-									args.add(resFilePath(res));
+									addWorkspaceDependency((IContainer)res, ((ProjectIndex)index).nature(), args, tempFolder);
 						}
 			}
 		
@@ -252,6 +270,13 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		}
 		
 		return args.toArray(new String [args.size()]);
+	}
+
+	private void addWorkspaceDependency(IContainer res, ClonkProjectNature nature, Collection<String> args, File tempFolder) {
+		if (tempFolder != null)
+			args.add(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
+		else
+			args.add(resFilePath(res));
 	}
 	
 }

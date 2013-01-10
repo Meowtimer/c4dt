@@ -35,6 +35,8 @@ public class FunctionType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
+		if (!special)
+			return PrimitiveType.FUNCTION.typeName(false);
 		StringBuilder builder = new StringBuilder();
 		builder.append(PrimitiveType.FUNCTION.typeName(false));
 		StringUtil.writeBlock(builder, "(", ")", ", ", map(this.prototype.parameters(), new IConverter<Variable, String>() {
@@ -52,7 +54,7 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public IType staticType() {
+	public IType simpleType() {
 		return PrimitiveType.FUNCTION;
 	}
 
