@@ -94,7 +94,7 @@ public class C4ScriptToCPPConverter {
 						ExprElm e = elements[i];
 						CallDeclaration callFunc = as(e, CallDeclaration.class);
 						MemberOperator op = i-1 >= 0 ? as(elements[i-1], MemberOperator.class) : null;
-						if (callFunc != null && op != null) {
+						if (callFunc != null && op != null)
 							if (callFunc.declaration() instanceof Function) {
 								Function f = (Function) callFunc.declaration();
 								if (f.parentDeclaration() instanceof Engine) {
@@ -104,7 +104,6 @@ public class C4ScriptToCPPConverter {
 									return true;
 								}
 							}
-						}
 					}
 				}
 				else if (elm instanceof CallDeclaration) {
@@ -152,7 +151,7 @@ public class C4ScriptToCPPConverter {
 		}
 		output.append(")");
 		output.append("\n");
-		this.printExprElement(function, body, output, 1);
+		this.printExprElement(function, body, output, 0);
 	}
 	
 	public void printScript(Script script, Writer output) throws IOException {

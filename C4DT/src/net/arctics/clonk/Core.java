@@ -120,13 +120,17 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/**
 	 * Provider used by the plugin to provide text of documents
 	 */
-	private final TextFileDocumentProvider textFileDocumentProvider = new TextFileDocumentProvider();
+	private final TextFileDocumentProvider textFileDocumentProvider;
 	
 	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
-	private boolean runsHeadless;
+	private final boolean runsHeadless;
 
-	public Core() {}
+	public Core(boolean runsHeadless) {
+		this.runsHeadless = runsHeadless;
+		this.textFileDocumentProvider = runsHeadless() ? null : new TextFileDocumentProvider();
+	}
+	public Core() { this(false); }
 	
 	public Version versionFromLastRun() {
 		return versionFromLastRun;
@@ -416,8 +420,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (instance == null) {
-			instance = new Core();
-			instance.runsHeadless = true;
+			instance = new Core(true);
 			instance.engineConfigurationFolder = engineConfigurationFolder;
 			instance.setActiveEngineByName(engine);
 		}
