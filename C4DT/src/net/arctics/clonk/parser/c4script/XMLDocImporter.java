@@ -177,11 +177,9 @@ public class XMLDocImporter {
 		public IType returnType;
 		public boolean isVariable;
 		public Declaration toDeclaration() {
-			if (isVariable) {
-				if (name.equals("GameCall"))
-					System.out.println("wat");
+			if (isVariable)
 				return new Variable(name, returnType, description, Scope.CONST);
-			} else {
+			else {
 				Function f = new Function(name, returnType, parameters.toArray(new Variable[parameters.size()]));
 				f.setUserDescription(description);
 				return f;
