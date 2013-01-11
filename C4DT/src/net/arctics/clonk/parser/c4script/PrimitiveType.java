@@ -34,7 +34,8 @@ public enum PrimitiveType implements IType {
 	PROPLIST,
 	FUNCTION,
 	FLOAT,
-	NUM;
+	NUM,
+	ERRONEOUS;
 	
 	public static final PrimitiveType[] NILLABLES = {PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST};
 	private final ReferenceType referenceType = new ReferenceType(this);
@@ -83,6 +84,9 @@ public enum PrimitiveType implements IType {
 			case REFERENCE:
 				t.scriptName = "&";
 				break;
+			case ERRONEOUS:
+				t.scriptName = "<error>";
+				continue;
 			default:
 				t.scriptName = t.name().toLowerCase();
 			}
@@ -267,6 +271,8 @@ public enum PrimitiveType implements IType {
 	@Override
 	public int precision() {
 		switch (this) {
+		case ERRONEOUS:
+			return -1;
 		case UNKNOWN:
 			return 0;
 		case ANY:

@@ -12,6 +12,7 @@ import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -38,10 +39,12 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkContextInformation;
@@ -315,18 +318,27 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						structure = (IHasSubDeclarations) t;
 					else
 						structure = Script.scriptFrom(t);
-					if (structure != null) {
-						if (!contextStructuresChanged) {
-							contextStructures.clear();
-							contextStructuresChanged = true;
-						}
+					if (structure != null)
 						contextStructures.add(structure);
-					}
 				}
-				// expression was of no use - discard and show global proposals
-				//if (!contextStructuresChanged)
-				//	contextSequence = null;
+			else
+				contextStructures.add(editorScript);
+		}
+		
+		if (contextExpression instanceof VarInitialization) {
+			VarInitialization vi = (VarInitialization)contextExpression;
+			Typing typing = Typing.ParametersOptionallyTyped;
+			if (index instanceof ProjectIndex)
+				typing = ((ProjectIndex)index).nature().settings().typing;
+			switch (typing) {
+			case Static:
+				if (vi.type == PrimitiveType.ERRONEOUS)
+					proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
+				break;
+			default:
+				break;
 			}
+			return;
 		}
 
 		if (proposalCycle == ProposalCycle.ALL)
@@ -337,7 +349,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					for (Variable var : editorScript.index().engine().variables())
 						proposalForVar(var,prefix,offset,proposals);
 			}
-
+		
 		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
 			for (Variable v : activeFunc.parameters())
 				proposalForVar(v, prefix, wordOffset, proposals);

@@ -925,7 +925,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					else if (typing == Typing.Static) {
 						typeAnnotation = null;
 						typeExpectedAt = this.offset;
-						staticType = PrimitiveType.INT;
+						staticType = PrimitiveType.ERRONEOUS;
 					} else
 						typeAnnotation = null;
 				}
