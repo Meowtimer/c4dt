@@ -294,9 +294,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (
 					contextExpression instanceof MemberOperator ||
 					(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
-				)
+				) {
 					// we only care about sequences
 					contextSequence = Utilities.as(contextExpression.parent(), Sequence.class);
+					if (contextSequence != null)
+						contextSequence = contextSequence.subSequenceIncluding(contextExpression);
+				}
 			}
 			if (contextSequence != null) {
 				// cut off stuff after ->
@@ -321,8 +324,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					}
 				}
 				// expression was of no use - discard and show global proposals
-				if (!contextStructuresChanged)
-					contextSequence = null;
+				//if (!contextStructuresChanged)
+				//	contextSequence = null;
 			}
 		}
 
@@ -385,6 +388,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
 				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+				prop.setCategory(cats.Keywords);
 				proposals.add(prop);
 			}
 		}

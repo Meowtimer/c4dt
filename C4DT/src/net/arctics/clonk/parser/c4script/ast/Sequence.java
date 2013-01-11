@@ -82,6 +82,15 @@ public class Sequence extends ExprElmWithSubElementsArray {
 				list.add(e);
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
+	public Sequence subSequenceIncluding(ExprElm elm) {
+		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
+		for (ExprElm e : elements) {
+			list.add(e);
+			if (e == elm)
+				break;
+		}
+		return list.size() > 0 ? new Sequence(list) : null;
+	}
 	@Override
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		lastElement().assignment(rightSide, context);

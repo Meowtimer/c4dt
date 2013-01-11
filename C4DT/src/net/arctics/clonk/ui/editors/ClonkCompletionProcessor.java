@@ -39,13 +39,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		public void defaultOrdering() {
 			int i = 0;
 			Variables = ++i;
-			Keywords = ++i;
 			Functions = ++i;
 			Definitions = ++i;
 			NewFunction = ++i;
 			Callbacks = ++i;
 			EffectCallbacks = ++i;
 			Directives = ++i;
+			Keywords = ++i;
 		}
 		{ defaultOrdering(); }
 	}
