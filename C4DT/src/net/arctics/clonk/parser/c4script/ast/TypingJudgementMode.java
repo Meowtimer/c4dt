@@ -19,5 +19,9 @@ public enum TypingJudgementMode {
 	/**
 	 * Force the type of the entity.
 	 */
-	Force
+	Force,
+	/**
+	 * Unify with existing typing judgement.
+	 */
+	Unify
 }

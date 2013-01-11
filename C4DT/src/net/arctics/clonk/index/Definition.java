@@ -507,6 +507,26 @@ public class Definition extends Script implements IProplistDeclaration {
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
 	
+	@Override
+	public boolean canBeAssignedFrom(IType other) {
+		boolean anyDefinitions = false;
+		boolean primitives = false;
+		for (IType t : other)
+			if (t instanceof Definition) {
+				anyDefinitions = true;
+				Definition d = (Definition)t;
+				if (d.doesInclude(index, this))
+					return true;
+			} else if (t instanceof PrimitiveType) switch ((PrimitiveType)t) {
+			case ANY: case UNKNOWN: case OBJECT:
+				primitives = true;
+				break;
+			default:
+				continue;
+			}
+		return anyDefinitions ? false : primitives;
+	}
+	
 	static {
 		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override

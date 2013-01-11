@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import static net.arctics.clonk.util.Utilities.defaulting;
-
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
@@ -13,10 +11,12 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -120,7 +120,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public void forceType(IType type) {
-		this.type = defaulting(type, PrimitiveType.UNKNOWN);
+		if (type == null)
+			type = PrimitiveType.UNKNOWN;
+		if (this.scope == Scope.PARAMETER)
+			type = TypeChoice.remove(type, new IPredicate<IType>() {
+				@Override
+				public boolean test(IType item) {
+					return item instanceof ParameterType && ((ParameterType)item).parameter() == Variable.this;
+				}
+			});
+		this.type = type;
 	}
 	
 	public void forceType(IType type, boolean typeLocked) {

@@ -147,8 +147,20 @@ public class TypeUnification {
 					return ReferenceType.make(u);
 		}
 		
-		if (a instanceof ParameterType)
-			return TypeChoice.make(a, b);
+		if (a instanceof ParameterType && b instanceof PrimitiveType)
+			return b;
+		
+		if (a instanceof StructuralType && b instanceof StructuralType) {
+			StructuralType sa = (StructuralType) a;
+			StructuralType sb = (StructuralType) b;
+			sa.addFunctions(sb.functions());
+			sb.addFunctions(sa.functions());
+			return sa;
+		}
+		
+		if (a instanceof StructuralType && b instanceof Definition)
+			if (((StructuralType)a).satisfiedBy((Definition)b))
+				return b;
 		
 		return null;
 	}
@@ -163,7 +175,8 @@ public class TypeUnification {
 	}
 	public static IType unify(IType a, IType b) {
 		IType u = unifyNoChoice(a, b);
-		return u != null ? u : TypeChoice.make(a, b);
+		return u != null ? u
+			: TypeChoice.make(a, b);
 	}
 	public static IType unify(Iterable<IType> ingredients) {
 		IType unified = null;

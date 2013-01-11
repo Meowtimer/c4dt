@@ -48,7 +48,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 	
 	@Override
 	public String toString() {
-		return "type: " + type(); //$NON-NLS-1$
+		return "<>: " + type(); //$NON-NLS-1$
 	}
 	
 	@Override

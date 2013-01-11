@@ -71,11 +71,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public void storeType(IType type) {
-			// don't store if function.returunType() already specifies a type (including any)
-			// this is to prevent cases where for example the result of EffectVar in one instance is
-			// used as int and then as something else which leads to an erroneous type incompatibility warning
-			if (type == PrimitiveType.UNKNOWN)
-				super.storeType(type);
+			super.storeType(type);
 		}
 		
 		@Override
@@ -95,7 +91,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public String toString() {
-			return "function " + function + " " + super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
+			return String.format("[function %s: %s]", function, type().typeName(true));
 		}
 		
 		@Override
@@ -151,7 +147,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public String toString() {
-			return String.format("%s(%d)", varFunction.name(), varIndex); //$NON-NLS-1$
+			return String.format("[%s(%d): %s]", varFunction.name(), varIndex, type().typeName(true)); //$NON-NLS-1$
 		}
 		@Override
 		public boolean local() {
@@ -511,60 +507,65 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				if (context.strictLevel() >= 2)
 					if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 						context.warning(ParserErrorCode.VariableCalled, this, 0, declaration.name(), type.typeName(false));
-			}
-			else if (declaration instanceof Function) {
-				Function f = (Function)declaration;
-				if (f.visibility() == FunctionScope.GLOBAL || predecessorInSequence() != null)
-					context.script().addUsedScript(f.script());
-				
-				SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
-				boolean specialCaseHandled =
-					rule != null &&
-					rule.validateArguments(this, params, context);
-				
-				// not a special case... check regular parameter types
-				if (!specialCaseHandled) {
-					int givenParam = 0;
-					for (Variable parm : f.parameters()) {
-						if (givenParam >= params.length)
-							break;
-						ExprElm given = params[givenParam++];
-						if (given == null)
-							continue;
-						if (!given.validForType(parm.type(), context))
-							context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
-						else
-							given.typingJudgement(parm.type(), context);
-					}
-				}				
-			}
-			else if (declaration == null)
-				if (unknownFunctionShouldBeError(context)) {
-					if (declarationName.equals(Keywords.Inherited)) {
-						Function activeFunc = context.currentFunction();
-						if (activeFunc != null)
-							context.error(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
-						else
-							context.error(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
-					}
-					// _inherited yields no warning or error
-					else if (!declarationName.equals(Keywords.SafeInherited))
-						context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
-				} else if (context.findDefinitionViaCall() && predecessorInSequence() != null) {
-					Index index = context.script().index();
-					index.loadScriptsContainingDeclarationsNamed(declarationName);
-					List<Declaration> decs = index.declarationMap().get(declarationName);
-					if (decs != null) {
-						IType[] types = new IType[decs.size()];
-						for (int i = 0; i < types.length; i++) {
-							types[i] = as(decs.get(i).parentDeclaration(), IType.class);
-							if (types[i] instanceof IHasIncludes)
-								types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
+			} else {
+				ExprElm predecessor = predecessorInSequence();
+				if (declaration instanceof Function) {
+					Function f = (Function)declaration;
+					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
+						context.script().addUsedScript(f.script());
+					
+					SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
+					boolean specialCaseHandled =
+						rule != null &&
+						rule.validateArguments(this, params, context);
+					
+					// not a special case... check regular parameter types
+					if (!specialCaseHandled) {
+						int givenParam = 0;
+						for (Variable parm : f.parameters()) {
+							if (givenParam >= params.length)
+								break;
+							ExprElm given = params[givenParam++];
+							if (given == null)
+								continue;
+							if (!given.validForType(parm.type(), context))
+								context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
+							else
+								given.typingJudgement(parm.type(), context);
 						}
-						IType typeSet = TypeUnification.unify(iterable(types));
-						predecessorInSequence().typingJudgement(typeSet, context);
-					}
+					}				
 				}
+				else if (declaration == null)
+					if (unknownFunctionShouldBeError(context)) {
+						if (declarationName.equals(Keywords.Inherited)) {
+							Function activeFunc = context.currentFunction();
+							if (activeFunc != null)
+								context.error(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
+							else
+								context.error(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+						}
+						// _inherited yields no warning or error
+						else if (!declarationName.equals(Keywords.SafeInherited))
+							context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+					} else if (predecessor != null)
+						if (context.findDefinitionViaCall()) {
+							Index index = context.script().index();
+							index.loadScriptsContainingDeclarationsNamed(declarationName);
+							List<Declaration> decs = index.declarationMap().get(declarationName);
+							if (decs != null) {
+								IType[] types = new IType[decs.size()];
+								for (int i = 0; i < types.length; i++) {
+									types[i] = as(decs.get(i).parentDeclaration(), IType.class);
+									if (types[i] instanceof IHasIncludes)
+										types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
+								}
+								IType typeSet = TypeUnification.unify(iterable(types));
+								predecessor.typingJudgement(typeSet, context, TypingJudgementMode.Unify);
+							}
+						} else
+							predecessor.typingJudgement
+								(new StructuralType(declarationName), context, TypingJudgementMode.Unify);
+			}
 		}
 	}
 	@Override
@@ -743,13 +744,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
-			if (f.staticallyTyped())
+			if (f.staticallyTyped() || f.isEngineDeclaration())
 				return null;
-			IType retType = f.returnType();
-			if (retType == null)
-				return new FunctionReturnTypeInfo((Function)d);
-			if (d.isEngineDeclaration())
-				return null;
+			return new FunctionReturnTypeInfo((Function)d);
 		}
 		else if (d != null)
 			return new GenericTypeInfo(this, parser);

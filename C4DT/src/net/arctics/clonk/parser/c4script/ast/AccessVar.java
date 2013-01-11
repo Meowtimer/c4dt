@@ -285,7 +285,7 @@ public class AccessVar extends AccessDeclaration {
 				public AccessVar origin() { return AccessVar.this; }
 				@Override
 				public boolean local() {
-					return ((Variable)origin().declaration()).scope() != Scope.PARAMETER;
+					return false;
 				}
 				@Override
 				public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
@@ -305,6 +305,10 @@ public class AccessVar extends AccessDeclaration {
 				@Override
 				public void storeType(IType type) {
 					super.storeType(type);
+				}
+				@Override
+				public String toString() {
+					return String.format("[%s: %s]", declarationName, type().typeName(true));
 				}
 			}
 			return new LocalVariableInfo();

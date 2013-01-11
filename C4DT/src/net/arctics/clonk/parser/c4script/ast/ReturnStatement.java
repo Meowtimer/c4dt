@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -121,7 +122,11 @@ public class ReturnStatement extends KeywordStatement {
 					parser.error(ParserErrorCode.IncompatibleTypes, returnExpr, C4ScriptParser.NO_THROW,
 						currentFunction.returnType().typeName(true), returnExpr.type(parser));
 			}
-			else
-				currentFunction.expectedToBeOfType(returnExpr.unresolvedType(parser), TypingJudgementMode.Force);
+			else {
+				IType type = returnExpr.unresolvedType(parser);
+				CallDeclaration dummy = new CallDeclaration(currentFunction);
+				parser.storeType(dummy, type);
+				parser.linkTypesOf(dummy, returnExpr);
+			}
 	}
 }

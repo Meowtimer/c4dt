@@ -57,7 +57,7 @@ public class ParameterType implements IResolvableType {
 		IFunctionCall call = context.currentFunctionCall();
 		if (call != null && call.quasiCalledFunction(context) == p.parentDeclaration())
 			return call.concreteParameterType(parameter, context);
-		else if (context.currentFunction() != p.parentDeclaration())
+		else if (context.currentFunction() != null && context.currentFunction() != p.parentDeclaration())
 			return PrimitiveType.UNKNOWN;
 		else
 			return this;

@@ -546,10 +546,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		if (type == null)
 			return true;
 		IType myType = type(context);
-		for (IType t : myType)
-			if (type.canBeAssignedFrom(t) || canBeConvertedTo(t, type, context))
-				return true;
-		return false;
+		return type.canBeAssignedFrom(myType);
 	}
 
 	/**
@@ -663,13 +660,20 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		case Hint:
 			info = context.queryTypeInfo(this);
 			return info == null || info.hint(type);
+		case Unify:
+			info = context.requestTypeInfo(this);
+			if (info != null) {
+				info.storeType(TypeUnification.unify(info.type(), type));
+				return true;
+			} else
+				return false;
 		default:
 			return false;
 		}
 	}
 	
 	public final boolean typingJudgement(IType type, C4ScriptParser context) {
-		return typingJudgement(type, context, TypingJudgementMode.Expect);
+		return typingJudgement(type, context, TypingJudgementMode.Unify);
 	}
 
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
@@ -680,8 +684,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				try {
 					context.error(ParserErrorCode.IncompatibleTypes, rightSide, C4ScriptParser.NO_THROW, left, right);
 				} catch (ParsingException e) {}
-		} else
-			context.storeType(this, rightSide.type(context));
+		} else {
+			this.typingJudgement(rightSide.type(context), context, TypingJudgementMode.Unify);
+			context.linkTypesOf(this, rightSide);
+		}
 	}
 
 	public ControlFlow controlFlow() {
@@ -1002,7 +1008,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		
 		@Override
 		public String toString() {
-			return expression.toString() + ": " + super.toString();
+			return String.format("[%s: %s]", expression.toString(), type.typeName(true));
 		}
 		
 		@Override

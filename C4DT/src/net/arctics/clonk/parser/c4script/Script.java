@@ -1200,6 +1200,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		cachedFunctionMap = new HashMap<String, Function>();
 		cachedVariableMap = new HashMap<String, Variable>();
 		_generateFindDeclarationCache();
+		populateDictionary();
 	}
 	
 	@Override

@@ -76,7 +76,7 @@ public final class TypeChoice implements IType, IResolvableType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return left.canBeAssignedFrom(other) || right.canBeAssignedFrom(right);
+		return left.canBeAssignedFrom(other) || right.canBeAssignedFrom(other);
 	}
 
 	@Override
@@ -147,6 +147,22 @@ public final class TypeChoice implements IType, IResolvableType {
 		LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
 		return types;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T extends IType> T contained(IType type, Class<T> containedType) { 
+		if (containedType.isInstance(type))
+			return (T) type;
+		if (type instanceof TypeChoice) {
+			TypeChoice choice = (TypeChoice)type;
+			T r = contained(choice.left(), containedType);
+			if (r != null)
+				return r;
+			r = contained(choice.right(), containedType);
+			if (r != null)
+				return r;
+		}
+		return null;
 	}
 	
 	@Override

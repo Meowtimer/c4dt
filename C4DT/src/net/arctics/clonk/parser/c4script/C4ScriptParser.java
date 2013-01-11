@@ -63,6 +63,7 @@ import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
+import net.arctics.clonk.parser.c4script.ast.LinkedTypeInfo;
 import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.MissingStatement;
@@ -133,7 +134,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	private TypeAnnotation parsedTypeAnnotation;
-	private TypeEnvironment typeEnvironments;
+	private TypeEnvironment typeEnvironment;
 
 	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	/**
@@ -259,17 +260,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
+	public void linkTypesOf(ExprElm a, ExprElm b) {
+		ITypeInfo ati = requestTypeInfo(a);
+		ITypeInfo bti = requestTypeInfo(b);
+		if (ati != null && bti != null && ati != bti) {
+			typeEnvironment.remove(ati);
+			typeEnvironment.remove(bti);
+			typeEnvironment.add(new LinkedTypeInfo(ati, bti));
+		}
+	}
+	
 	/**
 	 * Requests type information for an expression
 	 * @param expression the expression
 	 * @return the type information or null if none has been stored
 	 */
 	public ITypeInfo requestTypeInfo(ExprElm expression) {
-		if (typeEnvironments == null || typing == Typing.Static || typing == Typing.Dynamic)
+		if (typeEnvironment == null || typing == Typing.Static || typing == Typing.Dynamic)
 			return null;
 		boolean topMostLayer = true;
 		ITypeInfo base = null;
-		for (TypeEnvironment list = typeEnvironments; list != null; list = list.up) {
+		for (TypeEnvironment list = typeEnvironment; list != null; list = list.up) {
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					if (!topMostLayer) {
@@ -284,22 +295,22 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (newlyCreated != null) {
 			if (base != null)
 				newlyCreated.merge(base);
-			typeEnvironments.add(newlyCreated);
+			typeEnvironment.add(newlyCreated);
 		}
 		return newlyCreated;
 	}
 	
 	public TypeEnvironment newTypeEnvironment() {
 		TypeEnvironment l = new TypeEnvironment();
-		l.up = this.typeEnvironments;
-		this.typeEnvironments = l;
+		l.up = this.typeEnvironment;
+		this.typeEnvironment = l;
 		return l;
 	}
 	
 	public void endTypeEnvironment(boolean inject, boolean ignoreLocals) {
-		if (inject && typeEnvironments.up != null)
-			typeEnvironments.up.inject(typeEnvironments, ignoreLocals);
-		typeEnvironments = typeEnvironments.up;
+		if (inject && typeEnvironment.up != null)
+			typeEnvironment.up.inject(typeEnvironment, ignoreLocals);
+		typeEnvironment = typeEnvironment.up;
 	}
 	
 	/**
@@ -308,9 +319,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The typeinfo or null if nothing was found
 	 */
 	public ITypeInfo queryTypeInfo(ExprElm expression) {
-		if (typeEnvironments == null)
+		if (typeEnvironment == null)
 			return null;
-		for (TypeEnvironment list = typeEnvironments; list != null; list = list.up)
+		for (TypeEnvironment list = typeEnvironment; list != null; list = list.up)
 			for (ITypeInfo info : list)
 				if (info.storesTypeInformationFor(expression, this))
 					return info;
@@ -2321,7 +2332,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 		for (Statement s : statements)
 			reportProblemsOf(s, true);
-		typeEnvironments.apply(this, onlyTypeLocals);
+		typeEnvironment.apply(this, onlyTypeLocals);
 		endTypeEnvironment(true, true);
 		warnAboutPossibleProblemsWithFunctionLocalVariables(currentFunction(), statements);
 	}
@@ -2353,7 +2364,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				setCurrentFunction(f);
 				reportProblemsOfFunction(f);
 			}
-		typeEnvironments.apply(this, false);
+		typeEnvironment.apply(this, false);
 		for (Variable v : script.variables())
 			if (v.scope() == Scope.CONST)
 				v.lockType();
@@ -3482,5 +3493,4 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void popCurrentFunctionCall() { functionCall.pop(); }
 	@Override
 	public IFunctionCall currentFunctionCall() { return functionCall.isEmpty() ? null : functionCall.peek(); }
-
 }
