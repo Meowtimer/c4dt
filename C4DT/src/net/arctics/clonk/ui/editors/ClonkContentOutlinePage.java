@@ -14,6 +14,7 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -160,7 +161,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty())
 			return;
 		if (event.getSelection() instanceof IStructuredSelection) {
-			Declaration dec = (Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
+			Declaration dec = (Declaration) ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
 			dec = dec.latestVersion();
 			if (dec != null)
 				if (dec.containedIn(editor.topLevelDeclaration()))

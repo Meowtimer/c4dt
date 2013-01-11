@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.lang.ref.WeakReference;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -17,7 +18,7 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 
 	private final T wrapped;
 	
-	private static class WeakItem extends WeakReference<Object> {
+	private static class WeakItem extends WeakReference<Object> implements IAdaptable {
 		public WeakItem(Object referent) {
 			super(referent);
 		}
@@ -25,6 +26,14 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		public String toString() {
 			Object o = get();
 			return o != null ? o.toString() : "<Lost>";
+		}
+		@Override
+		public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+			Object obj = get();
+			if (adapter.isInstance(obj))
+				return obj;
+			else
+				return null;
 		}
 	}
 	

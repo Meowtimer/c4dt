@@ -32,6 +32,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.text.IRegion;
 
 /**
@@ -39,7 +40,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IIndexEntity {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IIndexEntity, IAdaptable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -499,6 +500,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			if (d == parent)
 				return true;
 		return false;
+	}
+	
+	@Override
+	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+		return adapter.isInstance(this) ? this : null;
 	}
 	
 }
