@@ -125,7 +125,7 @@ public class ReturnStatement extends KeywordStatement {
 			else {
 				IType type = returnExpr.unresolvedType(parser);
 				CallDeclaration dummy = new CallDeclaration(currentFunction);
-				parser.storeType(dummy, type);
+				dummy.typingJudgement(type, parser, TypingJudgementMode.Unify);
 				parser.linkTypesOf(dummy, returnExpr);
 			}
 	}

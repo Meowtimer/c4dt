@@ -34,6 +34,11 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 	public StructuralType(String supportsFunction) {
 		functions.add(supportsFunction);
 	}
+	
+	public StructuralType(StructuralType a, StructuralType b) {
+		functions.addAll(a.functions());
+		functions.addAll(b.functions());
+	}
 
 	@Override
 	public Iterator<IType> iterator() {

@@ -37,7 +37,7 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 			// unknown before so now it is assumed to be of this type
 			storeType(type);
 		else if (!type().equals(other.type()))
-			// assignments of multiple types - construct type set
+			// assignments of multiple types - unify
 			storeType(TypeUnification.unify(type(), other.type()));
 	}
 	

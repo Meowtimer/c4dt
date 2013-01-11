@@ -63,6 +63,21 @@ public class TypeUnification {
 				break;
 			}
 		
+		if (a instanceof TypeChoice && b instanceof TypeChoice) {
+			TypeChoice tca = (TypeChoice)a;
+			TypeChoice tcb = (TypeChoice)b;
+			IType l = unifyLeft(tca.left(), tcb.left());
+			IType r = unifyLeft(tca.right(), tcb.right());
+			if (l != null && r != null)
+				return TypeChoice.make(l, r);
+			else if (l == null && r != null)
+				return TypeChoice.make(TypeChoice.make(tca.left(), tcb.left()), r);
+			else if (l != null && r == null)
+				return TypeChoice.make(l, TypeChoice.make(tca.right(), tcb.right()));
+			else
+				return null;
+		}
+		
 		if (a instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
 			IType l = tca.left();
@@ -153,9 +168,7 @@ public class TypeUnification {
 		if (a instanceof StructuralType && b instanceof StructuralType) {
 			StructuralType sa = (StructuralType) a;
 			StructuralType sb = (StructuralType) b;
-			sa.addFunctions(sb.functions());
-			sb.addFunctions(sa.functions());
-			return sa;
+			return new StructuralType(sa, sb);
 		}
 		
 		if (a instanceof StructuralType && b instanceof Definition)
@@ -170,13 +183,14 @@ public class TypeUnification {
 			return u;
 		u = unifyLeft(b, a);
 		if (u != null)
+			System.out.println(String.format("unify %s | %s -> %s", a.typeName(true), b.typeName(true), u.typeName(true)));
+		if (u != null)
 			return u;
 		return null;
 	}
 	public static IType unify(IType a, IType b) {
 		IType u = unifyNoChoice(a, b);
-		return u != null ? u
-			: TypeChoice.make(a, b);
+		return u != null ? u : TypeChoice.make(a, b);
 	}
 	public static IType unify(Iterable<IType> ingredients) {
 		IType unified = null;
