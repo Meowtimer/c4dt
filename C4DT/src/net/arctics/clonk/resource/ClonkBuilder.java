@@ -19,7 +19,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
@@ -33,7 +32,6 @@ import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
@@ -55,11 +53,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -535,33 +528,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						pinned.validate();
 				}
 		}
-	}
-
-	private void clearUIOfReferencesBeforeBuild() {
-		Display.getDefault().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				IWorkbench w = PlatformUI.getWorkbench();
-				for (IWorkbenchWindow window : w.getWorkbenchWindows())
-					if (window.getActivePage() != null) {
-						IWorkbenchPage page = window.getActivePage();
-						for (IEditorReference ref : page.getEditorReferences()) {
-							IEditorPart part = ref.getEditor(false);
-							if (part != null && part instanceof ClonkTextEditor) {
-								ClonkTextEditor ed = (ClonkTextEditor) part;
-								// only if building the project this element is declared in
-								Declaration topLevelDeclaration = ed.topLevelDeclaration();
-								if (
-									topLevelDeclaration != null &&
-									topLevelDeclaration.resource() != null &&
-									ClonkBuilder.this.getProject().equals(topLevelDeclaration.resource().getProject())
-								)
-									ed.clearOutline();
-							}
-						}
-					}
-			}
-		});
 	}
 
 	public C4ScriptParser queueScript(Script script) {
