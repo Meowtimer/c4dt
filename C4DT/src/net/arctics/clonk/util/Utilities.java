@@ -174,7 +174,7 @@ public abstract class Utilities {
 		if (fromList != null) {
 			if (fromList.size() == 1) {
 				T soleItem = fromList.get(0);
-				return filter.test(soleItem) ? soleItem : null;
+				return filter == null || filter.test(soleItem) ? soleItem : null;
 			}
 			Scenario scen = Scenario.containingScenario(resource);
 			for (T o : fromList) {
