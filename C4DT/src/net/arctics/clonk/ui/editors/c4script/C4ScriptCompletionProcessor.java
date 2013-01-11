@@ -268,8 +268,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		C4ScriptParser parser
 	) {
 		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
-		contextStructures.add(editorScript);
-		boolean contextStructuresChanged = false;
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
 		Sequence contextSequence = null;
@@ -304,14 +302,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						contextSequence = contextSequence.subSequenceIncluding(contextExpression);
 				}
 			}
-			if (contextSequence != null) {
-				// cut off stuff after ->
-				for (int i = contextSequence.subElements().length-1; i >= 0; i--)
-					if (contextSequence.subElements()[i] instanceof MemberOperator) {
-						if (i < contextSequence.subElements().length-1)
-							contextSequence = contextSequence.subSequenceUpTo(contextSequence.subElements()[i+1]);
-						break;
-					}
+			if (contextSequence != null)
 				for (IType t : contextSequence.type(parser)) {
 					IHasSubDeclarations structure;
 					if (t instanceof IHasSubDeclarations)
@@ -590,8 +581,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			Function func = as(dec, Function.class);
 			Variable var = as(dec, Variable.class);
 			if (func != null) {
-				if (func.visibility() != FunctionScope.GLOBAL)
-					proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
+				if (func.visibility() != FunctionScope.GLOBAL) {
+					ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
+					if (prop != null)
+						prop.setCategory(cats.LocalFunction);
+				}
 			}
 			else if (var != null)
 				if (var.scope() != Scope.STATIC && var.scope() != Scope.CONST)

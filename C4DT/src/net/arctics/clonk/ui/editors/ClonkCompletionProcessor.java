@@ -30,6 +30,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		public int
 			Variables,
 			Keywords,
+			LocalFunction,
 			Functions,
 			Definitions,
 			NewFunction,
@@ -39,6 +40,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		public void defaultOrdering() {
 			int i = 0;
 			Variables = ++i;
+			LocalFunction = ++i;
 			Functions = ++i;
 			Definitions = ++i;
 			NewFunction = ++i;
@@ -100,10 +102,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 	
-	protected void proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
+	protected ClonkCompletionProposal proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
 		if (prefix != null)
 			if (!stringMatchesPrefix(func.name(), prefix))
-				return;
+				return null;
 		int replacementLength = prefix != null ? prefix.length() : 0;
 
 		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -113,6 +115,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		);
 		prop.setCategory(cats.Functions);
 		proposals.add(prop);
+		return prop;
 	}
 	
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
