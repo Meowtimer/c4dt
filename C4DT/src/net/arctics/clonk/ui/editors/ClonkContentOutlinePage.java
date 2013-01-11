@@ -9,6 +9,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
@@ -146,10 +147,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
-		ClonkOutlineProvider provider = new ClonkOutlineProvider(this);
+		WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider(this));
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
-		treeViewer.setSorter(DECLARATION_SORTER);
+		treeViewer.setSorter(provider.sorter(DECLARATION_SORTER));
 		treeViewer.setInput(obj);
 		treeViewer.refresh();
 	}

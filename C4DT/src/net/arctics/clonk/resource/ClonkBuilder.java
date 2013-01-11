@@ -142,7 +142,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
-		clearUIOfReferencesBeforeBuild();
+		//clearUIOfReferencesBeforeBuild();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
