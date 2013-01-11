@@ -66,8 +66,8 @@ public class TypeUnification {
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
 			TypeChoice tcb = (TypeChoice)b;
-			IType l = unifyLeft(tca.left(), tcb.left());
-			IType r = unifyLeft(tca.right(), tcb.right());
+			IType l = unifyNoChoice(tca.left(), tcb.left());
+			IType r = unifyNoChoice(tca.right(), tcb.right());
 			if (l != null && r != null)
 				return TypeChoice.make(l, r);
 			else if (l == null && r != null)
@@ -82,8 +82,8 @@ public class TypeUnification {
 			TypeChoice tca = (TypeChoice)a;
 			IType l = tca.left();
 			IType r = tca.right();
-			IType l_ = unifyLeft(l, b);
-			IType r_ = unifyLeft(r, b);
+			IType l_ = unifyNoChoice(l, b);
+			IType r_ = unifyNoChoice(r, b);
 			if (l_ == null && r_ == null)
 				return null;
 			else if (r_ == null)
@@ -182,8 +182,8 @@ public class TypeUnification {
 		if (u != null)
 			return u;
 		u = unifyLeft(b, a);
-		if (u != null)
-			System.out.println(String.format("unify %s | %s -> %s", a.typeName(true), b.typeName(true), u.typeName(true)));
+//		if (u != null)
+//			System.out.println(String.format("unify %s | %s -> %s", a.typeName(true), b.typeName(true), u.typeName(true)));
 		if (u != null)
 			return u;
 		return null;
