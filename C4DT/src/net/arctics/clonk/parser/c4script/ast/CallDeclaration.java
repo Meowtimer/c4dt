@@ -16,13 +16,11 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CallReturnType;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
@@ -548,23 +546,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						else if (!declarationName.equals(Keywords.SafeInherited))
 							context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					} else if (predecessor != null)
-						if (context.findDefinitionViaCall()) {
-							Index index = context.script().index();
-							index.loadScriptsContainingDeclarationsNamed(declarationName);
-							List<Declaration> decs = index.declarationMap().get(declarationName);
-							if (decs != null) {
-								IType[] types = new IType[decs.size()];
-								for (int i = 0; i < types.length; i++) {
-									types[i] = as(decs.get(i).parentDeclaration(), IType.class);
-									if (types[i] instanceof IHasIncludes)
-										types[i] = ConstrainedProplist.object((IHasIncludes) types[i], ConstraintKind.Includes);
-								}
-								IType typeSet = TypeUnification.unify(iterable(types));
-								predecessor.typingJudgement(typeSet, context, TypingJudgementMode.Unify);
-							}
-						} else
-							predecessor.typingJudgement
-								(new StructuralType(declarationName), context, TypingJudgementMode.Unify);
+						predecessor.typingJudgement
+							(new StructuralType(declarationName), context, TypingJudgementMode.Unify);
 			}
 		}
 	}
