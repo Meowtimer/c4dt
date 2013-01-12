@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
@@ -96,10 +95,9 @@ public class VarDeclarationStatement extends KeywordStatement {
 						initialization.variable.staticallyTyped() &&
 						!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, parser, parser.script()))
 					)
-						parser.error(ParserErrorCode.IncompatibleTypes,
+						parser.incompatibleTypes(
 							initialization.expression,
-							C4ScriptParser.NO_THROW,
-							initialization.variable.type().typeName(false), initializationType.typeName(false)
+							initialization.variable.type(), initializationType
 						);
 					else
 						new AccessVar(initialization.variable).typingJudgement(initializationType, parser, TypingJudgementMode.Unify);

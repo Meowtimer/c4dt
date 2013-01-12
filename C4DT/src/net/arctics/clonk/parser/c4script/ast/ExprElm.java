@@ -677,9 +677,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			IType left = this.type(context);
 			IType right = rightSide.type(context); 
 			if (!left.canBeAssignedFrom(right))
-				try {
-					context.error(ParserErrorCode.IncompatibleTypes, rightSide, C4ScriptParser.NO_THROW, left, right);
-				} catch (ParsingException e) {}
+				context.incompatibleTypes(rightSide, left, right);
 		} else {
 			this.typingJudgement(rightSide.type(context), context, TypingJudgementMode.Force);
 			context.linkTypesOf(this, rightSide);

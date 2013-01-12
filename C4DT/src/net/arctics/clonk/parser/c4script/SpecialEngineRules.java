@@ -613,7 +613,7 @@ public abstract class SpecialEngineRules {
 							continue;
 						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						if (!given.validForType(parmType, parser))
-							parser.warning(ParserErrorCode.IncompatibleTypes, given, 0, parmType, given.type(parser));
+							parser.incompatibleTypes(given, parmType, given.type(parser));
 						else
 							given.typingJudgement(parmType, parser, TypingJudgementMode.Unify);
 					}

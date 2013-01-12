@@ -177,9 +177,9 @@ public class BinaryOp extends OperatorExpression {
 			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, op.operatorName());
 		// wrong parameter types
 		if (!leftSide().validForType(op.firstArgType(), context))
-			context.warning(ParserErrorCode.IncompatibleTypes, leftSide(), 0, op.firstArgType(), leftSide().type(context));
+			context.incompatibleTypes(leftSide(), op.firstArgType(), leftSide().type(context));
 		if (!rightSide().validForType(op.secondArgType(), context))
-			context.warning(ParserErrorCode.IncompatibleTypes, rightSide(), 0, op.secondArgType(), rightSide().type(context));
+			context.incompatibleTypes(rightSide(), op.secondArgType(), rightSide().type(context));
 
 		IType expectedLeft, expectedRight;
 		switch (op) {

@@ -3493,4 +3493,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void popCurrentFunctionCall() { functionCall.pop(); }
 	@Override
 	public IFunctionCall currentFunctionCall() { return functionCall.isEmpty() ? null : functionCall.peek(); }
+	
+	public void incompatibleTypes(IRegion region, IType left, IType right) {
+		try {
+			marker(ParserErrorCode.IncompatibleTypes, region.getOffset(), region.getOffset()+region.getLength(), NO_THROW,
+				typing == Typing.Static ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
+				left.typeName(true), right.typeName(true)
+			);
+		} catch (ParsingException e) {}
+	}
 }

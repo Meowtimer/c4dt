@@ -527,7 +527,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 							if (given == null)
 								continue;
 							if (!given.validForType(parm.type(), context))
-								context.warning(ParserErrorCode.IncompatibleTypes, given, 0, parm.type().typeName(false), given.type(context).typeName(false));
+								context.incompatibleTypes(given, parm.type(), given.type(context));
 							else
 								given.typingJudgement(parm.type(), context, TypingJudgementMode.Unify);
 						}
