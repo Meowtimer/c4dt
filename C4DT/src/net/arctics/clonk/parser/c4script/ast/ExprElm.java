@@ -672,10 +672,6 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 	}
 	
-	public final boolean typingJudgement(IType type, C4ScriptParser context) {
-		return typingJudgement(type, context, TypingJudgementMode.Unify);
-	}
-
 	public void assignment(ExprElm rightSide, C4ScriptParser context) {
 		if (context.staticTyping() == Typing.Static) {
 			IType left = this.type(context);

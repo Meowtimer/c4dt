@@ -62,13 +62,13 @@ public class ArrayElementExpression extends ExprElm {
 				if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 					parser.warning(ParserErrorCode.NotAProplist, predecessorInSequence(), 0);
 				else
-					predecessorInSequence().typingJudgement(PrimitiveType.PROPLIST, parser);
+					predecessorInSequence().typingJudgement(PrimitiveType.PROPLIST, parser, TypingJudgementMode.Unify);
 			}
 			else if (argType == PrimitiveType.INT)
 				if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 					parser.warning(ParserErrorCode.NotAnArrayOrProplist, predecessorInSequence(), 0);
 				else
-					predecessorInSequence().typingJudgement(PrimitiveType.ARRAY, parser);
+					predecessorInSequence().typingJudgement(PrimitiveType.ARRAY, parser, TypingJudgementMode.Unify);
 		}
 	}
 
@@ -132,5 +132,5 @@ public class ArrayElementExpression extends ExprElm {
 				);
 		}
 	}
-
+	
 }

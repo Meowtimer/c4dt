@@ -102,7 +102,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 							initialization.variable.type().typeName(false), initializationType.typeName(false)
 						);
 					else
-						new AccessVar(initialization.variable).typingJudgement(initializationType, parser);
+						new AccessVar(initialization.variable).typingJudgement(initializationType, parser, TypingJudgementMode.Unify);
 				}
 	}
 }

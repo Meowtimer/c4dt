@@ -192,9 +192,9 @@ public class BinaryOp extends OperatorExpression {
 		}
 		
 		if (expectedLeft != null)
-			leftSide().typingJudgement(expectedLeft, context);
+			leftSide().typingJudgement(expectedLeft, context, TypingJudgementMode.Unify);
 		if (expectedRight != null)
-			rightSide().typingJudgement(expectedRight, context);
+			rightSide().typingJudgement(expectedRight, context, TypingJudgementMode.Unify);
 
 		switch (op) {
 		case Assign: case AssignAdd: case AssignSubtract:

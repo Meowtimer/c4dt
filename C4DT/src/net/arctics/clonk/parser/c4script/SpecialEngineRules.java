@@ -41,6 +41,7 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -614,7 +615,7 @@ public abstract class SpecialEngineRules {
 						if (!given.validForType(parmType, parser))
 							parser.warning(ParserErrorCode.IncompatibleTypes, given, 0, parmType, given.type(parser));
 						else
-							given.typingJudgement(parmType, parser);
+							given.typingJudgement(parmType, parser, TypingJudgementMode.Unify);
 					}
 					return true;
 				}

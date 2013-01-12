@@ -140,10 +140,8 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		// delegate to predecessor
-		if (predecessorInSequence() != null)
-			return predecessorInSequence().typingJudgement(type, context, mode);
-		else
-			return false;
+		ExprElm p = predecessorInSequence();
+		return p != null ? p.typingJudgement(type, context, mode) : false;
 	}
 
 	@Override
