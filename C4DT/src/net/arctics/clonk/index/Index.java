@@ -29,6 +29,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -72,6 +73,7 @@ import org.eclipse.core.runtime.CoreException;
 public class Index extends Declaration implements Serializable, ILatestDeclarationVersionProvider {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	public static final String GLOBAL_PROPLIST_NAME = "Global"; 
 
 	public transient Object saveSynchronizer = new Object();
 	public transient Object loadSynchronizer = new Object();
@@ -92,7 +94,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private final List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
-
+	private Variable globalProplist;
+	
+	public synchronized Variable global() {
+		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
+			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
+			type.setLocation(SourceLocation.ZERO);
+			type.setParentDeclaration(this);
+			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, type);
+			globalProplist.setParentDeclaration(this);
+			globalProplist.setScope(Scope.STATIC);
+		}
+		return globalProplist;
+	}
+	
 	protected File folder;
 	protected boolean built;
 	
@@ -292,6 +307,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			appendages = new HashMap<ID, List<Script>>();
 		globalFunctions.clear();
 		staticVariables.clear();
+		Variable g = global(); if (g != null) staticVariables.add(global());
 		declarationMap.clear();
 
 		final int[] counts = new int[3];
@@ -654,6 +670,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
+		globalProplist = null;
 		refreshIndex(false);
 		built(false);
 	}

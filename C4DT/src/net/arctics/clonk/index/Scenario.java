@@ -27,8 +27,8 @@ public class Scenario extends Definition {
 	
 	private Variable scenarioPropList = createScenarioProplist();
 
-	private Variable createScenarioProplist() {
-		if (scenarioPropList == null) {
+	private synchronized Variable createScenarioProplist() {
+		if (scenarioPropList == null && engine().settings().supportsGlobalProplists) {
 			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
 			type.setLocation(SourceLocation.ZERO);
 			type.setParentDeclaration(this);

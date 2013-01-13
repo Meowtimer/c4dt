@@ -586,9 +586,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					return d;
 			if (name.equals(Scenario.PROPLIST_NAME)) {
 				Scenario scenario = Scenario.nearestScenario(this.resource());
-				if (scenario != null)
+				if (scenario != null && scenario.propList() != null)
 					return scenario.propList();
 			}
+			else if (name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
+				return index().global();
 		}
 
 		// global stuff defined in relevant projects
