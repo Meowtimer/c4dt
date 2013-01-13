@@ -23,6 +23,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
+import net.arctics.clonk.parser.c4script.ast.StructuralType;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -134,7 +135,7 @@ public class EntityLocator extends ExpressionLocator {
 			String declarationName = access.declarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType t = access.predecessorInSequence() != null ? access.predecessorInSequence().type(parser) : null;
-			if (t == null || t.precision() <= PrimitiveType.OBJECT.precision()) {
+			if (t == null || t instanceof StructuralType || t.precision() <= PrimitiveType.OBJECT.precision()) {
 				for (Index i : script.index().relevantIndexes())
 					i.loadScriptsContainingDeclarationsNamed(declarationName);
 				for (Index i : script.index().relevantIndexes()) {

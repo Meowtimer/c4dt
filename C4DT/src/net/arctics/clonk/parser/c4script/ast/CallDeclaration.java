@@ -536,7 +536,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						// _inherited yields no warning or error
 						else if (!declarationName.equals(Keywords.SafeInherited))
 							context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
-					} else if (predecessor != null)
+					} else if (predecessor != null && MemberOperator.unforgiving(predecessor))
 						predecessor.typingJudgement
 							(new StructuralType(declarationName), context, TypingJudgementMode.Unify);
 			}

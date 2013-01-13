@@ -646,16 +646,22 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		ITypeInfo info;
 		switch (mode) {
-		case Expect: case Force:
+		case Expect:
 			info = context.requestTypeInfo(this);
 			if (info != null)
-				if (mode == TypingJudgementMode.Force || info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
+				if (info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
 					info.storeType(type);
 					return true;
-				}
-				else
+				} else
 					return false;
 			return true;
+		case Force:
+			info = context.requestTypeInfo(this);
+			if (info != null) {
+				info.storeType(type);
+				return true;
+			} else
+				return false;
 		case Hint:
 			info = context.queryTypeInfo(this);
 			return info == null || info.hint(type);

@@ -99,8 +99,16 @@ public class VarDeclarationStatement extends KeywordStatement {
 							initialization.expression,
 							initialization.variable.type(), initializationType
 						);
-					else
+					else {
+						switch (scope) {
+						case VAR: case PARAMETER:
+							initializationType = TypeUtil.resolve(initializationType, parser, parser.script());
+							break;
+						default:
+							break;
+						}
 						new AccessVar(initialization.variable).typingJudgement(initializationType, parser, TypingJudgementMode.Unify);
+					}
 				}
 	}
 }
