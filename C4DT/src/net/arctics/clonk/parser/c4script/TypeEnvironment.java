@@ -28,10 +28,6 @@ public class TypeEnvironment extends ArrayList<ITypeInfo> {
 			ITypeInfo otherInfo = otherIt.next();
 			for (Iterator<ITypeInfo> it = this.iterator(); it.hasNext();) {
 				ITypeInfo myInfo = it.next();
-				if (ignoreLocals && myInfo.local()) {
-					it.remove();
-					continue;
-				}
 				if (myInfo.refersToSameExpression(otherInfo)) {
 					if (merged == null)
 						merged = new LinkedList<ITypeInfo>();

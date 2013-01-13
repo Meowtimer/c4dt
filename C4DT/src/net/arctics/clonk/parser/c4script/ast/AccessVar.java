@@ -284,10 +284,6 @@ public class AccessVar extends AccessDeclaration {
 				}
 				public AccessVar origin() { return AccessVar.this; }
 				@Override
-				public boolean local() {
-					return false;
-				}
-				@Override
 				public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 					return expr instanceof AccessVar && ((AccessVar)expr).declaration() == declaration();
 				}
@@ -301,10 +297,6 @@ public class AccessVar extends AccessDeclaration {
 				public void apply(boolean soft, C4ScriptParser parser) {
 					Variable v = (Variable)origin().declaration();
 					v.expectedToBeOfType(type, TypingJudgementMode.Expect);
-				}
-				@Override
-				public void storeType(IType type) {
-					super.storeType(type);
 				}
 				@Override
 				public String toString() {

@@ -32,7 +32,6 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -1003,14 +1002,6 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		@Override
 		public String toString() {
 			return String.format("[%s: %s]", expression.toString(), type.typeName(true));
-		}
-		
-		@Override
-		public boolean local() {
-			return
-				expression instanceof AccessVar &&
-				((AccessVar)expression).declaration() instanceof Variable &&
-				((Variable)((AccessVar)expression).declaration()).scope().isLocal();
 		}
 		
 	}

@@ -68,11 +68,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		
 		@Override
-		public void storeType(IType type) {
-			super.storeType(type);
-		}
-		
-		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof CallDeclaration) {
 				CallDeclaration callFunc = (CallDeclaration) expr;
@@ -146,10 +141,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		@Override
 		public String toString() {
 			return String.format("[%s(%d): %s]", varFunction.name(), varIndex, type().typeName(true)); //$NON-NLS-1$
-		}
-		@Override
-		public boolean local() {
-			return varFunction.name().equals("Var");
 		}
 	}
 

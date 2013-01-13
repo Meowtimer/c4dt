@@ -58,10 +58,4 @@ public interface ITypeInfo {
 	 * @throws CloneNotSupportedException
 	 */
 	Object clone() throws CloneNotSupportedException; // Cloneable does not declare the method :c
-	/**
-	 * Specifies whether the type info is local to some region.
-	 * It won't be merged into the type info list on the next level in that case.
-	 * @return Whether this type info is local or not.
-	 */
-	boolean local();
 }

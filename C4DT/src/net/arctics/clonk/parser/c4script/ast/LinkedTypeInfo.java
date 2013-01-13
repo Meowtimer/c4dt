@@ -89,11 +89,6 @@ public class LinkedTypeInfo implements ITypeInfo {
 	public String toString() {
 		return StringUtil.blockString("[", "]", ", ", iterable(linkedTypeInfos)) + ": " + unified.typeName(true);
 	}
-
-	@Override
-	public boolean local() {
-		return false;
-	}
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException {

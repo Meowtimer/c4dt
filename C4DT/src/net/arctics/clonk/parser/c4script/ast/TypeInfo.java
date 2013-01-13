@@ -50,10 +50,5 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 	public String toString() {
 		return "<>: " + type(); //$NON-NLS-1$
 	}
-	
-	@Override
-	public boolean local() {
-		return false;
-	}
 
 }
