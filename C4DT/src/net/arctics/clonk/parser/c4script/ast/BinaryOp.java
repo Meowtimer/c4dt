@@ -283,5 +283,16 @@ public class BinaryOp extends OperatorExpression {
 			return false;
 		}
 	}
+	
+	@Override
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
+		switch (operator()) {
+		case Assign:
+			if (leftSide != null)
+				return leftSide.createTypeInfo(parser);
+		default:
+			return super.createTypeInfo(parser);
+		}
+	}
 
 }
