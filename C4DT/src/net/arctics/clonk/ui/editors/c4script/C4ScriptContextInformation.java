@@ -43,7 +43,6 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	
 	public C4ScriptContextInformation(String contextDisplayString, Image image, Function function, int parmIndex, int parmsStart, int parmsEnd) {
 	    super();
-	    System.out.println(String.format("New context information %d", parmIndex));
 	    this.contextDisplayString = contextDisplayString;
 	    this.image = image;
 	    this.parmIndex = parmIndex;

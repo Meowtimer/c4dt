@@ -44,7 +44,6 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 		presentation.clear();
 		for (StyleRange r : new StyleRange[] {start, highlightedParameter, end})
 			presentation.addStyleRange(r);
-		System.out.println(String.format("Updating %d, %d", par.start(), par.end()));
 		return true;
 	}
 
