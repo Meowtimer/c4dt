@@ -6,6 +6,8 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.index.messages"; //$NON-NLS-1$
 	public static String DefinitionIDWithName;
 	public static String DefinitionInfoTextTemplate;
+	public static String Engine_FetchDocumentationInfoJobTask;
+	public static String Engine_FetchingDocumentationInfoJobTitle;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

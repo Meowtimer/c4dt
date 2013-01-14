@@ -171,8 +171,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return new String[] { "clonk" }; //$NON-NLS-1$
 		if (Util.isMac())
 			return new String[] {
-				"clonk.app/Contents/MacOS/clonk",
-				"Clonk.app/Contents/MacOS/Clonk"
+				"clonk.app/Contents/MacOS/clonk", //$NON-NLS-1$
+				"Clonk.app/Contents/MacOS/Clonk" //$NON-NLS-1$
 			};
 		// assume some UNIX -.-
 		return new String[] { "clonk" }; //$NON-NLS-1$
@@ -286,8 +286,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 			importer.overwriteExistingDeclarations = false;
 			importer.importFromRepository(this, settings().repositoryPath, new NullProgressMonitor());
-			if (findFunction("this") == null)
-				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL));
+			if (findFunction("this") == null) //$NON-NLS-1$
+				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL)); //$NON-NLS-1$
 			if (findVariable(Keywords.Nil) == null)
 				this.addDeclaration(new Variable(Keywords.Nil, Variable.Scope.CONST));
 		} finally {
@@ -295,18 +295,20 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 	}
 
+	private transient Thread documentationPrefetcherThread;
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
-		File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles();
+		File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles(); //$NON-NLS-1$
+		final List<IDocumentedDeclaration> createdDecs = new ArrayList<IDocumentedDeclaration>(xmlFiles.length);
 		for (File xmlFile : xmlFiles) {
 			boolean isConst = false;
 			try {
 				FileReader r = new FileReader(xmlFile);
 				try {
 					for (String l : StringUtil.lines(r))
-						if (l.contains("<const>")) {
+						if (l.contains("<const>")) { //$NON-NLS-1$
 							isConst = true;
 							break;
-						} else if (l.contains("<func>")) {
+						} else if (l.contains("<func>")) { //$NON-NLS-1$
 							isConst = false;
 							break;
 						}
@@ -320,11 +322,30 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
 			if (BuiltInDefinitions.KEYWORDS.contains(rawFileName))
 				continue;
+			IDocumentedDeclaration dec;
 			if (isConst)
-				this.addDeclaration(new DocumentedVariable(rawFileName, Variable.Scope.CONST));
+				dec = new DocumentedVariable(rawFileName, Variable.Scope.CONST);
 			else
-				this.addDeclaration(new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL));
+				dec = new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL);
+			this.addDeclaration((Declaration)dec);
+			createdDecs.add(dec);
 		}
+		documentationPrefetcherThread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					for (IDocumentedDeclaration dec : createdDecs) {
+						if (this != documentationPrefetcherThread)
+							break;
+						dec.fetchDocumentation();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		documentationPrefetcherThread.setPriority(Thread.MIN_PRIORITY);
+		documentationPrefetcherThread.start();
 	}
 	
 	/**
@@ -339,6 +360,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 			xmlDocImporter.initialize();
 			createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
+			populateDictionary();
 		}
 	}
 	
@@ -388,7 +410,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
-			URL url = loc.locatorForEntry("declarations.ini", false);
+			URL url = loc.locatorForEntry("declarations.ini", false); //$NON-NLS-1$
 			if (url != null) {
 				InputStream stream;
 				try {
@@ -418,7 +440,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	
 	private void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
-			final URL url = loc.locatorForEntry(name()+".c", false);
+			final URL url = loc.locatorForEntry(name()+".c", false); //$NON-NLS-1$
 			if (url != null) {
 				InputStream stream;
 				try {
@@ -438,10 +460,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 								int severity, Object... args) throws ParsingException {
 							if (firstMessage) {
 								firstMessage = false;
-								System.out.println("Messages while parsing " + url.toString());
+								System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
 							}
 							System.out.println(String.format(
-								"%s @(%d, %d)",
+								"%s @(%d, %d)", //$NON-NLS-1$
 								code.makeErrorString(args),
 								lno.obtainLineNumber(errorStart),
 								lno.obtainCharNumberInObtainedLine()
@@ -470,7 +492,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialenginerules.SpecialEngineRules_%s", Core.PLUGIN_ID, name()));
+				String.format("%s.parser.c4script.specialenginerules.SpecialEngineRules_%s", Core.PLUGIN_ID, name())); //$NON-NLS-1$
 			specialRules = rulesClass.newInstance();
 			specialRules.initialize();
 		} catch (ClassNotFoundException e) {
@@ -532,13 +554,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation location = storageLocations[i];
 			List<URL> projectConverterFiles = new ArrayList<URL>();
-			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles);
+			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles); //$NON-NLS-1$
 			if (projectConverterFiles.size() > 0) {
 				Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
 				for (URL url : projectConverterFiles) {
 					Path path = new Path(url.getPath());
 					String engineName = path.segment(path.segmentCount()-2);
-					if (engineName.equals("projectConverters"))
+					if (engineName.equals("projectConverters")) //$NON-NLS-1$
 						continue; // bogus file next to engine-specific folders
 					List<URL> bucket = buckets.get(engineName);
 					if (bucket == null) {
@@ -570,7 +592,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			String returnType = f.returnType().toString();
 			String desc = f.obtainUserDescription();
 			if (desc != null) {
-				if (desc.contains("\n"))
+				if (desc.contains("\n")) //$NON-NLS-1$
 					desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
 				else
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
@@ -583,7 +605,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	
 	public void writeEngineScript() throws IOException {
 		for (IStorageLocation loc : storageLocations) {
-			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true);
+			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true); //$NON-NLS-1$
 			if (scriptFile != null) {
 				OutputStream output = loc.outputStreamForURL(scriptFile);
 				if (output != null) try {
@@ -680,7 +702,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		if (path != null) {
 			String[] completeArgs = new String[2+args.length];
 			completeArgs[0] = path;
-			completeArgs[1] = "-x"+name;
+			completeArgs[1] = "-x"+name; //$NON-NLS-1$
 			for (int i = 0; i < args.length; i++)
 				completeArgs[2+i] = args[i];
 			try {
@@ -701,7 +723,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				}.start();
 				return p;
 			} catch (IOException e) {
-				System.out.println("Failed to execute utility " + name);
+				System.out.println("Failed to execute utility " + name); //$NON-NLS-1$
 				return null;
 			}
 		} else
@@ -721,10 +743,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 	
 	public Object image(String name, boolean returnDescriptor) {
-		Collection<URL> urls = getURLsOfStorageLocationPath("images", false);
+		Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
 		if (urls != null)
 			for (URL url : urls)
-				if (url.getFile().endsWith(name+".png"))
+				if (url.getFile().endsWith(name+".png")) //$NON-NLS-1$
 					return returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url);
 		return null;
 	}
@@ -741,7 +763,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return Group name with correct extension.
 	 */
 	public String groupName(String name, GroupType groupType) {
-		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType);
+		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
 	}
 	
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
