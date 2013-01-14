@@ -408,6 +408,8 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		instance = null;
 		super.stop(context);
 	}
+	
+	public static boolean stopped() { return instance == null; }
 
 	/**
 	 * Returns the shared instance

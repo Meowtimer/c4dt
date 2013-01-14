@@ -330,17 +330,25 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			this.addDeclaration((Declaration)dec);
 			createdDecs.add(dec);
 		}
+		prefetchDocumentation(createdDecs);
+	}
+
+	private void prefetchDocumentation(final List<IDocumentedDeclaration> createdDecs) {
 		documentationPrefetcherThread = new Thread() {
 			@Override
 			public void run() {
 				try {
 					for (IDocumentedDeclaration dec : createdDecs) {
-						if (this != documentationPrefetcherThread)
+						if (this != documentationPrefetcherThread || Core.stopped())
 							break;
 						dec.fetchDocumentation();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
+				}
+				synchronized (Engine.this) {
+					if (this == documentationPrefetcherThread)
+						documentationPrefetcherThread = null;
 				}
 			}
 		};
