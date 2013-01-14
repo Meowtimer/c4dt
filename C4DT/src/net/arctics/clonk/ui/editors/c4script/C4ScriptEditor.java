@@ -20,6 +20,7 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -696,12 +697,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			IFunctionCall callFunc = (IFunctionCall) expr;
 			ExprElm prev = null;
 			for (ExprElm parm : callFunc.params()) {
-				if (parm.end() > offset) {
+				if (bodyStart+parm.end() > offset) {
 					if (prev == null)
 						break;
 					String docText = getSourceViewer().getDocument().get(bodyStart+prev.end(), parm.start()-prev.end());
-					int commaIndex = docText.indexOf(',');
-					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.end()+commaIndex ? parm : prev, locator);
+					CStyleScanner scanner = new CStyleScanner(docText);
+					scanner.eatWhitespace();
+					boolean comma = scanner.read() == ',' && offset+1 > bodyStart+prev.end() + scanner.tell();
+					return new FuncCallInfo(f, callFunc, comma ? parm : prev, locator);
 				}
 				prev = parm;
 			}

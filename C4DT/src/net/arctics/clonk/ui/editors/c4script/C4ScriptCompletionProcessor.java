@@ -47,8 +47,6 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.ClonkContextInformation;
-import net.arctics.clonk.ui.editors.ClonkContextInformationValidator;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
@@ -599,7 +597,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private IContextInformation prevInformation;
-
+	private final C4ScriptContextInformationValidator contextInformationValidator = new C4ScriptContextInformationValidator();
+	
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
@@ -632,14 +631,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (function != null) {
 					if (function instanceof IDocumentedDeclaration)
 						((IDocumentedDeclaration)function).fetchDocumentation();
-					String parmString = function.longParameterString(false, false).trim();
-					if (parmString.length() == 0)
-						parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
-					info = new ClonkContextInformation(
+					info = new C4ScriptContextInformation(
 						function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
-						parmString,
-						funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, function.numParameters()
+						function, funcCallInfo.parmIndex,
+						funcCallInfo.parmsStart, funcCallInfo.parmsEnd
 					);
+					contextInformationValidator.install(info, viewer, offset);
 				}
 			}
 		} catch (Exception e) { 	    
@@ -690,7 +687,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public IContextInformationValidator getContextInformationValidator() {
-		return new ClonkContextInformationValidator();
+		return contextInformationValidator;
 	}
 
 	private KeySequence iterationBinding() {
