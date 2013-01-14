@@ -1,6 +1,9 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
+
+import java.util.regex.Pattern;
+
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.Declaration;
@@ -221,6 +224,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return result;
 	}
 	
+	private static final Pattern VALID_PREFIX = Pattern.compile("\\w+");
+	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		if (declaration == null)
@@ -229,7 +234,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
 				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (prefix.length() == 0)
+				if (!VALID_PREFIX.matcher(prefix).matches())
 					return false;
 				for (String s : identifiers())
 					if (s.toLowerCase().contains(prefix))
