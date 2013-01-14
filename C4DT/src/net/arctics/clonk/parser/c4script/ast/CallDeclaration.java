@@ -99,23 +99,26 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	private final static class VarFunctionsTypeInfo extends TypeInfo {
+		private final Function scope;
 		private final Function varFunction;
 		private final long varIndex;
 
-		private VarFunctionsTypeInfo(Function function, long val) {
-			varFunction = function;
-			varIndex = val;
+		private VarFunctionsTypeInfo(Function scope, Function function, long val) {
+			this.scope = scope;
+			this.varFunction = function;
+			this.varIndex = val;
 		}
 
 		@Override
 		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+			if (scope != null && parser.currentFunction() != scope)
+				return false;
 			if (expr instanceof CallDeclaration) {
 				CallDeclaration callFunc = (CallDeclaration) expr;
 				Object ev;
 				return
 					callFunc.declaration() == varFunction &&
 					callFunc.params().length == 1 && // don't bother with more complex cases
-					callFunc.params()[0].type(parser) == PrimitiveType.INT &&
 					((ev = callFunc.params()[0].evaluateAtParseTime(parser.currentFunction())) != null) &&
 					ev.equals(varIndex);
 			} else if (expr instanceof AccessVar) {
@@ -132,7 +135,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		public boolean refersToSameExpression(ITypeInfo other) {
 			if (other.getClass() == CallDeclaration.VarFunctionsTypeInfo.class) {
 				CallDeclaration.VarFunctionsTypeInfo otherInfo = (CallDeclaration.VarFunctionsTypeInfo) other;
-				return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
+				return otherInfo.scope == this.scope && otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
 			}
 			else
 				return false;
@@ -140,7 +143,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		
 		@Override
 		public String toString() {
-			return String.format("[%s(%d): %s]", varFunction.name(), varIndex, type().typeName(true)); //$NON-NLS-1$
+			return String.format("[%s(%d): %s in %s]", varFunction.name(), varIndex, type().typeName(true), scope.name()); //$NON-NLS-1$
 		}
 	}
 
@@ -714,7 +717,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
 				if (ev instanceof Number)
 					// Var() with a sane constant number
-					return new VarFunctionsTypeInfo((Function) d, ((Number)ev).intValue());
+					return new VarFunctionsTypeInfo(cache.Local == d ? null : parser.currentFunction(), (Function) d, ((Number)ev).intValue());
 		}
 		else if (d instanceof Function) {
 			Function f = (Function) d;
