@@ -11,10 +11,14 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -22,7 +26,7 @@ import net.arctics.clonk.util.StringUtil;
  * @author madeen
  *
  */
-public class StructuralType implements IType, IRefinedPrimitiveType {
+public class StructuralType implements IType, IRefinedPrimitiveType, IResolvableType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -115,5 +119,24 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 	
 	@Override
 	public void setTypeDescription(String description) {}
+	
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		final List<Definition> implementors = new ArrayList<>(10);
+		final Sink<Definition> defSink = new Sink<Definition>() {
+			@Override
+			public void receivedObject(Definition item) {
+				if (satisfiedBy(item))
+					implementors.add(item);
+			}
+		};
+		context.script().index().forAllRelevantIndexes(new Sink<Index>() {
+			@Override
+			public void receivedObject(Index item) {
+				item.allDefinitions(defSink);
+			}
+		});
+		return TypeChoice.make(implementors);
+	}
 
 }

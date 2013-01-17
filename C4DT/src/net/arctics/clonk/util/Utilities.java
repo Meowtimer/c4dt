@@ -418,4 +418,25 @@ public abstract class Utilities {
 		}
 	}
 	
+	public interface Folder<T, Y extends T> {
+		Y fold(T interim, T next, int index);
+	}
+	
+	public static <T, Y extends T> Y foldl(Iterable<? extends T> iterable, Folder<T, Y> folder) {
+		Y interim = null;
+		T first = null;
+		int i = 0;
+		for (T item : iterable) {
+			if (interim == null) {
+				if (first != null)
+					interim = folder.fold(first, item, i);
+				else
+					first = item;
+			} else
+				interim = folder.fold(interim, item, i);
+			i++;
+		}
+		return interim;
+	}
+	
 }

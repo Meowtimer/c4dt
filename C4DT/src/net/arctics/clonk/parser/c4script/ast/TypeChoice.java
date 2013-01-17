@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.foldl;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,6 +18,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities.Folder;
 
 public final class TypeChoice implements IType, IResolvableType {
 
@@ -47,9 +50,11 @@ public final class TypeChoice implements IType, IResolvableType {
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
-		final TypeChoice r = new TypeChoice(left, right);
-		return remove(r, new IPredicate<IType>() {
-			private final List<IType> flattened = r.flatten();
+		return new TypeChoice(left, right).removeDuplicates();
+	}
+	protected IType removeDuplicates() {
+		return remove(this, new IPredicate<IType>() {
+			private final List<IType> flattened = flatten();
 			private final boolean[] mask = new boolean[flattened.size()];
 			@Override
 			public boolean test(IType item) {
@@ -62,6 +67,20 @@ public final class TypeChoice implements IType, IResolvableType {
 				return false;
 			}
 		});
+	}
+	
+	public static IType make(Collection<? extends IType> types) {
+		if (types.size() == 0)
+			return null;
+		else if (types.size() == 1)
+			return types.iterator().next();
+		else return foldl(types, new Folder<IType, TypeChoice>() {
+			@Override
+			public TypeChoice fold(IType interim, IType next, int index) {
+				return new TypeChoice(interim, next);
+			}
+			
+		}).removeDuplicates();
 	}
 	
 	private TypeChoice(IType left, IType right) {
