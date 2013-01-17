@@ -134,16 +134,18 @@ public class EntityLocator extends ExpressionLocator {
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
 			String declarationName = access.declarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			IType t = access.predecessorInSequence() != null ? access.predecessorInSequence().type(parser) : null;
-			if (t == null || t instanceof StructuralType || t.precision() <= PrimitiveType.OBJECT.precision()) {
-				for (Index i : script.index().relevantIndexes())
-					i.loadScriptsContainingDeclarationsNamed(declarationName);
-				for (Index i : script.index().relevantIndexes()) {
-					List<Declaration> decs = i.declarationMap().get(declarationName);
-					if (decs != null)
-						projectDeclarations.addAll(decs);
+			IType ty = access.predecessorInSequence() != null ? access.predecessorInSequence().type(parser) : null;
+			for (IType t : ty)
+				if (t == null || t instanceof StructuralType || t.precision() <= PrimitiveType.OBJECT.precision()) {
+					for (Index i : script.index().relevantIndexes())
+						i.loadScriptsContainingDeclarationsNamed(declarationName);
+					for (Index i : script.index().relevantIndexes()) {
+						List<Declaration> decs = i.declarationMap().get(declarationName);
+						if (decs != null)
+							projectDeclarations.addAll(decs);
+					}
+					break;
 				}
-			}
 			
 			if (projectDeclarations != null)
 				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<Declaration>() {

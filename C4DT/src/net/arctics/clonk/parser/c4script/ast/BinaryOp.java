@@ -286,13 +286,9 @@ public class BinaryOp extends OperatorExpression {
 	
 	@Override
 	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
-		switch (operator()) {
-		case Assign:
-			if (leftSide != null)
-				return leftSide.createTypeInfo(parser);
-		default:
-			return super.createTypeInfo(parser);
-		}
+		if (operator() == Operator.Assign && leftSide != null)
+			return leftSide.createTypeInfo(parser);
+		return super.createTypeInfo(parser);
 	}
 
 }
