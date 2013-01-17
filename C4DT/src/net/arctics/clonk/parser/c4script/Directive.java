@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
@@ -10,12 +12,21 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
 public class Directive extends Declaration implements Serializable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	public static final Directive[] CANONICALS = map
+		(DirectiveType.values(), Directive.class, new IConverter<DirectiveType, Directive>() {
+		@Override
+		public Directive convert(DirectiveType from) {
+			return new Directive(from, "");
+		};
+	});
+	
 	public enum DirectiveType {
 		STRICT,
 		INCLUDE,
@@ -30,6 +41,9 @@ public class Directive extends Declaration implements Serializable {
 			return null;
 		}
 
+		/**
+		 * Return the name of the enum constant as lower-case string.
+		 */
 		@Override
 		public String toString() {
 			return lowerCase;

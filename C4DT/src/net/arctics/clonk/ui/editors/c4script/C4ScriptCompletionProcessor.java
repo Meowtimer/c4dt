@@ -539,16 +539,20 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposals.add(prop);
 				}
 				// propose directives (#include, ...)
-				for(String directive : BuiltInDefinitions.DIRECTIVES) {
+				Image directiveIcon = UI.imageForPath("icons/directive.png");
+				for(Directive directive : Directive.CANONICALS) {
+					String txt = directive.type().toString();
 					if (prefix != null)
-						if (!stringMatchesPrefix(directive, prefix))
+						if (!stringMatchesPrefix(txt, prefix))
 							continue;
-					ImageRegistry reg = Core.instance().getImageRegistry();
-					if (reg.get("directive") == null) //$NON-NLS-1$
-						reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+					txt = "#"+txt+" ";
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(
+						directive, txt, offset, replacementLength, txt.length(),
+						directiveIcon, directive.type().toString(), null, null,
+						Messages.C4ScriptCompletionProcessor_Engine, editor()
+					);
 					prop.setCategory(cats.Directives);
 					proposals.add(prop);
 				}
@@ -567,7 +571,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
 		try {
-			return offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  
+			do
+				if (offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what))
+					return true;
+			while (offset-- > 0 && Character.isWhitespace(viewer.getDocument().getChar(offset)));
+			return false;
 		} catch (BadLocationException e) {
 			return false;
 		}

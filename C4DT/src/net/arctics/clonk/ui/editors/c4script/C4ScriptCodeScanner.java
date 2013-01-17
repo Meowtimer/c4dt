@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
+import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -146,7 +147,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
-		rules.add(new PragmaRule(BuiltInDefinitions.DIRECTIVES, directive));
+		rules.add(new PragmaRule(Directive.arrayOfDirectiveStrings(), directive));
 		rules.add(new NumberRule(number));
 		
 		setRules(rules.toArray(new IRule[rules.size()]));

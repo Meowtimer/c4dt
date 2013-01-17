@@ -34,6 +34,5 @@ public class BuiltInDefinitions {
 		Keywords.VarNamed
 	);
 	
-	public static final String[] DIRECTIVES = Directive.arrayOfDirectiveStrings();
 	public static final String[] SCRIPTOPERATORS = Operator.arrayOfOperatorNames(); 
 }
