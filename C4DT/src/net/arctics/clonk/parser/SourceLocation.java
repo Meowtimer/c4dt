@@ -99,8 +99,13 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	}
 	
 	@Override
-	public SourceLocation clone() throws CloneNotSupportedException {
-		return (SourceLocation)super.clone();
+	public SourceLocation clone() {
+		try {
+			return (SourceLocation)super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	public SourceLocation relativeTo(IRegion other) {

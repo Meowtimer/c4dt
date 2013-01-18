@@ -484,7 +484,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}
-					postLoad(null, null);
+					postLoad((Declaration)null, (Index)null);
 				} finally {
 					try {
 						stream.close();

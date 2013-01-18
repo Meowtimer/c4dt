@@ -15,7 +15,6 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
@@ -47,7 +46,7 @@ import org.eclipse.jface.text.Region;
 /**
  * Base class for making expression trees
  */
-public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
+public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Serializable {
 
 	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -161,11 +160,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	@Override
 	public ExprElm clone() {
 		ExprElm clone;
-		try {
-			clone = (ExprElm) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException("Clone not supported which really shouldn't happen");
-		}
+		clone = (ExprElm) super.clone();
 		ExprElm[] clonedElms = ArrayUtil.map(subElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
@@ -1014,7 +1009,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	
 	@Override
 	public boolean equals(Object other) {
-		if (other.getClass() == this.getClass())
+		if (other != null && other.getClass() == this.getClass())
 			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER).isEqual();
 		else
 			return false;
@@ -1067,11 +1062,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return as(parent(), Sequence.class);
 	}
 
-	@Override
-	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
+	public void postLoad(ExprElm parent, DeclarationObtainmentContext context) {
 		for (ExprElm e : subElements())
 			if (e != null)
-				e.postLoad(this, root);
+				e.postLoad(this, context);
 	}
 	
 	protected final void missing(C4ScriptParser parser) throws ParsingException {

@@ -3,8 +3,8 @@ package net.arctics.clonk.ui.search;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
@@ -15,6 +15,7 @@ import net.arctics.clonk.util.IHasLabelAndImage;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.UI;
 
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StyledString;
@@ -22,11 +23,10 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 
 public class ClonkSearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider, DelegatingStyledCellLabelProvider.IStyledLabelProvider {
 
-	private boolean flat;
+	private final boolean flat;
 	private ClonkSearchResult searchResult;
 	
 	public ClonkSearchContentProvider(ClonkSearchResultPage page, boolean flat) {
@@ -59,10 +59,9 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	public Object[] getElements(Object input) {
 		if (flat) {
 			List<Match> matches = new LinkedList<Match>(); 
-			for (Object elm : searchResult.getElements()) {
+			for (Object elm : searchResult.getElements())
 				for (Match m : searchResult.getMatches(elm))
 					matches.add(m);
-			}
 			return matches.toArray(new Match[matches.size()]);
 		} else
 			return searchResult.getElements();
@@ -90,15 +89,12 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	public Image getImage(Object element) {
 		Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
 		if (engine != null) {
-			if (element instanceof Scenario) {
+			if (element instanceof Scenario)
 				return engine.image(GroupType.ScenarioGroup);
-			}
-			if (element instanceof Definition) {
+			if (element instanceof Definition)
 				return engine.image(GroupType.DefinitionGroup);
-			}
-			if (element instanceof SystemScript) {
+			if (element instanceof SystemScript)
 				return UI.SCRIPT_ICON;
-			}
 			
 		}
 		else if (element instanceof IHasLabelAndImage) {
@@ -124,9 +120,8 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		} catch (Exception e) {
 			return new StyledString(((ClonkSearchMatch)element).line());
 		}
-		else if (element instanceof Function) {
+		else if (element instanceof Function)
 			return new StyledString(((Function)element).qualifiedName());
-		}
 		else if (element instanceof IHasLabelAndImage) {
 			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
 			return new StyledString(lblimg.label());
@@ -138,7 +133,12 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		return new ViewerComparator() {
 			@Override
 			public int compare(Viewer viewer, Object e1, Object e2) {
-				return getText(e1).compareTo(getText(e2));
+				try {
+					return getText(e1).compareTo(getText(e2));
+				} catch (Exception e) {
+					System.out.println("wat");
+					return -1;
+				}
 			}
 		};
 	}

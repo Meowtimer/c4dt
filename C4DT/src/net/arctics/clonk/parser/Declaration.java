@@ -11,7 +11,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
@@ -20,6 +19,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -40,7 +40,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IIndexEntity, IAdaptable {
+public abstract class Declaration extends ExprElm implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -327,15 +327,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Called after deserialization to restore transient references
 	 * @param parent the parent
 	 */
-	@Override
-	public void postLoad(Declaration parent, Index root) {
+	public void postLoad(Declaration parent, Index index) {
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
 		Iterable<? extends Declaration> subDecs = this.accessibleDeclarations(ALL);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
-				d.postLoad(this, root);
+				d.postLoad(this, index);
 	}
 	
 	/**
@@ -505,6 +504,11 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return adapter.isInstance(this) ? this : null;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other; // identity
 	}
 	
 }

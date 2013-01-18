@@ -181,13 +181,9 @@ public class PropListExpression extends ExprElm {
 		try {
 			// regular copying of attributes with no sub element cloning taking place
 			PropListExpression e = (PropListExpression) super.clone();
-			try {
-				// clone the ProplistDeclaration, also cloning sub variables. This will automatically
-				// lead to getSubElements also returning cloned initialization expressions.
-				e.definedDeclaration = saved.clone();
-			} catch (CloneNotSupportedException e1) {
-				e1.printStackTrace();
-			}
+			// clone the ProplistDeclaration, also cloning sub variables. This will automatically
+			// lead to getSubElements also returning cloned initialization expressions.
+			e.definedDeclaration = saved.clone();
 			return e;
 		} finally {
 			// restore state of original expression which is not supposed to be altered by calling clone()

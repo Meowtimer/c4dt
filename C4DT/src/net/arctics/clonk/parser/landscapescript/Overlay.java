@@ -10,6 +10,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class Overlay extends OverlayBase {
 	
@@ -109,7 +111,7 @@ public class Overlay extends OverlayBase {
 		else {
 			Overlay template = templateWithName(type);
 			if (template != null) {
-				result = (Overlay) template.clone();
+				result = template.clone();
 				((Overlay)result).template = template;
 			}
 			else
@@ -152,7 +154,7 @@ public class Overlay extends OverlayBase {
 	}
 	
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	public Overlay clone() {
 		Overlay clone = (Overlay) super.clone();
 		clone.beAutonomousClone(); // don't copy nested overlays
 		return clone;
@@ -218,10 +220,10 @@ public class Overlay extends OverlayBase {
 	}
 	
 	@Override
-	public void evaluate()
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException
 	{
 		// inherited
-		super.evaluate();
+		super.evaluate(context);
 		// get mat color
 		if (Inside(Material,0,mapCreator().MatMap.size()-1))
 		{
@@ -253,6 +255,7 @@ public class Overlay extends OverlayBase {
 			int r2=Random(65536);
 			Seed=(r1<<16) | r2;
 		}
+		return this;
 	}
 	
 	public Overlay firstOfChain() {

@@ -164,7 +164,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable(PrimitiveType.PROPLIST, this).iterator();
+		return iterable(PrimitiveType.PROPLIST, (IType)this).iterator();
 	}
 
 	@Override
@@ -249,7 +249,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 	
 	@Override
-	public ProplistDeclaration clone() throws CloneNotSupportedException {
+	public ProplistDeclaration clone() {
 		List<Variable> clonedComponents = new ArrayList<Variable>(this.components.size());
 		for (Variable v : components)
 			clonedComponents.add(v.clone());

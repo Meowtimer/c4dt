@@ -6,7 +6,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -331,8 +330,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
-		if (initializationExpression instanceof IPostLoadable)
-			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, declarationObtainmentContext());
+		if (initializationExpression != null)
+			initializationExpression.postLoad(null, declarationObtainmentContext());
 		if (initializationExpression instanceof PropListExpression)
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
 	}
@@ -413,7 +412,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public Variable clone() throws CloneNotSupportedException {
+	public Variable clone() {
 		Variable clone = new Variable();
 		clone.description = this.description;
 		clone.initializationExpression = this.initializationExpression != null ? this.initializationExpression.clone() : null;

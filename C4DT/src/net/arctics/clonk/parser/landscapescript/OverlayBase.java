@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Conf;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
@@ -109,7 +110,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 	
 	@Override
-	public void print(StringBuilder builder, int depth) {
+	public void doPrint(ExprWriter builder, int depth) {
 		try {
 			String type = typeName();
 			if (type != null) {
@@ -160,6 +161,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 		}
 	}
 	
+	@Override
 	public String toString(int depth) {
 		StringBuilder builder = new StringBuilder();
 		this.print(builder, depth);
@@ -170,7 +172,5 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	public String toString() {
 		return typeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
 	}
-	
-	public void evaluate() {}
 
 }
