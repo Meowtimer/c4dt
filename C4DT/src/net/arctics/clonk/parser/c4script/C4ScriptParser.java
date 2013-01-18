@@ -1243,6 +1243,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			parseFunctionBody(currentFunc);
 		else
 			currentFunc.setBodyLocation(null);
+		int funEnd = this.offset;
 		eatWhitespace();
 		if (desc != null)
 			desc.applyDocumentation(currentFunc);
@@ -1250,12 +1251,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
 			Comment c = commentImmediatelyFollowing();
-			if (c != null)
+			if (c != null) {
 				currentFunc.setUserDescription(c.text());
+				funEnd = this.offset;
+			}
 		}
 
 		// finish up
-		currentFunc.setLocation(absoluteSourceLocation(header.nameStart, header.nameStart+header.name.length()));
+		currentFunc.setLocation(absoluteSourceLocation(header.start, funEnd));
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
 		Function existingFunction = script.findLocalFunction(currentFunc.name(), false);
 		if (existingFunction != null && existingFunction.isGlobal() == currentFunc.isGlobal())
@@ -3291,6 +3294,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		boolean reportErrors
 	) { 
 		String statements_;
+		if (funcOrRegion instanceof Function)
+			funcOrRegion = ((Function)funcOrRegion).bodyLocation();
 		final int statementStart = funcOrRegion.getOffset();
 		final int statementEnd = funcOrRegion.getOffset()+funcOrRegion.getLength();
 		try {

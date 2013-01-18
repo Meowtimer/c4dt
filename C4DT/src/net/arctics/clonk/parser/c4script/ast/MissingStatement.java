@@ -9,7 +9,7 @@ public class MissingStatement extends Statement {
 
 	public MissingStatement(int start) {
 		super();
-		setExprRegion(start, start+1);
+		setLocation(start, start+1);
 	}
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {

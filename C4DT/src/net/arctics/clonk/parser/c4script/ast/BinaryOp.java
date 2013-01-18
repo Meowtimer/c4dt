@@ -170,7 +170,7 @@ public class BinaryOp extends OperatorExpression {
 	public void reportProblems(C4ScriptParser context) throws ParsingException {
 		final Operator op = operator();
 		// sanity
-		setExprRegion(leftSide().start(), rightSide().end());
+		setLocation(leftSide().start(), rightSide().end());
 		// i'm an assignment operator and i can't modify my left side :C
 		if (op.modifiesArgument() && !leftSide().isModifiable(context))
 			context.error(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);

@@ -14,7 +14,7 @@ public class GarbageStatement extends Statement {
 	
 	public GarbageStatement(String garbageString, int start) {
 		garbage = garbageString;
-		setExprRegion(start, start+garbage.length());
+		setLocation(start, start+garbage.length());
 	}
 	
 	public String getGarbage() {

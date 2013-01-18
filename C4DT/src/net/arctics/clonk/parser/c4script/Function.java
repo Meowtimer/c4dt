@@ -45,7 +45,7 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IRegion, IEvaluationContext, IHasCode {
+public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode {
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private FunctionScope visibility; 
@@ -816,7 +816,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		body = block;
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
-			body.setExprRegion(0, bodyLocation.getLength());
+			body.setLocation(0, bodyLocation.getLength());
 	}
 	
 	/**
@@ -839,16 +839,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public FunctionBody body() {
 		return bodyMatchingSource(null);
-	}
-
-	@Override
-	public int getLength() {
-		return bodyLocation().getLength();
-	}
-
-	@Override
-	public int getOffset() {
-		return bodyLocation().getOffset();
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -16,11 +16,12 @@ import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
@@ -187,7 +188,7 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 					continue;
 				}
-				String[] packageFormats = new String[] { "%s.parser.c4script.ast.%s", "%s.parser.c4script.ast.%sLiteral" };
+				String[] packageFormats = new String[] { "%s.parser.c4script.ast.%s", "%s.parser.%s", "%s.parser.c4script.%s", "%s.parser.c4script.ast.%sLiteral" };
 				for (String pkgFormat : packageFormats)
 					try {
 						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
@@ -278,8 +279,8 @@ public class MatchingPlaceholder extends Placeholder {
 		if (attribs.size() > 0) {
 			builder.append(":");
 			builder.append(StringUtil.blockString("", "", ",", attribs));
-			builder.append('$');
 		}
+		builder.append('$');
 		if (subElements != null)
 			CallDeclaration.printParmString(builder, subElements, depth);
 	}

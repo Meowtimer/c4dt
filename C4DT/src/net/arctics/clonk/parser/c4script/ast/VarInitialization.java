@@ -5,6 +5,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IType;
@@ -51,7 +52,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 		super();
 		this.name = name;
 		this.expression = expression;
-		setExprRegion(start, end);
+		setLocation(start, end);
 		assignParentToSubElements();
 		this.variable = var;
 	}

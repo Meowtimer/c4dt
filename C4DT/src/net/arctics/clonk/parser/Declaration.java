@@ -41,7 +41,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable {
+public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable, IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -491,6 +491,11 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (index() instanceof ProjectIndex)
 			typing = ((ProjectIndex)index()).nature().settings().typing;
 		return typing;
+	}
+	
+	@Override
+	public String patternMatchingText() {
+		return name();
 	}
 	
 }

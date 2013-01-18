@@ -21,7 +21,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
  *
  */
 public class Statement extends ASTNode implements Cloneable {
-	
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 

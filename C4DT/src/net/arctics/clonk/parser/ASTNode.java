@@ -353,13 +353,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return new Region(identifierStart(), identifierLength());
 	}
 
-	public void setExprRegion(int start, int end) {
+	public void setLocation(int start, int end) {
 		this.start = start;
 		this.end = end;
 	}
 	
-	public void setExprRegion(IRegion r) {
-		this.setExprRegion(r.getOffset(), r.getOffset()+r.getLength());
+	public void setLocation(IRegion r) {
+		this.setLocation(r.getOffset(), r.getOffset()+r.getLength());
 	}
 	
 	/**
@@ -850,7 +850,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		for (int i = 0; i < subElms.length; i++)
 			if (subElms[i] == element) {
 				newSubElms[i] = with;
-				with.setExprRegion(element);
+				with.setLocation(element);
 				differentSubElms = true;
 			} else {
 				newSubElms[i] = subElms[i];
@@ -1113,7 +1113,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param amount Amount to increment the location by
 	 */
 	public void incrementLocation(int amount) {
-		setExprRegion(start+amount, start+amount);
+		setLocation(start+amount, start+amount);
 		for (ASTNode e : subElements())
 			if (e != null)
 				e.incrementLocation(amount);
@@ -1282,16 +1282,23 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
 	public ASTNode matchingExpr() {
-		ASTNode result = this.transformRecursively(new ITransformer() {
-			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+		return this.transformRecursively(new ITransformer() {
+			private ASTNode toMatchingPlaceholder(ASTNode expression) {
 				if (expression != null && expression.getClass() == Placeholder.class)
 					try {
 						return new MatchingPlaceholder(((Placeholder)expression).entryName());
 					} catch (ParsingException e) {
 						e.printStackTrace();
-						return expression;
+						return null;
 					}
+				else
+					return null;
+			}
+			@Override
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+				ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
+				if (matchingPlaceholder != null)
+					return matchingPlaceholder;
 				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
 					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
 					return REMOVE;
@@ -1300,14 +1307,15 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
 				)
 					return expression.subElements()[0];
+				else if (
+					expression instanceof SimpleStatement &&
+					(matchingPlaceholder = as(((SimpleStatement)expression).expression(), MatchingPlaceholder.class)) != null
+				)
+					return matchingPlaceholder;
 				else
 					return expression;
 			}
 		});
-		if (result instanceof SimpleStatement)
-			return ((SimpleStatement)result).expression();
-		else
-			return result;
 	}
 	
 	public IRegion absolute() {

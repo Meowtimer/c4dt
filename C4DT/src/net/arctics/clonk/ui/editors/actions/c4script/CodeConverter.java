@@ -51,7 +51,7 @@ public abstract class CodeConverter {
 				Function func = (Function)declaration;
 				ASTNode body = func.body();
 				Block block = new Block(body.subElements());
-				block.setExprRegion(body);
+				block.setLocation(body);
 				body = block;
 				int blockBegin;
 				int blockLength;
@@ -65,7 +65,7 @@ public abstract class CodeConverter {
 					blockBegin  = func.bodyLocation().start()-1;
 					blockLength = func.bodyLocation().end()+1 - blockBegin;
 				}
-				body.setExprRegion(blockBegin, blockBegin+blockLength);
+				body.setLocation(blockBegin, blockBegin+blockLength);
 				mapped = body;
 			}
 			else

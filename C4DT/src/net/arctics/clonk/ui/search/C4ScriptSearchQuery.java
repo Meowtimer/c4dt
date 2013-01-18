@@ -13,9 +13,7 @@ import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -98,15 +96,8 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 					public void run() {
 						if (parser == null)
 							return;
-						for (Function f : parser.script().functions()) {
-							f.code().traverse(this, parser);
-							commitMatches();
-						}
-						for (Variable v : parser.script().variables())
-							if (v.initializationExpression() != null) {
-								v.initializationExpression().traverse(this, parser);
-								commitMatches();
-							}
+						parser.script().traverse(this, parser);
+						commitMatches();
 					}
 					private void commitMatches() {
 						for (Match m : matches.values())

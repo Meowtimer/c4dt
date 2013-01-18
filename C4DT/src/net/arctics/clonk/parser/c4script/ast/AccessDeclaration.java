@@ -5,6 +5,7 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;

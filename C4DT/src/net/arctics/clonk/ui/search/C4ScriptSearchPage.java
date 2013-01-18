@@ -330,7 +330,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 								if (m instanceof C4ScriptSearchQuery.Match) {
 									C4ScriptSearchQuery.Match qm = (C4ScriptSearchQuery.Match) m;
 									ASTNode repl = query.replacement().transform(qm.subst());
-									repl.setExprRegion(qm.getOffset(), qm.getOffset()+qm.getLength());
+									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
 									replacements.add(repl);
 								}
 							script.saveExpressions(replacements, false);

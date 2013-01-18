@@ -61,7 +61,7 @@ public class ReplacementStatement extends Statement {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
-		setExprRegion(exprStart, (exprStart < 0 ? 0 : exprStart)+relativeExpressionRegion.getLength()+additionalExprLength);
+		setLocation(exprStart, (exprStart < 0 ? 0 : exprStart)+relativeExpressionRegion.getLength()+additionalExprLength);
 	}
 
 	@Override

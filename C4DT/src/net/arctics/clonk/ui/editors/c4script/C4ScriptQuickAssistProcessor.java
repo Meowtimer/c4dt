@@ -369,7 +369,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
 			if (elm.end() == elm.start() && offending != null)
-				elm.setExprRegion(offending.start(), offending.end());
+				elm.setLocation(offending.start(), offending.end());
 			Replacement newOne = new Replacement(replacement, elm, specifiable);
 			// don't add duplicates
 			for (Replacement existing : this)
@@ -388,7 +388,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static ASTNode identifierReplacement(AccessDeclaration original, String newName) {
 		AccessVar result = new AccessVar(newName);
-		result.setExprRegion(original.start(), original.start()+original.identifierLength());
+		result.setLocation(original.start(), original.start()+original.identifierLength());
 		return result;
 	}
 	
@@ -479,7 +479,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					if (offendingExpression instanceof CallDeclaration)
 						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
 							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).getId(), 3);
-							opWithTilde.setExprRegion(offendingExpression.predecessorInSequence());
+							opWithTilde.setLocation(offendingExpression.predecessorInSequence());
 							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						}
 					if (offendingExpression instanceof AccessDeclaration) {
