@@ -24,7 +24,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append('[');
 		builder.append(contents);
 		builder.append(']');

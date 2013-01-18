@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.ast.BraceStyleType;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.ExprWriter;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
@@ -21,14 +21,14 @@ public abstract class Conf {
 	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
 	public static String indentString = "\t"; //$NON-NLS-1$
 
-	public static void printIndent(ExprWriter output, int indentDepth) {
-		if (output.flag(ExprWriter.SINGLE_LINE))
+	public static void printIndent(ASTNodePrinter output, int indentDepth) {
+		if (output.flag(ASTNodePrinter.SINGLE_LINE))
 			return;
 		for (int i = 0; i < indentDepth; i++)
 			output.append(indentString);
 	}
 	
-	public static void blockPrelude(ExprWriter output, int indentDepth) {
+	public static void blockPrelude(ASTNodePrinter output, int indentDepth) {
 		switch (braceStyle) {
 		case NewLine:
 			output.append('\n');

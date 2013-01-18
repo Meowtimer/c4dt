@@ -2,10 +2,8 @@ package net.arctics.clonk.parser.inireader;
 
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +23,8 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.foldermap.FolderMapUnit;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -104,14 +104,14 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			parser = new IniUnitParser(this, input);
 	}
 	
-	public void save(Writer writer, boolean discardEmptySections) throws IOException {
+	public void save(ASTNodePrinter writer, boolean discardEmptySections) {
 		boolean started = false;
 		for (IniSection section : sectionsList) {
 			if (started)
 				writer.append('\n');
 			if (!discardEmptySections || section.hasPersistentItems()) {
 				started = true;
-				section.writeTextRepresentation(writer, -1);
+				section.print(writer, -1);
 			}
 		}
 	}
@@ -122,11 +122,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 				@Override
 				public Void run(IDocument document) {
 					StringWriter writer = new StringWriter();
-					try {
-						save(writer, discardEmptySections);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					save(new AppendableBackedExprWriter(writer), discardEmptySections);
 					document.set(writer.toString());
 					return null;
 				}
@@ -483,7 +479,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+	public void doPrint(ASTNodePrinter writer, int indentation) {
 		this.save(writer, false);
 	}
 

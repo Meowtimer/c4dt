@@ -22,7 +22,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		return Keywords.For;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword() + " ("); //$NON-NLS-1$
 		if (initializer != null)
 			initializer.print(builder, depth+1);

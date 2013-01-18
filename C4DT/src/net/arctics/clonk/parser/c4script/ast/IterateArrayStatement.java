@@ -49,7 +49,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public void doPrint(ExprWriter writer, int depth) {
+	public void doPrint(ASTNodePrinter writer, int depth) {
 		StringBuilder builder = new StringBuilder(keyword().length()+2+1+1+Keywords.In.length()+1+2);
 		builder.append(keyword() + " ("); //$NON-NLS-1$
 		elementExpr.print(builder, depth+1);

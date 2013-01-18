@@ -32,7 +32,7 @@ public class FunctionBody extends BunchOfStatements {
 		return owner;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		if (owner != null && owner.isOldStyle())
 			super.doPrint(builder, depth);
 		else

@@ -82,7 +82,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(declarationName);
 	}
 

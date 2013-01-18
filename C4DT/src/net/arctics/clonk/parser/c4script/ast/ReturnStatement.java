@@ -35,7 +35,7 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
 		if (returnExpr != null) {
 			builder.append(" "); //$NON-NLS-1$

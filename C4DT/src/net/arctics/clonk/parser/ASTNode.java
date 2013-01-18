@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
@@ -33,7 +34,6 @@ import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
@@ -233,33 +233,33 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 	
 	/**
-	 * Print additional text prepended to the actual expression text ({@link #doPrint(ExprWriter, int)})
+	 * Print additional text prepended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})
 	 * @param output The output writer to print the prependix to
-	 * @param depth Print depth inherited from the underlying {@link #print(ExprWriter, int)} call
+	 * @param depth Print depth inherited from the underlying {@link #print(ASTNodePrinter, int)} call
 	 */
-	public void printPrependix(ExprWriter output, int depth) {}
+	public void printPrependix(ASTNodePrinter output, int depth) {}
 	
 	/**
 	 * Perform the actual intrinsic C4Script-printing for this kind of expression
 	 * @param output Output writer
-	 * @param depth Depth inherited from {@link #print(ExprWriter, int)}
+	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
-	public void doPrint(ExprWriter output, int depth) {}
+	public void doPrint(ASTNodePrinter output, int depth) {}
 	
 	/**
-	 * Print additional text appended to the actual expression text ({@link #doPrint(ExprWriter, int)})
+	 * Print additional text appended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})
 	 * @param output Output writer
-	 * @param depth Depth inherited from {@link #print(ExprWriter, int)}
+	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
-	public void printAppendix(ExprWriter output, int depth) {}
+	public void printAppendix(ASTNodePrinter output, int depth) {}
 	
 	/**
-	 * Call all the printing methods in one bundle ({@link #printPrependix(ExprWriter, int)}, {@link #doPrint(ExprWriter, int)}, {@link #printAppendix(ExprWriter, int)})
-	 * The {@link ExprWriter} is also given a chance to do its own custom printing using {@link ExprWriter#doCustomPrinting(ASTNode, int)}
+	 * Call all the printing methods in one bundle ({@link #printPrependix(ASTNodePrinter, int)}, {@link #doPrint(ASTNodePrinter, int)}, {@link #printAppendix(ASTNodePrinter, int)})
+	 * The {@link ASTNodePrinter} is also given a chance to do its own custom printing using {@link ASTNodePrinter#doCustomPrinting(ASTNode, int)}
 	 * @param output Output writer
 	 * @param depth Depth determining the indentation level of the output
 	 */
-	public final void print(ExprWriter output, int depth) {
+	public final void print(ASTNodePrinter output, int depth) {
 		if (!output.doCustomPrinting(this, depth)) {
 			this.printPrependix(output, depth);
 			this.doPrint(output, depth);

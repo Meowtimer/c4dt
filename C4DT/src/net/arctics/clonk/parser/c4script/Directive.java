@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
@@ -140,6 +141,15 @@ public class Directive extends Declaration implements Serializable {
 			return Utilities.objectsEqual(id, definition.id());
 		default:
 			return false;
+		}
+	}
+	
+	@Override
+	public void doPrint(ASTNodePrinter output, int depth) {
+		output.append("#"+type().toString());
+		if (contents() != null) {
+			output.append(" ");
+			output.append(contents());
 		}
 	}
 

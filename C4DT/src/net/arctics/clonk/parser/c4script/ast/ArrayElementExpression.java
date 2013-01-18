@@ -37,7 +37,7 @@ public class ArrayElementExpression extends ASTNode {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("["); //$NON-NLS-1$
 		argument().print(output, depth+1);
 		output.append("]"); //$NON-NLS-1$

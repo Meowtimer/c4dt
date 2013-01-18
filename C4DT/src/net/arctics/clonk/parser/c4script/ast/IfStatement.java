@@ -30,7 +30,7 @@ public class IfStatement extends ConditionalStatement {
 		return Keywords.If;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
 		builder.append(" ("); //$NON-NLS-1$
 		condition.print(builder, depth);

@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -14,6 +12,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
@@ -176,7 +175,7 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+	public void doPrint(ASTNodePrinter writer, int indentation) {
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
@@ -185,7 +184,7 @@ public class IniSection extends Declaration implements
 		for (IniItem item : subItemList()) {
 			if (item.isTransient())
 				continue;
-			item.writeTextRepresentation(writer, indentation + 1);
+			item.print(writer, indentation + 1);
 			writer.append('\n');
 		}
 	}

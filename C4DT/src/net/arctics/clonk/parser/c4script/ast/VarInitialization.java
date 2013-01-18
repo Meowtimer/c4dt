@@ -63,7 +63,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 		expression = elms[0];
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		if (type != null) {
 			output.append(type.typeName(false));
 			output.append(" ");

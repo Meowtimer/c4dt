@@ -7,7 +7,7 @@ public class EmptyStatement extends Statement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(";"); //$NON-NLS-1$
 	}
 }

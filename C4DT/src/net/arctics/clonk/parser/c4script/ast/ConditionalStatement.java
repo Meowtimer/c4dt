@@ -30,12 +30,12 @@ public abstract class ConditionalStatement extends KeywordStatement {
 		assignParentToSubElements();
 	}
 
-	protected void printBody(ExprWriter builder, int depth) {
+	protected void printBody(ASTNodePrinter builder, int depth) {
 		printBody(body, builder, depth);
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
 		builder.append(" ("); //$NON-NLS-1$
 		condition.print(builder, depth+1);

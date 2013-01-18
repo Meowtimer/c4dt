@@ -15,7 +15,7 @@ public class Ellipsis extends ASTNode {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("..."); //$NON-NLS-1$
 	}
 	

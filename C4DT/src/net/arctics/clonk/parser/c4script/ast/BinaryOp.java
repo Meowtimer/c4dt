@@ -142,7 +142,7 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		// put brackets around operands in case some transformation messed up prioritization
 		boolean needsBrackets = leftSide instanceof BinaryOp && operator().priority() > ((BinaryOp)leftSide).operator().priority();
 		if (needsBrackets)

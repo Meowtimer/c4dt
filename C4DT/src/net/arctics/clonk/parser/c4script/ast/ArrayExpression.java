@@ -22,7 +22,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("["); //$NON-NLS-1$
 		for (int i = 0; i < elements.length; i++) {
 			if (elements[i] != null)

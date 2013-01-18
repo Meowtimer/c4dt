@@ -21,7 +21,7 @@ public class GarbageStatement extends Statement {
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(garbage);
 	}
 	

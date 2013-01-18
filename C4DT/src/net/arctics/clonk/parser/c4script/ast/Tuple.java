@@ -14,7 +14,7 @@ public class Tuple extends ExprElmWithSubElementsArray {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		StringUtil.writeBlock(output, "(", ")", ", ", ArrayUtil.iterable(elements));
 	}
 

@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.ExprWriter;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 
 import org.eclipse.core.runtime.CoreException;
@@ -133,7 +133,7 @@ public abstract class CodeConverter {
 			oldLength++;
 		}
 		String oldString = document.get(oldStart, oldLength);
-		ExprWriter newStringWriter = new AppendableBackedExprWriter(new StringBuilder());
+		ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(new StringBuilder());
 		if (e instanceof PropListExpression)
 			Conf.blockPrelude(newStringWriter, 0);
 		parser.setCurrentFunction(as(d, Function.class));

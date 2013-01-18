@@ -57,7 +57,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(literal().toString());
 	}
 	

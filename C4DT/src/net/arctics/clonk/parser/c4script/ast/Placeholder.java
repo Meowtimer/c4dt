@@ -29,7 +29,7 @@ public class Placeholder extends ASTNode {
 		return entryName;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append('$');
 		builder.append(entryName);
 		builder.append('$');

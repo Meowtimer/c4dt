@@ -1,12 +1,12 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.IOException;
 import java.io.Writer;
 
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.util.ITreeNode;
 
 public interface IniItem extends ITreeNode {
-	void writeTextRepresentation(Writer writer, int indentation) throws IOException;
+	void print(ASTNodePrinter writer, int indentation);
 	void validate();
 	String key();
 	/**

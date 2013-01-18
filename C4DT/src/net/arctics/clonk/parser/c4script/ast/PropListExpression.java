@@ -40,14 +40,14 @@ public class PropListExpression extends ASTNode {
 		assignParentToSubElements();
 	}
 	@Override
-	public void doPrint(ExprWriter output_, int depth) {
+	public void doPrint(ASTNodePrinter output_, int depth) {
 		final char FIRSTBREAK = (char)255;
 		final char BREAK = (char)254;
 		final char LASTBREAK = (char)253;
 		final char LONGSUBPROPS = (char)252;
 		final char SHORTSUBPROPS = (char)251;
 		StringBuilder builder = new StringBuilder();
-		ExprWriter output = new AppendableBackedExprWriter(builder);
+		ASTNodePrinter output = new AppendableBackedExprWriter(builder);
 		output.append('{');
 		Collection<Variable> components = components();
 		int i = 0;

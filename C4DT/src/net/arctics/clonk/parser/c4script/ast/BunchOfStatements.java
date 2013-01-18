@@ -18,7 +18,7 @@ public class BunchOfStatements extends Block {
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		boolean first = true;
 		for (Statement statement : statements()) {
 			statement.printPrependix(builder, depth);

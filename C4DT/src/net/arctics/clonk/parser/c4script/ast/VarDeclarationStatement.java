@@ -58,7 +58,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return varInitializations;
 	}
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;

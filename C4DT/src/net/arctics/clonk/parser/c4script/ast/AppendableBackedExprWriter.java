@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import net.arctics.clonk.parser.ASTNode;
 
-public class AppendableBackedExprWriter implements ExprWriter {
+public class AppendableBackedExprWriter implements ASTNodePrinter {
 	private final Appendable appendable;
 
 	public AppendableBackedExprWriter(Appendable builder) {

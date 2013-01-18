@@ -10,7 +10,7 @@ public class False extends BoolLiteral {
 		return false;
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(Keywords.False);
 	}
 	@Override

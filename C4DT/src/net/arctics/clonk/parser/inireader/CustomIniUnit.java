@@ -1,11 +1,11 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class CustomIniUnit extends IniUnit {
@@ -46,7 +46,7 @@ public class CustomIniUnit extends IniUnit {
 		return result;
 	}
 	
-	public static void save(Writer writer , Object obj, Object defaults) throws IOException, IllegalArgumentException, IllegalAccessException {
+	public static void save(ASTNodePrinter writer, Object obj, Object defaults) throws IOException, IllegalArgumentException, IllegalAccessException {
 		CustomIniUnit unit = new CustomIniUnit(configurationForClass(obj.getClass()), obj, defaults);
 		unit.save(writer, false);
 	}

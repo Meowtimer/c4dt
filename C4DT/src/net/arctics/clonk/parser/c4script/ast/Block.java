@@ -57,11 +57,11 @@ public class Block extends Statement {
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		printBlock(statements, builder, depth);
 	}
 
-	public static void printBlock(Statement[] statements, ExprWriter builder, int depth) {
+	public static void printBlock(Statement[] statements, ASTNodePrinter builder, int depth) {
 		builder.append("{\n"); //$NON-NLS-1$
 		for (Statement statement : statements) {
 			//statement.printPrependix(builder, depth);

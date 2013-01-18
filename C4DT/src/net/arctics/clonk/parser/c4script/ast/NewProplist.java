@@ -25,7 +25,7 @@ public class NewProplist extends PropListExpression {
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(Keywords.New);
 		output.append(" ");
 		definedDeclaration().implicitPrototype().print(output, depth);

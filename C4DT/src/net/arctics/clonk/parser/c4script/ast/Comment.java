@@ -82,7 +82,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 	
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
@@ -174,7 +174,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 
 	@Override
-	public void applyAttachment(Position position, ExprWriter builder, int depth) {
+	public void applyAttachment(Position position, ASTNodePrinter builder, int depth) {
 		switch (position) {
 		case Pre:
 			if (prependix) {

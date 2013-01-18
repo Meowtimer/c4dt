@@ -30,7 +30,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		this(elms.toArray(new ASTNode[elms.size()]));
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		for (ASTNode e : elements)
 			e.print(output, depth+1);
 	}

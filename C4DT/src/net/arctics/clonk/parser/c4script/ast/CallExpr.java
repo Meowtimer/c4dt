@@ -45,7 +45,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		CallDeclaration.printParmString(output, subElements(), depth);
 	}
 	

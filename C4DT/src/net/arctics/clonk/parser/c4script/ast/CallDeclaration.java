@@ -216,7 +216,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		super.doPrint(output, depth);
 		printParmString(output, params, depth);
 	}
@@ -226,7 +226,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param output Output to print to
 	 * @param depth Indentation level of parameter expressions.
 	 */
-	public static void printParmString(ExprWriter output, ASTNode[] params, int depth) {
+	public static void printParmString(ASTNodePrinter output, ASTNode[] params, int depth) {
 		StringUtil.writeBlock(output, "(", ")", ", ", iterable(params)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	

@@ -50,7 +50,7 @@ public class LongLiteral extends NumberLiteral {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		if (hex) {
 			output.append("0x"); //$NON-NLS-1$
 			output.append(Long.toHexString(longValue()).toUpperCase());

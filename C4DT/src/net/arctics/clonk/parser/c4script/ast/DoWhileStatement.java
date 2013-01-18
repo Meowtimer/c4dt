@@ -13,7 +13,7 @@ public class DoWhileStatement extends WhileStatement {
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(Keywords.Do);
 		printBody(builder, depth);
 		builder.append(" "); //$NON-NLS-1$

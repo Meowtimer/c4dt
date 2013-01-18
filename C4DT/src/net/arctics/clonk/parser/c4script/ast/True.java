@@ -10,7 +10,7 @@ public class True extends BoolLiteral {
 		return true;
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(Keywords.True);
 	}
 	@Override

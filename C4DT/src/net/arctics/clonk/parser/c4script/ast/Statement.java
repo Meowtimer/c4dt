@@ -29,7 +29,7 @@ public class Statement extends ASTNode implements Cloneable {
 			Pre,
 			Post
 		}
-		void applyAttachment(Attachment.Position position, ExprWriter builder, int depth);
+		void applyAttachment(Attachment.Position position, ASTNodePrinter builder, int depth);
 	}
 	
 	public static class EmptyLinesAttachment implements Attachment {
@@ -45,7 +45,7 @@ public class Statement extends ASTNode implements Cloneable {
 			this.num = num;
 		}
 		@Override
-		public void applyAttachment(Attachment.Position position, ExprWriter builder, int depth) {
+		public void applyAttachment(Attachment.Position position, ASTNodePrinter builder, int depth) {
 			switch (position) {
 			case Pre:
 				for (int i = 0; i < num; i++)
@@ -113,14 +113,14 @@ public class Statement extends ASTNode implements Cloneable {
 	}
 
 	@Override
-	public void printPrependix(ExprWriter builder, int depth) {
+	public void printPrependix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
 			for (Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Pre, builder, depth);	
 	}
 	
 	@Override
-	public void printAppendix(ExprWriter builder, int depth) {
+	public void printAppendix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
 			for (Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Post, builder, depth);
@@ -130,7 +130,7 @@ public class Statement extends ASTNode implements Cloneable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 		@Override
-		public void doPrint(ExprWriter output, int depth) {
+		public void doPrint(ASTNodePrinter output, int depth) {
 			// blub
 		};
 	};

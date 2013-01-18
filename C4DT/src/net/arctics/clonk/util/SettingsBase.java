@@ -6,17 +6,16 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 
 public abstract class SettingsBase implements Cloneable {		
 
 	public SettingsBase() {
 		try {
-			for (Field f : getClass().getFields()) {
-				if (f.getType() == String.class) {
+			for (Field f : getClass().getFields())
+				if (f.getType() == String.class)
 					f.set(this, "");
-				}
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -27,7 +26,7 @@ public abstract class SettingsBase implements Cloneable {
 			return true;
 		if (obj.getClass() != this.getClass())
 			return false;
-		for (Field f : getClass().getFields()) {
+		for (Field f : getClass().getFields())
 			try {
 				Object fVal = f.get(this);
 				Object objVal = f.get(obj);
@@ -37,7 +36,6 @@ public abstract class SettingsBase implements Cloneable {
 				e.printStackTrace();
 				return false;
 			}
-		}
 		return true;
 	}
 	public void loadFrom(InputStream stream) {
@@ -49,11 +47,8 @@ public abstract class SettingsBase implements Cloneable {
 	}
 	public void saveTo(OutputStream stream, SettingsBase defaults) {
 		try {
-			Writer writer = new OutputStreamWriter(stream);
-			try {
-				CustomIniUnit.save(writer, this, defaults);
-			} finally {
-				writer.close();
+			try (Writer writer = new OutputStreamWriter(stream)) {
+				CustomIniUnit.save(new AppendableBackedExprWriter(writer), this, defaults);
 			}
 		} catch (Exception e) {
 			e.printStackTrace(); 

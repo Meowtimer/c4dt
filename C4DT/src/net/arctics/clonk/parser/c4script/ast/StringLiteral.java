@@ -34,7 +34,7 @@ public final class StringLiteral extends Literal<String> {
 		return literal;
 	}
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("\""); //$NON-NLS-1$
 		output.append(stringValue());
 		output.append("\""); //$NON-NLS-1$

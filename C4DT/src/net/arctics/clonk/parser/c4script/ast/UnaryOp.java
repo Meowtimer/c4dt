@@ -43,7 +43,7 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public void doPrint(ExprWriter output, int depth) {
+	public void doPrint(ASTNodePrinter output, int depth) {
 		UnaryOp unop = (argument instanceof UnaryOp) ? (UnaryOp)argument : null;
 		if (unop != null && unop.placement != this.placement)
 			unop = null;

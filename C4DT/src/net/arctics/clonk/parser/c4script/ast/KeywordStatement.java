@@ -19,12 +19,12 @@ public abstract class KeywordStatement extends Statement {
 	public abstract String keyword();
 	
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
 		builder.append(";"); //$NON-NLS-1$
 	}
 
-	protected void printBody(ASTNode body, ExprWriter builder, int depth) {
+	protected void printBody(ASTNode body, ASTNodePrinter builder, int depth) {
 		if (!(body instanceof Block))
 			depth++;
 		if (!(body instanceof EmptyStatement))

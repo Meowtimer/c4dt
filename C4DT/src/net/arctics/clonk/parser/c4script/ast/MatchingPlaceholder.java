@@ -262,7 +262,7 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@Override
-	public void doPrint(ExprWriter builder, int depth) {
+	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append("$");
 		builder.append(entryName);
 		List<String> attribs = new ArrayList<String>(4);

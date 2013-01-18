@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
 import net.arctics.clonk.index.Definition;
@@ -16,6 +17,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.StreamUtil;
@@ -141,7 +143,7 @@ public class ClonkProjectNature implements IProjectNature {
 				@Override
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
 					try {
-						CustomIniUnit.save(writer, settings, null);
+						CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

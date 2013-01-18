@@ -1,10 +1,8 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.IOException;
-import java.io.Writer;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.util.StringUtil;
 
 public class IniEntry extends NameValueAssignment implements IniItem {
@@ -20,7 +18,7 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+	public void doPrint(ASTNodePrinter writer, int indentation) {
 		writer.append(StringUtil.multiply("\t", indentation));
 		writer.append(toString());
 	}
