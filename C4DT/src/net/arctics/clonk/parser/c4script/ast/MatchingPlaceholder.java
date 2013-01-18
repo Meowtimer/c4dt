@@ -18,7 +18,7 @@ import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -54,8 +54,8 @@ public class MatchingPlaceholder extends Placeholder {
 			return name();
 		};
 		@CommandFunction
-		public static List<ExprElm> reverse(Object context, List<ExprElm> input) {
-			ArrayList<ExprElm> list = new ArrayList<ExprElm>(input);
+		public static List<ASTNode> reverse(Object context, List<ASTNode> input) {
+			ArrayList<ASTNode> list = new ArrayList<ASTNode>(input);
 			Collections.reverse(list);
 			return list;
 		}
@@ -84,10 +84,10 @@ public class MatchingPlaceholder extends Placeholder {
 	
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
 
-	private Class<? extends ExprElm> requiredClass;
+	private Class<? extends ASTNode> requiredClass;
 	private Pattern stringRepresentationPattern;
 	private boolean remainder;
-	private ExprElm[] subElements;
+	private ASTNode[] subElements;
 	private Function code;
 	private Pattern associatedDeclarationNamePattern;
 	private String property;
@@ -95,17 +95,17 @@ public class MatchingPlaceholder extends Placeholder {
 	
 	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
-	public Class<? extends ExprElm> requiredClass() { return requiredClass; }
+	public Class<? extends ASTNode> requiredClass() { return requiredClass; }
 	public boolean remainder() { return remainder; }
 	public String property() { return property; }
 
 	@Override
-	public ExprElm[] subElements() {
+	public ASTNode[] subElements() {
 		return subElements != null ? subElements : EMPTY_EXPR_ARRAY;
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		subElements = elms;
 	}
 
@@ -189,7 +189,7 @@ public class MatchingPlaceholder extends Placeholder {
 				String[] packageFormats = new String[] { "%s.parser.c4script.ast.%s", "%s.parser.c4script.ast.%sLiteral" };
 				for (String pkgFormat : packageFormats)
 					try {
-						requiredClass = (Class<? extends ExprElm>) ExprElm.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
+						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
 						break;
 					} catch (ClassNotFoundException e) {
 						continue;
@@ -210,11 +210,11 @@ public class MatchingPlaceholder extends Placeholder {
 			}
 		if (code != null)
 			try {
-				if (substitution instanceof ExprElm[])
-					substitution = Arrays.asList((ExprElm[])substitution);
+				if (substitution instanceof ASTNode[])
+					substitution = Arrays.asList((ASTNode[])substitution);
 				substitution = code.invoke(substitution);
 				if (substitution instanceof List)
-					return ((List<ExprElm>)substitution).toArray(new ExprElm[((List<ExprElm>) substitution).size()]);
+					return ((List<ASTNode>)substitution).toArray(new ASTNode[((List<ASTNode>) substitution).size()]);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -223,7 +223,7 @@ public class MatchingPlaceholder extends Placeholder {
 		return substitution;
 	}
 
-	public boolean satisfiedBy(ExprElm element) {
+	public boolean satisfiedBy(ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
 			if (requiredClass == IDLiteral.class) {
@@ -249,7 +249,7 @@ public class MatchingPlaceholder extends Placeholder {
 		return true;
 	}
 	
-	protected Declaration associatedDeclaration(ExprElm element) {
+	protected Declaration associatedDeclaration(ASTNode element) {
 		CallDeclaration call = as(element.parent(), CallDeclaration.class);
 		if (call != null)
 			return call.parmDefinitionForParmExpression(element);

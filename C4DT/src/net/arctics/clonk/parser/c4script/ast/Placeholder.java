@@ -2,13 +2,13 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
-public class Placeholder extends ExprElm {
+public class Placeholder extends ASTNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected String entryName;
@@ -21,7 +21,7 @@ public class Placeholder extends ExprElm {
 		return true;
 	}
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return true;
 	}
 

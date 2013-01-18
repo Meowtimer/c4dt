@@ -9,7 +9,7 @@ import java.util.Set;
 
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -151,7 +151,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 	}
 
 	@Override
-	public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+	public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 		// ignore deviating subelements length since there might be comments in there that will be ignored
 		if (what == SUBELEMENTS_LENGTH)
 			return DifferenceHandling.IgnoreLeftSide; // either left or right.. doesn't matter
@@ -189,11 +189,11 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 						b == opB.leftSide() || b == opB.rightSide() &&
 						a == opA.leftSide() || a == opA.rightSide()
 					) {
-						final ExprElm bCounterpart = opB.leftSide() == b ? opB.rightSide() : opB.leftSide();
-						final ExprElm aCounterpart = opA.leftSide() == a ? opA.rightSide() : opA.leftSide();
+						final ASTNode bCounterpart = opB.leftSide() == b ? opB.rightSide() : opB.leftSide();
+						final ASTNode aCounterpart = opA.leftSide() == a ? opA.rightSide() : opA.leftSide();
 						IASTComparisonDelegate proxy = new IASTComparisonDelegate() {
 							@Override
-							public DifferenceHandling differs(ExprElm _a, ExprElm _b, Object what) {
+							public DifferenceHandling differs(ASTNode _a, ASTNode _b, Object what) {
 								if (_a == aCounterpart || _a == bCounterpart)
 									return DifferenceHandling.Differs;
 								return DuplicatesQuery.this.differs(_a, _b, what);
@@ -203,7 +203,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 								return DuplicatesQuery.this.optionEnabled(option);
 							}
 							@Override
-							public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+							public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 								DuplicatesQuery.this.wildcardMatched(wildcard, expression);
 							}
 						};
@@ -264,7 +264,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 	}
 
 	@Override
-	public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+	public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 	}
 
 }

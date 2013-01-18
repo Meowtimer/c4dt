@@ -22,7 +22,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -668,7 +668,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
 		public EntityLocator locator;
-		public FuncCallInfo(Function func, IFunctionCall callFunc2, ExprElm parm, EntityLocator locator) {
+		public FuncCallInfo(Function func, IFunctionCall callFunc2, ASTNode parm, EntityLocator locator) {
 			this.callFunc = callFunc2;
 			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
 			this.parmsStart = func.bodyLocation().start()+callFunc2.parmsStart();
@@ -682,7 +682,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (f == null)
 			return null;
 		EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
-		ExprElm expr;
+		ASTNode expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
 		int bodyStart = f.bodyLocation().start();
@@ -695,8 +695,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				 break;
 		if (expr != null) {
 			IFunctionCall callFunc = (IFunctionCall) expr;
-			ExprElm prev = null;
-			for (ExprElm parm : callFunc.params()) {
+			ASTNode prev = null;
+			for (ASTNode parm : callFunc.params()) {
 				if (bodyStart+parm.end() > offset) {
 					if (prev == null)
 						break;

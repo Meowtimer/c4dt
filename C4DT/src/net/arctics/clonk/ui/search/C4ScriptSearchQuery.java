@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
@@ -28,23 +28,23 @@ import org.eclipse.jface.text.Region;
 public class C4ScriptSearchQuery extends SearchQueryBase {
 	
 	public static class Match extends ClonkSearchMatch {
-		private final ExprElm matched;
+		private final ASTNode matched;
 		private final Map<String, Object> subst;
-		public ExprElm matched() { return matched; }
+		public ASTNode matched() { return matched; }
 		public Map<String, Object> subst() { return subst; }
-		public Match(String line, int lineOffset, Object element, int offset, int length, ExprElm matched, Map<String, Object> subst) {
+		public Match(String line, int lineOffset, Object element, int offset, int length, ASTNode matched, Map<String, Object> subst) {
 			super(line, lineOffset, element, offset, length, false, false);
 			this.matched = matched;
 			this.subst = subst;
 		}
 	}
 	
-	private void addMatch(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+	private void addMatch(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		Match m = match(match, parser, s, l, subst);
 		result.addMatch(m);
 	}
 
-	protected static Match match(ExprElm match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+	protected static Match match(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
 		String line = parser.bufferSubstringAtRegion(lineRegion);
 		Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
@@ -52,12 +52,12 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	}
 
 	private final String templateText;
-	private final ExprElm template;
-	private final ExprElm replacement;
+	private final ASTNode template;
+	private final ASTNode replacement;
 	private final Iterable<Script> scope;
 
-	public ExprElm replacement() { return replacement; }
-	public ExprElm template() { return template; }
+	public ASTNode replacement() { return replacement; }
+	public ASTNode template() { return template; }
 	
 	private Engine commonEngine(Iterable<Script> scripts) {
 		Engine e = null;
@@ -114,7 +114,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+					public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 						Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							IRegion r = expression.absolute();

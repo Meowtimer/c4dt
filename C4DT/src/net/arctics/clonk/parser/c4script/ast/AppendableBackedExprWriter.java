@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.IOException;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 
 public class AppendableBackedExprWriter implements ExprWriter {
 	private final Appendable appendable;
@@ -12,7 +12,7 @@ public class AppendableBackedExprWriter implements ExprWriter {
 	}
 
 	@Override
-	public boolean doCustomPrinting(ExprElm elm, int depth) {
+	public boolean doCustomPrinting(ASTNode elm, int depth) {
 		return false;
 	}
 

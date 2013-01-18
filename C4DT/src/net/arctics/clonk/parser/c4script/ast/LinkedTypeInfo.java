@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.util.StringUtil;
@@ -51,7 +51,7 @@ public class LinkedTypeInfo implements ITypeInfo {
 	}
 
 	@Override
-	public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+	public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
 		for (ITypeInfo l : linkedTypeInfos)
 			if (l.storesTypeInformationFor(expr, parser))
 				return true;

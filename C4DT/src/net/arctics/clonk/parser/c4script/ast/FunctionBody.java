@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 
@@ -39,7 +39,7 @@ public class FunctionBody extends BunchOfStatements {
 			printBlock(statements(), builder, depth);
 	}
 	@Override
-	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
+	public void postLoad(ASTNode parent, DeclarationObtainmentContext root) {
 		if (postLoaded)
 			return;
 		postLoaded = true;

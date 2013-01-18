@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -55,7 +55,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.script(), s, l, potential, indirect));
 	}
 	
-	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect) {
+	public void addMatch(ASTNode match, C4ScriptParser parser, boolean potential, boolean indirect) {
 		addMatch(parser, potential, indirect, match.identifierStart()+parser.bodyOffset(), match.identifierLength());
 	}
 

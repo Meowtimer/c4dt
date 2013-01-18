@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
@@ -19,7 +19,7 @@ import net.arctics.clonk.util.StringUtil;
 import org.eclipse.core.resources.IMarker;
 
 /**
- * A comment in the code. Instances of this class can be used as regular {@link ExprElm} objects or
+ * A comment in the code. Instances of this class can be used as regular {@link ASTNode} objects or
  * be attached to {@link Statement}s as {@link Attachment}.
  * @author madeen
  *

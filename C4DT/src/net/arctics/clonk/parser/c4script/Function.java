@@ -16,7 +16,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
@@ -722,7 +722,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				}
 				
 				@Override
-				public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+				public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 					Function.this.reportOriginForExpression(expression, location, file);
 				}
 				
@@ -764,8 +764,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append(" {\n"); //$NON-NLS-1$
 			break;
 		}
-		if (cookie instanceof ExprElm)
-			((ExprElm)cookie).print(builder, 1);
+		if (cookie instanceof ASTNode)
+			((ASTNode)cookie).print(builder, 1);
 		builder.append("\n}"); //$NON-NLS-1$
 	}
 
@@ -914,7 +914,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// oh interesting
 	}
 	
@@ -929,7 +929,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public ExprElm code() {
+	public ASTNode code() {
 		return body();
 	}
 	

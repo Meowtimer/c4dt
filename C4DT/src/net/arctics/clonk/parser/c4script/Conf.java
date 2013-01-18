@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.ast.BraceStyleType;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprWriter;
@@ -40,9 +40,9 @@ public abstract class Conf {
 		}
 	}
 
-	public static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+	public static final IConverter<ASTNode, Object> EVALUATE_EXPR = new IConverter<ASTNode, Object>() {
 		@Override
-        public Object convert(ExprElm from) {
+        public Object convert(ASTNode from) {
             try {
 				return from != null ? from.evaluate() : null;
 			} catch (ControlFlowException e) {

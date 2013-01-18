@@ -1,14 +1,14 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class DoWhileStatement extends WhileStatement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public DoWhileStatement(ExprElm condition, ExprElm body) {
+	public DoWhileStatement(ASTNode condition, ASTNode body) {
 		super(condition, body);
 	}
 

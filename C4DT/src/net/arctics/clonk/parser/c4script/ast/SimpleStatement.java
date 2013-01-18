@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 public class SimpleStatement extends Statement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private ExprElm expression;
+	private ASTNode expression;
 
 	@Override
 	public boolean isFinishedProperly() {
@@ -25,27 +25,27 @@ public class SimpleStatement extends Statement {
 		expression.setFinishedProperly(finishedProperly);
 	}
 	
-	public SimpleStatement(ExprElm expression) {
+	public SimpleStatement(ASTNode expression) {
 		super();
 		this.expression = expression;
 		assignParentToSubElements();
 	}
 
-	public ExprElm expression() {
+	public ASTNode expression() {
 		return expression;
 	}
 
-	public void setExpression(ExprElm expression) {
+	public void setExpression(ASTNode expression) {
 		this.expression = expression;
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {expression};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {expression};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		expression = elms[0];
 	}
 
@@ -56,8 +56,8 @@ public class SimpleStatement extends Statement {
 	}
 
 	@Override
-	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
-		ExprElm exprReplacement = expression.optimize(parser);
+	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+		ASTNode exprReplacement = expression.optimize(parser);
 		if (exprReplacement instanceof Statement)
 			return exprReplacement;
 		if (exprReplacement == expression)
@@ -80,7 +80,7 @@ public class SimpleStatement extends Statement {
 		return expression.evaluate(context);
 	}
 	
-	public static Statement wrapExpression(ExprElm expr) {
+	public static Statement wrapExpression(ASTNode expr) {
 		if (expr instanceof Statement)
 			return (Statement)expr;
 		else if (expr != null)
@@ -89,7 +89,7 @@ public class SimpleStatement extends Statement {
 			return null;
 	}
 	
-	public static ExprElm unwrap(ExprElm expr) {
+	public static ASTNode unwrap(ASTNode expr) {
 		if (expr instanceof SimpleStatement)
 			return ((SimpleStatement)expr).expression();
 		else
@@ -103,7 +103,7 @@ public class SimpleStatement extends Statement {
 		super.reportProblems(parser);
 	}
 	
-	public static Statement[] wrapExpressions(ExprElm... expressions) {
+	public static Statement[] wrapExpressions(ASTNode... expressions) {
 		Statement[] result = new Statement[expressions.length];
 		for (int i = 0; i < expressions.length; i++)
 			result[i] = wrapExpression(expressions[i]);

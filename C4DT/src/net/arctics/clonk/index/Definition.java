@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
@@ -454,7 +454,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public ExprElm implicitPrototype() {
+	public ASTNode implicitPrototype() {
 		return null;
 	}
 

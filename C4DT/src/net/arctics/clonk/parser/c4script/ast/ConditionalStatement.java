@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -12,18 +12,18 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 public abstract class ConditionalStatement extends KeywordStatement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected ExprElm condition;
-	protected ExprElm body;
+	protected ASTNode condition;
+	protected ASTNode body;
 
-	public ExprElm condition() {
+	public ASTNode condition() {
 		return condition;
 	}
 
-	public void setCondition(ExprElm condition) {
+	public void setCondition(ASTNode condition) {
 		this.condition = condition;
 	}
 
-	public ConditionalStatement(ExprElm condition, ExprElm body) {
+	public ConditionalStatement(ASTNode condition, ASTNode body) {
 		super();
 		this.condition = condition;
 		this.body = body;
@@ -43,17 +43,17 @@ public abstract class ConditionalStatement extends KeywordStatement {
 		printBody(builder, depth);
 	}
 
-	public ExprElm body() {
+	public ASTNode body() {
 		return body;
 	}
 
-	public void setBody(ExprElm body) {
+	public void setBody(ASTNode body) {
 		this.body = body;
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {condition, body};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {condition, body};
 	}
 	
 	@Override
@@ -69,7 +69,7 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		condition = elms[0];
 		body      = elms[1];
 	}

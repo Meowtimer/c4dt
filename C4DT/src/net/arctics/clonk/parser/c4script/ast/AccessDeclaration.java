@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -21,7 +21,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public abstract class AccessDeclaration extends ExprElm implements IPlaceholderPatternMatchTarget {
+public abstract class AccessDeclaration extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected transient Declaration declaration;
@@ -125,7 +125,7 @@ public abstract class AccessDeclaration extends ExprElm implements IPlaceholderP
 	}
 	
 	@Override
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
 		DifferenceHandling handling = super.compare(other, listener);
 		if (handling != DifferenceHandling.Equal)
 			return handling;
@@ -155,7 +155,7 @@ public abstract class AccessDeclaration extends ExprElm implements IPlaceholderP
 	}
 	
 	@Override
-	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
+	public void postLoad(ASTNode parent, DeclarationObtainmentContext root) {
 		super.postLoad(parent, root);
 		declarationFromContext(root);
 	}

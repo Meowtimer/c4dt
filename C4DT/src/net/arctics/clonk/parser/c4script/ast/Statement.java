@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
  * Baseclass for statements.
  *
  */
-public class Statement extends ExprElm implements Cloneable {
+public class Statement extends ASTNode implements Cloneable {
 	
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -135,7 +135,7 @@ public class Statement extends ExprElm implements Cloneable {
 		};
 	};
 	
-	protected void notFinishedError(C4ScriptParser parser, ExprElm e) throws ParsingException {
+	protected void notFinishedError(C4ScriptParser parser, ASTNode e) throws ParsingException {
 		if (!e.isFinishedProperly())
 			// don't traverse children - one not-finished error is enough
 			parser.error(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);

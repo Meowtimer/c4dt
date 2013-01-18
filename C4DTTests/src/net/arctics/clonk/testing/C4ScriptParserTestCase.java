@@ -18,7 +18,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -206,7 +206,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.script.findFunction("Test").body()
 				.compare(block, new IASTComparisonDelegate() {
 					@Override
-					public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+					public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 						return DifferenceHandling.Differs;
 					}
 					@Override
@@ -220,7 +220,7 @@ public class C4ScriptParserTestCase {
 					}
 					@Override
 					public void wildcardMatched(Wildcard wildcard,
-							ExprElm expression) {
+							ASTNode expression) {
 						// ignore
 					}
 				}).isEqual());

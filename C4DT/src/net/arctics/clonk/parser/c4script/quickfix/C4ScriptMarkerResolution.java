@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.quickfix;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -58,7 +58,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 				e.printStackTrace();
 				return;
 			}
-			ExprElm expr = locator.getTopLevelInRegion();
+			ASTNode expr = locator.getTopLevelInRegion();
 			if (expr != null) {
 				try {
 					doc.replace(expr.getOffset()+func.bodyLocation().getOffset(), expr.getLength(), expr.exhaustiveOptimize(parser).toString());

@@ -9,9 +9,9 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.ExprElm.ITransformer;
+import net.arctics.clonk.parser.ASTNode.ITransformer;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -110,12 +110,12 @@ public class ProjectConverter implements IResourceVisitor {
 	}
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
-		protected ExprElm performConversion(C4ScriptParser parser, ExprElm expression) {
+		protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression) {
 			if (configuration == null)
 				return expression;
-			return (ExprElm)(new ITransformer() {
+			return (ASTNode)(new ITransformer() {
 				@Override
-				public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
+				public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 					if (expression == null)
 						return null;
 					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {

@@ -16,7 +16,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -69,7 +69,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 		
 		@Override
-		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
 			if (expr instanceof CallDeclaration) {
 				CallDeclaration callFunc = (CallDeclaration) expr;
 				if (callFunc.declaration() == this.function)
@@ -111,7 +111,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 
 		@Override
-		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
 			if (scope != null && parser.currentFunction() != scope)
 				return false;
 			if (expr instanceof CallDeclaration) {
@@ -148,7 +148,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 	}
 
-	private ExprElm[] params;
+	private ASTNode[] params;
 	private int parmsStart, parmsEnd;
 	private transient IType unresolvedPredecessorType;
 	
@@ -198,7 +198,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param funcName The function name
 	 * @param parms Parameter expressions
 	 */
-	public CallDeclaration(String funcName, ExprElm... parms) {
+	public CallDeclaration(String funcName, ASTNode... parms) {
 		super(funcName);
 		params = parms;
 		assignParentToSubElements();
@@ -209,7 +209,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param function The {@link Function} the new CallFunc will refer to.
 	 * @param parms Parameter expressions
 	 */
-	public CallDeclaration(Function function, ExprElm... parms) {
+	public CallDeclaration(Function function, ASTNode... parms) {
 		this(function.name());
 		this.declaration = function;
 		assignParentToSubElements();
@@ -226,7 +226,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param output Output to print to
 	 * @param depth Indentation level of parameter expressions.
 	 */
-	public static void printParmString(ExprWriter output, ExprElm[] params, int depth) {
+	public static void printParmString(ExprWriter output, ASTNode[] params, int depth) {
 		StringUtil.writeBlock(output, "(", ")", ", ", iterable(params)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
@@ -314,7 +314,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode elm, C4ScriptParser context) {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 	}
 	
@@ -343,7 +343,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			}
 		}
 		unresolvedPredecessorType = this.unresolvedPredecessorType(context);
-		ExprElm p = predecessorInSequence();
+		ASTNode p = predecessorInSequence();
 		if (p instanceof MemberOperator)
 			p = p.predecessorInSequence();
 		return findFunction(declarationName,
@@ -353,8 +353,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	/**
-	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ExprElm#type(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallDeclaration} in the {@link Sequence}.
-	 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ExprElm#predecessorInSequence()})
+	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(DeclarationObtainmentContext)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
+	 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
 	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
 	 * @param context Context to use for searching
 	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
@@ -433,7 +433,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
-		ExprElm pred = predecessorInSequence();
+		ASTNode pred = predecessorInSequence();
 		// standalone function? always bark!
 		if (pred == null)
 			return true;
@@ -501,7 +501,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 						context.warning(ParserErrorCode.VariableCalled, this, 0, declaration.name(), type.typeName(false));
 			} else {
-				ExprElm predecessor = predecessorInSequence();
+				ASTNode predecessor = predecessorInSequence();
 				if (declaration instanceof Function) {
 					Function f = (Function)declaration;
 					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
@@ -518,7 +518,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 						for (Variable parm : f.parameters()) {
 							if (givenParam >= params.length)
 								break;
-							ExprElm given = params[givenParam++];
+							ASTNode given = params[givenParam++];
 							if (given == null)
 								continue;
 							if (!given.validForType(parm.type(), context))
@@ -547,19 +547,19 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 	}
 	@Override
-	public ExprElm[] subElements() {
+	public ASTNode[] subElements() {
 		return params;
 	}
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, Operator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
-			ExprElm one = parms[i].optimize(parser);
-			ExprElm two = i+1 < parms.length ? parms[i+1] : null;
+			ASTNode one = parms[i].optimize(parser);
+			ASTNode two = i+1 < parms.length ? parms[i+1] : null;
 			if (op.leftSide() == null)
 				op.setLeftSide(one);
 			else if (two == null)
@@ -574,7 +574,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return result;
 	}
 	@Override
-	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
 		Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
@@ -582,7 +582,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			// LessThan(x) -> x < 0
 			if (replOperator.numArgs() == 2)
 				return new BinaryOp(replOperator, params[0].optimize(parser), LongLiteral.ZERO);
-			ExprElm n = params[0].optimize(parser);
+			ASTNode n = params[0].optimize(parser);
 			if (n instanceof BinaryOp)
 				n = new Parenthesized(n);
 			return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
@@ -592,19 +592,19 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
 		if (params.length >= 2 && declaration == parser.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
-			ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
+			ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = params[i+2].optimize(parser);
 			String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~')
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
-					? new Sequence(new ExprElm[] {
+					? new Sequence(new ASTNode[] {
 							params[0].optimize(parser),
 							new MemberOperator(false, true, null, 0),
 							new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 					)
 					: new IfStatement(params[0].optimize(parser),
-							new SimpleStatement(new Sequence(new ExprElm[] {
+							new SimpleStatement(new Sequence(new ASTNode[] {
 									params[0].optimize(parser),
 									new MemberOperator(false, true, null, 0),
 									new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
@@ -638,7 +638,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// DecVar(0) -> Var(0)--
 		if (params.length <= 1 && declaration != null && (declaration == parser.cachedEngineDeclarations().DecVar || declaration == parser.cachedEngineDeclarations().IncVar))
 			return new UnaryOp(declaration == parser.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallDeclaration(parser.cachedEngineDeclarations().Var.name(), new ExprElm[] {
+					new CallDeclaration(parser.cachedEngineDeclarations().Var.name(), new ASTNode[] {
 						params.length == 1 ? params[0].optimize(parser) : LongLiteral.ZERO
 					})
 			);
@@ -647,7 +647,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		if (params.length >= 1 && declaration != null && declaration == parser.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
 			String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
-				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
+				ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].optimize(parser);
 				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
@@ -659,7 +659,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	private boolean containedInLoopHeaderOrNotStandaloneExpression() {
 		SimpleStatement simpleStatement = null;
-		for (ExprElm p = parent(); p != null; p = p.parent()) {
+		for (ASTNode p = parent(); p != null; p = p.parent()) {
 			if (p instanceof Block)
 				break;
 			if (p instanceof ILoop) {
@@ -681,7 +681,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		_obtainDeclaration(list, parser);
 		return new EntityRegion(list, new Region(start(), declarationName.length()));
 	}
-	public ExprElm soleParm() {
+	public ASTNode soleParm() {
 		if (params.length == 1)
 			return params[0];
 		return new Tuple(params);
@@ -691,17 +691,17 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
 	@Override
-	public ExprElm[] params() {
+	public ASTNode[] params() {
 		return params;
 	}
 	@Override
-	public int indexOfParm(ExprElm parm) {
+	public int indexOfParm(ASTNode parm) {
 		for (int i = 0; i < params.length; i++)
 			if (params[i] == parm)
 				return i;
 		return -1;
 	}
-	public Variable parmDefinitionForParmExpression(ExprElm parm) {
+	public Variable parmDefinitionForParmExpression(ASTNode parm) {
 		if (declaration instanceof Function) {
 			Function f = (Function) declaration;
 			int i = indexOfParm(parm);

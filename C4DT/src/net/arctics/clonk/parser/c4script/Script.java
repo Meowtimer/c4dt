@@ -43,7 +43,7 @@ import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
@@ -733,7 +733,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Variable variableWithInitializationAt(IRegion region) {
 		requireLoaded();
 		for (Variable v : variables()) {
-			ExprElm initialization = v.initializationExpression();
+			ASTNode initialization = v.initializationExpression();
 			if (initialization != null) {
 				Function owningFunc = as(initialization.owningDeclaration(), Function.class);
 				SourceLocation loc = owningFunc != null ? owningFunc.bodyLocation().add(initialization) : initialization;
@@ -1142,7 +1142,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 	
 	@Override
-	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// cool.
 	}
 	
@@ -1231,21 +1231,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return scenario;
 	}
 	
-	public void saveExpressions(final Collection<? extends ExprElm> expressions, final boolean absoluteLocations) {
+	public void saveExpressions(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
 		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
 			@Override
 			public Boolean run(IDocument document) {
 				try {
-					List<ExprElm> l = new ArrayList<ExprElm>(expressions);
-					Collections.sort(l, new Comparator<ExprElm>() {
+					List<ASTNode> l = new ArrayList<ASTNode>(expressions);
+					Collections.sort(l, new Comparator<ASTNode>() {
 						@Override
-						public int compare(ExprElm o1, ExprElm o2) {
+						public int compare(ASTNode o1, ASTNode o2) {
 							IRegion r1 = absoluteLocations ? o1.absolute() : o1;
 							IRegion r2 = absoluteLocations ? o2.absolute() : o2;
 							return r2.getOffset() - r1.getOffset();
 						}
 					});
-					for (ExprElm e : l) {
+					for (ASTNode e : l) {
 						IRegion region = absoluteLocations ? e.absolute() : e;
 						document.replace(region.getOffset(), region.getLength(), e.toString());
 					}

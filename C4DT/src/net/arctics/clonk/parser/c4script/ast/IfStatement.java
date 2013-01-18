@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -17,9 +17,9 @@ public class IfStatement extends ConditionalStatement {
 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private ExprElm elseExpr;
+	private ASTNode elseExpr;
 
-	public IfStatement(ExprElm condition, ExprElm body, ExprElm elseExpr) {
+	public IfStatement(ASTNode condition, ASTNode body, ASTNode elseExpr) {
 		super(condition, body);
 		this.elseExpr = elseExpr;
 		assignParentToSubElements();
@@ -50,12 +50,12 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {condition, body, elseExpr};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {condition, body, elseExpr};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		condition = elms[0];
 		body      = elms[1];
 		elseExpr  = elms[2];
@@ -70,7 +70,7 @@ public class IfStatement extends ConditionalStatement {
 		return result;
 	}
 	
-	public ExprElm elseExpression() {
+	public ASTNode elseExpression() {
 		return elseExpr;
 	}
 	
@@ -111,7 +111,7 @@ public class IfStatement extends ConditionalStatement {
 
 		if (!condition.containsConst()) {
 			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(parser.currentFunction()));
-			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX)
+			if (condEv != null && condEv != ASTNode.EVALUATION_COMPLEX)
 				parser.warning(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
 						condition, 0, condition);
 		}

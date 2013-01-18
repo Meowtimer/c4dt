@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -21,7 +21,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index == 1 && callFunc.declarationName().equals("ObjectSetAction")) {
 					IType t = callFunc.params()[0].type(parser);
 					if (t != null) for (IType ty : t)

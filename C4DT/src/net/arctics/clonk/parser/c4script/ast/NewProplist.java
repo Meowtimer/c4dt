@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -20,7 +20,7 @@ public class NewProplist extends PropListExpression {
 	 * @param declaration The declaration representing the proplist block
 	 * @param prototypeExpression The prototype expression
 	 */
-	public NewProplist(ProplistDeclaration declaration, ExprElm prototypeExpression) {
+	public NewProplist(ProplistDeclaration declaration, ASTNode prototypeExpression) {
 		super(declaration.withImplicitProtoype(prototypeExpression));
 	}
 	
@@ -34,8 +34,8 @@ public class NewProplist extends PropListExpression {
 	}
 	
 	@Override
-	public ExprElm[] subElements() {
-		ExprElm[] result = new ExprElm[1+components().size()];
+	public ASTNode[] subElements() {
+		ASTNode[] result = new ASTNode[1+components().size()];
 		result[0] = definedDeclaration().implicitPrototype();
 		int i = 1;
 		for (Variable c : components())

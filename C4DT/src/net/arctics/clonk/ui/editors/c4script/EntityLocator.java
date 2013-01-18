@@ -11,7 +11,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
@@ -114,7 +114,7 @@ public class EntityLocator extends ExpressionLocator {
 			simpleFindDeclaration(doc, region, script, d.func);
 	}
 
-	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, EntityRegion declRegion, ExprElm exprAtRegion) {
+	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, EntityRegion declRegion, ASTNode exprAtRegion) {
 		boolean setRegion;
 		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
@@ -218,10 +218,10 @@ public class EntityLocator extends ExpressionLocator {
 	}
 
 	@Override
-	public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+	public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 		expression.traverse(new IASTVisitor() {
 			@Override
-			public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+			public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;

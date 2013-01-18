@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -21,17 +21,17 @@ public class CallExpr extends Tuple implements IFunctionCall {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	public CallExpr(ExprElm[] params) {
+	public CallExpr(ASTNode[] params) {
 		super(params);
 	}
 	
 	@Override
-	public ExprElm[] params() {
+	public ASTNode[] params() {
 		return subElements();
 	}
 	
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return predecessor != null;
 	}
 	
@@ -73,7 +73,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 	
 	@Override
-	public int indexOfParm(ExprElm parm) {
+	public int indexOfParm(ASTNode parm) {
 		for (int i = 0; i < elements.length; i++)
 			if (elements[i] == parm)
 				return i;

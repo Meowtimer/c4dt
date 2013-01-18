@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -24,7 +24,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class MemberOperator extends ExprElm {
+public class MemberOperator extends ASTNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	boolean dotNotation;
@@ -41,10 +41,10 @@ public class MemberOperator extends ExprElm {
 	
 	/**
 	 * Helper method to test whether some arbitrary expression ends with a MemberOperator in dot notation.
-	 * @param expression The {@link ExprElm} to test
+	 * @param expression The {@link ASTNode} to test
 	 * @return True if the expression represents something like (CreateObject(Clonk)->GetContainer().), false if not.
 	 */
-	public static boolean endsWithDot(ExprElm expression) {
+	public static boolean endsWithDot(ASTNode expression) {
 		return
 			expression instanceof Sequence &&
 			((Sequence)expression).lastElement() instanceof MemberOperator &&
@@ -104,10 +104,10 @@ public class MemberOperator extends ExprElm {
 	}
 
 	/**
-	 * MemberOperators are never valid when not preceded by another {@link ExprElm}
+	 * MemberOperators are never valid when not preceded by another {@link ASTNode}
 	 */
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		if (predecessor != null)
 			/*IType t = predecessor.getType(context);
 			if (t == null || t.subsetOfType(C4TypeSet.ARRAY_OR_STRING))
@@ -123,7 +123,7 @@ public class MemberOperator extends ExprElm {
 
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.ExprElm#unresolvedType(DeclarationObtainmentContext)
+	 * @see net.arctics.clonk.parser.ASTNode#unresolvedType(DeclarationObtainmentContext)
 	 */
 	@Override
 	public IType unresolvedType(DeclarationObtainmentContext context) {
@@ -136,12 +136,12 @@ public class MemberOperator extends ExprElm {
 	
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.ExprElm#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
+	 * @see net.arctics.clonk.parser.ASTNode#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
 	 */
 	@Override
 	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
 		// delegate to predecessor
-		ExprElm p = predecessorInSequence();
+		ASTNode p = predecessorInSequence();
 		return p != null ? p.typingJudgement(type, context, mode) : false;
 	}
 
@@ -153,14 +153,14 @@ public class MemberOperator extends ExprElm {
 	}
 
 	/**
-	 * Based on whether this MemberOperator uses dot notation or not, the preceding {@link ExprElm} will either be expected to be of type {@link PrimitiveType#PROPLIST} or
+	 * Based on whether this MemberOperator uses dot notation or not, the preceding {@link ASTNode} will either be expected to be of type {@link PrimitiveType#PROPLIST} or
 	 * {@link TypeSet#OBJECT_OR_ID}.<br/>
 	 * Additionally, a warning is emitted if space between the actual operator and ~ is left and this is not allowed ({@link EngineSettings#spaceAllowedBetweenArrowAndTilde})
 	 */
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
-		ExprElm pred = predecessorInSequence();
+		ASTNode pred = predecessorInSequence();
 		EngineSettings settings = parser.script().engine().settings();
 		if (pred != null) {
 			IType requiredType = dotNotation ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID);
@@ -175,7 +175,7 @@ public class MemberOperator extends ExprElm {
 	}
 	
 	@Override
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
 		DifferenceHandling handling = super.compare(other, listener);
 		if (handling != DifferenceHandling.Equal)
 			return handling;
@@ -194,16 +194,16 @@ public class MemberOperator extends ExprElm {
 	}
 	
 	@Override
-	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		if (context.script().engine().settings().supportsProplists) {
-			ExprElm succ = successorInSequence();
+			ASTNode succ = successorInSequence();
 			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
 				return dotOperator();
 		}
 		return super.optimize(context);
 	}
 
-	public static boolean unforgiving(ExprElm p) {
+	public static boolean unforgiving(ASTNode p) {
 		return p instanceof MemberOperator && !((MemberOperator)p).hasTilde();
 	}
 

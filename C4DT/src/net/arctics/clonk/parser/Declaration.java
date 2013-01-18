@@ -39,7 +39,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration extends ExprElm implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable {
+public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
@@ -113,7 +113,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	@SuppressWarnings("unchecked")
 	public final <T> T topLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
-		for (ExprElm f = this; f != null; f = f.parent)
+		for (ASTNode f = this; f != null; f = f.parent)
 			if (type.isAssignableFrom(f.getClass()))
 				result = (T) f;
 		return result;

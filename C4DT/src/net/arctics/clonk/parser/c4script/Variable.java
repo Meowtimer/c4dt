@@ -8,7 +8,7 @@ import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
@@ -53,7 +53,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
 	 */
-	private ExprElm initializationExpression;
+	private ASTNode initializationExpression;
 	
 	/**
 	 * Whether the variable was used in some expression
@@ -98,7 +98,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this(name,Scope.makeScope(scope));
 	}
 
-	public Variable(String name, ExprElm expr, C4ScriptParser context) {
+	public Variable(String name, ASTNode expr, C4ScriptParser context) {
 		this(name, expr.type(context));
 		scope = Scope.VAR;
 		setInitializationExpression(expr);
@@ -281,26 +281,26 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
-	public ExprElm initializationExpression() {
+	public ASTNode initializationExpression() {
 		return initializationExpression;
 	}
 	
 	public IRegion initializationExpressionLocation() {
-		if (initializationExpression instanceof ExprElm)
+		if (initializationExpression instanceof ASTNode)
 			return initializationExpression;
 		else
 			return null; // const value not sufficient
 	}
 	
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
-		ExprElm e = initializationExpression();
+		ASTNode e = initializationExpression();
 		if (e != null)
 			return e.evaluateAtParseTime(context);
 		else
 			return null;
 	}
 	
-	public void setInitializationExpression(ExprElm initializationExpression) {
+	public void setInitializationExpression(ASTNode initializationExpression) {
 		this.initializationExpression = initializationExpression;
 		if (initializationExpression != null)
 			initializationExpression.setAssociatedDeclaration(this);
@@ -403,7 +403,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// wow
 	}
 	
@@ -419,7 +419,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return clone;
 	}
 
-	public void initializeFromAssignment(ExprElm referee, ExprElm expression, DeclarationObtainmentContext context) {
+	public void initializeFromAssignment(ASTNode referee, ASTNode expression, DeclarationObtainmentContext context) {
 		IType type = expression.type(context);
 		expectedToBeOfType(type, TypingJudgementMode.Expect);
 		setLocation(context.absoluteSourceLocationFromExpr(referee));
@@ -439,7 +439,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public ExprElm code() {
+	public ASTNode code() {
 		return initializationExpression();
 	}
 	

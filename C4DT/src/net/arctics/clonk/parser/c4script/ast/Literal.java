@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -15,7 +15,7 @@ import net.arctics.clonk.util.Utilities;
  *
  * @param <T> The type of value this literal represents
  */
-public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternMatchTarget {
+public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -26,7 +26,7 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	}
 
 	@Override
-	public void assignment(ExprElm arg0, C4ScriptParser context) {
+	public void assignment(ASTNode arg0, C4ScriptParser context) {
 		// don't care
 	}
 
@@ -62,7 +62,7 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	}
 	
 	@Override
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
 		DifferenceHandling handling = super.compare(other, listener);
 		if (handling != DifferenceHandling.Equal)
 			return handling;
@@ -78,9 +78,9 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	}
 	
 	@Override
-	public boolean allowsSequenceSuccessor(C4ScriptParser context, ExprElm successor) { return false; }
+	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return false; }
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor == null; }
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor == null; }
 	@Override
 	public ITypeInfo createTypeInfo(C4ScriptParser parser) { return null; /* nope */ }
 }

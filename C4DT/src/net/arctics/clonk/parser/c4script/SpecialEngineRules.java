@@ -31,7 +31,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -245,7 +245,7 @@ public abstract class SpecialEngineRules {
 		 * @throws ParsingException 
 		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
-		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
+		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) throws ParsingException {
 			return false;
 		}
 		/**
@@ -270,7 +270,7 @@ public abstract class SpecialEngineRules {
 		 * @return Return null if no declaration could be found that is referred to.
 		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			return null;
 		}
 		/**
@@ -301,7 +301,7 @@ public abstract class SpecialEngineRules {
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {}
 		
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
-		public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
+		public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ASTNode parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
 	}
 	
 	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialEngineRules.SpecialRule>();
@@ -474,7 +474,7 @@ public abstract class SpecialEngineRules {
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();
-				for (ExprElm parm : callFunc.params())
+				for (ASTNode parm : callFunc.params())
 					if (parm instanceof CallDeclaration) {
 						CallDeclaration call = (CallDeclaration)parm;
 						IType t = searchCriteriaAssumedResult(context, call, false);
@@ -525,7 +525,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Schedule"})
 	public final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, final ASTNode[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].type(parser) : parser.definition();
@@ -559,7 +559,7 @@ public abstract class SpecialEngineRules {
 			return false; // don't stop regular parameter validating
 		};
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
@@ -579,7 +579,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.params()[0].type(parser);
@@ -598,7 +598,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"AddCommand", "AppendCommand", "SetCommand"})
 	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) {
 			Function f = callFunc.declaration() instanceof Function ? (Function)callFunc.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
@@ -608,7 +608,7 @@ public abstract class SpecialEngineRules {
 					for (Variable parm : f.parameters()) {
 						if (givenParam >= arguments.length)
 							break;
-						ExprElm given = arguments[givenParam++];
+						ASTNode given = arguments[givenParam++];
 						if (given == null)
 							continue;
 						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
@@ -630,7 +630,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ASTNode parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Index index = parser.script().index();
@@ -665,7 +665,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Function f = parser.script().findFunction(lit.stringValue());
@@ -682,7 +682,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params()[0].guessObjectType(parser);
@@ -706,7 +706,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				Definition typeToLookIn = callFunc.params().length > 1 ? callFunc.params()[1].guessObjectType(parser) : null;
@@ -741,7 +741,7 @@ public abstract class SpecialEngineRules {
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
 		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, C4ScriptParser parser);
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.currentFunction())) instanceof String) {
 				String resourceName = (String)parmEv;
@@ -828,10 +828,10 @@ public abstract class SpecialEngineRules {
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			return getActionLinkForDefinition(parser.currentFunction(), parser.definition(), parmExpression);
 		}
-		protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
+		protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ASTNode actionNameExpression) {
 			Object parmEv;
 			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
@@ -886,7 +886,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SearchCriteriaRuleBase() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = functionsNamed(parser, lit.stringValue());

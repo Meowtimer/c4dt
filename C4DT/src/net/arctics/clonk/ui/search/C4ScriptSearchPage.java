@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -325,11 +325,11 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 							if (script == null)
 								continue;
 							Match[] matches = result.getMatches(element);
-							List<ExprElm> replacements = new LinkedList<ExprElm>();
+							List<ASTNode> replacements = new LinkedList<ASTNode>();
 							for (Match m : matches)
 								if (m instanceof C4ScriptSearchQuery.Match) {
 									C4ScriptSearchQuery.Match qm = (C4ScriptSearchQuery.Match) m;
-									ExprElm repl = query.replacement().transform(qm.subst());
+									ASTNode repl = query.replacement().transform(qm.subst());
 									repl.setExprRegion(qm.getOffset(), qm.getOffset()+qm.getLength());
 									replacements.add(repl);
 								}

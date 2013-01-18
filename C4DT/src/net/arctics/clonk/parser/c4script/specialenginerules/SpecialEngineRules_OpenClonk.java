@@ -20,7 +20,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -121,7 +121,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public EntityRegion locateEntityInParameter(
 			CallDeclaration callFunc, C4ScriptParser parser, int index,
-			int offsetInExpression, ExprElm parmExpression
+			int offsetInExpression, ASTNode parmExpression
 		) {
 			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).literal();
@@ -147,7 +147,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 		};
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) {
 			if (arguments.length >= 2 && parser.currentFunction() instanceof DefinitionFunction) {
 				Object nameEv = arguments[0].evaluateAtParseTime(parser.currentFunction());
 				if (nameEv instanceof String) {
@@ -157,7 +157,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					var.setScope(Scope.LOCAL);
 					// clone argument since the offset of the expression inside the func body is relative while
 					// the variable initialization expression location is supposed to be absolute
-					ExprElm initializationClone = arguments[1].clone();
+					ASTNode initializationClone = arguments[1].clone();
 					initializationClone.incrementLocation(parser.bodyOffset());
 					var.setInitializationExpression(initializationClone);
 					var.forceType(arguments[1].type(parser));
@@ -179,14 +179,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	};
 	
 	private static class EvaluationTracer implements IEvaluationContext {
-		public ExprElm topLevelExpression;
+		public ASTNode topLevelExpression;
 		public IFile tracedFile;
 		public IRegion tracedLocation;
 		public Script script;
 		public Function function;
 		public Object[] arguments;
 		public Object evaluation;
-		public EvaluationTracer(ExprElm topLevelExpression, Object[] arguments, Function function, Script script) {
+		public EvaluationTracer(ASTNode topLevelExpression, Object[] arguments, Function function, Script script) {
 			this.topLevelExpression = topLevelExpression;
 			this.arguments = arguments;
 			this.function = function;
@@ -213,18 +213,18 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return function;
 		}
 		@Override
-		public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 			if (expression == topLevelExpression) {
 				tracedLocation = location;
 				tracedFile = file;
 			}
 		}
-		public static EvaluationTracer evaluate(ExprElm expression, Object[] arguments, Script script, Function function) {
+		public static EvaluationTracer evaluate(ASTNode expression, Object[] arguments, Script script, Function function) {
 			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
 			tracer.evaluation = expression.evaluateAtParseTime(tracer);
 			return tracer;
 		}
-		public static EvaluationTracer evaluate(ExprElm expression, Function function) {
+		public static EvaluationTracer evaluate(ASTNode expression, Function function) {
 			return evaluate(expression, null, function.script(), function);
 		}
 	}
@@ -234,8 +234,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallDeclaration callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ExprElm saved = parser.problemReporter();			
+		private boolean checkParm(CallDeclaration callFunc, final ASTNode[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+			ASTNode saved = parser.problemReporter();			
 			try {
 				if (parmIndex+1 >= arguments.length) {
 					if (evTracer.tracedFile == null)
@@ -262,7 +262,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false;
 		}
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
+		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) throws ParsingException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.currentFunction())).evaluation instanceof String) {
@@ -309,7 +309,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm parmExpression) {
+			protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ASTNode parmExpression) {
 				if (definition == null)
 					return null;
 				Object parmEv;
@@ -328,7 +328,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 			};
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index != 0)
 					return null;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : null;
@@ -341,7 +341,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
+			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ASTNode parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
 				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.script();
@@ -394,7 +394,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 	
-	private static final ExprElm PLACE_CALL = C4ScriptParser.matchingExpr
+	private static final ASTNode PLACE_CALL = C4ScriptParser.matchingExpr
 		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
 	
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
@@ -432,7 +432,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public boolean isTransient() {
 			return true;
 		}
-		public boolean updatePlaceCalls(Function function, List<ExprElm> modified) {
+		public boolean updatePlaceCalls(Function function, List<ASTNode> modified) {
 			boolean wholeFunc = false;
 			for (KeyValuePair<ID, Integer> kv : value().components())
 				if (kv instanceof Item) {
@@ -482,7 +482,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			public NumberLiteral num;
 			public Definition definition() { return id != null ? id.proxiedDefinition() : null; }
 			public ComputedScenarioConfigurationEntry entry;
-			public PlaceMatch(ExprElm s) {
+			public PlaceMatch(ASTNode s) {
 				matched = match(s);
 			}
 			boolean determineConfigurationInsertionPoint() {
@@ -501,7 +501,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				} else
 					return false;
 			}
-			private boolean match(ExprElm s) {
+			private boolean match(ASTNode s) {
 				return PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint();
 			}
 			public boolean matchedButNoCorrespondingItem() {
@@ -517,7 +517,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		case Save:
 			if (createEnvironment == null)
 				createEnvironment = appendFunction(scenario, CREATE_ENVIRONMENT);
-			List<ExprElm> list = new LinkedList<ExprElm>();
+			List<ASTNode> list = new LinkedList<ASTNode>();
 			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
 			final List<Statement> statementsCopy = new ArrayList<Statement>(Arrays.asList(createEnvironment.body().statements()));
 			final List<Pair<Statement, PlaceMatch>> matches = new ArrayList<Pair<Statement, PlaceMatch>>(statementsCopy.size());

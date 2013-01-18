@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
@@ -41,7 +41,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	public static CodeConverter converter() {
 		return new CodeConverter() {
 			@Override
-			protected ExprElm performConversion(C4ScriptParser parser, ExprElm expression) {
+			protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression) {
 				try {
 					return expression.exhaustiveOptimize(parser);
 				} catch (CloneNotSupportedException e) {

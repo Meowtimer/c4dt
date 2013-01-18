@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -16,14 +16,14 @@ public class ReturnStatement extends KeywordStatement {
 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private ExprElm returnExpr;
+	private ASTNode returnExpr;
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		throw new ReturnException(returnExpr.evaluate(context));
 	}
 	
-	public ReturnStatement(ExprElm returnExpr) {
+	public ReturnStatement(ASTNode returnExpr) {
 		super();
 		this.returnExpr = returnExpr;
 		assignParentToSubElements();
@@ -40,7 +40,7 @@ public class ReturnStatement extends KeywordStatement {
 		if (returnExpr != null) {
 			builder.append(" "); //$NON-NLS-1$
 			// return(); -> return 0;
-			if (returnExpr == ExprElm.NULL_EXPR)
+			if (returnExpr == ASTNode.NULL_EXPR)
 				builder.append("0"); //$NON-NLS-1$
 			else {
 				if (returnExpr instanceof PropListExpression)
@@ -51,21 +51,21 @@ public class ReturnStatement extends KeywordStatement {
 		builder.append(";"); //$NON-NLS-1$
 	}
 
-	public ExprElm returnExpression() {
+	public ASTNode returnExpression() {
 		return returnExpr;
 	}
 
-	public void setReturnExpr(ExprElm returnExpr) {
+	public void setReturnExpr(ASTNode returnExpr) {
 		this.returnExpr = returnExpr;
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {returnExpr};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {returnExpr};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		returnExpr = elms[0];
 	}
 
@@ -75,7 +75,7 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 		// return (0); -> return 0;
 		if (returnExpr instanceof Parenthesized)
 			return new ReturnStatement(((Parenthesized)returnExpr).innerExpression().optimize(parser));
@@ -96,7 +96,7 @@ public class ReturnStatement extends KeywordStatement {
 		return super.optimize(parser);
 	}
 
-	private void warnAboutTupleInReturnExpr(C4ScriptParser parser, ExprElm expr, boolean tupleIsError) throws ParsingException {
+	private void warnAboutTupleInReturnExpr(C4ScriptParser parser, ASTNode expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
 		if (expr instanceof Tuple)
@@ -104,8 +104,8 @@ public class ReturnStatement extends KeywordStatement {
 				parser.error(ParserErrorCode.TuplesNotAllowed, expr, C4ScriptParser.NO_THROW);
 			else if (parser.strictLevel() >= 2)
 				parser.error(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
-		ExprElm[] subElms = expr.subElements();
-		for (ExprElm e : subElms)
+		ASTNode[] subElms = expr.subElements();
+		for (ASTNode e : subElms)
 			warnAboutTupleInReturnExpr(parser, e, true);
 	}
 	

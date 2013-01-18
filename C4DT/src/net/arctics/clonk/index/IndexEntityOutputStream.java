@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
 
 public class IndexEntityOutputStream extends ObjectOutputStream {
@@ -28,11 +28,11 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
 			else if (obj instanceof SpecialRule)
 				return new SpecialRule.Ticket((SpecialRule)obj);
-			else if (entity != null && obj instanceof ExprElm) {
-				ExprElm elm = (ExprElm)obj;
+			else if (entity != null && obj instanceof ASTNode) {
+				ASTNode elm = (ASTNode)obj;
 				Declaration owner = elm.owningDeclaration();
 				if (owner != null && !owner.containedIn(entity))
-					return new ExprElm.Ticket(owner, elm);
+					return new ASTNode.Ticket(owner, elm);
 			}
 			else if (obj instanceof String)
 				return ((String)obj).intern();

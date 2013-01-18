@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 
@@ -41,7 +41,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		base.reportOriginForExpression(expression, location, file);
 	}
 

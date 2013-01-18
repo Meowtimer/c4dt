@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -17,9 +17,9 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private ExprElm elementExpr, arrayExpr, body;
+	private ASTNode elementExpr, arrayExpr, body;
 
-	public IterateArrayStatement(ExprElm elementExpr, ExprElm arrayExpr, ExprElm body) {
+	public IterateArrayStatement(ASTNode elementExpr, ASTNode arrayExpr, ASTNode body) {
 		super();
 		this.elementExpr = elementExpr;
 		this.arrayExpr   = arrayExpr;
@@ -27,19 +27,19 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		assignParentToSubElements();
 	}
 
-	public ExprElm arrayExpr() {
+	public ASTNode arrayExpr() {
 		return arrayExpr;
 	}
 
-	public void setArrayExpr(ExprElm arrayExpr) {
+	public void setArrayExpr(ASTNode arrayExpr) {
 		this.arrayExpr = arrayExpr;
 	}
 
-	public ExprElm elementExpr() {
+	public ASTNode elementExpr() {
 		return elementExpr;
 	}
 
-	public void setElementExpr(ExprElm elementExpr) {
+	public void setElementExpr(ASTNode elementExpr) {
 		this.elementExpr = elementExpr;
 	}
 
@@ -64,21 +64,21 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public ExprElm body() {
+	public ASTNode body() {
 		return body;
 	}
 
-	public void setBody(ExprElm body) {
+	public void setBody(ASTNode body) {
 		this.body = body;
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {elementExpr, arrayExpr, body};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {elementExpr, arrayExpr, body};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		elementExpr = elms[0];
 		arrayExpr   = elms[1];
 		body        = elms[2];

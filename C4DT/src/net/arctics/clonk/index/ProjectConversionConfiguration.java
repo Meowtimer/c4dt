@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -33,21 +33,21 @@ import net.arctics.clonk.util.StringUtil;
 public class ProjectConversionConfiguration {
 	
 	public class CodeTransformation {
-		private final ExprElm template;
-		private final ExprElm transformation;
-		public CodeTransformation(ExprElm template, ExprElm transformation) {
+		private final ASTNode template;
+		private final ASTNode transformation;
+		public CodeTransformation(ASTNode template, ASTNode transformation) {
 			super();
 			this.template = template;
 			this.transformation = transformation;
 		}
-		public ExprElm template() {
+		public ASTNode template() {
 			return template;
 		}
-		public ExprElm transformation() {
+		public ASTNode transformation() {
 			return transformation;
 		}
 		public CodeTransformation(Statement transformationStatement) {
-			ExprElm unwrapped = SimpleStatement.unwrap(transformationStatement);
+			ASTNode unwrapped = SimpleStatement.unwrap(transformationStatement);
 			if (unwrapped instanceof BinaryOp && ((BinaryOp)unwrapped).operator() == Operator.Transform) {
 				BinaryOp op = (BinaryOp)unwrapped;
 				this.template = op.leftSide();

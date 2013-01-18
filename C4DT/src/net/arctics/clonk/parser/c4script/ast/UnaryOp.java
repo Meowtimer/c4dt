@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -19,9 +19,9 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	private final UnaryOp.Placement placement;
-	private ExprElm argument;
+	private ASTNode argument;
 
-	public UnaryOp(Operator operator, UnaryOp.Placement placement, ExprElm argument) {
+	public UnaryOp(Operator operator, UnaryOp.Placement placement, ASTNode argument) {
 		super(operator);
 		this.placement = placement;
 		this.argument = argument;
@@ -29,12 +29,12 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {argument};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {argument};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elements) {
+	public void setSubElements(ASTNode[] elements) {
 		argument = elements[0];
 	}
 
@@ -60,7 +60,7 @@ public class UnaryOp extends OperatorExpression {
 		}
 	}
 
-	public ExprElm argument() {
+	public ASTNode argument() {
 		return argument;
 	}
 
@@ -76,9 +76,9 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
-		ExprElm arg = argument().optimize(context);
+		ASTNode arg = argument().optimize(context);
 		if (arg instanceof BinaryOp)
 			return new UnaryOp(operator(), placement, new Parenthesized(arg));
 		if (operator() == Operator.Not && arg instanceof Parenthesized) {

@@ -16,7 +16,7 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
@@ -88,7 +88,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
 
 	private final ContentAssistant assistant;
-	private ExprElm contextExpression;
+	private ASTNode contextExpression;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
 	private Script _currentEditorScript;
@@ -376,7 +376,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (rules != null) {
 				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
-					ExprElm parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
+					ASTNode parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
 					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
 				}
 			}
@@ -408,7 +408,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	 * @param document The {@link IDocument} the expression was read from
 	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression 
 	 */
-	public static List<ICompletionProposal> computeProposalsForExpression(ExprElm expression, Function function, C4ScriptParser parser, IDocument document) {
+	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
 		Index index = function.index();
@@ -620,7 +620,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (entity == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {
-						funcCallInfo.locator.initializeProposedDeclarations(editor().script(), d, null, (ExprElm)funcCallInfo.callFunc);
+						funcCallInfo.locator.initializeProposedDeclarations(editor().script(), d, null, (ASTNode)funcCallInfo.callFunc);
 						if (funcCallInfo.locator.potentialEntities() != null)
 							for (IIndexEntity e : funcCallInfo.locator.potentialEntities())
 								if (entity == null)

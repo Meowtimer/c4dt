@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.token;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not
@@ -48,12 +48,12 @@ public interface IASTComparisonDelegate {
 	}
 	
 	/**
-	 * Passed as the 'what' parameter to {@link #differs(ExprElm, ExprElm, Object)} if length of respective sub elements differs.
+	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if length of respective sub elements differs.
 	 */
 	public static final Object SUBELEMENTS_LENGTH = token("SUBELEMENTS_LENGTH");
 	
 	/**
-	 * Passed as the 'what' parameter to {@link #differs(ExprElm, ExprElm, Object)} if the {@link ExprElm} elements being compared have differen types.
+	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if the {@link ASTNode} elements being compared have differen types.
 	 */
 	public static final Object CLASS = token("CLASS");
 	
@@ -64,7 +64,7 @@ public interface IASTComparisonDelegate {
 	 * @param what Object specifying the specific difference. Can be a string denoting the field differing or some special object (see {@link #SUBELEMENTS_LENGTH})
 	 * @return Return a {@link DifferenceHandling} value specifying what should be done.
 	 */
-	DifferenceHandling differs(ExprElm a, ExprElm b, Object what);
+	DifferenceHandling differs(ASTNode a, ASTNode b, Object what);
 	
 	/**
 	 * Inform caller about the options the delegate wants to have enabled.
@@ -78,5 +78,5 @@ public interface IASTComparisonDelegate {
 	 * @param wildcard The matched wildcard
 	 * @param expression The expression matching the wildcard
 	 */
-	void wildcardMatched(Wildcard wildcard, ExprElm expression);
+	void wildcardMatched(Wildcard wildcard, ASTNode expression);
 }

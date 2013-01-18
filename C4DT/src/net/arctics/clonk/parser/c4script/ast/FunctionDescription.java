@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -86,7 +86,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		}
 	}
 	@Override
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
 		DifferenceHandling sup = super.compare(other, listener);
 		if (sup != DifferenceHandling.Equal)
 			return sup;

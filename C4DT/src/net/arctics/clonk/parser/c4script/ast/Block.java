@@ -6,7 +6,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -32,7 +32,7 @@ public class Block extends Statement {
 	}
 	
 	// helper constructor that wraps expressions in statement if necessary
-	public Block(ExprElm... expressions) {
+	public Block(ASTNode... expressions) {
 		this(SimpleStatement.wrapExpressions(expressions));
 	}
 	
@@ -45,14 +45,14 @@ public class Block extends Statement {
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		Statement[] typeAdjustedCopy = new Statement[elms.length];
 		System.arraycopy(elms, 0, typeAdjustedCopy, 0, elms.length);
 		setStatements(typeAdjustedCopy);
 	}
 
 	@Override
-	public ExprElm[] subElements() {
+	public ASTNode[] subElements() {
 		return statements();
 	}
 
@@ -74,7 +74,7 @@ public class Block extends Statement {
 	}
 	
 	@Override
-	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements))
 			return new BunchOfStatements(statements);
 		// uncomment never-reached statements
@@ -126,7 +126,7 @@ public class Block extends Statement {
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		for (ExprElm s : subElements())
+		for (ASTNode s : subElements())
 			if (s != null)
 				s.evaluate(context);
 		return null;

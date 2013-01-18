@@ -65,23 +65,23 @@ import org.eclipse.jface.text.Region;
 /**
  * Base class for making expression trees
  */
-public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Serializable {
+public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Serializable {
 
-	public ExprElm() {}
-	protected ExprElm(int start, int end) { super(start, end); }
+	public ASTNode() {}
+	protected ASTNode(int start, int end) { super(start, end); }
 	
 	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
 		private final String textRepresentation;
 		private final int depth;
-		private transient ExprElm found;
-		private static int depth(ExprElm elm) {
+		private transient ASTNode found;
+		private static int depth(ASTNode elm) {
 			int depth;
 			for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
 			return depth;
 		}
-		public Ticket(Declaration owner, ExprElm elm) {
+		public Ticket(Declaration owner, ASTNode elm) {
 			this.owner = owner;
 			this.textRepresentation = elm.toString();
 			this.depth = depth(elm);
@@ -91,7 +91,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			if (owner instanceof IHasCode) {
 				if (owner instanceof IndexEntity)
 					((IndexEntity) owner).requireLoaded();
-				ExprElm code = ((IHasCode) owner).code();
+				ASTNode code = ((IHasCode) owner).code();
 				if (code != null)
 					code.traverse(this, null);
 				return found;
@@ -99,7 +99,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			return null;
 		}
 		@Override
-		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+		public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 			int ed = depth(expression);
 			if (ed == depth && textRepresentation.equals(expression.toString())) {
 				found = expression;
@@ -114,8 +114,8 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public static final ExprElm NULL_EXPR = new ExprElm();
-	public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
+	public static final ASTNode NULL_EXPR = new ASTNode();
+	public static final ASTNode[] EMPTY_EXPR_ARRAY = new ASTNode[0];
 	public static final Object EVALUATION_COMPLEX = new Object() {
 		@Override
 		public boolean equals(Object obj) {
@@ -134,13 +134,13 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parser Parser used to adjust the expression location to be relative to the function body
 	 * @return The constructed null expression
 	 */
-	public static final ExprElm whitespace(int start, int length, C4ScriptParser parser) {
-		ExprElm result = new Whitespace();
+	public static final ASTNode whitespace(int start, int length, C4ScriptParser parser) {
+		ASTNode result = new Whitespace();
 		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
 		return result;
 	}
 	
-	protected transient ExprElm parent, predecessorInSequence;
+	protected transient ASTNode parent, predecessorInSequence;
 	private transient int flags = PROPERLY_FINISHED;
 	
 	public final boolean flagsEnabled(int flags) {
@@ -163,10 +163,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	protected void assignParentToSubElements() {
 		// Clone sub elements if they look like they might belong to some other parent
-		ExprElm[] subElms = subElements();
+		ASTNode[] subElms = subElements();
 		boolean modified = false;
 		for (int i = 0; i < subElms.length; i++) {
-			ExprElm e = subElms[i];
+			ASTNode e = subElms[i];
 			if (e != null) {
 				if (e.parent() != null && e.parent() != this) {
 					modified = true;
@@ -180,12 +180,12 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	@Override
-	public ExprElm clone() {
-		ExprElm clone;
-		clone = (ExprElm) super.clone();
-		ExprElm[] clonedElms = ArrayUtil.map(subElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
+	public ASTNode clone() {
+		ASTNode clone;
+		clone = (ASTNode) super.clone();
+		ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
 			@Override
-			public ExprElm convert(ExprElm from) {
+			public ASTNode convert(ASTNode from) {
 				if (from == null)
 					return null;
 				return from.clone();
@@ -199,7 +199,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Return the parent of this expression.
 	 * @return
 	 */
-	public ExprElm parent() {
+	public ASTNode parent() {
 		return parent;
 	}
 	
@@ -210,7 +210,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T parentOfType(Class<T> cls) {
-		ExprElm e;
+		ASTNode e;
 		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
@@ -230,7 +230,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Set the parent of this expression.
 	 * @param parent
 	 */
-	public void setParent(ExprElm parent) {
+	public void setParent(ASTNode parent) {
 		this.parent = parent;
 	}
 	
@@ -257,7 +257,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	
 	/**
 	 * Call all the printing methods in one bundle ({@link #printPrependix(ExprWriter, int)}, {@link #doPrint(ExprWriter, int)}, {@link #printAppendix(ExprWriter, int)})
-	 * The {@link ExprWriter} is also given a chance to do its own custom printing using {@link ExprWriter#doCustomPrinting(ExprElm, int)}
+	 * The {@link ExprWriter} is also given a chance to do its own custom printing using {@link ExprWriter#doCustomPrinting(ASTNode, int)}
 	 * @param output Output writer
 	 * @param depth Depth determining the indentation level of the output
 	 */
@@ -274,9 +274,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		print(new AppendableBackedExprWriter(builder), depth);
 	}
 
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor == null; }
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor == null; }
 	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return true; }
-	public boolean allowsSequenceSuccessor(C4ScriptParser context, ExprElm successor) { return true; }
+	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return true; }
 	
 	/**
 	 * Return type of the expression, adjusting the result of obtainType under some circumstances
@@ -316,9 +316,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public boolean hasSideEffects() {
-		ExprElm[] subElms = subElements();
+		ASTNode[] subElms = subElements();
 		if (subElms != null)
-			for (ExprElm e : subElms)
+			for (ASTNode e : subElms)
 				if (e != null && e.hasSideEffects())
 					return true;
 		return false;
@@ -361,7 +361,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parser context
 	 */
 	public void reconsider(C4ScriptParser parser) {
-		for (ExprElm e : this.subElements())
+		for (ASTNode e : this.subElements())
 			if (e != null)
 				e.reconsider(parser);
 	}
@@ -381,15 +381,15 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public boolean skipReportingProblemsForSubElements() {return false;}
 
-	public void setPredecessorInSequence(ExprElm p) {
+	public void setPredecessorInSequence(ASTNode p) {
 		predecessorInSequence = p;
 	}
 
-	public ExprElm predecessorInSequence() {
+	public ASTNode predecessorInSequence() {
 		return predecessorInSequence;
 	}
 	
-	public ExprElm successorInSequence() {
+	public ASTNode successorInSequence() {
 		if (parent() instanceof Sequence)
 			return ((Sequence)parent()).successorOfSubElement(this);
 		else
@@ -397,12 +397,12 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Return the sub elements of this {@link ExprElm}.
+	 * Return the sub elements of this {@link ASTNode}.
 	 * The resulting array may contain nulls since the order of elements in the array is always the same but some expressions may allow leaving out some elements.
 	 * A {@link ForStatement} does not require a condition, for example. 
 	 * @return The array of sub elements
 	 */
-	public ExprElm[] subElements() {
+	public ASTNode[] subElements() {
 		return EMPTY_EXPR_ARRAY;
 	}
 
@@ -410,7 +410,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Set the sub elements. The passed arrays must contain elements in the same order as returned by {@link #subElements()}.
 	 * @param elms The array of elements to assign to this element as sub elements
 	 */
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		if (subElements().length > 0)
 			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -421,9 +421,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm exhaustiveOptimize(C4ScriptParser context) throws CloneNotSupportedException {
-		ExprElm repl;
-		for (ExprElm original = this; (repl = original.optimize(context)) != original; original = repl);
+	public ASTNode exhaustiveOptimize(C4ScriptParser context) throws CloneNotSupportedException {
+		ASTNode repl;
+		for (ASTNode original = this; (repl = original.optimize(context)) != original; original = repl);
 		return repl;
 	}
 
@@ -435,10 +435,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return a #strict/#strict 2/readability enhanced version of the original expression
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm optimize(final C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(final C4ScriptParser context) throws CloneNotSupportedException {
 		return transformSubElements(new ITransformer() {
 			@Override
-			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 				if (expression == null)
 					return expression;
 				try {
@@ -458,10 +458,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public interface ITransformer {
 		/**
-		 * Canonical object to be returned by {@link #transform(ExprElm, ExprElm, ExprElm)} if the passed element is to be removed
+		 * Canonical object to be returned by {@link #transform(ASTNode, ASTNode, ASTNode)} if the passed element is to be removed
 		 * instead of being replaced.
 		 */
-		static final ExprElm REMOVE = new ExprElm();
+		static final ASTNode REMOVE = new ASTNode();
 		/**
 		 * Transform the passed expression. For various purposes some context is supplied as well so the transformer can
 		 * see the last expression it was passed and what it transformed it to.
@@ -470,38 +470,38 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		 * @param expression The expression to be transformed now.
 		 * @return The transformed expression, the expression unmodified or some canonical object like {@link #REMOVE}
 		 */
-		Object transform(ExprElm previousExpression, Object previousTransformationResult, ExprElm expression);
+		Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression);
 	}
 	
 	/**
 	 * Transform the expression using the supplied transformer.
-	 * @param transformer The transformer whose {@link ITransformer#transform(ExprElm)} will be called on each sub element
+	 * @param transformer The transformer whose {@link ITransformer#transform(ASTNode)} will be called on each sub element
 	 * @return Either this element if no transformation took place or a clone with select transformations applied
 	 * @throws CloneNotSupportedException
 	 */
-	public ExprElm transformSubElements(ITransformer transformer) {
-		ExprElm[] subElms = subElements();
-		ExprElm[] newSubElms = new ExprElm[subElms.length];
+	public ASTNode transformSubElements(ITransformer transformer) {
+		ASTNode[] subElms = subElements();
+		ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false, removal = false;
-		ExprElm prev = null;
+		ASTNode prev = null;
 		Object prevT = null;
 		for (int i = 0, j = 0; i < subElms.length; i++, j++) {
-			ExprElm s = subElms[i];
+			ASTNode s = subElms[i];
 			Object t = transformer.transform(prev, prevT, s);
-			if (t instanceof ExprElm[] && ((ExprElm[])t).length == 1)
-				t = ((ExprElm[])t)[0];
-			if (t instanceof ExprElm) {
-				newSubElms[j] = (ExprElm)t;
+			if (t instanceof ASTNode[] && ((ASTNode[])t).length == 1)
+				t = ((ASTNode[])t)[0];
+			if (t instanceof ASTNode) {
+				newSubElms[j] = (ASTNode)t;
 				if (t != s) {
 					differentSubElms = true;
 					if (t == ITransformer.REMOVE)
 						removal = true;
 				}
 			}
-			else if (t instanceof ExprElm[]) {
+			else if (t instanceof ASTNode[]) {
 				differentSubElms = true;
-				ExprElm[] multi = (ExprElm[])t;
-				ExprElm[] newNew = new ExprElm[j+multi.length+newSubElms.length-j-1];
+				ASTNode[] multi = (ASTNode[])t;
+				ASTNode[] newNew = new ASTNode[j+multi.length+newSubElms.length-j-1];
 				System.arraycopy(subElms, 0, newNew, 0, j);
 				System.arraycopy(multi, 0, newNew, j, multi.length);
 				newSubElms = newNew;
@@ -511,11 +511,11 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			prevT = t;
 		}
 		if (differentSubElms) {
-			ExprElm replacement = this.clone();
+			ASTNode replacement = this.clone();
 			if (removal)
-				newSubElms = ArrayUtil.filter(newSubElms, new IPredicate<ExprElm>() {
+				newSubElms = ArrayUtil.filter(newSubElms, new IPredicate<ASTNode>() {
 					@Override
-					public boolean test(ExprElm item) {
+					public boolean test(ASTNode item) {
 						return item != ITransformer.REMOVE;
 					}
 				});
@@ -532,10 +532,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param transformer The transformer
 	 * @return Recursively transformed expression.
 	 */
-	public ExprElm transformRecursively(final ITransformer transformer) {
-		return (ExprElm)new ITransformer() {
+	public ASTNode transformRecursively(final ITransformer transformer) {
+		return (ASTNode)new ITransformer() {
 			@Override
-			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 				expression = expression != null ? expression.transformSubElements(this) : null;
 				return transformer.transform(prev, prevT, expression);
 			}
@@ -581,7 +581,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		case SkipSubElements:
 			return TraversalContinuation.Continue;
 		}
-		for (ExprElm sub : subElements()) {
+		for (ASTNode sub : subElements()) {
 			if (sub == null)
 				continue;
 			switch (sub.traverse(listener, parser)) {
@@ -616,16 +616,16 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return null;
 	}
 
-	private static final ExprElm[] exprElmsForTypes = new ExprElm[PrimitiveType.values().length];
+	private static final ASTNode[] exprElmsForTypes = new ASTNode[PrimitiveType.values().length];
 
 	/**
-	 * Returns a canonical {@link ExprElm} object for the given type such that its {@link #type(DeclarationObtainmentContext)} returns the given type
+	 * Returns a canonical {@link ASTNode} object for the given type such that its {@link #type(DeclarationObtainmentContext)} returns the given type
 	 * @param type the type to return a canonical ExprElm of
-	 * @return the canonical {@link ExprElm} object
+	 * @return the canonical {@link ASTNode} object
 	 */
-	public static ExprElm exprElmForPrimitiveType(final PrimitiveType type) {
+	public static ASTNode exprElmForPrimitiveType(final PrimitiveType type) {
 		if (exprElmsForTypes[type.ordinal()] == null)
-			exprElmsForTypes[type.ordinal()] = new ExprElm() {
+			exprElmsForTypes[type.ordinal()] = new ASTNode() {
 				/**
 				 * 
 				 */
@@ -694,7 +694,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 	}
 	
-	public void assignment(ExprElm rightSide, C4ScriptParser context) {
+	public void assignment(ASTNode rightSide, C4ScriptParser context) {
 		if (context.staticTyping() == Typing.Static) {
 			IType left = this.type(context);
 			IType right = rightSide.type(context); 
@@ -723,11 +723,11 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
 	}
 
-	public final boolean containedIn(ExprElm expression) {
+	public final boolean containedIn(ASTNode expression) {
 		if (expression == this)
 			return true;
 		try {
-			for (ExprElm e : expression.subElements())
+			for (ASTNode e : expression.subElements())
 				if (this.containedIn(e))
 					return true;
 		} catch (NullPointerException e) {
@@ -741,8 +741,8 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param elm The expression that has one of the sub elements in its parent chain.
 	 * @return Sub element containing elm or null.
 	 */
-	public ExprElm findSubElementContaining(ExprElm elm) {
-		for (ExprElm subElm : subElements())
+	public ASTNode findSubElementContaining(ASTNode elm) {
+		for (ASTNode subElm : subElements())
 			if (subElm != null)
 				if (elm.containedIn(subElm))
 					return subElm;
@@ -803,18 +803,18 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			this.end += amount;
 	}
 	
-	private static void offsetExprRegionRecursively(ExprElm elm, int diff) {
+	private static void offsetExprRegionRecursively(ASTNode elm, int diff) {
 		if (elm == null)
 			return;
 		elm.offsetExprRegion(diff, true, true);
-		for (ExprElm e : elm.subElements())
+		for (ASTNode e : elm.subElements())
 			offsetExprRegionRecursively(e, diff);
 	}
 	
-	private void offsetExprRegionRecursivelyStartingAt(ExprElm elm, int diff) {
+	private void offsetExprRegionRecursivelyStartingAt(ASTNode elm, int diff) {
 		boolean started = false;
-		ExprElm[] elms = subElements();
-		for (ExprElm e : elms)
+		ASTNode[] elms = subElements();
+		for (ASTNode e : elms)
 			if (e == elm)
 				started = true;
 			else if (started)
@@ -832,13 +832,13 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Return this element, modified or not.
 	 * @throws InvalidParameterException Thrown if the element is not actually a sub element of this element
 	 */
-	public ExprElm replaceSubElement(ExprElm element, ExprElm with, int diff) throws InvalidParameterException {
+	public ASTNode replaceSubElement(ASTNode element, ASTNode with, int diff) throws InvalidParameterException {
 		assert(element != with);
 		assert(element != null);
 		assert(with != null);
 		
-		ExprElm[] subElms = subElements();
-		ExprElm[] newSubElms = new ExprElm[subElms.length];
+		ASTNode[] subElms = subElements();
+		ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++)
 			if (subElms[i] == element) {
@@ -863,7 +863,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	
 	private static final IASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
 		@Override
-		public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+		public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 			// the humanity
 			return DifferenceHandling.Differs;
 		}
@@ -879,7 +879,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 
 		@Override
-		public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+		public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 		}
 	};
 	
@@ -889,14 +889,14 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param delegate Listener that gets notified when changes are found.
 	 * @return Whether elements are equal or not.
 	 */
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate delegate) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate delegate) {
 		if (other != null && (other.getClass() == this.getClass() || delegate.differs(this, other, IASTComparisonDelegate.CLASS) == DifferenceHandling.Equal)) {
-			ExprElm[] mySubElements = this.subElements();
-			ExprElm[] otherSubElements = other.subElements();
+			ASTNode[] mySubElements = this.subElements();
+			ASTNode[] otherSubElements = other.subElements();
 			int myIndex, otherIndex;
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
-				ExprElm mine = mySubElements[myIndex];
-				ExprElm others = otherSubElements[otherIndex];
+				ASTNode mine = mySubElements[myIndex];
+				ASTNode others = otherSubElements[otherIndex];
 				
 				// compare elements, taking the possibility into account that one or both of the elements might be null
 				// if only one of both is null, the listener gets to decide what to do now based on a differs call with
@@ -939,14 +939,14 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 	
 	/**
-	 * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ExprElm} and setting its type.
+	 * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ASTNode} and setting its type.
 	 * @author madeen
 	 *
 	 */
 	protected static final class GenericTypeInfo extends TypeInfo {
-		private final ExprElm expression;
+		private final ASTNode expression;
 		
-		public GenericTypeInfo(ExprElm referenceElm, C4ScriptParser parser) {
+		public GenericTypeInfo(ASTNode referenceElm, C4ScriptParser parser) {
 			super();
 			this.expression = referenceElm;
 			ITypeable typeable = typeableFromExpression(referenceElm, parser);
@@ -956,7 +956,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		
 		private static final IASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
 			@Override
-			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+			public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 				// ok
 				return DifferenceHandling.Differs;
 			}
@@ -972,16 +972,16 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 			}
 
 			@Override
-			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+			public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 			}
 			
 		};
 
 		@Override
-		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
 			if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
 				return !Utilities.isAnyOf(((AccessDeclaration)expr).declaration(), parser.cachedEngineDeclarations().VarAccessFunctions);
-			ExprElm chainA, chainB;
+			ASTNode chainA, chainB;
 			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
 					return false;
@@ -996,7 +996,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				return false;
 		}
 		
-		public static ITypeable typeableFromExpression(ExprElm referenceElm, C4ScriptParser parser) {
+		public static ITypeable typeableFromExpression(ASTNode referenceElm, C4ScriptParser parser) {
 			EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, parser);
 			if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
 				return decRegion.entityAs(ITypeable.class);
@@ -1032,45 +1032,45 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && other.getClass() == this.getClass())
-			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER).isEqual();
+			return compare((ASTNode) other, NULL_DIFFERENCE_LISTENER).isEqual();
 		else
 			return false;
 	}
 	
 	public Statement statement() {
-		ExprElm p;
+		ASTNode p;
 		for (p = this; p != null && !(p instanceof Statement); p = p.parent());
 		return (Statement)p;
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected <T extends ExprElm> void collectExpressionsOfType(List<T> list, Class<T> type) {
+	protected <T extends ASTNode> void collectExpressionsOfType(List<T> list, Class<T> type) {
 		if (type.isInstance(this))
 			list.add((T) this);
-		for (ExprElm e : subElements()) {
+		for (ASTNode e : subElements()) {
 			if (e == null)
 				continue;
 			e.collectExpressionsOfType(list, type);
 		}
 	}
 	
-	public <T extends ExprElm> Iterable<T> collectionExpressionsOfType(Class<T> cls) {
+	public <T extends ASTNode> Iterable<T> collectionExpressionsOfType(Class<T> cls) {
 		List<T> l = new LinkedList<T>();
 		collectExpressionsOfType(l, cls);
 		return l;
 	}
 	
 	public void setAssociatedDeclaration(Declaration declaration) {
-		for (ExprElm s : subElements())
+		for (ASTNode s : subElements())
 			if (s != null)
 				s.setAssociatedDeclaration(declaration);
 	}
 
-	public ExprElm sequenceTilMe() {
+	public ASTNode sequenceTilMe() {
 		Sequence fullSequence = sequence();
 		if (fullSequence != null) {
-			List<ExprElm> elms = new LinkedList<ExprElm>();
-			for (ExprElm e : fullSequence.subElements()) {
+			List<ASTNode> elms = new LinkedList<ASTNode>();
+			for (ASTNode e : fullSequence.subElements()) {
 				elms.add(e);
 				if (e == this)
 					break;
@@ -1084,9 +1084,9 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return as(parent(), Sequence.class);
 	}
 
-	public void postLoad(ExprElm parent, DeclarationObtainmentContext context) {
-		ExprElm prev = null;
-		for (ExprElm e : subElements()) {
+	public void postLoad(ASTNode parent, DeclarationObtainmentContext context) {
+		ASTNode prev = null;
+		for (ASTNode e : subElements()) {
 			if (e != null) {
 				e.predecessorInSequence = prev;
 				e.parent = this;
@@ -1107,12 +1107,12 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public void incrementLocation(int amount) {
 		setExprRegion(start+amount, start+amount);
-		for (ExprElm e : subElements())
+		for (ASTNode e : subElements())
 			if (e != null)
 				e.incrementLocation(amount);
 	}
 	
-	public static Object evaluateAtParseTime(ExprElm element, IEvaluationContext context) {
+	public static Object evaluateAtParseTime(ASTNode element, IEvaluationContext context) {
 		return element != null ? element.evaluateAtParseTime(context) : null;
 	}
 	
@@ -1132,14 +1132,14 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	public boolean containsConst() {
 		if (this instanceof AccessVar && ((AccessVar)this).constCondition())
 			return true;
-		for (ExprElm expression : this.subElements())
+		for (ASTNode expression : this.subElements())
 			if(expression != null && expression.containsConst())
 				return true;
 		return false;
 	}
 	
 	public final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
-		ExprElm e = this;
+		ASTNode e = this;
 		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
 		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;
 	}
@@ -1157,21 +1157,21 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param other Expression to match against
 	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
 	 */
-	public Map<String, Object> match(ExprElm other) {
+	public Map<String, Object> match(ASTNode other) {
 		class ComparisonDelegate implements IASTComparisonDelegate {
 			public Map<String, Object> result;
 			@Override
-			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {}
+			public void wildcardMatched(Wildcard wildcard, ASTNode expression) {}
 			@Override
 			public boolean optionEnabled(Option option) { return false; }
 			@Override
-			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+			public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 				if (what == CLASS && a instanceof MatchingPlaceholder) {
 					MatchingPlaceholder mp = (MatchingPlaceholder)a;
 					if (result == null)
 						result = new HashMap<String, Object>();
 					if (mp.satisfiedBy(b)) {
-						result.put(mp.entryName(), mp.remainder() ? new ExprElm[] {b} : b);
+						result.put(mp.entryName(), mp.remainder() ? new ASTNode[] {b} : b);
 						return DifferenceHandling.Equal;
 					} else
 						return DifferenceHandling.Differs;
@@ -1179,16 +1179,16 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				else if (what == SUBELEMENTS_LENGTH && a instanceof MatchingPlaceholder && a.subElements().length == 0)
 					return DifferenceHandling.IgnoreRightSide;
 				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
-					ExprElm[] mine = a.subElements();
-					ExprElm[] others = b.subElements();
+					ASTNode[] mine = a.subElements();
+					ASTNode[] others = b.subElements();
 					for (int i = others.length; i < mine.length; i++)
 						if (!(mine[i] instanceof MatchingPlaceholder && ((MatchingPlaceholder)mine[i]).remainder()))
 							return DifferenceHandling.Differs;
 					return DifferenceHandling.IgnoreLeftSide;
 				}
 				else if (what == SUBELEMENTS_LENGTH && a.subElements().length < b.subElements().length) {
-					ExprElm[] mine = a.subElements();
-					ExprElm[] others = b.subElements();
+					ASTNode[] mine = a.subElements();
+					ASTNode[] others = b.subElements();
 					MatchingPlaceholder remainder = mine.length > 0 ? as(mine[mine.length-1], MatchingPlaceholder.class) : null;
 					if (remainder != null && remainder.remainder()) {
 						for (int i = mine.length; i < others.length; i++)
@@ -1201,15 +1201,15 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 				else
 					return DifferenceHandling.Differs;
 			}
-			private boolean consume(ExprElm consumer, ExprElm extra) {
+			private boolean consume(ASTNode consumer, ASTNode extra) {
 				if (consumer instanceof MatchingPlaceholder && consumer instanceof MatchingPlaceholder) {
 					MatchingPlaceholder mp = (MatchingPlaceholder)consumer;
 					if (mp.remainder() && mp.satisfiedBy(extra) && mp.compare(extra, this).isEqual()) {
 						Object existing = result.get(mp.entryName());
-						if (existing instanceof ExprElm)
-							existing = new ExprElm[] {(ExprElm)existing, extra};
-						else if (existing instanceof ExprElm[])
-							existing = ArrayUtil.concat((ExprElm[])existing, extra);
+						if (existing instanceof ASTNode)
+							existing = new ASTNode[] {(ASTNode)existing, extra};
+						else if (existing instanceof ASTNode[])
+							existing = ArrayUtil.concat((ASTNode[])existing, extra);
 						result.put(mp.entryName(), existing);
 						return true;
 					}
@@ -1225,11 +1225,11 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 	
 	/**
-	 * Return an instance of a specified class with its public fields set to results from {@link #match(ExprElm)}
+	 * Return an instance of a specified class with its public fields set to results from {@link #match(ASTNode)}
 	 * @param other The other expression to match against
 	 * @param resultType Type of the resulting object
 	 */
-	public <T> boolean match(ExprElm other, T match) {
+	public <T> boolean match(ASTNode other, T match) {
 		Map<String, Object> matches = match(other);
 		if (matches != null) try {
 			for (Map.Entry<String, Object> kv : matches.entrySet())
@@ -1252,10 +1252,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param substitutions The map to use as source for {@link Placeholder} substitutions
 	 * @return The transformed expression
 	 */
-	public ExprElm transform(final Map<String, Object> substitutions) {
+	public ASTNode transform(final Map<String, Object> substitutions) {
 		return transformRecursively(new ITransformer() {
 			@Override
-			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 				if (expression instanceof Placeholder) {
 					MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
 					Object substitution = substitutions.get(((Placeholder)expression).entryName());
@@ -1274,10 +1274,10 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * improved matching capabilities with them.
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
-	public ExprElm matchingExpr() {
-		ExprElm result = this.transformRecursively(new ITransformer() {
+	public ASTNode matchingExpr() {
+		ASTNode result = this.transformRecursively(new ITransformer() {
 			@Override
-			public Object transform(ExprElm prev, Object prevT, ExprElm expression) {
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 				if (expression != null && expression.getClass() == Placeholder.class)
 					try {
 						return new MatchingPlaceholder(((Placeholder)expression).entryName());
@@ -1304,7 +1304,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 	
 	public IRegion absolute() {
-		ExprElm p;
+		ASTNode p;
 		for (p = this; p != null && p.parent != null; p = p.parent);
 		Declaration d = p.owningDeclaration();
 		return this.region(d instanceof Function ? ((Function)d).bodyLocation().start() : 0);

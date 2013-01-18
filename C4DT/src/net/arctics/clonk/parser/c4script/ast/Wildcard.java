@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -37,7 +37,7 @@ public class Wildcard extends PropListExpression {
 	/**
 	 * List of ExprElm classes this wildcard accepts as substitute.
 	 */
-	private Class<? extends ExprElm>[] acceptedClasses;
+	private Class<? extends ASTNode>[] acceptedClasses;
 	
 	/**
 	 * Tag identifying this wildcard
@@ -47,7 +47,7 @@ public class Wildcard extends PropListExpression {
 	/**
 	 * Template that defines how a possible match for this wildcard should look like
 	 */
-	private ExprElm original;
+	private ASTNode original;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void cacheAttributes() {
@@ -56,9 +56,9 @@ public class Wildcard extends PropListExpression {
 		Object[] classes = valueEvaluated(PROP_CLASSES, Object[].class);
 		acceptedClasses = classes != null ? ArrayUtil.map(classes, Class.class, new IConverter<Object, Class>() {
 			@Override
-			public Class<? extends ExprElm> convert(Object from) {
+			public Class<? extends ASTNode> convert(Object from) {
 				try {
-					return (Class<? extends ExprElm>) Class.forName(Wildcard.this.getClass().getPackage().getName() + "." + from.toString());
+					return (Class<? extends ASTNode>) Class.forName(Wildcard.this.getClass().getPackage().getName() + "." + from.toString());
 				} catch (ClassNotFoundException e) {
 					return null;
 				}
@@ -66,15 +66,15 @@ public class Wildcard extends PropListExpression {
 		}) : null;
 	}
 
-	public Class<? extends ExprElm>[] getAcceptedClasses() {
+	public Class<? extends ASTNode>[] getAcceptedClasses() {
 		return acceptedClasses;
 	}
 	
-	public ExprElm template() {
+	public ASTNode template() {
 		return original;
 	}
 	
-	public void setTemplate(ExprElm template) {
+	public void setTemplate(ASTNode template) {
 		this.original = template;
 	}
 	
@@ -107,7 +107,7 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return true; // whatever you say
 	}
 	
@@ -122,7 +122,7 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	@Override
-	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
 		if (tag != null && (acceptedClasses == null || ArrayUtil.indexOf(other.getClass(), acceptedClasses) != -1)) {
 			listener.wildcardMatched(this, other);
 			return DifferenceHandling.EqualShortCircuited;
@@ -131,20 +131,20 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	public static class WildcardMatchingSuccess {
-		public ExprElm matched;
-		public Map<String, ExprElm> wildcardMatches;
-		public WildcardMatchingSuccess(ExprElm matched) {
+		public ASTNode matched;
+		public Map<String, ASTNode> wildcardMatches;
+		public WildcardMatchingSuccess(ASTNode matched) {
 			super();
 			this.matched = matched;
-			this.wildcardMatches = new HashMap<String, ExprElm>();
+			this.wildcardMatches = new HashMap<String, ASTNode>();
 		}
 	}
 	
-	public static void matchWildcards(ExprElm template, ExprElm body, Sink<WildcardMatchingSuccess> sink) {
+	public static void matchWildcards(ASTNode template, ASTNode body, Sink<WildcardMatchingSuccess> sink) {
 		final WildcardMatchingSuccess s = new WildcardMatchingSuccess(body);
 		IASTComparisonDelegate d = new IASTComparisonDelegate() {
 			@Override
-			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+			public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
 				return DifferenceHandling.Differs;
 			}
 
@@ -154,23 +154,23 @@ public class Wildcard extends PropListExpression {
 			}
 
 			@Override
-			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+			public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 				s.wildcardMatches.put(wildcard.tag(), expression);
 			}
 		};
 		if (body.compare(template, d).isEqual())
 			sink.elutriate(s);
-		else for (ExprElm e : body.subElements())
+		else for (ASTNode e : body.subElements())
 			matchWildcards(template, e, sink);
 	}
 	
-	public static ExprElm generateReplacement(ExprElm original, ExprElm topLevel, WildcardMatchingSuccess wildcardReplacements) throws CloneNotSupportedException {
+	public static ASTNode generateReplacement(ASTNode original, ASTNode topLevel, WildcardMatchingSuccess wildcardReplacements) throws CloneNotSupportedException {
 		if (topLevel == null)
 			topLevel = original.clone();
 		if (original instanceof Wildcard) {
 			Wildcard w = (Wildcard) original;
 			if (w.tag() != null) {
-				ExprElm e = wildcardReplacements.wildcardMatches.get(w.tag());
+				ASTNode e = wildcardReplacements.wildcardMatches.get(w.tag());
 				if (e != null)
 					if (topLevel == original)
 						return e.clone();
@@ -178,7 +178,7 @@ public class Wildcard extends PropListExpression {
 						original.parent().replaceSubElement(original, e.clone(), 0);
 			}
 		}
-		for (ExprElm e : original.subElements())
+		for (ASTNode e : original.subElements())
 			generateReplacement(e, topLevel, wildcardReplacements);
 		return topLevel;
 	}

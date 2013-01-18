@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
@@ -37,7 +37,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public VarDeclarationStatement(Scope scope, VarInitialization... varInitializations) {
 		this(Arrays.asList(varInitializations), scope);
 	}
-	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, Scope scope) {
+	public VarDeclarationStatement(String varName, ASTNode initialization, int namePos, Scope scope) {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null)), scope);
 	}
 	@Override
@@ -49,7 +49,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return varInitializations;
 	}
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		VarInitialization[] newElms = new VarInitialization[elms.length];
 		System.arraycopy(elms, 0, newElms, 0, elms.length);
 		varInitializations = newElms;

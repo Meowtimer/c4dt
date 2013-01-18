@@ -7,7 +7,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -20,7 +20,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.util.StringUtil;
 
-public class PropListExpression extends ExprElm {
+public class PropListExpression extends ASTNode {
 
 	private static final int MULTILINEPRINTTHRESHOLD = 50;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -93,22 +93,22 @@ public class PropListExpression extends ExprElm {
 		return false;
 	}
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser parser) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser parser) {
 		return predecessor == null;
 	}
 	@Override
-	public ExprElm[] subElements() {
+	public ASTNode[] subElements() {
 		if (definedDeclaration == null)
 			return EMPTY_EXPR_ARRAY;
 		Collection<Variable> components = components();
-		ExprElm[] result = new ExprElm[components.size()];
+		ASTNode[] result = new ASTNode[components.size()];
 		int i = 0;
 		for (Variable c : components)
 			result[i++] = c.initializationExpression();
 		return result;
 	}
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		if (definedDeclaration == null)
 			return;
 		Collection<Variable> components = components();
@@ -150,14 +150,14 @@ public class PropListExpression extends ExprElm {
 		associatedDeclaration = declaration;
 	}
 	
-	public ExprElm value(String key) {
+	public ASTNode value(String key) {
 		Variable keyVar = definedDeclaration.findComponent(key);
 		return keyVar != null ? keyVar.initializationExpression() : null;
 	} 
 	
 	@SuppressWarnings("unchecked")
 	public <T> T valueEvaluated(String key, Class<T> cls) {
-		ExprElm e = value(key);
+		ASTNode e = value(key);
 		if (e != null) {
 			Object eval = e.evaluateAtParseTime(definedDeclaration.parentOfType(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
@@ -193,7 +193,7 @@ public class PropListExpression extends ExprElm {
 	}
 	
 	@Override
-	public void setParent(ExprElm parent) {
+	public void setParent(ASTNode parent) {
 		super.setParent(parent);
 	}
 	

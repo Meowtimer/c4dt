@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -35,7 +35,7 @@ public interface ITypeInfo {
 	 * @param parser Parser, acting as context
 	 * @return True, if relevant, false if not.
 	 */
-	boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser);
+	boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser);
 	/**
 	 * Return whether another {@link ITypeInfo} refers to the same expression as this one.
 	 * @param other The other stored type information

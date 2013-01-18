@@ -11,7 +11,7 @@ import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.util.Utilities;
@@ -64,7 +64,7 @@ public class TypeUtil {
 		return new DeclarationObtainmentContext() {
 			
 			@Override
-			public IType queryTypeOfExpression(ExprElm exprElm, IType defaultType) {
+			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) {
 				return null;
 			}
 			
@@ -83,7 +83,7 @@ public class TypeUtil {
 			}
 
 			@Override
-			public void storeType(ExprElm exprElm, IType type) {
+			public void storeType(ASTNode exprElm, IType type) {
 				// yeah right
 			}
 
@@ -93,7 +93,7 @@ public class TypeUtil {
 			}
 
 			@Override
-			public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
+			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 				int bodyOffset = context.absoluteExpressionsOffset();
 				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 			}
@@ -119,7 +119,7 @@ public class TypeUtil {
 			}
 
 			@Override
-			public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {}
+			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 
 			@Override
 			public Object valueForVariable(String varName) {

@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -11,10 +11,10 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 
-public class ArrayElementExpression extends ExprElm {
+public class ArrayElementExpression extends ASTNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected ExprElm argument;
+	protected ASTNode argument;
 
 	@Override
 	public IType unresolvedType(DeclarationObtainmentContext context) {
@@ -30,7 +30,7 @@ public class ArrayElementExpression extends ExprElm {
 		return PrimitiveType.ANY;
 	}
 
-	public ArrayElementExpression(ExprElm argument) {
+	public ArrayElementExpression(ASTNode argument) {
 		super();
 		this.argument = argument;
 		assignParentToSubElements();
@@ -44,7 +44,7 @@ public class ArrayElementExpression extends ExprElm {
 	}
 
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return predecessor != null;
 	}
 
@@ -54,7 +54,7 @@ public class ArrayElementExpression extends ExprElm {
 		IType type = predecessorType(parser);
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
-		ExprElm arg = argument();
+		ASTNode arg = argument();
 		if (arg == null)
 			parser.warning(ParserErrorCode.MissingExpression, this, 0);
 		else if (PrimitiveType.UNKNOWN != type && PrimitiveType.ANY != type) {
@@ -73,7 +73,7 @@ public class ArrayElementExpression extends ExprElm {
 		}
 	}
 
-	public static void warnIfNotArray(ExprElm elm, C4ScriptParser parser, IType type) {
+	public static void warnIfNotArray(ASTNode elm, C4ScriptParser parser, IType type) {
 		if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 			TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
 			TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
@@ -85,12 +85,12 @@ public class ArrayElementExpression extends ExprElm {
 	}
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {argument};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {argument};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] subElements) {
+	public void setSubElements(ASTNode[] subElements) {
 		argument = subElements[0];
 	}
 
@@ -99,12 +99,12 @@ public class ArrayElementExpression extends ExprElm {
 		return true;
 	}
 
-	public ExprElm argument() {
+	public ASTNode argument() {
 		return argument;
 	}
 	
 	@Override
-	public void assignment(ExprElm rightSide, C4ScriptParser context) {
+	public void assignment(ASTNode rightSide, C4ScriptParser context) {
 		IType predType_ = predecessorType(context);
 		for (IType predType : predType_) {
 			ArrayType arrayType = as(predType, ArrayType.class);

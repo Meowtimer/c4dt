@@ -11,7 +11,7 @@ import java.util.Map;
 
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
@@ -35,13 +35,13 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public abstract class CodeConverter {
 
-	private final Map<Declaration, ExprElm> codeMapping = new HashMap<Declaration, ExprElm>();
+	private final Map<Declaration, ASTNode> codeMapping = new HashMap<Declaration, ASTNode>();
 	
-	private ExprElm codeFor(Declaration declaration) {
-		ExprElm mapped = codeMapping.get(declaration);
+	private ASTNode codeFor(Declaration declaration) {
+		ASTNode mapped = codeMapping.get(declaration);
 		if (mapped == null) {
 			if (declaration instanceof Variable) {
-				ExprElm init = ((Variable)declaration).initializationExpression();
+				ASTNode init = ((Variable)declaration).initializationExpression();
 				if (init != null && init.owningDeclaration() != null && init.owningDeclaration() != declaration)
 					return null;
 				else
@@ -49,7 +49,7 @@ public abstract class CodeConverter {
 			}
 			else if (declaration instanceof Function) {
 				Function func = (Function)declaration;
-				ExprElm body = func.body();
+				ASTNode body = func.body();
 				Block block = new Block(body.subElements());
 				block.setExprRegion(body);
 				body = block;
@@ -91,14 +91,14 @@ public abstract class CodeConverter {
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
 				public int compare(Declaration arg0, Declaration arg1) {
-					ExprElm codeA = codeFor(arg0);
-					ExprElm codeB = codeFor(arg1);
+					ASTNode codeA = codeFor(arg0);
+					ASTNode codeB = codeFor(arg1);
 					return codeB.start()-codeA.start();
 				}
 			});
 			for (Declaration d : decs)
 				try {
-					ExprElm elms = codeFor(d);
+					ASTNode elms = codeFor(d);
 					if (d instanceof Function) {
 						Function f = (Function)d;
 						StringBuilder header = new StringBuilder(f.header().getLength()+10);
@@ -119,13 +119,13 @@ public abstract class CodeConverter {
 		}
 	}
 
-	protected abstract ExprElm performConversion(C4ScriptParser parser, ExprElm expression);
+	protected abstract ASTNode performConversion(C4ScriptParser parser, ASTNode expression);
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 
-	private void replaceExpression(Declaration d, IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
+	private void replaceExpression(Declaration d, IDocument document, ASTNode e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		int oldStart = e.start();
 		int oldLength = e.end()-e.start();
 		while (superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {

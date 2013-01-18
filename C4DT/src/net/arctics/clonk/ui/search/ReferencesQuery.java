@@ -6,7 +6,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -63,7 +63,7 @@ public class ReferencesQuery extends SearchQueryBase {
 	}
 	
 	private class Visitor implements IResourceVisitor, IASTVisitor {
-		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
+		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;
 				return callFunc.declarationName().equals(declaration.name());
@@ -71,7 +71,7 @@ public class ReferencesQuery extends SearchQueryBase {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitExpression(ExprElm expression, C4ScriptParser parser) {
+		public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 			if (expression instanceof AccessDeclaration) {
 				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
 				Declaration dec = accessDeclExpr.declarationFromContext(parser);

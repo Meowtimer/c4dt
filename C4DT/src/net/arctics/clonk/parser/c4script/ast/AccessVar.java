@@ -4,7 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -39,7 +39,7 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
-		ExprElm pred = predecessorInSequence();
+		ASTNode pred = predecessorInSequence();
 		if (pred == null)
 			return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
 		else
@@ -56,7 +56,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return
 			// either null or
 			predecessor == null ||
@@ -73,7 +73,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
-		ExprElm sequencePredecessor = predecessorInSequence();
+		ASTNode sequencePredecessor = predecessorInSequence();
 		IType type = context.script();
 		if (sequencePredecessor != null)
 			type = sequencePredecessor.type(context);
@@ -105,7 +105,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
 		super.reportProblems(parser);
-		ExprElm pred = predecessorInSequence();
+		ASTNode pred = predecessorInSequence();
 		if (declaration == null && pred == null)
 			parser.error(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
 		// local variable used in global function
@@ -190,7 +190,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void assignment(ExprElm expression, C4ScriptParser context) {
+	public void assignment(ASTNode expression, C4ScriptParser context) {
 		if (declaration() == Variable.THIS)
 			return;
 		if (declaration() == null) {
@@ -238,7 +238,7 @@ public class AccessVar extends AccessDeclaration {
 				// evaluate in the context of the var by proxy
 				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(var) {
 					@Override
-					public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+					public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 						if (expression == var.initializationExpression())
 							context.reportOriginForExpression(AccessVar.this, location, file);
 					}
@@ -285,7 +285,7 @@ public class AccessVar extends AccessDeclaration {
 				}
 				public AccessVar origin() { return AccessVar.this; }
 				@Override
-				public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
+				public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
 					return expr instanceof AccessVar && ((AccessVar)expr).declaration() == declaration();
 				}
 				@Override

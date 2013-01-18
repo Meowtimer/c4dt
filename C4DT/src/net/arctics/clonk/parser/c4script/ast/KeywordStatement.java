@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Conf;
 
 /**
@@ -24,7 +24,7 @@ public abstract class KeywordStatement extends Statement {
 		builder.append(";"); //$NON-NLS-1$
 	}
 
-	protected void printBody(ExprElm body, ExprWriter builder, int depth) {
+	protected void printBody(ASTNode body, ExprWriter builder, int depth) {
 		if (!(body instanceof Block))
 			depth++;
 		if (!(body instanceof EmptyStatement))

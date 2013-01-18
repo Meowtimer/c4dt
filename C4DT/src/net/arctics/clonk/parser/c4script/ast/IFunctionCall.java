@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -12,10 +12,10 @@ import net.arctics.clonk.parser.c4script.Variable;
  *
  */
 public interface IFunctionCall {
-	ExprElm[] params();
+	ASTNode[] params();
 	Function quasiCalledFunction(DeclarationObtainmentContext context);
 	int parmsStart();
 	int parmsEnd();
-	int indexOfParm(ExprElm parm);
+	int indexOfParm(ASTNode parm);
 	IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context);
 }

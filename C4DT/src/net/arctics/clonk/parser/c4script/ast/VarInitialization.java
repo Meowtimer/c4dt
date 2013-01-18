@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.IType;
@@ -18,7 +18,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public final class VarInitialization extends ExprElm implements IPlaceholderPatternMatchTarget {
+public final class VarInitialization extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -33,7 +33,7 @@ public final class VarInitialization extends ExprElm implements IPlaceholderPatt
 	/**
 	 * Initialization expression. Can be null.
 	 */
-	public ExprElm expression;
+	public ASTNode expression;
 	/**
 	 * Object representing variable. Does not need to be set.
 	 */
@@ -46,7 +46,7 @@ public final class VarInitialization extends ExprElm implements IPlaceholderPatt
 	 * @param end End location.
 	 * @param var Variable. May be null.
 	 */
-	public VarInitialization(String name, ExprElm expression, int start, int end, Variable var) {
+	public VarInitialization(String name, ASTNode expression, int start, int end, Variable var) {
 		super();
 		this.name = name;
 		this.expression = expression;
@@ -55,11 +55,11 @@ public final class VarInitialization extends ExprElm implements IPlaceholderPatt
 		this.variable = var;
 	}
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {expression};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {expression};
 	}
 	@Override
-	public void setSubElements(ExprElm[] elms) {
+	public void setSubElements(ASTNode[] elms) {
 		expression = elms[0];
 	}
 	@Override

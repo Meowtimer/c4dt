@@ -23,7 +23,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -146,10 +146,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
-	private ExprElm problemReporter;
+	private ASTNode problemReporter;
 	
-	public ExprElm problemReporter() {return problemReporter;}
-	public void setProblemReporter(ExprElm reporter) {problemReporter=reporter;}
+	public ASTNode problemReporter() {return problemReporter;}
+	public void setProblemReporter(ASTNode reporter) {problemReporter=reporter;}
 
 	public static final int MAX_PAR = 10;
 	public static final int MAX_NUMVAR = 20;
@@ -236,7 +236,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression.
 	 * @param index the index expression
 	 */
-	public void unnamedParamaterUsed(ExprElm index) {
+	public void unnamedParamaterUsed(ASTNode index) {
 		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 			Object ev = index.evaluateAtParseTime(currentFunction());
 			if (ev instanceof Number) {
@@ -251,7 +251,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
 	@Override
-	public void storeType(ExprElm expression, IType type) {
+	public void storeType(ASTNode expression, IType type) {
 		ITypeInfo requested = requestTypeInfo(expression);
 		if (requested != null) {
 			if (DEBUG)
@@ -260,7 +260,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	public void linkTypesOf(ExprElm a, ExprElm b) {
+	public void linkTypesOf(ASTNode a, ASTNode b) {
 		ITypeInfo ati = requestTypeInfo(a);
 		ITypeInfo bti = requestTypeInfo(b);
 		if (ati != null && bti != null && ati != bti) {
@@ -275,7 +275,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param expression the expression
 	 * @return the type information or null if none has been stored
 	 */
-	public ITypeInfo requestTypeInfo(ExprElm expression) {
+	public ITypeInfo requestTypeInfo(ASTNode expression) {
 		if (typeEnvironment == null || typing == Typing.Static || typing == Typing.Dynamic)
 			return null;
 		boolean topMostLayer = true;
@@ -318,7 +318,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param expression the expression to query the type of
 	 * @return The typeinfo or null if nothing was found
 	 */
-	public ITypeInfo queryTypeInfo(ExprElm expression) {
+	public ITypeInfo queryTypeInfo(ASTNode expression) {
 		if (typeEnvironment == null)
 			return null;
 		for (TypeEnvironment list = typeEnvironment; list != null; list = list.up)
@@ -336,7 +336,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return Expression type as deduced by usage of the expression or the default type.
 	 */
 	@Override
-	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
+	public IType queryTypeOfExpression(ASTNode expression, IType defaultType) {
 		ITypeInfo info = queryTypeInfo(expression);
 		return info != null ? info.type() : defaultType;
 	}
@@ -608,7 +608,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// local Name = "Exploder";
 			Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
-				ExprElm expr = nameLocal.initializationExpression();
+				ASTNode expr = nameLocal.initializationExpression();
 				if (expr != null)
 					obj.setName(expr.evaluateAtParseTime(obj).toString());
 			}
@@ -710,7 +710,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class))
 				for (VarInitialization initialization : decl.variableInitializations())
 					if (initialization.variable == variable) {
-						ExprElm old = problemReporter;
+						ASTNode old = problemReporter;
 						problemReporter = decl;
 						warning(code, initialization, 0, args);
 						problemReporter = old;
@@ -974,7 +974,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						parsedTypeAnnotation.setTarget(var);
 					setCurrentDeclaration(var);
 					VarInitialization varInitialization;
-					ExprElm initializationExpression = null;
+					ASTNode initializationExpression = null;
 					{
 						eatWhitespace();
 						if (peek() == '=') {
@@ -1575,7 +1575,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		
 		private final Declaration cf;
 		private final int offset;
-		private final ExprElm reporter;
+		private final ASTNode reporter;
 		private final IFile scriptFile;
 		private final Script container;
 		
@@ -1717,14 +1717,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 	
-	private ExprElm parseSequence(boolean reportErrors) throws ParsingException {
+	private ASTNode parseSequence(boolean reportErrors) throws ParsingException {
 		int sequenceParseStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;
 		Operator preop = parseOperator();
-		ExprElm result = null;
+		ASTNode result = null;
 		if (preop != null && preop.isPrefix()) {
-			ExprElm followingExpr = parseSequence(reportErrors);
+			ASTNode followingExpr = parseSequence(reportErrors);
 			if (followingExpr == null) {
 				error(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1, NO_THROW);
 				followingExpr = placeholderExpression(offset);
@@ -1734,9 +1734,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return result;
 		} else
 			this.seek(sequenceStart); // don't skip operators that aren't prefixy
-		ArrayList<ExprElm> elements = new ArrayList<ExprElm>(5);
-		ExprElm elm;
-		ExprElm prevElm = null;
+		ArrayList<ASTNode> elements = new ArrayList<ASTNode>(5);
+		ASTNode elm;
+		ASTNode prevElm = null;
 		int noWhitespaceEating = sequenceStart;
 		boolean proper = true;
 		boolean noNewProplist = false;
@@ -1780,7 +1780,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
-						ExprElm prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
+						ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
 						boolean treatNewAsVarName = false;
 						if (prototype == null)
 							treatNewAsVarName = true;
@@ -1796,7 +1796,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (treatNewAsVarName) {
 							// oh wait, just a variable named new with some expression following it
 							this.seek(noWhitespaceEating);
-							elm = ExprElm.NULL_EXPR; // just to satisfy loop condition
+							elm = ASTNode.NULL_EXPR; // just to satisfy loop condition
 							noNewProplist = true;
 							continue Loop;
 						}
@@ -1807,9 +1807,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (read() == '(') {
 							int s = this.offset;
 							// function call
-							List<ExprElm> args = new LinkedList<ExprElm>();
+							List<ASTNode> args = new LinkedList<ASTNode>();
 							parseRestOfTuple(args, reportErrors);
-							CallDeclaration callFunc = new CallDeclaration(word, args.toArray(new ExprElm[args.size()]));
+							CallDeclaration callFunc = new CallDeclaration(word, args.toArray(new ASTNode[args.size()]));
 							callFunc.setParmsRegion(s-bodyOffset(), this.offset-1-bodyOffset());
 							elm = callFunc;
 						} else {
@@ -1866,13 +1866,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (c == '(') {
 					if (prevElm != null) {
 						// CallExpr
-						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
+						List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 						parseRestOfTuple(tupleElms, reportErrors);
-						elm = new CallExpr(tupleElms.toArray(new ExprElm[tupleElms.size()]));
+						elm = new CallExpr(tupleElms.toArray(new ASTNode[tupleElms.size()]));
 					} else {
-						ExprElm firstExpr = parseExpression(reportErrors);
+						ASTNode firstExpr = parseExpression(reportErrors);
 						if (firstExpr == null) {
-							firstExpr = ExprElm.whitespace(this.offset, 0, this);
+							firstExpr = ASTNode.whitespace(this.offset, 0, this);
 							// might be disabled
 							error(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, NO_THROW|ABSOLUTE_MARKER_LOCATION);
 						}
@@ -1883,10 +1883,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						else if (c == ',') {
 							error(ParserErrorCode.TuplesNotAllowed, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION);
 							// tuple (just for multiple parameters for return)
-							List<ExprElm> tupleElms = new LinkedList<ExprElm>();
+							List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 							tupleElms.add(firstExpr);
 							parseRestOfTuple(tupleElms, reportErrors);
-							elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
+							elm = new Tuple(tupleElms.toArray(new ASTNode[0]));
 						} else
 							tokenExpectedError(")"); //$NON-NLS-1$
 					}
@@ -1918,13 +1918,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 		} while (elm != null);
 		this.seek(noWhitespaceEating);
-		ExprElm lastElm;
+		ASTNode lastElm;
 		if (elements.size() == 1) {
 			// no need for sequences containing one element
 			result = elements.get(elements.size()-1);
 			lastElm = result;
 		} else if (elements.size() > 1) {
-			result = new Sequence(elements.toArray(new ExprElm[0]));
+			result = new Sequence(elements.toArray(new ASTNode[0]));
 			lastElm = elements.get(elements.size()-1);
 		} else {
 			result = null;
@@ -1957,10 +1957,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return new Placeholder(placeholder);
 	}
 
-	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
+	private ASTNode parsePropListExpression(boolean reportErrors, ASTNode prevElm) throws ParsingException {
 		ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
-			ExprElm elm = new PropListExpression(proplDec);
+			ASTNode elm = new PropListExpression(proplDec);
 			if (currentFunction() != null)
 				currentFunction().addOtherDeclaration(proplDec);
 			//proplDec.setName(elm.toString());
@@ -2007,7 +2007,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 							Declaration outerDec = currentDeclaration();
 							setCurrentDeclaration(v);
-							ExprElm value = null;
+							ASTNode value = null;
 							try {
 								v.setParentDeclaration(outerDec);
 								value = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
@@ -2047,23 +2047,23 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	@Override
-	public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
+	public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 		int bodyOffset = bodyOffset();
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
-	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
-		ExprElm elm = null;
+	private ASTNode parseArrayExpression(boolean reportErrors, ASTNode prevElm) throws ParsingException {
+		ASTNode elm = null;
 		int c = read();
 		if (c == '[') {
 			if (prevElm != null) {
 				// array access
-				ExprElm arg = parseExpression(reportErrors);
+				ASTNode arg = parseExpression(reportErrors);
 				eatWhitespace();
 				int t;
 				switch (t = read()) {
 				case ':':
-					ExprElm arg2 = parseExpression(reportErrors);
+					ASTNode arg2 = parseExpression(reportErrors);
 					eatWhitespace();
 					expect(']');
 					elm = new ArraySliceExpression(arg, arg2);
@@ -2076,7 +2076,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			} else {
 				// array creation
-				Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
+				Vector<ASTNode> arrayElms = new Vector<ASTNode>(10);
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
 				while (!reachedEOF()) {
@@ -2091,7 +2091,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						break;
 					} else {
 						unread();
-						ExprElm arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
+						ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
 						if (arrayElement != null)
 							arrayElms.add(arrayElement);
 						else {
@@ -2103,14 +2103,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 				if (!properlyClosed)
 					error(ParserErrorCode.MissingClosingBracket, this.offset, this.offset+1, NO_THROW, "]"); //$NON-NLS-1$
-				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
+				elm = new ArrayExpression(arrayElms.toArray(new ASTNode[0]));
 			}
 		} else
 			unread();
 		return elm;
 	}
 
-	private void parseRestOfTuple(List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
+	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo, boolean reportErrors) throws ParsingException {
 		boolean expectingComma = false;
 		int lastStart = this.offset;
 		Loop: while (!reachedEOF()) {
@@ -2118,11 +2118,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			switch (read()) {
 			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(ExprElm.whitespace(lastStart, this.offset-lastStart, this));
+					listToAddElementsTo.add(ASTNode.whitespace(lastStart, this.offset-lastStart, this));
 				break Loop;
 			case ',':
 				if (!expectingComma)
-					listToAddElementsTo.add(ExprElm.whitespace(lastStart, this.offset-lastStart, this));
+					listToAddElementsTo.add(ASTNode.whitespace(lastStart, this.offset-lastStart, this));
 				expectingComma = false;
 				break;
 			default:
@@ -2132,7 +2132,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (listToAddElementsTo.size() > 100)
 					error(ParserErrorCode.InternalError, this.offset, this.offset, 0, Messages.InternalError_WayTooMuch);
 				//	break;
-				ExprElm arg = parseTupleElement(reportErrors);
+				ASTNode arg = parseTupleElement(reportErrors);
 				if (arg == null) {
 					error(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1, NO_THROW);
 					break Loop;
@@ -2150,11 +2150,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	protected ExprElm parseTupleElement(boolean reportErrors) throws ParsingException {
+	protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
 		return parseExpression(reportErrors);
 	}
 	
-	private ExprElm parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
+	private ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
 		
 		final int offset = this.offset;
 		
@@ -2166,8 +2166,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		parseExpressionRecursion++;
 		try {
 
-			ExprElm root = null;
-			ExprElm current = null;
+			ASTNode root = null;
+			ASTNode current = null;
 			BinaryOp lastOp = null;
 
 			// magical thingie to pass all parameters to inherited
@@ -2205,9 +2205,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							Operator op = parseOperator();
 							if (op != null && op.isBinary()) {
 								int priorOfNewOp = op.priority();
-								ExprElm newLeftSide = null;
+								ASTNode newLeftSide = null;
 								BinaryOp theOp = null;
-								for (ExprElm opFromBottom = current.parent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.parent()) {
+								for (ASTNode opFromBottom = current.parent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.parent()) {
 									BinaryOp oneOp = (BinaryOp) opFromBottom;
 									if (priorOfNewOp > oneOp.operator().priority() || (priorOfNewOp == oneOp.operator().priority() && op.isRightAssociative())) {
 										theOp = oneOp;
@@ -2232,7 +2232,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						}
 						break;
 					case SECONDOPERAND:
-						ExprElm rightSide = parseSequence(reportErrors);
+						ASTNode rightSide = parseSequence(reportErrors);
 						if (rightSide == null) {
 							error(ParserErrorCode.OperatorNeedsRightSide, lastOp, NO_THROW);
 							rightSide = placeholderExpression(offset);
@@ -2257,8 +2257,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
-	private ExprElm placeholderExpression(final int offset) {
-		ExprElm result = new ExprElm();
+	private ASTNode placeholderExpression(final int offset) {
+		ASTNode result = new ASTNode();
 		setExprRegionRelativeToFuncBody(result, offset, offset+1);
 		return result;
 	}
@@ -2267,7 +2267,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * The expression that is currently reporting errors.
 	 * @return The expression reporting errors
 	 */
-	public ExprElm expressionReportingErrors() {
+	public ASTNode expressionReportingErrors() {
 		return problemReporter;
 	}
 	
@@ -2285,28 +2285,28 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return new Region(offset+region.getOffset(), region.getLength());
 	}
 
-	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
+	private final void handleExpressionCreated(boolean reportErrors, ASTNode root) throws ParsingException {
 		root.setAssociatedDeclaration(currentDeclaration());
-		root.setFlagsEnabled(ExprElm.STATEMENT_REACHED, statementReached);
+		root.setFlagsEnabled(ASTNode.STATEMENT_REACHED, statementReached);
 		if (listener != null && parseExpressionRecursion <= 1)
 			listener.visitExpression(root, this);
 	}
 	
 	/**
-	 * Let an expression report errors. Calling {@link ExprElm#reportProblems(C4ScriptParser)} indirectly like that ensures
+	 * Let an expression report errors. Calling {@link ASTNode#reportProblems(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
 	 * @param expression The expression to report errors.
 	 * @throws ParsingException
 	 * @return The expression parameter is returned to allow for expression chaining. 
 	 */
-	public <T extends ExprElm> T reportProblemsOf(T expression, boolean recursive) {
+	public <T extends ASTNode> T reportProblemsOf(T expression, boolean recursive) {
 		if (expression == null)
 			return null;
-		ExprElm saved = problemReporter;
+		ASTNode saved = problemReporter;
 		problemReporter = expression;
 		try {
 			if (recursive && !expression.skipReportingProblemsForSubElements())
-				for (ExprElm e : expression.subElements())
+				for (ASTNode e : expression.subElements())
 					if (e != null)
 						reportProblemsOf(e, true);
 			try {
@@ -2344,7 +2344,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		for (Variable v : script.variables())
 			synchronized (reportingMonitor) {
 				setCurrentFunction(null);
-				ExprElm init = v.initializationExpression();
+				ASTNode init = v.initializationExpression();
 				if (init != null) {
 					Function owningFunc = as(init.owningDeclaration(), Function.class);
 					if (owningFunc == null) {
@@ -2413,11 +2413,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
-	private ExprElm parseExpression(boolean reportErrors) throws ParsingException {
+	private ASTNode parseExpression(boolean reportErrors) throws ParsingException {
 		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
 	}
 	
-	private ExprElm parseExpression() throws ParsingException {
+	private ASTNode parseExpression() throws ParsingException {
 		return parseExpression(true);
 	}
 	
@@ -2577,7 +2577,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					}
 					else {
 						unread();
-						ExprElm expression = parseExpression();
+						ASTNode expression = parseExpression();
 						if (expression != null) {
 							result = new SimpleStatement(expression);
 							if (!options.contains(ParseStatementOption.InitializationStatement))
@@ -2610,7 +2610,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// just an expression that needs to be wrapped as a statement
 			if (result == null) {
 				this.seek(start);
-				ExprElm expression = parseExpression();
+				ASTNode expression = parseExpression();
 				int afterExpression = this.offset;
 				if (expression != null) {
 					result = new SimpleStatement(expression);
@@ -2648,7 +2648,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void handleStatementCreated(Statement statement) throws ParsingException {
-		statement.setFlagsEnabled(ExprElm.STATEMENT_REACHED, statementReached);
+		statement.setFlagsEnabled(ASTNode.STATEMENT_REACHED, statementReached);
 		if (parseStatementRecursion == 1)
 			if (listener != null)
 				switch (listener.visitExpression(statement, this)) {
@@ -2823,7 +2823,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private ReturnStatement parseReturn() throws ParsingException {
 		ReturnStatement result;
 		eatWhitespace();
-		ExprElm returnExpr;
+		ASTNode returnExpr;
 		if (peek() == ';')
 			returnExpr = null;
 		else {
@@ -2853,7 +2853,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm cond = parseExpression();
+		ASTNode cond = parseExpression();
 		eatWhitespace();
 		expect(')');
 		//expect(';');
@@ -2876,7 +2876,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		// initialization
 		savedOffset = this.offset;
 		Statement initialization = null, body;
-		ExprElm arrayExpr, condition, increment;
+		ASTNode arrayExpr, condition, increment;
 		String w = null;
 		if (read() == ';') {
 			// any of the for statements is optional
@@ -2996,9 +2996,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm condition = parseExpression();
+		ASTNode condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.whitespace(this.offset, 0, this); // while () is valid
+			condition = ASTNode.whitespace(this.offset, 0, this); // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
@@ -3020,9 +3020,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm condition = parseExpression();
+		ASTNode condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.whitespace(this.offset, 0, this); // if () is valid
+			condition = ASTNode.whitespace(this.offset, 0, this); // if () is valid
 		eatWhitespace();
 		expect(')');
 		int offsetBeforeWhitespace = this.offset;
@@ -3404,7 +3404,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return 0;
 			}
 			@Override
-			protected ExprElm parseTupleElement(boolean reportErrors) throws ParsingException {
+			protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
 				Statement s = parseStatement();
 				if (s instanceof SimpleStatement)
 					return ((SimpleStatement)s).expression();
@@ -3419,7 +3419,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return parseStandaloneStatement(statementText, null, null, null, engine);
 	}
 	
-	public static ExprElm matchingExpr(final String statementText, Engine engine) {
+	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
 			return parse(statementText, engine).matchingExpr();
 		} catch (ParsingException e) {
@@ -3482,7 +3482,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// yes
 	}
 	

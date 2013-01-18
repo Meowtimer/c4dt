@@ -15,7 +15,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.StringUtil;
@@ -31,13 +31,13 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	protected List<Variable> components;
 	protected List<Variable> adhocComponents;
 	protected boolean adHoc;
-	protected ExprElm implicitPrototype;
+	protected ASTNode implicitPrototype;
 	
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#implicitPrototype()
 	 */
 	@Override
-	public ExprElm implicitPrototype() {
+	public ASTNode implicitPrototype() {
 		return implicitPrototype;
 	}
 
@@ -194,7 +194,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 */
 	@Override
 	public ProplistDeclaration prototype() {
-		ExprElm prototypeExpr = null;
+		ASTNode prototypeExpr = null;
 		for (Variable v : components)
 			if (v.name().equals(PROTOTYPE_KEY)) {
 				prototypeExpr = v.initializationExpression();
@@ -268,7 +268,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @param prototypeExpression The implicit prototype to set
 	 * @return This one.
 	 */
-	public ProplistDeclaration withImplicitProtoype(ExprElm prototypeExpression) {
+	public ProplistDeclaration withImplicitProtoype(ASTNode prototypeExpression) {
 		this.implicitPrototype = prototypeExpression;
 		return this;
 	}

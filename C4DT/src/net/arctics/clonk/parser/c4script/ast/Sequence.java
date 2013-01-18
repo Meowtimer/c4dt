@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -17,21 +17,21 @@ public class Sequence extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public Sequence(ExprElm... elms) {
+	public Sequence(ASTNode... elms) {
 		super(elms);
-		ExprElm prev = null;
-		for (ExprElm e : elements) {
+		ASTNode prev = null;
+		for (ASTNode e : elements) {
 			if (e != null)
 				e.setPredecessorInSequence(prev);
 			prev = e;
 		}
 	}
-	public Sequence(List<ExprElm> elms) {
-		this(elms.toArray(new ExprElm[elms.size()]));
+	public Sequence(List<ASTNode> elms) {
+		this(elms.toArray(new ASTNode[elms.size()]));
 	}
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
-		for (ExprElm e : elements)
+		for (ASTNode e : elements)
 			e.print(output, depth+1);
 	}
 	@Override
@@ -56,10 +56,10 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return super.createStoredTypeInformation(parser); */
 	}
 	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
-		List<ExprElm> currentSequenceExpressions = new LinkedList<ExprElm>();
+		List<ASTNode> currentSequenceExpressions = new LinkedList<ASTNode>();
 		List<Statement> result = new ArrayList<Statement>(elements.length);
-		ExprElm p = null;
-		for (ExprElm e : elements) {
+		ASTNode p = null;
+		for (ASTNode e : elements) {
 			if (!e.isValidInSequence(p, parser)) {
 				result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 				currentSequenceExpressions.clear();
@@ -74,18 +74,18 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
-	public Sequence subSequenceUpTo(ExprElm elm) {
-		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
-		for (ExprElm e : elements)
+	public Sequence subSequenceUpTo(ASTNode elm) {
+		List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
+		for (ASTNode e : elements)
 			if (e == elm)
 				break;
 			else
 				list.add(e);
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
-	public Sequence subSequenceIncluding(ExprElm elm) {
-		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
-		for (ExprElm e : elements) {
+	public Sequence subSequenceIncluding(ASTNode elm) {
+		List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
+		for (ASTNode e : elements) {
 			list.add(e);
 			if (e == elm)
 				break;
@@ -93,10 +93,10 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
 	@Override
-	public void assignment(ExprElm rightSide, C4ScriptParser context) {
+	public void assignment(ASTNode rightSide, C4ScriptParser context) {
 		lastElement().assignment(rightSide, context);
 	}
-	public ExprElm successorOfSubElement(ExprElm element) {
+	public ASTNode successorOfSubElement(ASTNode element) {
 		for (int i = 0; i < elements.length; i++)
 			if (elements[i] == element)
 				return i+1 < elements.length ? elements[i+1] : null;
@@ -104,8 +104,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 	}
 	@Override
 	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		ExprElm p = null;
-		for (ExprElm e : elements) {
+		ASTNode p = null;
+		for (ASTNode e : elements) {
 			if (
 				(e != null && !e.isValidInSequence(p, parser)) ||
 				(p != null && !p.allowsSequenceSuccessor(parser, e))

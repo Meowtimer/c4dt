@@ -19,7 +19,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
@@ -50,13 +50,13 @@ public class C4ScriptToCPPConverter {
 		return ident;
 	}
 	
-	public void printExprElement(final Function function, ExprElm element, final Writer output, int depth) {
+	public void printExprElement(final Function function, ASTNode element, final Writer output, int depth) {
 		element.print(new AppendableBackedExprWriter(output) {
 			
 			boolean prelude = true;
 			
 			@Override
-			public boolean doCustomPrinting(ExprElm elm, int depth) {
+			public boolean doCustomPrinting(ASTNode elm, int depth) {
 				if (prelude && elm instanceof Block) {
 					prelude = false;
 					return writePrelude(elm, depth);
@@ -89,9 +89,9 @@ public class C4ScriptToCPPConverter {
 				}
 				else if (elm instanceof Sequence) {
 					Sequence sequence = (Sequence)elm;
-					ExprElm[] elements = sequence.subElements();
+					ASTNode[] elements = sequence.subElements();
 					for (int i = elements.length-1; i >= 0; i--) {
-						ExprElm e = elements[i];
+						ASTNode e = elements[i];
 						CallDeclaration callFunc = as(e, CallDeclaration.class);
 						MemberOperator op = i-1 >= 0 ? as(elements[i-1], MemberOperator.class) : null;
 						if (callFunc != null && op != null)
@@ -130,7 +130,7 @@ public class C4ScriptToCPPConverter {
 				return false;
 			}
 
-			private boolean writePrelude(ExprElm elm, int depth) {
+			private boolean writePrelude(ASTNode elm, int depth) {
 				Block block = (Block) elm;
 				Statement[] statements = new Statement[1+block.statements().length];
 				statements[0] = new ReplacementStatement("FindEngineFunctions();");

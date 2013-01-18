@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Function;
@@ -35,7 +35,7 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		if (func != null) {
 			ExpressionLocator locator = new ExpressionLocator(pos-func.bodyLocation().start());
 			C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, false);
-			ExprElm expr = locator.expressionAtRegion();
+			ASTNode expr = locator.expressionAtRegion();
 			if (expr == null)
 				return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());
 			else for (; expr != null; expr = expr.parent())

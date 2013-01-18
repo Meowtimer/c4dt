@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.ArrayList;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -17,7 +17,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ArrayExpression(ExprElm... elms) {
+	public ArrayExpression(ASTNode... elms) {
 		super(elms);
 	}
 
@@ -37,9 +37,9 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	public IType unresolvedType(final DeclarationObtainmentContext context) {
 		return new ArrayType(
 			null,
-			ArrayUtil.map(elements, IType.class, new IConverter<ExprElm, IType>() {
+			ArrayUtil.map(elements, IType.class, new IConverter<ASTNode, IType>() {
 				@Override
-				public IType convert(ExprElm from) {
+				public IType convert(ASTNode from) {
 					return from != null ? from.type(context) : PrimitiveType.UNKNOWN;
 				}
 			})
@@ -47,7 +47,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	}
 
 	@Override
-	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return predecessor == null;
 	}
 
@@ -58,7 +58,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	
 	@Override
 	public boolean isConstant() {
-		for (ExprElm e : subElements())
+		for (ASTNode e : subElements())
 			if (e != null && !e.isConstant())
 				return false;
 		return true;

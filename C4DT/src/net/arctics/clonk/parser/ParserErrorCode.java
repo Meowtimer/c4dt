@@ -170,7 +170,7 @@ public enum ParserErrorCode {
 	
 	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, makeErrorString(args));
-		if (expressionRegion instanceof ExprElm)
+		if (expressionRegion instanceof ASTNode)
 			try {
 				marker.setAttribute(IMarker.LOCATION, expressionRegion.toString());
 			} catch (CoreException e1) {

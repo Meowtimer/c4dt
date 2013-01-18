@@ -14,7 +14,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -232,9 +232,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		@Override
 		public void apply(IDocument document) {
 			replacement.performAdditionalActionsBeforeDoingReplacements();
-			ExprElm replacementExpr = replacement.replacementExpression();
-			if (replacementExpr != ExprElm.NULL_EXPR) {
-				for (ExprElm spec : replacement.specifiable())
+			ASTNode replacementExpr = replacement.replacementExpression();
+			if (replacementExpr != ASTNode.NULL_EXPR) {
+				for (ASTNode spec : replacement.specifiable())
 					if (spec instanceof AccessDeclaration) {
 						AccessDeclaration accessDec = (AccessDeclaration) spec;
 						String s = UI.input(
@@ -304,19 +304,19 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private static class Replacement {
 		public static class AdditionalDeclaration {
 			public Declaration declaration;
-			public ExprElm code;
-			public AdditionalDeclaration(Declaration declaration, ExprElm code) {
+			public ASTNode code;
+			public AdditionalDeclaration(Declaration declaration, ASTNode code) {
 				super();
 				this.declaration = declaration;
 				this.code = code;
 			}
 		}
 		private String title;
-		private final ExprElm replacementExpression;
-		private final ExprElm[] specifiable;
+		private final ASTNode replacementExpression;
+		private final ASTNode[] specifiable;
 		private final List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
 		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
-		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
+		public Replacement(String title, ASTNode replacementExpression, ASTNode... specifiable) {
 			super();
 			this.title = title;
 			this.replacementExpression = replacementExpression;
@@ -329,10 +329,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		public void setTitle(String title) {
 			this.title = title;
 		}
-		public ExprElm replacementExpression() {
+		public ASTNode replacementExpression() {
 			return replacementExpression;
 		}
-		public ExprElm[] specifiable() {
+		public ASTNode[] specifiable() {
 			return specifiable;
 		}
 		public List<AdditionalDeclaration> additionalDeclarations() {
@@ -358,14 +358,14 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		private final ExprElm offending;
+		private final ASTNode offending;
 		private final List<ICompletionProposal> existingList;
-		public ReplacementsList(ExprElm offending, List<ICompletionProposal> existingList) {
+		public ReplacementsList(ASTNode offending, List<ICompletionProposal> existingList) {
 			super();
 			this.offending = offending;
 			this.existingList = existingList;
 		}
-		public Replacement add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
+		public Replacement add(String replacement, ASTNode elm, boolean alwaysStatement, ASTNode... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
 			if (elm.end() == elm.start() && offending != null)
@@ -381,12 +381,12 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.add(newOne);
 			return newOne;
 		}
-		public Replacement add(String replacement, ExprElm elm, ExprElm... specifiable) {
+		public Replacement add(String replacement, ASTNode elm, ASTNode... specifiable) {
 			return add(replacement, elm, true, specifiable);
 		}
 	}
 	
-	private static ExprElm identifierReplacement(AccessDeclaration original, String newName) {
+	private static ASTNode identifierReplacement(AccessDeclaration original, String newName) {
 		AccessVar result = new AccessVar(newName);
 		result.setExprRegion(original.start(), original.start()+original.identifierLength());
 		return result;
@@ -394,7 +394,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	
 	private static final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
 	
-	private static String parmNameFromExpression(ExprElm expression, int index) {
+	private static String parmNameFromExpression(ASTNode expression, int index) {
 		String exprString = expression.toString();
 		Matcher m = validIdentifierPattern.matcher(exprString);
 		if (m.matches())
@@ -434,7 +434,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
 			final C4ScriptParser parser = C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, true);
-			ExprElm offendingExpression = locator.expressionAtRegion();
+			ASTNode offendingExpression = locator.expressionAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
 			
 			if (offendingExpression != null && topLevel != null) {
@@ -489,31 +489,31 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						// create new variable or function
 						Replacement createNewDeclarationReplacement = replacements.add(
 							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
-							ExprElm.NULL_EXPR,
+							ASTNode.NULL_EXPR,
 							false
 						);
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 						if (accessDec instanceof AccessVar)
 							decs.add(new Replacement.AdditionalDeclaration(
 								new Variable(accessDec.declarationName(), Scope.LOCAL),
-								ExprElm.NULL_EXPR
+								ASTNode.NULL_EXPR
 							));
 						else {
 							CallDeclaration callFunc = (CallDeclaration) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
 								function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
-								ExprElm.NULL_EXPR
+								ASTNode.NULL_EXPR
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
-							for (ExprElm parm : callFunc.params())
+							for (ASTNode parm : callFunc.params())
 								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.type(parser)));
 							function.setParameters(parms);
 						}
 
 						// gather proposals through ClonkCompletionProcessor and propose those with a similar name 
-						ExprElm expr;
+						ASTNode expr;
 						if (offendingExpression.parent() instanceof Sequence) {
 							Sequence sequence = (Sequence) offendingExpression.parent();
 							expr = sequence.subSequenceUpTo(offendingExpression); 
@@ -531,7 +531,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								if (similarity > 0) {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
-									ExprElm repl = identifierReplacement(accessDec, dec.name());
+									ASTNode repl = identifierReplacement(accessDec, dec.name());
 									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false);
 								}
 							}
@@ -631,10 +631,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				case ReturnAsFunction:
 					if (offendingExpression instanceof Tuple) {
 						Tuple tuple = (Tuple) offendingExpression;
-						ExprElm[] elms = tuple.subElements();
+						ASTNode[] elms = tuple.subElements();
 						if (elms.length >= 2) {
-							ExprElm returnExpr = elms[0];
-							ExprElm[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ExprElm.class);
+							ASTNode returnExpr = elms[0];
+							ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
 							replacements.add(
 								Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
 								new BunchOfStatements(

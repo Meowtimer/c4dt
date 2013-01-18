@@ -1,26 +1,26 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
-public class Parenthesized extends ExprElm {
+public class Parenthesized extends ASTNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private ExprElm innerExpr;
+	private ASTNode innerExpr;
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {innerExpr};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {innerExpr};
 	}
 	@Override
-	public void setSubElements(ExprElm[] elements) {
+	public void setSubElements(ASTNode[] elements) {
 		innerExpr = elements[0];
 	}
-	public Parenthesized(ExprElm innerExpr) {
+	public Parenthesized(ASTNode innerExpr) {
 		super();
 		this.innerExpr = innerExpr;
 		assignParentToSubElements();
@@ -44,12 +44,12 @@ public class Parenthesized extends ExprElm {
 		return innerExpr.hasSideEffects();
 	}
 
-	public ExprElm innerExpression() {
+	public ASTNode innerExpression() {
 		return innerExpr;
 	}
 
 	@Override
-	public ExprElm optimize(C4ScriptParser parser)
+	public ASTNode optimize(C4ScriptParser parser)
 	throws CloneNotSupportedException {
 		if (!(parent() instanceof OperatorExpression) && !(parent() instanceof Sequence))
 			return innerExpr.optimize(parser);

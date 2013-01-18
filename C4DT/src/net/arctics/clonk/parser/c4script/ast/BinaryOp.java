@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ExprElm;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -37,7 +37,7 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
 		if (context.strictLevel() >= 2) {
 			Operator op = operator();
@@ -51,7 +51,7 @@ public class BinaryOp extends OperatorExpression {
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
 		if ((operator() == Operator.And || operator() == Operator.Or) && (parent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
-			ExprElm block = convertOperatorHackToBlock(context);
+			ASTNode block = convertOperatorHackToBlock(context);
 			if (block != null)
 				return block;
 		}
@@ -59,9 +59,9 @@ public class BinaryOp extends OperatorExpression {
 		return super.optimize(context);
 	}
 
-	private ExprElm convertOperatorHackToBlock(C4ScriptParser context) throws CloneNotSupportedException {
-		LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
-		ExprElm r;
+	private ASTNode convertOperatorHackToBlock(C4ScriptParser context) throws CloneNotSupportedException {
+		LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
+		ASTNode r;
 		boolean works = true;
 		Operator hackOp = this.operator();
 		// gather left sides (must not be operators)
@@ -82,7 +82,7 @@ public class BinaryOp extends OperatorExpression {
 			leftSideArguments.addFirst(r);
 			List<Statement> statements = new LinkedList<Statement>();
 			// wrap expressions in statements
-			for (ExprElm ex : leftSideArguments)
+			for (ASTNode ex : leftSideArguments)
 				statements.add(new SimpleStatement(ex.optimize(context)));
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
@@ -94,20 +94,20 @@ public class BinaryOp extends OperatorExpression {
 		return null;
 	}
 
-	private ExprElm leftSide, rightSide;
+	private ASTNode leftSide, rightSide;
 
 	@Override
-	public ExprElm[] subElements() {
-		return new ExprElm[] {leftSide, rightSide};
+	public ASTNode[] subElements() {
+		return new ASTNode[] {leftSide, rightSide};
 	}
 
 	@Override
-	public void setSubElements(ExprElm[] elements) {
+	public void setSubElements(ASTNode[] elements) {
 		leftSide  = elements[0];
 		rightSide = elements[1];
 	}
 
-	public BinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
+	public BinaryOp(Operator operator, ASTNode leftSide, ASTNode rightSide) {
 		super(operator);
 		setLeftSide(leftSide);
 		setRightSide(rightSide);
@@ -122,20 +122,20 @@ public class BinaryOp extends OperatorExpression {
 		super(op);
 	}
 
-	public ExprElm leftSide() {
+	public ASTNode leftSide() {
 		return leftSide;
 	}
 
-	public ExprElm rightSide() {
+	public ASTNode rightSide() {
 		return rightSide;
 	}
 
-	public void setLeftSide(ExprElm leftSide) {
+	public void setLeftSide(ASTNode leftSide) {
 		this.leftSide = leftSide;
 		leftSide.setParent(this);
 	}
 
-	public void setRightSide(ExprElm rightSide) {
+	public void setRightSide(ASTNode rightSide) {
 		this.rightSide = rightSide;
 		rightSide.setParent(this);
 		setFinishedProperly(rightSide.isFinishedProperly());
@@ -212,7 +212,7 @@ public class BinaryOp extends OperatorExpression {
 		try {
 			Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateAtParseTime(context));
 			Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateAtParseTime(context));
-			if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
+			if (leftSide != null && leftSide != ASTNode.EVALUATION_COMPLEX) {
 				switch (operator()) {
 				case And:
 					// false && <anything> => false
@@ -227,7 +227,7 @@ public class BinaryOp extends OperatorExpression {
 				default:
 					break;
 				}
-				if (rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX)
+				if (rightSide != null && rightSide != ASTNode.EVALUATION_COMPLEX)
 					return evaluateOn(leftSide, rightSide);
 			}
 		}
