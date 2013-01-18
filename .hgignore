@@ -5,6 +5,7 @@ bbpush
 pullfromc4dt
 @dot/*
 help
+products
 C4DTUpdateSite/features/*
 C4DTUpdateSite/plugins/*
 C4DTUpdateSite/artifacts.jar

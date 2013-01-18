@@ -95,10 +95,21 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.perspectives">
-		<perspective name="Clonk" icon="icons/Clonk_C4.png"
-			class="net.arctics.clonk.ui.ClonkPerspective" id="net.arctics.clonk.clonkPerspective" />
+		<perspective
+			name="Clonk"
+			icon="icons/Clonk_C4.png"
+			class="net.arctics.clonk.ui.ClonkPerspective" id="net.arctics.clonk.clonkPerspective"
+		>
+			<description>%Perspective_Description</description>
+		</perspective>
 	</extension>
-
+	
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension targetID="net.arctics.clonk.clonkPerspective">
+			<actionSet id="org.eclipse.debug.ui.launchActionSet"/>
+		</perspectiveExtension>
+	</extension>
+	
 	<extension point="org.eclipse.ui.ide.projectNatureImages">
 		<image icon="icons/projectNatureIcon.png" natureId="net.arctics.clonk.clonknature"
 			id="net.arctics.clonk.clonkNatureIcon" />
@@ -607,13 +618,13 @@
 	</extension>
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
-		<product application="org.eclipse.ui.ide.workbench" name="Clonklipse">
+		<product application="org.eclipse.ui.ide.workbench" name="C4DT">
 			<property name="windowImages" value="res/DistroIcon16x16.gif,res/DistroIcon32x32.gif,res/DistroIcon48x48.gif,res/DistroIcon64x64.gif" />
 			<property name="aboutText" value="Clonk Development Tools for Eclipse" />
 			<property name="startupForegroundColor" value="C8D5EA" />
 			<property name="startupProgressRect" value="0,280,455,15" />
 			<property name="startupMessageRect" value="7,220,441,20" />
-			<property name="appName" value="Clonklipse" />
+			<property name="appName" value="C4DT" />
 			<property name="preferenceCustomization" value="plugin_customization.ini" />
 		</product>
 	</extension>
