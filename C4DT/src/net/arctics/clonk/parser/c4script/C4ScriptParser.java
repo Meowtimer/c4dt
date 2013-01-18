@@ -637,7 +637,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + bodyOffset());
 			if (builder == null)
 				reportProblemsOf(statements, false);
-			function.setBodyLocation(new SourceLocation(bodyStart, this.offset));
+			function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
 			function.storeBody(bunch, functionSource(function));
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM)
 				function.createParameters(numUnnamedParameters);
