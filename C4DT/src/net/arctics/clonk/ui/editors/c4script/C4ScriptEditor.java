@@ -273,7 +273,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							}
 						}, VisitCodeFlavour.AlsoStatements, true);
 						for (Variable localVar : f.localVars()) {
-							SourceLocation l = localVar.location();
+							SourceLocation l = localVar;
 							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
 							l.setEnd(f.bodyLocation().getOffset()+l.end());
 						}
@@ -502,9 +502,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Function f = functionAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
-			this.setHighlightRange(f.location().getOffset(), Math.min(
-				f.bodyLocation().getOffset()-f.location().getOffset() + f.bodyLocation().getLength() + (f.isOldStyle()?0:1),
-				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.location().getOffset()
+			this.setHighlightRange(f.start(), Math.min(
+				f.bodyLocation().getOffset()-f.start() + f.bodyLocation().getLength() + (f.isOldStyle()?0:1),
+				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.start()
 			), false);
 			noHighlight = false;
 		}

@@ -169,7 +169,7 @@ public class Overlay extends OverlayBase {
 		OverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
 			for (OverlayBase o : ov.childCollection())
-				if (offset >= o.location().start() && offset < (o.body!=null?o.body:o.location()).end()) {
+				if (offset >= o.start() && offset < (o.body!=null?o.body:o).end()) {
 					ov = o;
 					continue Outer;
 				}

@@ -17,24 +17,16 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, ITreeNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
 	private String value;
 	
-	public NameValueAssignment(int pos, int endPos, String k, String v) {
-		this.location = new SourceLocation(pos, endPos);
+	public NameValueAssignment(int start, int end, String k, String v) {
+		super(start, end);
 		this.name = k;
 		value = v;
-	}
-	
-	public int start() {
-		return location().start();
-	}
-	
-	public int end() {
-		return location().end();
 	}
 
 	@Override
@@ -55,16 +47,6 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	@Override
 	public void setStringValue(String value, Object context) {
 		this.value = value;
-	}
-
-	@Override
-	public int getLength() {
-		return location().getLength();
-	}
-
-	@Override
-	public int getOffset() {
-		return location().getOffset();
 	}
 
 	@Override
@@ -100,8 +82,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	
 	@Override
 	public IRegion regionToSelect() {
-		SourceLocation loc = location();
-		return new Region(loc.getOffset()+loc.getLength()-value.length(), value.length());
+		return new Region(start()+getLength()-value.length(), value.length());
 	}
 	
 	@Override

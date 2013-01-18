@@ -11,7 +11,6 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
@@ -95,24 +94,6 @@ public class Directive extends Declaration implements Serializable {
 		return type.toString();
 	}
 
-	/**
-	 * Return an {@link ExprElm} whose {@link ExprElm#start()} and {@link ExprElm#end()} methods match this directive's {@link #location()}.
-	 * @return
-	 */
-	public ExprElm asExpression() {
-		return new ExprElm() {
-			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-			@Override
-			public int start() {
-				return location().start();
-			}
-			@Override
-			public int end() {
-				return location().end();
-			}
-		};
-	}
-
 	public ID contentAsID() {
 		if (cachedID == null)
 			cachedID = ID.get(this.contents());
@@ -132,12 +113,12 @@ public class Directive extends Declaration implements Serializable {
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (contents() == null)
-				parser.error(ParserErrorCode.MissingDirectiveArgs, location(), C4ScriptParser.NO_THROW, this.toString());
+				parser.error(ParserErrorCode.MissingDirectiveArgs, this, C4ScriptParser.NO_THROW, this.toString());
 			else {
 				ID id = contentAsID();
 				Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
 				if (obj == null)
-					parser.error(ParserErrorCode.UndeclaredIdentifier, location(), C4ScriptParser.NO_THROW, contents());
+					parser.error(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, contents());
 			}
 			break;
 		default:

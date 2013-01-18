@@ -139,7 +139,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 									dupes = new LinkedList<FindDuplicatesMatch>();
 									detectedDupes.put(function, dupes);
 								}
-								FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.location().getOffset(), otherFn.location().getLength(), function, otherFn);
+								FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.start(), otherFn.getLength(), function, otherFn);
 								dupes.add(match);
 								result.addMatch(match);
 								deemedDuplicate.add(otherFn);

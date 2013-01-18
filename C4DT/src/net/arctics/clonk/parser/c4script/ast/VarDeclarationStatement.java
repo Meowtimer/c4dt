@@ -79,7 +79,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 				String varName = pair.name;
 				Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
-					return new EntityRegion(var, new Region(var.location().start()-activeFunc.bodyLocation().start(), var.location().getLength()));
+					return new EntityRegion(var, new Region(var.start()-activeFunc.bodyLocation().start(), var.getLength()));
 			}
 		}
 		return super.entityAt(offset, parser);

@@ -51,12 +51,8 @@ public class IniSection extends Declaration implements
 	}
 
 	protected IniSection(SourceLocation location, String name) {
-		this.location = location;
+		setLocation(location);
 		this.name = name;
-	}
-
-	public int startPos() {
-		return location().start();
 	}
 
 	public Map<String, IniItem> subItemMap() {

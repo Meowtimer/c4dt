@@ -196,7 +196,7 @@ public class EntityLocator extends ExpressionLocator {
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
 		for (Declaration d : script.subDeclarations(script.index(), Script.FUNCTIONS|Script.VARIABLES))
-			if (d.location().containsOffset(region.getOffset())) {
+			if (d.isAt(region.getOffset())) {
 				entity = d;
 				return;
 			}

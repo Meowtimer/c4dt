@@ -688,7 +688,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (UNUSEDPARMWARNING)
 			for (Variable p : func.parameters())
 				if (!p.isUsed())
-					warning(ParserErrorCode.UnusedParameter, p.location(), ABSOLUTE_MARKER_LOCATION, p.name());
+					warning(ParserErrorCode.UnusedParameter, p, ABSOLUTE_MARKER_LOCATION, p.name());
 		if (func.localVars() != null)
 			for (Variable v : func.localVars()) {
 				if (!v.isUsed())
@@ -1315,7 +1315,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunc.setHeader(absoluteSourceLocation(header.start, endOfHeader));
 		Function existingFunction = script.findLocalFunction(currentFunc.name(), false);
 		if (existingFunction != null && existingFunction.isGlobal() == currentFunc.isGlobal())
-			warning(ParserErrorCode.DuplicateDeclaration, currentFunc.location(), ABSOLUTE_MARKER_LOCATION, currentFunc.name());
+			warning(ParserErrorCode.DuplicateDeclaration, currentFunc, ABSOLUTE_MARKER_LOCATION, currentFunc.name());
 		script.addDeclaration(currentFunc);
 		if (!currentFunc.isOldStyle())
 			setCurrentFunction(null); // to not suppress errors in-between functions

@@ -124,5 +124,13 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public boolean containsOffset(int offset) {
 		return offset >= start && offset <= end;
 	}
+	
+	public boolean sameLocation(SourceLocation other) {
+		return other != null && this.start == other.start && this.end == other.end;
+	}
+	
+	public boolean isAt(int offset) {
+		return offset >= start && offset <= end;
+	}
 
 }

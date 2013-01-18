@@ -93,7 +93,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (target instanceof DeclarationLocation)
 				target = ((DeclarationLocation)target).declaration();
 			DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
-			if (documentedFunction != null && documentedFunction.originInfo() != null && documentedFunction.location() != null) {
+			if (documentedFunction != null && documentedFunction.originInfo() != null) {
 				IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
 					new File(documentedFunction.engine().settings().repositoryPath, documentedFunction.originInfo())
 				);
@@ -103,7 +103,7 @@ public class ClonkHyperlink implements IHyperlink {
 					EditorsUI.DEFAULT_TEXT_EDITOR_ID
 				);
 				if (editor instanceof ITextEditor)
-					((ITextEditor)editor).selectAndReveal(documentedFunction.location().getOffset(), documentedFunction.location().getLength());
+					((ITextEditor)editor).selectAndReveal(documentedFunction.start(), documentedFunction.getLength());
 			}
 			else if (target instanceof Declaration) {
 				Declaration dec = (Declaration)target;

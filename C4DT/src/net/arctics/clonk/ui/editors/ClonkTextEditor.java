@@ -230,7 +230,7 @@ public class ClonkTextEditor extends TextEditor {
 	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-			if (target != structure && target.location() != null) {
+			if (target != structure) {
 				if (structure.isDirty())
 					clonkTextEditor.refreshStructure();
 				Declaration old = target;
@@ -242,7 +242,7 @@ public class ClonkTextEditor extends TextEditor {
 			}
 		} else if (editor instanceof AbstractTextEditor) {
 			AbstractTextEditor ed = (AbstractTextEditor) editor;
-			ed.selectAndReveal(target.location().start(), target.location().end()-target.location().start());
+			ed.selectAndReveal(target.start(), target.getLength());
 		}
 	}
 	

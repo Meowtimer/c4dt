@@ -7,8 +7,8 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.DocumentEvent;
@@ -64,9 +64,8 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			r.added();
 			document.addDocumentListener(r);
 			listeners.put(document, r);
-		} else {
+		} else
 			r = (T)result;
-		}
 		r.clients.add(client);
 		return r;
 	}
@@ -127,7 +126,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @param add The increment value to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 */
 	protected void adjustDec(Declaration declaration, int threshold, int add) {
-		incrementLocationOffsetsExceedingThreshold(declaration.location(), threshold, add);
+		incrementLocationOffsetsExceedingThreshold(declaration, threshold, add);
 	}
 
 	/**
@@ -135,35 +134,29 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @param event Document event describing the document change that triggered this call.
 	 */
 	protected void adjustDeclarationLocations(DocumentEvent event) {
-		if (event.getLength() == 0 && event.getText().length() > 0) {
+		if (event.getLength() == 0 && event.getText().length() > 0)
 			// text was added
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
 				adjustDec(dec, event.getOffset(), event.getText().length());
-			}
-		}
-		else if (event.getLength() > 0 && event.getText().length() == 0) {
+		else if (event.getLength() > 0 && event.getText().length() == 0)
 			// text was removed
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
 				adjustDec(dec, event.getOffset(), -event.getLength());
-			}
-		}
 		else {
 			String newText = event.getText();
 			int replLength = event.getLength();
 			int offset = event.getOffset();
 			int diff = newText.length() - replLength;
 			// mixed
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL)) {
-				if (dec.location().start() >= offset + replLength)
+			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
+				if (dec.start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {
 					// inside function: expand end location
 					Function func = (Function) dec;
-					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end()) {
+					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end())
 						func.bodyLocation().setEnd(func.bodyLocation().end()+diff);
-					}
 				}
-			}
 		}
 	}
 	
@@ -173,13 +166,12 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @return null so this method can be called and its return value be used as assignment right side with the TimerTask reference variable being on the left.
 	 */
 	public TimerTask cancelTimerTask(TimerTask whichTask) {
-		if (whichTask != null) {
+		if (whichTask != null)
 			try {
 				whichTask.cancel();
 			} catch (IllegalStateException e) {
 				System.out.println("happens all the time, bitches");
 			}
-		}
 		return null;
 	}
 	

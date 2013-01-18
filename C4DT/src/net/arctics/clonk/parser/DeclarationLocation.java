@@ -30,7 +30,7 @@ public class DeclarationLocation implements Serializable, IIndexEntity, IHasRela
 		return location;
 	}
 	public DeclarationLocation(Declaration declaration) {
-		this(declaration, declaration.location(), declaration.resource());
+		this(declaration, declaration, declaration.resource());
 	}
 	public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
 		super();

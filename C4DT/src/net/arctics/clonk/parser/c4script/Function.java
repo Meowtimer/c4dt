@@ -789,7 +789,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			for (Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
 				Declaration existing = it.next();
-				if (existing.location().equals(d.location())) {
+				if (existing.sameLocation(d)) {
 					it.remove();
 					break;
 				}
@@ -869,7 +869,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (otherDeclarations == null)
 				return null;
 			for (Declaration other : otherDeclarations)
-				if (other.getClass() == from.getClass() && other.location() == from.location())
+				if (other.getClass() == from.getClass() && other.sameLocation(from))
 					return (T) other;
 		}
 		return null;

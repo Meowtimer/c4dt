@@ -246,7 +246,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	public void markerAtValue(String markerType, ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
-		marker(markerType, error, entry.location().start(), entry.location().end(), markerSeverity, args);
+		marker(markerType, error, entry.start(), entry.end(), markerSeverity, args);
 	}
 	
 	protected String configurationName() {
@@ -346,7 +346,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
 		for (IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
-			int start = sec.location().start();
+			int start = sec.start();
 			if (start > offset)
 				break;
 			section = sec;

@@ -737,9 +737,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
 					private static final long serialVersionUID = 1L;
 					@Override
-					public Engine engine() {
-						return engine;
-					}
+					public Engine engine() { return engine; }
 				}, in);
 				try {
 					index = indexClass.cast(objStream.readObject());

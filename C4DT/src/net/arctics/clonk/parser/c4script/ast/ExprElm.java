@@ -48,6 +48,9 @@ import org.eclipse.jface.text.Region;
  */
 public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Serializable {
 
+	public ExprElm() {}
+	protected ExprElm(int start, int end) { super(start, end); }
+	
 	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
@@ -118,8 +121,8 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return result;
 	}
 	
-	private ExprElm parent, predecessorInSequence;
-	private int flags = PROPERLY_FINISHED;
+	private transient ExprElm parent, predecessorInSequence;
+	private transient int flags = PROPERLY_FINISHED;
 	
 	public final boolean flagsEnabled(int flags) {
 		return (this.flags & flags) != 0;
@@ -1063,9 +1066,15 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public void postLoad(ExprElm parent, DeclarationObtainmentContext context) {
-		for (ExprElm e : subElements())
-			if (e != null)
+		ExprElm prev = null;
+		for (ExprElm e : subElements()) {
+			if (e != null) {
+				e.predecessorInSequence = prev;
+				e.parent = this;
 				e.postLoad(this, context);
+			}
+			prev = e;
+		}
 	}
 	
 	protected final void missing(C4ScriptParser parser) throws ParsingException {

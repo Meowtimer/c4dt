@@ -467,7 +467,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			if (d == from)
 				return (T)d;
 			if (d.name().equals(from.name())) {
-				boolean newLocationMatch = Utilities.objectsEqual(d.location(), from.location());
+				boolean newLocationMatch = d.sameLocation(from);
 				if (candidate == null || (newLocationMatch && !locationMatch)) {
 					candidate = (T)d;
 					locationMatch = newLocationMatch;
@@ -718,14 +718,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public Function funcAt(IRegion region) {
-		//System.out.println("");
 		requireLoaded();
 		for (Function f : functions()) {
 			int fStart = f.bodyLocation().getOffset();
 			int fEnd   = f.bodyLocation().getOffset()+f.bodyLocation().getLength();
 			int rStart = region.getOffset();
 			int rEnd   = region.getOffset()+region.getLength();
-			//System.out.println(String.format("Shit: %d %d", fStart, fEnd));
 			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd)
 				return f;
 		}
@@ -750,7 +748,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
 		for (Function f : functions())
-			if (f.location().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.bodyLocation().getOffset()+f.bodyLocation().getLength())
+			if (f.start() <= region.getOffset() && region.getOffset()+region.getLength() <= f.bodyLocation().end())
 				return f;
 		return null;
 	}

@@ -128,9 +128,9 @@ public class AccessVar extends AccessDeclaration {
 					parser.script().addUsedScript(var.script());
 					break;
 				case VAR:
-					if (var.location() != null && parser.currentFunction() != null && var.parentDeclaration() == parser.currentFunction()) {
+					if (parser.currentFunction() != null && var.parentDeclaration() == parser.currentFunction()) {
 						int locationUsed = parser.currentFunction().bodyLocation().getOffset()+this.start();
-						if (locationUsed < var.location().getOffset())
+						if (locationUsed < var.start())
 							parser.warning(ParserErrorCode.VarUsedBeforeItsDeclaration, this, 0, var.name());
 					}
 					break;

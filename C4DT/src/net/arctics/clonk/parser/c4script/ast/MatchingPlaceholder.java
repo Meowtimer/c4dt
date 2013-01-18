@@ -17,12 +17,12 @@ import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IStorage;
@@ -88,7 +88,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private boolean remainder;
 	private ExprElm[] subElements;
 	private Function code;
-	private Pattern parameterPattern;
+	private Pattern associatedDeclarationNamePattern;
 	private String property;
 	private EnumSet<Flag> flags;
 	
@@ -150,7 +150,7 @@ public class MatchingPlaceholder extends Placeholder {
 				int end = start;
 				while (scanner.read() != '^')
 					end++;
-				parameterPattern = Pattern.compile(scanner.readStringAt(start, end));
+				associatedDeclarationNamePattern = Pattern.compile(scanner.readStringAt(start, end));
 				break;
 			}
 			case '>': {
@@ -239,16 +239,25 @@ public class MatchingPlaceholder extends Placeholder {
 			if (patternMatchingText == null || !stringRepresentationPattern.matcher(patternMatchingText).matches())
 				return false;
 		}
-		if (parameterPattern != null) {
-			CallDeclaration call = as(element.parent(), CallDeclaration.class);
-			if (call != null) {
-				Variable v = call.parmDefinitionForParmExpression(element);
-				if (v != null && parameterPattern.matcher(v.name()).matches())
-					return true;
-			}
+		if (associatedDeclarationNamePattern != null) {
+			Declaration decl = associatedDeclaration(element);
+			if (decl != null && associatedDeclarationNamePattern.matcher(decl.name()).matches())
+				return true;
 			return false;
 		}
 		return true;
+	}
+	
+	protected Declaration associatedDeclaration(ExprElm element) {
+		CallDeclaration call = as(element.parent(), CallDeclaration.class);
+		if (call != null)
+			return call.parmDefinitionForParmExpression(element);
+		
+		FunctionBody body = as(element, FunctionBody.class);
+		if (body != null)
+			return body.owningDeclaration();
+		
+		return null;
 	}
 
 	@Override

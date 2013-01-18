@@ -311,10 +311,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return scope == Scope.STATIC || scope == Scope.CONST;
 	}
 	
-	public boolean isAt(int offset) {
-		return location() != null && offset >= location().start() && offset <= location().end();
-	}
-	
 	private void ensureTypeLockedIfPredefined(Declaration declaration) {
 		if (!staticallyTyped && declaration instanceof Engine)
 			staticallyTyped = true;
@@ -416,7 +412,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		Variable clone = new Variable();
 		clone.description = this.description;
 		clone.initializationExpression = this.initializationExpression != null ? this.initializationExpression.clone() : null;
-		clone.location = this.location.clone();
+		clone.setLocation(this);
 		clone.name = this.name;
 		clone.scope = this.scope;
 		clone.type = this.type;

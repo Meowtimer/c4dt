@@ -165,7 +165,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			dec = dec.latestVersion();
 			if (dec != null)
 				if (dec.containedIn(editor.topLevelDeclaration()))
-					editor.selectAndReveal(dec.location());
+					editor.selectAndReveal(dec);
 		}
 	}
 

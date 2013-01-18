@@ -201,7 +201,7 @@ public class PropListExpression extends ExprElm {
 		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
 		for (Variable v : this.components())
 			if (v.isAt(absolute))
-				return new EntityRegion(v, v.location().relativeTo(parser.absoluteSourceLocation(0, 0)));
+				return new EntityRegion(v, v.relativeTo(parser.absoluteSourceLocation(0, 0)));
 		return super.entityAt(offset, parser);
 	}
 	

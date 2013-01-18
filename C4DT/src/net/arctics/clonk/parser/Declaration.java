@@ -44,15 +44,13 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
+	protected Declaration() {}
+	protected Declaration(int start, int end) { super(start, end); }
+	
 	/**
 	 * The name of this declaration
 	 */
 	protected String name;
-	
-	/**
-	 * The location this declaration is declared at
-	 */
-	protected SourceLocation location;
 	
 	/**
 	 * The parent declaration
@@ -84,22 +82,16 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * @param Set the location of the declaration in its declaring file.
 	 */
 	public void setLocation(SourceLocation location) {
-		this.location = location;
+		this.start = location != null ? location.start() : 0;
+		this.end = location != null ? location.end() : 0;
 	}
 	
 	/**
-	 * @return Return the location of the declaration in its declaring file.
-	 */
-	public SourceLocation location() {
-		return location;
-	}
-	
-	/**
-	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns the same location as {@link #location()}
+	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns this object since it already is a location.
 	 * @return The region to select when using editor navigation commands
 	 */
 	public IRegion regionToSelect() {
-		return location();
+		return this;
 	}
 	
 	/**
@@ -436,7 +428,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	
 	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
-			new DeclarationLocation(this, location(), resource())
+			new DeclarationLocation(this, this, resource())
 		};
 	}
 	

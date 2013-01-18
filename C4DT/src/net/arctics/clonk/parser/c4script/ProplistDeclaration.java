@@ -19,7 +19,6 @@ import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities;
 
 /**
  * A proplist declaration parsed from an {key:value, ...} expression.
@@ -245,7 +244,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		if (other == this)
 			return true;
 		ProplistDeclaration o = as(other, ProplistDeclaration.class);
-		return o != null && Utilities.objectsEqual(o.location(), this.location());
+		return o != null && o.sameLocation(this);
 	}
 	
 	@Override
@@ -254,7 +253,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		for (Variable v : components)
 			clonedComponents.add(v.clone());
 		ProplistDeclaration clone = new ProplistDeclaration(clonedComponents);
-		clone.location = this.location.clone();
+		clone.setLocation(this);
 		clone.adHoc = this.adHoc;
 		return clone;
 	}

@@ -31,8 +31,8 @@ public class LandscapeScriptSourceViewerConfiguration extends ClonkSourceViewerC
 				IRegion region, boolean canShowMultipleHyperlinks) {
 			OverlayBase overlay = editor().script().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
-			if (overlay instanceof Overlay && ((Overlay)overlay).template() != null && region.getOffset()-overlay.location().start() < ((Overlay) overlay).template().name().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.location().getOffset(), ((Overlay) overlay).template().name().length()), ((Overlay) overlay).template())};
+			if (overlay instanceof Overlay && ((Overlay)overlay).template() != null && region.getOffset()-overlay.start() < ((Overlay) overlay).template().name().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.start(), ((Overlay) overlay).template().name().length()), ((Overlay) overlay).template())};
 			return null;
 		}
 	}
