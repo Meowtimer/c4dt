@@ -9,13 +9,13 @@ import java.util.concurrent.ExecutorService;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -82,7 +82,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 		threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService item) {
-				class ScriptSearcher implements Runnable, IASTVisitor {
+				class ScriptSearcher implements Runnable, IASTVisitor<C4ScriptParser> {
 					private final C4ScriptParser parser;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
 					public ScriptSearcher(Script script) {

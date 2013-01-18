@@ -4,11 +4,13 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
@@ -16,11 +18,9 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.FunctionEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -62,7 +62,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class Visitor implements IResourceVisitor, IASTVisitor {
+	private class Visitor implements IResourceVisitor, IASTVisitor<C4ScriptParser> {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;

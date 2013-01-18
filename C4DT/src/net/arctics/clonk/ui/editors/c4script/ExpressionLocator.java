@@ -1,9 +1,9 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTVisitor;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -13,7 +13,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class ExpressionLocator implements IASTVisitor {
+public class ExpressionLocator implements IASTVisitor<C4ScriptParser> {
 	
 	protected ASTNode exprAtRegion;
 	protected ASTNode topLevelInRegion;
@@ -40,7 +40,7 @@ public class ExpressionLocator implements IASTVisitor {
 
 	@Override
 	public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
-		expression.traverse(new IASTVisitor() {
+		expression.traverse(new IASTVisitor<C4ScriptParser>() {
 			@Override
 			public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {

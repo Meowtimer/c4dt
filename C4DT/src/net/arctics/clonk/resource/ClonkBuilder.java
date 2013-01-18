@@ -19,8 +19,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Markers;
@@ -239,8 +237,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 			
-			parseFunctions(scripts);
-			
 			if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 				reportProblems(parsers, scripts);
 			
@@ -420,34 +416,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	@Profiled
-	private void parseFunctions(final Script[] scripts) {
-		// parse function code
-		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseFunctionCode));
-		for (C4ScriptParser parser : parserMap.values())
-			if (parser != null)
-				parser.prepareForFunctionParsing();
-
-		for (Script s : scripts)
-			//s.clearDependentScripts();
-			s.generateFindDeclarationCache();
-		Utilities.threadPool(new Sink<ExecutorService> () {
-			@Override
-			public void receivedObject(ExecutorService pool) {
-				for (final Script script : scripts)
-					pool.execute(new Runnable() {
-						@Override
-						public void run() {
-							if (monitor.isCanceled())
-								return;
-							performParseFunctions(script);
-							monitor.worked(1);
-						}
-					});
-			}
-		}, 20);
-	}
-	
-	@Profiled
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
@@ -554,28 +522,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser.clean();
 			parser.parseDeclarations();
 		}
-	}
-
-	/**
-	 * Parse function code/validate variable initialization code.
-	 * An attempt is made to parse included scripts before the passed one.
-	 * @param script The script to parse
-	 */
-	private void performParseFunctions(Script script) {
-		C4ScriptParser parser;
-		synchronized (parserMap) {
-			parser = parserMap.containsKey(script) ? parserMap.remove(script) : null;
-		}
-		if (parser != null)
-			try {
-				// parse #included scripts before this one
-				for (IHasIncludes include : script.includes(nature.index(), script, 0))
-					if (include instanceof Script)
-						performParseFunctions((Script) include);
-				parser.parseCodeOfFunctionsAndValidate();
-			} catch (ParsingException e) {
-				e.printStackTrace();
-			}
 	}
 
 }

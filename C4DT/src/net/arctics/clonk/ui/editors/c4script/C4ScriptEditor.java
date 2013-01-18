@@ -20,9 +20,10 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -35,7 +36,6 @@ import net.arctics.clonk.parser.c4script.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -592,7 +592,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return functionAt(cursorPos());
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(IASTVisitor exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparseWithDocumentContents(IASTVisitor<C4ScriptParser> exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
@@ -608,11 +608,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private static C4ScriptParser reparseWithDocumentContents(
-			IASTVisitor exprListener,
-			boolean onlyDeclarations, Object document,
-			final Script script,
-			Runnable uiRefreshRunnable)
-			throws ParsingException {
+		IASTVisitor<C4ScriptParser> exprListener,
+		boolean onlyDeclarations, Object document,
+		final Script script,
+		Runnable uiRefreshRunnable
+	) throws ParsingException {
 		C4ScriptParser parser = parserForDocument(document, script);
 		List<ITypeInfo> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {

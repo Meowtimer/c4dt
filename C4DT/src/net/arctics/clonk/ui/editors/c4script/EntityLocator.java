@@ -12,7 +12,9 @@ import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -22,9 +24,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.StructuralType;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
@@ -219,7 +219,7 @@ public class EntityLocator extends ExpressionLocator {
 
 	@Override
 	public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
-		expression.traverse(new IASTVisitor() {
+		expression.traverse(new IASTVisitor<C4ScriptParser>() {
 			@Override
 			public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {

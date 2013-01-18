@@ -15,8 +15,8 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
@@ -942,6 +942,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Conf.blockPrelude(new AppendableBackedExprWriter(builder), 0);
 		builder.append("{\n\n}"); //$NON-NLS-1$
 		return builder.toString();
+	}
+	
+	@Override
+	public ASTNode[] subElements() {
+		return new ASTNode[] { body };
+	}
+	
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		storeBody((FunctionBody) elms[0], "");
 	}
 	
 }

@@ -37,7 +37,6 @@ import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
-import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
@@ -45,7 +44,6 @@ import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ast.TypeInfo;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
@@ -70,7 +68,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode() {}
 	protected ASTNode(int start, int end) { super(start, end); }
 	
-	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor {
+	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor<Object> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
 		private final String textRepresentation;
@@ -99,7 +97,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return null;
 		}
 		@Override
-		public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
+		public TraversalContinuation visitExpression(ASTNode expression, Object context) {
 			int ed = depth(expression);
 			if (ed == depth && textRepresentation.equals(expression.toString())) {
 				found = expression;
@@ -571,8 +569,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parser the parser as context
 	 * @return flow control for the calling function
 	 */
-	public TraversalContinuation traverse(IASTVisitor listener, C4ScriptParser parser) {
-		TraversalContinuation result = listener.visitExpression(this, parser);
+	public <T> TraversalContinuation traverse(IASTVisitor<T> listener, T context) {
+		TraversalContinuation result = listener.visitExpression(this, context);
 		switch (result) {
 		case Cancel:
 			return TraversalContinuation.Cancel;
@@ -584,7 +582,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		for (ASTNode sub : subElements()) {
 			if (sub == null)
 				continue;
-			switch (sub.traverse(listener, parser)) {
+			switch (sub.traverse(listener, context)) {
 			case Continue:
 				break;
 			case TraverseSubElements: case Cancel:
