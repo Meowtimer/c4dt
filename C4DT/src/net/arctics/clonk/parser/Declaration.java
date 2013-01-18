@@ -13,6 +13,7 @@ import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -22,6 +23,7 @@ import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
@@ -482,6 +484,13 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	@Override
 	public boolean equals(Object other) {
 		return this == other; // identity
+	}
+	
+	protected Typing typing() {
+		Typing typing = Typing.ParametersOptionallyTyped;
+		if (index() instanceof ProjectIndex)
+			typing = ((ProjectIndex)index()).nature().settings().typing;
+		return typing;
 	}
 	
 }

@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,13 +16,13 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -30,6 +32,7 @@ import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
@@ -273,7 +276,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			string.append(name());
 			string.append("("); //$NON-NLS-1$
 		}
-		printParameterString(string, engineCompatible);
+		printParameterString(new AppendableBackedExprWriter(string), engineCompatible);
 		if (withFuncName) string.append(")"); //$NON-NLS-1$
 		return string.toString();
 	}
@@ -287,37 +290,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return longParameterString(true);
 	}
 
-	private void printParameterString(StringBuilder output, boolean engineCompatible) {
-		if (numParameters() > 0) {
-			for(Variable par : parameters()) {
-				IType type = engineCompatible ? par.type().simpleType() : par.type();
-				type = TypeChoice.remove(type, new IPredicate<IType>() {
-					@Override
-					public boolean test(IType item) {
-						return item instanceof ParameterType;
-					}
-				});
-				if (engineCompatible && !par.isActualParm())
-					continue;
-				if (type != PrimitiveType.UNKNOWN && type != null) {
-					if (!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)) {
-						output.append(type.typeName(true));
-						output.append(' ');
-					}
-					output.append(par.name());
-					output.append(',');
-					output.append(' ');
+	private void printParameterString(ASTNodePrinter output, final boolean engineCompatible) {
+		if (numParameters() > 0)
+			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new IConverter<Variable, String>() {
+				@Override
+				public String convert(Variable par) {
+					IType type = engineCompatible ? par.type().simpleType() : par.type();
+					type = TypeChoice.remove(type, new IPredicate<IType>() {
+						@Override
+						public boolean test(IType item) {
+							return item instanceof ParameterType;
+						}
+					});
+					if (engineCompatible && !par.isActualParm())
+						return null;
+					if (type != PrimitiveType.UNKNOWN && type != null &&
+						(!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)))
+						return type.typeName(false) + " " + par.name();
+					else
+						return par.name();
 				}
-				else {
-					output.append(par.name());
-					output.append(',');
-					output.append(' ');
-				}
-			}
-			if (output.length() > 0)
-				if (output.charAt(output.length() - 1) == ' ')
-					output.delete(output.length() - 2,output.length());
-		}
+			}));
 	}
 
 	/**
@@ -543,7 +536,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Print the function header into the passed string builder
 	 * @param output The StringBuilder to add the header string to
 	 */
-	public void printHeader(StringBuilder output) {
+	public void printHeader(ASTNodePrinter output) {
 		printHeader(output, isOldStyle());
 	}
 	
@@ -552,14 +545,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param output The StringBuilder to add the header string to
 	 * @param oldStyle Whether to print in old 'label-style'
 	 */
-	public void printHeader(StringBuilder output, boolean oldStyle) {
+	public void printHeader(ASTNodePrinter output, boolean oldStyle) {
 		output.append(visibility().toString());
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
-			Typing typing = Typing.ParametersOptionallyTyped;
-			if (index() instanceof ProjectIndex)
-				typing = ((ProjectIndex)index()).nature().settings().typing;
+			Typing typing = typing();
 			switch (typing) {
 			case Dynamic:
 				break;
@@ -583,7 +574,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			output.append(":"); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Return the header string
 	 * @param oldStyle Whether to return the header string in old 'label-style'
@@ -591,7 +582,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public String headerString(boolean oldStyle) {
 		StringBuilder builder = new StringBuilder();
-		printHeader(builder, oldStyle);
+		printHeader(new AppendableBackedExprWriter(builder), oldStyle);
 		return builder.toString();
 	}
 	
@@ -938,8 +929,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Function f = new Function(functionName, scope);
 		for (Variable p : parameters)
 			f.addParameter(p);
-		f.printHeader(builder);
-		Conf.blockPrelude(new AppendableBackedExprWriter(builder), 0);
+		ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
+		f.printHeader(printer);
+		Conf.blockPrelude(printer, 0);
 		builder.append("{\n\n}"); //$NON-NLS-1$
 		return builder.toString();
 	}
@@ -952,6 +944,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		storeBody((FunctionBody) elms[0], "");
+	}
+	
+	@Override
+	public void doPrint(ASTNodePrinter output, int depth) {
+		printHeader(output);
+		body.print(output, 0);
 	}
 	
 }

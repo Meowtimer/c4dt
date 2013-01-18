@@ -247,6 +247,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public void doPrint(ASTNodePrinter output, int depth) {}
 	
 	/**
+	 * Return the printed string for this node. Calls {@link #print(ASTNodePrinter, int)}.
+	 * @return The printed string.
+	 */
+	public String printed() {
+		StringBuilder builder = new StringBuilder();
+		print(builder, 0);
+		return builder.toString();
+	}
+	
+	/**
 	 * Print additional text appended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}

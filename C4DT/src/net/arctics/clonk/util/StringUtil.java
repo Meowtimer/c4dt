@@ -55,6 +55,8 @@ public class StringUtil {
 			output.append(startBlock);
 			boolean started = false;
 			for (Object obj : enumeration) {
+				if (obj == null)
+					continue;
 				if (started)
 					output.append(delimiter);
 				else

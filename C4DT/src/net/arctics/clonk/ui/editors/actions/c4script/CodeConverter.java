@@ -10,16 +10,16 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.index.IHasSubDeclarations;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 
 import org.eclipse.core.runtime.CoreException;
@@ -102,7 +102,7 @@ public abstract class CodeConverter {
 					if (d instanceof Function) {
 						Function f = (Function)d;
 						StringBuilder header = new StringBuilder(f.header().getLength()+10);
-						f.printHeader(header, false);
+						f.printHeader(new AppendableBackedExprWriter(header), false);
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
 					}
 					replaceExpression(d, document, elms, parser, textChange);

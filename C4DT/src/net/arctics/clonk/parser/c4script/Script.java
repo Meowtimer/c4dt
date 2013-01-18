@@ -41,9 +41,9 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
@@ -442,7 +442,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	@Override
-	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
 		ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & FUNCTIONS) != 0)
@@ -1267,4 +1267,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	
 	@Override
 	public boolean isGlobal() { return true; }
+	
+	@Override
+	public ASTNode[] subElements() {
+		List<Declaration> decs = subDeclarations(index(), ALL);
+		return decs.toArray(new ASTNode[decs.size()]);
+	}
 }
