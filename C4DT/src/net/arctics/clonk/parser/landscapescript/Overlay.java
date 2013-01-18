@@ -183,11 +183,8 @@ public class Overlay extends OverlayBase {
 		return this.subOverlays;
 	}
 	
-	public Overlay OwnerOverlay() { 
-		for (Declaration d = parentDeclaration; d != null; d = d.parentDeclaration())
-			if (d instanceof Overlay)
-				return (Overlay)d;
-		return null;
+	public Overlay OwnerOverlay() {
+		return parentOfType(Overlay.class);
 	}
 	
 	public void defaults() {

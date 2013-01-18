@@ -16,13 +16,13 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
@@ -97,7 +97,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function(String name, String type, String desc, Variable... pars) {
 		this(name, PrimitiveType.fromString(type), pars);
 		description = desc;
-		parentDeclaration = null; // since engine function only
+		parent = null; // since engine function only
 		localVars = null;
 	}
 	

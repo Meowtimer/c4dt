@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -170,7 +171,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	@Override
-	protected IType callerType(DeclarationObtainmentContext context) {
+	public IType callerType(DeclarationObtainmentContext context) {
 		Variable v = as(declaration, Variable.class);
 		if (v != null) switch (v.scope()) {
 		case CONST: case STATIC:

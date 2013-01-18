@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

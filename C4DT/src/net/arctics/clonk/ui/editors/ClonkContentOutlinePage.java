@@ -53,7 +53,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		for (IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
 			@Override
 			public IIndexEntity convert(Object from) {
-				return from instanceof Declaration ? ((Declaration)from).firstParentDeclarationOfType(IIndexEntity.class) : null;
+				return from instanceof Declaration ? ((Declaration)from).parentOfType(IIndexEntity.class) : null;
 			}
 		}))
 			if (entity != null) {

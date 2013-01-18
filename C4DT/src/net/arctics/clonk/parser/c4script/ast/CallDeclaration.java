@@ -16,6 +16,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -254,7 +255,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	
 	@Override
-	protected IType callerType(DeclarationObtainmentContext context) {
+	public IType callerType(DeclarationObtainmentContext context) {
 		if (predecessorInSequence() != null)
 			return predecessorInSequence().type(context);
 		else

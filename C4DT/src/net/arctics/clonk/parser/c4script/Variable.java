@@ -8,7 +8,7 @@ import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
@@ -375,9 +375,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return Return the parameter index or -1 if the variable is not a function parameter.
 	 */
 	public int parameterIndex() {
-		if (parentDeclaration instanceof Function) {
+		if (parent instanceof Function) {
 			int i = 0;
-			for (Variable v : ((Function)parentDeclaration).parameters())
+			for (Variable v : ((Function)parent).parameters())
 				if (v == this)
 					return i;
 				else
@@ -432,8 +432,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		if (parentDeclaration instanceof Function)
-			return new Object[] {parentDeclaration};
+		if (parent instanceof Function)
+			return new Object[] {parent};
 		else
 			return super.occurenceScope(project);
 	}

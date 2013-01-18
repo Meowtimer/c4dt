@@ -15,9 +15,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;

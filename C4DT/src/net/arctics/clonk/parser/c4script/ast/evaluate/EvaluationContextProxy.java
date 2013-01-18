@@ -1,8 +1,8 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;

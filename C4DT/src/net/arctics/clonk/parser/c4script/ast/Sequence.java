@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -38,7 +39,7 @@ public class Sequence extends ExprElmWithSubElementsArray {
 		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].unresolvedType(context);
 	}
 	@Override
-	protected IType callerType(DeclarationObtainmentContext context) {
+	public IType callerType(DeclarationObtainmentContext context) {
 		return super.callerType(context);
 	}
 	@Override

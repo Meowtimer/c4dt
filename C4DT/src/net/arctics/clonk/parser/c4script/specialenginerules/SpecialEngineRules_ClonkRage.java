@@ -6,12 +6,12 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");

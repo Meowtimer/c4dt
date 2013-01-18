@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -18,11 +18,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
@@ -31,7 +26,31 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.parser.c4script.ast.CallExpr;
+import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.parser.c4script.ast.ControlFlow;
+import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
+import net.arctics.clonk.parser.c4script.ast.ForStatement;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
+import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
+import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
+import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
+import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
+import net.arctics.clonk.parser.c4script.ast.Placeholder;
+import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.TypeInfo;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
+import net.arctics.clonk.parser.c4script.ast.Whitespace;
+import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
@@ -121,7 +140,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return result;
 	}
 	
-	private transient ExprElm parent, predecessorInSequence;
+	protected transient ExprElm parent, predecessorInSequence;
 	private transient int flags = PROPERLY_FINISHED;
 	
 	public final boolean flagsEnabled(int flags) {
@@ -274,7 +293,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param context Context information
 	 * @return The type
 	 */
-	protected IType callerType(DeclarationObtainmentContext context) {
+	public IType callerType(DeclarationObtainmentContext context) {
 		IType predType = unresolvedPredecessorType(context);
 		return defaulting(predType, context.script());
 	}
@@ -1119,7 +1138,7 @@ public class ExprElm extends SourceLocation implements Cloneable, IPrintable, Se
 		return false;
 	}
 	
-	protected final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
+	public final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
 		ExprElm e = this;
 		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
 		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;

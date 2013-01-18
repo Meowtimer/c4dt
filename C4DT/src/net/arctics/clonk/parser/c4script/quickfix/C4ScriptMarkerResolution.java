@@ -1,11 +1,11 @@
 package net.arctics.clonk.parser.c4script.quickfix;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;

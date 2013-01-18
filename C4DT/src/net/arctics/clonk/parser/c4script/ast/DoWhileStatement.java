@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class DoWhileStatement extends WhileStatement {

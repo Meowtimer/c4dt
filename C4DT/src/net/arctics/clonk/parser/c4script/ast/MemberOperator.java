@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -122,7 +123,7 @@ public class MemberOperator extends ExprElm {
 
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#unresolvedType(DeclarationObtainmentContext)
+	 * @see net.arctics.clonk.parser.ExprElm#unresolvedType(DeclarationObtainmentContext)
 	 */
 	@Override
 	public IType unresolvedType(DeclarationObtainmentContext context) {
@@ -135,7 +136,7 @@ public class MemberOperator extends ExprElm {
 	
 	/**
 	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
+	 * @see net.arctics.clonk.parser.ExprElm#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
 	 */
 	@Override
 	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {

@@ -19,7 +19,6 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -51,11 +50,6 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * The name of this declaration
 	 */
 	protected String name;
-	
-	/**
-	 * The parent declaration
-	 */
-	protected transient Declaration parentDeclaration;
 	
 	/**
 	 * result to be returned of occurenceScope if there is no scope
@@ -112,28 +106,14 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	}
 	
 	/**
-	 * Return the first declaration in the parent chain that is of the specified type.
-	 * @param type The type the parent declaration needs to be of
-	 * @return A matching parent declaration or null
-	 */
-	@SuppressWarnings("unchecked")
-	public final <T> T firstParentDeclarationOfType(Class<T> type) {
-		T result = null;
-		for (Declaration f = this; f != null; f = f.parentDeclaration)
-			if (type.isAssignableFrom(f.getClass()))
-				return (T) f;
-		return result;
-	}
-	
-	/**
-	 * Same as {@link #firstParentDeclarationOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
+	 * Same as {@link #parentOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
 	 * @param type
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	public final <T> T topLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
-		for (Declaration f = this; f != null; f = f.parentDeclaration)
+		for (ExprElm f = this; f != null; f = f.parent)
 			if (type.isAssignableFrom(f.getClass()))
 				result = (T) f;
 		return result;
@@ -160,7 +140,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * @return The {@link Scenario}
 	 */
 	public Scenario scenario() {
-		return parentDeclaration != null ? parentDeclaration.scenario() : null;
+		return parent != null ? ((Declaration)parent).scenario() : null;
 	}
 	
 	/**
@@ -168,7 +148,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * @param field the new parent declaration
 	 */
 	public void setParentDeclaration(Declaration field) {
-		this.parentDeclaration = field;
+		this.parent = field;
 	}
 	
 	/**
@@ -197,7 +177,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * @return The latest version of this declaration
 	 */
 	public Declaration latestVersion() {
-		Declaration parent = parentDeclaration;
+		Declaration parent = parentDeclaration();
 		if (parent != null)
 			parent = parent.latestVersion();
 		if (parent instanceof ILatestDeclarationVersionProvider) {
@@ -229,13 +209,13 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 		final Set<Object> result = new LinkedHashSet<Object>();
 		// first, add the script this declaration is declared in. Matches will most likely be found in there
 		// so it helps to make it the first item to be searched
-		if (parentDeclaration instanceof Script)
-			result.add(parentDeclaration);
+		if (parent instanceof Script)
+			result.add(parent);
 		// next, in case of a definition, add items including the definition, so matches in derived definitions
 		// will be found next
-		if (parentDeclaration instanceof Definition) {
+		if (parent instanceof Definition) {
 			// first, add the definition this 
-			final Definition def = (Definition)parentDeclaration;
+			final Definition def = (Definition)parent;
 			final Index projectIndex = project.index();
 			result.add(def);
 			def.index().allDefinitions(new Sink<Definition>() {
@@ -273,7 +253,7 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	 * @return
 	 */
 	public Declaration parentDeclaration() {
-		return parentDeclaration;
+		return (Declaration)parent;
 	}
 	
 	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.iterable();
@@ -382,13 +362,14 @@ public abstract class Declaration extends ExprElm implements Serializable, IHasR
 	}
 	
 	public Engine engine() {
-		return parentDeclaration != null ? parentDeclaration.engine() : null; 
+		Declaration parent = parentDeclaration();
+		return parent != null ? parent.engine() : null; 
 	}
 
 	@Override
 	public Index index() {
-		if (parentDeclaration != null)
-			return parentDeclaration.index();
+		if (parentDeclaration() != null)
+			return parentDeclaration().index();
 		else {
 			IResource res = resource();
 			if (res != null) {

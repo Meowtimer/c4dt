@@ -7,6 +7,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -158,7 +159,7 @@ public class PropListExpression extends ExprElm {
 	public <T> T valueEvaluated(String key, Class<T> cls) {
 		ExprElm e = value(key);
 		if (e != null) {
-			Object eval = e.evaluateAtParseTime(definedDeclaration.firstParentDeclarationOfType(IEvaluationContext.class));
+			Object eval = e.evaluateAtParseTime(definedDeclaration.parentOfType(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
 		} else
 			return null;

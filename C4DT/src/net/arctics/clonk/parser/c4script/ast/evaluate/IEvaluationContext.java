@@ -3,9 +3,9 @@ package net.arctics.clonk.parser.c4script.ast.evaluate;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 /**
  * Context for evaluating expressions (at parsetime/some other time)

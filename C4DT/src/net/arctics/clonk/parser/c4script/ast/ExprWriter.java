@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import net.arctics.clonk.parser.ExprElm;
+
 
 public interface ExprWriter extends Appendable {
 	static final int SINGLE_LINE = 1;

@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Function;
@@ -7,7 +8,6 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Comment;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.Literal;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;

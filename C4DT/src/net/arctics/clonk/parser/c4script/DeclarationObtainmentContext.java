@@ -3,8 +3,8 @@ package net.arctics.clonk.parser.c4script;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 

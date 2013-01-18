@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 
 /**
  * A number literal representing either a float literal expressed as {@link Double} or an int literal expressed as {@link Long}.

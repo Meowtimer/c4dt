@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IASTVisitor;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 

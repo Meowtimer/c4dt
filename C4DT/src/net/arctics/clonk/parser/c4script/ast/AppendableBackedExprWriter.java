@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.IOException;
 
+import net.arctics.clonk.parser.ExprElm;
+
 public class AppendableBackedExprWriter implements ExprWriter {
 	private final Appendable appendable;
 

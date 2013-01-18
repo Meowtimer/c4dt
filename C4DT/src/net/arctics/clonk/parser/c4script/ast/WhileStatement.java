@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 

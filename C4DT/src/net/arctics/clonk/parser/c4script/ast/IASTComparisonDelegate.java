@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.token;
+import net.arctics.clonk.parser.ExprElm;
 
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not

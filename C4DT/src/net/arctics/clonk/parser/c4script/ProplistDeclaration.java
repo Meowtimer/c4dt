@@ -15,9 +15,9 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.StringUtil;
 
 /**

@@ -231,7 +231,7 @@ public class IniSection extends Declaration implements
 	}
 
 	public IniUnit iniUnit() {
-		return firstParentDeclarationOfType(IniUnit.class);
+		return parentOfType(IniUnit.class);
 	}
 
 	@Override

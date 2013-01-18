@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.c4script.ast.Comment;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 /**
  * Scanner that ignores C-style comments

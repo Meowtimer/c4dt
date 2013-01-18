@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;

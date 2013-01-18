@@ -23,6 +23,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -50,7 +51,6 @@ import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.False;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -376,7 +376,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return
 	 */
 	public Variable currentVariable() {
-		return currentDeclaration() != null ? currentDeclaration().firstParentDeclarationOfType(Variable.class) : null;
+		return currentDeclaration() != null ? currentDeclaration().parentOfType(Variable.class) : null;
 	}
 	
 	/**

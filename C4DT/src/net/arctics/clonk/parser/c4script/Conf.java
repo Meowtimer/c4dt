@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.BraceStyleType;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IConverter;

@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
@@ -65,9 +67,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 
 	@Override
 	public ITreeNode parentNode() {
-		if (parentDeclaration instanceof ITreeNode)
-			return (ITreeNode) parentDeclaration;
-		return null;
+		return as(parent, ITreeNode.class);
 	}
 
 	@Override
