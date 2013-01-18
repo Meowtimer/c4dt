@@ -49,11 +49,6 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public int precision() {
-		return PrimitiveType.FUNCTION.precision()+1;
-	}
-
-	@Override
 	public IType simpleType() {
 		return PrimitiveType.FUNCTION;
 	}

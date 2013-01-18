@@ -113,11 +113,6 @@ public final class TypeChoice implements IType, IResolvableType {
 	}
 
 	@Override
-	public int precision() {
-		return Math.max(left.precision(), right.precision());
-	}
-
-	@Override
 	public IType simpleType() {
 		IType stLeft = left.simpleType();
 		IType stRight = right.simpleType();

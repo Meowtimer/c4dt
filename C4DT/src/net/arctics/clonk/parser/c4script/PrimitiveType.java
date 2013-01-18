@@ -269,22 +269,6 @@ public enum PrimitiveType implements IType {
 	}
 
 	@Override
-	public int precision() {
-		switch (this) {
-		case ERRONEOUS:
-			return -1;
-		case UNKNOWN:
-			return 0;
-		case ANY:
-			return 1;
-		case REFERENCE:
-			return 2;
-		default:
-			return 3;
-		}
-	}
-
-	@Override
 	public IType simpleType() {
 		return this;
 	}

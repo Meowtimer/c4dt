@@ -183,11 +183,6 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public int precision() {
-		return PrimitiveType.PROPLIST.precision()+1;
-	}
-
-	@Override
 	public IType simpleType() {
 		return PrimitiveType.PROPLIST;
 	}

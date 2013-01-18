@@ -38,11 +38,6 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 
 	@Override
-	public int precision() {
-		return wrappedType.precision();
-	}
-
-	@Override
 	public IType simpleType() {
 		return PrimitiveType.REFERENCE;
 	}

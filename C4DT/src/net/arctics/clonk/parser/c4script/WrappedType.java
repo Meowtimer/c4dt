@@ -14,10 +14,6 @@ public abstract class WrappedType implements IType {
 		return type instanceof WrappedType ? ((WrappedType)type).wrappedType : type;
 	}
 	@Override
-	public int precision() {
-		return wrappedType.precision();
-	}
-	@Override
 	public IType simpleType() {
 		return wrappedType.simpleType();
 	}

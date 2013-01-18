@@ -136,7 +136,7 @@ public class EntityLocator extends ExpressionLocator {
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType ty = access.predecessorInSequence() != null ? access.predecessorInSequence().type(parser) : null;
 			for (IType t : ty)
-				if (t == null || t instanceof StructuralType || t.precision() <= PrimitiveType.OBJECT.precision()) {
+				if (t == null || t instanceof StructuralType || t == PrimitiveType.OBJECT) {
 					for (Index i : script.index().relevantIndexes())
 						i.loadScriptsContainingDeclarationsNamed(declarationName);
 					for (Index i : script.index().relevantIndexes()) {

@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -145,16 +146,6 @@ public class ArrayType implements IRefinedPrimitiveType {
 			return String.format("%s[%s, ...]", PrimitiveType.ARRAY.typeName(special), generalElementType.typeName(special));
 		else
 			return PrimitiveType.ARRAY.typeName(special);
-	}
-
-	@Override
-	public int precision() {
-		int s = PrimitiveType.ARRAY.precision()+1;
-		if (generalElementType != null)
-			s += generalElementType.precision();
-		for (IType t : elementTypeMapping.values())
-			s += t.precision();
-		return s;
 	}
 
 	@Override

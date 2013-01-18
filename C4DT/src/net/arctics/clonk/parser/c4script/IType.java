@@ -24,12 +24,6 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @return The type string
 	 */
 	String typeName(boolean special);
-		
-	/**
-	 * Return an integer signifying the level of precision. Actual C4Script definitions are supposed to be more specific than {@link PrimitiveType#OBJECT} for example.
-	 * @return The precision of the type as integer
-	 */
-	int precision();
 	
 	/**
 	 * Return a static type equivalent of this type (static type of {@link Definition} is {@link PrimitiveType#OBJECT} for example)

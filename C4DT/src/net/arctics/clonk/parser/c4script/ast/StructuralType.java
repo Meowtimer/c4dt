@@ -102,11 +102,6 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 	}
 
 	@Override
-	public int precision() {
-		return PrimitiveType.OBJECT.precision()+1;
-	}
-
-	@Override
 	public IType simpleType() {
 		return PrimitiveType.OBJECT;
 	}

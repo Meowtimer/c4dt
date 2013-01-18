@@ -144,15 +144,6 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	public String toString() { return typeName(true); }
 
 	@Override
-	public int precision() {
-		int spec = simpleType().precision();
-		spec++;
-		if (constraintKind == ConstraintKind.Exact)
-			spec++;
-		return spec;
-	}
-
-	@Override
 	public IType simpleType() {
 		if (definition && !object)
 			return PrimitiveType.ID;

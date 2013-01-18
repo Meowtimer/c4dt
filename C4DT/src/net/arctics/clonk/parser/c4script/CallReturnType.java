@@ -44,11 +44,6 @@ public class CallReturnType implements IType, IResolvableType {
 	}
 
 	@Override
-	public int precision() {
-		return PrimitiveType.FUNCTION.precision();
-	}
-
-	@Override
 	public IType simpleType() {
 		return PrimitiveType.ANY;
 	}

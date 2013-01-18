@@ -1122,11 +1122,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public boolean canBeAssignedFrom(IType other) {
 		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
 	}
-	
-	@Override
-	public int precision() {
-		return PrimitiveType.OBJECT.precision()+3;
-	}
 
 	@Override
 	public String typeName(boolean special) {

@@ -33,11 +33,6 @@ public class SameTypeAsSomeTypeable implements IType {
 	}
 
 	@Override
-	public int precision() {
-		return actualType().precision();
-	}
-
-	@Override
 	public IType simpleType() {
 		return actualType().simpleType();
 	}
