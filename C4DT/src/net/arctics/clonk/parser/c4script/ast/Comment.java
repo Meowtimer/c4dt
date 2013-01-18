@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ASTNode;

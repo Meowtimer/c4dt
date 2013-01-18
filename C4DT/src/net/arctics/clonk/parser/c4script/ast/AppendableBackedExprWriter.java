@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.io.IOException;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodePrinter;
 
 public class AppendableBackedExprWriter implements ASTNodePrinter {
 	private final Appendable appendable;

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class CustomIniUnit extends IniUnit {

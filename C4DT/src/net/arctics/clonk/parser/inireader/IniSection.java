@@ -10,9 +10,9 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;

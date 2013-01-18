@@ -16,6 +16,7 @@ import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;

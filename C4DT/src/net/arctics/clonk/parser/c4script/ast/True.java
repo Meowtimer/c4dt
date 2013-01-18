@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class True extends BoolLiteral {

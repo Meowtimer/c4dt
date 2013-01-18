@@ -1,8 +1,8 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.util.StringUtil;
 
 public class IniEntry extends NameValueAssignment implements IniItem {

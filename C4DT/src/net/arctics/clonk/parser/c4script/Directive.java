@@ -7,11 +7,11 @@ import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 

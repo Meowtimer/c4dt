@@ -1,6 +1,4 @@
-package net.arctics.clonk.parser.c4script.ast;
-
-import net.arctics.clonk.parser.ASTNode;
+package net.arctics.clonk.parser;
 
 /**
  * Interface to be passed to {@link ASTNode} objects to let them print themselves.

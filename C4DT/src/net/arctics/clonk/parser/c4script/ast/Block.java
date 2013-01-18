@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;

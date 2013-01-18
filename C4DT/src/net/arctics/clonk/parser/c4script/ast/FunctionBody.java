@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;

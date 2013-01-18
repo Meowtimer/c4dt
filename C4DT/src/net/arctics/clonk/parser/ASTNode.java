@@ -26,7 +26,6 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;

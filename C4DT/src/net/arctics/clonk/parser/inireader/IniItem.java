@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.Writer;
 
-import net.arctics.clonk.parser.c4script.ast.ASTNodePrinter;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.util.ITreeNode;
 
 public interface IniItem extends ITreeNode {
