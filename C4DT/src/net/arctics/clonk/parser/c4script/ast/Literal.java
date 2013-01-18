@@ -80,5 +80,6 @@ public abstract class Literal<T> extends ExprElm implements IPlaceholderPatternM
 	public boolean allowsSequenceSuccessor(C4ScriptParser context, ExprElm successor) { return false; }
 	@Override
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) { return predecessor == null; }
-
+	@Override
+	public ITypeInfo createTypeInfo(C4ScriptParser parser) { return null; /* nope */ }
 }
