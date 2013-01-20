@@ -15,14 +15,11 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public Map<String, Object> result;
 	@Override
 	public boolean ignoreClassDifference() {
-		if (left instanceof MatchingPlaceholder) {
-			MatchingPlaceholder mp = (MatchingPlaceholder)left;
-			if (mp.satisfiedBy(right) && mp.multiplicity() == Multiplicity.One)
-				return true;
-		}
-		else if (left instanceof Block && right instanceof Block)
-			return true;
-		return false;
+		return
+			(left instanceof MatchingPlaceholder &&
+			 ((MatchingPlaceholder)left).multiplicity() == Multiplicity.One &&
+			 ((MatchingPlaceholder)left).satisfiedBy(right)) ||
+			(left instanceof Block && right instanceof Block);
 	}
 	@Override
 	public boolean consume(ASTNode consumer, ASTNode extra) {
@@ -51,8 +48,6 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 				if (leftToRightMapping[i] != null)
 					for (int r = 0; r < leftToRightMapping[i].length; r++)
 						addToResult(leftToRightMapping[i][r], (MatchingPlaceholder)left);
-				else
-					System.out.println("wat");
 		}
 	}
 	private void addToResult(ASTNode extra, MatchingPlaceholder mp) {
@@ -74,6 +69,6 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	@Override
 	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
 		MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
-		return mp != null && mp.multiplicity() == Multiplicity.One && mp.subElements().length == 0;
+		return mp != null && mp.multiplicity() == Multiplicity.One && mp.satisfiedBy(right);
 	};
 }

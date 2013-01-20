@@ -136,7 +136,6 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 				try {
 					return getText(e1).compareTo(getText(e2));
 				} catch (Exception e) {
-					System.out.println("wat");
 					return -1;
 				}
 			}

@@ -253,7 +253,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		if (stringRepresentationPattern != null) {
 			IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
-			String patternMatchingText = target != null ? target.patternMatchingText() : element.toString();
+			String patternMatchingText = target != null ? target.patternMatchingText() : element != null ? element.toString() : null;
 			if (patternMatchingText == null || !stringRepresentationPattern.matcher(patternMatchingText).matches())
 				return false;
 		}
@@ -286,7 +286,7 @@ public class MatchingPlaceholder extends Placeholder {
 		if (requiredClass != null)
 			attribs.add(requiredClass.getSimpleName());
 		if (stringRepresentationPattern != null)
-			attribs.add(stringRepresentationPattern.pattern());
+			attribs.add("/"+stringRepresentationPattern.pattern()+"/");
 		if (property != null)
 			attribs.add('>'+property);
 		if (code != null)

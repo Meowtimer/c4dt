@@ -479,7 +479,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the substring
 	 */
 	public final String bufferSubstringAtRegion(IRegion region) {
-		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
+		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength());
 	}
 	
 	/**
@@ -491,7 +491,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public static IRegion regionOfLineContainingRegion(String text, IRegion regionInLine) {
 		int start, end;
 		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end+1 < text.length() && !isLineDelimiterChar(text.charAt(end+1)); end++);
 		return new Region(start, end-start);
 	}
 	

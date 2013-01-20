@@ -880,6 +880,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Whether elements are equal or not.
 	 */
 	public final boolean compare(ASTNode other, ASTComparisonDelegate delegate) {
+		if (other == null)
+			return false;
 		ASTNode oldLeft = delegate.left;
 		ASTNode oldRight = delegate.right;
 		delegate.left = this;
