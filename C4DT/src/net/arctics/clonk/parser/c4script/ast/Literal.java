@@ -7,7 +7,6 @@ import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.Utilities;
 
@@ -64,14 +63,12 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 	
 	@Override
-	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
-		DifferenceHandling handling = super.compare(other, listener);
-		if (handling != DifferenceHandling.Equal)
-			return handling;
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
 		if (!literalsEqual((Literal<?>)other))
-			return listener.differs(this, other, "literal");
-		else
-			return DifferenceHandling.Equal;
+			return false;
+		return true;
 	}
 	
 	@Override

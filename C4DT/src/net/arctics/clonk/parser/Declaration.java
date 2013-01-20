@@ -498,4 +498,14 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return name();
 	}
 	
+	@Override
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
+		Declaration d = (Declaration)other;
+		if (!d.name().equals(name()))
+			return false;
+		return true;
+	}
+	
 }

@@ -18,7 +18,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -37,7 +36,7 @@ import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
+import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.LongLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -48,7 +47,6 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
-import net.arctics.clonk.parser.c4script.ast.Wildcard;
 
 import org.eclipse.core.resources.IStorage;
 import org.junit.Before;
@@ -203,27 +201,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.errors.size() == 0);
 		assertTrue(setup.script.findFunction("Test") != null);
 		block.toString();
-		assertTrue(setup.script.findFunction("Test").body()
-				.compare(block, new IASTComparisonDelegate() {
-					@Override
-					public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
-						return DifferenceHandling.Differs;
-					}
-					@Override
-					public boolean optionEnabled(Option option) {
-						switch (option) {
-						case CheckForIdentity:
-							return false;
-						default:
-							return false;
-						}
-					}
-					@Override
-					public void wildcardMatched(Wildcard wildcard,
-							ASTNode expression) {
-						// ignore
-					}
-				}).isEqual());
+		assertTrue(setup.script.findFunction("Test").body().compare(block, new ASTComparisonDelegate()));
 	}
 
 	public static String callingMethod() {

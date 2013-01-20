@@ -201,7 +201,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		replacementLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		replacementLabel.setText(Messages.C4ScriptSearchPage_Replacement);
 		
-		replacementText = new Text(ctrl, SWT.BORDER);
+		replacementText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_replacementText = new GridData(GridData.FILL_BOTH);
 		gd_replacementText.heightHint = 168;
 		replacementText.setLayoutData(gd_replacementText);

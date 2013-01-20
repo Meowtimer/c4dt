@@ -21,7 +21,6 @@ import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
-import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 
@@ -46,14 +45,14 @@ public class ProjectConversionConfiguration {
 		public ASTNode transformation() {
 			return transformation;
 		}
-		public CodeTransformation(Statement transformationStatement) {
-			ASTNode unwrapped = SimpleStatement.unwrap(transformationStatement);
+		public CodeTransformation(ASTNode stmt) {
+			ASTNode unwrapped = SimpleStatement.unwrap(stmt);
 			if (unwrapped instanceof BinaryOp && ((BinaryOp)unwrapped).operator() == Operator.Transform) {
 				BinaryOp op = (BinaryOp)unwrapped;
 				this.template = op.leftSide();
 				this.transformation = op.rightSide();
 			} else
-				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", transformationStatement.toString()));
+				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
 		}
 	}
 	
@@ -65,9 +64,9 @@ public class ProjectConversionConfiguration {
 		this.sourceEngine = sourceEngine;
 	}
 	
-	private void addTransformationFromStatement(Statement statement) {
+	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
-			transformations.add(new CodeTransformation(statement));
+			transformations.add(new CodeTransformation(stmt));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -112,9 +111,9 @@ public class ProjectConversionConfiguration {
 			Function context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(script);
 			context.setBodyLocation(new SourceLocation(0, text.length()));
-			Statement s = parser.parseStandaloneStatement(text, context, null);
+			ASTNode s = parser.parseStandaloneStatement(text, context, null);
 			if (s instanceof BunchOfStatements)
-				for (Statement stmt : ((BunchOfStatements)s).statements())
+				for (ASTNode stmt : ((BunchOfStatements)s).statements())
 					addTransformationFromStatement(stmt);
 			else
 				addTransformationFromStatement(s);

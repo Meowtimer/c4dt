@@ -18,9 +18,9 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -511,7 +511,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		switch (processing) {
 		case Load:
 			if (createEnvironment != null)
-				for (final Statement s : createEnvironment.body().statements())
+				for (final ASTNode s : createEnvironment.body().statements())
 					(new PlaceMatch(SimpleStatement.unwrap(s))).addComputedEntry();
 			break;
 		case Save:
@@ -519,19 +519,19 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				createEnvironment = appendFunction(scenario, CREATE_ENVIRONMENT);
 			List<ASTNode> list = new LinkedList<ASTNode>();
 			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
-			final List<Statement> statementsCopy = new ArrayList<Statement>(Arrays.asList(createEnvironment.body().statements()));
-			final List<Pair<Statement, PlaceMatch>> matches = new ArrayList<Pair<Statement, PlaceMatch>>(statementsCopy.size());
+			final List<ASTNode> statementsCopy = new ArrayList<ASTNode>(Arrays.asList(createEnvironment.body().statements()));
+			final List<Pair<ASTNode, PlaceMatch>> matches = new ArrayList<Pair<ASTNode, PlaceMatch>>(statementsCopy.size());
 			for (int i = 0; i < statementsCopy.size(); i++)
-				matches.add(new Pair<Statement, PlaceMatch>(statementsCopy.get(i), new PlaceMatch(statementsCopy.get(i))));
+				matches.add(new Pair<ASTNode, PlaceMatch>(statementsCopy.get(i), new PlaceMatch(statementsCopy.get(i))));
 			for (int i = statementsCopy.size()-1; i >= 0; i--)
 				if (matches.get(i).second().matchedButNoCorrespondingItem()) {
 					statementsCopy.remove(i);
 					matches.remove(i);
 					wholeFunc = true;
 				}
-			class C implements Comparator<Statement> {
+			class C implements Comparator<ASTNode> {
 				public boolean reordering;
-				private int indexOf(Statement s) {
+				private int indexOf(ASTNode s) {
 					for (int i = 0; i < matches.size(); i++)
 						if (matches.get(i).first() == s && matches.get(i).second().definition() != null) {
 							int ndx = 0;
@@ -544,7 +544,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					return -1;
 				}
 				@Override
-				public int compare(Statement o1, Statement o2) {
+				public int compare(ASTNode o1, ASTNode o2) {
 					int diff = indexOf(o1) - indexOf(o2);
 					reordering |= diff < 0;
 					return diff;

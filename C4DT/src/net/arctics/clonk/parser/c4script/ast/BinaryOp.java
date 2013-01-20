@@ -81,7 +81,7 @@ public class BinaryOp extends OperatorExpression {
 		// return at the right end signals this should rather be a block
 		if (works) {
 			leftSideArguments.addFirst(r);
-			List<Statement> statements = new LinkedList<Statement>();
+			List<ASTNode> statements = new LinkedList<ASTNode>();
 			// wrap expressions in statements
 			for (ASTNode ex : leftSideArguments)
 				statements.add(new SimpleStatement(ex.optimize(context)));

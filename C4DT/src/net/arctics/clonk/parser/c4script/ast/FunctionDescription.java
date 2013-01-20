@@ -3,15 +3,14 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
 import org.eclipse.jface.text.Region;
@@ -87,13 +86,11 @@ public class FunctionDescription extends Statement implements Serializable {
 		}
 	}
 	@Override
-	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
-		DifferenceHandling sup = super.compare(other, listener);
-		if (sup != DifferenceHandling.Equal)
-			return sup;
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
 		if (!((FunctionDescription)other).contents.equals(this.contents))
-			return listener.differs(this, other, "contents");
-		else
-			return DifferenceHandling.Equal;
+			return false;
+		return true;
 	}
 }

@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +25,16 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
@@ -47,7 +46,6 @@ import net.arctics.clonk.parser.c4script.ast.TypeInfo;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.Whitespace;
-import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
@@ -540,13 +538,18 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Recursively transformed expression.
 	 */
 	public ASTNode transformRecursively(final ITransformer transformer) {
-		return (ASTNode)new ITransformer() {
+		Object result = new ITransformer() {
 			@Override
 			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 				expression = expression != null ? expression.transformSubElements(this) : null;
 				return transformer.transform(prev, prevT, expression);
 			}
 		}.transform(null, null, this);
+		if (result instanceof ASTNode[])
+			result = new BunchOfStatements((ASTNode[])result);
+		if (!(result instanceof ASTNode))
+			System.out.println("nope");
+		return (ASTNode)result;
 	}
 
 	/**
@@ -868,27 +871,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return this;
 	}
 	
-	private static final IASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
-		@Override
-		public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
-			// the humanity
-			return DifferenceHandling.Differs;
-		}
-
-		@Override
-		public boolean optionEnabled(Option option) {
-			switch (option) {
-			case CheckForIdentity:
-				return true;
-			default:
-				return false;
-			}
-		}
-
-		@Override
-		public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
-		}
-	};
+	private static final ASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new ASTComparisonDelegate();
 	
 	/**
 	 * Compare element with other element. Return true if there are no differences, false otherwise.
@@ -896,54 +879,35 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param delegate Listener that gets notified when changes are found.
 	 * @return Whether elements are equal or not.
 	 */
-	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate delegate) {
-		if (other != null && (other.getClass() == this.getClass() || delegate.differs(this, other, IASTComparisonDelegate.CLASS) == DifferenceHandling.Equal)) {
-			ASTNode[] mySubElements = this.subElements();
-			ASTNode[] otherSubElements = other.subElements();
-			int myIndex, otherIndex;
-			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
-				ASTNode mine = mySubElements[myIndex];
-				ASTNode others = otherSubElements[otherIndex];
-				
-				// compare elements, taking the possibility into account that one or both of the elements might be null
-				// if only one of both is null, the listener gets to decide what to do now based on a differs call with
-				// the what parameter being set to the index of the null element in the respective array
-				DifferenceHandling handling;
-				if (mine != null && others != null)
-					handling = mine.compare(others, delegate);
-				else if (mine == null && others != null)
-					handling = delegate.differs(mine, others, myIndex);
-				else if (mine != null && others == null)
-					handling = delegate.differs(mine, others, otherIndex);
-				else // a != null && b != null
-					handling = DifferenceHandling.Equal;
-				
-				switch (handling) {
-				case Differs:
-					return DifferenceHandling.Differs;
-				case IgnoreLeftSide:
-					// decrement index for other so the current other element will be compared to the next my element 
-					otherIndex--;
-					break;
-				case IgnoreRightSide:
-					// vice versa
-					myIndex--;
-					break;
-				default:
-					break;
-				}
-			}
-			if (myIndex == mySubElements.length && otherIndex == otherSubElements.length)
-				return DifferenceHandling.Equal;
-			else switch (delegate.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
-			case IgnoreLeftSide: case IgnoreRightSide:
-				return DifferenceHandling.Equal;
-			default:
-				return DifferenceHandling.Differs;
-			}
-		} else
-			return DifferenceHandling.Differs;
+	public final boolean compare(ASTNode other, ASTComparisonDelegate delegate) {
+		ASTNode oldLeft = delegate.left;
+		ASTNode oldRight = delegate.right;
+		delegate.left = this;
+		delegate.right = other;
+		try {
+
+			if (other == null || other.getClass() != this.getClass()) {
+				if (!delegate.ignoreClassDifference())
+					return false;
+			} else if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.ignoreAttributeDifference()))
+				return false;
+
+			ASTNode[] mine = this.subElements();
+			ASTNode[] others = other.subElements();
+			ASTNode[][] leftToRightMapping = delegate.compareSubElements(mine, others);
+			
+			if (leftToRightMapping != null) {
+				delegate.applyLeftToRightMapping(mine, leftToRightMapping);
+				return true;
+			} else
+				return false;
+		} finally {
+			delegate.left = oldLeft;
+			delegate.right = oldRight;
+		}
 	}
+	
+	protected boolean equalAttributes(ASTNode other) { return true; }
 	
 	/**
 	 * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ASTNode} and setting its type.
@@ -961,27 +925,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				this.type = typeable.type();
 		}
 		
-		private static final IASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
+		private static final ASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new ASTComparisonDelegate() {
 			@Override
-			public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
-				// ok
-				return DifferenceHandling.Differs;
+			public boolean considerDifferent() {
+				AccessDeclaration leftDec = as(left, AccessDeclaration.class);
+				AccessDeclaration rightDec = as(right, AccessDeclaration.class);
+				if (leftDec != null && rightDec != null)
+					if (leftDec.declaration() != rightDec.declaration())
+						return true;
+				return false;
 			}
-
-			@Override
-			public boolean optionEnabled(Option option) {
-				switch (option) {
-				case CheckForIdentity:
-					return true;
-				default:
-					return false;
-				}
-			}
-
-			@Override
-			public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
-			}
-			
 		};
 
 		@Override
@@ -990,7 +943,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				return !Utilities.isAnyOf(((AccessDeclaration)expr).declaration(), parser.cachedEngineDeclarations().VarAccessFunctions);
 			ASTNode chainA, chainB;
 			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
-				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
+				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER))
 					return false;
 			return chainA == null || chainB == null;
 		}
@@ -1039,7 +992,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && other.getClass() == this.getClass())
-			return compare((ASTNode) other, NULL_DIFFERENCE_LISTENER).isEqual();
+			return compare((ASTNode) other, NULL_DIFFERENCE_LISTENER);
 		else
 			return false;
 	}
@@ -1165,67 +1118,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
 	 */
 	public Map<String, Object> match(ASTNode other) {
-		class ComparisonDelegate implements IASTComparisonDelegate {
-			public Map<String, Object> result;
-			@Override
-			public void wildcardMatched(Wildcard wildcard, ASTNode expression) {}
-			@Override
-			public boolean optionEnabled(Option option) { return false; }
-			@Override
-			public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
-				if (what == CLASS && a instanceof MatchingPlaceholder) {
-					MatchingPlaceholder mp = (MatchingPlaceholder)a;
-					if (result == null)
-						result = new HashMap<String, Object>();
-					if (mp.satisfiedBy(b)) {
-						result.put(mp.entryName(), mp.remainder() ? new ASTNode[] {b} : b);
-						return DifferenceHandling.Equal;
-					} else
-						return DifferenceHandling.Differs;
-				}
-				else if (what == SUBELEMENTS_LENGTH && a instanceof MatchingPlaceholder && a.subElements().length == 0)
-					return DifferenceHandling.IgnoreRightSide;
-				else if (what == SUBELEMENTS_LENGTH && a.subElements().length > b.subElements().length) {
-					ASTNode[] mine = a.subElements();
-					ASTNode[] others = b.subElements();
-					for (int i = others.length; i < mine.length; i++)
-						if (!(mine[i] instanceof MatchingPlaceholder && ((MatchingPlaceholder)mine[i]).remainder()))
-							return DifferenceHandling.Differs;
-					return DifferenceHandling.IgnoreLeftSide;
-				}
-				else if (what == SUBELEMENTS_LENGTH && a.subElements().length < b.subElements().length) {
-					ASTNode[] mine = a.subElements();
-					ASTNode[] others = b.subElements();
-					MatchingPlaceholder remainder = mine.length > 0 ? as(mine[mine.length-1], MatchingPlaceholder.class) : null;
-					if (remainder != null && remainder.remainder()) {
-						for (int i = mine.length; i < others.length; i++)
-							if (!consume(remainder, others[i]))
-								return DifferenceHandling.Differs;
-						return DifferenceHandling.IgnoreRightSide;
-					} else
-						return DifferenceHandling.Differs; 
-				}
-				else
-					return DifferenceHandling.Differs;
-			}
-			private boolean consume(ASTNode consumer, ASTNode extra) {
-				if (consumer instanceof MatchingPlaceholder && consumer instanceof MatchingPlaceholder) {
-					MatchingPlaceholder mp = (MatchingPlaceholder)consumer;
-					if (mp.remainder() && mp.satisfiedBy(extra) && mp.compare(extra, this).isEqual()) {
-						Object existing = result.get(mp.entryName());
-						if (existing instanceof ASTNode)
-							existing = new ASTNode[] {(ASTNode)existing, extra};
-						else if (existing instanceof ASTNode[])
-							existing = ArrayUtil.concat((ASTNode[])existing, extra);
-						result.put(mp.entryName(), existing);
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-		ComparisonDelegate delegate = new ComparisonDelegate();
-		if (this.compare(other, delegate).isEqual())
+		ASTNodeMatcher delegate = new ASTNodeMatcher();
+		if (this.compare(other, delegate))
 			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
 		else
 			return null;

@@ -2,11 +2,10 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
+import net.arctics.clonk.parser.c4script.Operator;
 
 public class OperatorExpression extends ASTNode {
 
@@ -38,14 +37,12 @@ public class OperatorExpression extends ASTNode {
 	}
 	
 	@Override
-	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
-		DifferenceHandling handling = super.compare(other, listener);
-		if (handling != DifferenceHandling.Equal)
-			return handling;
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
 		if (operator != ((OperatorExpression)other).operator)
-			return listener.differs(this, other, "operator");
-		else
-			return DifferenceHandling.Equal;
+			return false;
+		return true;
 	}
 
 }

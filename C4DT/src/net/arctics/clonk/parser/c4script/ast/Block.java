@@ -20,10 +20,10 @@ import net.arctics.clonk.util.ArrayUtil;
 public class Block extends Statement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private Statement[] statements;
+	private ASTNode[] statements;
 	
-	public Block(List<Statement> statements) {
-		this(statements.toArray(new Statement[statements.size()]));
+	public Block(List<ASTNode> statements) {
+		this(statements.toArray(new ASTNode[statements.size()]));
 	}
 
 	public Block(Statement... statements) {
@@ -37,17 +37,17 @@ public class Block extends Statement {
 		this(SimpleStatement.wrapExpressions(expressions));
 	}
 	
-	public Statement[] statements() {
+	public ASTNode[] statements() {
 		return statements;
 	}
 
-	public void setStatements(Statement[] statements) {
+	public void setStatements(ASTNode[] statements) {
 		this.statements = statements;
 	}
 
 	@Override
 	public void setSubElements(ASTNode[] elms) {
-		Statement[] typeAdjustedCopy = new Statement[elms.length];
+		ASTNode[] typeAdjustedCopy = new ASTNode[elms.length];
 		System.arraycopy(elms, 0, typeAdjustedCopy, 0, elms.length);
 		setStatements(typeAdjustedCopy);
 	}
@@ -62,9 +62,9 @@ public class Block extends Statement {
 		printBlock(statements, builder, depth);
 	}
 
-	public static void printBlock(Statement[] statements, ASTNodePrinter builder, int depth) {
+	public static void printBlock(ASTNode[] statements, ASTNodePrinter builder, int depth) {
 		builder.append("{\n"); //$NON-NLS-1$
-		for (Statement statement : statements) {
+		for (ASTNode statement : statements) {
 			//statement.printPrependix(builder, depth);
 			Conf.printIndent(builder, depth+1);
 			statement.print(builder, depth+1);
@@ -80,9 +80,9 @@ public class Block extends Statement {
 			return new BunchOfStatements(statements);
 		// uncomment never-reached statements
 		boolean notReached = false;
-		Statement[] commentedOutList = null;
+		ASTNode[] commentedOutList = null;
 		for (int i = 0; i < statements.length; i++) {
-			Statement s = statements[i];
+			ASTNode s = statements[i];
 			if (notReached) {
 				if (commentedOutList != null)
 					commentedOutList[i] = s instanceof Comment ? s : s.commentedOut();
@@ -103,7 +103,7 @@ public class Block extends Statement {
 	
 	@Override
 	public ControlFlow controlFlow() {
-		for (Statement s : statements) {
+		for (ASTNode s : statements) {
 			// look for first statement that breaks execution
 			ControlFlow cf = s.controlFlow();
 			if (cf != ControlFlow.Continue)
@@ -115,7 +115,7 @@ public class Block extends Statement {
 	@Override
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		EnumSet<ControlFlow> result = EnumSet.noneOf(ControlFlow.class);
-		for (Statement s : statements) {
+		for (ASTNode s : statements) {
 			ControlFlow cf = s.controlFlow();
 			if (cf != ControlFlow.Continue)
 				return EnumSet.of(cf);
@@ -137,8 +137,8 @@ public class Block extends Statement {
 		this.statements = ArrayUtil.concat(this.statements, statements);
 	}
 	
-	public void removeStatement(Statement s) {
-		List<Statement> l = new ArrayList<Statement>(Arrays.asList(statements));
+	public void removeStatement(ASTNode s) {
+		List<ASTNode> l = new ArrayList<ASTNode>(Arrays.asList(statements));
 		l.remove(s);
 		this.statements = l.toArray(new Statement[l.size()]);
 	}

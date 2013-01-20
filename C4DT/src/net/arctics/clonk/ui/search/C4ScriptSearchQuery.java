@@ -44,7 +44,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	protected static Match match(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
-		String line = parser.bufferSubstringAtRegion(lineRegion);
+		String line = parser.bufferSubstringAtRegion(lineRegion).trim();
 		Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
 		return m;
 	}

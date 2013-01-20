@@ -3,9 +3,9 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 
@@ -23,7 +23,7 @@ public class FunctionBody extends BunchOfStatements {
 	public Function owner() {
 		return owner;
 	}
-	public FunctionBody(Function owner, List<Statement> statements) {
+	public FunctionBody(Function owner, List<ASTNode> statements) {
 		super(statements);
 		this.owner = owner;
 		this.postLoaded = true;

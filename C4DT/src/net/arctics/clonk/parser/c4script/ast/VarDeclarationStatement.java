@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
@@ -26,7 +26,7 @@ import org.eclipse.jface.text.Region;
 public class VarDeclarationStatement extends KeywordStatement {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	VarInitialization[] varInitializations;
+	private VarInitialization[] varInitializations;
 	private final Scope scope;
 	
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {

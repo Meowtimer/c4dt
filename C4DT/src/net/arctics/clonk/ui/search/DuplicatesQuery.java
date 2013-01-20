@@ -8,20 +8,19 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
-import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFile;
@@ -39,11 +38,66 @@ import org.eclipse.ui.IEditorPart;
  * @author madeen
  *
  */
-public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDelegate {
+public class DuplicatesQuery extends SearchQueryBase {
 	
 	private final Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
 	private final Set<Index> indexes = new HashSet<Index>();
 	private final Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
+	private final ASTComparisonDelegate comparisonDelegate = new ASTComparisonDelegate() {
+		private boolean irrelevant(ASTNode leftNode) {
+			return leftNode instanceof Comment || leftNode instanceof FunctionDescription;
+		}
+		@Override
+		public boolean ignoreLeftSubElement(ASTNode leftNode) { return irrelevant(leftNode); }
+		@Override
+		public boolean ignoreRightSubElement(ASTNode rightNode) { return irrelevant(rightNode); }
+		@Override
+		public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+			if (left instanceof Parenthesized)
+				return ((Parenthesized)left).innerExpression().compare(right, this);
+			if (right instanceof Parenthesized)
+				return left.compare(((Parenthesized)right).innerExpression(), this);
+			
+			// ignore differing variable names if both variables are parameters at the same index in their respective functions
+			if (left instanceof AccessVar && right instanceof AccessVar) {
+				AccessVar varA = (AccessVar)left;
+				AccessVar varB = (AccessVar)right;
+				if (varA.declaration() instanceof Variable && varB.declaration() instanceof Variable) {
+					int parmA = ((Variable)varA.declaration()).parameterIndex();
+					int parmB = ((Variable)varB.declaration()).parameterIndex();
+					if (parmA != -1 && parmA == parmB)
+						return true;
+				}
+			}
+			
+			// ignore order of operands in binary associative operator expression 
+			if (left.parent() instanceof BinaryOp && right.parent() instanceof BinaryOp) {
+				BinaryOp opA = (BinaryOp) left.parent();
+				BinaryOp opB = (BinaryOp) right.parent();
+				if (opA.operator() == opB.operator() && opA.operator().isAssociative())
+					if (
+						right == opB.leftSide() || right == opB.rightSide() &&
+						left == opA.leftSide() || left == opA.rightSide()
+						) {
+						final ASTNode bCounterpart = opB.leftSide() == right ? opB.rightSide() : opB.leftSide();
+						final ASTNode aCounterpart = opA.leftSide() == left ? opA.rightSide() : opA.leftSide();
+						final ASTComparisonDelegate moi = this;
+						ASTComparisonDelegate proxy = new ASTComparisonDelegate() {
+							@Override
+							public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+								if (left == aCounterpart || left == bCounterpart)
+									return false;
+								return moi.ignoreSubElementDifference(left, right);
+							}
+						};
+						if (aCounterpart.compare(right, proxy) && left.compare(bCounterpart, proxy))
+							return true;
+					}
+			}
+			
+			return false;
+		}
+	};
 	
 	public Map<Function, List<FindDuplicatesMatch>> getDetectedDupes() {
 		return detectedDupes;
@@ -133,7 +187,7 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 							Block block = otherFn.body();
 							if (block == null)
 								continue; // -.-
-							if (functionCodeBlock.compare(block, this).isEqual()) {
+							if (functionCodeBlock.compare(block, comparisonDelegate)) {
 								List<FindDuplicatesMatch> dupes = detectedDupes.get(function);
 								if (dupes == null) {
 									dupes = new LinkedList<FindDuplicatesMatch>();
@@ -150,76 +204,6 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 		return Status.OK_STATUS;
 	}
 
-	@Override
-	public DifferenceHandling differs(ASTNode a, ASTNode b, Object what) {
-		// ignore deviating subelements length since there might be comments in there that will be ignored
-		if (what == SUBELEMENTS_LENGTH)
-			return DifferenceHandling.IgnoreLeftSide; // either left or right.. doesn't matter
-		// ignore comments on both sides
-		if (b instanceof Comment || b instanceof FunctionDescription)
-			return DifferenceHandling.IgnoreRightSide;
-		if (a instanceof Comment || a instanceof FunctionDescription)
-			return DifferenceHandling.IgnoreLeftSide;
-		if (a != null && b != null) {
-			
-			// treat parenthesized expressions as equivalent to non-parenthesized ones
-			if (a instanceof Parenthesized)
-				return ((Parenthesized)a).innerExpression().compare(b, this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
-			if (b instanceof Parenthesized)
-				return a.compare(((Parenthesized)b).innerExpression(), this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
-			
-			// ignore differing variable names if both variables are parameters at the same index in their respective functions
-			if (a instanceof AccessVar && b instanceof AccessVar) {
-				AccessVar varA = (AccessVar)a;
-				AccessVar varB = (AccessVar)b;
-				if (varA.declaration() instanceof Variable && varB.declaration() instanceof Variable) {
-					int parmA = ((Variable)varA.declaration()).parameterIndex();
-					int parmB = ((Variable)varB.declaration()).parameterIndex();
-					if (parmA != -1 && parmA == parmB)
-						return DifferenceHandling.EqualShortCircuited;
-				}
-			}
-			
-			// ignore order of operands in binary associative operator expression 
-			if (a.parent() instanceof BinaryOp && b.parent() instanceof BinaryOp) {
-				BinaryOp opA = (BinaryOp) a.parent();
-				BinaryOp opB = (BinaryOp) b.parent();
-				if (opA.operator() == opB.operator() && opA.operator().isAssociative())
-					if (
-						b == opB.leftSide() || b == opB.rightSide() &&
-						a == opA.leftSide() || a == opA.rightSide()
-					) {
-						final ASTNode bCounterpart = opB.leftSide() == b ? opB.rightSide() : opB.leftSide();
-						final ASTNode aCounterpart = opA.leftSide() == a ? opA.rightSide() : opA.leftSide();
-						IASTComparisonDelegate proxy = new IASTComparisonDelegate() {
-							@Override
-							public DifferenceHandling differs(ASTNode _a, ASTNode _b, Object what) {
-								if (_a == aCounterpart || _a == bCounterpart)
-									return DifferenceHandling.Differs;
-								return DuplicatesQuery.this.differs(_a, _b, what);
-							}
-							@Override
-							public boolean optionEnabled(Option option) {
-								return DuplicatesQuery.this.optionEnabled(option);
-							}
-							@Override
-							public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
-								DuplicatesQuery.this.wildcardMatched(wildcard, expression);
-							}
-						};
-						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
-							return DifferenceHandling.EqualShortCircuited;
-					}
-			}
-		}
-		return DifferenceHandling.Differs;
-	}
-
-	@Override
-	public boolean optionEnabled(Option option) {
-		return false;
-	}
-	
 	@Override
 	public String getLabel() {
 		StringBuilder builder = new StringBuilder(30);
@@ -261,10 +245,6 @@ public class DuplicatesQuery extends SearchQueryBase implements IASTComparisonDe
 		if (result == null)
 			result = new FindDuplicatesSearchResult(this);
 		return result;
-	}
-
-	@Override
-	public void wildcardMatched(Wildcard wildcard, ASTNode expression) {
 	}
 
 }

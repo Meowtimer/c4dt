@@ -84,11 +84,17 @@ public class MatchingPlaceholder extends Placeholder {
 		Accumulative
 	}
 	
+	public enum Multiplicity {
+		One,
+		AtLeastOne,
+		Multiple
+	}
+	
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
 
 	private Class<? extends ASTNode> requiredClass;
 	private Pattern stringRepresentationPattern;
-	private boolean remainder;
+	private Multiplicity multiplicity = Multiplicity.One;
 	private ASTNode[] subElements;
 	private Function code;
 	private Pattern associatedDeclarationNamePattern;
@@ -98,7 +104,7 @@ public class MatchingPlaceholder extends Placeholder {
 	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
 	public Class<? extends ASTNode> requiredClass() { return requiredClass; }
-	public boolean remainder() { return remainder; }
+	public Multiplicity multiplicity() { return multiplicity; }
 	public String property() { return property; }
 
 	@Override
@@ -132,10 +138,13 @@ public class MatchingPlaceholder extends Placeholder {
 			case '.':
 				while (scanner.peek() == '.')
 					scanner.read();
-				remainder = true;
+				multiplicity = Multiplicity.Multiple;
+				break;
+			case '+':
+				multiplicity = Multiplicity.AtLeastOne;
 				break;
 			case 8230: // ellipsis unicode, OSX likes to substitute this for three dots
-				remainder = true;
+				multiplicity = Multiplicity.Multiple;
 				break;
 			case '!':
 				code = new SelfContainedScript(entry, String.format("func Transform(value) { return %s; }",
@@ -188,7 +197,13 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 					continue;
 				}
-				String[] packageFormats = new String[] { "%s.parser.c4script.ast.%s", "%s.parser.%s", "%s.parser.c4script.%s", "%s.parser.c4script.ast.%sLiteral" };
+				String[] packageFormats = new String[] {
+					"%s.parser.c4script.ast.%s",
+					"%s.parser.%s",
+					"%s.parser.c4script.%s",
+					"%s.parser.c4script.ast.%sLiteral",
+					"%s.parser.c4script.ast.%sStatement"
+				};
 				for (String pkgFormat : packageFormats)
 					try {
 						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
@@ -276,6 +291,17 @@ public class MatchingPlaceholder extends Placeholder {
 			attribs.add('>'+property);
 		if (code != null)
 			attribs.add('!'+code.body().subElements()[0].subElements()[0].toString());
+		if (multiplicity != Multiplicity.One)
+			switch (multiplicity) {
+			case Multiple:
+				attribs.add("...");
+				break;
+			case AtLeastOne:
+				attribs.add("+");
+				break;
+			default:
+				break;
+			}
 		if (attribs.size() > 0) {
 			builder.append(":");
 			builder.append(StringUtil.blockString("", "", ",", attribs));

@@ -1247,7 +1247,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					});
 					for (ASTNode e : l) {
 						IRegion region = absoluteLocations ? e.absolute() : e;
-						document.replace(region.getOffset(), region.getLength(), e.toString());
+						document.replace(region.getOffset(), region.getLength(), e.printed());
 					}
 					return true;
 				} catch (BadLocationException e) {

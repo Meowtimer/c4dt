@@ -1,10 +1,10 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -12,8 +12,6 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
-import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -127,17 +125,13 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 	
 	@Override
-	public DifferenceHandling compare(ASTNode other, IASTComparisonDelegate listener) {
-		DifferenceHandling handling = super.compare(other, listener);
-		if (handling != DifferenceHandling.Equal)
-			return handling;
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
 		AccessDeclaration otherDec = (AccessDeclaration) other;
-		if (!listener.optionEnabled(Option.CheckForIdentity)) {
-			if (!declarationName.equals(otherDec.declarationName))
-				return listener.differs(this, other, "declarationName"); //$NON-NLS-1$
-		} else if (declaration != otherDec.declaration)
-			return listener.differs(this, other, "declaration"); //$NON-NLS-1$
-		return DifferenceHandling.Equal;
+		if (!declarationName.equals(otherDec.declarationName))
+			return false;
+		return true;
 	}
 
 	/**

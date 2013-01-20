@@ -535,7 +535,7 @@ public abstract class SpecialEngineRules {
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
 			if (scriptExpr instanceof String)
 				try {
-					C4ScriptParser.parseStandaloneStatement((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
+					C4ScriptParser.parseStandaloneNode((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
 						@Override
 						public Decision markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
 							switch (code) {
@@ -564,7 +564,7 @@ public abstract class SpecialEngineRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneStatement(lit.literal(), parser.currentFunction(), locator, null, parser.engine());
+					C4ScriptParser.parseStandaloneNode(lit.literal(), parser.currentFunction(), locator, null, parser.engine());
 				} catch (ParsingException e) {}
 				if (locator.expressionAtRegion() != null) {
 					EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, parser);
