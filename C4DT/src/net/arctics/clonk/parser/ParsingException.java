@@ -14,7 +14,7 @@ public class ParsingException extends Exception {
 	
 	public C4ScriptParser parser() { return parser; }
 	
-	public ParsingException(String msg, C4ScriptParser parser) {
+	public ParsingException(String msg) {
 		super(msg);
 	}
 }

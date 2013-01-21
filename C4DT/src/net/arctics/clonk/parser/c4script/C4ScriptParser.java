@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -24,17 +23,18 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.MalformedDeclaration;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
-import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.IMarkerListener.Decision;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -111,7 +111,7 @@ import org.eclipse.jface.text.Region;
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
-public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext, IEvaluationContext {
+public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext, IEvaluationContext, IASTPositionProvider {
 	
 	private static final EnumSet<ParserErrorCode> DISABLED_INSTANT_ERRORS = EnumSet.of(
 		ParserErrorCode.TokenExpected,
@@ -641,7 +641,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			parseStatementBlock(offset, statements, options, VisitCodeFlavour.AlsoStatements);
 			FunctionBody bunch = new FunctionBody(function, statements);
 			if (function.isOldStyle() && statements.size() > 0)
-				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + bodyOffset());
+				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
 			if (builder == null)
 				reportProblemsOf(statements, false);
 			function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
@@ -997,7 +997,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						else if (scope == Scope.STATIC && isEngine)
 							var.forceType(PrimitiveType.INT); // most likely
 					}
-					varInitialization = new VarInitialization(varName, initializationExpression, bt-bodyOffset(), this.offset-bodyOffset(), var);
+					varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var);
 					varInitialization.type = staticType;
 					if (createdVariables == null)
 						createdVariables = new LinkedList<VarInitialization>();
@@ -1524,69 +1524,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public static final int NO_THROW = 1;
 	public static final int ABSOLUTE_MARKER_LOCATION = 2;
 	
-	public static class Marker {
-		public ParserErrorCode code;
-		public int start, end;
-		public int severity;
-		public Object[] args;
-		
-		private final Declaration cf;
-		private final int offset;
-		private final ASTNode reporter;
-		private final IFile scriptFile;
-		private final Script container;
-		
-		public Marker(C4ScriptParser parser, ParserErrorCode code, int start, int end, int severity, Object[] args) {
-			super();
-			this.code = code;
-			this.start = start;
-			this.end = end;
-			this.severity = severity;
-			this.args = args;
-			
-			this.cf = parser.currentDeclaration();
-			this.offset = parser.offset;
-			this.reporter = parser.expressionReportingErrors();
-			this.scriptFile = parser.scriptFile;
-			this.container = parser.script();
-		}
-		public IMarker deploy() {
-			IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
-			if (cf != null)
-				ParserErrorCode.setDeclarationTag(result, cf.makeNameUniqueToParent());
-			IRegion exprLocation = reporter;
-			if (exprLocation != null)
-				ParserErrorCode.setExpressionLocation(result, exprLocation);
-			//result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
-			return result;
-		}
-		@Override
-		public String toString() {
-			return String.format("%s @(%d, %s)", code.toString(), offset, reporter.toString()); //$NON-NLS-1$
-		}
-	}
-	
-	public static class Markers extends LinkedList<Marker> {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public void deploy() {
-			if (Core.instance().runsHeadless())
-				return;
-			final List<Marker> markersToDeploy;
-			synchronized (this) {
-				markersToDeploy = new ArrayList<Marker>(this);
-				this.clear();
-			}
-			for (Marker m : markersToDeploy)
-				m.deploy();
-		}
-		@Override
-		public boolean add(Marker e) {
-			synchronized (this) {
-				return super.add(e);
-			}
-		}
-	}
-	
 	private Markers markers;
 	
 	public void setMarkers(Markers markers) {
@@ -1613,51 +1550,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public void marker(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
-		if (code == ParserErrorCode.VarOutsideFunction)
-			System.out.println("break");
-		if (!errorEnabled(code))
-			return;
-		// C4ScriptST: Incompatible type warnings always errors
-		if (typing == Typing.Static && code == ParserErrorCode.IncompatibleTypes)
-			severity = IMarker.SEVERITY_ERROR; 
-		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
-			int offs = bodyOffset();
-			markerStart += offs;
-			markerEnd += offs;
-		}
-		Function cf = currentFunction();
-		boolean misplacedErrorOrNoFileToAttachMarkerTo =
-			scriptFile == null ||
-			(cf != null && !cf.isOldStyle() && cf.bodyLocation() != null && markerStart > cf.bodyLocation().end()+1);
-		String problem = code.makeErrorString(args);
-		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
-			Markers markers = markers();
-			synchronized (markers) {
-				markers.add(new Marker(this, code, markerStart, markerEnd, severity, args));
-			}
-		}
-		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
-			throw misplacedErrorOrNoFileToAttachMarkerTo
-				? new SilentParsingException(Reason.SilenceRequested, problem, this)
-				: new ParsingException(problem, this);
+		markers().marker(this, code, markerStart, markerEnd, flags, severity, args);
 	}
 	
 	public IMarker todo(String todoText, int markerStart, int markerEnd, int priority) {
-		if (scriptFile != null)
-			try {
-				IMarker marker = scriptFile.createMarker(IMarker.TASK);
-				marker.setAttribute(IMarker.CHAR_START, markerStart+bodyOffset());
-				marker.setAttribute(IMarker.CHAR_END, markerEnd+bodyOffset());
-				marker.setAttribute(IMarker.MESSAGE, todoText);
-				marker.setAttribute(IMarker.LOCATION, currentDeclaration() != null ? currentDeclaration().qualifiedName() : ""); //$NON-NLS-1$
-				marker.setAttribute(IMarker.PRIORITY, priority);
-				return marker;
-			} catch (CoreException e) {
-				e.printStackTrace();
-				return null;
-			}
-		else
-			return null;
+		return markers().todo(this, todoText, markerStart, markerEnd, priority);
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
@@ -1769,7 +1666,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							List<ASTNode> args = new LinkedList<ASTNode>();
 							parseRestOfTuple(args, reportErrors);
 							CallDeclaration callFunc = new CallDeclaration(word, args.toArray(new ASTNode[args.size()]));
-							callFunc.setParmsRegion(s-bodyOffset(), this.offset-1-bodyOffset());
+							callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
 							elm = callFunc;
 						} else {
 							this.seek(beforeWhitespace);
@@ -1895,7 +1792,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				Operator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					setExprRegionRelativeToFuncBody(op, result.start()+bodyOffset(), this.offset);
+					setExprRegionRelativeToFuncBody(op, result.start()+sectionOffset(), this.offset);
 					return op;
 				} else
 					// a binary operator following this sequence
@@ -2003,7 +1900,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	@Override
 	public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
-		int bodyOffset = bodyOffset();
+		int bodyOffset = sectionOffset();
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
@@ -2233,7 +2130,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
 	public IRegion convertRelativeRegionToAbsolute(int flags, IRegion region) {
-		int offset = bodyOffset();
+		int offset = sectionOffset();
 		if (offset == 0 || (flags & ABSOLUTE_MARKER_LOCATION) == 0)
 			return region;
 		else
@@ -2672,7 +2569,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String garbageString = buffer.substring(garbageStart, Math.min(potentialGarbageEnd, buffer.length()));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null && garbageString.length() > 0) {
-			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-bodyOffset());
+			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-sectionOffset());
 			garbageStart = -1;
 			statements.add(garbage);
 			handleExpressionCreated(true, garbage);
@@ -3002,7 +2899,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ParsingException {
 		return statement != null
 			? statement
-			: new MissingStatement(offsetWhereExpected-bodyOffset());
+			: new MissingStatement(offsetWhereExpected-sectionOffset());
 	}
 
 	/**
@@ -3084,11 +2981,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return var;
 	}
 	
-	private boolean testForString(String s) {
-		String t = readString(s.length());
-		return t != null && t.equals(s);
-	}
-	
 	/**
 	 * Delete declarations inside the script container assigned to the parser and remove markers.
 	 */
@@ -3115,7 +3007,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
 	 */
 	@Override
-	public int bodyOffset() {
+	public int sectionOffset() {
 		Function f = currentFunction();
 		if (f != null && f.bodyLocation() != null)
 			return f.bodyLocation().start();
@@ -3225,45 +3117,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Script parser that notifies a marker visitor about markers about to be created
-	 * @author madeen
-	 *
-	 */
-	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
-		/**
-		 * The associated marker visitor
-		 */
-		private final IMarkerListener markerListener;
-		/**
-		 * Create the parser
-		 * @param withString Script to parse
-		 * @param script Script object representing the script to be parsed
-		 * @param markerListener the marker visitor
-		 */
-		public ScriptParserWithMarkerListener(String withString, Script script, IMarkerListener markerListener) {
-			super(withString, script, null);
-			this.markerListener = markerListener;
-		}
-		/**
-		 * Overridden to notify the {@link #markerListener} and possibly cancel creating the marker if the visitor says so.
-		 */
-		@Override
-		public void marker(ParserErrorCode code,
-				int markerStart, int markerEnd, int flags,
-				int severity, Object... args) throws ParsingException {
-			if (markerListener != null) {
-				if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
-					markerStart += offsetOfScriptFragment;
-					markerEnd += offsetOfScriptFragment;
-				}
-				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
-					return;
-			}
-			super.marker(code, markerStart, markerEnd, flags, severity, args);
-		}
-	}
-	
-	/**
 	 * Report expressions and statements of a function or some free-floating code fragment using
 	 * a newly created parser that is returned after reporting is finished.
 	 * If funcOrRegion is a {@link Function}, reparsing takes only place if the script the function body
@@ -3293,7 +3146,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			statements_ = ""; // well... //$NON-NLS-1$
 		}
 		final String statements = statements_;
-		C4ScriptParser parser = new ScriptParserWithMarkerListener(statements, context, markerListener) {
+		C4ScriptParser parser = new C4ScriptParser(statements, context, null) {
 			@Override
 			protected void initialize() {
 				super.initialize();
@@ -3301,7 +3154,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				findDefinitionViaCall = true;
 			}
 			@Override
-			public int bodyOffset() {
+			public int sectionOffset() {
 				return 0;
 			}
 			@Override
@@ -3309,52 +3162,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return statements;
 			}
 		};
+		parser.markers().setListener(markerListener);
 		parser.visitCode(funcOrRegion, visitor, flavour, reportErrors);
 		return parser;
 	}
 	
-	/**
-	 * Parse a stand-alone statement with an optional function context.
-	 * @param source The statement text to parse
-	 * @param context Function context. If null, some temporary context will be created internally.
-	 * @param visitor Script parser visitor
-	 * @param markerListener Marker visitor
-	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
-	 * @throws ParsingException
-	 */
-	public static ASTNode parseStandaloneNode(
-		final String source,
-		Function context,
-		IASTVisitor<C4ScriptParser> visitor,
-		final IMarkerListener markerListener,
-		Engine engine
-	) throws ParsingException {
-		if (context == null) {
-			Script tempScript = new TempScript(source, engine);
-			context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
-			context.setScript(tempScript);
-			context.setBodyLocation(new SourceLocation(0, source.length()));
-		}
-		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(source, context.script(), markerListener) {
-			@Override
-			public int bodyOffset() { return 0; }
-			@Override
-			protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
-				Statement s = parseStatement();
-				if (s instanceof SimpleStatement)
-					return ((SimpleStatement)s).expression();
-				else
-					return s;
-			}
-		};
-		ASTNode result = tempParser.parseDeclaration();
-		if (result == null)
-			result = tempParser.parseStandaloneStatement(source, context, visitor);
-		return result;
-	}
-	
 	public static ASTNode parse(final String source, Engine engine) throws ParsingException {
-		return parseStandaloneNode(source, null, null, null, engine);
+		return ScriptsHelper.parseStandaloneNode(source, null, null, null, engine);
 	}
 	
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
@@ -3416,7 +3230,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	@Override
 	public int codeFragmentOffset() {
-		return bodyOffset();
+		return sectionOffset();
 	}
 
 	@Override
@@ -3439,5 +3253,21 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				left.typeName(true), right.typeName(true)
 			);
 		} catch (ParsingException e) {}
+	}
+	@Override
+	public ASTNode node() {
+		return null;
+	}
+	@Override
+	public IFile file() {
+		return scriptFile;
+	}
+	@Override
+	public Declaration container() {
+		return script();
+	}
+	@Override
+	public int fragmentOFfset() {
+		return offsetOfScriptFragment;
 	}
 }

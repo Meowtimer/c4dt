@@ -148,7 +148,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	@Override
 	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
 		// parse comment as expression and see what goes
-		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
+		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.sectionOffset()); // make up for '//' or /*'
 		try {
 			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.script(), parser.script().scriptFile()) {
 				@Override
@@ -157,7 +157,7 @@ public class Comment extends Statement implements Statement.Attachment {
 					allErrorsDisabled = true;
 				}
 				@Override
-				public int bodyOffset() {
+				public int sectionOffset() {
 					return 0;
 				}
 			};

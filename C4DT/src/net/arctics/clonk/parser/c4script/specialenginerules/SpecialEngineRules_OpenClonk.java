@@ -158,7 +158,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					// clone argument since the offset of the expression inside the func body is relative while
 					// the variable initialization expression location is supposed to be absolute
 					ASTNode initializationClone = arguments[1].clone();
-					initializationClone.incrementLocation(parser.bodyOffset());
+					initializationClone.incrementLocation(parser.sectionOffset());
 					var.setInitializationExpression(initializationClone);
 					var.forceType(arguments[1].type(parser));
 					new AccessVar(var).assignment(arguments[1], parser);

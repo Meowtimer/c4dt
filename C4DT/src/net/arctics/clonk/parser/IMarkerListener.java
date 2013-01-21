@@ -1,6 +1,6 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 /**
  * A listener that will be notified if a marker is about to be created.
@@ -34,5 +34,5 @@ public interface IMarkerListener {
 	 * @param args Arguments used to construct the marker message
 	 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
 	 */
-	Decision markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args);
+	Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args);
 }

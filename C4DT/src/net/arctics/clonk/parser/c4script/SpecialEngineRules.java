@@ -28,11 +28,14 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IMarkerListener;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
@@ -535,9 +538,12 @@ public abstract class SpecialEngineRules {
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
 			if (scriptExpr instanceof String)
 				try {
-					C4ScriptParser.parseStandaloneNode((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
+					ScriptsHelper.parseStandaloneNode((String)scriptExpr, parser.currentFunction(), null, new IMarkerListener() {
 						@Override
-						public Decision markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
+						public Decision markerEncountered(
+							Markers markers, IASTPositionProvider positionProvider,
+							ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args
+						) {
 							switch (code) {
 							// ignore complaining about missing ';' - some genuine errors might slip through but who cares
 							case NotFinished:
@@ -545,9 +551,9 @@ public abstract class SpecialEngineRules {
 							case UndeclaredIdentifier:
 								return Decision.DropCharges;
 							default:
-								if (parser.errorEnabled(code))
+								if (markers.errorEnabled(code))
 									try {
-										parser.marker(code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
+										markers.marker(positionProvider, code, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
 									} catch (ParsingException e1) {}
 								return Decision.PassThrough;
 							}
@@ -564,7 +570,7 @@ public abstract class SpecialEngineRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneNode(lit.literal(), parser.currentFunction(), locator, null, parser.engine());
+					ScriptsHelper.parseStandaloneNode(lit.literal(), parser.currentFunction(), locator, null, parser.engine());
 				} catch (ParsingException e) {}
 				if (locator.expressionAtRegion() != null) {
 					EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, parser);

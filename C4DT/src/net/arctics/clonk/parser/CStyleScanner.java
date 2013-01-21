@@ -59,11 +59,11 @@ public class CStyleScanner extends BufferedScanner {
 	}
 	
 	public final void setExprRegionRelativeToFuncBody(ASTNode expr, int start, int end) {
-		int bodyOffset = bodyOffset();
+		int bodyOffset = sectionOffset();
 		expr.setLocation(start-bodyOffset, end-bodyOffset);
 	}
 	
-	protected int bodyOffset() {
+	protected int sectionOffset() {
 		return 0;
 	}
 	

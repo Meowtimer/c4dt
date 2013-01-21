@@ -212,7 +212,7 @@ public class MatchingPlaceholder extends Placeholder {
 						continue;
 					}
 				if (requiredClass == null)
-					throw new ParsingException(String.format("AST class not found: %s", className), null);
+					throw new ParsingException(String.format("AST class not found: %s", className));
 			}
 		this.entryName = entry;
 	}

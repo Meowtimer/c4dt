@@ -23,7 +23,10 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
+import net.arctics.clonk.parser.IMarkerListener;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -32,7 +35,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -261,14 +263,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						final Function f = (Function) fn.latestVersion();
 						C4ScriptParser.visitCode(document, structure, f, null, new IMarkerListener() {
 							@Override
-							public Decision markerEncountered(C4ScriptParser parser, ParserErrorCode code,
+							public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code,
 									int markerStart, int markerEnd, int flags,
 									int severity, Object... args) {
-								if (!parser.errorEnabled(code))
+								if (!markers.errorEnabled(code))
 									return Decision.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.expressionReportingErrors()), args);
+										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(positionProvider, flags, positionProvider.node()), args);
 								return Decision.PassThrough;
 							}
 						}, VisitCodeFlavour.AlsoStatements, true);
