@@ -192,7 +192,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	@SuppressWarnings("unchecked")
 	public <T> T parentOfType(Class<T> cls) {
 		ASTNode e;
-		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
+		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
 

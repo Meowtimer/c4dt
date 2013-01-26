@@ -16,11 +16,11 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -120,9 +120,9 @@ public class Definition extends Script implements IProplistDeclaration {
 		Class<?> cls = info.declarationClass;
 		boolean variableRequired = false;
 		if (
-				cls == null ||
-				cls == Definition.class ||
-				(engine() != null && engine().settings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
+			cls == null ||
+			cls == Definition.class ||
+			(engine() != null && engine().settings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		)
 			if (id != null && id.stringValue().equals(name))
 				return variableRequired ? this.proxyVar() : this;
