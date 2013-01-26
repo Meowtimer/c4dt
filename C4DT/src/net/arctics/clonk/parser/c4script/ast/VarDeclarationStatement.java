@@ -7,11 +7,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
@@ -28,6 +25,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private VarInitialization[] varInitializations;
 	private final Scope scope;
+	
+	public Scope scope() { return scope; }
 	
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
 		super();
@@ -72,8 +71,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
-		Function activeFunc = parser.currentFunction();
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+		Function activeFunc = this.parentOfType(Function.class);
 		if (activeFunc != null) {
 			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
 			offset += addToMakeAbsolute;
@@ -84,33 +83,6 @@ public class VarDeclarationStatement extends KeywordStatement {
 					return new EntityRegion(var, new Region(var.start()-activeFunc.bodyLocation().start(), var.getLength()));
 			}
 		}
-		return super.entityAt(offset, parser);
-	}
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		for (VarInitialization initialization : varInitializations)
-			if (initialization.variable != null)
-				if (initialization.expression != null) {
-					IType initializationType = initialization.expression.unresolvedType(parser);
-					if (
-						initialization.variable.staticallyTyped() &&
-						!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, parser, parser.script()))
-					)
-						parser.incompatibleTypes(
-							initialization.expression,
-							initialization.variable.type(), initializationType
-						);
-					else {
-						switch (scope) {
-						case VAR: case PARAMETER:
-							initializationType = TypeUtil.resolve(initializationType, parser, parser.script());
-							break;
-						default:
-							break;
-						}
-						new AccessVar(initialization.variable).typingJudgement(initializationType, parser, TypingJudgementMode.Unify);
-					}
-				}
+		return super.entityAt(offset, context);
 	}
 }

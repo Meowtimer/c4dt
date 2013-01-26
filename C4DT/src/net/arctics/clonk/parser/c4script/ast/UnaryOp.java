@@ -3,9 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -66,18 +65,7 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public void reportProblems(C4ScriptParser context) throws ParsingException {
-		super.reportProblems(context);
-		if (operator().modifiesArgument() && !argument().isModifiable(context))
-			//				System.out.println(getArgument().toString() + " does not behave");
-			context.error(ParserErrorCode.ExpressionNotModifiable, argument(), C4ScriptParser.NO_THROW);
-		if (!argument().validForType(operator().firstArgType(), context))
-			context.incompatibleTypes(argument(), operator().firstArgType(), argument().type(context));
-		argument().typingJudgement(operator().firstArgType(), context, TypingJudgementMode.Expect);
-	}
-
-	@Override
-	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
 		ASTNode arg = argument().optimize(context);
 		if (arg instanceof BinaryOp)

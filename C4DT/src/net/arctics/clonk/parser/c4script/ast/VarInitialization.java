@@ -2,12 +2,12 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
@@ -16,7 +16,7 @@ import org.eclipse.jface.text.Region;
 
 /**
  * A single var declaration/initialization. Includes name of variable being declared, optionally the initialization expression and
- * a reference to the actual {@link Variable} object representing the variable being declared. 
+ * a reference to the actual {@link Variable} object representing the variable being declared.
  * @author madeen
  *
  */
@@ -96,7 +96,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
 			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
 		else
@@ -107,5 +107,5 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	public String patternMatchingText() {
 		return name;
 	}
-	
+
 }

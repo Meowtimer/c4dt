@@ -1,6 +1,5 @@
 package net.arctics.clonk.testing;
 
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -27,8 +26,8 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
@@ -36,8 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
-import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
-import net.arctics.clonk.parser.c4script.ast.LongLiteral;
+import net.arctics.clonk.parser.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.True;
@@ -47,6 +45,7 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
 
 import org.eclipse.core.resources.IStorage;
 import org.junit.Before;
@@ -155,7 +154,7 @@ public class C4ScriptParserTestCase {
 	@Test
 	public void testASTPrinting() {
 		Block b = new Block(new SimpleStatement(new BinaryOp(Operator.Assign,
-				new AccessVar("i"), new LongLiteral(50))),
+				new AccessVar("i"), new IntegerLiteral(50))),
 				new SimpleStatement(new UnaryOp(Operator.Increment,
 						Placement.Prefix, new AccessVar("i"))),
 				new WhileStatement(new True(), new Block(
@@ -172,9 +171,9 @@ public class C4ScriptParserTestCase {
 	public void testForLoopParsingParsing() {
 		final Block block = new BunchOfStatements(new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
-						new VarInitialization("i", LongLiteral.ZERO, 0, 0, null)), new BinaryOp(
+						new VarInitialization("i", IntegerLiteral.ZERO, 0, 0, null)), new BinaryOp(
 							Operator.Smaller, new AccessVar("i"),
-							new LongLiteral(100)), new UnaryOp(
+							new IntegerLiteral(100)), new UnaryOp(
 								Operator.Increment, Placement.Postfix, new AccessVar(
 								"i")), new Block(new SimpleStatement(
 									new CallDeclaration("Log", new StringLiteral("Hello"))))));

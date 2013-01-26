@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser;
 
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -13,20 +12,16 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
-import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
@@ -35,24 +30,17 @@ import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
-import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
-import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.TypeInfo;
-import net.arctics.clonk.parser.c4script.ast.TypeUnification;
-import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.Whitespace;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.IPrintable;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -64,7 +52,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public ASTNode() {}
 	protected ASTNode(int start, int end) { super(start, end); }
-	
+
 	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor<Object> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
@@ -94,7 +82,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return null;
 		}
 		@Override
-		public TraversalContinuation visitExpression(ASTNode expression, Object context) {
+		public TraversalContinuation visitNode(ASTNode expression, Object context) {
 			int ed = depth(expression);
 			if (ed == depth && textRepresentation.equals(expression.toString())) {
 				found = expression;
@@ -106,7 +94,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				return TraversalContinuation.Continue;
 		}
 	}
-	
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final ASTNode NULL_EXPR = new ASTNode();
@@ -117,7 +105,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return false; // never!
 		};
 	};
-	
+
 	public static final int PROPERLY_FINISHED = 1;
 	public static final int STATEMENT_REACHED = 2;
 	public static final int MISPLACED = 4;
@@ -134,21 +122,21 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
 		return result;
 	}
-	
+
 	protected transient ASTNode parent, predecessorInSequence;
 	private transient int flags = PROPERLY_FINISHED;
-	
+
 	public final boolean flagsEnabled(int flags) {
-		return (this.flags & flags) != 0;
+		return (this.flags & flags) == flags;
 	}
-	
+
 	public final void setFlagsEnabled(int flags, boolean enabled) {
 		if (enabled)
 			this.flags |= flags;
 		else
 			this.flags &= ~flags;
 	}
-	
+
 	public boolean isFinishedProperly() {return flagsEnabled(PROPERLY_FINISHED);}
 	public void setFinishedProperly(boolean finished) {setFlagsEnabled(PROPERLY_FINISHED, finished);}
 
@@ -194,10 +182,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Return the parent of this expression.
 	 * @return
 	 */
-	public ASTNode parent() {
-		return parent;
-	}
-	
+	public ASTNode parent() { return parent; }
+
 	/**
 	 * Return the first parent in the parent chain of this expression that is of the given class
 	 * @param cls The class to test for
@@ -211,38 +197,25 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Emit a warning if this expression is erroneously used at a place where only expressions with side effects are allowed. 
-	 * @param parser The parser used to create the warning marker if conditions are met (!{@link #hasSideEffects()})
-	 */
-	public void warnIfNoSideEffects(C4ScriptParser parser) {
-		if (parent() instanceof IterateArrayStatement && ((IterateArrayStatement)parent()).elementExpr() == this)
-			return;
-		if (!hasSideEffects())
-			parser.warning(ParserErrorCode.NoSideEffects, this, 0);
-	}
-
-	/**
 	 * Set the parent of this expression.
 	 * @param parent
 	 */
-	public void setParent(ASTNode parent) {
-		this.parent = parent;
-	}
-	
+	public void setParent(ASTNode parent) { this.parent = parent; }
+
 	/**
 	 * Print additional text prepended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})
 	 * @param output The output writer to print the prependix to
 	 * @param depth Print depth inherited from the underlying {@link #print(ASTNodePrinter, int)} call
 	 */
 	public void printPrependix(ASTNodePrinter output, int depth) {}
-	
+
 	/**
 	 * Perform the actual intrinsic C4Script-printing for this kind of expression
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
 	public void doPrint(ASTNodePrinter output, int depth) {}
-	
+
 	/**
 	 * Return the printed string for this node. Calls {@link #print(ASTNodePrinter, int)}.
 	 * @return The printed string.
@@ -252,14 +225,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		print(builder, 0);
 		return builder.toString();
 	}
-	
+
 	/**
 	 * Print additional text appended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
 	public void printAppendix(ASTNodePrinter output, int depth) {}
-	
+
 	/**
 	 * Call all the printing methods in one bundle ({@link #printPrependix(ASTNodePrinter, int)}, {@link #doPrint(ASTNodePrinter, int)}, {@link #printAppendix(ASTNodePrinter, int)})
 	 * The {@link ASTNodePrinter} is also given a chance to do its own custom printing using {@link ASTNodePrinter#doCustomPrinting(ASTNode, int)}
@@ -282,39 +255,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor == null; }
 	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return true; }
 	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return true; }
-	
-	/**
-	 * Return type of the expression, adjusting the result of obtainType under some circumstances
-	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
-	 * @return The type of the expression
-	 */
-	public IType type(DeclarationObtainmentContext context) {
-		IType urt = unresolvedType(context);
-		return TypeUtil.resolve(urt, context, callerType(context));
-	}
-
-	/**
-	 * Return type of object the expression is executed in
-	 * @param context Context information
-	 * @return The type
-	 */
-	public IType callerType(DeclarationObtainmentContext context) {
-		IType predType = unresolvedPredecessorType(context);
-		return defaulting(predType, context.script());
-	}
-	
-	/**
-	 * Overridable method to obtain the type of the declaration.
-	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
-	 * @return The type of the expression
-	 */
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		return context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
-	}
-	
-	public final Definition guessObjectType(DeclarationObtainmentContext context) {
-		return Utilities.as(Definition.scriptFrom(type(context)), Definition.class);
-	}
 
 	public boolean isModifiable(C4ScriptParser context) {
 		return true;
@@ -355,11 +295,11 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		this.start = start;
 		this.end = end;
 	}
-	
+
 	public void setLocation(IRegion r) {
 		this.setLocation(r.getOffset(), r.getOffset()+r.getLength());
 	}
-	
+
 	/**
 	 * Reset some cached state so {@link #reportProblems(C4ScriptParser)} is more likely to not report on errors that have since been fixed.
 	 * Also called recursively on {@link #subElements()}.
@@ -370,21 +310,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			if (e != null)
 				e.reconsider(parser);
 	}
-	
-	/**
-	 * Give ExprElm a chance to complain about things.
-	 * @param parser The parser to report errors to, preferably via some variant of {@link C4ScriptParser#marker(ParserErrorCode, int, int, int, int, Object...)}
-	 * @throws ParsingException
-	 */
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		// i'm totally error-free
-	}
-	
-	/**
-	 * Returning true tells the {@link C4ScriptParser} to not recursively call {@link #reportProblems(C4ScriptParser)} on {@link #subElements()} 
-	 * @return Do you just show up, play the music,
-	 */
-	public boolean skipReportingProblemsForSubElements() {return false;}
 
 	public void setPredecessorInSequence(ASTNode p) {
 		predecessorInSequence = p;
@@ -393,7 +318,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode predecessorInSequence() {
 		return predecessorInSequence;
 	}
-	
+
 	public ASTNode successorInSequence() {
 		if (parent() instanceof Sequence)
 			return ((Sequence)parent()).successorOfSubElement(this);
@@ -404,7 +329,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	/**
 	 * Return the sub elements of this {@link ASTNode}.
 	 * The resulting array may contain nulls since the order of elements in the array is always the same but some expressions may allow leaving out some elements.
-	 * A {@link ForStatement} does not require a condition, for example. 
+	 * A {@link ForStatement} does not require a condition, for example.
 	 * @return The array of sub elements
 	 */
 	public ASTNode[] subElements() {
@@ -426,7 +351,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode exhaustiveOptimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode exhaustiveOptimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		ASTNode repl;
 		for (ASTNode original = this; (repl = original.optimize(context)) != original; original = repl);
 		return repl;
@@ -440,7 +365,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return a #strict/#strict 2/readability enhanced version of the original expression
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode optimize(final C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		return transformSubElements(new ITransformer() {
 			@Override
 			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
@@ -455,7 +380,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			}
 		});
 	}
-	
+
 	/**
 	 * Interface for transforming an element in an expression.
 	 * @author madeen
@@ -477,7 +402,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		 */
 		Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression);
 	}
-	
+
 	/**
 	 * Transform the expression using the supplied transformer.
 	 * @param transformer The transformer whose {@link ITransformer#transform(ASTNode)} will be called on each sub element
@@ -530,7 +455,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 		return this; // nothing to be changed
 	}
-	
+
 	/**
 	 * Call {@link #transformSubElements(ITransformer)} but if transforming on this layer does not work let the transformer
 	 * attempt to transform on nested layers.
@@ -563,26 +488,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Return whether this expression is valid as a value of the specified type.
-	 * @param type The type to test against
-	 * @param context Script parser context
-	 * @return True if valid, false if not.
-	 */
-	public boolean validForType(IType type, C4ScriptParser context) {
-		if (type == null)
-			return true;
-		IType myType = type(context);
-		return type.canBeAssignedFrom(myType);
-	}
-
-	/**
 	 * Traverses this expression by calling expressionDetected on the supplied IExpressionListener for the root expression and its sub elements.
 	 * @param listener the expression listener
 	 * @param parser the parser as context
 	 * @return flow control for the calling function
 	 */
 	public <T> TraversalContinuation traverse(IASTVisitor<T> listener, T context) {
-		TraversalContinuation result = listener.visitExpression(this, context);
+		TraversalContinuation result = listener.visitNode(this, context);
 		switch (result) {
 		case Cancel:
 			return TraversalContinuation.Cancel;
@@ -622,31 +534,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parser Script parser context
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		return null;
-	}
-
-	private static final ASTNode[] exprElmsForTypes = new ASTNode[PrimitiveType.values().length];
-
-	/**
-	 * Returns a canonical {@link ASTNode} object for the given type such that its {@link #type(DeclarationObtainmentContext)} returns the given type
-	 * @param type the type to return a canonical ExprElm of
-	 * @return the canonical {@link ASTNode} object
-	 */
-	public static ASTNode exprElmForPrimitiveType(final PrimitiveType type) {
-		if (exprElmsForTypes[type.ordinal()] == null)
-			exprElmsForTypes[type.ordinal()] = new ASTNode() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-				@Override
-				public IType unresolvedType(DeclarationObtainmentContext context) {
-					return type;
-				}
-			};
-		return exprElmsForTypes[type.ordinal()];
 	}
 
 	/**
@@ -664,71 +553,25 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public String toString() {
 		return toString(0);
 	}
-	
+
 	public Comment commentedOut() {
 		String str = this.toString();
 		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
-	}
-	
-	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
-		ITypeInfo info;
-		switch (mode) {
-		case Expect:
-			info = context.requestTypeInfo(this);
-			if (info != null)
-				if (info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
-					info.storeType(type);
-					return true;
-				} else
-					return false;
-			return true;
-		case Force:
-			info = context.requestTypeInfo(this);
-			if (info != null) {
-				info.storeType(type);
-				return true;
-			} else
-				return false;
-		case Hint:
-			info = context.queryTypeInfo(this);
-			return info == null || info.hint(type);
-		case Unify:
-			info = context.requestTypeInfo(this);
-			if (info != null) {
-				info.storeType(TypeUnification.unify(info.type(), type));
-				return true;
-			} else
-				return false;
-		default:
-			return false;
-		}
-	}
-	
-	public void assignment(ASTNode rightSide, C4ScriptParser context) {
-		if (context.staticTyping() == Typing.Static) {
-			IType left = this.type(context);
-			IType right = rightSide.type(context); 
-			if (!left.canBeAssignedFrom(right))
-				context.incompatibleTypes(rightSide, left, right);
-		} else {
-			this.typingJudgement(rightSide.type(context), context, TypingJudgementMode.Force);
-			context.linkTypesOf(this, rightSide);
-		}
 	}
 
 	public ControlFlow controlFlow() {
 		return ControlFlow.Continue;
 	}
-	
+
 	public EnumSet<ControlFlow> possibleControlFlows() {
-		return EnumSet.of(controlFlow()); 
+		return EnumSet.of(controlFlow());
 	}
 
 	public final boolean isAlways(boolean what, IEvaluationContext context) {
 		Object ev = this.evaluateAtParseTime(context);
 		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
 	}
-	
+
 	public static boolean convertToBool(Object value) {
 		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
 	}
@@ -745,7 +588,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Return direct sub element of this ExprElm that contains elm.
 	 * @param elm The expression that has one of the sub elements in its parent chain.
@@ -767,13 +610,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return false;
 	}
 
-	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
-		ITypeable d = GenericTypeInfo.typeableFromExpression(this, parser);
-		if (d != null && !d.staticallyTyped())
-			return new GenericTypeInfo(this, parser);
-		return null;
-	}
-	
 	/**
 	 * Rudimentary possibility for evaluating the expression. Only used for evaluating the value of the SetProperty("Name", ...) call in a Definition function (OpenClonk) right now
 	 * @param context the context to evaluate in
@@ -782,7 +618,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		return EVALUATION_COMPLEX;
 	}
-	
+
 	/**
 	 * Evaluate expression. Used for the interpreter
 	 * @return the result of the evaluation
@@ -790,7 +626,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		return null;
 	}
-	
+
 	/**
 	 * Evaluate the expression without a context. Same calling {@link #evaluate(IEvaluationContext)} with null.
 	 * @return The result of the evaluation
@@ -799,7 +635,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public final Object evaluate() throws ControlFlowException {
 		return evaluate(null);
 	}
-	
+
 	/**
 	 * Increment the offset of this expression by some amount.
 	 * @param amount The amount
@@ -812,7 +648,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		if (end)
 			this.end += amount;
 	}
-	
+
 	private static void offsetExprRegionRecursively(ASTNode elm, int diff) {
 		if (elm == null)
 			return;
@@ -820,7 +656,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		for (ASTNode e : elm.subElements())
 			offsetExprRegionRecursively(e, diff);
 	}
-	
+
 	private void offsetExprRegionRecursivelyStartingAt(ASTNode elm, int diff) {
 		boolean started = false;
 		ASTNode[] elms = subElements();
@@ -833,7 +669,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		if (parent() != null)
 			parent().offsetExprRegionRecursivelyStartingAt(this, diff);
 	}
-	
+
 	/**
 	 * Replace a sub element with another one. If the replacement element's tree relationships are to be preserved, a clone should be passed instead.
 	 * @param element The element to replace
@@ -846,7 +682,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		assert(element != with);
 		assert(element != null);
 		assert(with != null);
-		
+
 		ASTNode[] subElms = subElements();
 		ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false;
@@ -870,9 +706,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			throw new InvalidParameterException("element must actually be a subelement of this");
 		return this;
 	}
-	
+
 	private static final ASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new ASTComparisonDelegate();
-	
+
 	/**
 	 * Compare element with other element. Return true if there are no differences, false otherwise.
 	 * @param other The other expression
@@ -897,7 +733,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			ASTNode[] mine = this.subElements();
 			ASTNode[] others = other.subElements();
 			ASTNode[][] leftToRightMapping = delegate.compareSubElements(mine, others);
-			
+
 			if (leftToRightMapping != null) {
 				delegate.applyLeftToRightMapping(mine, leftToRightMapping);
 				return true;
@@ -908,89 +744,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			delegate.right = oldRight;
 		}
 	}
-	
+
 	protected boolean equalAttributes(ASTNode other) { return true; }
-	
-	/**
-	 * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ASTNode} and setting its type.
-	 * @author madeen
-	 *
-	 */
-	protected static final class GenericTypeInfo extends TypeInfo {
-		private final ASTNode expression;
-		
-		public GenericTypeInfo(ASTNode referenceElm, C4ScriptParser parser) {
-			super();
-			this.expression = referenceElm;
-			ITypeable typeable = typeableFromExpression(referenceElm, parser);
-			if (typeable != null)
-				this.type = typeable.type();
-		}
-		
-		private static final ASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new ASTComparisonDelegate() {
-			@Override
-			public boolean considerDifferent() {
-				AccessDeclaration leftDec = as(left, AccessDeclaration.class);
-				AccessDeclaration rightDec = as(right, AccessDeclaration.class);
-				if (leftDec != null && rightDec != null)
-					if (leftDec.declaration() != rightDec.declaration())
-						return true;
-				return false;
-			}
-		};
 
-		@Override
-		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
-			if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
-				return !Utilities.isAnyOf(((AccessDeclaration)expr).declaration(), parser.cachedEngineDeclarations().VarAccessFunctions);
-			ASTNode chainA, chainB;
-			for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
-				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER))
-					return false;
-			return chainA == null || chainB == null;
-		}
-
-		@Override
-		public boolean refersToSameExpression(ITypeInfo other) {
-			if (other instanceof GenericTypeInfo)
-				return ((GenericTypeInfo)other).expression.equals(expression);
-			else
-				return false;
-		}
-		
-		public static ITypeable typeableFromExpression(ASTNode referenceElm, C4ScriptParser parser) {
-			EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, parser);
-			if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
-				return decRegion.entityAs(ITypeable.class);
-			else
-				return null;
-		}
-		
-		@Override
-		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypeable typeable = typeableFromExpression(expression, parser);
-			if (typeable != null) {
-				// don't apply typing to non-local things if only applying type information softly
-				// this prevents assigning types to instance variables when only hovering over some function or something like that
-				if (soft && !typeable.isLocal())
-					return;
-				// only set types of declarations inside the current index so definition references of one project
-				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				Index index = typeable.index();
-				if (index == null || index != parser.script().index())
-					return;
-
-				typeable.expectedToBeOfType(type, TypingJudgementMode.Expect);
-			}
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("[%s: %s]", expression.toString(), type.typeName(true));
-		}
-		
-	}
-	
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && other.getClass() == this.getClass())
@@ -998,13 +754,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		else
 			return false;
 	}
-	
+
 	public Statement statement() {
 		ASTNode p;
 		for (p = this; p != null && !(p instanceof Statement); p = p.parent());
 		return (Statement)p;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected <T extends ASTNode> void collectExpressionsOfType(List<T> list, Class<T> type) {
 		if (type.isInstance(this))
@@ -1015,17 +771,11 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			e.collectExpressionsOfType(list, type);
 		}
 	}
-	
+
 	public <T extends ASTNode> Iterable<T> collectionExpressionsOfType(Class<T> cls) {
 		List<T> l = new LinkedList<T>();
 		collectExpressionsOfType(l, cls);
 		return l;
-	}
-	
-	public void setAssociatedDeclaration(Declaration declaration) {
-		for (ASTNode s : subElements())
-			if (s != null)
-				s.setAssociatedDeclaration(declaration);
 	}
 
 	public ASTNode sequenceTilMe() {
@@ -1046,21 +796,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return as(parent(), Sequence.class);
 	}
 
-	public void postLoad(ASTNode parent, DeclarationObtainmentContext context) {
+	public void postLoad(ASTNode parent, ProblemReportingContext context) {
+		this.parent = parent;
 		ASTNode prev = null;
 		for (ASTNode e : subElements()) {
 			if (e != null) {
 				e.predecessorInSequence = prev;
-				e.parent = this;
 				e.postLoad(this, context);
 			}
 			prev = e;
 		}
-	}
-	
-	protected final void missing(C4ScriptParser parser) throws ParsingException {
-		ParserErrorCode code = this instanceof Statement ? ParserErrorCode.MissingStatement : ParserErrorCode.MissingExpression;
-		parser.error(code, this, C4ScriptParser.NO_THROW, this);
 	}
 
 	/**
@@ -1073,19 +818,11 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			if (e != null)
 				e.incrementLocation(amount);
 	}
-	
+
 	public static Object evaluateAtParseTime(ASTNode element, IEvaluationContext context) {
 		return element != null ? element.evaluateAtParseTime(context) : null;
 	}
-	
-	public IType predecessorType(DeclarationObtainmentContext context) {
-		return predecessorInSequence != null ? predecessorInSequence.type(context) : null;
-	}
-	
-	public <T extends IType> T predecessorTypeAs(Class<T> cls, DeclarationObtainmentContext context) {
-		return predecessorInSequence != null ? as(predecessorInSequence.type(context), cls) : null;
-	}
-	
+
 	/**
 	 * Check whether the given expression contains a reference to a constant.
 	 * @param condition The expression to check
@@ -1099,13 +836,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				return true;
 		return false;
 	}
-	
-	public final IType unresolvedPredecessorType(DeclarationObtainmentContext context) {
-		ASTNode e = this;
-		//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
-		return e != null && e.predecessorInSequence != null ? e.predecessorInSequence.unresolvedType(context) : null;
-	}
-	
+
 	/**
 	 * Return the {@link Declaration} this expression element is owned by. This may be the function whose body this element is contained in.
 	 * @return The owning {@link Declaration}
@@ -1113,7 +844,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public Declaration owningDeclaration() {
 		return parent != null ? parent.owningDeclaration() : null;
 	}
-	
+
 	/**
 	 * Compare this expression with another one, returning sub elements of the other expression that correspond to {@link Placeholder}s in this one.
 	 * @param other Expression to match against
@@ -1126,7 +857,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		else
 			return null;
 	}
-	
+
 	/**
 	 * Return an instance of a specified class with its public fields set to results from {@link #match(ASTNode)}
 	 * @param other The other expression to match against
@@ -1149,7 +880,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		} else
 			return false;
 	}
-	
+
 	/**
 	 * Transform expression by replacing {@link Placeholder} nodes with corresponding values from the passed map.
 	 * @param substitutions The map to use as source for {@link Placeholder} substitutions
@@ -1171,7 +902,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			}
 		});
 	}
-	
+
 	/**
 	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
 	 * improved matching capabilities with them.
@@ -1213,12 +944,17 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			}
 		});
 	}
+
+	private transient IType inferredType;
+	public IType inferredType() { return inferredType; }
+	public void inferredType(IType type) { inferredType = type; }
+
+	public transient Object temporaryProblemReportingObject;
 	
-	public IRegion absolute() {
-		ASTNode p;
-		for (p = this; p != null && p.parent != null; p = p.parent);
-		Declaration d = p.owningDeclaration();
-		return this.region(d instanceof Function ? ((Function)d).bodyLocation().start() : 0);
+	public final int sectionOffset() {
+		Function f = parentOfType(Function.class);
+		return f != null ? f.bodyLocation().start() : 0;
 	}
-	
+	public IRegion absolute() { return this.region(sectionOffset()); }
+
 }

@@ -6,13 +6,9 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class BinaryOp extends OperatorExpression {
@@ -20,27 +16,9 @@ public class BinaryOp extends OperatorExpression {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		switch (operator()) {
-		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
-		case And: case Or: case JumpNotNil:
-			IType leftSideType = leftSide().type(context);
-			IType rightSideType = rightSide().type(context);
-			if (leftSideType == rightSideType)
-				return leftSideType;
-			else
-				return TypeUnification.unify(leftSideType, rightSideType);
-		case Assign:
-			return rightSide().type(context);
-		default:
-			return super.unresolvedType(context);
-		}
-	}
-
-	@Override
-	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		if (context.strictLevel() >= 2) {
+		if (context.script().strictLevel() >= 2) {
 			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;
@@ -60,7 +38,7 @@ public class BinaryOp extends OperatorExpression {
 		return super.optimize(context);
 	}
 
-	private ASTNode convertOperatorHackToBlock(C4ScriptParser context) throws CloneNotSupportedException {
+	private ASTNode convertOperatorHackToBlock(ProblemReportingContext context) throws CloneNotSupportedException {
 		LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
 		ASTNode r;
 		boolean works = true;
@@ -114,11 +92,6 @@ public class BinaryOp extends OperatorExpression {
 		setRightSide(rightSide);
 	}
 
-	public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
-		if (!operator().modifiesArgument())
-			parser.warning(ParserErrorCode.NoAssignment, this, 0);
-	}
-
 	public BinaryOp(Operator op) {
 		super(op);
 	}
@@ -166,47 +139,6 @@ public class BinaryOp extends OperatorExpression {
 			output.append(")"); //$NON-NLS-1$
 	}
 
-	@Override
-	public void reportProblems(C4ScriptParser context) throws ParsingException {
-		final Operator op = operator();
-		// sanity
-		setLocation(leftSide().start(), rightSide().end());
-		// i'm an assignment operator and i can't modify my left side :C
-		if (op.modifiesArgument() && !leftSide().isModifiable(context))
-			context.error(ParserErrorCode.ExpressionNotModifiable, leftSide(), C4ScriptParser.NO_THROW);
-		// obsolete operators in #strict 2
-		if ((op == Operator.StringEqual || op == Operator.ne) && (context.strictLevel() >= 2))
-			context.warning(ParserErrorCode.ObsoleteOperator, this, 0, op.operatorName());
-		// wrong parameter types
-		if (!leftSide().validForType(op.firstArgType(), context))
-			context.incompatibleTypes(leftSide(), op.firstArgType(), leftSide().type(context));
-		if (!rightSide().validForType(op.secondArgType(), context))
-			context.incompatibleTypes(rightSide(), op.secondArgType(), rightSide().type(context));
-
-		IType expectedLeft, expectedRight;
-		switch (op) {
-		case Assign: case Equal:
-			expectedLeft = expectedRight = null;
-			break;
-		default:
-			expectedLeft  = op.firstArgType();
-			expectedRight = op.secondArgType();
-		}
-		
-		if (expectedLeft != null)
-			leftSide().typingJudgement(expectedLeft, context, TypingJudgementMode.Unify);
-		if (expectedRight != null)
-			rightSide().typingJudgement(expectedRight, context, TypingJudgementMode.Unify);
-
-		switch (op) {
-		case Assign: case AssignAdd: case AssignSubtract:
-		case AssignMultiply: case AssignModulo: case AssignDivide:
-			leftSide().assignment(rightSide(), context);
-			break;
-		default:
-			break;
-		}
-	}
 
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
@@ -221,7 +153,7 @@ public class BinaryOp extends OperatorExpression {
 						return false;
 					break;
 				case Or:
-					// true || <anything> => true 
+					// true || <anything> => true
 					if (leftSide.equals(true))
 						return true;
 					break;
@@ -264,7 +196,7 @@ public class BinaryOp extends OperatorExpression {
         	return null;
         }
     }
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 	    Object left = leftSide().evaluate(context);
@@ -274,7 +206,7 @@ public class BinaryOp extends OperatorExpression {
 	    else
 	    	return null;
 	}
-	
+
 	@Override
 	public boolean isConstant() {
 		// CNAT_Left | CNAT_Right are considered constant for example
@@ -284,13 +216,6 @@ public class BinaryOp extends OperatorExpression {
 		default:
 			return false;
 		}
-	}
-	
-	@Override
-	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
-		if (operator() == Operator.Assign && leftSide != null)
-			return leftSide.createTypeInfo(parser);
-		return super.createTypeInfo(parser);
 	}
 
 }

@@ -1,16 +1,16 @@
-package net.arctics.clonk.parser.c4script.specialenginerules;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
@@ -21,18 +21,18 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
-				if (index == 1 && callFunc.declarationName().equals("ObjectSetAction")) {
-					IType t = callFunc.params()[0].type(parser);
+			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
+				if (index == 1 && node.declarationName().equals("ObjectSetAction")) {
+					IType t = processor.typeOf(node.params()[0]);
 					if (t != null) for (IType ty : t)
 						if (ty instanceof Definition) {
 							Definition def = (Definition)ty;
-							EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), def, parmExpression);
+							EntityRegion result = actionLinkForDefinition(node.parentOfType(Function.class), def, parmExpression);
 							if (result != null)
 								return result;
 						}
 				}
-				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 			};
 		}, "ObjectSetAction");
 	}

@@ -170,7 +170,7 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 	public void setTypeDescription(String description) {}
 	
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		switch (constraintKind()) {
 		case CallerType:
 			if (callerType == null)

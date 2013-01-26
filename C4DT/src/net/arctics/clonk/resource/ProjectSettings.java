@@ -1,5 +1,7 @@
 package net.arctics.clonk.resource;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +11,9 @@ import java.util.Map.Entry;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StringUtil;
@@ -48,13 +53,16 @@ public class ProjectSettings extends SettingsBase {
 	/** Typing this project is in the process of being migrated to */
 	@IniField(category="Migration")
 	public Typing migrationTyping = null;
+	@IniField
+	public String problemReportingStrategies;
 	
 	private Engine cachedEngine;
 	private HashSet<ParserErrorCode> disabledErrorsSet;
+	private Collection<Class<? extends ProblemReportingStrategy>> _problemReportingStrategies;
 	
 	public ProjectSettings() {}
 	
-	public Engine engine() {
+	public synchronized Engine engine() {
 		if (cachedEngine == null) {
 			// engineName can be "" or null since that is handled by loadEngine
 			cachedEngine = Core.instance().loadEngine(engineName);
@@ -64,7 +72,7 @@ public class ProjectSettings extends SettingsBase {
 		return cachedEngine;
 	}
 	
-	public HashSet<ParserErrorCode> getDisabledErrorsSet() {
+	public synchronized HashSet<ParserErrorCode> disabledErrorsSet() {
 		if (disabledErrorsSet == null) {
 			disabledErrorsSet = new HashSet<ParserErrorCode>();
 			if (!disabledErrors.equals("")) {
@@ -80,6 +88,46 @@ public class ProjectSettings extends SettingsBase {
 		return disabledErrorsSet;
 	}
 	
+	public synchronized Collection<Class<? extends ProblemReportingStrategy>> problemReportingStrategies() {
+		if (_problemReportingStrategies == null)
+			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
+				String[] classNames = problemReportingStrategies.split(",");
+				_problemReportingStrategies = new ArrayList<Class<? extends ProblemReportingStrategy>>(classNames.length);
+				for (int i = 0; i < classNames.length; i++)
+					try {
+						@SuppressWarnings("unchecked")
+						Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass
+						(Core.id(classNames[i]));
+						if (ProblemReportingStrategy.class.isAssignableFrom(cls))
+							_problemReportingStrategies.add(cls);
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+						continue;
+					}
+			} else {
+				_problemReportingStrategies = new ArrayList<Class<? extends ProblemReportingStrategy>>(1);
+				_problemReportingStrategies.add(DabbleInference.class);
+			}
+		return _problemReportingStrategies;
+	}
+	
+	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
+		Collection<Class<? extends ProblemReportingStrategy>> classes = problemReportingStrategies();
+		List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
+		for (Class<? extends ProblemReportingStrategy> c : classes) {
+			Capabilities caps = c.getAnnotation(Capabilities.class);
+			if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
+				continue;
+			try {
+				instances.add(c.newInstance());
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		return instances;
+	}
+	
 	public void setDisabledErrors(String disabledErrors) {
 		this.disabledErrors = disabledErrors;
 		disabledErrorsSet = null;
@@ -91,13 +139,8 @@ public class ProjectSettings extends SettingsBase {
 			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);
 	}
 
-	public String getDisabledErrors() {
-		return disabledErrors;
-	}
-
-	public String getEngineName() {
-		return engineName;
-	}
+	public String disabledErrorsString() { return disabledErrors; }
+	public String engineName() { return engineName; }
 	
 	public void setEngineName(String engineName) {
 		this.engineName = engineName;

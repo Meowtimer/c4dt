@@ -3,8 +3,6 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -19,9 +17,10 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		assignParentToSubElements();
 	}
 	@Override
-	public String keyword() {
-		return Keywords.For;
-	}
+	public String keyword() { return Keywords.For; }
+	public ASTNode initializer() { return initializer; }
+	public ASTNode increment() { return increment; }
+
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword() + " ("); //$NON-NLS-1$
@@ -50,7 +49,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		increment   = elms[2];
 		body        = elms[3];
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		if (initializer != null)
@@ -64,14 +63,5 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 				increment.evaluate(context);
 		}
 		return ev;
-	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		if (initializer != null)
-			parser.reportProblemsOf(initializer, true);
-		if (increment != null)
-			parser.reportProblemsOf(increment, true);
 	}
 }

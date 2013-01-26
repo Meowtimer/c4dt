@@ -5,7 +5,6 @@ import static net.arctics.clonk.util.ArrayUtil.iterable;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 
 public class ParameterType implements IResolvableType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -48,16 +47,18 @@ public class ParameterType implements IResolvableType {
 	public void setTypeDescription(String description) {}
 
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		Variable p = parameter();
 		if (p == null)
 			return PrimitiveType.ANY;
+		/*
 		IFunctionCall call = context.currentFunctionCall();
 		if (call != null && call.quasiCalledFunction(context) == p.parentDeclaration())
 			return call.concreteParameterType(parameter, context);
 		else if (context.currentFunction() != null && context.currentFunction() != p.parentDeclaration())
 			return PrimitiveType.ANY;
 		else
-			return this;
+			return this;*/
+		return PrimitiveType.ANY;
 	}
 }

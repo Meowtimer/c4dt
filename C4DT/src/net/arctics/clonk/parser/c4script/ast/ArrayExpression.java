@@ -5,14 +5,8 @@ import java.util.ArrayList;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 
 public class ArrayExpression extends ExprElmWithSubElementsArray {
 
@@ -34,19 +28,6 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 		output.append("]"); //$NON-NLS-1$
 	}
 	
-	@Override
-	public IType unresolvedType(final DeclarationObtainmentContext context) {
-		return new ArrayType(
-			null,
-			ArrayUtil.map(elements, IType.class, new IConverter<ASTNode, IType>() {
-				@Override
-				public IType convert(ASTNode from) {
-					return from != null ? from.type(context) : PrimitiveType.UNKNOWN;
-				}
-			})
-		);
-	}
-
 	@Override
 	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return predecessor == null;

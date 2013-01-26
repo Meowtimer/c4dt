@@ -3,9 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class Parenthesized extends ASTNode {
@@ -33,10 +32,6 @@ public class Parenthesized extends ASTNode {
 		output.append(")"); //$NON-NLS-1$
 	}
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		return innerExpr.type(context);
-	}
-	@Override
 	public boolean isModifiable(C4ScriptParser context) {
 		return innerExpr.isModifiable(context);
 	}
@@ -50,11 +45,11 @@ public class Parenthesized extends ASTNode {
 	}
 
 	@Override
-	public ASTNode optimize(C4ScriptParser parser)
+	public ASTNode optimize(final ProblemReportingContext context)
 	throws CloneNotSupportedException {
 		if (!(parent() instanceof OperatorExpression) && !(parent() instanceof Sequence))
-			return innerExpr.optimize(parser);
-		return super.optimize(parser);
+			return innerExpr.optimize(context);
+		return super.optimize(context);
 	}
 
 	@Override

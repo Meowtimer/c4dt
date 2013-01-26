@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -12,9 +13,11 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -50,6 +53,7 @@ public class ReferencesQuery extends SearchQueryBase {
 
 	protected Declaration declaration;
 	private final Object[] scope;
+	protected ProblemReportingStrategy strategy;
 
 	public ReferencesQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
@@ -62,7 +66,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class Visitor implements IResourceVisitor, IASTVisitor<C4ScriptParser> {
+	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReportingContext> {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;
@@ -71,26 +75,26 @@ public class ReferencesQuery extends SearchQueryBase {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
-			if (expression instanceof AccessDeclaration) {
-				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
-				Declaration dec = accessDeclExpr.declarationFromContext(parser);
+		public TraversalContinuation visitNode(ASTNode node, ProblemReportingContext context) {
+			if (node instanceof AccessDeclaration) {
+				AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
+				Declaration dec = accessDeclExpr.declaration();
 				if (dec != null && dec.latestVersion() == declaration)
-					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-				else if (potentiallyReferencedByObjectCall(expression)) {
+					result.addMatch(node, context, false, accessDeclExpr.indirectAccess());
+				else if (potentiallyReferencedByObjectCall(node)) {
 					Function otherFunc = (Function) accessDeclExpr.declaration();
 					boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
-					result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
+					result.addMatch(node, context, potential, accessDeclExpr.indirectAccess());
 				}
 			}
-			else if (expression instanceof IDLiteral && declaration instanceof Script) {
-				if (expression.guessObjectType(parser) == declaration)
-					result.addMatch(expression, parser, false, false);
+			else if (node instanceof IDLiteral && declaration instanceof Script) {
+				if (((IDLiteral)node).definition(context) == declaration)
+					result.addMatch(node, context, false, false);
 			}
-			else if (expression instanceof StringLiteral) {
-				EntityRegion decRegion = expression.entityAt(0, parser);
+			else if (node instanceof StringLiteral) {
+				EntityRegion decRegion = node.entityAt(0, context);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
-					result.addMatch(expression, parser, true, true);
+					result.addMatch(node, context, true, true);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -103,24 +107,23 @@ public class ReferencesQuery extends SearchQueryBase {
 			}
 			return true;
 		}
+		
 		public void searchScript(IResource resource, Script script) {
+			C4ScriptParser parser = new C4ScriptParser(script);
+			ProblemReportingContext ctx = strategy.localTypingContext(parser);
+			searchScript(resource, ctx);
+		}
+		
+		public void searchScript(IResource resource, ProblemReportingContext context) {
+			Script script = context.script();
 			if (script.scriptFile() != null) {
-				C4ScriptParser parser;
-				try {
-					parser = new C4ScriptParser(script);
-				} catch (Exception e) {
-					// that went wrong
-					return;
-				}
 				if (declaration instanceof Definition) {
 					Directive include = script.directiveIncludingDefinition((Definition) declaration);
 					if (include != null)
-						result.addMatch(include, parser, false, false);
+						result.addMatch(include, context, false, false);
 				}
-				for (Function f : script.functions()) {
-					parser.setCurrentFunction(f);
-					parser.visitCode(f, this, VisitCodeFlavour.AlsoStatements, false);
-				}
+				for (Function f : script.functions())
+					f.traverse(this, context);
 			}
 
 			// also search related files (actmap, defcore etc)
@@ -136,6 +139,8 @@ public class ReferencesQuery extends SearchQueryBase {
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
+		this.strategy = ((ProjectIndex)this.declaration.index()).nature().settings()
+			.instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
 		Utilities.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
@@ -150,7 +155,11 @@ public class ReferencesQuery extends SearchQueryBase {
 						pool.execute(new Runnable() {
 							@Override
 							public void run() {
-								visitor.searchScript((IResource) script.scriptStorage(), script);
+								try {
+									C4ScriptParser parser = new C4ScriptParser(script);
+									ProblemReportingContext ctx = strategy.localTypingContext(parser);
+									visitor.searchScript((IResource) script.scriptStorage(), ctx);
+								} catch (Exception e) {}
 							}
 						});
 					}
@@ -158,7 +167,7 @@ public class ReferencesQuery extends SearchQueryBase {
 						Function func = (Function)scope;
 						C4ScriptParser parser = new C4ScriptParser(func.script());
 						parser.setCurrentFunction(func);
-						parser.visitCode(func, visitor, VisitCodeFlavour.AlsoStatements, false);
+						func.traverse(visitor, strategy.localTypingContext(parser));
 					}
 			}
 		}, 20);

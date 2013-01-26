@@ -15,11 +15,9 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -401,14 +399,6 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	
 	public int absoluteExpressionsOffset() {return 0;}
 	
-	/**
-	 * Return a {@link DeclarationObtainmentContext} describing the surrounding environment of this {@link Declaration}. 
-	 * @return The context
-	 */
-	public DeclarationObtainmentContext declarationObtainmentContext() {
-		return TypeUtil.declarationObtainmentContext(this);
-	}
-	
 	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
 			new DeclarationLocation(this, this, resource())
@@ -419,21 +409,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Return a name that uniquely identifies the declaration in its script
 	 * @return The unique name
 	 */
-	public String makeNameUniqueToParent() {
-		int othersWithSameName = 0;
-		int ownIndex = -1;
-		for (Declaration d : parentDeclaration().accessibleDeclarations(ALL|OTHER))
-			if (d == this) {
-				ownIndex = othersWithSameName++;
-				continue;
-			}
-			else if (d.name().equals(this.name()))
-				othersWithSameName++;
-		if (othersWithSameName == 1)
-			return name();
-		else
-			return name() + ownIndex;
-	}
+	public String makeNameUniqueToParent() { return this.pathRelativeToIndexEntity(); }
 	
 	/**
 	 * Return the {@link Declaration}'s path, which is a concatenation of its parent declaration's and its own name, separated by '.'

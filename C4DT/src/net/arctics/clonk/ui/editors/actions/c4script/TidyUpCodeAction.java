@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -30,7 +31,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		C4ScriptParser parser;
 		try {
-			parser = editor.reparseWithDocumentContents(null, false);
+			parser = editor.reparseWithDocumentContents(false);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -43,7 +44,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 			@Override
 			protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression) {
 				try {
-					return expression.exhaustiveOptimize(parser);
+					return expression.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()));
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
 					return expression;

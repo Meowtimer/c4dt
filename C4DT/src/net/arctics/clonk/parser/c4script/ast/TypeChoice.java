@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -196,7 +196,7 @@ public final class TypeChoice implements IType, IResolvableType {
 	}
 
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		IType rl = TypeUtil.resolve(left, context, callerType);
 		IType rr = TypeUtil.resolve(right, context, callerType);
 		return rl == left && rr == right ? this : TypeChoice.make(rl, rr);

@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.ScriptsHelper;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -70,8 +71,8 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
 		Engine engine = commonEngine(scope);
-		this.template = C4ScriptParser.matchingExpr(templateExpressionText, engine);
-		this.replacement = replacementExpressionText != null ? C4ScriptParser.matchingExpr(replacementExpressionText, engine) : null;
+		this.template = ScriptsHelper.matchingExpr(templateExpressionText, engine);
+		this.replacement = replacementExpressionText != null ? ScriptsHelper.matchingExpr(replacementExpressionText, engine) : null;
 		this.scope = scope;
 	}
 	
@@ -105,7 +106,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
+					public TraversalContinuation visitNode(ASTNode expression, C4ScriptParser parser) {
 						Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							IRegion r = expression.absolute();

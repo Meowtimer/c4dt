@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
@@ -49,14 +49,14 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 		return null;
 	}
 	
-	public void addMatch(C4ScriptParser parser, boolean potential, boolean indirect, int s, int l) {
-		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
-		String line = parser.bufferSubstringAtRegion(lineRegion).trim();
-		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.script(), s, l, potential, indirect));
+	public void addMatch(ProblemReportingContext context, boolean potential, boolean indirect, int s, int l) {
+		IRegion lineRegion = context.scanner().regionOfLineContainingRegion(new Region(s, l));
+		String line = context.scanner().bufferSubstringAtRegion(lineRegion).trim();
+		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
 	}
 	
-	public void addMatch(ASTNode match, C4ScriptParser parser, boolean potential, boolean indirect) {
-		addMatch(parser, potential, indirect, match.identifierStart()+parser.sectionOffset(), match.identifierLength());
+	public void addMatch(ASTNode match, ProblemReportingContext context, boolean potential, boolean indirect) {
+		addMatch(context, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());
 	}
 
 }

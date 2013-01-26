@@ -111,7 +111,7 @@ public class ProjectConversionConfiguration {
 			Function context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(script);
 			context.setBodyLocation(new SourceLocation(0, text.length()));
-			ASTNode s = parser.parseStandaloneStatement(text, context, null);
+			ASTNode s = parser.parseStandaloneStatement(text, context);
 			if (s instanceof BunchOfStatements)
 				for (ASTNode stmt : ((BunchOfStatements)s).statements())
 					addTransformationFromStatement(stmt);

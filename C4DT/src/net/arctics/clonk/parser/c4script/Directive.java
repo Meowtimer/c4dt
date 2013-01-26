@@ -10,6 +10,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IConverter;
@@ -26,7 +27,7 @@ public class Directive extends Declaration implements Serializable {
 			return new Directive(from, "");
 		};
 	});
-	
+
 	public enum DirectiveType {
 		STRICT,
 		INCLUDE,
@@ -89,7 +90,7 @@ public class Directive extends Declaration implements Serializable {
 		}
 		return "#" + type.toString(); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public String name() {
 		return type.toString();
@@ -114,26 +115,26 @@ public class Directive extends Declaration implements Serializable {
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (contents() == null)
-				parser.error(ParserErrorCode.MissingDirectiveArgs, this, C4ScriptParser.NO_THROW, this.toString());
+				parser.markers().error(parser, ParserErrorCode.MissingDirectiveArgs, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, this.toString());
 			else {
 				ID id = contentAsID();
 				Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
 				if (obj == null)
-					parser.error(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, contents());
+					parser.markers().error(parser, ParserErrorCode.UndeclaredIdentifier, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, contents());
 			}
 			break;
 		default:
 			break;
 		}
 	}
-	
+
 	@Override
 	public boolean matchedBy(Matcher matcher) {
 		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt())
 			return true;
 		return contents() != null && matcher.reset(contents()).lookingAt();
 	}
-	
+
 	public boolean refersTo(Definition definition) {
 		switch (type) {
 		case APPENDTO: case INCLUDE:
@@ -143,7 +144,7 @@ public class Directive extends Declaration implements Serializable {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("#"+type().toString());

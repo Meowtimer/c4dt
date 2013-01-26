@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -6,8 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
-import net.arctics.clonk.parser.c4script.ast.LinkedTypeInfo;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
 public class TypeEnvironment extends ArrayList<ITypeInfo> {
 	private static ITypeInfo merge(ITypeInfo left, ITypeInfo right) {
@@ -22,6 +21,7 @@ public class TypeEnvironment extends ArrayList<ITypeInfo> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public TypeEnvironment up;
 	public TypeEnvironment() { super(5); }
+	public TypeEnvironment(TypeEnvironment up) { this(); this.up = up; }
 	public TypeEnvironment inject(TypeEnvironment other, boolean ignoreLocals) {
 		List<ITypeInfo> merged = null;
 		OtherLoop: for (Iterator<ITypeInfo> otherIt = other.iterator(); otherIt.hasNext();) {
@@ -43,8 +43,12 @@ public class TypeEnvironment extends ArrayList<ITypeInfo> {
 			this.addAll(merged);
 		return this;
 	}
-	public void apply(C4ScriptParser parser, boolean soft) {
+	public void apply(ScriptProcessor processor, boolean soft) {
 		for (ITypeInfo info : this)
-			info.apply(soft, parser);
+			info.apply(soft, processor);
+	}
+	public final void injectIntoUpper(boolean ignoreLocals) {
+		if (up != null)
+			inject(up, ignoreLocals);
 	}
 }

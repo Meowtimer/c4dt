@@ -270,13 +270,13 @@ public class ArrayUtil {
 			return new ArrayList<T>(list);
 		}
 	}
-	
+
 	public static <T> void addAllSynchronized(Collection<? extends T> list, List<T> into) {
 		if (list != null)
 			synchronized (list) {
 				into.addAll(list);
 			}
-	} 
+	}
 
 	public static <T> List<T> list(Iterable<? extends T> iterable) {
 		List<T> result = new ArrayList<T>();
@@ -299,7 +299,7 @@ public class ArrayUtil {
 			}
 		return Decision.Continue;
 	}
-	
+
 	public static <T> boolean elementsEqual(T[] a, T[] b) {
 		if (a.length != b.length)
 			return false;
@@ -308,7 +308,7 @@ public class ArrayUtil {
 				return false;
 		return true;
 	}
-	
+
 	public static <T> int pack(T[] array) {
 		int i, j;
 		for (i = 0, j = 0; i < array.length; i++)

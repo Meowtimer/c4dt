@@ -7,8 +7,8 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
@@ -29,59 +29,59 @@ import org.eclipse.jface.text.IRegion;
 public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, Cloneable, IHasCode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	/**
 	 * Scope (local, static or function-local)
 	 */
 	private Scope scope;
-	
+
 	/**
 	 * Type of the variable.
 	 */
 	private IType type;
-	
+
 	/**
 	 * Descriptive text meant for the user
 	 */
 	private String description;
-	
+
 	/**
 	 * Explicit type, not to be changed by weird type inference
 	 */
 	private transient boolean staticallyTyped;
-	
+
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
 	 */
 	private ASTNode initializationExpression;
-	
+
 	/**
 	 * Whether the variable was used in some expression
 	 */
 	private boolean used;
-	
+
 	/**
 	 * Variable object used as the special 'this' object.
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
-	
+
 	private Variable(String name, IType type, String desc) {
 		this(name, type, desc, Scope.VAR);
 		staticallyTyped = true;
 	}
-	
+
 	public Variable(String name, IType type) {
 		this.name = name;
 		forceType(type);
 	}
-	
+
 	public Variable(String name, Scope scope) {
 		this.name = name;
 		this.scope = scope;
 		description = ""; //$NON-NLS-1$
 		type = PrimitiveType.UNKNOWN;
 	}
-	
+
 	public Variable(String name, IType type, String desc, Scope scope) {
 		this.name = name;
 		this.type = type;
@@ -93,15 +93,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		name = ""; //$NON-NLS-1$
 		scope = Scope.VAR;
 	}
-	
+
 	public Variable(String name, String scope) {
 		this(name,Scope.makeScope(scope));
-	}
-
-	public Variable(String name, ASTNode expr, C4ScriptParser context) {
-		this(name, expr.type(context));
-		scope = Scope.VAR;
-		setInitializationExpression(expr);
 	}
 
 	/**
@@ -113,7 +107,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			type = PrimitiveType.UNKNOWN;
 		return type;
 	}
-	
+
 	/**
 	 * @param type the type to set
 	 */
@@ -130,20 +124,20 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			});
 		this.type = type;
 	}
-	
+
 	public void forceType(IType type, boolean typeLocked) {
 		forceType(type);
 		this.staticallyTyped = typeLocked;
 	}
-	
+
 	public void lockType() {
 		staticallyTyped = true;
 	}
-	
+
 	public void assignType(IType type) {
 		assignType(type, false);
 	}
-	
+
 	@Override
 	public void assignType(IType type, boolean _static) {
 		if (!staticallyTyped || _static) {
@@ -158,7 +152,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public Scope scope() {
 		return scope;
 	}
-	
+
 	/**
 	 * @return the description
 	 */
@@ -169,7 +163,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		else
 			return description;
 	}
-	
+
 	@Override
 	public String userDescription() {
 		return description;
@@ -193,11 +187,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean isUsed() {
 		return used;
 	}
-	
+
 	public void setUsed(boolean used) {
 		this.used = used;
 	}
-	
+
 	/**
 	 * The scope of a variable
 	 * @author ZokRadonh
@@ -209,7 +203,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		VAR,
 		CONST,
 		PARAMETER;
-		
+
 		public static Scope makeScope(String scopeString) {
 			if (scopeString.equals(Keywords.VarNamed)) return Scope.VAR;
 			if (scopeString.equals(Keywords.LocalNamed)) return Scope.LOCAL;
@@ -218,7 +212,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
-		
+
 		public String toKeyword() {
 			switch (this) {
 			case CONST:
@@ -243,12 +237,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			}
 		}
 	}
-	
+
 	@Override
 	public int sortCategory() {
 		return (scope != null ? scope : Scope.VAR).ordinal();
 	}
-	
+
 	@Override
 	public String infoText(IIndexEntity context) {
 		IType t = TypeUtil.resolve(type(), context, this);
@@ -268,30 +262,30 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 					: "" //$NON-NLS-1$
 		);
 	}
-	
+
 	@Override
 	public String displayString(IIndexEntity context) {
 		return this.name();
 	}
-	
+
 	@Override
 	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
 		// engine objects should not be altered
 		if (!staticallyTyped && !(script() instanceof Engine))
 			ITypeable.Default.expectedToBeOfType(this, t);
 	}
-	
+
 	public ASTNode initializationExpression() {
 		return initializationExpression;
 	}
-	
+
 	public IRegion initializationExpressionLocation() {
 		if (initializationExpression instanceof ASTNode)
 			return initializationExpression;
 		else
 			return null; // const value not sufficient
 	}
-	
+
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
 		ASTNode e = initializationExpression();
 		if (e != null)
@@ -299,35 +293,33 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		else
 			return null;
 	}
-	
+
 	public void setInitializationExpression(ASTNode initializationExpression) {
 		this.initializationExpression = initializationExpression;
-		if (initializationExpression != null)
-			initializationExpression.setAssociatedDeclaration(this);
 	}
 
 	@Override
 	public boolean isGlobal() {
 		return scope == Scope.STATIC || scope == Scope.CONST;
 	}
-	
+
 	private void ensureTypeLockedIfPredefined(Declaration declaration) {
 		if (!staticallyTyped && declaration instanceof Engine)
 			staticallyTyped = true;
 	}
-	
+
 	@Override
 	public void setParentDeclaration(Declaration declaration) {
 		super.setParentDeclaration(declaration);
 		ensureTypeLockedIfPredefined(declaration);
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression != null)
-			initializationExpression.postLoad(null, declarationObtainmentContext());
+			initializationExpression.postLoad(this, TypeUtil.problemReportingContext(this));
 		if (initializationExpression instanceof PropListExpression)
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
 	}
@@ -339,7 +331,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean isActualParm() {
 		return !name().equals("..."); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(scope().toKeyword());
@@ -347,7 +339,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		builder.append(name());
 		builder.append(";"); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if (initializationExpression instanceof IHasSubDeclarations)
@@ -355,7 +347,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		else
 			return super.subDeclarations(contextIndex, mask);
 	}
-	
+
 	/**
 	 * Return the function this variable was declared in. This also applies for variables declared inside proplist expressions inside functions.
 	 * @return The function or null if there is no function in the parent chain.
@@ -364,12 +356,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public Function function() {
 		return topLevelParentDeclarationOfType(Function.class);
 	}
-	
+
 	@Override
 	public boolean staticallyTyped() {
 		return staticallyTyped || isEngineDeclaration();
 	}
-	
+
 	/**
 	 * Return the parameter index of this variable if it is a function parameter.
 	 * @return Return the parameter index or -1 if the variable is not a function parameter.
@@ -406,7 +398,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// wow
 	}
-	
+
 	@Override
 	public Variable clone() {
 		Variable clone = new Variable();
@@ -419,17 +411,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return clone;
 	}
 
-	public void initializeFromAssignment(ASTNode referee, ASTNode expression, DeclarationObtainmentContext context) {
-		IType type = expression.type(context);
-		expectedToBeOfType(type, TypingJudgementMode.Expect);
-		setLocation(context.absoluteSourceLocationFromExpr(referee));
-		forceType(type);
-		setInitializationExpression(expression);
-	}
-	
 	@Override
 	public boolean isLocal() { return scope.isLocal(); }
-	
+
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parent instanceof Function)
@@ -437,16 +421,17 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		else
 			return super.occurenceScope(project);
 	}
-	
+
 	@Override
-	public ASTNode code() {
-		return initializationExpression();
-	}
-	
+	public ASTNode code() { return initializationExpression(); }
+
 	public IType parameterType() {
 		return scope == Scope.PARAMETER && type() == PrimitiveType.UNKNOWN
 			? new ParameterType(this)
-			: type(); 
+			: type();
 	}
-	
+
+	@Override
+	public ASTNode[] subElements() { return new ASTNode[] { initializationExpression }; }
+
 }

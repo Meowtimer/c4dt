@@ -90,9 +90,9 @@ public abstract class CodeConverter {
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
-				public int compare(Declaration arg0, Declaration arg1) {
-					ASTNode codeA = codeFor(arg0);
-					ASTNode codeB = codeFor(arg1);
+				public int compare(Declaration a, Declaration b) {
+					ASTNode codeA = codeFor(a);
+					ASTNode codeB = codeFor(b);
 					return codeB.start()-codeA.start();
 				}
 			});

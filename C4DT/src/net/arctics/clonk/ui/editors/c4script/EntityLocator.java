@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,9 +11,9 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
@@ -22,6 +24,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.StructuralType;
@@ -103,10 +106,11 @@ public class EntityLocator extends ExpressionLocator {
 			return;
 		}
 		if (region.getOffset() >= d.bodyStart) {
-			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
-			parser = C4ScriptParser.visitCode(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
+			exprRegion = new Region(region.getOffset()-d.bodyStart, 0);
+			if (d.func != null)
+				d.func.traverse(this, null);
 			if (exprAtRegion != null) {
-				EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), parser);
+				EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), TypeUtil.problemReportingContext(script));
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 			}
 		}
@@ -118,7 +122,8 @@ public class EntityLocator extends ExpressionLocator {
 		boolean setRegion;
 		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
-			this.potentialEntities = declRegion.potentialEntities();
+			this.potentialEntities = new HashSet<IIndexEntity>();
+			this.potentialEntities.addAll(declRegion.potentialEntities());
 			setRegion = true;
 		}
 		else if (declRegion != null && declRegion.entity() != null) {
@@ -131,12 +136,12 @@ public class EntityLocator extends ExpressionLocator {
 			final AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 			
 			// gather declarations with that name from involved project indexes
-			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
+			List<IIndexEntity> projectDeclarations = new LinkedList<IIndexEntity>();
 			String declarationName = access.declarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			IType ty = access.predecessorInSequence() != null ? access.predecessorInSequence().type(parser) : null;
+			IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().inferredType() : null, PrimitiveType.UNKNOWN);
 			for (IType t : ty)
-				if (t == null || t instanceof StructuralType || t == PrimitiveType.OBJECT) {
+				if (t instanceof StructuralType || t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN) {
 					for (Index i : script.index().relevantIndexes())
 						i.loadScriptsContainingDeclarationsNamed(declarationName);
 					for (Index i : script.index().relevantIndexes()) {
@@ -148,9 +153,9 @@ public class EntityLocator extends ExpressionLocator {
 				}
 			
 			if (projectDeclarations != null)
-				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<Declaration>() {
+				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<IIndexEntity>() {
 					@Override
-					public boolean test(Declaration item) {
+					public boolean test(IIndexEntity item) {
 						return access.declarationClass().isInstance(item);
 					}
 				});
@@ -218,10 +223,10 @@ public class EntityLocator extends ExpressionLocator {
 	}
 
 	@Override
-	public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
-		expression.traverse(new IASTVisitor<C4ScriptParser>() {
+	public TraversalContinuation visitNode(ASTNode expression, Object context) {
+		expression.traverse(new IASTVisitor<Object>() {
 			@Override
-			public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
+			public TraversalContinuation visitNode(ASTNode expression, Object context) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;

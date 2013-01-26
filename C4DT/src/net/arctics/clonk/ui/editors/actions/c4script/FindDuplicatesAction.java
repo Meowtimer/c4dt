@@ -24,7 +24,7 @@ public class FindDuplicatesAction extends ClonkTextEditorAction {
 		try {
 			//getTextEditor().doSave(null);
 			C4ScriptEditor ed = (C4ScriptEditor) getTextEditor();
-			ed.reparseWithDocumentContents(null, false);
+			ed.reparseWithDocumentContents(false);
 			// force refreshing index so the functions acting as origins will be properly added to the declaration map
 			ed.script().index().refreshIndex(false);
 			

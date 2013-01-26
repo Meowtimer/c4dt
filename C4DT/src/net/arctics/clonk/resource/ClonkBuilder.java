@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,9 +23,9 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -72,13 +73,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private final Set<Structure> gatheredStructures = Collections.synchronizedSet(new HashSet<Structure>());
 	private final Markers markers = new Markers();
 	private int buildKind;
-	private Set<Function> problemReporters;
 	private Index index;
 	
 	public void addGatheredStructure(Structure structure) { gatheredStructures.add(structure); }
 	public Markers markers() { return markers; }
 	public Index index() { return index; }
 	public IProgressMonitor monitor() { return monitor; }
+	public Collection<C4ScriptParser> parsers() { return parserMap.values(); }
 
 	public boolean isSystemScript(IResource resource) {
 		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
@@ -121,6 +122,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		IProject proj = getProject();
 		this.index = ClonkProjectNature.get(getProject()).index();
+		markers.applyProjectSettings(this.index);
 
 		if (kind == FULL_BUILD) {
 			if (index.built())
@@ -196,7 +198,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 		}
 	}
-
+	
 	private Script[] performBuildPhases(
 		List<IResource> listOfResourcesToBeRefreshed,
 		final IProject proj,
@@ -419,36 +421,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		problemReporters = new HashSet<Function>();
-		Utilities.threadPool(new Sink<ExecutorService>() {
-			@Override
-			public void receivedObject(ExecutorService pool) {
-				for (final C4ScriptParser p : parsers) {
-					if (p == null)
-						continue;
-					pool.execute(new Runnable() {
-						@Override
-						public void run() {
-							if (monitor.isCanceled())
-								return;
-							p.reportProblems();
-							monitor.worked(1);
-						}
-					});
-				}
-			}
-		}, 20);
-		problemReporters = null;
+		for (ProblemReportingStrategy strategy : ((ProjectIndex)index).nature().settings().instantiateProblemReportingStrategies(0)) {
+			strategy.initialize(markers, this);
+			strategy.run();
+		}
 		markers.deploy();
 		Display.getDefault().asyncExec(new UIRefresher(scripts));
-	}
-
-	public final Set<Function> problemReporters() {
-		return problemReporters;
-	}
-	
-	public C4ScriptParser parserFor(Script script) {
-		return parserMap.get(script);
 	}
 	
 	private void clearState() {

@@ -27,6 +27,7 @@ public interface IMarkerListener {
 	 * Called when a marker is about to be created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
 	 * @param parser The parser the listener is attached to
 	 * @param code the parser error code
+	 * @param node 
 	 * @param markerStart start of the marker region
 	 * @param markerEnd end of the marker region
 	 * @param flags true if the marker wouldn't cause an exception in the parsing process
@@ -34,5 +35,5 @@ public interface IMarkerListener {
 	 * @param args Arguments used to construct the marker message
 	 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
 	 */
-	Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args);
+	Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args);
 }

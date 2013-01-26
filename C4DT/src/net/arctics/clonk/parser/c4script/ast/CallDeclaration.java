@@ -1,51 +1,34 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.isAnyOf;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.CachedEngineDeclarations;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.CallReturnType;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
-import net.arctics.clonk.parser.c4script.IHasConstraint;
-import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
-import net.arctics.clonk.parser.c4script.TypeUtil;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
 
@@ -59,103 +42,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private final static class FunctionReturnTypeInfo extends TypeInfo {
-		private Function function;
-
-		public FunctionReturnTypeInfo(Function function) {
-			super();
-			this.function = function;
-			if (function != null)
-				type = function.returnType();
-		}
-		
-		@Override
-		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
-			if (expr instanceof CallDeclaration) {
-				CallDeclaration callFunc = (CallDeclaration) expr;
-				if (callFunc.declaration() == this.function)
-					return true;
-			}
-			return false;
-		}
-		
-		@Override
-		public boolean refersToSameExpression(ITypeInfo other) {
-			return other instanceof CallDeclaration.FunctionReturnTypeInfo && ((CallDeclaration.FunctionReturnTypeInfo)other).function == this.function;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("[function %s: %s]", function, type().typeName(true));
-		}
-		
-		@Override
-		public void apply(boolean soft, C4ScriptParser parser) {
-			if (function == null)
-				return;
-			function = (Function) function.latestVersion();
-			if (!soft && !function.isEngineDeclaration())
-				function.assignType(type(), false);
-		}
-		
-	}
-	
-	private final static class VarFunctionsTypeInfo extends TypeInfo {
-		private final Function scope;
-		private final Function varFunction;
-		private final long varIndex;
-
-		private VarFunctionsTypeInfo(Function scope, Function function, long val) {
-			this.scope = scope;
-			this.varFunction = function;
-			this.varIndex = val;
-		}
-
-		@Override
-		public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
-			if (scope != null && parser.currentFunction() != scope)
-				return false;
-			if (expr instanceof CallDeclaration) {
-				CallDeclaration callFunc = (CallDeclaration) expr;
-				Object ev;
-				return
-					callFunc.declaration() == varFunction &&
-					callFunc.params().length == 1 && // don't bother with more complex cases
-					((ev = callFunc.params()[0].evaluateAtParseTime(parser.currentFunction())) != null) &&
-					ev.equals(varIndex);
-			} else if (expr instanceof AccessVar) {
-				AccessVar accessVar = (AccessVar) expr;
-				if (accessVar.declaration() instanceof Variable)
-					return (varFunction == parser.cachedEngineDeclarations().Par
-						? parser.currentFunction().parameters()
-						: parser.currentFunction().localVars()).indexOf(accessVar) == varIndex;
-			}
-			return false;
-		}
-
-		@Override
-		public boolean refersToSameExpression(ITypeInfo other) {
-			if (other.getClass() == CallDeclaration.VarFunctionsTypeInfo.class) {
-				CallDeclaration.VarFunctionsTypeInfo otherInfo = (CallDeclaration.VarFunctionsTypeInfo) other;
-				return otherInfo.scope == this.scope && otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
-			}
-			else
-				return false;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("[%s(%d): %s in %s]", varFunction.name(), varIndex, type().typeName(true), scope.name()); //$NON-NLS-1$
-		}
-	}
-
 	private ASTNode[] params;
 	private int parmsStart, parmsEnd;
-	private transient IType unresolvedPredecessorType;
-	
-	public IType unresolvedPredecessorType() {
-		return unresolvedPredecessorType;
-	}
+	private transient Set<IIndexEntity> potentialDeclarations;
+
+	public Set<IIndexEntity> potentialDeclarations() { return potentialDeclarations; }
+	public void setPotentialDeclarations(Set<IIndexEntity> potentialDeclarations)
+		{ this.potentialDeclarations = potentialDeclarations; }
 
 	@Override
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
@@ -165,7 +58,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 			parmsEnd += amount;
 		}
 	}
-	
+
 	/**
 	 * Set the region containing the parameters.
 	 * @param start Start of the region
@@ -204,9 +97,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		params = parms;
 		assignParentToSubElements();
 	}
-	
+
 	/**
-	 * Create a CallFunc that directly refers to a {@link Function} object. 
+	 * Create a CallFunc that directly refers to a {@link Function} object.
 	 * @param function The {@link Function} the new CallFunc will refer to.
 	 * @param parms Parameter expressions
 	 */
@@ -215,7 +108,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		this.declaration = function;
 		assignParentToSubElements();
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		super.doPrint(output, depth);
@@ -230,323 +123,36 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public static void printParmString(ASTNodePrinter output, ASTNode[] params, int depth) {
 		StringUtil.writeBlock(output, "(", ")", ", ", iterable(params)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
-	
+
 	@Override
 	public boolean isModifiable(C4ScriptParser context) {
-		IType t = type(context);
+		IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
 		return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
 	}
 	@Override
 	public boolean hasSideEffects() {
 		return true;
 	}
-	
+
 	/**
 	 * Return a {@link SpecialFuncRule} applying to {@link CallDeclaration}s with the same name as this one.
 	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialRules()})
 	 * @param role Role mask passed to {@link SpecialEngineRules#funcRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
-	public final SpecialFuncRule specialRuleFromContext(DeclarationObtainmentContext context, int role) {
+	public final SpecialFuncRule specialRuleFromContext(ProblemReportingContext context, int role) {
 		Engine engine = context.script().engine();
 		if (engine != null && engine.specialRules() != null)
 			return engine.specialRules().funcRuleFor(declarationName, role);
 		else
 			return null;
 	}
-	
-	@Override
-	public IType callerType(DeclarationObtainmentContext context) {
-		if (predecessorInSequence() != null)
-			return predecessorInSequence().type(context);
-		else
-			return super.callerType(context);
-	}
-	
-	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		IType type = declarationType(context);
-		if (type instanceof FunctionType)
-			return ((FunctionType)type).prototype().returnType();
-		else
-			return type;
-	}
-	
-	@Override
-	public IType type(DeclarationObtainmentContext context) {
-		context.pushCurrentFunctionCall(this);
-		try {
-			return super.type(context);
-		} finally {
-			context.popCurrentFunctionCall();
-		}
-	}
-
-	private IType declarationType(DeclarationObtainmentContext context) {
-		Declaration d = declarationFromContext(context);
-		
-		// look for gathered type information
-		IType stored = context.queryTypeOfExpression(this, null);
-		if (stored != null)
-			return stored;
-		
-		// calling this() as function -> return object type belonging to script
-		if (params.length == 0 && (d == context.cachedEngineDeclarations().This || d == Variable.THIS)) {
-			Definition obj = context.definition();
-			if (obj != null)
-				return obj;
-		}
-
-		if (d instanceof Function) {
-			// Some special rule applies and the return type is set accordingly
-			SpecialFuncRule rule = specialRuleFromContext(context, SpecialEngineRules.RETURNTYPE_MODIFIER);
-			if (rule != null)
-				return new CallReturnType(this, rule, context.script());
-			Function f = (Function)d;
-			if (f.returnType() instanceof IResolvableType)
-				return new CallReturnType(this, null, context.script());
-			else
-				return f.returnType();
-		}
-		if (d instanceof Variable)
-			return ((Variable)d).type();
-
-		return super.unresolvedType(context);
-	}
 
 	@Override
 	public boolean isValidInSequence(ASTNode elm, C4ScriptParser context) {
-		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
-	}
-	
-	@Override
-	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
-		super.obtainDeclaration(context);
-		return _obtainDeclaration(null, context);
-	}
-	
-	private static IType resolveType(IType type, DeclarationObtainmentContext context, IType callerType) {
-		return TypeUtil.resolve(type, context, callerType != null ? callerType : context.script());
+		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;
 	}
 
-	protected Declaration _obtainDeclaration(Set<IIndexEntity> list, DeclarationObtainmentContext context) {
-		if (declarationName.equals(Keywords.Return))
-			return null;
-		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-			Function activeFunc = context.currentFunction();
-			if (activeFunc != null) {
-				Function inher = activeFunc.inheritedFunction();
-				if (inher != null) {
-					if (list != null)
-						list.add(inher);
-					return inher;
-				}
-			}
-		}
-		unresolvedPredecessorType = this.unresolvedPredecessorType(context);
-		ASTNode p = predecessorInSequence();
-		if (p instanceof MemberOperator)
-			p = p.predecessorInSequence();
-		return findFunction(declarationName,
-			unresolvedPredecessorType != null
-				? resolveType(unresolvedPredecessorType, context, p.unresolvedPredecessorType(context))
-				: null, MemberOperator.unforgiving(p), context, list);
-	}
-
-	/**
-	 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(DeclarationObtainmentContext)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
-	 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
-	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
-	 * @param context Context to use for searching
-	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
-	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
-	 */
-	private static Declaration findFunction(String functionName, IType callerType, boolean errorOnUnknown, DeclarationObtainmentContext context, Set<IIndexEntity> listToAddPotentialDeclarationsTo) {
-		IType lookIn = callerType != null ? callerType : context.script();
-		if (lookIn != null) for (IType ty : lookIn) {
-			if (!(ty instanceof IHasConstraint))
-				continue;
-			Script script = as(((IHasConstraint)ty).constraint(), Script.class);
-			if (script == null)
-				continue;
-			FindDeclarationInfo info = new FindDeclarationInfo(context.script().index());
-			info.searchOrigin = context.script();
-			info.contextFunction = context.currentFunction();
-			info.findGlobalVariables = callerType == null;
-			Declaration dec = script.findDeclaration(functionName, info);
-			// parse function before this one
-			if (dec instanceof Function && context.currentFunction() != null)
-				context.reportProblems((Function)dec);
-			if (dec != null)
-				if (listToAddPotentialDeclarationsTo == null)
-					return dec;
-				else
-					listToAddPotentialDeclarationsTo.add(dec);
-		}
-		if (callerType != null) {
-			// find global function
-			Declaration declaration;
-			try {
-				declaration = context.script().index().findGlobal(Declaration.class, functionName);
-			} catch (Exception e) {
-				e.printStackTrace();
-				if (context.script() == null)
-					System.out.println("No container"); //$NON-NLS-1$
-				else if (context.script().index() == null)
-					System.out.println("No index"); //$NON-NLS-1$
-				return null;
-			}
-			// find engine function
-			if (declaration == null)
-				declaration = context.script().index().engine().findFunction(functionName);
-
-			List<Declaration> allFromLocalIndex = context.script().index().declarationMap().get(functionName);
-			Declaration decl = context.script().engine().findLocalFunction(functionName, false);
-			int numCandidates = 0;
-			if (allFromLocalIndex != null)
-				numCandidates += allFromLocalIndex.size();
-			if (decl != null)
-				numCandidates++;
-
-			// only return found global function if it's the only choice 
-			if (declaration != null && numCandidates == 1)
-				if (listToAddPotentialDeclarationsTo == null)
-					return declaration;
-				else
-					listToAddPotentialDeclarationsTo.add(declaration);
-		}
-		/*if (errorOnUnknown && (lookIn == PrimitiveType.ANY || lookIn == PrimitiveType.UNKNOWN) && listToAddPotentialDeclarationsTo != null) {
-			List<IType> typesWithThatMember = new LinkedList<IType>();
-			for (Declaration d : ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class))
-				if (!d.isGlobal() && d instanceof Function && d.parentDeclaration() instanceof IHasIncludes)
-					typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.parentDeclaration(), ConstraintKind.Includes));
-			if (typesWithThatMember.size() > 0) {
-				IType ty = TypeSet.create(typesWithThatMember);
-				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, functionName));
-				if (context instanceof C4ScriptParser)
-					pred.expectedToBeOfType(ty, (C4ScriptParser)context, TypeExpectancyMode.Force);
-			}
-		}*/
-		if (listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0)
-			return ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class).iterator().next();
-		else
-			return null;
-	}
-	
-	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
-		ASTNode pred = predecessorInSequence();
-		// standalone function? always bark!
-		if (pred == null)
-			return true;
-		// not typed? weird
-		IType predType = pred.type(parser);
-		if (predType == null)
-			return false;
-		// called via ~? ok
-		if (pred instanceof MemberOperator)
-			if (((MemberOperator)pred).hasTilde())
-				return false;
-		// wat
-		boolean anythingNonPrimitive = false;
-		// allow this->Unknown()
-		if (predType instanceof IHasConstraint && ((IHasConstraint)predType).constraintKind() == ConstraintKind.CallerType)
-			return false;
-		for (IType t : predType) {
-			if (t instanceof PrimitiveType)
-				continue;
-			if (!(t instanceof IHasConstraint))
-				return false;
-			else {
-				IHasConstraint hasConstraint = (IHasConstraint) t;
-				anythingNonPrimitive = true;
-				// something resolved to something less specific than a ScriptBase? drop
-				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof Script))
-					return false;
-			}
-		}
-		return anythingNonPrimitive;
-	}
-	@Override
-	public void reportProblems(final C4ScriptParser context) throws ParsingException {
-		super.reportProblems(context);
-		
-		CachedEngineDeclarations cachedEngineDeclarations = context.cachedEngineDeclarations();
-		
-		// notify parser about unnamed parameter usage
-		if (Utilities.objectsNonNullEqual(declaration, cachedEngineDeclarations.Par)) {
-			if (params.length > 0)
-				context.unnamedParamaterUsed(params[0]);
-			else
-				context.unnamedParamaterUsed(LongLiteral.ZERO);
-		}
-		// return as function
-		else if (declarationName.equals(Keywords.Return)) {
-			if (context.strictLevel() >= 2)
-				context.error(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
-			else
-				context.warning(ParserErrorCode.ReturnAsFunction, this, 0);
-		}
-		else {
-			
-			// inherited/_inherited not allowed in non-strict mode
-			if (context.strictLevel() <= 0)
-				if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited))
-					context.error(ParserErrorCode.InheritedDisabledInStrict0, this, C4ScriptParser.NO_THROW);
-			
-			// variable as function
-			if (declaration instanceof Variable) {
-				((Variable)declaration).setUsed(true);
-				IType type = this.declarationType(context);
-				// no warning when in #strict mode
-				if (context.strictLevel() >= 2)
-					if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-						context.warning(ParserErrorCode.VariableCalled, this, 0, declaration.name(), type.typeName(false));
-			} else {
-				ASTNode predecessor = predecessorInSequence();
-				if (declaration instanceof Function) {
-					Function f = (Function)declaration;
-					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
-						context.script().addUsedScript(f.script());
-					
-					SpecialFuncRule rule = this.specialRuleFromContext(context, SpecialEngineRules.ARGUMENT_VALIDATOR);
-					boolean specialCaseHandled =
-						rule != null &&
-						rule.validateArguments(this, params, context);
-					
-					// not a special case... check regular parameter types
-					if (!specialCaseHandled) {
-						int givenParam = 0;
-						for (Variable parm : f.parameters()) {
-							if (givenParam >= params.length)
-								break;
-							ASTNode given = params[givenParam++];
-							if (given == null)
-								continue;
-							if (!given.validForType(parm.type(), context))
-								context.incompatibleTypes(given, parm.type(), given.type(context));
-							else
-								given.typingJudgement(parm.type(), context, TypingJudgementMode.Unify);
-						}
-					}				
-				}
-				else if (declaration == null)
-					if (unknownFunctionShouldBeError(context)) {
-						if (declarationName.equals(Keywords.Inherited)) {
-							Function activeFunc = context.currentFunction();
-							if (activeFunc != null)
-								context.error(ParserErrorCode.NoInheritedFunction, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, context.currentFunction().name(), true);
-							else
-								context.error(ParserErrorCode.NotAllowedHere, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
-						}
-						// _inherited yields no warning or error
-						else if (!declarationName.equals(Keywords.SafeInherited))
-							context.error(ParserErrorCode.UndeclaredIdentifier, start(), start()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
-					} else if (predecessor != null && MemberOperator.unforgiving(predecessor))
-						predecessor.typingJudgement
-							(new StructuralType(declarationName), context, TypingJudgementMode.Unify);
-			}
-		}
-	}
 	@Override
 	public ASTNode[] subElements() {
 		return params;
@@ -555,11 +161,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public void setSubElements(ASTNode[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(ProblemReportingContext context, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
-			ASTNode one = parms[i].optimize(parser);
+			ASTNode one = parms[i].optimize(context);
 			ASTNode two = i+1 < parms.length ? parms[i+1] : null;
 			if (op.leftSide() == null)
 				op.setLeftSide(one);
@@ -575,87 +181,87 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return result;
 	}
 	@Override
-	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(ProblemReportingContext context) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
 		Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
 			if (replOperator.numArgs() == 2)
-				return new BinaryOp(replOperator, params[0].optimize(parser), LongLiteral.ZERO);
-			ASTNode n = params[0].optimize(parser);
+				return new BinaryOp(replOperator, params[0].optimize(context), IntegerLiteral.ZERO);
+			ASTNode n = params[0].optimize(context);
 			if (n instanceof BinaryOp)
 				n = new Parenthesized(n);
 			return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
 		}
 		if (replOperator != null && params.length >= 2)
-			return applyOperatorTo(parser, params, replOperator);
+			return applyOperatorTo(context, params, replOperator);
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && declaration == parser.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && declaration == context.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
-				parmsWithoutObject[i] = params[i+2].optimize(parser);
+				parmsWithoutObject[i] = params[i+2].optimize(context);
 			String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~')
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ASTNode[] {
-							params[0].optimize(parser),
+						params[0].optimize(context),
+						new MemberOperator(false, true, null, 0),
+						new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+					)
+					: new IfStatement(params[0].optimize(context),
+						new SimpleStatement(new Sequence(new ASTNode[] {
+							params[0].optimize(context),
 							new MemberOperator(false, true, null, 0),
 							new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-					)
-					: new IfStatement(params[0].optimize(parser),
-							new SimpleStatement(new Sequence(new ASTNode[] {
-									params[0].optimize(parser),
-									new MemberOperator(false, true, null, 0),
-									new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-							)),
-							null
+						)),
+						null
 					);
 		}
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!parser.script().engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!context.script().engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
-		
+
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == parser.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof LongLiteral)) {
-			LongLiteral number = params.length > 0 ? (LongLiteral) params[0] : LongLiteral.ZERO;
-			Function activeFunc = parser.currentFunction();
-			if (activeFunc != null)
-				if (number.intValue() >= 0 && number.intValue() < activeFunc.numParameters() && activeFunc.parameter(number.intValue()).isActualParm())
-					return new AccessVar(parser.currentFunction().parameter(number.intValue()).name());
+		if (params.length <= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
+			IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
+			Function func = this.parentOfType(Function.class);
+			if (func != null)
+				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && func.parameter(number.intValue()).isActualParm())
+					return new AccessVar(parentOfType(Function.class).parameter(number.intValue()).name());
 		}
-		
+
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == parser.cachedEngineDeclarations().SetVar || declaration == parser.cachedEngineDeclarations().SetLocal || declaration == parser.cachedEngineDeclarations().AssignVar))
-			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		if (params.length == 2 && declaration != null && (declaration == context.cachedEngineDeclarations().SetVar || declaration == context.cachedEngineDeclarations().SetLocal || declaration == context.cachedEngineDeclarations().AssignVar))
+			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(context)), params[1].optimize(context)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == parser.cachedEngineDeclarations().DecVar || declaration == parser.cachedEngineDeclarations().IncVar))
-			return new UnaryOp(declaration == parser.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallDeclaration(parser.cachedEngineDeclarations().Var.name(), new ASTNode[] {
-						params.length == 1 ? params[0].optimize(parser) : LongLiteral.ZERO
+		if (params.length <= 1 && declaration != null && (declaration == context.cachedEngineDeclarations().DecVar || declaration == context.cachedEngineDeclarations().IncVar))
+			return new UnaryOp(declaration == context.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
+					new CallDeclaration(context.cachedEngineDeclarations().Var.name(), new ASTNode[] {
+						params.length == 1 ? params[0].optimize(context) : IntegerLiteral.ZERO
 					})
 			);
 
 		// Call("Func", 5, 5) -> Func(5, 5)
-		if (params.length >= 1 && declaration != null && declaration == parser.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
+		if (params.length >= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
 			String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
-					parmsWithoutName[i] = params[i+1].optimize(parser);
+					parmsWithoutName[i] = params[i+1].optimize(context);
 				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 			}
 		}
 
-		return super.optimize(parser);
+		return super.optimize(context);
 	}
 
 	private boolean containedInLoopHeaderOrNotStandaloneExpression() {
@@ -672,15 +278,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 				return true;
 			else
 				simpleStatement = (SimpleStatement) p;
-		} 
+		}
 		return false;
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
-		Set<IIndexEntity> list = new HashSet<IIndexEntity>();
-		_obtainDeclaration(list, parser);
-		return new EntityRegion(list, new Region(start(), declarationName.length()));
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+		Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
+		return new EntityRegion(entities, new Region(start(), declarationName.length()));
 	}
 	public ASTNode soleParm() {
 		if (params.length == 1)
@@ -710,28 +315,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		} else
 			return null;
 	}
-	@Override
-	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
-		Declaration d = declaration();
-		CachedEngineDeclarations cache = parser.cachedEngineDeclarations();
-		if (isAnyOf(d, cache.VarAccessFunctions)) {
-			Object ev;
-			if (params().length == 1 && (ev = params()[0].evaluateAtParseTime(parser.currentFunction())) != null)
-				if (ev instanceof Number)
-					// Var() with a sane constant number
-					return new VarFunctionsTypeInfo(cache.Local == d ? null : parser.currentFunction(), (Function) d, ((Number)ev).intValue());
-		}
-		else if (d instanceof Function) {
-			Function f = (Function) d;
-			if (f.staticallyTyped() || f.isEngineDeclaration())
-				return null;
-			return new FunctionReturnTypeInfo((Function)d);
-		}
-		else if (d != null)
-			return new GenericTypeInfo(this, parser);
-		return super.createTypeInfo(parser);
-	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
@@ -748,38 +332,38 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	    else
 	    	return null;
 	}
-	
+
 	@Override
 	public Class<? extends Declaration> declarationClass() {
 		return Function.class;
 	}
 
 	@Override
-	public Function quasiCalledFunction(DeclarationObtainmentContext context) {
+	public Function quasiCalledFunction(ProblemReportingContext context) {
 		if (declaration instanceof Variable)
 			for (IType type : ((Variable)declaration).type())
 				if (type instanceof FunctionType)
 					return ((FunctionType)type).prototype();
 		return function();
 	}
-	
-	public final Function function(DeclarationObtainmentContext context) {
-		return as(declarationFromContext(context), Function.class);
+
+	public final Function function(ProblemReportingContext context) {
+		return as(context.obtainDeclaration(this), Function.class);
 	}
-	
+
 	public final Function function() {
 		return as(declaration, Function.class);
 	}
 
 	@Override
-	public IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context) {
+	public IType concreteParameterType(Variable parameter, ProblemReportingContext context) {
 		if (declaration instanceof Function) {
 			Function f = (Function)declaration;
 			int ndx = f.parameters().indexOf(parameter);
 			if (ndx != -1 && ndx < params.length)
-				return params[ndx].type(context);
+				return context.typeOf(params[ndx]);
 		}
 		return PrimitiveType.UNKNOWN;
 	}
-	
+
 }

@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.TraversalContinuation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -13,7 +12,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class ExpressionLocator implements IASTVisitor<C4ScriptParser> {
+public class ExpressionLocator implements IASTVisitor<Object> {
 	
 	protected ASTNode exprAtRegion;
 	protected ASTNode topLevelInRegion;
@@ -39,10 +38,10 @@ public class ExpressionLocator implements IASTVisitor<C4ScriptParser> {
 	}
 
 	@Override
-	public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
-		expression.traverse(new IASTVisitor<C4ScriptParser>() {
+	public TraversalContinuation visitNode(ASTNode expression, Object context) {
+		expression.traverse(new IASTVisitor<Object>() {
 			@Override
-			public TraversalContinuation visitExpression(ASTNode expression, C4ScriptParser parser) {
+			public TraversalContinuation visitNode(ASTNode expression, Object context) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
 					if (topLevelInRegion == null)
 						topLevelInRegion = expression;
@@ -51,7 +50,7 @@ public class ExpressionLocator implements IASTVisitor<C4ScriptParser> {
 				}
 				return TraversalContinuation.Continue;
 			}
-		}, parser);
+		}, context);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
 

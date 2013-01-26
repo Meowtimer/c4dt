@@ -3,21 +3,17 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 
 public class ReturnStatement extends KeywordStatement {
 
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode returnExpr;
+	
+	public ASTNode returnExpr() { return returnExpr; }
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
@@ -76,10 +72,10 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		// return (0); -> return 0;
 		if (returnExpr instanceof Parenthesized)
-			return new ReturnStatement(((Parenthesized)returnExpr).innerExpression().optimize(parser));
+			return new ReturnStatement(((Parenthesized)returnExpr).innerExpression().optimize(context));
 		// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 		// FIXME: should declare temporary variable so that order of expression execution isn't changed
 		/*
@@ -94,40 +90,6 @@ public class ReturnStatement extends KeywordStatement {
 			return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 		}
 		 */
-		return super.optimize(parser);
-	}
-
-	private void warnAboutTupleInReturnExpr(C4ScriptParser parser, ASTNode expr, boolean tupleIsError) throws ParsingException {
-		if (expr == null)
-			return;
-		if (expr instanceof Tuple)
-			if (tupleIsError)
-				parser.error(ParserErrorCode.TuplesNotAllowed, expr, C4ScriptParser.NO_THROW);
-			else if (parser.strictLevel() >= 2)
-				parser.error(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
-		ASTNode[] subElms = expr.subElements();
-		for (ASTNode e : subElms)
-			warnAboutTupleInReturnExpr(parser, e, true);
-	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		warnAboutTupleInReturnExpr(parser, returnExpr, false);
-		Function currentFunction = parser.currentFunction();
-		Function activeFunc = currentFunction;
-		if (activeFunc == null)
-			parser.error(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
-		else if (returnExpr != null)
-			if (parser.staticTyping() == Typing.Static && currentFunction.staticallyTyped()) {
-				if (!returnExpr.validForType(currentFunction.returnType(), parser))
-					parser.incompatibleTypes(returnExpr, currentFunction.returnType(), returnExpr.type(parser));
-			}
-			else {
-				IType type = returnExpr.unresolvedType(parser);
-				CallDeclaration dummy = new CallDeclaration(currentFunction);
-				dummy.typingJudgement(type, parser, TypingJudgementMode.Unify);
-				parser.linkTypesOf(dummy, returnExpr);
-			}
+		return super.optimize(context);
 	}
 }

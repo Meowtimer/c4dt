@@ -6,11 +6,9 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ITypeable;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.jface.text.IRegion;
@@ -24,49 +22,20 @@ import org.eclipse.jface.text.Region;
 public abstract class AccessDeclaration extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected transient Declaration declaration;
+	protected Declaration declaration;
 	protected String declarationName;
-	
-	/**
-	 * Return the {@link Declaration} this expression refers to, obtaining it if that has not happened yet (see {@link #obtainDeclaration(DeclarationObtainmentContext)}).
-	 * @param context Context passed to {@link #obtainDeclaration(DeclarationObtainmentContext)} if declaration is still null.
-	 * @return The declaration or null if a declaration could not be found.
-	 */
-	public Declaration declarationFromContext(DeclarationObtainmentContext context) {
-		if (declaration == null)
-			declaration = obtainDeclaration(context);
-		return declaration;
-	}
 
 	/**
 	 * Return the {@link Declaration} if it has already been obtained or null.
 	 * @return The obtain declaration or null.
 	 */
-	public Declaration declaration() {
-		return declaration; // return without trying to obtain it (no parser context)
-	}
-
+	public Declaration declaration() { return declaration; }
 	/**
-	 * Obtain the declaration for this node. The base implementation will always return null.
-	 * @param context The {@link DeclarationObtainmentContext} (sounds proper to pass it)
-	 * @return The declaration this node most likely refers to
+	 * Assign a declaration. Called from obtainment logic
+	 * @param d The declaration to assign this node
 	 */
-	protected Declaration obtainDeclaration(DeclarationObtainmentContext context) {
-		return null;
-	}
+	public void setDeclaration(Declaration d) { this.declaration = d; }
 
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		for (byte attempt = 0; declaration == null && attempt < 2; attempt++) {
-			if (attempt == 1)
-				// last straw in case a file was modified outside Eclipse to call some global function from a script which was not yet loaded
-				// from the index - load scripts
-				parser.script().index().loadScriptsContainingDeclarationsNamed(declarationName);
-			declarationFromContext(parser); // find the declaration so subclasses can complain about missing variables/functions
-		}
-	}
-	
 	@Override
 	public void reconsider(C4ScriptParser parser) {
 		this.declaration = null;
@@ -74,13 +43,13 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	/**
-	 * Create AccessDeclaration object using a declaration name. 
+	 * Create AccessDeclaration object using a declaration name.
 	 * @param declarationName
 	 */
 	public AccessDeclaration(String declarationName) {
 		this.declarationName = declarationName;
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(declarationName);
@@ -91,8 +60,8 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
-		return new EntityRegion(declarationFromContext(parser), region(0));
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+		return new EntityRegion(declaration(), region(0));
 	}
 
 	/**
@@ -102,7 +71,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public String declarationName() {
 		return declarationName;
 	}
-	
+
 	/**
 	 * Set the declaration name.
 	 * @param declarationName The name
@@ -123,7 +92,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public boolean indirectAccess() {
 		return declaration == null || !declaration.name().equals(declarationName);
 	}
-	
+
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
@@ -141,24 +110,8 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public Class<? extends Declaration> declarationClass() {
 		return Declaration.class;
 	}
-	
+
 	@Override
-	public ITypeInfo createTypeInfo(C4ScriptParser parser) {
-		if (declaration instanceof ITypeable && ((ITypeable)declaration).staticallyTyped())
-			return null;
-		else
-			return super.createTypeInfo(parser);
-	}
-	
-	@Override
-	public void postLoad(ASTNode parent, DeclarationObtainmentContext root) {
-		super.postLoad(parent, root);
-		declarationFromContext(root);
-	}
-	
-	@Override
-	public String patternMatchingText() {
-		return declarationName();
-	}
-	
+	public String patternMatchingText() { return declarationName(); }
+
 }

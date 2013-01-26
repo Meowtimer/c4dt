@@ -7,9 +7,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
@@ -36,7 +34,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		if (contents == null)
 			return null;
 		String[] parts = contents.split("\\|"); //$NON-NLS-1$
@@ -44,7 +42,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		for (String part : parts) {
 			if (offset >= off && offset < off+part.length()) {
 				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-					StringTbl stringTbl = parser.script().localStringTblMatchingLanguagePref();
+					StringTbl stringTbl = context.script().localStringTblMatchingLanguagePref();
 					if (stringTbl != null) {
 						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
@@ -60,7 +58,7 @@ public class FunctionDescription extends Statement implements Serializable {
 						if (sep != -1)
 							value = value.substring(0, sep);
 						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
-							return new EntityRegion(parser.script().findDeclaration(value), new Region(start()+off+nameValue[0].length()+1, value.length()));
+							return new EntityRegion(context.script().findDeclaration(value), new Region(start()+off+nameValue[0].length()+1, value.length()));
 					}
 				}
 				break;
@@ -68,22 +66,6 @@ public class FunctionDescription extends Statement implements Serializable {
 			off += part.length()+1;
 		}
 		return null;
-	}
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		// see StringLiteral.reportErrors
-		if (parser.hasAppendTo())
-			return;
-		int off = 1;
-		for (String part : contents.split("\\|")) { //$NON-NLS-1$
-			if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-				StringTbl stringTbl = parser.script().localStringTblMatchingLanguagePref();
-				String entryName = part.substring(1, part.length()-1);
-				if (stringTbl == null || stringTbl.map().get(entryName) == null)
-					parser.warning(ParserErrorCode.UndeclaredIdentifier, new Region(start()+off, part.length()), 0, entryName);
-			}
-			off += part.length()+1;
-		}
 	}
 	@Override
 	public boolean equalAttributes(ASTNode other) {

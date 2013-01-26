@@ -1,12 +1,12 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
 public class Placeholder extends ASTNode {
@@ -36,24 +36,19 @@ public class Placeholder extends ASTNode {
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
-		StringTbl stringTbl = parser.script().localStringTblMatchingLanguagePref();
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+		StringTbl stringTbl = context.script().localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			NameValueAssignment entry = stringTbl.map().get(entryName);
 			if (entry != null)
 				return new EntityRegion(entry, this);
 		}
-		return super.entityAt(offset, parser);
+		return super.entityAt(offset, context);
 	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		StringTbl.reportMissingStringTblEntries(parser, new EntityRegion(null, this, entryName));
-	}
-	
+
 	@Override
 	public boolean hasSideEffects() {
 		return true; // let's just assume that
 	}
-	
+
 }

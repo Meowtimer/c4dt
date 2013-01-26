@@ -8,13 +8,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 
 /**
  * Baseclass for statements.
@@ -94,22 +88,8 @@ public class Statement extends ASTNode implements Cloneable {
 	}
 
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		return PrimitiveType.UNKNOWN;
-	}
-
-	@Override
 	public boolean hasSideEffects() {
 		return true;
-	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		warnIfNoSideEffects(parser);
-		if (!flagsEnabled(STATEMENT_REACHED))
-			parser.warning(ParserErrorCode.NeverReached, this, 0);
-		notFinishedError(parser, this);
 	}
 
 	@Override
@@ -134,11 +114,5 @@ public class Statement extends ASTNode implements Cloneable {
 			// blub
 		};
 	};
-	
-	protected void notFinishedError(C4ScriptParser parser, ASTNode e) throws ParsingException {
-		if (!e.isFinishedProperly())
-			// don't traverse children - one not-finished error is enough
-			parser.error(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
-	}
 
 }

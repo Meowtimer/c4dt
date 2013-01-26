@@ -8,7 +8,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -20,11 +19,11 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
-import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -32,14 +31,14 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
-import net.arctics.clonk.parser.c4script.ast.ITypeInfo;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -154,6 +153,22 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
+		private List<ProblemReportingStrategy> problemReportingStrategies;
+		private ProblemReportingStrategy typingStrategy;
+		
+		@Override
+		protected void added() {
+			super.added();
+			problemReportingStrategies = ((ProjectIndex)structure.index()).nature().settings().instantiateProblemReportingStrategies(0);
+			for (ProblemReportingStrategy strategy : problemReportingStrategies)
+				if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
+					typingStrategy = strategy;
+					break;
+				}
+		}
+		
+		public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
+		public ProblemReportingStrategy typingStrategy() { return typingStrategy; }
 		
 		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
 			try {
@@ -201,7 +216,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						return;
 					try {
 						try {
-							reparseWithDocumentContents(null, onlyDeclarations, document, structure, new Runnable() {
+							reparseWithDocumentContents(TextChangeListener.this, onlyDeclarations, document, structure, new Runnable() {
 								@Override
 								public void run() {
 									for (C4ScriptEditor ed : clients) {
@@ -261,19 +276,25 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.scriptStorage() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.scriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
-						C4ScriptParser.visitCode(document, structure, f, null, new IMarkerListener() {
+						Markers markers = new Markers(new IMarkerListener() {
 							@Override
-							public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code,
-									int markerStart, int markerEnd, int flags,
-									int severity, Object... args) {
+							public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider,
+								ParserErrorCode code, ASTNode node,
+								int markerStart, int markerEnd, int flags,
+								int severity, Object... args
+							) {
 								if (!markers.errorEnabled(code))
 									return Decision.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(positionProvider, flags, positionProvider.node()), args);
+										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
 								return Decision.PassThrough;
 							}
-						}, VisitCodeFlavour.AlsoStatements, true);
+						});
+						markers.applyProjectSettings(structure.index());
+						C4ScriptParser parser = FunctionFragmentParser.update(document, structure, f, markers);
+						for (ProblemReportingStrategy strategy : problemReportingStrategies)
+							strategy.localTypingContext(parser).reportProblemsOfFunction(f);
 						for (Variable localVar : f.localVars()) {
 							SourceLocation l = localVar;
 							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
@@ -300,7 +321,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					IFile file = (IFile)structure.scriptStorage();
 					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 					if (file.exists())
-						reparseWithDocumentContents(null, false, file, structure, null);
+						reparseWithDocumentContents(this, false, file, structure, null);
 				}
 			} catch (ParsingException e) {
 				e.printStackTrace();
@@ -319,19 +340,24 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
-	private WeakReference<DeclarationObtainmentContext> cachedDeclarationObtainmentContext;
+	private WeakReference<ProblemReportingContext> cachedDeclarationObtainmentContext;
 	
 	@Override
-	public DeclarationObtainmentContext declarationObtainmentContext() {
+	public ProblemReportingContext declarationObtainmentContext() {
 		if (cachedDeclarationObtainmentContext != null) {
-			DeclarationObtainmentContext ctx = cachedDeclarationObtainmentContext.get();
+			ProblemReportingContext ctx = cachedDeclarationObtainmentContext.get();
 			if (ctx != null && ctx.script() == script())
 				return ctx;
 		}
-		cachedDeclarationObtainmentContext = new WeakReference<DeclarationObtainmentContext>(
-			parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script())
-		);
-		return cachedDeclarationObtainmentContext.get();
+		ProblemReportingContext r = null;
+		for (ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
+			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
+				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
+					r = strategy.localTypingContext(parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script()))
+				);
+				break;
+			}
+		return r;
 	}
 	
 	public C4ScriptEditor() {
@@ -388,7 +414,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void refreshStructure() {
 		try {
-			reparseWithDocumentContents(null, false);
+			reparseWithDocumentContents(false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -418,7 +444,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			textChangeListener.cancelReparsingTimer();
 		if (script() instanceof ScratchScript)
 			try {
-				reparseWithDocumentContents(null, false);
+				reparseWithDocumentContents(false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -524,7 +550,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		try {
-			reparseWithDocumentContents(null, true);
+			reparseWithDocumentContents(true);
 		} catch (IOException | ParsingException e) {
 			e.printStackTrace();
 		}
@@ -566,7 +592,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		cachedScript = new WeakReference<Script>(result);
 		if (needsReparsing)
 			try {
-				reparseWithDocumentContents(null, false);
+				reparseWithDocumentContents(false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -591,13 +617,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return functionAt(cursorPos());
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(IASTVisitor<C4ScriptParser> exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparseWithDocumentContents(boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		if (textChangeListener != null)
 			textChangeListener.cancelReparsingTimer();
-		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, script(), new Runnable() {
+		return reparseWithDocumentContents(textChangeListener, onlyDeclarations, document, script(), new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
@@ -607,34 +633,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private static C4ScriptParser reparseWithDocumentContents(
-		IASTVisitor<C4ScriptParser> exprListener,
+		TextChangeListener listener,
 		boolean onlyDeclarations, Object document,
 		final Script script,
 		Runnable uiRefreshRunnable
 	) throws ParsingException {
 		C4ScriptParser parser = parserForDocument(document, script);
-		List<ITypeInfo> storedLocalsTypeInformation = null;
-		if (onlyDeclarations) {
-			// when only parsing declarations store type information for variables declared in the script
-			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
-			storedLocalsTypeInformation = new LinkedList<ITypeInfo>();
-			for (Variable v : script.variables()) {
-				ITypeInfo info = v.type() != null ? AccessVar.makeTypeInfo(v, parser) : null;
-				if (info != null)
-					storedLocalsTypeInformation.add(info);
-			}
-		}
-		parser.setListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
 		parser.script().generateFindDeclarationCache();
-		//if (!onlyDeclarations)
-			parser.parseCodeOfFunctionsAndValidate();
-		if (!onlyDeclarations)
-			parser.reportProblems();
-		if (storedLocalsTypeInformation != null)
-			for (ITypeInfo info : storedLocalsTypeInformation)
-				info.apply(false, parser);
+		parser.validate();
+		listener.typingStrategy().localTypingContext(parser).reportProblems();
+		parser.markers().deploy();
+		
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);

@@ -38,7 +38,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 				performRenameRefactoring((Declaration)entity, null, 0);
 				C4ScriptEditor scriptEditor = as(getTextEditor(), C4ScriptEditor.class);
 				if (scriptEditor != null)
-					scriptEditor.reparseWithDocumentContents(null, false);
+					scriptEditor.reparseWithDocumentContents(false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

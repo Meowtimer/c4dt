@@ -1,19 +1,9 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.ArrayType;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeUtil;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
 
@@ -83,42 +73,6 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		elementExpr = elms[0];
 		arrayExpr   = elms[1];
 		body        = elms[2];
-	}
-	
-	@Override
-	public boolean skipReportingProblemsForSubElements() {return true;}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		Variable loopVariable;
-		AccessVar accessVar;
-		if (elementExpr instanceof VarDeclarationStatement)
-			loopVariable = ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable;
-		else if ((accessVar = as(SimpleStatement.unwrap(elementExpr), AccessVar.class)) != null) {
-			if (accessVar.declarationFromContext(parser) == null) {
-				// implicitly create loop variable declaration if not found
-				SourceLocation varPos = parser.absoluteSourceLocationFromExpr(accessVar);
-				loopVariable = parser.createVarInScope(accessVar.declarationName(), Scope.VAR, varPos.start(), varPos.end(), null);
-			} else
-				loopVariable = as(accessVar.declaration(), Variable.class);
-		} else
-			loopVariable = null;
-		
-		parser.reportProblemsOf(elementExpr, true);
-		parser.reportProblemsOf(arrayExpr, true);
-
-		IType type = arrayExpr.type(parser);
-		if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
-			parser.incompatibleTypes(arrayExpr, type, PrimitiveType.ARRAY);
-		IType elmType = TypeUtil.resolve(ArrayType.elementTypeSet(type), parser, arrayExpr.callerType(parser));
-		parser.newTypeEnvironment();
-		if (loopVariable != null) {
-			if (elmType != null)
-				new AccessVar(loopVariable).typingJudgement(elmType, parser, TypingJudgementMode.Unify);
-			loopVariable.setUsed(true);
-		}
-		parser.reportProblemsOf(body, true);
-		parser.endTypeEnvironment(true, false);
 	}
 
 }

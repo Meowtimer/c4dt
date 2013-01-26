@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -14,24 +15,26 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -41,6 +44,8 @@ import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -92,10 +97,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
 	private Script _currentEditorScript;
+	private ProblemReportingContext typingContext;
 	private String untamperedPrefix;
+	private final ProblemReportingStrategy typingStrategy;
 
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor, assistant);
+		typingStrategy = ((ProjectIndex)editor.script().index()).nature().settings().
+			instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
 		this.assistant = assistant;
 		if (assistant != null) {
 			assistant.setRepeatedInvocationTrigger(iterationBinding());
@@ -278,10 +287,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 			if (contextExpression == null && !specifiedParser) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
-				parser = C4ScriptParser.visitCode(doc, editorScript, activeFunc, locator,
-						null, VisitCodeFlavour.AlsoStatements, false);
+				parser = FunctionFragmentParser.update(doc, editorScript, activeFunc, null);
+				activeFunc.traverse(locator, this);
 				contextExpression = locator.expressionAtRegion();
 			}
+			this.typingContext = typingStrategy.localTypingContext(parser);
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
 				innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
@@ -304,7 +314,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 			}
 			if (contextSequence != null)
-				for (IType t : contextSequence.type(parser)) {
+				for (IType t : defaulting(typingContext.typeOf(contextSequence), PrimitiveType.UNKNOWN)) {
 					IHasSubDeclarations structure;
 					if (t instanceof IHasSubDeclarations)
 						structure = (IHasSubDeclarations) t;
@@ -377,7 +387,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.declarationName(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					ASTNode parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localTypingContext(parser), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
 				}
 			}
 		}
@@ -616,7 +626,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
-				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(editor.functionAtCursor().declarationObtainmentContext());
+				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(TypeUtil.problemReportingContext(editor.functionAtCursor()));
 				if (entity == null) {
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {

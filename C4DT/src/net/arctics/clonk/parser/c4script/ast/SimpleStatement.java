@@ -3,8 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 /**
@@ -57,8 +56,8 @@ public class SimpleStatement extends Statement {
 	}
 
 	@Override
-	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
-		ASTNode exprReplacement = expression.optimize(parser);
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+		ASTNode exprReplacement = expression.optimize(context);
 		if (exprReplacement instanceof Statement)
 			return exprReplacement;
 		if (exprReplacement == expression)
@@ -95,13 +94,6 @@ public class SimpleStatement extends Statement {
 			return ((SimpleStatement)expr).expression();
 		else
 			return expr;
-	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		if (expression instanceof BinaryOp)
-			((BinaryOp) expression).checkTopLevelAssignment(parser);
-		super.reportProblems(parser);
 	}
 	
 	public static Statement[] wrapExpressions(ASTNode... expressions) {

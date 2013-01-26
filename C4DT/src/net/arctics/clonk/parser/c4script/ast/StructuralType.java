@@ -11,14 +11,10 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -26,19 +22,19 @@ import net.arctics.clonk.util.StringUtil;
  * @author madeen
  *
  */
-public class StructuralType implements IType, IRefinedPrimitiveType, IResolvableType {
+public class StructuralType implements IType, IRefinedPrimitiveType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private final Set<String> functions = new HashSet<String>();
-	
+
 	public Set<String> functions() { return functions; }
 	public void addFunctions(Collection<String> functions) { this.functions.addAll(functions); }
-	
+
 	public StructuralType(String supportsFunction) {
 		functions.add(supportsFunction);
 	}
-	
+
 	public StructuralType(StructuralType a, StructuralType b) {
 		functions.addAll(a.functions());
 		functions.addAll(b.functions());
@@ -48,7 +44,7 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 	public Iterator<IType> iterator() {
 		return iterable(PrimitiveType.PROPLIST, PrimitiveType.OBJECT, PrimitiveType.ID, this).iterator();
 	}
-	
+
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
 		boolean anyDefinitions = false;
@@ -75,7 +71,7 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 			}
 		return anyDefinitions ? false : primitives;
 	}
-	
+
 	public boolean satisfiedBy(Definition d) {
 		boolean satisfies = true;
 		for (String f : functions) {
@@ -95,7 +91,7 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 		x.add("...");
 		return StringUtil.blockString("{", "}", ", ", x);
 	}
-	
+
 	@Override
 	public String toString() {
 		return typeName(true);
@@ -106,17 +102,18 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 		return PrimitiveType.OBJECT;
 	}
 
-	
+
 	@Override
 	public PrimitiveType primitiveType() {
 		return PrimitiveType.OBJECT;
 	}
-	
+
 	@Override
 	public void setTypeDescription(String description) {}
-	
+
+	/*
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		final List<Definition> implementors = new ArrayList<>(10);
 		final Sink<Definition> defSink = new Sink<Definition>() {
 			@Override
@@ -132,6 +129,6 @@ public class StructuralType implements IType, IRefinedPrimitiveType, IResolvable
 			}
 		});
 		return TypeChoice.make(implementors);
-	}
+	}*/
 
 }

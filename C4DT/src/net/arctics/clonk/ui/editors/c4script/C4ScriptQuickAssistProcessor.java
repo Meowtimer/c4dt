@@ -12,20 +12,21 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -34,7 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
-import net.arctics.clonk.parser.c4script.ast.LongLiteral;
+import net.arctics.clonk.parser.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
@@ -60,6 +61,7 @@ import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -78,14 +80,12 @@ import org.eclipse.ui.views.markers.WorkbenchMarkerResolution;
  *
  */
 public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
-	
+
 	private static final ICompletionProposal[] NO_SUGGESTIONS = new ICompletionProposal[0];
 	private static C4ScriptQuickAssistProcessor singleton;
-	
-	public static C4ScriptQuickAssistProcessor getSingleton() {
-		return singleton;
-	}
-	
+
+	public static C4ScriptQuickAssistProcessor getSingleton() { return singleton; }
+
 	public C4ScriptQuickAssistProcessor() {
 		super();
 		assert(singleton == null);
@@ -93,9 +93,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	@Override
-	public boolean canAssist(IQuickAssistInvocationContext invocationContext) {
-		return true;
-	}
+	public boolean canAssist(IQuickAssistInvocationContext invocationContext) { return true; }
 
 	private static final Set<ParserErrorCode> fixableParserErrorCodes = ArrayUtil.set(
 		ParserErrorCode.VariableCalled,
@@ -112,7 +110,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		ParserErrorCode.MemberOperatorWithTildeNoSpace,
 		ParserErrorCode.KeywordInWrongPlace
 	);
- 	
+
 	@Override
 	public boolean canFix(Annotation annotation) {
 		if (annotation instanceof MarkerAnnotation) {
@@ -132,7 +130,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private static boolean isAtPosition(int offset, Position pos) {
 		return (pos != null) && (offset >= pos.getOffset() && offset <= (pos.getOffset() +  pos.getLength()));
 	}
-	
+
 	@Override
 	public ICompletionProposal[] computeQuickAssistProposals(IQuickAssistInvocationContext context) {
 		int offset = context.getOffset();
@@ -152,17 +150,17 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
-	
+
 	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
 
 		private final ParameterizedProposal proposal;
 		private final IMarker originalMarker;
-		
+
 		public ParameterizedProposalMarkerResolution(ParameterizedProposal proposal, IMarker originalMarker) {
 			this.proposal = proposal;
 			this.originalMarker = originalMarker;
 		}
-		
+
 		@Override
 		public String getDescription() {
 			return proposal.getDisplayString();
@@ -188,7 +186,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				!marker.equals(this.originalMarker) &&
 				ParserErrorCode.errorCode(marker) == ParserErrorCode.errorCode(originalMarker);
 		}
-		
+
 		@Override
 		public IMarker[] findOtherMarkers(IMarker[] markers) {
 			List<IMarker> result = new ArrayList<IMarker>(markers.length);
@@ -197,9 +195,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					result.add(m);
 			return result.toArray(new IMarker[result.size()]);
 		}
-		
+
 	}
-	
+
 	public final class ParameterizedProposal extends ClonkCompletionProposal {
 		private final Replacement replacement;
 		private final int tabIndentation;
@@ -224,9 +222,14 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.parser = parser;
 			this.func = func;
 		}
-		
+
 		public boolean createdFrom(Replacement other) {
-			return this.replacement.equals(other); 
+			return this.replacement.equals(other);
+		}
+
+		@Override
+		public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+			this.apply(viewer.getDocument());
 		}
 
 		@Override
@@ -255,7 +258,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							accessDec.setDeclarationName(s);
 					}
 				try {
-					this.replacementString = replacement.replacementExpression().optimize(parser).toString(tabIndentation+1);
+					this.replacementString = replacement.replacementExpression().exhaustiveOptimize
+						(TypeUtil.problemReportingContext(parser.script())).toString(tabIndentation+1);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
@@ -266,7 +270,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}
 			cursorPosition = replacementString.length();
 			super.apply(document);
-			
+
 			for (Replacement.AdditionalDeclaration dec : replacement.additionalDeclarations()) {
 				StringBuilder builder = new StringBuilder(50);
 				dec.declaration.sourceCodeRepresentation(builder, dec.code);
@@ -278,7 +282,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					e.printStackTrace();
 				}
 			}
-			
+
 			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.listenerFor(document);
 			if (listener != null)
 				listener.scheduleReparsing(false);
@@ -355,7 +359,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		 */
 		public void performAdditionalActionsBeforeDoingReplacements() {}
 	}
-	
+
 	private static final class ReplacementsList extends LinkedList<Replacement> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final ASTNode offending;
@@ -385,15 +389,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return add(replacement, elm, true, specifiable);
 		}
 	}
-	
+
 	private static ASTNode identifierReplacement(AccessDeclaration original, String newName) {
 		AccessVar result = new AccessVar(newName);
 		result.setLocation(original.start(), original.start()+original.identifierLength());
 		return result;
 	}
-	
+
 	private static final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
-	
+
 	private static String parmNameFromExpression(ASTNode expression, int index) {
 		String exprString = expression.toString();
 		Matcher m = validIdentifierPattern.matcher(exprString);
@@ -402,7 +406,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		else
 			return "par"+index; //$NON-NLS-1$
 	}
-	
+
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Object editorOrScript) {
 
 		ParserErrorCode errorCode = ParserErrorCode.errorCode(marker);
@@ -433,10 +437,11 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			Function func = script.funcAt(position.getOffset());
 			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
-			final C4ScriptParser parser = C4ScriptParser.visitCode(document, script, func, locator, null, VisitCodeFlavour.AlsoStatements, true);
+			func.traverse(locator, this);
+			FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 			ASTNode offendingExpression = locator.expressionAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
-			
+
 			if (offendingExpression != null && topLevel != null) {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
 				switch (errorCode) {
@@ -508,15 +513,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
 							for (ASTNode parm : callFunc.params())
-								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.type(parser)));
+								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.inferredType()));
 							function.setParameters(parms);
 						}
 
-						// gather proposals through ClonkCompletionProcessor and propose those with a similar name 
+						// gather proposals through ClonkCompletionProcessor and propose those with a similar name
 						ASTNode expr;
 						if (offendingExpression.parent() instanceof Sequence) {
 							Sequence sequence = (Sequence) offendingExpression.parent();
-							expr = sequence.subSequenceUpTo(offendingExpression); 
+							expr = sequence.subSequenceUpTo(offendingExpression);
 						} else
 							expr = null;
 						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression
@@ -535,7 +540,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false);
 								}
 							}
-						
+
 						// propose adding projects to the referenced projects which contain a definition with a matching name
 						if (accessDec.parent() instanceof CallDeclaration) {
 							Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
@@ -586,7 +591,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						);
 					if (
 						isAnyOf(t, PrimitiveType.NILLABLES) &&
-						(offendingExpression instanceof LongLiteral && ((LongLiteral)offendingExpression).longValue() == 0)
+						(offendingExpression instanceof IntegerLiteral && ((IntegerLiteral)offendingExpression).longValue() == 0)
 					)
 						replacements.add(
 							Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
@@ -684,7 +689,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				try {
 					replacements.add(
 						Messages.ClonkQuickAssistProcessor_TidyUp,
-						topLevel.exhaustiveOptimize(parser)
+						topLevel.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()))
 					);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();

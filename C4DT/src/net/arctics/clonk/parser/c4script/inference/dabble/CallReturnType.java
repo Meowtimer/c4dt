@@ -1,10 +1,20 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser.c4script.inference.dabble;
+
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IResolvableType;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class CallReturnType implements IType, IResolvableType {
@@ -54,10 +64,13 @@ public class CallReturnType implements IType, IResolvableType {
 	}
 
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		try {
+			ScriptProcessor processor = as(context, ScriptProcessor.class);
+			if (processor == null)
+				return PrimitiveType.UNKNOWN;
 			if (rule != null) {
-				IType ruleSays = rule.returnType(context, call);
+				IType ruleSays = rule.returnType(processor, call);
 				if (ruleSays != null)
 					return ruleSays;
 			}
@@ -65,17 +78,11 @@ public class CallReturnType implements IType, IResolvableType {
 			Script contextScript = context.script();
 			if (contextScript == originalFunc.script() && !(originalFunc.returnType() instanceof IResolvableType))
 				return originalFunc.returnType();
-			IType predType = call.unresolvedPredecessorType();
-			context.pushCurrentFunctionCall(call);
-			try {
-				IType ct = predType != null ? TypeUtil.resolve(predType, context, callerType) : callerType;
-				Function func = contextScript == originalFunc.script() ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
-				return func != null ? TypeUtil.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
-			} finally {
-				context.popCurrentFunctionCall();
-			}
+			IType predType = processor.reporter(call).unresolvedPredecessorType(call, processor);
+			IType ct = predType != null ? TypeUtil.resolve(predType, context, callerType) : callerType;
+			Function func = contextScript == originalFunc.script() ? originalFunc : (ct instanceof Script ? ((Script)ct).findFunction(originalFunc.name()) : null);
+			return func != null ? TypeUtil.resolve(func.returnType(), context, ct) : PrimitiveType.UNKNOWN;
 		} catch (Exception e) {
-			//e.printStackTrace();
 			return PrimitiveType.UNKNOWN;
 		}
 	}

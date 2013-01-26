@@ -46,9 +46,9 @@ import org.eclipse.jface.text.IRegion;
  *
  */
 public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode {
-	
+
 	private static final long serialVersionUID = 3848213897251037684L;
-	private FunctionScope visibility; 
+	private FunctionScope visibility;
 	private List<Variable> localVars;
 	protected List<Variable> parameters;
 	/**
@@ -62,17 +62,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private boolean isOldStyle;
 	private boolean staticallyTyped;
 	private SourceLocation bodyLocation, header;
-	
+
 	/**
 	 * Code block kept in memory for speed optimization
 	 */
 	private FunctionBody body;
-	
+
 	/**
 	 * Hash code of the string the block was parsed from.
 	 */
 	private int blockSourceHash;
-	
+
 	/**
 	 * Create a new function.
 	 * @param name Name of the function
@@ -89,7 +89,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		visibility = FunctionScope.GLOBAL;
 	}
-	
+
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
 	 * @param name
@@ -103,14 +103,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		parent = null; // since engine function only
 		localVars = null;
 	}
-	
+
 	public Function() {
 		visibility = FunctionScope.GLOBAL;
 		name = ""; //$NON-NLS-1$
 		clearParameters();
 		localVars = new ArrayList<Variable>();
 	}
-	
+
 	public Function(String name, Script parent, FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
@@ -118,15 +118,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		localVars = new ArrayList<Variable>();
 		setScript(parent);
 	}
-	
+
 	public Function(String name, Definition parent, String scope) {
 		this(name,parent,FunctionScope.makeScope(scope));
 	}
-	
+
 	public Function(String name, FunctionScope scope) {
 		this(name, null, scope);
 	}
-	
+
 	/**
 	 * @return the localVars
 	 */
@@ -140,23 +140,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public List<Variable> parameters() {
 		return parameters;
 	}
-	
+
 	public void addParameter(Variable parameter) {
 		synchronized (parameters) {
 			parameters.add(parameter);
 		}
 	}
-	
+
 	public void clearParameters() {
 		parameters = new ArrayList<Variable>();
 	}
-	
+
 	public Variable parameter(int index) {
 		synchronized (parameters) {
 			return index >= 0 && index < parameters.size() ? parameters.get(index) : null;
 		}
 	}
-	
+
 	public int numParameters() {
 		synchronized (parameters) {
 			return parameters.size();
@@ -185,7 +185,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public FunctionScope visibility() {
 		return visibility;
 	}
-	
+
 	/**
 	 * @return the description
 	 */
@@ -196,7 +196,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			return description;
 	}
-	
+
 	@Override
 	public String userDescription() {
 		return description;
@@ -209,11 +209,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void setUserDescription(String description) {
 		this.description = description;
 	}
-	
+
 	public void setReturnDescription(String returnDescription) {
 		this.returnDescription = returnDescription;
 	}
-	
+
 	public String returnDescription() {
 		return returnDescription;
 	}
@@ -235,19 +235,19 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		PUBLIC,
 		PROTECTED,
 		PRIVATE;
-		
+
 		private static final Map<String, FunctionScope> scopeMap = new HashMap<String, FunctionScope>();
 		static {
 			for (FunctionScope s : values())
 				scopeMap.put(s.name().toLowerCase(), s);
 		}
-		
+
 		private String lowerCaseName;
-		
+
 		public static FunctionScope makeScope(String scopeString) {
 			return scopeMap.get(scopeString);
 		}
-		
+
 		@Override
 		public String toString() {
 			if (lowerCaseName == null)
@@ -259,13 +259,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return toString();
 		}
 	}
-	
+
 	/**
 	 * Generates a function string in the form of
 	 * function(type1 parName1, type2 parName2)
 	 * if <code>withFuncName</code> is true, else
 	 * type1 parName1, type1 parName2
-	 * 
+	 *
 	 * @param withFuncName include function name
 	 * @param engineCompatible print parameters in an engine-parseable manner
 	 * @return the function string
@@ -280,11 +280,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (withFuncName) string.append(")"); //$NON-NLS-1$
 		return string.toString();
 	}
-	
+
 	public String longParameterString(boolean withFuncName) {
-		return longParameterString(withFuncName, true);	
+		return longParameterString(withFuncName, true);
 	}
-	
+
 	@Override
 	public String displayString(IIndexEntity context) {
 		return longParameterString(true);
@@ -341,7 +341,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public SourceLocation bodyLocation() {
 		return bodyLocation;
 	}
-	
+
 	public SourceLocation wholeBody() {
 		if (bodyLocation == null)
 			return null;
@@ -350,7 +350,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			return new SourceLocation(bodyLocation.start()-1, bodyLocation.end()+1);
 	}
-	
+
 	@Override
 	public int sortCategory() {
 		return Variable.Scope.values().length + visibility.ordinal();
@@ -359,7 +359,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public static String documentationURLForFunction(String functionName, Engine engine) {
 		return engine.settings().documentationURLForFunction(functionName);
 	}
-	
+
 	/**
 	 * For engine functions: Return URL string for documentation
 	 * @return The documentation URl
@@ -392,7 +392,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (returnType() != PrimitiveType.UNKNOWN) {
 			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
 				Messages.Returns,
-				StringUtil.htmlerize(TypeUtil.resolve(returnType(), context, this).typeName(true)))); 
+				StringUtil.htmlerize(TypeUtil.resolve(returnType(), context, this).typeName(true))));
 			if (returnDescription != null)
 				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
 		}
@@ -403,7 +403,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Variable findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
-	
+
 	@Override
 	public Variable findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(Variable.class)) {
@@ -418,14 +418,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		return null;
 	}
-	
+
 	public Variable findParameter(String parameterName) {
 		for (Variable p : parameters())
 			if (p.name().equals(parameterName))
 				return p;
 		return null;
 	}
-	
+
 	public Variable findVariable(String variableName) {
 		return findDeclaration(variableName, Variable.class);
 	}
@@ -437,13 +437,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void setOldStyle(boolean isOldStyle) {
 		this.isOldStyle = isOldStyle;
 	}
-	
+
 	/**
 	 * Return the function this one inherits from
 	 * @return The inherited function
 	 */
 	public Function inheritedFunction() {
-		
+
 		// search in #included scripts
 		Collection<? extends IHasIncludes> includesCollection = script().includes(0);
 		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
@@ -452,7 +452,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (fun != null && fun != this)
 				return fun;
 		}
-		
+
 		// search in index
 		List<Declaration> decsWithSameName = index().declarationMap().get(this.name());
 		if (decsWithSameName != null) {
@@ -460,7 +460,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			int rating = -1;
 			for (Declaration d : decsWithSameName) {
 				// get latest version since getInherited() might also be called when finding links in a modified but not yet saved script
-				// in which case the calling function (on-the-fly-parsed) differs from the function in the index 
+				// in which case the calling function (on-the-fly-parsed) differs from the function in the index
 				d = d.latestVersion();
 				if (d == this || !(d instanceof Function))
 					continue;
@@ -475,15 +475,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (f != null)
 				return f;
 		}
-		
+
 		// search in engine
 		Function f = index().engine().findFunction(name());
 		if (f != null)
 			return f;
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Return the first function in the inherited chain.
 	 * @return The first function in the inherited chain.
@@ -531,7 +531,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void setHeader(SourceLocation header) {
 		this.header = header;
 	}
-	
+
 	/**
 	 * Print the function header into the passed string builder
 	 * @param output The StringBuilder to add the header string to
@@ -539,7 +539,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void printHeader(ASTNodePrinter output) {
 		printHeader(output, isOldStyle());
 	}
-	
+
 	/**
 	 * Print the function header into the passed string builder
 	 * @param output The StringBuilder to add the header string to
@@ -585,7 +585,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		printHeader(new AppendableBackedExprWriter(builder), oldStyle);
 		return builder.toString();
 	}
-	
+
 	/*+
 	 * Return the header string
 	 */
@@ -609,7 +609,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this.returnType = type;
 		this.staticallyTyped = true;
 	}
-	
+
 	@Override
 	public void assignType(IType returnType, boolean _static) {
 		if (!staticallyTyped || _static) {
@@ -617,11 +617,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.staticallyTyped = _static;
 		}
 	}
-	
+
 	public void setObjectType(Definition object) {
 		//expectedContent = object;
 	}
-	
+
 	/**
 	 * Returns whether this function inherits from the calling function
 	 * @param otherFunc
@@ -638,9 +638,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Returns whether the function passed to this method is in the same override line as the calling function 
+	 * Returns whether the function passed to this method is in the same override line as the calling function
 	 * @param otherFunc
 	 * @return true if both functions are related, false if not
 	 */
@@ -657,7 +657,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		return false;
 	}
-	
+
 	@Override
 	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
 		ArrayList<Declaration> decs = new ArrayList<Declaration>();
@@ -669,12 +669,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			decs.addAll(otherDeclarations);
 		return decs;
 	}
-	
+
 	@Override
 	public boolean isGlobal() {
 		return visibility() == FunctionScope.GLOBAL;
 	}
-	
+
 	/**
 	 * Return whether num parameters are more than needed for this function
 	 * @param num Number of parameters to test for
@@ -687,7 +687,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				num > parameters.size();
 		}
 	}
-	
+
 	/**
 	 * Invoke this function. Left empty for 'regular' functions, only defined in special interpreter functions
 	 * @param args the arguments to pass to the function
@@ -706,27 +706,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					}
 					return null;
 				}
-				
+
 				@Override
 				public Script script() {
 					return Function.this.script();
 				}
-				
+
 				@Override
 				public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 					Function.this.reportOriginForExpression(expression, location, file);
 				}
-				
+
 				@Override
 				public Function function() {
 					return Function.this;
 				}
-				
+
 				@Override
 				public int codeFragmentOffset() {
 					return Function.this.codeFragmentOffset();
 				}
-				
+
 				@Override
 				public Object[] arguments() {
 					return args;
@@ -739,7 +739,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 		}
 	}
-	
+
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(visibility().toKeyword());
@@ -768,7 +768,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (otherDeclarations != null)
 			otherDeclarations.clear();
 	}
-	
+
 	/**
 	 * Add declaration that is neither parameter nor variable. Most likely an implicit proplist.
 	 * @param d The declaration to add
@@ -788,9 +788,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		otherDeclarations.add(d);
 		return d;
 	}
-	
+
 	private static final List<Declaration> NO_OTHER_DECLARATIONS = new ArrayList<Declaration>();
-	
+
 	/**
 	 * Return 'other' declarations (neither parameters nor variables)
 	 * @return The list of other declarations. Will not be null, even if there are not other declarations.
@@ -801,7 +801,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			return otherDeclarations;
 	}
-	
+
 	@Override
 	public boolean staticallyTyped() {
 		return staticallyTyped||(staticallyTyped=isEngineDeclaration());
@@ -811,14 +811,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		for (Variable v : localVars())
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
-	
+
 	public void storeBody(FunctionBody block, String source) {
 		body = block;
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
 			body.setLocation(0, bodyLocation.getLength());
+		body.setParent(this);
 	}
-	
+
 	/**
 	 * Return cached code block if it was created from the given source. This is tested by hash code of the source string.
 	 * @param source The source to test against
@@ -827,12 +828,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public FunctionBody bodyMatchingSource(String source) {
 		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
 			if (body != null)
-				body.postLoad(null, declarationObtainmentContext());
+				body.postLoad(this, TypeUtil.problemReportingContext(this));
 			return body;
 		} else
 			return body = null;
 	}
-	
+
 	/**
 	 * Return the cached block without performing checks.
 	 * @return The cached code block
@@ -840,7 +841,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public FunctionBody body() {
 		return bodyMatchingSource(null);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
@@ -855,7 +856,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Assign parameter types to existing parameters. If more types than parameters are given, no new parameters will be created.
 	 * @param types The types to assign to the parameters
@@ -898,12 +899,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// oh interesting
 	}
-	
+
 	@Override
 	public int codeFragmentOffset() {
 		return bodyLocation != null ? bodyLocation.getOffset() : 0;
 	}
-	
+
 	@Override
 	public boolean isLocal() {
 		return true;
@@ -913,7 +914,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public ASTNode code() {
 		return body();
 	}
-	
+
 	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, Variable... parameters) {
 		StringBuilder builder = new StringBuilder();
 		Function f = new Function(functionName, scope);
@@ -925,22 +926,22 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		builder.append("{\n\n}"); //$NON-NLS-1$
 		return builder.toString();
 	}
-	
+
 	@Override
 	public ASTNode[] subElements() {
-		return new ASTNode[] { body };
+		return new ASTNode[] { body() };
 	}
-	
+
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		storeBody((FunctionBody) elms[0], "");
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		printHeader(output);
 		Conf.blockPrelude(output, depth);
 		body.print(output, depth);
 	}
-	
+
 }

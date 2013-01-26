@@ -1,17 +1,18 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 import net.arctics.clonk.util.StringUtil;
 
 public class LinkedTypeInfo implements ITypeInfo {
 
 	private ITypeInfo[] linkedTypeInfos;
 	private IType unified;
-	
+
 	public LinkedTypeInfo(ITypeInfo ati, ITypeInfo bti) {
 		boolean ma = ati instanceof LinkedTypeInfo;
 		boolean mb = bti instanceof LinkedTypeInfo;
@@ -51,9 +52,9 @@ public class LinkedTypeInfo implements ITypeInfo {
 	}
 
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser) {
+	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
 		for (ITypeInfo l : linkedTypeInfos)
-			if (l.storesTypeInformationFor(expr, parser))
+			if (l.storesTypeInformationFor(expr, processor))
 				return true;
 		return false;
 	}
@@ -68,9 +69,9 @@ public class LinkedTypeInfo implements ITypeInfo {
 	}
 
 	@Override
-	public void apply(boolean soft, C4ScriptParser parser) {
+	public void apply(boolean soft, ScriptProcessor processor) {
 		for (ITypeInfo l : linkedTypeInfos)
-			l.apply(soft, parser);
+			l.apply(soft, processor);
 	}
 
 	@Override
@@ -85,12 +86,12 @@ public class LinkedTypeInfo implements ITypeInfo {
 		if (append)
 			linkedTypeInfos = concat(other, linkedTypeInfos);
 	}
-	
+
 	@Override
 	public String toString() {
 		return StringUtil.blockString("[", "]", ", ", iterable(linkedTypeInfos)) + ": " + unified.typeName(true);
 	}
-	
+
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();

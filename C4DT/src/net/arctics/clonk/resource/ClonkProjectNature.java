@@ -93,8 +93,11 @@ public class ClonkProjectNature implements IProjectNature {
 	public synchronized ProjectIndex index() {
 		if (index == null && !indexLoadingPending) {
 			indexLoadingPending = true;
-			loadIndex();
-			indexLoadingPending = false;
+			try {
+				loadIndex();
+			} finally {
+				indexLoadingPending = false;
+			}
 		}
 		return index;
 	}

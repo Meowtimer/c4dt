@@ -2,24 +2,20 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.jface.text.Region;
 
 /**
  * Either '->' or '.' operator. As a middleman, this operator delegates some of its operations to its predecessor, like
- * type expectations ({@link #typeJudgement(IType, C4ScriptParser, TypingJudgementMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(DeclarationObtainmentContext)}).<br/>
+ * type expectations ({@link #typeJudgement(IType, C4ScriptParser, TypingJudgementMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(ProblemReportingContext)}).<br/>
  * Different typing assumptions are made based on the notation.
  * @author madeen
  *
@@ -31,14 +27,17 @@ public class MemberOperator extends ASTNode {
 	private final boolean hasTilde;
 	private ID id;
 	private int idOffset;
-	
+
+	public ID id() { return id; }
+	public boolean dotNotation() { return dotNotation; }
+
 	@Override
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
 		super.offsetExprRegion(amount, start, end);
 		if (start)
 			idOffset += amount;
 	}
-	
+
 	/**
 	 * Helper method to test whether some arbitrary expression ends with a MemberOperator in dot notation.
 	 * @param expression The {@link ASTNode} to test
@@ -65,7 +64,7 @@ public class MemberOperator extends ASTNode {
 		this.id = id;
 		this.idOffset = idOffset;
 	}
-	
+
 	public static MemberOperator dotOperator() {
 		return new MemberOperator(true, false, null, 0);
 	}
@@ -88,7 +87,7 @@ public class MemberOperator extends ASTNode {
 	}
 
 	/**
-	 * Get the optionally specified id (->CLNK::) 
+	 * Get the optionally specified id (->CLNK::)
 	 * @return The {@link ID} or null
 	 */
 	public ID getId() {
@@ -115,65 +114,19 @@ public class MemberOperator extends ASTNode {
 			return true;
 		return false;
 	}
-	
+
 	@Override
 	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
 		return false;
 	}
 
-	/**
-	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.ASTNode#unresolvedType(DeclarationObtainmentContext)
-	 */
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		// explicit id
-		if (id != null)
-			return context.script().nearestDefinitionWithId(id);
-		// stuff before -> decides
-		return predecessorInSequence() != null ? predecessorInSequence().unresolvedType(context) : super.unresolvedType(context);
-	}
-	
-	/**
-	 * MemberOperator delegates this call to {@link #predecessorInSequence()}, if there is one.
-	 * @see net.arctics.clonk.parser.ASTNode#typeJudgement(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypingJudgementMode, net.arctics.clonk.parser.ParserErrorCode)
-	 */
-	@Override
-	public boolean typingJudgement(IType type, C4ScriptParser context, TypingJudgementMode mode) {
-		// delegate to predecessor
-		ASTNode p = predecessorInSequence();
-		return p != null ? p.typingJudgement(type, context, mode) : false;
-	}
-
-	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new EntityRegion(parser.script().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
+			return new EntityRegion(context.script().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
 	}
 
-	/**
-	 * Based on whether this MemberOperator uses dot notation or not, the preceding {@link ASTNode} will either be expected to be of type {@link PrimitiveType#PROPLIST} or
-	 * {@link TypeSet#OBJECT_OR_ID}.<br/>
-	 * Additionally, a warning is emitted if space between the actual operator and ~ is left and this is not allowed ({@link EngineSettings#spaceAllowedBetweenArrowAndTilde})
-	 */
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		ASTNode pred = predecessorInSequence();
-		EngineSettings settings = parser.script().engine().settings();
-		if (pred != null) {
-			IType requiredType = dotNotation ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID);
-			if (!pred.sequenceTilMe().typingJudgement(requiredType, parser, TypingJudgementMode.Hint))
-				parser.warning(dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject, this, 0,
-					pred.sequenceTilMe().type(parser).typeName(false));
-		}
-		if (getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
-			parser.error(ParserErrorCode.MemberOperatorWithTildeNoSpace, this, C4ScriptParser.NO_THROW);
-		if (dotNotation && !settings.supportsProplists)
-			parser.error(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW);
-	}
-	
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
@@ -183,16 +136,16 @@ public class MemberOperator extends ASTNode {
 			return false;
 		return true;
 	}
-	
+
 	public boolean hasTilde() {
 		return hasTilde;
 	}
-	
+
 	@Override
-	public ASTNode optimize(C4ScriptParser context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		if (context.script().engine().settings().supportsProplists) {
 			ASTNode succ = successorInSequence();
-			if (succ instanceof AccessDeclaration && ((AccessDeclaration)succ).declarationFromContext(context) instanceof Variable)
+			if (succ instanceof AccessVar)
 				return dotOperator();
 		}
 		return super.optimize(context);

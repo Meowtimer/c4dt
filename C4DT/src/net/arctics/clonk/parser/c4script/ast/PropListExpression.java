@@ -5,37 +5,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.jface.text.Region;
+
 public class PropListExpression extends ASTNode {
 
 	private static final int MULTILINEPRINTTHRESHOLD = 50;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private ProplistDeclaration definedDeclaration;
-	
+
 	public ProplistDeclaration definedDeclaration() {
 		return definedDeclaration;
 	}
-	
+
 	public Collection<Variable> components() {
 		return definedDeclaration.components(false);
 	}
-	
+
 	public PropListExpression(ProplistDeclaration declaration) {
 		this.definedDeclaration = declaration;
 		assignParentToSubElements();
@@ -86,10 +84,6 @@ public class PropListExpression extends ASTNode {
 		output_.append(s);
 	}
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext parser) {
-		return definedDeclaration;
-	}
-	@Override
 	public boolean isModifiable(C4ScriptParser parser) {
 		return false;
 	}
@@ -125,7 +119,7 @@ public class PropListExpression extends ASTNode {
 				return false;
 		return true;
 	}
-	
+
 	@Override
 	public Object evaluateAtParseTime(IEvaluationContext context) {
 		Collection<Variable> components = components();
@@ -134,28 +128,19 @@ public class PropListExpression extends ASTNode {
 			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
 		return map;
 	}
-	
+
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.currentVariable() != null)
 			return context.script().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
 		else
 			return null;
 	}
-	
-	private Declaration associatedDeclaration;
-	public Declaration associatedDeclaration() {
-		return associatedDeclaration;
-	}
-	@Override
-	public void setAssociatedDeclaration(Declaration declaration) {
-		associatedDeclaration = declaration;
-	}
-	
+
 	public ASTNode value(String key) {
 		Variable keyVar = definedDeclaration.findComponent(key);
 		return keyVar != null ? keyVar.initializationExpression() : null;
-	} 
-	
+	}
+
 	@SuppressWarnings("unchecked")
 	public <T> T valueEvaluated(String key, Class<T> cls) {
 		ASTNode e = value(key);
@@ -165,14 +150,7 @@ public class PropListExpression extends ASTNode {
 		} else
 			return null;
 	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		super.reportProblems(parser);
-		if (!parser.script().engine().settings().supportsProplists)
-			parser.error(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature, parser.engine().name());
-	}
-	
+
 	@Override
 	public PropListExpression clone() {
 		// when calling super.clone(), the sub elements obtained from definedDeclaration will be cloned
@@ -192,19 +170,19 @@ public class PropListExpression extends ASTNode {
 			this.definedDeclaration = saved;
 		}
 	}
-	
+
 	@Override
 	public void setParent(ASTNode parent) {
 		super.setParent(parent);
 	}
-	
+
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
-		int absolute = parser.absoluteSourceLocation(start()+offset, 0).start();
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+		int absolute = context.fragmentOffset()+start()+offset;
 		for (Variable v : this.components())
 			if (v.isAt(absolute))
-				return new EntityRegion(v, v.relativeTo(parser.absoluteSourceLocation(0, 0)));
-		return super.entityAt(offset, parser);
+				return new EntityRegion(v, v.relativeTo(new Region(context.fragmentOffset(), 0)));
+		return super.entityAt(offset, context);
 	}
-	
+
 }

@@ -1,11 +1,11 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
 /**
  * Type information stored for some expression.
@@ -26,7 +26,7 @@ public interface ITypeInfo {
 	/**
 	 * Hint that the expression this {@link ITypeInfo} was created for might be of the given type.
 	 * @param type The type to hint at
-	 * @return Return true if hinting resulted in changing the type or if the already-set type intersects with the new one. 
+	 * @return Return true if hinting resulted in changing the type or if the already-set type intersects with the new one.
 	 */
 	boolean hint(IType type);
 	/**
@@ -35,7 +35,7 @@ public interface ITypeInfo {
 	 * @param parser Parser, acting as context
 	 * @return True, if relevant, false if not.
 	 */
-	boolean storesTypeInformationFor(ASTNode expr, C4ScriptParser parser);
+	boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor);
 	/**
 	 * Return whether another {@link ITypeInfo} refers to the same expression as this one.
 	 * @param other The other stored type information
@@ -44,10 +44,10 @@ public interface ITypeInfo {
 	boolean refersToSameExpression(ITypeInfo other);
 	/**
 	 * Apply this stored type information so the underlying {@link ITypeable} ({@link Variable}, {@link Function} etc) will have its type set.
-	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied. 
+	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied.
 	 * @param parser Parser, acting as context
 	 */
-	void apply(boolean soft, C4ScriptParser parser);
+	void apply(boolean soft, ScriptProcessor processor);
 	/**
 	 * Merge type information with another one which is refering to the same expression.
 	 * @param other The other type information

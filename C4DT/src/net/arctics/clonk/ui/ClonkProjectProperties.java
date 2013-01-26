@@ -78,7 +78,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		@Override
 		protected void doLoad() {
-			disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).settings().getDisabledErrorsSet().clone();
+			disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).settings().disabledErrorsSet().clone();
 			if (tableViewer != null)
 			for (ParserErrorCode c : ParserErrorCode.values())
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
@@ -225,8 +225,8 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 		
 		public AdapterStore() throws CoreException {
-			values.put(ENGINENAME_PROPERTY, getSettings().getEngineName());
-			values.put(DISABLED_ERRORS_PROPERTY, getSettings().getDisabledErrors());
+			values.put(ENGINENAME_PROPERTY, getSettings().engineName());
+			values.put(DISABLED_ERRORS_PROPERTY, getSettings().disabledErrorsString());
 		}
 	}
 	

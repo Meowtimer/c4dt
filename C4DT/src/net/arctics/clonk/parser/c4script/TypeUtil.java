@@ -5,15 +5,18 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
+import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -26,7 +29,7 @@ public class TypeUtil {
 			return new HashSet<IResolvableType>();
 		};
 	};
-	public static IType resolveInternal(IType type, DeclarationObtainmentContext context, IType callerType, Set<IResolvableType> recursionCatcher) {
+	public static IType resolveInternal(IType type, ProblemReportingContext context, IType callerType, Set<IResolvableType> recursionCatcher) {
 		boolean makingProgress;
 		IType[] schluss = new IType[5];
 		int passes = 0;
@@ -52,31 +55,22 @@ public class TypeUtil {
 		}
 		return type;
 	}
-	public static IType resolve(IType type, DeclarationObtainmentContext context, IType callerType) {
+	public static IType resolve(IType type, ProblemReportingContext context, IType callerType) {
 		return resolveInternal(type, context, callerType, recursion.get());
 	}
 	public static IType resolve(IType type, IIndexEntity context, Declaration defaultDeclaration) {
 		Declaration dec = defaulting(as(context, Declaration.class), defaultDeclaration);
-		return resolve(type, declarationObtainmentContext(dec), dec.script());
+		return resolve(type, problemReportingContext(dec), dec.script());
 	}
-	
-	public static DeclarationObtainmentContext declarationObtainmentContext(final Declaration context) {
-		return new DeclarationObtainmentContext() {
-			
+
+	public static ProblemReportingContext problemReportingContext(final Declaration context) {
+		return new ProblemReportingContext() {
+
 			@Override
 			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) {
 				return null;
 			}
-			
-			@Override
-			public void reportProblems(Function function) {
-			}
 
-			@Override
-			public Function currentFunction() {
-				return context instanceof Function ? (Function)context : null;
-			}
-			
 			@Override
 			public Definition definition() {
 				return script() instanceof Definition ? (Definition)script() : null;
@@ -85,11 +79,6 @@ public class TypeUtil {
 			@Override
 			public void storeType(ASTNode exprElm, IType type) {
 				// yeah right
-			}
-
-			@Override
-			public Declaration currentDeclaration() {
-				return context;
 			}
 
 			@Override
@@ -132,17 +121,59 @@ public class TypeUtil {
 			}
 
 			@Override
-			public void setCurrentFunction(Function function) {
-				// ignore
+			public IFile file() { return as(context.resource(), IFile.class); }
+			@Override
+			public Declaration container() { return context; }
+			@Override
+			public int fragmentOffset() { return 0; }
+
+			@Override
+			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
+				return access.declaration();
 			}
 
-			private final Stack<IFunctionCall> functionCall = new Stack<IFunctionCall>();
 			@Override
-			public void pushCurrentFunctionCall(IFunctionCall call) { functionCall.push(call); }
+			public IType typeOf(ASTNode node) {
+				AccessDeclaration ad = as(node, AccessDeclaration.class);
+				return ad != null && ad.declaration() instanceof ITypeable
+					? ((ITypeable)ad).type() : PrimitiveType.UNKNOWN;
+			}
+
 			@Override
-			public void popCurrentFunctionCall() { functionCall.pop(); }
+			public BufferedScanner scanner() {
+				return null;
+			}
+
 			@Override
-			public IFunctionCall currentFunctionCall() { return functionCall.isEmpty() ? null : functionCall.peek(); }
+			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) {
+				return as(typeOf(node), cls);
+			}
+
+			@Override
+			public boolean validForType(ASTNode node, IType type) {
+				return type.canBeAssignedFrom(typeOf(node));
+			}
+
+			@Override
+			public Typing typing() {
+				return Typing.ParametersOptionallyTyped;
+			}
+
+			@Override
+			public Markers markers() {
+				return null;
+			}
+
+			@Override
+			public void reportProblems() {}
+			@Override
+			public void reportProblemsOfFunction(Function function) {}
+			@Override
+			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
+			@Override
+			public void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode) {}
+			@Override
+			public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {}
 		};
 	}
 	public static Definition definition(IType type) {

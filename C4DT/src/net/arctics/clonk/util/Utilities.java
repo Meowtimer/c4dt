@@ -43,16 +43,16 @@ import org.eclipse.ui.part.FileEditorInput;
  *
  */
 public abstract class Utilities {
-	
+
 	private static MessageConsole clonkConsole = null;
 	private static MessageConsoleStream debugConsoleStream = null;
-	
+
 	public static MessageConsole clonkConsole() {
 		if (clonkConsole == null)
 			clonkConsole = consoleWithName(Messages.Utilities_ClonkConsole);
 		return clonkConsole;
 	}
-	
+
 	public static MessageConsole consoleWithName(String name) {
 		ConsolePlugin plugin = ConsolePlugin.getDefault();
 		IConsoleManager conMan = plugin.getConsoleManager();
@@ -65,7 +65,7 @@ public abstract class Utilities {
 		conMan.addConsoles(new IConsole[]{console});
 		return console;
 	}
-	
+
 	public static MessageConsoleStream debugStream() {
 		if (debugConsoleStream == null)
 			debugConsoleStream = consoleWithName(Messages.Utilities_DebugConsole).newMessageStream();
@@ -79,7 +79,7 @@ public abstract class Utilities {
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				String id = IConsoleConstants.ID_CONSOLE_VIEW;
 
-				// show console 
+				// show console
 				try {
 					IConsoleView view = (IConsoleView) page.showView(id);
 					view.display(clonkConsole());
@@ -89,14 +89,14 @@ public abstract class Utilities {
 			}
 		});
 	}
-	
+
 	public static IFile fileEditedBy(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput)
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
 		else
 			return null;
 	}
-	
+
 	public static Script scriptForResource(IResource resource) throws CoreException {
 		if (resource instanceof IContainer)
 			return Definition.definitionCorrespondingToFolder((IContainer) resource);
@@ -122,11 +122,11 @@ public abstract class Utilities {
 	public static boolean objectsEqual(Object a, Object b) {
 		return (a == null && b == null) || (a != null && b != null && a.equals(b));
 	}
-	
+
 	public static boolean objectsNonNullEqual(Object a, Object b) {
 		return a != null && b != null && a.equals(b);
 	}
-	
+
 	/**
 	 * Returns whether resource somewhere below container in the file hierarchy
 	 * @param resource the resource
@@ -139,7 +139,7 @@ public abstract class Utilities {
 				return true;
 		return false;
 	}
-	
+
 	private static int distanceToCommonContainer(IResource a, IResource b, Scenario aScenario, Scenario bScenario) {
 		IContainer c;
 		int dist = 0;
@@ -159,7 +159,7 @@ public abstract class Utilities {
 		}
 		return dist;
 	}
-	
+
 	/**
 	 * From some list containing {@link IHasRelatedResource} thingies, pick the one with the least amount of hops between its related {@link IResource} ({@link IHasRelatedResource#resource()}) and the specified {@link IResource}
 	 * @param <T> The type of elements in the passed list, constrained to extend {@link IHasRelatedResource}
@@ -192,13 +192,13 @@ public abstract class Utilities {
 		}
 		return best;
 	}
-	
+
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
 		for (Object item : objects)
 			if (!(cls.isAssignableFrom(item.getClass())))
 				return false;
 		return true;
-	} 
+	}
 
 	public static Class<?> baseClass(Class<?> a, Class<?> b) {
 		Class<?> result = a;
@@ -206,7 +206,7 @@ public abstract class Utilities {
 			result = result.getSuperclass();
 		return result;
 	}
-	
+
 	public static IRegion wordRegionAt(CharSequence line, int relativeOffset) {
 		int start, end;
 		relativeOffset = clamp(relativeOffset, 0, line.length()-1);
@@ -217,15 +217,15 @@ public abstract class Utilities {
 			end = e;
 		return new Region(start, end-start+1);
 	}
-	
+
 	public static boolean regionContainsOffset(IRegion region, int offset) {
 		return offset >= region.getOffset() && offset < region.getOffset() + region.getLength();
 	}
-	
+
 	public static boolean regionContainsOtherRegion(IRegion region, IRegion otherRegion) {
 		return otherRegion.getOffset() >= region.getOffset() && otherRegion.getOffset()+otherRegion.getLength() < region.getOffset()+region.getLength();
 	}
-	
+
 	public static int clamp(int value, int min, int max) {
 		if (value < min)
 			return min;
@@ -234,14 +234,14 @@ public abstract class Utilities {
 		else
 			return value;
 	}
-	
+
 	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
 		for (T item : sectionsList)
 			if (predicate.test(item))
 				return item;
 		return null;
 	}
-	
+
 	public static Enum<?>[] enumValues(Class<?> enumClass) {
 		try {
 			return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
@@ -252,12 +252,12 @@ public abstract class Utilities {
 			return null;
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T enumValueFromString(Class<T> enumClass, String value) {
 		return (T) Enum.valueOf((Class<Enum>)enumClass, value);
 	}
-	
+
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
 		try {
 			T result = cls.newInstance();
@@ -277,14 +277,14 @@ public abstract class Utilities {
 					return true;
 		return false;
 	}
-	
+
 	public static <T> boolean collectionContains(Collection<T> list, T elm) {
 		for (T e : list)
 			if (e.equals(elm))
 				return true;
 		return false;
 	}
-	
+
 	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
 		List<T> result = new LinkedList<T>();
 		for (T elm : iterable)
@@ -292,14 +292,14 @@ public abstract class Utilities {
 				result.add(elm);
 		return result;
 	}
-	
+
 	public static void errorMessage(Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
 			message += ": " + error.getLocalizedMessage(); //$NON-NLS-1$
 		errorMessage(message, title);
 	}
-	
+
 	public static void errorMessage(final String message, final String title) {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
@@ -313,7 +313,7 @@ public abstract class Utilities {
 			}
 		});
 	}
-	
+
 	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
 		try {
 	        for (IResource child : container.members())
@@ -346,22 +346,22 @@ public abstract class Utilities {
 			return from.getClass();
 		}
 	};
-	
+
 	public static <A, B> B as(A obj, Class<B> type) {
 		return type.isInstance(obj) ? type.cast(obj) : null;
 	}
-	
+
 	public static <A> A defaulting(A firstChoice, A defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice;
 	}
-	
+
 	public static <A> A or(A a, A b) {
 		if (a != null)
 			return a;
 		else
 			return b;
 	}
-	
+
 	public static String multiply(String s, int times) {
 		StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
@@ -382,7 +382,7 @@ public abstract class Utilities {
 			}
 		}
 	}
-	
+
 	public static Object token(final String token) {
 		return new Object() {
 			@Override
@@ -391,9 +391,9 @@ public abstract class Utilities {
 			}
 		};
 	}
-	
+
 	private static Object autoBuildDisablingLock = new Object();
-	
+
 	public static void runWithoutAutoBuild(Runnable runnable) {
 		synchronized (autoBuildDisablingLock) {
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -417,11 +417,11 @@ public abstract class Utilities {
 			}
 		}
 	}
-	
+
 	public interface Folder<T, Y extends T> {
 		Y fold(T interim, T next, int index);
 	}
-	
+
 	public static <T, Y extends T> Y foldl(Iterable<? extends T> iterable, Folder<T, Y> folder) {
 		Y interim = null;
 		T first = null;
@@ -438,5 +438,5 @@ public abstract class Utilities {
 		}
 		return interim;
 	}
-	
+
 }

@@ -95,8 +95,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	}
 
 	@Override
-	public void documentAboutToBeChanged(DocumentEvent event) {
-	}
+	public void documentAboutToBeChanged(DocumentEvent event) {}
 	
 	@Override
 	public void documentChanged(DocumentEvent event) {
@@ -130,7 +129,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	}
 
 	/**
-	 * Call {@link #adjustDec(Declaration, int, int)} for all applicable {@link Declaration}s stored in {@link #getStructure()}
+	 * Call {@link #adjustDec(Declaration, int, int)} for all applicable {@link Declaration}s stored in {@link #structure()}
 	 * @param event Document event describing the document change that triggered this call.
 	 */
 	protected void adjustDeclarationLocations(DocumentEvent event) {
@@ -179,9 +178,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * The structure this listener corresponds to.
 	 * @return The {@link Structure}
 	 */
-	public StructureType getStructure() {
-		return structure;
-	}
+	public StructureType structure() { return structure; }
 	
 	/**
 	 * To be called when the old {@link Structure} has become stale and a new one has been created.

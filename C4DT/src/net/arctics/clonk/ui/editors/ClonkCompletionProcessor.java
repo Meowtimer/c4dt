@@ -25,7 +25,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected EditorType editor;
 	protected String prefix;
 	protected Image defIcon;
-	
+
 	protected static class CategoryOrdering {
 		public int
 			Variables,
@@ -52,19 +52,20 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		{ defaultOrdering(); }
 	}
 	protected final CategoryOrdering cats = new CategoryOrdering();
-	
+
 	public EditorType editor() { return editor; }
 	public ClonkCompletionProcessor(EditorType editor, ContentAssistant assistant) {
 		this.editor = editor;
-		assistant.setSorter(this);
+		if (assistant != null)
+			assistant.setSorter(this);
 	}
-	
+
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
 		return null;
 	}
-	
+
 	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		try {
 			if (def == null || def.id() == null)
@@ -74,13 +75,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				if (!(
 					stringMatchesPrefix(def.name(), prefix) ||
 					stringMatchesPrefix(def.id().stringValue(), prefix)
-					/* // also check if the user types in the folder name 
+					/* // also check if the user types in the folder name
 					(def instanceof Definition && def.definitionFolder() != null &&
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
 			String displayString = def.name();
-			int replacementLength = prefix != null ? prefix.length() : 0; 
+			int replacementLength = prefix != null ? prefix.length() : 0;
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
@@ -88,20 +89,20 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			proposals.add(prop);
 		} catch (Exception e) {}
 	}
-	
+
 	protected IFile pivotFile() {
 		return ((IFileEditorInput)editor.getEditorInput()).getFile();
 	}
-	
+
 	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
 		for (Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
-	
+
 	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
-	
+
 	protected ClonkCompletionProposal proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
 		if (prefix != null)
 			if (!stringMatchesPrefix(func.name(), prefix))
@@ -117,7 +118,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		proposals.add(prop);
 		return prop;
 	}
-	
+
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		if (prefix != null && !stringMatchesPrefix(var.name(), prefix))
 			return null;
@@ -127,7 +128,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var,
-			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString, 
+			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()
 		);
@@ -140,7 +141,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	public String getErrorMessage() {
 		return null;
 	}
-	
+
 	@Override
 	public int compare(ICompletionProposal a, ICompletionProposal b) {
 		ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
@@ -157,7 +158,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 									match = true;
 									break;
 								}
-							} 
+							}
 						local = proposal.declaration() != null && !proposal.declaration().isGlobal();
 					}
 				}

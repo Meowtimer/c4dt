@@ -6,8 +6,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -20,9 +20,7 @@ public class FunctionBody extends BunchOfStatements {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Function owner;
 	private transient boolean postLoaded;
-	public Function owner() {
-		return owner;
-	}
+	public Function owner() { return owner; }
 	public FunctionBody(Function owner, List<ASTNode> statements) {
 		super(statements);
 		this.owner = owner;
@@ -40,7 +38,7 @@ public class FunctionBody extends BunchOfStatements {
 			printBlock(statements(), builder, depth);
 	}
 	@Override
-	public void postLoad(ASTNode parent, DeclarationObtainmentContext root) {
+	public void postLoad(ASTNode parent, ProblemReportingContext root) {
 		if (postLoaded)
 			return;
 		postLoaded = true;

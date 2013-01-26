@@ -1,7 +1,5 @@
 package net.arctics.clonk.command;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,12 +20,13 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectConverter;
@@ -259,21 +258,18 @@ public class Command {
 					}
 				}
 				Markers markers = new Markers();
-				for (Function f : reporters)
-					try {
-						C4ScriptParser parser = parsers.get(f.script());
-						if (parser == null) {
-							parser = new C4ScriptParser(f.script());
-							parser.setMarkers(markers);
-							parsers.put(f.script(), parser);
-						}
-						parser.setCurrentFunction(f);
-						f.body().reconsider(parser);
-						parser.reportProblemsOf(iterable(f.body().statements()), true);
-						f.body().reportProblems(parser);
-					} catch (ParsingException e) {
-						e.printStackTrace();
+				for (Function f : reporters) {
+					C4ScriptParser parser = parsers.get(f.script());
+					if (parser == null) {
+						parser = new C4ScriptParser(f.script());
+						parser.setMarkers(markers);
+						parsers.put(f.script(), parser);
 					}
+					parser.setCurrentFunction(f);
+					f.body().reconsider(parser);
+					ProblemReportingContext ctx = new DabbleInference().localTypingContext(parser);
+					ctx.reportProblemsOfFunction(f);
+				}
 				markers.deploy();
 			} catch (CoreException e) {
 				e.printStackTrace();

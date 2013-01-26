@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialRule;
 
 public class IndexEntityOutputStream extends ObjectOutputStream {
 	private final Index index;

@@ -8,8 +8,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -75,7 +75,7 @@ public class Block extends Statement {
 	}
 	
 	@Override
-	public ASTNode optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements))
 			return new BunchOfStatements(statements);
 		// uncomment never-reached statements
@@ -98,7 +98,7 @@ public class Block extends Statement {
 		if (commentedOutList != null)
 			return new Block(commentedOutList);
 		else
-			return super.optimize(parser);
+			return super.optimize(context);
 	}
 	
 	@Override

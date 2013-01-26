@@ -3,28 +3,25 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 
-public class LongLiteral extends NumberLiteral {
+public class IntegerLiteral extends NumberLiteral {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	/**
 	 * A NumberLiteral representing '0'
 	 */
-	public static final LongLiteral ZERO = new LongLiteral(0);
+	public static final IntegerLiteral ZERO = new IntegerLiteral(0);
 	
 	private final boolean hex;
 	private final long literal;
 
-	public LongLiteral(long value, boolean hex) {
+	public IntegerLiteral(long value, boolean hex) {
 		this.literal = value;
 		this.hex = hex;
 	}
 	
-	public LongLiteral(long value) {
+	public IntegerLiteral(long value) {
 		this.literal = value;
 		this.hex = false;
 	}
@@ -40,8 +37,8 @@ public class LongLiteral extends NumberLiteral {
 	
 	@Override
 	public boolean literalsEqual(Literal<?> other) {
-		if (other instanceof LongLiteral)
-			return ((LongLiteral)other).literal == this.literal;
+		if (other instanceof IntegerLiteral)
+			return ((IntegerLiteral)other).literal == this.literal;
 		else
 			return super.literalsEqual(other);
 	}
@@ -58,14 +55,6 @@ public class LongLiteral extends NumberLiteral {
 		}
 		else
 			super.doPrint(output, depth);
-	}
-
-	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		if (literal == 0 && context.script().engine().settings().zeroIsAny)
-			return PrimitiveType.ANY;
-		else
-			return PrimitiveType.INT;
 	}
 
 	/**

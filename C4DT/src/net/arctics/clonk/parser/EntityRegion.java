@@ -19,7 +19,7 @@ public final class EntityRegion {
 	private IIndexEntity entity;
 	private IRegion region;
 	private String text;
-	private Set<IIndexEntity> potentialEntities;
+	private Set<? extends IIndexEntity> potentialEntities;
 	/**
 	 * Return the {@link #entity()} cast to <T>.
 	 * @param cls Class specifying what to cast {@link #entity()} to.
@@ -59,10 +59,10 @@ public final class EntityRegion {
 	/**
 	 * Create new declaration region with a list of potential declarations and an {@link IRegion} object. If the list only contains one item the {@link #entity()} field
 	 * will be set to this item and {@link #potentialEntities()} will be left as null. For more than one element, {@link #potentialEntities()} will be set to the parameter and {@link #entity()} will be left as null.
-	 * @param potentialEntities The list of potential {@link IIndexEntity}s 
+	 * @param potentialEntities The list of potential {@link IIndexEntity}s
 	 * @param region The text region
 	 */
-	public EntityRegion(Set<IIndexEntity> potentialEntities, IRegion region) {
+	public EntityRegion(Set<? extends IIndexEntity> potentialEntities, IRegion region) {
 		if (potentialEntities.size() == 1)
 			for (IIndexEntity d : potentialEntities) {
 				this.entity = d;
@@ -72,7 +72,7 @@ public final class EntityRegion {
 			this.potentialEntities = potentialEntities;
 		this.region = region;
 	}
-	
+
 	/**
 	 * Initialize a region with only {@link #entity()} set.
 	 * @param entity The entity
@@ -114,7 +114,7 @@ public final class EntityRegion {
 	 * Return a list of {@link IIndexEntity}s this region could refer to.
 	 * @return The list.
 	 */
-	public Set<IIndexEntity> potentialEntities() {
+	public Set<? extends IIndexEntity> potentialEntities() {
 		return potentialEntities;
 	}
 	@Override

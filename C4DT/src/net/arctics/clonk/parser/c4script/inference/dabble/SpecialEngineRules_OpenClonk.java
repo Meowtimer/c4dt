@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.specialenginerules;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -22,25 +22,26 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.ScriptsHelper;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.ast.LongLiteral;
+import net.arctics.clonk.parser.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -49,6 +50,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.c4script.specialenginerules.Messages;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
@@ -93,7 +95,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
+		public boolean assignDefaultParmTypes(ProblemReportingContext processor, Function function) {
 			EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
 				fun.effect();
@@ -110,26 +112,26 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return null;
 		};
 		@Override
-		public IType returnType(DeclarationObtainmentContext context, CallDeclaration callFunc) {
+		public IType returnType(ProblemReportingContext processor, CallDeclaration node) {
 			Object parmEv;
-			if (callFunc.params().length >= 1 && (parmEv = callFunc.params()[0].evaluateAtParseTime(context.currentFunction())) instanceof String) {
+			if (node.params().length >= 1 && (parmEv = node.params()[0].evaluateAtParseTime(node.parentOfType(Function.class))) instanceof String) {
 				String effectName = (String) parmEv;
-				return context.script().effects().get(effectName);
+				return processor.script().effects().get(effectName);
 			}
 			return null;
 		};
 		@Override
 		public EntityRegion locateEntityInParameter(
-			CallDeclaration callFunc, C4ScriptParser parser, int index,
+			CallDeclaration node, ProblemReportingContext processor, int index,
 			int offsetInExpression, ASTNode parmExpression
 		) {
-			if (parmExpression instanceof StringLiteral && callFunc.params().length >= 1 && callFunc.params()[0] == parmExpression) {
+			if (parmExpression instanceof StringLiteral && node.params().length >= 1 && node.params()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).literal();
-				Effect effect = parser.script().effects().get(effectName);
+				Effect effect = processor.script().effects().get(effectName);
 				if (effect != null)
 					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
-			return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+			return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 		}
 	};
 	
@@ -147,34 +149,31 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 		};
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) {
-			if (arguments.length >= 2 && parser.currentFunction() instanceof DefinitionFunction) {
-				Object nameEv = arguments[0].evaluateAtParseTime(parser.currentFunction());
+		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) {
+			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction && processor.scanner() instanceof C4ScriptParser) {
+				C4ScriptParser parser = (C4ScriptParser) processor.scanner();
+				Object nameEv = arguments[0].evaluateAtParseTime(node.parentOfType(Function.class));
 				if (nameEv instanceof String) {
-					SourceLocation loc = parser.absoluteSourceLocationFromExpr(arguments[0]);
-					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null);
-					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
+					SourceLocation loc = processor.absoluteSourceLocationFromExpr(arguments[0]);
+					Variable var = parser.createVarInScope(
+						node.parentOfType(Function.class),
+						(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
+					);
+					var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
 					var.setScope(Scope.LOCAL);
 					// clone argument since the offset of the expression inside the func body is relative while
 					// the variable initialization expression location is supposed to be absolute
 					ASTNode initializationClone = arguments[1].clone();
-					initializationClone.incrementLocation(parser.sectionOffset());
+					initializationClone.incrementLocation(node.sectionOffset());
 					var.setInitializationExpression(initializationClone);
-					var.forceType(arguments[1].type(parser));
-					new AccessVar(var).assignment(arguments[1], parser);
-					var.setParentDeclaration(parser.currentFunction());
+					var.forceType(processor.typeOf(arguments[1]));
+					AccessVar av = new AccessVar(var);
+					processor.assignment(av, arguments[1]);
+					var.setParentDeclaration(node.parentOfType(Function.class));
 					//parser.getContainer().addDeclaration(var);
 				}
 			}
 			return false; // default validation
-		};
-		@Override
-		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
-			if (function.name().equals(DEFINITION_FUNCTION)) //$NON-NLS-1$
-				return;
-			Function definitionFunc = function.script().findLocalFunction(DEFINITION_FUNCTION, false); //$NON-NLS-1$
-			if (definitionFunc != null)
-				context.reportProblems(definitionFunc);
 		};
 	};
 	
@@ -234,38 +233,31 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallDeclaration callFunc, final ASTNode[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ASTNode saved = parser.problemReporter();			
-			try {
-				if (parmIndex+1 >= arguments.length) {
-					if (evTracer.tracedFile == null)
-						return true;
-					parser.setProblemReporter(arguments[0]);
-					if (evTracer.tracedFile.equals(parser.script().scriptFile())) {
-						parser.error(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
-								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
-					} else
-						parser.error(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
-								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-				}
-				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].type(parser))) {
-					if (evTracer.tracedFile == null)
-						return true;
-					parser.setProblemReporter(arguments[parmIndex+1]);
-					parser.error(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
-						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].type(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-				}
-			} finally {
-				parser.setProblemReporter(saved);
+		private boolean checkParm(CallDeclaration node, final ASTNode[] arguments, final ProblemReportingContext processor, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+			if (parmIndex+1 >= arguments.length) {
+				if (evTracer.tracedFile == null)
+					return true;
+				if (evTracer.tracedFile.equals(processor.script().scriptFile())) {
+					processor.markers().error(processor, ParserErrorCode.MissingFormatArg, node, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
+							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+					return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
+				} else
+					processor.markers().error(processor, ParserErrorCode.MissingFormatArg, node, arguments[0], Markers.NO_THROW,
+							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+			}
+			else if (!expectedType.canBeAssignedFrom(processor.typeOf(arguments[parmIndex+1]))) {
+				if (evTracer.tracedFile == null)
+					return true;
+				processor.markers().warning(processor, ParserErrorCode.IncompatibleFormatArgType, node, arguments[parmIndex+1],
+					Markers.NO_THROW, expectedType.typeName(false), processor.typeOf(arguments[parmIndex+1]).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 			}
 			return false;
 		}
 		@Override
-		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, C4ScriptParser parser) throws ParsingException {
+		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) throws ParsingException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
-			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.currentFunction())).evaluation instanceof String) {
+			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parentOfType(Function.class))).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
 				boolean separateIssuesMarker = false;
 				for (int i = 0; i < formatString.length(); i++)
@@ -293,12 +285,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 							break;
 						}
 						if (requiredType != null)
-							separateIssuesMarker |= checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, requiredType);
+							separateIssuesMarker |= checkParm(node, arguments, processor, parmIndex, format, i+1, j+2, evTracer, requiredType);
 						i = j;
 						parmIndex++;
 					}
 				if (separateIssuesMarker)
-					parser.error(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
+					processor.markers().error(processor, ParserErrorCode.DragonsHere, node, arguments[0], Markers.NO_THROW);
 			}
 			return false; // let others validate as well
 		};
@@ -309,11 +301,11 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			protected EntityRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ASTNode parmExpression) {
+			protected EntityRegion actionLinkForDefinition(Function currentFunction, Definition definition, ASTNode parmExpression) {
 				if (definition == null)
 					return null;
 				Object parmEv;
-				EntityRegion result = super.getActionLinkForDefinition(currentFunction, definition, parmExpression);
+				EntityRegion result = super.actionLinkForDefinition(currentFunction, definition, parmExpression);
 				if (result != null)
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
@@ -328,23 +320,23 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 			};
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration callFunc, C4ScriptParser parser, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index != 0)
 					return null;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : null;
+				IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : null;
 				if (t != null) for (IType ty : t)
 					if (ty instanceof Definition) {
-						EntityRegion result = getActionLinkForDefinition(parser.currentFunction(), (Definition)ty, parmExpression);
+						EntityRegion result = actionLinkForDefinition(node.parentOfType(Function.class), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
-				return super.locateEntityInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration callFunc, C4ScriptParser parser, int index, ASTNode parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
+			public void contributeAdditionalProposals(CallDeclaration node, ProblemReportingContext processor, int index, ASTNode parmExpression, C4ScriptCompletionProcessor completions, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
-				IType t = callFunc.predecessorInSequence() != null ? callFunc.predecessorInSequence().type(parser) : parser.script();
+				IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : processor.script();
 				if (t != null) for (IType ty : t)
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;
@@ -357,7 +349,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(parser.script()), "", processor.editor())); 
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(processor.script()), "", completions.editor())); 
 									}
 								}
 					}
@@ -394,7 +386,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 	
-	private static final ASTNode PLACE_CALL = C4ScriptParser.matchingExpr
+	private static final ASTNode PLACE_CALL = ScriptsHelper.matchingExpr
 		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
 	
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
@@ -418,7 +410,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			public boolean updatePlaceCall() {
 				NumberLiteral num = num();
 				if (num == null || num.literal().intValue() != value()) {
-					placeCall.replaceSubElement(num, new LongLiteral(value()), 0);
+					placeCall.replaceSubElement(num, new IntegerLiteral(value()), 0);
 					return true;
 				} else
 					return false;
@@ -442,7 +434,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				} else {
 					Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
 						"id", new AccessVar(kv.key().stringValue()),
-						"placeCall", new CallDeclaration("Place", new LongLiteral(kv.value()))
+						"placeCall", new CallDeclaration("Place", new IntegerLiteral(kv.value()))
 					)));
 					wholeFunc = true;
 					function.body().addStatements(newStatement);

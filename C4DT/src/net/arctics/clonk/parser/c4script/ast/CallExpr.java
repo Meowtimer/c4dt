@@ -3,10 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IType;
@@ -37,15 +35,6 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 	
 	@Override
-	public IType unresolvedType(DeclarationObtainmentContext context) {
-		IType type = predecessorInSequence().unresolvedType(context);
-		if (type instanceof FunctionType)
-			return ((FunctionType)type).prototype().returnType();
-		else
-			return PrimitiveType.ANY;
-	}
-	
-	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		CallDeclaration.printParmString(output, subElements(), depth);
 	}
@@ -56,8 +45,8 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 
 	@Override
-	public Function quasiCalledFunction(DeclarationObtainmentContext context) {
-		for (IType type : predecessorInSequence().type(context))
+	public Function quasiCalledFunction(ProblemReportingContext context) {
+		for (IType type : predecessorInSequence().inferredType())
 			if (type instanceof FunctionType)
 				return ((FunctionType)type).prototype();
 		return null;
@@ -82,23 +71,12 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 	
 	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		if (!parser.script().engine().settings().supportsFunctionRefs)
-			parser.error(ParserErrorCode.FunctionRefNotAllowed, this, C4ScriptParser.NO_THROW, parser.script().engine().name());
-		else {
-			IType type = predecessorInSequence().unresolvedType(parser);
-			if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-				parser.error(ParserErrorCode.CallingExpression, this, C4ScriptParser.NO_THROW);
-		}
-	}
-
-	@Override
-	public IType concreteParameterType(Variable parameter, DeclarationObtainmentContext context) {
+	public IType concreteParameterType(Variable parameter, ProblemReportingContext context) {
 		Function f = quasiCalledFunction(context);
 		if (f != null) {
 			int ndx = f.parameters().indexOf(parameter);
 			if (ndx != -1 && ndx < elements.length)
-				return elements[ndx].type(context);
+				return elements[ndx].inferredType();
 		}
 		return PrimitiveType.UNKNOWN;
 	}

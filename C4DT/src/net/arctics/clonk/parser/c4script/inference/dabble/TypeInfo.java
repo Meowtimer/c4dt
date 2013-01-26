@@ -1,9 +1,10 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
 public abstract class TypeInfo implements ITypeInfo, Cloneable {
 
@@ -27,10 +28,10 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 			type = TypeUnification.unify(type, hint);
 		return true;
 	}
-	
+
 	@Override
-	public void apply(boolean soft, C4ScriptParser parser) {}
-	
+	public void apply(boolean soft, ScriptProcessor processor) {}
+
 	@Override
 	public void merge(ITypeInfo other) {
 		if (type() == PrimitiveType.UNKNOWN)
@@ -40,12 +41,12 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 			// assignments of multiple types - unify
 			storeType(TypeUnification.unify(type(), other.type()));
 	}
-	
+
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
-	
+
 	@Override
 	public String toString() {
 		return "<>: " + type(); //$NON-NLS-1$

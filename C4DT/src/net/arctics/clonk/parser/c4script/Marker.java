@@ -21,7 +21,7 @@ public class Marker {
 	private final IFile scriptFile;
 	private final Declaration container;
 	
-	public Marker(IASTPositionProvider positionProvider, ParserErrorCode code, int start, int end, int severity, Object[] args) {
+	public Marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int start, int end, int severity, Object[] args) {
 		super();
 		this.code = code;
 		this.start = start;
@@ -29,8 +29,8 @@ public class Marker {
 		this.severity = severity;
 		this.args = args;
 		
-		this.cf = positionProvider.node().parentOfType(Declaration.class);
-		this.reporter = positionProvider.node();
+		this.cf = node != null ? node.parentOfType(Declaration.class) : null;
+		this.reporter = node;
 		this.scriptFile = positionProvider.file();
 		this.container = positionProvider.container();
 	}

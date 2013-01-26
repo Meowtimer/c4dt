@@ -9,10 +9,10 @@ import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -105,7 +105,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		);
 	}
 	
-	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, DeclarationObtainmentContext context) {
+	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReportingContext context) {
 		StyledString result = new StyledString();
 		if (foreign && element instanceof Declaration) {
 			Declaration topDec = ((Declaration)element).topLevelStructure();
@@ -119,10 +119,8 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			result.append(func.longParameterString(true, false));
 			IType retType = func.returnType();
 			if (retType != null && retType != PrimitiveType.UNKNOWN) {
-				if (context != null) {
-					context.setCurrentFunction(func);
+				if (context != null)
 					retType = TypeUtil.resolve(retType, context, as(root, Script.class));
-				}
 				result.append(" : "); //$NON-NLS-1$
 				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
 			}
@@ -132,10 +130,8 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			result.append(var.name());
 			IType type = var.type();
 			if (type != null && type != PrimitiveType.UNKNOWN) {
-				if (context != null && var.parentDeclaration() instanceof Function) {
-					context.setCurrentFunction((Function)var.parentDeclaration());
+				if (context != null && var.parentDeclaration() instanceof Function)
 					type = TypeUtil.resolve(type, context, as(root, Script.class));
-				}
 				result.append(" : ");
 				result.append(type.typeName(true));
 			}

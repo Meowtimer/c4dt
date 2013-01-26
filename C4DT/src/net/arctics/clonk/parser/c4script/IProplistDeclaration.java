@@ -1,16 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.parser.ASTNode;
 
 public interface IProplistDeclaration {
 
 	public static final String PROTOTYPE_KEY = "Prototype";
-
-	/**
-	 * Return the implicitly set prototype expression for this declaration. Acts as fallback if no explicit 'Prototype' field is found.
-	 * @return The implicit prototype
-	 */
-	ASTNode implicitPrototype();
 
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or

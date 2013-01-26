@@ -32,11 +32,11 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
+import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -500,7 +500,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.specialenginerules.SpecialEngineRules_%s", Core.PLUGIN_ID, name())); //$NON-NLS-1$
+				String.format("%s.parser.c4script.inference.dabble.SpecialEngineRules_%s", Core.PLUGIN_ID, name())); //$NON-NLS-1$
 			specialRules = rulesClass.newInstance();
 			specialRules.initialize();
 		} catch (ClassNotFoundException e) {

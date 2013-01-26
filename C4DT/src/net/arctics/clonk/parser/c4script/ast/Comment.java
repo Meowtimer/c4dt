@@ -5,19 +5,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.resources.IMarker;
 
 /**
  * A comment in the code. Instances of this class can be used as regular {@link ASTNode} objects or
@@ -33,7 +32,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private boolean prependix;
 	private final boolean javaDoc;
 	private int absoluteOffset;
-	
+
 	/**
 	 * Used for linked list of comments interpreted by parser as one documentation comment
 	 */
@@ -81,7 +80,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		String c = comment;
@@ -115,7 +114,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void setMultiLine(boolean multiLine) {
 		this.multiLine = multiLine;
 	}
-	
+
 	/**
 	 * Whether comment is a javadoc comment
 	 * @return Yes
@@ -146,32 +145,32 @@ public class Comment extends Statement implements Statement.Attachment {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, C4ScriptParser parser) {
+	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		// parse comment as expression and see what goes
-		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.sectionOffset()); // make up for '//' or /*'
+		ExpressionLocator locator = new ExpressionLocator(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.script(), parser.script().scriptFile()) {
+			C4ScriptParser commentParser = new C4ScriptParser(comment, context.script(), context.script().scriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();
-					allErrorsDisabled = true;
+					markers().disableAllErrors(true);
 				}
 				@Override
 				public int sectionOffset() {
 					return 0;
 				}
 			};
-			commentParser.parseStandaloneStatement(comment, parser.currentFunction(), locator);
+			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
 		} catch (ParsingException e) {}
 		if (locator.expressionAtRegion() != null) {
-			EntityRegion reg = locator.expressionAtRegion().entityAt(offset, parser);
+			EntityRegion reg = locator.expressionAtRegion().entityAt(offset, context);
 			if (reg != null)
 				return reg.incrementRegionBy(start()+2);
 			else
 				return null;
 		}
 		else
-			return super.entityAt(offset, parser);
+			return super.entityAt(offset, context);
 	}
 
 	@Override
@@ -192,30 +191,6 @@ public class Comment extends Statement implements Statement.Attachment {
 			break;
 		}
 	}
-	
-	@Override
-	public void reportProblems(C4ScriptParser parser) throws ParsingException {
-		String s = text();
-		int markerPriority;
-		int searchStart = 0;
-		do {
-			markerPriority = IMarker.PRIORITY_LOW;
-			int todoIndex = s.indexOf("TODO", searchStart);
-			if (todoIndex == -1) {
-				todoIndex = s.indexOf("FIXME", searchStart);
-				if (todoIndex != -1)
-					markerPriority = IMarker.PRIORITY_HIGH;
-			} else
-				markerPriority = IMarker.PRIORITY_NORMAL;
-			if (todoIndex != -1) {
-				int lineEnd = s.indexOf('\n', todoIndex);
-				if (lineEnd == -1)
-					lineEnd = s.length();
-				searchStart = lineEnd;
-				parser.todo(s.substring(todoIndex, lineEnd), start()+2+todoIndex, start()+2+lineEnd, markerPriority);
-			}
-		} while (markerPriority > IMarker.PRIORITY_LOW);
-	}
 
 	/**
 	 * Set the absolute offset of this comment. This value is only is used in {@link #precedesOffset(int, CharSequence)}
@@ -224,7 +199,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void setAbsoluteOffset(int offset) {
 		absoluteOffset = offset;
 	}
-	
+
 	/**
 	 * Return whether the comment - as an {@link Attachment} to a {@link Statement} - is to be printed before or after the statement
 	 * @return What he said
@@ -232,7 +207,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	public boolean isPrependix() {
 		return prependix;
 	}
-	
+
 	/**
 	 * Sets whether the comment - as an {@link Attachment} to a {@link Statement} - is to be printed before the {@link Statement} or following it
 	 * @param Whether to or not
@@ -240,15 +215,15 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void setPrependix(boolean prependix) {
 		this.prependix = prependix;
 	}
-	
+
 	private static final Pattern PARAMDESCPATTERN = Pattern.compile("\\s*\\*?\\s*@param\\s*([^\\s:]*):? (.*)$");
 	private static final Pattern RETURNDESCPATTERN = Pattern.compile("\\s*?\\*?\\s*@return\\s*:? (.*)$");
 	private static final Pattern TAGPATTERN = Pattern.compile("\\\\([cb]) ([^\\s]*)");
 	private static final Pattern JAVADOCLINESTART = Pattern.compile("\\s*\\*");
-	
+
 	/**
 	 * Apply documentation in this comment to the given {@link Function}.
-	 * \@param tags in javadoc comments are taken into account and applied to individual parameters of the function. 
+	 * \@param tags in javadoc comments are taken into account and applied to individual parameters of the function.
 	 * @param function The function to apply the documentation to
 	 */
 	public void applyDocumentation(Function function) {

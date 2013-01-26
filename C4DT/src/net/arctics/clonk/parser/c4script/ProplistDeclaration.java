@@ -15,7 +15,6 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.StringUtil;
@@ -31,15 +30,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	protected List<Variable> components;
 	protected List<Variable> adhocComponents;
 	protected boolean adHoc;
-	protected ASTNode implicitPrototype;
-	
-	/* (non-Javadoc)
-	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#implicitPrototype()
-	 */
-	@Override
-	public ASTNode implicitPrototype() {
-		return implicitPrototype;
-	}
+	protected ProplistDeclaration prototype;
 
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#isAdHoc()
@@ -48,7 +39,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	public boolean isAdHoc() {
 		return adHoc;
 	}
-	
+
 	private ProplistDeclaration() {
 		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
@@ -60,7 +51,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	public ProplistDeclaration(List<Variable> components) {
 		this.components = components;
 	}
-	
+
 	/**
 	 * Create an adhoc proplist declaration.
 	 * @return The newly created adhoc proplist declaration.
@@ -71,7 +62,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		result.components = new LinkedList<Variable>();
 		return result;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#addComponent(net.arctics.clonk.parser.c4script.Variable)
 	 */
@@ -95,7 +86,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			return variable;
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#findComponent(java.lang.String, java.util.Set)
 	 */
@@ -121,7 +112,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		else
 			return null;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#findComponent(java.lang.String)
 	 */
@@ -143,7 +134,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & VARIABLES) != 0)
@@ -160,7 +151,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		else
 			return super.latestVersionOf(from);
 	};
-	
+
 	@Override
 	public Iterator<IType> iterator() {
 		return iterable(PrimitiveType.PROPLIST, (IType)this).iterator();
@@ -185,30 +176,27 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	public IType simpleType() {
 		return PrimitiveType.PROPLIST;
 	}
-	
+
 	@Override
 	public void setTypeDescription(String description) {}
-	
+
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#prototype()
 	 */
 	@Override
 	public ProplistDeclaration prototype() {
-		ASTNode prototypeExpr = null;
+		IType prototypeType = null;
 		for (Variable v : components)
 			if (v.name().equals(PROTOTYPE_KEY)) {
-				prototypeExpr = v.initializationExpression();
+				prototypeType = v.type();
 				break;
 			}
-		if (prototypeExpr == null)	
-			prototypeExpr = implicitPrototype;
-		if (prototypeExpr != null) {
-			IType t = prototypeExpr.type(declarationObtainmentContext());
-			if (t != null)
-				for (IType ty : t)
-					if (ty instanceof ProplistDeclaration)
-						return (ProplistDeclaration)ty;
-		}
+		if (prototypeType == null)
+			prototypeType = prototype;
+		if (prototypeType != null)
+			for (IType ty : prototypeType)
+				if (ty instanceof ProplistDeclaration)
+					return (ProplistDeclaration)ty;
 		return null;
 	}
 
@@ -223,7 +211,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		gatherIncludes(contextIndex, this, includes, GatherIncludesOptions.Recursive);
 		return includes.contains(other);
 	}
-	
+
 	@Override
 	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
 		if (set.contains(this))
@@ -238,7 +226,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 				proto.gatherIncludes(contextIndex, origin, set, options);
 		return true;
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == this)
@@ -246,7 +234,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		ProplistDeclaration o = as(other, ProplistDeclaration.class);
 		return o != null && o.sameLocation(this);
 	}
-	
+
 	@Override
 	public ProplistDeclaration clone() {
 		List<Variable> clonedComponents = new ArrayList<Variable>(this.components.size());
@@ -257,10 +245,10 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		clone.adHoc = this.adHoc;
 		return clone;
 	}
-	
+
 	@Override
 	public String toString() {
-		return StringUtil.writeBlock(null, "{", "}", ", ", components);		
+		return StringUtil.writeBlock(null, "{", "}", ", ", components);
 	}
 
 	/**
@@ -268,11 +256,10 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @param prototypeExpression The implicit prototype to set
 	 * @return This one.
 	 */
-	public ProplistDeclaration withImplicitProtoype(ASTNode prototypeExpression) {
-		this.implicitPrototype = prototypeExpression;
-		return this;
+	public void setPrototype(ProplistDeclaration prototype) {
+		this.prototype = prototype;
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
@@ -288,7 +275,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			return list;
 		}
 	}
-	
+
 	public int numComponents(boolean includeAdhocComponents) {
 		synchronized(components) {
 			int result = components.size();

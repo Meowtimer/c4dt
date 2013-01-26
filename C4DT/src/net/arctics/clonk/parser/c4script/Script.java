@@ -1165,7 +1165,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public void setTypeDescription(String description) {}
 	
 	@Override
-	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+	public IType resolve(ProblemReportingContext context, IType callerType) {
 		return this;
 	}
 

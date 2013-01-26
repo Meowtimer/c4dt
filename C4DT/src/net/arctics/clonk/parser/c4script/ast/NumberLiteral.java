@@ -14,9 +14,9 @@ public abstract class NumberLiteral extends Literal<Number> {
 
 	public static ASTNode from(Number parsedNumber) {
 		if (parsedNumber instanceof Double)
-			return new DoubleLiteral(parsedNumber.doubleValue());
+			return new FloatLiteral(parsedNumber.doubleValue());
 		else
-			return new LongLiteral(parsedNumber.longValue());
+			return new IntegerLiteral(parsedNumber.longValue());
 	}
 
 }

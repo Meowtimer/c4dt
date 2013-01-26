@@ -8,7 +8,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
@@ -453,7 +453,7 @@ public class ClonkTextEditor extends TextEditor {
 		initializeProjectionSupport();
 	}
 	
-	public DeclarationObtainmentContext declarationObtainmentContext() {
+	public ProblemReportingContext declarationObtainmentContext() {
 		return null;
 	}
 	

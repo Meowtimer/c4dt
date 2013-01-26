@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
@@ -29,11 +29,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
 public class StringTbl extends Structure implements ITreeNode, ITableEntryInformationSink {
-	
+
 	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private final Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
 	private transient IFile file;
 
@@ -41,11 +41,12 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return file;
 	}
 
+	@Override
 	public void setFile(IFile file) {
 		this.file = file;
 		setName(file != null ? file.getName() : null);
 	}
-	
+
 	@Override
 	public IResource resource() {
 		return file;
@@ -54,7 +55,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public Map<String, NameValueAssignment> map() {
 		return map;
 	}
-	
+
 	@Override
 	public void addTblEntry(String key, String value, int start, int end) {
 		NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
@@ -68,12 +69,12 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			return map.get(declarationName);
 		return null;
 	}
-	
+
 	@Override
 	public Declaration findDeclaration(String declarationName) {
 		return map.get(declarationName);
 	}
-	
+
 	public static void readStringTbl(Reader reader, ITableEntryInformationSink sink) {
 		BufferedScanner scanner;
 		scanner = new BufferedScanner(reader);
@@ -96,23 +97,23 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		}
 	}
-	
+
 	public void read(Reader reader) {
 		readStringTbl(reader, this);
 	}
-	
+
 	@Override
 	public Object[] subDeclarationsForOutline() {
 		return map.values().toArray(new Object[map.values().size()]);
 	}
-	
+
 	public Iterator<NameValueAssignment> iterator() {
 		return new ReadOnlyIterator<NameValueAssignment>(map.values().iterator());
 	}
-	
+
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ 
+			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$
 			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
@@ -163,12 +164,12 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
-	
+
 	@Override
 	public boolean requiresScriptReparse() {
 		return true;
 	}
-	
+
 	public static EntityRegion entryRegionInString(String stringValue, int exprStart, int offset) {
 		int firstDollar = stringValue.lastIndexOf('$', offset-1);
 		int secondDollar = stringValue.indexOf('$', offset);
@@ -178,7 +179,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		}
 		return null;
 	}
-	
+
 	public static EntityRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
 		EntityRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
@@ -191,13 +192,13 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		}
 		return result;
 	}
-	
+
 	public static class EvaluationResult {
 		public String evaluated;
 		public EntityRegion singleDeclarationRegionUsed;
 		public boolean anySubstitutionsApplied;
 	}
-	
+
 	/**
 	 * Evaluate a string containing $...$ placeholders by fetching the actual strings from respective StringTbl**.txt files.
 	 * @param context The declaration/script to be used as a hint on where to look for StringTbl files
@@ -241,16 +242,16 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		r.anySubstitutionsApplied = substitutionsApplied;
 		return r;
 	}
-	
+
 	/**
 	 * Create error markers in scripts for StringTbl references where the entry is missing from some of the StringTbl**.txt files
-	 * @param parser The parser
+	 * @param context The parser
 	 * @param region The region describing the string table reference in question
 	 */
-	public static void reportMissingStringTblEntries(C4ScriptParser parser, EntityRegion region) {
+	public static void reportMissingStringTblEntries(ProblemReportingContext context, EntityRegion region) {
 		StringBuilder listOfLangFilesItsMissingIn = null;
 		try {
-			for (IResource r : (parser.script().resource() instanceof IContainer ? (IContainer)parser.script().resource() : parser.script().resource().getParent()).members()) {
+			for (IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
 				if (!(r instanceof IFile))
 					continue;
 				IFile f = (IFile) r;
@@ -270,7 +271,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		} catch (CoreException e) {}
 		if (listOfLangFilesItsMissingIn != null)
-			parser.warning(ParserErrorCode.MissingLocalizations, region.region(), 0, listOfLangFilesItsMissingIn);
+			context.markers().warning(context, ParserErrorCode.MissingLocalizations, null, region.region(), 0, listOfLangFilesItsMissingIn);
 	}
 
 }

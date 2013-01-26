@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigInteger;
-import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -120,7 +119,7 @@ public class BufferedScanner implements ICharacterScanner {
 		else if (source instanceof File)
 			return StreamUtil.stringFromFile((File) source);
 		else
-			throw new InvalidParameterException("source");
+			throw new IllegalArgumentException(String.format("source: %s", source));
 	}
 
 	/**
