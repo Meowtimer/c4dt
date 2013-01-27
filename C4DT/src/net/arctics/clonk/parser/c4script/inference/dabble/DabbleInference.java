@@ -46,11 +46,11 @@ import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -220,13 +220,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			else {
 				ScriptProcessor other = shared.processors.get(function.script());
-				if (other != null) {
-					System.out.println(String.format("%s calls out to %s::%s", parser.script().name(), other.script(), function.name()));
+				if (other != null)
+					//	System.out.println(String.format("%s calls out to %s::%s", parser.script().name(), other.script(), function.name()));
 					other.reportProblemsOfFunction(function);
-				}
 			}
 		}
-		
+
 		@Override
 		public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {
 			try {
@@ -726,7 +725,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@SuppressWarnings("unchecked")
 	private final <T extends ASTNode> ProblemReporter<? super T> reporter(T node) {
-		return (ProblemReporter<? super T>) (node.temporaryProblemReportingObject != null ? node.temporaryProblemReportingObject : NULL_REPORTER);
+		if (node.temporaryProblemReportingObject != null)
+			return (ProblemReporter<? super T>)node.temporaryProblemReportingObject;
+		else
+			return findReporter(node);
 	}
 
 	public final IType ty(ASTNode node, ScriptProcessor processor) {
@@ -742,7 +744,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public final void judgement(ASTNode node, IType type, TypingJudgementMode mode, ScriptProcessor processor) {
 		reporter(node).typingJudgement(node, type, processor, mode);
 	}
-	
+
 	private final Map<Class<? extends ASTNode>, ProblemReporter<? extends ASTNode>> problemReporters = new HashMap<Class<? extends ASTNode>, ProblemReporter<?>>();
 	{
 		@SuppressWarnings("rawtypes")
@@ -1072,7 +1074,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					default:
 						break;
 					}
-					
+
 					if (expectedLeft != null)
 						judgement(left, expectedLeft, TypingJudgementMode.Unify, processor);
 					if (expectedRight != null)
@@ -1093,7 +1095,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					supr.reportProblems(node, processor);
 					ASTNode arg = node.argument();
 					if (node.operator().modifiesArgument() && !arg.isModifiable(processor.parser))
-						//				System.out.println(getArgument().toString() + " does not behave");
 						markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
 					ProblemReporter<? super ASTNode> rarg = reporter(arg);
 					if (!rarg.validForType(arg, node.operator().firstArgType(), processor))
@@ -1152,8 +1153,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode returnExpr = node.returnExpr();
 					warnAboutTupleInReturnExpr(processor, returnExpr, false);
 					Function currentFunction = node.parentOfType(Function.class);
-					Function activeFunc = currentFunction;
-					if (activeFunc == null)
+					if (currentFunction == null)
 						markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
 					else if (returnExpr != null)
 						if (processor.typing == Typing.Static && currentFunction.staticallyTyped()) {
@@ -1213,10 +1213,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 							declaration = processor.script().index().findGlobal(Declaration.class, functionName);
 						} catch (Exception e) {
 							e.printStackTrace();
-							if (processor.script() == null)
-								System.out.println("No container"); //$NON-NLS-1$
-							else if (processor.script().index() == null)
-								System.out.println("No index"); //$NON-NLS-1$
 							return null;
 						}
 						// find engine function

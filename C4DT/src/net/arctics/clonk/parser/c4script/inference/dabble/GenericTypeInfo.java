@@ -82,7 +82,7 @@ public final class GenericTypeInfo extends TypeInfo {
 			if (index == null || index != processor.script().index())
 				return;
 
-			typeable.expectedToBeOfType(type, TypingJudgementMode.Expect);
+			typeable.expectedToBeOfType(type, TypingJudgementMode.Force);
 		}
 	}
 
