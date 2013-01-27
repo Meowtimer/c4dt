@@ -327,7 +327,8 @@
 			<entry name="KeepMapCreator" class="Boolean" description="0 oder 1. Bei 1 wird der interne MapCreator nicht nach dem Start entladen, so dass Befehle wie DrawDefMap zur Verf&#xFC;gung stehen."/>
 			<entry name="SkyScrollMode" class="SignedInteger" description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax."/>
 			<entry name="FoWRes" class="SignedInteger" description="Gr&#xF6;&#xDF;e der Bl&#xF6;cke, in denen der Kriegsnebel (Fog of War) berechnet wird. Standardwert 64. Achtung: Kleinere Werte verbessern zwar die Darstellung des Kriegsnebels, erh&#xF6;hen aber auch die ben&#xF6;tigte Rechenleistung bei hohen Bildschirmaufl&#xF6;sungen. Ab CR."/>
-			<entry name="NewStyleLandscape" class="UnsignedInteger" description="NewStyle landscape mode"/>
+			<entry name="MaterialZoom" class="UnsignedInteger" description="Material Zoom"/>
+			<entry name="FlatChunkShapes" class="UnsignedInteger" description="Flat Chunk Shapes"/>
 		</section>
 		<section name="Animals">
 			<entry name="Animal" class="IDArray" description="Freilaufende Lebewesen."/>
