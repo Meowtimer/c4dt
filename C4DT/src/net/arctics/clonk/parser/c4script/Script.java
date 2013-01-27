@@ -144,6 +144,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
+		loadIncludes();
 		definedFunctions = (List<Function>) stream.readObject();
 		definedVariables = (List<Variable>) stream.readObject();
 		usedScripts = (Set<Script>) stream.readObject();
@@ -162,6 +163,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void loadIncludes() {
+		if (definedDirectives != null)
+			for (Directive d : definedDirectives)
+				switch (d.type()) {
+				case APPENDTO: case INCLUDE:
+					ID id = d.contentAsID();
+					if (id != null)
+						for (Definition def : index.definitionsWithID(id))
+							def.requireLoaded();
+				default:
+					break;
+				}
 	}
 
 	@Override
