@@ -203,7 +203,8 @@ public class MatchingPlaceholder extends Placeholder {
 					"%s.parser.c4script.%s",
 					"%s.parser.c4script.ast.%sLiteral",
 					"%s.parser.c4script.ast.%sStatement",
-					"%s.parser.c4script.ast.%sDeclaration"
+					"%s.parser.c4script.ast.%sDeclaration",
+					"%s.parser.c4script.ast.Access%s"
 				};
 				for (String pkgFormat : packageFormats)
 					try {
