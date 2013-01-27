@@ -21,17 +21,17 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	private int parmsStart, parmsEnd;
 	private SourceLocation[] parameterDisplayStringRanges;
 	private Function function;
-	
+
 	@Override
 	public String toString() {
 		return StringUtil.blockString("", "", ",  ", iterable(parameterDisplayStringRanges));
 	}
-	
+
 	public int parmsStart() { return parmsStart; }
 	public int currentParameter() { return parmIndex; }
 	public int parmsCount() { return parameterDisplayStringRanges.length; }
 	public int parmsEnd() { return parmsEnd; }
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof C4ScriptContextInformation) {
@@ -40,7 +40,7 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 		}
 		return false;
 	}
-	
+
 	public C4ScriptContextInformation(String contextDisplayString, Image image, Function function, int parmIndex, int parmsStart, int parmsEnd) {
 	    super();
 	    this.contextDisplayString = contextDisplayString;
@@ -51,9 +51,9 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	    this.parmsEnd = parmsEnd;
 	    makeDisplayString(function);
     }
-	
+
 	public SourceLocation currentParameterDisplayStringRange() {
-		return parameterDisplayStringRanges[parmIndex];
+		return parameterDisplayStringRanges[Math.min(parameterDisplayStringRanges.length-1, parmIndex)];
 	}
 
 	private void makeDisplayString(Function function) {
@@ -86,7 +86,7 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	public boolean valid(int offset) {
 		return parmIndex != -1 && offset >= parmsStart();
 	}
-	
+
 	public C4ScriptContextInformation() {
 		this.parmIndex = -1;
 	}
@@ -114,5 +114,5 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	public boolean hasVarParms() {
 		return function.numParameters() > 0 && !function.parameter(function.numParameters()-1).isActualParm();
 	}
-	
+
 }
