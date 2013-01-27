@@ -73,7 +73,7 @@ public class MatchingPlaceholder extends Placeholder {
 				return str.substring(index.intValue());
 		}
 	}
-	
+
 	/**
 	 * Some extra flags specified via [...] after placeholder name
 	 * @author madeen
@@ -83,13 +83,13 @@ public class MatchingPlaceholder extends Placeholder {
 		/** Accumulate matches found in function block instead of listing matches on their own */
 		Accumulative
 	}
-	
+
 	public enum Multiplicity {
 		One,
 		AtLeastOne,
 		Multiple
 	}
-	
+
 	public static final Script TRANSFORMATIONS = new Transformations(new Index());
 
 	private Class<? extends ASTNode> requiredClass;
@@ -100,7 +100,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private Pattern associatedDeclarationNamePattern;
 	private String property;
 	private EnumSet<Flag> flags;
-	
+
 	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
 	public Class<? extends ASTNode> requiredClass() { return requiredClass; }
@@ -128,7 +128,7 @@ public class MatchingPlaceholder extends Placeholder {
 			case '/': {
 				int start = scanner.tell();
 				int end = start;
-				while (scanner.read() != '/')
+				while (!scanner.reachedEOF() && scanner.read() != '/')
 					end++;
 				stringRepresentationPattern = Pattern.compile(scanner.readStringAt(start, end));
 				break;
@@ -160,7 +160,7 @@ public class MatchingPlaceholder extends Placeholder {
 			case '^': {
 				int start = scanner.tell();
 				int end = start;
-				while (scanner.read() != '^')
+				while (!scanner.reachedEOF() && scanner.read() != '^')
 					end++;
 				associatedDeclarationNamePattern = Pattern.compile(scanner.readStringAt(start, end));
 				break;
@@ -265,16 +265,16 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		return true;
 	}
-	
+
 	protected Declaration associatedDeclaration(ASTNode element) {
 		CallDeclaration call = as(element.parent(), CallDeclaration.class);
 		if (call != null)
 			return call.parmDefinitionForParmExpression(element);
-		
+
 		FunctionBody body = as(element, FunctionBody.class);
 		if (body != null)
 			return body.owningDeclaration();
-		
+
 		return null;
 	}
 
