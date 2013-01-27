@@ -9,27 +9,29 @@ import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.KeyValuePair;
+import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IPath;
 
 public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryValueBase implements IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
-	
+
 	public KeyValueArrayEntry(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 		setInput(value, entryData, context);
 	}
-	
+
 	public KeyValueArrayEntry() {
 	}
-	
+
 	public void add(KeyType id, ValueType num) {
 		components.add(new KeyValuePair<KeyType, ValueType>(id,num));
 	}
-	
+
 	public void add(KeyValuePair<KeyType, ValueType> pair) {
 		components.add(pair);
 	}
-	
+
 	public KeyValuePair<KeyType, ValueType> find(KeyType key) {
 		for (KeyValuePair<KeyType, ValueType> kv : components)
 			if (kv.key().equals(key))
@@ -40,7 +42,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 	public List<KeyValuePair<KeyType, ValueType>> components() {
 		return components;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(components.size() * 7); // MYID=1;
@@ -52,7 +54,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		}
 		return builder.toString();
 	}
-	
+
 	public abstract KeyValuePair<KeyType, ValueType> singleComponentFromString(String s);
 
 	@Override
@@ -60,12 +62,26 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		// CLNK=1;STIN=10;
 		components.clear();
 		String[] parts = input.split(";|,"); //$NON-NLS-1$
+		List<String> invalidParts = null;
 		for(String part : parts)
 			if (part.contains("=")) { //$NON-NLS-1$
-				KeyValuePair<KeyType, ValueType> kv = singleComponentFromString(part);
+				KeyValuePair<KeyType, ValueType> kv;
+				try {
+					kv = singleComponentFromString(part);
+				} catch (IllegalArgumentException e) {
+					kv = null;
+				}
 				if (kv != null)
 					components.add(kv);
+				else {
+					if (invalidParts == null)
+						invalidParts = new ArrayList<>(3);
+					invalidParts.add(part);
+				}
 			}
+		if (invalidParts != null)
+			throw new IniParserException(IMarker.SEVERITY_ERROR,
+				String.format(Messages.InvalidParts, StringUtil.blockString("", "", ",  ", invalidParts))); //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
 	@Override
@@ -99,40 +115,40 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryVal
 		if (kv != null)
 			components.set(index, kv);
 	}
-	
+
 	@Override
 	public List<KeyValuePair<KeyType, ValueType>> childCollection() {
 		return components;
 	}
-	
+
 	@Override
 	public String nodeName() {
 		return null;
 	}
-	
+
 	@Override
 	public void addChild(ITreeNode node) {
-		
+
 	}
-	
+
 	@Override
 	public ITreeNode parentNode() {
 		return null;
 	}
-	
+
 	@Override
 	public IPath path() {
 		return ITreeNode.Default.path(this);
 	}
-	
+
 	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return components == null || components.size() == 0;
 	}
-	
+
 }

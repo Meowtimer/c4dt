@@ -2,7 +2,6 @@ package net.arctics.clonk.index;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidClassException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +41,7 @@ public class IniDescriptionsLoader {
 			});
 			factory = new IEntryFactory() {
 				@Override
-				public Object create(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws InvalidClassException, IniParserException {
+				public Object create(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
 					return value;
 				}
 			};

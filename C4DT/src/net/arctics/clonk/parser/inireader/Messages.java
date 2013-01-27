@@ -14,6 +14,7 @@ public class Messages extends NLS {
 	public static String OnlyUnsignedIntegersAllowed;
 	public static String UnsignedValueExpected;
 	public static String InvalidValue;
+	public static String InvalidParts;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
