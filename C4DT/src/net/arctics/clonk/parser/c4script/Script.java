@@ -174,6 +174,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					if (id != null)
 						for (Definition def : index.definitionsWithID(id))
 							def.requireLoaded();
+					break;
 				default:
 					break;
 				}
