@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.inference.dabble;
+package net.arctics.clonk.parser.c4script;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,9 +8,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {

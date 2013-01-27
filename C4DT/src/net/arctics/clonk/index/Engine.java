@@ -32,11 +32,11 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import net.arctics.clonk.parser.c4script.XMLDocImporter.ExtractedDeclarationDocumentation;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -77,12 +77,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
-	
+
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
-	
+
 	private transient SpecialEngineRules specialRules;
-	
+
 	/**
 	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
 	 * @return The {@link SpecialEngineRules} object
@@ -133,7 +133,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public final CachedEngineDeclarations cachedDeclarations() {
 		return cachedDeclarations;
 	}
-	
+
 	/**
 	 * Return {@link IniData} configuration for this engine
 	 * @return The {@link IniData} configuration
@@ -203,15 +203,15 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public IFile scriptStorage() {
 		return null;
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		resetCache();
 	}
-	
+
 	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
-	
+
 	/**
 	 * Load settings from this engine's {@link #storageLocations()}
 	 * @throws IOException
@@ -241,7 +241,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			currentSettings = (EngineSettings) intrinsicSettings.clone();
 		}
 	}
-	
+
 	/**
 	 * Load ini configuration from this engine's {@link #storageLocations()}
 	 */
@@ -269,7 +269,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private class DeclarationsConfiguration extends IniConfiguration {
 		@Override
 		public boolean hasSection(String sectionName) {
@@ -355,7 +355,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		documentationPrefetcherThread.setPriority(Thread.MIN_PRIORITY);
 		documentationPrefetcherThread.start();
 	}
-	
+
 	/**
 	 * Tell this engine to discard information about documentation already read on-demand from the repository docs folder so
 	 * the next time documentation needs to be obtained via {@link #obtainDescription(IHasUserDescription)},
@@ -371,7 +371,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			populateDictionary();
 		}
 	}
-	
+
 	/**
 	 * Obtain a description for the specified declaration. From which source this description is lifted depends on settings
 	 * such as {@link EngineSettings#readDocumentationFromRepository}. If that setting is set attempts will be made to extract
@@ -412,7 +412,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			declaration.setUserDescription(iniDescription);
 		return false;
 	}
-	
+
 	private void loadDeclarationsConfiguration() {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
@@ -445,7 +445,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 		}
 	}
-	
+
 	private void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
 			final URL url = loc.locatorForEntry(name()+".c", false); //$NON-NLS-1$
@@ -495,12 +495,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 		}
 	}
-	
+
 	private void createSpecialRules() {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
-				String.format("%s.parser.c4script.inference.dabble.SpecialEngineRules_%s", Core.PLUGIN_ID, name())); //$NON-NLS-1$
+				String.format("%s.SpecialEngineRules_%s", SpecialEngineRules.class.getPackage().getName(), name())); //$NON-NLS-1$
 			specialRules = rulesClass.newInstance();
 			specialRules.initialize();
 		} catch (ClassNotFoundException e) {
@@ -510,7 +510,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Load an {@link Engine} from a list of {@link IStorageLocation}s
 	 * @param locations The locations, which usually are just two, one representing a location in the user's workspace/.metadata folder and the other being embedded in the plugin jar.
@@ -523,7 +523,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				if (location == null)
 					continue;
 				// only consider valid engine folder if configuration.ini is present
-				URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false); 
+				URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false);
 				if (url != null) {
 					result = new Engine(location.name());
 					result.load(locations);
@@ -557,7 +557,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
-	
+
 	private void loadProjectConversionConfigurations() {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation location = storageLocations[i];
@@ -585,7 +585,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 		}
 	}
-	
+
 	public ProjectConversionConfiguration projectConversionConfigurationForEngine(Engine engine) {
 		return projectConversionConfigurations.get(engine.name());
 	}
@@ -610,7 +610,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			writer.append(text);
 		}
 	}
-	
+
 	public void writeEngineScript() throws IOException {
 		for (IStorageLocation loc : storageLocations) {
 			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true); //$NON-NLS-1$
@@ -630,7 +630,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 		}
 	}
-	
+
 	/**
 	 * Save the settings!
 	 */
@@ -656,7 +656,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			}
 		}
 	}
-	
+
 	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean onlyFromReadonlyStorageLocation) {
 		LinkedList<URL> result = new LinkedList<URL>();
 		for (IStorageLocation loc : storageLocations) {
@@ -666,7 +666,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 		return result;
 	}
-	
+
 	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
 		for (IStorageLocation loc : storageLocations) {
 			URL url = loc.locatorForEntry(entryPath, true);
@@ -678,13 +678,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void clearDeclarations() {
 		super.clearDeclarations();
 		cachedPrefixedVariables = null;
 	}
-	
+
 	public Variable[] variablesWithPrefix(String prefix) {
 		// FIXME: oh noes, will return array stored in map, making it possible to modify it
 		if (cachedPrefixedVariables != null) {
@@ -702,7 +702,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		cachedPrefixedVariables.put(prefix, resultArray);
 		return resultArray;
 	}
-	
+
 	public Process executeEmbeddedUtility(String name, String... args) {
 		if (!settings().supportsEmbeddedUtilities)
 			return null;
@@ -737,7 +737,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		} else
 			return null;
 	}
-	
+
 	public C4Group.GroupType groupTypeForExtension(String ext) {
 		C4Group.GroupType gt = currentSettings.fileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
@@ -745,11 +745,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		else
 			return C4Group.GroupType.OtherGroup;
 	}
-	
+
 	public C4Group.GroupType groupTypeForFileName(String fileName) {
 		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
-	
+
 	public Object image(String name, boolean returnDescriptor) {
 		Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
 		if (urls != null)
@@ -758,12 +758,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					return returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url);
 		return null;
 	}
-	
+
 	public Image image(GroupType groupType) {return (Image) image(groupType.name(), false);}
 	public ImageDescriptor imageDescriptor(GroupType groupType) {return (ImageDescriptor) image(groupType.name(), true);}
 	public Image image(String name) {return (Image) image(name, false);}
 	public ImageDescriptor imageDescriptor(String name) {return (ImageDescriptor) image(name, true);}
-	
+
 	/**
 	 * Construct group name based on the name without extension and a {@link GroupType}
 	 * @param name The name without extension
@@ -773,10 +773,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public String groupName(String name, GroupType groupType) {
 		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
 	}
-	
+
 	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
 	private IniDescriptionsLoader iniDescriptionsLoader;
-	
+
 	/**
 	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #settings()}.
 	 * @return
@@ -791,12 +791,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public IStorageLocation[] storageLocations() {
 		return storageLocations;
 	}
-	
+
 	@Override
 	public String qualifiedName() {
 		return name();
 	}
-	
+
 	public boolean supportsPrimitiveType(PrimitiveType type) {
 		switch (type) {
 		case NUM:

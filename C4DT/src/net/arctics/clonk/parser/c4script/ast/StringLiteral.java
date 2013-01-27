@@ -6,10 +6,9 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.StringUtil;
 
@@ -51,8 +50,8 @@ public final class StringLiteral extends Literal<String> {
 			int myIndex = parentFunc.indexOfParm(this);
 			// delegate finding a link to special function rules
 			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(context, SpecialEngineRules.DECLARATION_LOCATOR);
-			if (funcRule != null && context instanceof ScriptProcessor) {
-				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, (ScriptProcessor) context, myIndex, offset, this);
+			if (funcRule != null) {
+				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, context, myIndex, offset, this);
 				if (region != null)
 					return region;
 			}

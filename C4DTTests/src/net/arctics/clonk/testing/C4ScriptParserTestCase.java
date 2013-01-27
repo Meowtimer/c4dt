@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -45,7 +46,6 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
 
 import org.eclipse.core.resources.IStorage;
 import org.junit.Before;

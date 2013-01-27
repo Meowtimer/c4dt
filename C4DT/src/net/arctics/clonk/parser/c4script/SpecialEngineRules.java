@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.inference.dabble;
+package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -39,21 +39,8 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ArrayType;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
-import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ScriptsHelper;
-import net.arctics.clonk.parser.c4script.TypeUtil;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;

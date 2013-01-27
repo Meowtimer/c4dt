@@ -17,7 +17,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.ScenarioConfigurationProcessing;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;

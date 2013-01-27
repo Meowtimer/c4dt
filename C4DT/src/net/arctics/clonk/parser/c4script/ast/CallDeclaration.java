@@ -22,12 +22,12 @@ import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.parser.c4script.inference.dabble.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;

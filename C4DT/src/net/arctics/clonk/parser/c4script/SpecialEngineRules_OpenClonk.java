@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.inference.dabble;
+package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -27,17 +27,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.DefinitionFunction;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.IProplistDeclaration;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ScriptsHelper;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -134,7 +124,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 		}
 	};
-	
+
 	/**
 	 * Rule applied to the 'Definition' func.<br/>
 	 * Causes local vars to be created for SetProperty-calls.
@@ -176,7 +166,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false; // default validation
 		};
 	};
-	
+
 	private static class EvaluationTracer implements IEvaluationContext {
 		public ASTNode topLevelExpression;
 		public IFile tracedFile;
@@ -227,7 +217,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return evaluate(expression, null, function.script(), function);
 		}
 	}
-	
+
 	/**
 	 * Validate format strings.
 	 */
@@ -295,7 +285,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false; // let others validate as well
 		};
 	};
-	
+
 	public SpecialEngineRules_OpenClonk() {
 		super();
 		// override SetAction link rule to also take into account local 'ActMap' vars
@@ -349,7 +339,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(processor.script()), "", completions.editor())); 
+											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(processor.script()), "", completions.editor()));
 									}
 								}
 					}
@@ -364,7 +354,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	}
 
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
-	
+
 	@Override
 	public ID parseId(BufferedScanner scanner) {
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
@@ -383,12 +373,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		return null;
 	}
-	
+
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
-	
+
 	private static final ASTNode PLACE_CALL = ScriptsHelper.matchingExpr
 		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
-	
+
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
 		public ComputedScenarioConfigurationEntry(String key, IDArray values) {
 			super(-1, -1, key, values);
@@ -446,7 +436,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return (IDArray) super.value();
 		}
 	}
-	
+
 	private static ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
 		IniSection s = unit.sectionWithName(section, true);
 		IniItem i = s.subItemByKey(entry);
@@ -458,7 +448,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			s.addItem(i = new ComputedScenarioConfigurationEntry(entry, new IDArray()));
 		return as(i, ComputedScenarioConfigurationEntry.class);
 	}
-	
+
 	@Override
 	public void processScenarioConfiguration(final ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
 		final Scenario scenario = unit.scenario();
@@ -580,7 +570,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		f = script.findLocalFunction(name, false);
 		return f;
 	}
-	
+
 	@Override
 	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
 		final IPredicate<Definition> basePredicate =
@@ -611,7 +601,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 		} : null;
 	}
-	
+
 	private void readVariablesFromPlayerControlsFile(final Index index) {
 		try {
 			index.project().accept(new IResourceVisitor() {
@@ -633,7 +623,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void refreshIndex(Index index) {
 		super.refreshIndex(index);
