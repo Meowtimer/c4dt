@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.CombinedMatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder.Multiplicity;
+import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -51,16 +53,15 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			ASTNode left = leftSubElements[i];
 			if (left instanceof MatchingPlaceholder)
 				if (leftToRightMapping[i] != null)
-					for (int r = 0; r < leftToRightMapping[i].length; r++)
-						addToResult(leftToRightMapping[i][r], (MatchingPlaceholder)left);
+					addToResult(leftToRightMapping[i], (MatchingPlaceholder)left);
 		}
 	}
-	private void addToResult(ASTNode extra, MatchingPlaceholder mp) {
+	private void addToResult(ASTNode extra[], MatchingPlaceholder mp) {
 		if (result == null)
 			result = new HashMap<String, Object>();
 		Object existing = result.get(mp.entryName());
 		if (existing instanceof ASTNode)
-			existing = new ASTNode[] {(ASTNode)existing, extra};
+			existing = concat((ASTNode)existing, extra);
 		else if (existing instanceof ASTNode[])
 			existing = ArrayUtil.concat((ASTNode[])existing, extra);
 		else
@@ -109,7 +110,8 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 						default:
 							break;
 						}
-					}
+					} else if (expression instanceof Parenthesized && ((Parenthesized)expression).innerExpression() instanceof MatchingPlaceholder)
+						return ((Parenthesized)expression).innerExpression();
 				return null;
 			}
 			@Override

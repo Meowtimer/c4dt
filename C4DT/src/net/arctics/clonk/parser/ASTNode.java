@@ -722,10 +722,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		delegate.right = other;
 		try {
 
-			if (other == null || other.getClass() != this.getClass()) {
-				if (!delegate.ignoreClassDifference())
-					return false;
-			} else if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.ignoreAttributeDifference()))
+			if ((other == null || other.getClass() != this.getClass()) && !delegate.ignoreClassDifference())
+				return false;
+			if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.ignoreAttributeDifference()))
 				return false;
 
 			ASTNode[] mine = this.subElements();
