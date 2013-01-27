@@ -69,7 +69,7 @@ public enum ParserErrorCode {
 	Garbage(Messages.Garbage, Messages.ParserErrorCode_Arg_Garbage),
 	NotANumber(Messages.NotANumber, Messages.ParserErrorCode_Arg_WeirdoNumber),
 	StaticInsideFunction(Messages.StaticInsideFunction, Keywords.GlobalNamed),
-	DotNotationInsteadOfArrow(Messages.DotNotationInsteadOfArrow, Messages.ParserErrorCode_Arg_Declaration),
+	DotNotationNotSupported(Messages.DotNotationNotSupported, Messages.ParserErrorCode_Arg_Declaration),
 	MissingStatement(Messages.MissingStatement),
 	MissingExpression(Messages.MissingExpression),
 	MemberOperatorWithTildeNoSpace(Messages.MemberOperatorWithTildeNoSpace),

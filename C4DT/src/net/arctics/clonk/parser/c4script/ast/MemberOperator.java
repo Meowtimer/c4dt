@@ -8,8 +8,8 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 import org.eclipse.jface.text.Region;
 
@@ -132,7 +132,7 @@ public class MemberOperator extends ASTNode {
 		if (!super.equalAttributes(other))
 			return false;
 		MemberOperator otherOp = (MemberOperator) other;
-		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || objectsEqual(id, otherOp.id))
+		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !objectsEqual(id, otherOp.id))
 			return false;
 		return true;
 	}

@@ -1730,7 +1730,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
 						markers().error(processor.parser, ParserErrorCode.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
 					if (node.dotNotation() && !settings.supportsProplists)
-						markers().error(processor.parser, ParserErrorCode.DotNotationInsteadOfArrow, node, node, Markers.NO_THROW);
+						markers().error(processor.parser, ParserErrorCode.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
 				}
 			},
 
