@@ -51,7 +51,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 	
 	public void addMatch(ProblemReportingContext context, boolean potential, boolean indirect, int s, int l) {
 		IRegion lineRegion = context.scanner().regionOfLineContainingRegion(new Region(s, l));
-		String line = context.scanner().bufferSubstringAtRegion(lineRegion).trim();
+		String line = context.scanner().bufferSubstringAtRegion(lineRegion);
 		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
 	}
 	
