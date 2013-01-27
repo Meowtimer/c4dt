@@ -676,6 +676,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return new GenericTypeInfo(node, processor);
 			return null;
 		}
+
+		@Override
+		public String toString() { return String.format("ProblemReporter<%s>", cls.getSimpleName()); }
 	}
 
 	class AccessDeclarationProblemReporter<T extends AccessDeclaration> extends ProblemReporter<T> {
@@ -691,6 +694,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
 			if (node.declaration() == null)
 				node.setDeclaration(obtainDeclaration(node, processor));
+			if (node.declaration() == null) {
+				processor.script().index().loadScriptsContainingDeclarationsNamed(node.declarationName());
+				node.setDeclaration(obtainDeclaration(node, processor));
+			}
 			return node.declaration();
 		}
 		@Override
@@ -949,12 +956,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 									argEv,
 									((Number)argEv).intValue()+1,
 									new ArrayType(rightSideType, rightSideType)
-									);
+								);
 							else
 								mutation = new ArrayType(
 									TypeUnification.unify(rightSideType, arrayType.generalElementType()),
 									ArrayType.NO_PRESUMED_LENGTH
-									);
+								);
 							processor.storeType(pred, mutation);
 							break;
 						} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
@@ -963,7 +970,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 								TypingJudgementMode.Force,
 								processor
-								);
+							);
 					}
 				}
 				@Override

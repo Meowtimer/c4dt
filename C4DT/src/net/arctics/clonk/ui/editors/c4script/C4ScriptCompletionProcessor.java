@@ -32,10 +32,10 @@ import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules;
+import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -99,19 +99,30 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private Script _currentEditorScript;
 	private ProblemReportingContext typingContext;
 	private String untamperedPrefix;
-	private final ProblemReportingStrategy typingStrategy;
+	private ProblemReportingStrategy typingStrategy;
+
+	private void setTypingStrategyFromScript(Script script) {
+		typingStrategy = ((ProjectIndex)script.index()).nature().settings().
+			instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
+	}
+
+	public C4ScriptCompletionProcessor(Script script) {
+		super(null, null);
+		assistant = null;
+		setTypingStrategyFromScript(script);
+	}
 
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor, assistant);
-		typingStrategy = ((ProjectIndex)editor.script().index()).nature().settings().
-			instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
+		if (editor != null)
+			setTypingStrategyFromScript(editor.script());
 		this.assistant = assistant;
 		if (assistant != null) {
 			assistant.setRepeatedInvocationTrigger(iterationBinding());
 			assistant.addCompletionListener(this);
 		}
 	}
-	
+
 	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
@@ -207,7 +218,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
 				return null;
 		} catch (BadLocationException e) {}
-		
+
 		boolean returnProposals = activeFunc == null
 			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
 			: proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
@@ -230,7 +241,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		else
 			return null;
 	}
-	
+
 	private boolean proposalsInsideOfFunction(int offset, int wordOffset,
 		IDocument doc, String prefix,
 		List<ICompletionProposal> proposals, Index index,
@@ -326,7 +337,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			else
 				contextStructures.add(editorScript);
 		}
-		
+
 		if (contextExpression instanceof VarInitialization) {
 			VarInitialization vi = (VarInitialization)contextExpression;
 			Typing typing = Typing.ParametersOptionallyTyped;
@@ -351,7 +362,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					for (Variable var : editorScript.index().engine().variables())
 						proposalForVar(var,prefix,offset,proposals);
 			}
-		
+
 		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
 			for (Variable v : activeFunc.parameters())
 				proposalForVar(v, prefix, wordOffset, proposals);
@@ -366,11 +377,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
 		if (contextSequence == null)
 			whatToDisplayFromScripts |= IHasSubDeclarations.STATIC_VARIABLES;
-		
+
 		if (proposalCycle != ProposalCycle.OBJECT)
 			for (Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts, editorScript);
-		
+
 		for (IHasSubDeclarations s : contextStructures) {
 			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			if (s instanceof IHasIncludes) {
@@ -379,8 +390,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposalsForStructure(inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			}
 		}
-		
-		
+
+
 		if (innermostCallFunc != null) {
 			SpecialEngineRules rules = parser.specialEngineRules();
 			if (rules != null) {
@@ -416,11 +427,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	 * @param function The function containing the expression/function from which local variable definitions are pulled
 	 * @param parser Parser serving as context
 	 * @param document The {@link IDocument} the expression was read from
-	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression 
+	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression
 	 */
 	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
+		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(parser.script());
 		Index index = function.index();
 		processor.contextExpression = expression;
 		processor.internalProposalsInsideOfFunction(expression != null ? expression.end() : 0, 0, document, "", result, index, function, function.script(), parser); //$NON-NLS-1$
@@ -492,11 +503,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		boolean directiveExpectingDefinition =
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) || //$NON-NLS-1$
 			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString()); //$NON-NLS-1$
-		
+
 		for (String kw: BuiltInDefinitions.DECLARATORS)
 			if (precededBy(viewer, offset, kw))
 				return false;
-		
+
 		IDocument doc = viewer.getDocument();
 		Check: for (int i = offset; i >= 0; i--)
 			try {
@@ -619,7 +630,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private IContextInformation prevInformation;
 	private final C4ScriptContextInformationValidator contextInformationValidator = new C4ScriptContextInformationValidator();
-	
+
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
@@ -660,7 +671,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					contextInformationValidator.install(info, viewer, offset);
 				}
 			}
-		} catch (Exception e) { 	    
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
@@ -675,16 +686,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			prevInformation = info;
 		}
 	}
-	
+
 	private char[] proposalAutoActivationCharacters, contextInformationAutoActivationCharacters;
-	
+
 	private void configureActivation() {
 		proposalAutoActivationCharacters = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
 			? "_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
 			: new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};
 	}
-	
+
 	{
 		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override

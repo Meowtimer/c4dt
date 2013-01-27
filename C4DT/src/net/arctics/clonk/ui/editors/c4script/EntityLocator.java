@@ -38,14 +38,14 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Little helper thingie to find {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such. 
+ * Little helper thingie to find {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
  *
  */
 public class EntityLocator extends ExpressionLocator {
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
 	private C4ScriptParser parser;
-	
+
 	/**
 	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
 	 * @return Set of potential entities
@@ -60,7 +60,7 @@ public class EntityLocator extends ExpressionLocator {
 			return item instanceof Declaration && ((Declaration)item).isGlobal();
 		};
 	};
-	
+
 	public static class RegionDescription {
 		public IRegion body;
 		public int bodyStart;
@@ -74,7 +74,7 @@ public class EntityLocator extends ExpressionLocator {
 			this.flavour = flavour;
 		}
 	}
-	
+
 	public boolean initializeRegionDescription(RegionDescription d, Script script, IRegion region) {
 		d.func = script.funcAt(region);
 		if (d.func == null) {
@@ -89,7 +89,7 @@ public class EntityLocator extends ExpressionLocator {
 	}
 
 	/**
-	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded. 
+	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded.
 	 * @param editor The editor
 	 * @param doc The script document
 	 * @param region Region in the script
@@ -134,14 +134,14 @@ public class EntityLocator extends ExpressionLocator {
 		}
 		else if (exprAtRegion instanceof AccessDeclaration) {
 			final AccessDeclaration access = (AccessDeclaration) exprAtRegion;
-			
+
 			// gather declarations with that name from involved project indexes
 			List<IIndexEntity> projectDeclarations = new LinkedList<IIndexEntity>();
 			String declarationName = access.declarationName();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().inferredType() : null, PrimitiveType.UNKNOWN);
 			for (IType t : ty)
-				if (t instanceof StructuralType || t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN) {
+				if (t instanceof StructuralType || t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN || t == PrimitiveType.ID) {
 					for (Index i : script.index().relevantIndexes())
 						i.loadScriptsContainingDeclarationsNamed(declarationName);
 					for (Index i : script.index().relevantIndexes()) {
@@ -151,7 +151,7 @@ public class EntityLocator extends ExpressionLocator {
 					}
 					break;
 				}
-			
+
 			if (projectDeclarations != null)
 				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<IIndexEntity>() {
 					@Override
@@ -159,7 +159,7 @@ public class EntityLocator extends ExpressionLocator {
 						return access.declarationClass().isInstance(item);
 					}
 				});
-			
+
 			Function engineFunc = regionDescription.engine.findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
 				potentialEntities = new HashSet<IIndexEntity>();
