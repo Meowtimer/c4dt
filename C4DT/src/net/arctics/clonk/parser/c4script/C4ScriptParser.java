@@ -12,6 +12,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -2744,7 +2745,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
-			return parse(statementText, engine).matchingExpr();
+			return ASTNodeMatcher.matchingExpr(parse(statementText, engine));
 		} catch (ParsingException e) {
 			e.printStackTrace();
 			return null;

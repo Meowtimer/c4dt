@@ -5,10 +5,17 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.parser.ASTNode.ITransformer;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
+import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.CallExpr;
+import net.arctics.clonk.parser.c4script.ast.CombinedMatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder.Multiplicity;
+import net.arctics.clonk.parser.c4script.ast.Placeholder;
+import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ASTNodeMatcher extends ASTComparisonDelegate {
@@ -70,5 +77,58 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
 		MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
 		return mp != null && mp.multiplicity() == Multiplicity.One && mp.satisfiedBy(right);
-	};
+	}
+	/**
+	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
+	 * improved matching capabilities with them.
+	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
+	 */
+	public static ASTNode matchingExpr(ASTNode node) {
+		return node.transformRecursively(new ITransformer() {
+			private ASTNode toMatchingPlaceholder(ASTNode expression) {
+				if (expression != null)
+					if (expression.getClass() == Placeholder.class)
+						try {
+							return new MatchingPlaceholder(((Placeholder)expression).entryName());
+						} catch (ParsingException e) {
+							e.printStackTrace();
+							return null;
+						}
+					else if (expression instanceof BinaryOp) {
+						BinaryOp bop = (BinaryOp) expression;
+						MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
+						MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
+						if (mpl != null && mpr != null)
+							try {
+								return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
+							} catch (ParsingException e) {
+								e.printStackTrace();
+								return null;
+							}
+					}
+				return null;
+			}
+			@Override
+			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+				ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
+				if (matchingPlaceholder != null)
+					return matchingPlaceholder;
+				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
+					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
+					return REMOVE;
+				} else if (
+					expression instanceof Sequence &&
+					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
+				)
+					return expression.subElements()[0];
+				else if (
+					expression instanceof SimpleStatement &&
+					(matchingPlaceholder = as(((SimpleStatement)expression).expression(), MatchingPlaceholder.class)) != null
+				)
+					return matchingPlaceholder;
+				else
+					return expression;
+			}
+		});
+	}
 }

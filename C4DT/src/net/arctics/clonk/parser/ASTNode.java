@@ -25,7 +25,6 @@ import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
-import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
@@ -33,7 +32,6 @@ import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.Whitespace;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -903,54 +901,12 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		});
 	}
 
-	/**
-	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
-	 * improved matching capabilities with them.
-	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
-	 */
-	public ASTNode matchingExpr() {
-		return this.transformRecursively(new ITransformer() {
-			private ASTNode toMatchingPlaceholder(ASTNode expression) {
-				if (expression != null && expression.getClass() == Placeholder.class)
-					try {
-						return new MatchingPlaceholder(((Placeholder)expression).entryName());
-					} catch (ParsingException e) {
-						e.printStackTrace();
-						return null;
-					}
-				else
-					return null;
-			}
-			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
-				ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
-				if (matchingPlaceholder != null)
-					return matchingPlaceholder;
-				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
-					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
-					return REMOVE;
-				} else if (
-					expression instanceof Sequence &&
-					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
-				)
-					return expression.subElements()[0];
-				else if (
-					expression instanceof SimpleStatement &&
-					(matchingPlaceholder = as(((SimpleStatement)expression).expression(), MatchingPlaceholder.class)) != null
-				)
-					return matchingPlaceholder;
-				else
-					return expression;
-			}
-		});
-	}
-
 	private transient IType inferredType;
 	public IType inferredType() { return inferredType; }
 	public void inferredType(IType type) { inferredType = type; }
 
 	public transient Object temporaryProblemReportingObject;
-	
+
 	public final int sectionOffset() {
 		Function f = parentOfType(Function.class);
 		return f != null ? f.bodyLocation().start() : 0;
