@@ -23,6 +23,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.IReplacedWhenSaved;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
@@ -155,7 +156,7 @@ public abstract class SpecialEngineRules {
 	 * Base class for special rules.
 	 * @author madeen
 	 */
-	public static abstract class SpecialRule {
+	public static abstract class SpecialRule implements IReplacedWhenSaved {
 
 		public static class Ticket implements ISerializationResolvable, Serializable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -168,6 +169,9 @@ public abstract class SpecialEngineRules {
 				return index.engine().specialRules().rule(name);
 			}
 		}
+
+		@Override
+		public Object saveReplacement() { return new Ticket(this); }
 
 		public String name;
 

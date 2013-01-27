@@ -16,12 +16,12 @@ import net.arctics.clonk.util.Sink;
  * @author madeen
  *
  */
-public abstract class IndexEntity extends Structure {
-	
+public abstract class IndexEntity extends Structure implements IReplacedWhenSaved {
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	public interface TopLevelEntity {}
-	
+
 	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
 		@Override
 		public boolean filter(T item) {
@@ -33,10 +33,10 @@ public abstract class IndexEntity extends Structure {
 	 * Flag indicating whether the entity was loaded already loaded from disk or not.
 	 */
 	protected transient boolean loaded = true;
-	protected transient boolean dirty = false; 
+	protected transient boolean dirty = false;
 	protected transient Index index;
 	protected long entityId;
-	
+
 	/**
 	 * Mark this entity as being out of sync with the file it was read from.
 	 * @param flag Dirty or not dirty.
@@ -45,7 +45,7 @@ public abstract class IndexEntity extends Structure {
 	public void markAsDirty() {
 		dirty = true;
 	}
-	
+
 	/**
 	 * Mark this entity as not dirty (@see {@link #markAsDirty()})
 	 */
@@ -57,7 +57,7 @@ public abstract class IndexEntity extends Structure {
 	public boolean isDirty() {
 		return dirty;
 	}
-	
+
 	public IndexEntity(Index index) {
 		this.index = index;
 		if (index != null)
@@ -65,7 +65,7 @@ public abstract class IndexEntity extends Structure {
 		else if (!(this instanceof TopLevelEntity))
 			throw new InvalidParameterException("index");
 	}
-	
+
 	@Override
 	public final Index index() {
 		return index;
@@ -91,11 +91,11 @@ public abstract class IndexEntity extends Structure {
 				e.printStackTrace();
 			}
 	}
-	
+
 	public final boolean loaded() {
 		return loaded;
 	}
-	
+
 	/**
 	 * Return the index-specific id of this entity.
 	 * @return The identifier
@@ -103,7 +103,7 @@ public abstract class IndexEntity extends Structure {
 	public final long entityId() {
 		return entityId;
 	}
-	
+
 	/**
 	 * Return an additional object helping with identifying this entity uniquely.
 	 * This is to avoid cases where the {@link #entityId()} changed and identifying the entity by this id would result in erroneous results.
@@ -113,7 +113,7 @@ public abstract class IndexEntity extends Structure {
 	public Object additionalEntityIdentificationToken() {
 		return null;
 	}
-	
+
 	/**
 	 * Save the state of this entity to the stream. This method won't automatically serialize the whole object.
 	 * Individual fields need to be written explicitly in derived classes.
@@ -121,15 +121,15 @@ public abstract class IndexEntity extends Structure {
 	 * Other non-transient fields will be serialized automatically by the index in a single file. Those fields should not be too expensive to load since all
 	 * the index entities and their non-transient fields will be loaded at once, potentially making loading large indexes a hassle.
 	 * @param stream The stream to save the entity's state to
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void save(ObjectOutputStream stream) throws IOException {
 		// override
 	}
-	
+
 	/**
 	 * Save this entity by requesting a stream to write to from the {@link #index()}.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public final void save() throws IOException {
 		if (index == null)
@@ -143,7 +143,7 @@ public abstract class IndexEntity extends Structure {
 			}
 		}
 	}
-	
+
 	/**
 	 * Counterpart to {@link #load(ObjectInputStream)}. This method is required to load fields in the same order as they were saved by {@link #save(ObjectOutputStream)}.
 	 * @param stream The stream to load the entity's state from
@@ -152,12 +152,12 @@ public abstract class IndexEntity extends Structure {
 	 */
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return (int) entityId;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this)
@@ -166,7 +166,7 @@ public abstract class IndexEntity extends Structure {
 			return false;
 		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId && ((IndexEntity)obj).index == this.index;
 	}
-	
+
 	/**
 	 * Return whether {@link #save()} will be called by the {@link Index}.
 	 * @return True or false.
@@ -174,11 +174,14 @@ public abstract class IndexEntity extends Structure {
 	public boolean saveCalledByIndex() {
 		return false;
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		this.index = root;
 		super.postLoad(parent, root);
 	}
-	
+
+	@Override
+	public Object saveReplacement() { return index.saveReplacementForEntity(this); }
+
 }

@@ -5,15 +5,12 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 public class IndexEntityInputStream extends ObjectInputStream {
-	
 	private Index index;
-	
 	public IndexEntityInputStream(Index index, InputStream input) throws IOException {
 		super(input);
 		this.index = index;
 		enableResolveObject(true);
 	}
-
 	@Override
 	protected Object resolveObject(Object obj) throws IOException {
 		if (index == null && obj instanceof Index)

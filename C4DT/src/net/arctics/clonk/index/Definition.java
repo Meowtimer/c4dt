@@ -106,7 +106,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		index.removeDefinition(this);
 		id = newId;
 		index.addDefinition(this);
-		
+
 		if (definitionFolder != null)
 			try {
 				definitionFolder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
@@ -173,7 +173,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public void generateFindDeclarationCache() {
 		super.generateFindDeclarationCache();
 	}
-	
+
 	@Override
 	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final List<IHasIncludes> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
@@ -207,75 +207,56 @@ public class Definition extends Script implements IProplistDeclaration {
 			};
 		return objectType;
 	}
-	
+
 	public synchronized ConstrainedProplist thisType() {
 		if (thisType == null)
 			thisType = new ConstrainedProplist(this, ConstraintKind.CallerType, true, true);
 		return thisType;
 	}
-	
+
 	@Override
 	public IType simpleType() {
 		return PrimitiveType.OBJECT;
 	}
-	
+
+	private static class ProxyVarSaveReplacement implements ISerializationResolvable {
+		private final Definition definition;
+		public ProxyVarSaveReplacement(Definition definition) {
+			super();
+			this.definition = definition;
+		}
+		@Override
+		public Object resolve(Index index) { return definition.proxyVar(); }
+	}
+
 	/**
 	 * ProxyVar that is being referenced by {@link AccessVar} expressions (sort of a hack to support long definition names, while for ClonkRage, {@link IDLiteral} is still used)
 	 * @author madeen
 	 *
 	 */
-	public final class ProxyVar extends Variable {
+	public final class ProxyVar extends Variable implements IReplacedWhenSaved {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 		@Override
-		public String name() {
-			return id().stringValue();
-		}
-		
+		public String name() { return id().stringValue(); }
 		@Override
-		public void setName(String name) {
-			setId(ID.get(name));
-		}
-
+		public void setName(String name) { setId(ID.get(name)); }
 		@Override
-		public Declaration parentDeclaration() {
-			return Definition.this;
-		}
-
+		public Declaration parentDeclaration() { return Definition.this; }
 		@Override
-		public Structure topLevelStructure() {
-			return Definition.this;
-		}
-
+		public Structure topLevelStructure() { return Definition.this; }
 		@Override
-		public String infoText(IIndexEntity context) {
-			return Definition.this.infoText(context);
-		}
-
+		public String infoText(IIndexEntity context) { return Definition.this.infoText(context); }
 		@Override
-		public IType type() {
-			return Definition.this.objectType();
-		}
-
+		public IType type() { return Definition.this.objectType(); }
 		@Override
-		public boolean staticallyTyped() {
-			return true;
-		}
-		
-		public final Definition definition() {
-			return Definition.this;
-		}
-		
+		public boolean staticallyTyped() { return true; }
+		public final Definition definition() { return Definition.this; }
 		@Override
-		public Index index() {
-			return Definition.this.index();
-		}
-		
+		public Index index() { return Definition.this.index(); }
 		@Override
-		public Script script() {
-			return Definition.this.script();
-		}
-		
+		public Script script() { return Definition.this.script(); }
+		@Override
+		public Object saveReplacement() { return new ProxyVarSaveReplacement(definition()); }
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -283,10 +264,10 @@ public class Definition extends Script implements IProplistDeclaration {
 	protected transient IContainer definitionFolder;
 	protected transient IFile scriptFile;
 	protected transient IFile defCoreFile;
-	
+
 	protected String relativePath;
 	private transient ProxyVar proxyVar;
-	
+
 	@Override
 	public Object additionalEntityIdentificationToken() {
 		return new Pair<ID, String>(id(), relativePath);
@@ -330,7 +311,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	@Override
 	public IFile scriptStorage() { return scriptFile; }
-	
+
 	@Override
 	public void setScriptFile(IFile f) { scriptFile = f; }
 	public void setDefCoreFile(IFile defCoreFile) { this.defCoreFile = defCoreFile; }
@@ -351,7 +332,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public IFile defCoreFile() {
 		return defCoreFile;
 	}
-	
+
 	public DefCoreUnit defCore() {
 		return as(Structure.pinned(defCoreFile, true, false), DefCoreUnit.class);
 	}
@@ -381,7 +362,7 @@ public class Definition extends Script implements IProplistDeclaration {
 			//index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}
 	}
-	
+
 	/**
 	 * The folder the Definition was declared in. Will return null if no folder has been assigned to this Definition yet or if this Definition object denotes a no longer recent version of the definition.
 	 * @return the folder object or null due to circumstances listed above
@@ -424,7 +405,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		else
 			return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		return (name() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -480,7 +461,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public IProplistDeclaration prototype() {
 		return null;
 	}
-	
+
 	@Override
 	public String typeName(boolean special) {
 		return special && id != null ? id.stringValue() : PrimitiveType.OBJECT.typeName(false);
@@ -495,12 +476,12 @@ public class Definition extends Script implements IProplistDeclaration {
 		ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
 		return category != null ? as(category.value(), CategoriesValue.class) : null;
 	}
-	
+
 	public boolean categorySet(String category) {
 		CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
-	
+
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
 		boolean anyDefinitions = false;
@@ -520,7 +501,7 @@ public class Definition extends Script implements IProplistDeclaration {
 			}
 		return anyDefinitions ? false : primitives;
 	}
-	
+
 	static {
 		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
