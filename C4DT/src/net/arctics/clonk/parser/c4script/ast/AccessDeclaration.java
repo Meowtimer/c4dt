@@ -114,4 +114,10 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	@Override
 	public String patternMatchingText() { return declarationName(); }
 
+	@Override
+	public void postLoad(ASTNode parent, ProblemReportingContext context) {
+		super.postLoad(parent, context);
+		assert Boolean.TRUE;
+	}
+
 }

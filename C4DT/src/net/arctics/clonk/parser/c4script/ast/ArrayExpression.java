@@ -27,7 +27,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 		}
 		output.append("]"); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
 		return predecessor == null;
@@ -37,7 +37,7 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 	public boolean isModifiable(C4ScriptParser context) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isConstant() {
 		for (ASTNode e : subElements())
@@ -45,12 +45,12 @@ public class ArrayExpression extends ExprElmWithSubElementsArray {
 				return false;
 		return true;
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		ArrayList<Object> elm = new ArrayList<Object>(elements.length);
-		for (int i = 0; i < elements.length; i++)
-			elm.set(i, elements[i] != null ? elements[i].evaluate(context) : null);
+		for (ASTNode e : elements)
+			elm.add(e != null ? e.evaluate(context) : null);
 		return elm;
 	}
 

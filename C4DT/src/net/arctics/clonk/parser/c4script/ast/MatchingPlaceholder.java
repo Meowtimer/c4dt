@@ -202,7 +202,8 @@ public class MatchingPlaceholder extends Placeholder {
 					"%s.parser.%s",
 					"%s.parser.c4script.%s",
 					"%s.parser.c4script.ast.%sLiteral",
-					"%s.parser.c4script.ast.%sStatement"
+					"%s.parser.c4script.ast.%sStatement",
+					"%s.parser.c4script.ast.%sDeclaration"
 				};
 				for (String pkgFormat : packageFormats)
 					try {
@@ -279,9 +280,9 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
-		builder.append("$");
-		builder.append(entryName);
+	public void doPrint(ASTNodePrinter output, int depth) {
+		output.append("$");
+		output.append(entryName);
 		List<String> attribs = new ArrayList<String>(4);
 		if (requiredClass != null)
 			attribs.add(requiredClass.getSimpleName());
@@ -303,12 +304,12 @@ public class MatchingPlaceholder extends Placeholder {
 				break;
 			}
 		if (attribs.size() > 0) {
-			builder.append(":");
-			builder.append(StringUtil.blockString("", "", ",", attribs));
+			output.append(":");
+			output.append(StringUtil.blockString("", "", ",", attribs));
 		}
-		builder.append('$');
+		output.append('$');
 		if (subElements != null)
-			CallDeclaration.printParmString(builder, subElements, depth);
+			CallDeclaration.printParmString(output, subElements, depth);
 	}
 
 	public MatchingPlaceholder(String text) throws ParsingException {

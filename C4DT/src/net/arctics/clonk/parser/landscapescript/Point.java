@@ -10,7 +10,7 @@ public class Point extends OverlayBase {
 
 	@Override
 	public String toString() {
-		return toString(0).replaceAll("\n", " ");
+		return printed(0).replaceAll("\n", " ");
 	}
 
 }

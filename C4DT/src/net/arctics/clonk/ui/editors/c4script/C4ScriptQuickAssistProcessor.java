@@ -259,7 +259,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 				try {
 					this.replacementString = replacement.replacementExpression().exhaustiveOptimize
-						(TypeUtil.problemReportingContext(parser.script())).toString(tabIndentation+1);
+						(TypeUtil.problemReportingContext(parser.script())).printed(tabIndentation+1);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
 				}

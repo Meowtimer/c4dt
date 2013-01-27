@@ -541,7 +541,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param depth hint for indentation (only needed for statements)
 	 * @return the C4Script expression string
 	 */
-	public String toString(int depth) {
+	public final String printed(int depth) {
 		StringBuilder builder = new StringBuilder();
 		print(builder, depth);
 		return builder.toString();
@@ -549,7 +549,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	@Override
 	public String toString() {
-		return toString(0);
+		return printed(0);
 	}
 
 	public Comment commentedOut() {
@@ -850,7 +850,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 */
 	public Map<String, Object> match(ASTNode other) {
 		ASTNodeMatcher delegate = new ASTNodeMatcher();
-		if (this.compare(other, delegate))
+		if (delegate.equal(this, other))
 			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
 		else
 			return null;

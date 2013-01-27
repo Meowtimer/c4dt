@@ -22,12 +22,12 @@ import org.eclipse.core.runtime.IPath;
 public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	public static final Map<String, Class<? extends OverlayBase>> DEFAULT_CLASS = ArrayUtil.map(
 		false,
-		Keywords.Point   , Point.class, 
-		Keywords.Overlay , Overlay.class, 
-		Keywords.Map     , Overlay.class 
+		Keywords.Point   , Point.class,
+		Keywords.Overlay , Overlay.class,
+		Keywords.Map     , Overlay.class
 	);
 
 	protected SourceLocation body;
@@ -64,7 +64,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	@Override
 	public void addChild(ITreeNode node) {
 	}
-	
+
 	public boolean setAttribute(String attr, String valueLo, String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Field f = getClass().getField(attr);
 		if (f != null) {
@@ -84,31 +84,31 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 		}
 		return false;
 	}
-	
+
 	public void copyFromTemplate(OverlayBase template) throws IllegalArgumentException, IllegalAccessException {
 		for (Field field : getClass().getFields())
 			field.set(this, field.get(template));
 	}
-	
+
 	public void setBody(SourceLocation body) {
-		this.body = body;		
+		this.body = body;
 	}
 
 	public OverlayBase template() {
 		return null;
 	}
-	
+
 	public Operator operator() {
 		return null;
 	}
-	
+
 	public String typeName() {
 		for (String key : DEFAULT_CLASS.keySet())
 			if (DEFAULT_CLASS.get(key).equals(this.getClass()))
 				return key;
 		return null;
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		try {
@@ -160,14 +160,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 			e.printStackTrace();
 		}
 	}
-	
-	@Override
-	public String toString(int depth) {
-		StringBuilder builder = new StringBuilder();
-		this.print(builder, depth);
-		return builder.toString();
-	}
-	
+
 	@Override
 	public String toString() {
 		return typeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$

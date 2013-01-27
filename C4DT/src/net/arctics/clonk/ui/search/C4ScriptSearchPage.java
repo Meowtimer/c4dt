@@ -60,19 +60,19 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 
 public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
-	
+
 	public static final String PREF_TEMPLATE_TEXT = C4ScriptSearchPage.class.getSimpleName()+".templateText"; //$NON-NLS-1$
 	public static final String PREF_REPLACEMENT_TEXT = C4ScriptSearchPage.class.getSimpleName()+".replacementText"; //$NON-NLS-1$
 	public static final String PREF_SCOPE = C4ScriptSearchPage.class.getSimpleName()+".scope"; //$NON-NLS-1$
 	public static final String PREF_RECENTS = C4ScriptSearchPage.class.getSimpleName()+".recents"; //$NON-NLS-1$
-	
+
 	private static final String RECENTS_SEPARATOR = "<>"; //$NON-NLS-1$
-	
+
 	private Text templateText;
 	private Text replacementText;
 	private ISearchPageContainer container;
 	private ComboViewer recentsCombo;
-	
+
 	public C4ScriptSearchPage() {}
 
 	public C4ScriptSearchPage(String title) {
@@ -88,7 +88,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		createTextFields(parent);
 		readConfiguration();
 	}
-	
+
 	public static class Recent {
 		public String template;
 		public String replacement;
@@ -111,7 +111,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return template;
 		}
 	}
-	
+
 	public static final int MAX_RECENTS = 20;
 
 	private void addRecent() {
@@ -132,12 +132,12 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			}
 		})));
 	}
-	
+
 	private void readConfiguration() {
 		IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		templateText.setText(defaulting(prefs.getString(PREF_TEMPLATE_TEXT), "")); //$NON-NLS-1$
 		replacementText.setText(defaulting(prefs.getString(PREF_REPLACEMENT_TEXT), "")); //$NON-NLS-1$
-		
+
 		//prefs.setValue(PREF_RECENTS, "");
 		String s = prefs.getString(PREF_RECENTS);
 		String[] recentsRaw = s != null ? s.split(Pattern.quote(RECENTS_SEPARATOR)) : new String[0];
@@ -146,14 +146,14 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			recents[i] = new Recent(recentsRaw[i*2], i*2+1 < recentsRaw.length ? recentsRaw[i*2+1] : ""); //$NON-NLS-1$
 		recentsCombo.setInput(recents);
 	}
-	
+
 	private void writeConfiguration() {
 		IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		prefs.setValue(PREF_TEMPLATE_TEXT, templateText.getText());
 		prefs.setValue(PREF_REPLACEMENT_TEXT, replacementText.getText());
 		prefs.setValue(PREF_SCOPE, container.getSelectedScope());
 	}
-	
+
 	@Override
 	public void dispose() {
 		writeConfiguration();
@@ -165,10 +165,10 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		setControl(ctrl);
 		GridLayout gl_ctrl = new GridLayout(2, false);
 		ctrl.setLayout(gl_ctrl);
-		
+
 		Label recentTemplatesLabel = new Label(ctrl, SWT.LEFT);
 		recentTemplatesLabel.setText(Messages.C4ScriptSearchPage_Recents);
-		
+
 		Combo recentsCombo = new Combo(ctrl, SWT.READ_ONLY);
 		GridData gd_presetCombo = new GridData(GridData.FILL_HORIZONTAL);
 		gd_presetCombo.widthHint = 568;
@@ -186,27 +186,27 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 				}
 			}
 		});
-		
+
 		Label customTemplateLabel = new Label(ctrl, SWT.LEFT);
 		customTemplateLabel.setText(Messages.C4ScriptSearchPage_Template);
 		customTemplateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		
+
 		templateText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_templateText = new GridData(GridData.FILL_BOTH);
 		gd_templateText.widthHint = 527;
 		gd_templateText.heightHint = 150;
 		templateText.setLayoutData(gd_templateText);
-		
+
 		Label replacementLabel = new Label(ctrl, SWT.LEFT);
 		replacementLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		replacementLabel.setText(Messages.C4ScriptSearchPage_Replacement);
-		
+
 		replacementText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_replacementText = new GridData(GridData.FILL_BOTH);
 		gd_replacementText.heightHint = 168;
 		replacementText.setLayoutData(gd_replacementText);
 	}
-	
+
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
@@ -296,14 +296,14 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return null;
 		}
 	}
-	
+
 	@Override
 	public boolean performAction() {
 		addRecent();
 		NewSearchUI.runQueryInBackground(newQuery());
 		return true;
 	}
-	
+
 	@Override
 	public boolean performReplace() {
 		addRecent();
@@ -329,11 +329,15 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 							for (Match m : matches)
 								if (m instanceof C4ScriptSearchQuery.Match) {
 									C4ScriptSearchQuery.Match qm = (C4ScriptSearchQuery.Match) m;
-									ASTNode repl = query.replacement().transform(qm.subst());
+									ASTNode replacement = query.replacement();
+									ASTNode repl = replacement.transform(qm.subst());
+									if (repl == replacement)
+										repl = repl.clone();
 									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
+									repl.setParent(qm.matched().parent());
 									replacements.add(repl);
 								}
-							script.saveExpressions(replacements, false);
+							script.saveNodes(replacements, false);
 						}
 					}
 				}
@@ -341,7 +345,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		});
 		return true;
 	}
-	
+
 	@Override
 	public void setContainer(ISearchPageContainer container) {
 		this.container = container;

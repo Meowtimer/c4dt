@@ -21,21 +21,21 @@ import org.eclipse.jface.text.rules.ICharacterScanner;
  * Scanner operating on a string stored in memory. Can be created from a file, an input stream or a raw string
  */
 public class BufferedScanner implements ICharacterScanner {
-	
+
 	public static final byte TABINDENTATIONMODE = -1;
 	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 	public static final Pattern NUMERAL_PATTERN = Pattern.compile("[0-9]+");
-	
+
 	/**
 	 * characters that represent whitespace
 	 */
 	public static final char[] WHITESPACE_CHARS = new char[] { ' ', '\n', '\r', '\t' };
-	
+
 	/**
 	 * characters that represent a new-line
 	 */
 	public static final char[] NEWLINE_CHARS = new char[] { '\n', '\r' };
-	
+
 	/**
 	 * whitespace chars without new line chars
 	 */
@@ -45,22 +45,22 @@ public class BufferedScanner implements ICharacterScanner {
 	 * The buffer
 	 */
 	protected String buffer;
-	
+
 	/**
 	 * Size of the buffer
 	 */
 	protected int size;
-	
+
 	/**
 	 * Current offset
 	 */
 	protected int offset;
-	
+
 	/**
 	 * Indentation mode: -1 for Tab, number for number of whitespace characters
 	 */
 	protected byte indentationMode = -1;
-	
+
 	/**
 	 * Figure out what indentation the {@link #buffer()} is written in.
 	 * @return The value assigned to {@link #indentationMode}
@@ -96,7 +96,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public BufferedScanner(String withString) {
 		init(withString);
 	}
-	
+
 	protected final void init(String withString) {
 		offset = 0;
 		buffer = withString;
@@ -106,7 +106,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public BufferedScanner(Object source) {
 		this(stringFromSource(source));
 	}
-	
+
 	private static String stringFromSource(Object source) {
 		if (source instanceof IFile)
 			return StreamUtil.stringFromFileDocument((IFile) source);
@@ -168,11 +168,11 @@ public class BufferedScanner implements ICharacterScanner {
 		(character == '_') ||
 		(/*length > 0 &&*/ '0' <= character && character <= '9');
 	}
-	
+
 	public static boolean isWordStart(int character) {
 		return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
 	}
-	
+
 	/**
 	 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
 	 * @return the code-word
@@ -215,7 +215,7 @@ public class BufferedScanner implements ICharacterScanner {
 		seek(start);
 		return readString(stringLength);
 	}
-	
+
 	public final int skipUntil(char... delimiters) {
 		int subtract = 0;
 		int len;
@@ -230,7 +230,7 @@ public class BufferedScanner implements ICharacterScanner {
 		seek(this.offset-subtract);
 		return len;
 	}
-	
+
 	public final boolean skipSingleLineEnding() {
 		if (read() == '\r') {
 			if (read() != '\n')
@@ -241,7 +241,7 @@ public class BufferedScanner implements ICharacterScanner {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Reads a string until a newline character occurs
 	 * Cursor is after newline char(s)
@@ -305,7 +305,7 @@ public class BufferedScanner implements ICharacterScanner {
 		} while(!reachedEOF());
 		return result;
 	}
-	
+
 	public final int eatUntil(char ...delimiters) {
 		if (reachedEOF())
 			return 0; // no unreading() when already reached EOF
@@ -334,7 +334,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public int eatWhitespace() {
 		return eat(WHITESPACE_CHARS);
 	}
-	
+
 	/**
 	 * Return indentation of the line inside the given string at the given position using a specific indentation mode.
 	 * @param s The string the line is contained in to return the indentation of
@@ -373,7 +373,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public final int indentationAt(int offset) {
 		return indentationOfStringAtPos(buffer, offset, indentationMode);
 	}
-	
+
 	public final int currentIndentation() {
 		return indentationOfStringAtPos(buffer, tell(), indentationMode);
 	}
@@ -387,7 +387,7 @@ public class BufferedScanner implements ICharacterScanner {
 		offset = newPos;
 		return offset;
 	}
-	
+
 	/**
 	 * Advance the current position by the given delta.
 	 * @param delta The delta to advance the current position by
@@ -439,7 +439,7 @@ public class BufferedScanner implements ICharacterScanner {
 		seek(p);
 		return result;
 	}
-	
+
 	/**
 	 * Returns whether c is a line delimiter char
 	 * @param c the char
@@ -448,7 +448,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public static boolean isLineDelimiterChar(char c) {
 		return c == '\n' || c == '\r';
 	}
-	
+
 	/**
 	 * Returns whether is whitespace but not a line delimiter (' ', '\t')
 	 * @param c the character
@@ -457,7 +457,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public static boolean isWhiteSpaceButNotLineDelimiterChar(char c) {
 		return c == ' '	|| c == '\t';
 	}
-	
+
 	public static boolean isWhiteSpace(char c) {
 		return isLineDelimiterChar(c) || isWhiteSpaceButNotLineDelimiterChar(c);
 	}
@@ -471,7 +471,7 @@ public class BufferedScanner implements ICharacterScanner {
 		IRegion lineRegion = regionOfLineContainingRegion(region);
 		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
 	}
-	
+
 	/**
 	 * Returns a substring of the script denoted by a region
 	 * @param region the region
@@ -480,7 +480,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String bufferSubstringAtRegion(IRegion region) {
 		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength());
 	}
-	
+
 	/**
 	 * Returns the line region is contained in as a region
 	 * @param text the string to look for the line in
@@ -491,21 +491,21 @@ public class BufferedScanner implements ICharacterScanner {
 		int start, end;
 		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
 		for (end = regionInLine.getOffset()+regionInLine.getLength(); end+1 < text.length() && !isLineDelimiterChar(text.charAt(end+1)); end++);
-		return new Region(start, end-start);
+		return new Region(start, end-start+1);
 	}
-	
+
 	public final IRegion regionOfLineContainingRegion(IRegion regionInLine) {
 		return regionOfLineContainingRegion(this.buffer, regionInLine);
 	}
 
 	/**
-	 * returns the size of the buffer 
+	 * returns the size of the buffer
 	 * @return the buffer size
 	 */
 	public final int bufferSize() {
 		return size;
 	}
-	
+
 	/**
 	 * Return the buffer the scanner operates on
 	 * @return the buffer
@@ -513,7 +513,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String buffer() {
 		return buffer;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "offset: " + tell() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
@@ -528,7 +528,7 @@ public class BufferedScanner implements ICharacterScanner {
 		unread();
 		return p;
 	}
-	
+
 	/**
 	 * Returns the first character from the current offset that is not whitespace. This method does not alter the current offset
 	 * @return
@@ -540,18 +540,18 @@ public class BufferedScanner implements ICharacterScanner {
 		seek(pos);
 		return result;
 	}
-	
+
 	public final String peekString(int length) {
 		int pos = offset;
 		String result = readString(Math.min(length, size-offset));
 		seek(pos);
 		return result;
 	}
-	
+
 	public final String stringAtRegion(IRegion region) {
 		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
 	}
-	
+
 	public final void reset(String text) {
 		if (text == null)
 			text = "";
@@ -559,7 +559,7 @@ public class BufferedScanner implements ICharacterScanner {
 		offset = 0;
 		size = buffer.length();
 	}
-	
+
 	public void reset() {
 		offset = 0;
 	}
@@ -573,5 +573,5 @@ public class BufferedScanner implements ICharacterScanner {
 	public final int getColumn() {
 		return indentationAt(offset);
 	}
-	
+
 }

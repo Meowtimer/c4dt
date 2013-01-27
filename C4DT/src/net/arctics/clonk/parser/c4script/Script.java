@@ -50,6 +50,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
@@ -88,21 +89,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	protected transient List<Function> definedFunctions;
 	protected transient List<Variable> definedVariables;
 	protected transient Map<String, Effect> definedEffects;
-	
+
 	// set of scripts this script is using functions and/or static variables from
 	private Set<Script> usedScripts;
 	protected List<Directive> definedDirectives;
-	
+
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
 	private transient Collection<? extends IHasIncludes> includes;
 	private transient Scenario scenario;
-	
+
 	private Set<String> dictionary;
-	
+
 	private List<TypeAnnotation> typeAnnotations;
-	
+
 	public List<TypeAnnotation> typeAnnotations() {
 		return typeAnnotations;
 	}
@@ -120,25 +121,25 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Set<String> dictionary() {
 		return dictionary;
 	}
-	
+
 	/**
 	 * Return list of scripts used by this one. A script is considered to be using another one if it calls a global function or accesses a static variable defined in the other script.
-	 * Kept and managed to make reparsing a script using global declarations from some other script work without requiring a reload of all scripts in the index. 
+	 * Kept and managed to make reparsing a script using global declarations from some other script work without requiring a reload of all scripts in the index.
 	 * @return The list of used scripts
 	 */
 	public Collection<? extends Script> usedScripts() {
 		return copyListOrReturnDefaultList(usedScripts, NO_SCRIPTS);
 	}
-	
+
 	/**
 	 * Flag hinting that this script contains global functions/static variables. This flag will be consulted to decide whether to fully load the script when looking for global declarations.
 	 */
 	public boolean containsGlobals;
-	
+
 	protected Script(Index index) {
 		super(index);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -162,7 +163,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void save(ObjectOutputStream stream) throws IOException {
 		super.save(stream);
@@ -172,12 +173,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		stream.writeObject(definedEffects);
 		populateDictionary();
 	}
-	
+
 	private static int nextCamelBack(String s, int offset) {
 		for (++offset; offset < s.length() && !Character.isUpperCase(s.charAt(offset)); offset++);
 		return offset;
 	}
-	
+
 	public void detectEffects() {
 		List<EffectFunction> allEffectFunctions = new ArrayList<EffectFunction>(10);
 		for (EffectFunction f : functions(EffectFunction.class))
@@ -222,11 +223,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		for (Declaration d : accessibleDeclarations(ALL))
 			dictionary.add(d.name());
 	}
-	
+
 	public String scriptText() {
 		return ""; //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Return an array that acts as a map line number -> function at that line. Used for fast function lookups when only the line number is known.
 	 * @return The pseudo-map for getting the function at some line.
@@ -287,7 +288,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	/**
-	 * Returns \#include and \#appendto directives 
+	 * Returns \#include and \#appendto directives
 	 * @return The directives
 	 */
 	public Directive[] includeDirectives() {
@@ -349,11 +350,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		else
 			return includes(index(), this, options);
 	}
-	
+
 	private transient int _lastIncludesIndex;
 	private transient int _lastIncludesOrigin;
 	private transient int _lastIncludesOptions;
-	
+
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list
 	 * @param index The index to be passed to gatherIncludes
@@ -374,7 +375,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return includes = IHasIncludes.Default.includes(index, this, origin, options);
 		}
 	}
-	
+
 	public boolean directlyIncludes(Definition other) {
 		for (Directive d : directives())
 			if (d.refersTo(other))
@@ -453,7 +454,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			addAllSynchronized(definedDirectives, decs);
 		return decs;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
@@ -489,7 +490,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		// prevent infinite recursion
 		if (!info.startSearchingIn(this))
 			return null;
-		
+
 		Class<? extends Declaration> decClass = info.declarationClass;
 
 		// local variable?
@@ -500,7 +501,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					return v;
 			}
 
-		
+
 		boolean knows = dictionary() == null || dictionary().contains(name);
 		boolean didUseCacheForLocalDeclarations = false;
 		if (knows) {
@@ -543,7 +544,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 						return v;
 				}
 			}
-			
+
 			info.recursion++;
 			{
 				for (IHasIncludes o : includes(info.index, info.searchOrigin, 0)) {
@@ -554,7 +555,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			}
 			info.recursion--;
 		}
-		
+
 		// finally look if it's something global
 		if (info.recursion == 0 && info.index != null) {
 			info.recursion++;
@@ -567,7 +568,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	private Declaration findGlobalDeclaration(String name, FindDeclarationInfo info) {
-		
+
 		// prefer declarations from scripts that were previously determined to be the providers of global declarations
 		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
 		if (usedScripts != null)
@@ -576,7 +577,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				if (f != null && f.isGlobal())
 					return f;
 			}
-		
+
 		if (info.findGlobalVariables && engine().acceptsId(name)) {
 			Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
 			if (d != null)
@@ -599,11 +600,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
 				return f;
 		}
-		
+
 		// engine function
 		return index().engine().findDeclaration(name, info);
 	}
-	
+
 	public void addDeclaration(Declaration declaration) {
 		requireLoaded();
 		declaration.setScript(this);
@@ -669,7 +670,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	public abstract IStorage scriptStorage();
-	
+
 	public final IFile scriptFile() {
 		IStorage storage = scriptStorage();
 		return storage instanceof IFile ? (IFile)storage : null;
@@ -729,7 +730,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 		return null;
 	}
-	
+
 	public Variable variableWithInitializationAt(IRegion region) {
 		requireLoaded();
 		for (Variable v : variables()) {
@@ -831,7 +832,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			definedVariables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
-	
+
 	private static final List<Directive> NO_DIRECTIVES = Collections.unmodifiableList(new ArrayList<Directive>());
 	private static final List<Function> NO_FUNCTIONS = Collections.unmodifiableList(new ArrayList<Function>());
 	private static final List<Variable> NO_VARIABLES = Collections.unmodifiableList(new ArrayList<Variable>());
@@ -846,7 +847,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		requireLoaded();
 		return definedFunctions != null ? definedFunctions : NO_FUNCTIONS;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T definedDeclarationNamed(String name, Class<T> cls) {
 		List<T> list;
@@ -866,7 +867,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Iterate over all functions of a certain function class.
 	 * @param cls The {@link Function} class
@@ -893,7 +894,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public List<? extends Directive> directives() {
 		return definedDirectives != null ? definedDirectives : NO_DIRECTIVES;
 	}
-	
+
 	/**
 	 * Return a map mapping effect name to {@link Effect} object
 	 * @return The map
@@ -998,11 +999,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		}
 		monitor.done();
 	}
-	
+
 	private String sourceComment;
 	public String sourceComment() { return sourceComment; }
 	public void setSourceComment(String s) { sourceComment = s; }
-	
+
 	@Override
 	public String infoText(IIndexEntity context) {
 		//requireLoaded();
@@ -1049,7 +1050,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		if (node instanceof Declaration)
 			addDeclaration((Declaration)node);
 	}
-	
+
 	public void addUsedScript(Script script) {
 		if (script == null)
 			// this does happen, for example when adding the script of some variable read from PlayerControls.txt
@@ -1064,7 +1065,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			usedScripts.add(script);
 		}
 	}
-	
+
 	/**
 	 * notification sent by the index when a script is removed
 	 */
@@ -1074,13 +1075,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				usedScripts.remove(script);
 			}
 	}
-	
+
 	@Override
 	public Engine engine() {
 		Index index = index();
 		return index != null ? index.engine() : null;
 	}
-	
+
 	public static Script get(IResource resource, boolean onlyForScriptFile) {
 		Script script;
 		if (resource == null)
@@ -1093,17 +1094,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			return null;
 		return script;
 	}
-	
+
 	@Override
 	public Script constraint() {
 		return this;
 	}
-	
+
 	@Override
 	public ConstraintKind constraintKind() {
 		return ConstraintKind.Exact;
 	}
-	
+
 	/**
 	 * Return script the passed type is associated with (or is literally)
 	 * @param type Type to return a script from
@@ -1115,7 +1116,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		else
 			return null;
 	}
-	
+
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
 		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
@@ -1135,35 +1136,35 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public IType simpleType() {
 		return PrimitiveType.OBJECT;
 	}
-	
+
 	@Override
 	public Function function() {
 		return null;
 	}
-	
+
 	@Override
 	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 		// cool.
 	}
-	
+
 	@Override
 	public Object[] arguments() {
 		return new Object[0];
 	}
-	
+
 	@Override
 	public Object valueForVariable(String varName) {
 		return findLocalVariable(varName, true); // whatever
 	}
-	
+
 	@Override
 	public int codeFragmentOffset() {
 		return 0;
 	}
-	
+
 	@Override
 	public void setTypeDescription(String description) {}
-	
+
 	@Override
 	public IType resolve(ProblemReportingContext context, IType callerType) {
 		return this;
@@ -1189,7 +1190,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 						cachedVariableMap.put(v.name(), v);
 			}
 	}
-	
+
 	public void generateFindDeclarationCache() {
 		//populateDictionary();
 		cachedFunctionMap = new HashMap<String, Function>();
@@ -1197,14 +1198,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		_generateFindDeclarationCache();
 		populateDictionary();
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		generateFindDeclarationCache();
 		indexRefresh();
 	}
-	
+
 	@Override
 	public String qualifiedName() {
 		if (resource() == null) {
@@ -1214,7 +1215,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		else
 			return resource().getProjectRelativePath().toOSString();
 	}
-	
+
 	public void indexRefresh() {
 		if (loaded) {
 			IResource res = resource();
@@ -1222,7 +1223,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			detectEffects();
 		}
 	}
-	
+
 	/**
 	 * Return the {@link Scenario} the {@link Script} is contained in.
 	 */
@@ -1230,8 +1231,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	public Scenario scenario() {
 		return scenario;
 	}
-	
-	public void saveExpressions(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
+
+	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
 		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
 			@Override
 			public Boolean run(IDocument document) {
@@ -1247,7 +1248,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					});
 					for (ASTNode e : l) {
 						IRegion region = absoluteLocations ? e.absolute() : e;
-						document.replace(region.getOffset(), region.getLength(), e.printed());
+						int depth;
+						ASTNode n;
+						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
+						document.replace(region.getOffset(), region.getLength(), e.printed(depth));
 					}
 					return true;
 				} catch (BadLocationException e) {
@@ -1257,17 +1261,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 			}
 		});
 	}
-	
+
 	@Override
 	public PrimitiveType primitiveType() {
 		return PrimitiveType.OBJECT;
 	}
 
 	public void setScriptFile(IFile f) {}
-	
+
 	@Override
 	public boolean isGlobal() { return true; }
-	
+
 	@Override
 	public ASTNode[] subElements() {
 		List<Declaration> decs = subDeclarations(index(), ALL);

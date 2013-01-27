@@ -47,8 +47,6 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	}
 	@Override
 	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {
-		if (left instanceof MatchingPlaceholder)
-			addToResult(right, (MatchingPlaceholder)left);
 		for (int i = 0; i < leftSubElements.length; i++) {
 			ASTNode left = leftSubElements[i];
 			if (left instanceof MatchingPlaceholder)
@@ -76,7 +74,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	@Override
 	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
 		MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
-		return mp != null && mp.multiplicity() == Multiplicity.One && mp.satisfiedBy(right);
+		return mp != null && mp.multiplicity() == Multiplicity.One && mp.subElements().length == 0 && mp.satisfiedBy(right);
 	}
 	/**
 	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
@@ -96,15 +94,21 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 						}
 					else if (expression instanceof BinaryOp) {
 						BinaryOp bop = (BinaryOp) expression;
-						MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
-						MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
-						if (mpl != null && mpr != null)
-							try {
-								return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
-							} catch (ParsingException e) {
-								e.printStackTrace();
-								return null;
-							}
+						switch (bop.operator()) {
+						case And: case Or: case BitAnd: case BitOr:
+							MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
+							MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
+							if (mpl != null && mpr != null)
+								try {
+									return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
+								} catch (ParsingException e) {
+									e.printStackTrace();
+									return null;
+								}
+							break;
+						default:
+							break;
+						}
 					}
 				return null;
 			}
@@ -121,13 +125,12 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
 				)
 					return expression.subElements()[0];
-				else if (
-					expression instanceof SimpleStatement &&
-					(matchingPlaceholder = as(((SimpleStatement)expression).expression(), MatchingPlaceholder.class)) != null
-				)
-					return matchingPlaceholder;
-				else
-					return expression;
+				else if (expression instanceof SimpleStatement) {
+					ASTNode inner = ((SimpleStatement)expression).expression();
+					if (inner instanceof MatchingPlaceholder || expression.parent() == null)
+						return inner;
+				}
+				return expression;
 			}
 		});
 	}

@@ -25,7 +25,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public class C4ScriptSearchQuery extends SearchQueryBase {
-	
+
 	public static class Match extends ClonkSearchMatch {
 		private final ASTNode matched;
 		private final Map<String, Object> subst;
@@ -37,7 +37,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 			this.subst = subst;
 		}
 	}
-	
+
 	private void addMatch(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		Match m = match(match, parser, s, l, subst);
 		result.addMatch(m);
@@ -45,7 +45,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	protected static Match match(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
-		String line = parser.bufferSubstringAtRegion(lineRegion).trim();
+		String line = parser.bufferSubstringAtRegion(lineRegion);
 		Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
 		return m;
 	}
@@ -57,7 +57,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
-	
+
 	private Engine commonEngine(Iterable<Script> scripts) {
 		Engine e = null;
 		for (Script s : scripts)
@@ -67,7 +67,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 				throw new IllegalArgumentException("Scripts from different engines");
 		return e;
 	}
-	
+
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
 		Engine engine = commonEngine(scope);
@@ -75,7 +75,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 		this.replacement = replacementExpressionText != null ? ScriptsHelper.matchingExpr(replacementExpressionText, engine) : null;
 		this.scope = scope;
 	}
-	
+
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		threadPool(new Sink<ExecutorService>() {
@@ -126,7 +126,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	@Override
 	public String getLabel() {
-		return String.format("Search for '%s'", templateText); 
+		return String.format("Search for '%s'", templateText);
 	}
 
 }
