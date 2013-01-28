@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.VisitCodeFlavour;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -65,13 +64,11 @@ public class EntityLocator extends ExpressionLocator {
 		public IRegion body;
 		public int bodyStart;
 		public Engine engine;
-		public VisitCodeFlavour flavour;
 		public Function func;
-		public void initialize(IRegion body, Engine engine, VisitCodeFlavour flavour) {
+		public void initialize(IRegion body, Engine engine) {
 			this.body = body;
 			this.bodyStart = body.getOffset();
 			this.engine = engine;
-			this.flavour = flavour;
 		}
 	}
 
@@ -82,9 +79,9 @@ public class EntityLocator extends ExpressionLocator {
 			if (var == null)
 				return false;
 			else
-				d.initialize(var.initializationExpressionLocation(), var.engine(), VisitCodeFlavour.OnlyExpressions);
+				d.initialize(var.initializationExpressionLocation(), var.engine());
 		} else
-			d.initialize(d.func.bodyLocation(), d.func.engine(), VisitCodeFlavour.AlsoStatements);
+			d.initialize(d.func.bodyLocation(), d.func.engine());
 		return true;
 	}
 

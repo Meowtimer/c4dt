@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
-import static net.arctics.clonk.util.Utilities.as;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -136,11 +134,9 @@ public abstract class CodeConverter {
 		ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(new StringBuilder());
 		if (e instanceof PropListExpression)
 			Conf.blockPrelude(newStringWriter, 0);
-		parser.setCurrentFunction(as(d, Function.class));
 		if (d instanceof Function)
 			Conf.blockPrelude(newStringWriter, 0);
 		performConversion(parser, e).print(newStringWriter, 0);
-		parser.setCurrentFunction(null);
 		String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));

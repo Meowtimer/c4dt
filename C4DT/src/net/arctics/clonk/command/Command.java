@@ -265,7 +265,6 @@ public class Command {
 						parser.setMarkers(markers);
 						parsers.put(f.script(), parser);
 					}
-					parser.setCurrentFunction(f);
 					f.body().reconsider(parser);
 					ProblemReportingContext ctx = new DabbleInference().localTypingContext(parser);
 					ctx.reportProblemsOfFunction(f);

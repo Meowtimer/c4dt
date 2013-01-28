@@ -166,7 +166,6 @@ public class ReferencesQuery extends SearchQueryBase {
 					else if (scope instanceof Function) {
 						Function func = (Function)scope;
 						C4ScriptParser parser = new C4ScriptParser(func.script());
-						parser.setCurrentFunction(func);
 						func.traverse(visitor, strategy.localTypingContext(parser));
 					}
 			}

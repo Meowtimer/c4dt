@@ -516,7 +516,7 @@ public class BufferedScanner implements ICharacterScanner {
 
 	@Override
 	public String toString() {
-		return "offset: " + tell() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
+		return "offset: " + tell() + "; next: " + peekString(100); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

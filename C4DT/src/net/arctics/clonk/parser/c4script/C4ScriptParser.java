@@ -220,7 +220,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 * Sets the current function. There should be a good reason to call this.
 	 * @param func
 	 */
-	public void setCurrentFunction(Function func) {
+	private void setCurrentFunction(Function func) {
 		if (func != currentFunction) {
 			currentFunction = func;
 			setCurrentDeclaration(func);
@@ -374,7 +374,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
 			typeAnnotations = new ArrayList<TypeAnnotation>();
 		this.seek(0);
-		markers().enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 		try {
 			parseInitialSourceComment();
 			eatWhitespace();
@@ -389,7 +388,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		}
 		catch (ParsingException e) { return; }
 		finally {
-			markers().enableError(ParserErrorCode.StringNotClosed, true);
 			if (markers != null)
 				markers.deploy();
 		}
@@ -477,30 +475,28 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			for (SpecialFuncRule eventListener : specialEngineRules.functionEventListeners())
 				eventListener.functionAboutToBeParsed(function, this);
 
-		Declaration oldDec = currentDeclaration();
 		try {
-			setCurrentFunction(function);
 			// reset local vars
 			function.resetLocalVarTypes();
 			// parse code block
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			List<ASTNode> statements = new LinkedList<ASTNode>();
 			function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
-			parseStatementBlock(offset, statements, options, VisitCodeFlavour.AlsoStatements, function.isOldStyle());
+			parseStatementBlock(offset, statements, options, function.isOldStyle());
 			FunctionBody bunch = new FunctionBody(function, statements);
 			if (function.isOldStyle() && statements.size() > 0)
 				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
-			//if (builder == null)
-			//	reportProblemsOf(statements, false);
-			function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
+			else
+				function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
 			function.storeBody(bunch, functionSource(function));
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM)
 				function.createParameters(numUnnamedParameters);
 			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters() - 1).isActualParm()))
 				addVarParmsParm(function);
 		} catch (SilentParsingException e) {
-			// not really an error
+			System.out.println(e);
 		} catch (ParsingException e) {
+			System.out.println(e);
 			// System.out.println(String.format("ParsingException in %s (%s)",
 			// activeFunc.getName(), container.getName()));
 			// e.printStackTrace();
@@ -509,9 +505,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			// errorWithCode throws ^^;
 			e.printStackTrace();
 			error(ParserErrorCode.InternalError, this.offset, this.offset + 1, Markers.NO_THROW, e.getMessage());
-		} finally {
-			setCurrentDeclaration(oldDec);
-			currentFunction = null;
 		}
 	}
 
@@ -572,9 +565,10 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 */
 	protected Declaration parseDeclaration() throws ParsingException {
 		final int startOfDeclaration = this.offset;
-		int readByte = read();
 		Declaration result = null;
-		if (readByte == '#') {
+		
+		if (peek() == '#') {
+			read();
 			// directive
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			DirectiveType type = DirectiveType.makeType(directiveName);
@@ -594,28 +588,26 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				result = directive;
 			}
 		}
-		else {
-			this.seek(startOfDeclaration);
-
-			if (result == null) {
-				FunctionHeader functionHeader = FunctionHeader.parse(this, true);
-				if (functionHeader != null) {
-					Function f = parseFunctionDeclaration(functionHeader);
-					if (f != null)
-						result = f;
-				}
-			}
-
-			if (result == null) {
-				String word = readIdent();
-				Scope scope = word != null ? Scope.makeScope(word) : null;
-				if (scope != null) {
-					List<VarInitialization> v = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
-					if (v != null)
-						result = new Variables(v);
-				}
+			
+		if (result == null) {
+			FunctionHeader functionHeader = FunctionHeader.parse(this, true);
+			if (functionHeader != null) {
+				Function f = parseFunctionDeclaration(functionHeader);
+				if (f != null)
+					result = f;
 			}
 		}
+
+		if (result == null) {
+			String word = readIdent();
+			Scope scope = word != null ? Scope.makeScope(word) : null;
+			if (scope != null) {
+				List<VarInitialization> v = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
+				if (v != null)
+					result = new Variables(v);
+			}
+		}
+		
 		if (result == null)
 			this.seek(startOfDeclaration);
 		return result;
@@ -1011,7 +1003,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		int endOfHeader;
 		Comment desc = collectPrecedingComment(header.start);
 		eatWhitespace();
-
 		setCurrentFunction(null);
 		if (header.isOldStyle)
 			warning(ParserErrorCode.OldStyleFunc, header.nameStart, header.nameStart+header.name.length(), 0);
@@ -1025,7 +1016,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
 			if (header.isOldStyle && shouldBeBracket == ':')
-			{} // old style funcs have no named parameters
+				{} // old style funcs have no named parameters
 			else
 				tokenExpectedError("("); //$NON-NLS-1$
 		} else {
@@ -1079,7 +1070,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			} else if (!header.isOldStyle)
 				tokenExpectedError("{"); //$NON-NLS-1$
 			else
-				this.seek(endOfHeader);
+				this.unread();
 
 		// body
 		if (parseBody)
@@ -1155,7 +1146,11 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			if (isHex)
 				do {
 					int readByte = read();
-					if (('0' <= readByte && readByte <= '9') || ('A' <= readByte && readByte <= 'F') ||  ('a' <= readByte && readByte <= 'f'))  {
+					if (
+						('0' <= readByte && readByte <= '9') ||
+						('A' <= readByte && readByte <= 'F') || 
+						('a' <= readByte && readByte <= 'f')
+					) {
 						count++;
 						continue;
 					}
@@ -1524,7 +1519,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 
 			// (<expr>)
 			if (elm == null) {
-				int parenthStartPos = this.offset;
 				int c = read();
 				if (c == '(') {
 					if (prevElm != null) {
@@ -1534,17 +1528,14 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 						elm = new CallExpr(tupleElms.toArray(new ASTNode[tupleElms.size()]));
 					} else {
 						ASTNode firstExpr = parseExpression(reportErrors);
-						if (firstExpr == null) {
+						if (firstExpr == null)
 							firstExpr = ASTNode.whitespace(this.offset, 0, this);
 							// might be disabled
-							error(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
-						}
 						eatWhitespace();
 						c = read();
 						if (c == ')')
 							elm = new Parenthesized(firstExpr);
 						else if (c == ',') {
-							error(ParserErrorCode.TuplesNotAllowed, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION);
 							// tuple (just for multiple parameters for return)
 							List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 							tupleElms.add(firstExpr);
@@ -2104,7 +2095,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 					int read = read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<ASTNode> subStatements = new LinkedList<>();
-						parseStatementBlock(start, subStatements, ParseStatementOption.NoOptions, VisitCodeFlavour.AlsoStatements, false);
+						parseStatementBlock(start, subStatements, ParseStatementOption.NoOptions, false);
 						result = new Block(subStatements);
 					}
 					else if (read == ';')
@@ -2209,7 +2200,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 * @param flavour Whether parsing statements or only expressions
 	 * @throws ParsingException
 	 */
-	protected void parseStatementBlock(int start, List<ASTNode> statements, EnumSet<ParseStatementOption> options, VisitCodeFlavour flavour, boolean oldStyle) throws ParsingException {
+	protected void parseStatementBlock(int start, List<ASTNode> statements, EnumSet<ParseStatementOption> options, boolean oldStyle) throws ParsingException {
 		boolean done = false;
 		boolean reached = true;
 		int garbageStart = -1;
@@ -2218,9 +2209,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			this.statementReached = reached;
 			int potentialGarbageEnd = offset;
 			//eatWhitespace();
-			Statement statement = flavour == VisitCodeFlavour.AlsoStatements
-				? parseStatement(options)
-				: SimpleStatement.wrapExpression(parseExpression());
+			Statement statement = parseStatement(options);
 			if (statement == null) {
 				done = oldStyle || peek() == '}';
 				if (done)
@@ -2364,14 +2353,9 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		if (peek() == ';')
 			returnExpr = null;
 		else {
-			markers().enableError(ParserErrorCode.TuplesNotAllowed, false);
-			if (strictLevel() < 2)
-				markers().enableError(ParserErrorCode.EmptyParentheses, false);
 			returnExpr = parseExpression();
 			if (returnExpr == null)
 				error(ParserErrorCode.ValueExpected, this.offset, this.offset+1, Markers.NO_THROW);
-			markers().enableError(ParserErrorCode.TuplesNotAllowed, true);
-			markers().enableError(ParserErrorCode.EmptyParentheses, true);
 		}
 		result = new ReturnStatement(returnExpr);
 		result.setFinishedProperly(parseSemicolonOrReturnFalse());
@@ -2720,22 +2704,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 */
 	protected String modifyGarbage(String garbage) {
 		return garbage; // normal parser accepts teh garbage
-	}
-
-	/**
-	 * Enum to specify kind of expression reporting
-	 * @author madeen
-	 *
-	 */
-	public enum VisitCodeFlavour {
-		/**
-		 * Report only expressions (call {@link C4ScriptParser#parseExpression()})
-		 */
-		OnlyExpressions,
-		/**
-		 * Report statements as well (call {@link C4ScriptParser#parseStatement()})
-		 */
-		AlsoStatements
 	}
 
 	public static ASTNode parse(final String source, Engine engine) throws ParsingException {

@@ -904,8 +904,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 								break;
 							}
 						}
-				if (result == null)
-					System.out.println(String.format("Couldn't find entity '%s' in '%s'", this.toString(), externalIndex.project().getName()));
 			}
 			else
 				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s'", this.toString()));

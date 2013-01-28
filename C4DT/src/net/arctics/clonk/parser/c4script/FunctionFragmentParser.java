@@ -41,7 +41,6 @@ public class FunctionFragmentParser extends C4ScriptParser {
 		return buffer;
 	}
 	public void update() {
-		setCurrentFunction(function);
 		String functionSource = functionSource(function);
 		FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;
 		// if block is non-existent or outdated, parse function code and store block
@@ -52,7 +51,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 			markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
-			parseStatementBlock(offset, statements, options, VisitCodeFlavour.AlsoStatements, false);
+			parseStatementBlock(offset, statements, options, false);
 			cachedBlock = new FunctionBody(function, statements);
 			if (function != null)
 				function.storeBody(cachedBlock, functionSource);

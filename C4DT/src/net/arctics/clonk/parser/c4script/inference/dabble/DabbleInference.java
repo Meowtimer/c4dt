@@ -38,7 +38,6 @@ import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -400,7 +399,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void reportProblems() {
 			newTypeEnvironment();
 			for (Variable v : script().variables()) {
-				parser.setCurrentFunction(null);
 				ASTNode init = v.initializationExpression();
 				if (init != null) {
 					Function owningFunc = as(init.owningDeclaration(), Function.class);
@@ -583,7 +581,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 */
 		public IType type(T node, ScriptProcessor processor) {
 			IType urt = unresolvedType(node, processor);
-			return TypeUtil.resolve(urt, processor, callerType(node, processor));
+			return TypeUtil.resolve(urt, processor, reporter(node).callerType(node, processor));
 		}
 
 		public IType callerType(T node, ScriptProcessor processor) {
@@ -1294,13 +1292,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
 						SpecialFuncRule rule = node.specialRuleFromContext(processor, SpecialEngineRules.RETURNTYPE_MODIFIER);
-						if (rule != null)
-							return new CallReturnType(node, rule, processor.script());
 						Function f = (Function)d;
-						if (f.returnType() instanceof IResolvableType)
-							return new CallReturnType(node, null, processor.script());
-						else
-							return f.returnType();
+						return f.returnType();
 					}
 					if (d instanceof Variable)
 						return ((Variable)d).type();
