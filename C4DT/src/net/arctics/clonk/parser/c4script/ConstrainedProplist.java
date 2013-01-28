@@ -174,9 +174,9 @@ public class ConstrainedProplist implements IRefinedPrimitiveType, IHasConstrain
 		switch (constraintKind()) {
 		case CallerType:
 			if (callerType == null)
-				return ConstrainedProplist.object(constraint, ConstraintKind.Includes);
-			else if (callerType != constraint() || context.script() != constraint())
-				return callerType;
+				return new ConstrainedProplist(constraint, ConstraintKind.Includes, definition, object);
+			else if (callerType != constraint() || context.script() != constraint() && callerType instanceof IHasIncludes)
+				return object ? callerType : new ConstrainedProplist((IHasIncludes)callerType, ConstraintKind.Exact, definition, object);
 			else
 				break;
 		case Exact:

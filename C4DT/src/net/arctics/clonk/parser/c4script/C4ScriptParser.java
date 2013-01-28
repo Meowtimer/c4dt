@@ -23,7 +23,6 @@ import net.arctics.clonk.parser.MalformedDeclaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -220,7 +219,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 * Sets the current function. There should be a good reason to call this.
 	 * @param func
 	 */
-	private void setCurrentFunction(Function func) {
+	protected void setCurrentFunction(Function func) {
 		if (func != currentFunction) {
 			currentFunction = func;
 			setCurrentDeclaration(func);
@@ -475,37 +474,23 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			for (SpecialFuncRule eventListener : specialEngineRules.functionEventListeners())
 				eventListener.functionAboutToBeParsed(function, this);
 
-		try {
-			// reset local vars
-			function.resetLocalVarTypes();
-			// parse code block
-			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			List<ASTNode> statements = new LinkedList<ASTNode>();
-			function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
-			parseStatementBlock(offset, statements, options, function.isOldStyle());
-			FunctionBody bunch = new FunctionBody(function, statements);
-			if (function.isOldStyle() && statements.size() > 0)
-				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
-			else
-				function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
-			function.storeBody(bunch, functionSource(function));
-			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM)
-				function.createParameters(numUnnamedParameters);
-			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters() - 1).isActualParm()))
-				addVarParmsParm(function);
-		} catch (SilentParsingException e) {
-			System.out.println(e);
-		} catch (ParsingException e) {
-			System.out.println(e);
-			// System.out.println(String.format("ParsingException in %s (%s)",
-			// activeFunc.getName(), container.getName()));
-			// e.printStackTrace();
-			// not very exceptional
-		} catch (Exception e) {
-			// errorWithCode throws ^^;
-			e.printStackTrace();
-			error(ParserErrorCode.InternalError, this.offset, this.offset + 1, Markers.NO_THROW, e.getMessage());
-		}
+		// reset local vars
+		function.resetLocalVarTypes();
+		// parse code block
+		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+		List<ASTNode> statements = new LinkedList<ASTNode>();
+		function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
+		parseStatementBlock(offset, statements, options, function.isOldStyle());
+		FunctionBody bunch = new FunctionBody(function, statements);
+		if (function.isOldStyle() && statements.size() > 0)
+			function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
+		else
+			function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
+		function.storeBody(bunch, functionSource(function));
+		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM)
+			function.createParameters(numUnnamedParameters);
+		else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.numParameters() == 0 || function.parameter(function.numParameters() - 1).isActualParm()))
+			addVarParmsParm(function);
 	}
 
 	/**

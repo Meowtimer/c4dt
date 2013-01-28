@@ -11,20 +11,20 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;
 
-public final class TypeChoice implements IType, IResolvableType {
+public class TypeChoice implements IType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private final IType left, right;
+	protected final IType left, right;
 	
 	public IType left() { return left; }
 	public IType right() { return right; }
@@ -36,6 +36,17 @@ public final class TypeChoice implements IType, IResolvableType {
 		new TypeChoice(PrimitiveType.ID, PrimitiveType.INT),
 		new TypeChoice(PrimitiveType.STRING, PrimitiveType.INT)
 	};
+	
+	private static class ResolvableTypeChoice extends TypeChoice implements IResolvableType {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public ResolvableTypeChoice(IType left, IType right) { super(left, right); }
+		@Override
+		public IType resolve(ProblemReportingContext context, IType callerType) {
+			IType rl = TypeUtil.resolve(left, context, callerType);
+			IType rr = TypeUtil.resolve(right, context, callerType);
+			return rl == left && rr == right ? this : TypeChoice.make(rl, rr);
+		}
+	}
 	
 	public static IType make(IType left, IType right) {
 		if (left == null)
@@ -50,7 +61,9 @@ public final class TypeChoice implements IType, IResolvableType {
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
-		return new TypeChoice(left, right).removeDuplicates();
+		return ((left instanceof IResolvableType || right instanceof IResolvableType)
+			? new ResolvableTypeChoice(left, right)
+			: new TypeChoice(left, right)).removeDuplicates();
 	}
 	protected IType removeDuplicates() {
 		return remove(this, new IPredicate<IType>() {
@@ -193,13 +206,6 @@ public final class TypeChoice implements IType, IResolvableType {
 				(other.right.equals(left) && other.right.equals(left));
 		} else
 			return false;
-	}
-
-	@Override
-	public IType resolve(ProblemReportingContext context, IType callerType) {
-		IType rl = TypeUtil.resolve(left, context, callerType);
-		IType rr = TypeUtil.resolve(right, context, callerType);
-		return rl == left && rr == right ? this : TypeChoice.make(rl, rr);
 	}
 
 }

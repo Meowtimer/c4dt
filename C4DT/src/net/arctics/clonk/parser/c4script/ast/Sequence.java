@@ -60,7 +60,12 @@ public class Sequence extends ExprElmWithSubElementsArray {
 				break;
 			else
 				list.add(e);
-		return list.size() > 0 ? new Sequence(list) : null;
+		if (list.size() > 0) {
+			Sequence s = new Sequence(list);
+			s.setParent(parent());
+			return s;
+		} else
+			return null;
 	}
 	public Sequence subSequenceIncluding(ASTNode elm) {
 		List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
@@ -69,7 +74,12 @@ public class Sequence extends ExprElmWithSubElementsArray {
 			if (e == elm)
 				break;
 		}
-		return list.size() > 0 ? new Sequence(list) : null;
+		if (list.size() > 0) {
+			Sequence s = new Sequence(list);
+			s.setParent(parent());
+			return s;
+		} else
+			return null;
 	}
 	public ASTNode successorOfSubElement(ASTNode element) {
 		for (int i = 0; i < elements.length; i++)

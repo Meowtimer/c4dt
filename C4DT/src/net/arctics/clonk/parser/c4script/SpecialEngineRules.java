@@ -436,7 +436,6 @@ public abstract class SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"GetID"})
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
-
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
 			Script script = null;
@@ -460,7 +459,7 @@ public abstract class SpecialEngineRules {
 			return script != null ? ConstrainedProplist.definition(script, constraintKind) : PrimitiveType.ID;
 		}
 	};
-
+	
 	/**
 	 *  It's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 	 */

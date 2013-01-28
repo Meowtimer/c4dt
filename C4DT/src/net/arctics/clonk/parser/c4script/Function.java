@@ -764,7 +764,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Remove local variables.
 	 */
 	public void clearLocalVars() {
-		localVars().clear();
+		localVars.clear();
 		if (otherDeclarations != null)
 			otherDeclarations.clear();
 	}

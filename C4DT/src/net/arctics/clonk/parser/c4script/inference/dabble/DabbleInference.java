@@ -38,6 +38,7 @@ import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
+import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -685,7 +686,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		@Override
 		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {
-			supr.reportProblems(node, processor);
+			super.reportProblems(node, processor);
 			internalObtainDeclaration(node, processor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
@@ -713,7 +714,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		@Override
 		public IType callerType(ASTNode node, ScriptProcessor processor) {
-			return PrimitiveType.UNKNOWN;
+			return PrimitiveType.ANY;
 		}
 	};
 
@@ -780,7 +781,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 							info.findGlobalVariables = sequencePredecessor == null;
 							Declaration v = scriptToLookIn.findDeclaration(node.declarationName(), info);
 							if (v instanceof Definition)
-								//	context.performParsingPhaseTwo((Definition)v);
 								v = ((Definition)v).proxyVar();
 							if (v != null)
 								return v;
@@ -1168,6 +1168,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else {
 							IType type = reporter(returnExpr).unresolvedType(returnExpr, processor);
 							CallDeclaration dummy = new CallDeclaration(currentFunction);
+							dummy.setParent(node.parent());
 							judgement(dummy, type, TypingJudgementMode.Unify, processor);
 							//parser.linkTypesOf(dummy, returnExpr);
 						}
@@ -1283,17 +1284,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return stored;
 
 					// calling this() as function -> return object type belonging to script
-					if (node.params().length == 0 && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS)) {
-						Definition obj = processor.definition();
-						if (obj != null)
-							return obj;
-					}
+					if (node.params().length == 0 && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
+						if (processor.script() instanceof Definition)
+							return ((Definition)processor.script()).thisType();
+						else
+							return new ConstrainedProplist(processor.script(), ConstraintKind.CallerType, true, true);
 
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
 						SpecialFuncRule rule = node.specialRuleFromContext(processor, SpecialEngineRules.RETURNTYPE_MODIFIER);
+						if (rule != null)
+							return new CallReturnType(node, rule, processor.script());
 						Function f = (Function)d;
-						return f.returnType();
+						if (f.returnType() instanceof IResolvableType)
+							return new CallReturnType(node, null, processor.script());
+						else
+							return f.returnType();
 					}
 					if (d instanceof Variable)
 						return ((Variable)d).type();
@@ -1391,8 +1397,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 									ASTNode given = params[givenParam++];
 									if (given == null)
 										continue;
-									if (!validForType(given, parm.type(), processor))
+									if (!validForType(given, parm.type(), processor)) {
+										validForType(given, parm.type(), processor);
 										processor.incompatibleTypes(node, given, parm.type(), ty(given, processor));
+									}
 									//else
 										//judgement(given, parm.type(), TypingJudgementMode.Unify, processor);
 								}
@@ -1428,7 +1436,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					else if (d instanceof Function) {
 						Function f = (Function) d;
-						if (f.staticallyTyped() || f.isEngineDeclaration())
+						if (f.staticallyTyped() || f.isEngineDeclaration() || f != node.parentOfType(Function.class))
 							return null;
 						return new FunctionReturnTypeInfo((Function)d);
 					}
@@ -1444,7 +1452,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode[] elements = node.subElements();
 					return (elements == null || elements.length == 0)
 						? PrimitiveType.UNKNOWN
-							: reporter(elements[elements.length-1]).unresolvedType(elements[elements.length-1], processor);
+						: reporter(elements[elements.length-1]).unresolvedType(elements[elements.length-1], processor);
 				}
 				@Override
 				public void assignment(Sequence leftSide, ASTNode rightSide, ScriptProcessor processor) {
@@ -1688,7 +1696,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ProblemReporter<Parenthesized>(Parenthesized.class) {
 				@Override
 				public IType unresolvedType(Parenthesized node, ScriptProcessor processor) {
-					return ty(node.innerExpression(), processor);
+					return reporter(node.innerExpression()).unresolvedType(node.innerExpression(), processor);
 				}
 			},
 

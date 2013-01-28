@@ -51,6 +51,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 			markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
+			setCurrentFunction(function);
 			parseStatementBlock(offset, statements, options, false);
 			cachedBlock = new FunctionBody(function, statements);
 			if (function != null)

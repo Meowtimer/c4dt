@@ -166,7 +166,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	}
 
 	private void loadIncludes() {
-		if (definedDirectives != null)
+		if (definedDirectives != null && index != null)
 			for (Directive d : definedDirectives)
 				switch (d.type()) {
 				case APPENDTO: case INCLUDE:
