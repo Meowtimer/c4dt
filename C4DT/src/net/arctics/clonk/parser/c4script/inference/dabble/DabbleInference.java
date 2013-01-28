@@ -1657,7 +1657,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (
 									initialization.variable.staticallyTyped() &&
 									!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, processor, processor.script()))
-									)
+								)
 									processor.incompatibleTypes(
 										node,
 										initialization.expression,
