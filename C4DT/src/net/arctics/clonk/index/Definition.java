@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
@@ -219,7 +220,8 @@ public class Definition extends Script implements IProplistDeclaration {
 		return PrimitiveType.OBJECT;
 	}
 
-	private static class ProxyVarSaveReplacement implements ISerializationResolvable {
+	private static class ProxyVarSaveReplacement implements ISerializationResolvable, Serializable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Definition definition;
 		public ProxyVarSaveReplacement(Definition definition) {
 			super();
