@@ -392,7 +392,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (returnType() != PrimitiveType.UNKNOWN) {
 			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
 				Messages.Returns,
-				StringUtil.htmlerize(TypeUtil.resolve(returnType(), context, this).typeName(true))));
+				StringUtil.htmlerize(returnType().typeName(true))));
 			if (returnDescription != null)
 				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
 		}

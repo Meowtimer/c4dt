@@ -81,7 +81,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
-public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
+public abstract class Script extends IndexEntity implements ITreeNode, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -1111,27 +1111,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return script;
 	}
 
-	@Override
-	public Script constraint() {
-		return this;
-	}
-
-	@Override
-	public ConstraintKind constraintKind() {
-		return ConstraintKind.Exact;
-	}
-
 	/**
 	 * Return script the passed type is associated with (or is literally)
 	 * @param type Type to return a script from
 	 * @return Associated script or null, if type is some primitive type or what have you
 	 */
-	public static Script scriptFrom(IType type) {
-		if (type instanceof IHasConstraint)
-			return Utilities.as(((IHasConstraint)type).constraint(), Script.class);
-		else
-			return null;
-	}
+	public static Script scriptFrom(IType type) { return as(type, Script.class); }
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
@@ -1180,12 +1165,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public void setTypeDescription(String description) {}
-
-	@Override
-	public IType resolve(ProblemReportingContext context, IType callerType) {
-		return this;
-	}
-
+	
 	private void _generateFindDeclarationCache() {
 		List<IHasIncludes> conglo = this.conglomerate();
 		Collections.reverse(conglo);

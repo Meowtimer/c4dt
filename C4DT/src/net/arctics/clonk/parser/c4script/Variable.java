@@ -245,7 +245,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		IType t = TypeUtil.resolve(type(), context, this);
+		IType t = type();
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue

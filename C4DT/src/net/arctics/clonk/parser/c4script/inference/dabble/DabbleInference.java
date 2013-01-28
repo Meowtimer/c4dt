@@ -30,15 +30,11 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.FunctionType;
-import net.arctics.clonk.parser.c4script.IHasConstraint;
-import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -51,7 +47,6 @@ import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -573,17 +568,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public boolean skipReportingProblemsForSubElements() {return false;}
 		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {}
 
-		public IType unresolvedType(T node, ScriptProcessor processor) { return processor.queryTypeOfExpression(node, PrimitiveType.UNKNOWN); }
-
-		/**
-		 * Return type of the expression, adjusting the result of obtainType under some circumstances
-		 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
-		 * @return The type of the expression
-		 */
-		public IType type(T node, ScriptProcessor processor) {
-			IType urt = unresolvedType(node, processor);
-			return TypeUtil.resolve(urt, processor, reporter(node).callerType(node, processor));
-		}
+		public IType type(T node, ScriptProcessor processor) { return processor.queryTypeOfExpression(node, PrimitiveType.UNKNOWN); }
 
 		public IType callerType(T node, ScriptProcessor processor) {
 			ASTNode pred = node.predecessorInSequence();
@@ -600,12 +585,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public final <X extends IType> X predecessorTypeAs(ASTNode node, Class<X> cls, ScriptProcessor processor) {
 			return as(predecessorType(node, processor), cls);
-		}
-
-		public final IType unresolvedPredecessorType(ASTNode node, ScriptProcessor processor) {
-			ASTNode e = node;
-			//for (e = predecessorInSequence; e != null && e instanceof MemberOperator; e = e.predecessorInSequence);
-			return e != null && e.predecessorInSequence() != null ? reporter(e.predecessorInSequence()).unresolvedType(e.predecessorInSequence(), processor) : null;
 		}
 
 		/**
@@ -709,7 +688,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private final ProblemReporter<ASTNode> NULL_REPORTER = new ProblemReporter<ASTNode>(ASTNode.class) {
 		@Override
-		public IType unresolvedType(ASTNode node, ScriptProcessor processor) {
+		public IType type(ASTNode node, ScriptProcessor processor) {
 			return PrimitiveType.UNKNOWN;
 		}
 		@Override
@@ -789,14 +768,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return null;
 				}
 				@Override
-				public IType unresolvedType(AccessVar node, ScriptProcessor processor) {
+				public IType type(AccessVar node, ScriptProcessor processor) {
 					Declaration d = internalObtainDeclaration(node, processor);
 					// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 					if (d == Variable.THIS)
-						if (processor.script() instanceof Definition)
-							return ((Definition)processor.script()).thisType();
-						else
-							return new ConstrainedProplist(processor.script(), ConstraintKind.CallerType, true, true);
+						return processor.script();
 					IType stored = processor.queryTypeOfExpression(node, null);
 					if (stored != null)
 						return stored;
@@ -910,7 +886,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<ArrayExpression>(ArrayExpression.class) {
 				@Override
-				public IType unresolvedType(ArrayExpression node, final ScriptProcessor processor) {
+				public IType type(ArrayExpression node, final ScriptProcessor processor) {
 					return new ArrayType(
 						null,
 						ArrayUtil.map(node.subElements(), IType.class, new IConverter<ASTNode, IType>() {
@@ -925,8 +901,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<ArrayElementExpression>(ArrayElementExpression.class) {
 				@Override
-				public IType unresolvedType(ArrayElementExpression node, ScriptProcessor processor) {
-					IType t = supr.unresolvedType(node, processor);
+				public IType type(ArrayElementExpression node, ScriptProcessor processor) {
+					IType t = supr.type(node, processor);
 					if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 						return t;
 					ASTNode pred = node.predecessorInSequence();
@@ -1018,14 +994,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<OperatorExpression>(OperatorExpression.class) {
 				@Override
-				public IType unresolvedType(OperatorExpression node, ScriptProcessor processor) {
+				public IType type(OperatorExpression node, ScriptProcessor processor) {
 					return node.operator().resultType();
 				}
 			},
 
 			new ProblemReporter<BinaryOp>(BinaryOp.class) {
 				@Override
-				public IType unresolvedType(BinaryOp node, ScriptProcessor processor) {
+				public IType type(BinaryOp node, ScriptProcessor processor) {
 					switch (node.operator()) {
 					// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 					case And: case Or: case JumpNotNil:
@@ -1038,7 +1014,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case Assign:
 						return ty(node.rightSide(), processor);
 					default:
-						return supr.unresolvedType(node, processor);
+						return supr.type(node, processor);
 					}
 				}
 				@Override
@@ -1166,7 +1142,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									returnExpr, currentFunction.returnType(), ty(returnExpr, processor));
 						}
 						else {
-							IType type = reporter(returnExpr).unresolvedType(returnExpr, processor);
+							IType type = reporter(returnExpr).type(returnExpr, processor);
 							CallDeclaration dummy = new CallDeclaration(currentFunction);
 							dummy.setParent(node.parent());
 							judgement(dummy, type, TypingJudgementMode.Unify, processor);
@@ -1192,9 +1168,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				) {
 					IType lookIn = callerType != null ? callerType : processor.script();
 					if (lookIn != null) for (IType ty : lookIn) {
-						if (!(ty instanceof IHasConstraint))
-							continue;
-						Script script = as(((IHasConstraint)ty).constraint(), Script.class);
+						Script script = as(ty, Script.class);
 						if (script == null)
 							continue;
 						FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
@@ -1259,16 +1233,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						}
 					}
-					IType unresolvedPredecessorType = unresolvedPredecessorType(node, processor);
 					ASTNode p = node.predecessorInSequence();
 					if (p instanceof MemberOperator)
 						p = p.predecessorInSequence();
 					if (potentialDeclarationsOutput != null)
 						node.setPotentialDeclarations(potentialDeclarationsOutput);
-					return findFunction(node, declarationName,
-						unresolvedPredecessorType != null
-						? TypeUtil.resolve(unresolvedPredecessorType, processor, reporter(p).unresolvedPredecessorType(p, processor))
-							: null, processor, potentialDeclarationsOutput);
+					return findFunction(node, declarationName, ty(p, processor), processor, potentialDeclarationsOutput);
 				}
 				@Override
 				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
@@ -1285,26 +1255,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// calling this() as function -> return object type belonging to script
 					if (node.params().length == 0 && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
-						if (processor.script() instanceof Definition)
-							return ((Definition)processor.script()).thisType();
-						else
-							return new ConstrainedProplist(processor.script(), ConstraintKind.CallerType, true, true);
+						return processor.script();
 
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
 						SpecialFuncRule rule = node.specialRuleFromContext(processor, SpecialEngineRules.RETURNTYPE_MODIFIER);
 						if (rule != null)
-							return new CallReturnType(node, rule, processor.script());
+							return rule.returnType(processor, node);
 						Function f = (Function)d;
-						if (f.returnType() instanceof IResolvableType)
-							return new CallReturnType(node, null, processor.script());
-						else
-							return f.returnType();
+						return f.returnType();
 					}
 					if (d instanceof Variable)
 						return ((Variable)d).type();
 
-					return supr != null ? supr.unresolvedType(node, processor) : PrimitiveType.UNKNOWN;
+					return supr != null ? supr.type(node, processor) : PrimitiveType.UNKNOWN;
 				}
 				private boolean unknownFunctionShouldBeError(CallDeclaration node, ScriptProcessor processor) {
 					ASTNode pred = node.predecessorInSequence();
@@ -1322,25 +1286,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// wat
 					boolean anythingNonPrimitive = false;
 					// allow this->Unknown()
-					if (predType instanceof IHasConstraint && ((IHasConstraint)predType).constraintKind() == ConstraintKind.CallerType)
+					if (pred instanceof AccessDeclaration && (isAnyOf((Object)((AccessDeclaration)pred).declaration(), Variable.THIS, processor.cachedEngineDeclarations().This)))
 						return false;
 					for (IType t : predType) {
 						if (t instanceof PrimitiveType)
 							continue;
-						if (!(t instanceof IHasConstraint))
-							return false;
-						else {
-							IHasConstraint hasConstraint = (IHasConstraint) t;
-							anythingNonPrimitive = true;
-							// something resolved to something less specific than a ScriptBase? drop
-							if (!(hasConstraint.resolve(processor, reporter(node).callerType(node, processor)) instanceof Script))
-								return false;
-						}
+						if (t instanceof Script)
+							return true;
 					}
 					return anythingNonPrimitive;
 				}
 				@Override
-				public IType unresolvedType(CallDeclaration node, ScriptProcessor processor) {
+				public IType type(CallDeclaration node, ScriptProcessor processor) {
 					IType type = declarationType(node, processor);
 					if (type instanceof FunctionType)
 						return ((FunctionType)type).prototype().returnType();
@@ -1448,11 +1405,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<Sequence>(Sequence.class) {
 				@Override
-				public IType unresolvedType(Sequence node, ScriptProcessor processor) {
+				public IType type(Sequence node, ScriptProcessor processor) {
 					ASTNode[] elements = node.subElements();
 					return (elements == null || elements.length == 0)
 						? PrimitiveType.UNKNOWN
-						: reporter(elements[elements.length-1]).unresolvedType(elements[elements.length-1], processor);
+						: reporter(elements[elements.length-1]).type(elements[elements.length-1], processor);
 				}
 				@Override
 				public void assignment(Sequence leftSide, ASTNode rightSide, ScriptProcessor processor) {
@@ -1476,7 +1433,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<ArraySliceExpression>(ArraySliceExpression.class) {
 				@Override
-				public IType unresolvedType(ArraySliceExpression node, ScriptProcessor processor) {
+				public IType type(ArraySliceExpression node, ScriptProcessor processor) {
 					ArrayType arrayType = predecessorTypeAs(node, ArrayType.class, processor);
 					if (arrayType != null)
 						return node.lo() == null && node.hi() == null ? arrayType : arrayType.typeForSlice(
@@ -1489,7 +1446,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void assignment(ArraySliceExpression leftSide, ASTNode rightSide, ScriptProcessor processor) {
 					ArrayType arrayType = predecessorTypeAs(leftSide, ArrayType.class, processor);
-					IType sliceType = reporter(rightSide).unresolvedType(rightSide, processor);
+					IType sliceType = reporter(rightSide).type(rightSide, processor);
 					if (arrayType != null)
 						processor.storeType(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
 							ASTNode.evaluateAtParseTime(leftSide.lo(), processor),
@@ -1517,7 +1474,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<Nil>(Nil.class) {
 				@Override
-				public IType unresolvedType(Nil node, ScriptProcessor processor) {
+				public IType type(Nil node, ScriptProcessor processor) {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
@@ -1529,7 +1486,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<StringLiteral>(StringLiteral.class) {
 				@Override
-				public IType unresolvedType(StringLiteral node, ScriptProcessor processor) { return PrimitiveType.STRING; }
+				public IType type(StringLiteral node, ScriptProcessor processor) { return PrimitiveType.STRING; }
 				@Override
 				public void reportProblems(StringLiteral node, ScriptProcessor processor) throws ParsingException {
 					// warn about overly long strings
@@ -1562,7 +1519,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<IntegerLiteral>(IntegerLiteral.class) {
 				@Override
-				public IType unresolvedType(IntegerLiteral node, ScriptProcessor processor) {
+				public IType type(IntegerLiteral node, ScriptProcessor processor) {
 					if (node.longValue() == 0 && processor.script().engine().settings().zeroIsAny)
 						return PrimitiveType.ANY;
 					else
@@ -1581,24 +1538,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<IDLiteral>(IDLiteral.class) {
 				@Override
-				public IType unresolvedType(IDLiteral node, ScriptProcessor processor) {
+				public IType type(IDLiteral node, ScriptProcessor processor) {
 					Definition obj = processor.script().nearestDefinitionWithId(node.idValue());
-					return obj != null ? obj.objectType() : PrimitiveType.ID;
+					return obj != null ? obj.metaDefinition() : PrimitiveType.ID;
 				}
 			},
 
 			new ProblemReporter<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public IType unresolvedType(BoolLiteral node, ScriptProcessor processor) {
+				public IType type(BoolLiteral node, ScriptProcessor processor) {
 					return PrimitiveType.BOOL;
 				}
 			},
 
 			new ProblemReporter<CallExpr>(CallExpr.class) {
 				@Override
-				public IType unresolvedType(CallExpr node, ScriptProcessor processor) {
+				public IType type(CallExpr node, ScriptProcessor processor) {
 					ASTNode pred = node.predecessorInSequence();
-					IType type = reporter(pred).unresolvedType(pred, processor);
+					IType type = reporter(pred).type(pred, processor);
 					if (type instanceof FunctionType)
 						return ((FunctionType)type).prototype().returnType();
 					else
@@ -1609,7 +1566,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!processor.script().engine().settings().supportsFunctionRefs)
 						markers().error(processor.parser, ParserErrorCode.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
 					else {
-						IType type = reporter(node.predecessorInSequence()).unresolvedType(node.predecessorInSequence(), processor);
+						IType type = reporter(node.predecessorInSequence()).type(node.predecessorInSequence(), processor);
 						if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
 							markers().error(processor.parser, ParserErrorCode.CallingExpression, node, node, Markers.NO_THROW);
 					}
@@ -1618,7 +1575,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<Statement>(Statement.class) {
 				@Override
-				public IType unresolvedType(Statement node, ScriptProcessor processor) {
+				public IType type(Statement node, ScriptProcessor processor) {
 					return PrimitiveType.UNKNOWN;
 				}
 				protected void notFinishedError(ASTNode node, ScriptProcessor processor) throws ParsingException {
@@ -1653,10 +1610,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					for (VarInitialization initialization : node.variableInitializations())
 						if (initialization.variable != null)
 							if (initialization.expression != null) {
-								IType initializationType = reporter(initialization.expression).unresolvedType(initialization.expression, processor);
+								IType initializationType = reporter(initialization.expression).type(initialization.expression, processor);
 								if (
 									initialization.variable.staticallyTyped() &&
-									!initialization.variable.type().canBeAssignedFrom(TypeUtil.resolve(initializationType, processor, processor.script()))
+									!initialization.variable.type().canBeAssignedFrom(initializationType)
 								)
 									processor.incompatibleTypes(
 										node,
@@ -1664,13 +1621,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 										initialization.variable.type(), initializationType
 									);
 								else {
-									switch (node.scope()) {
-									case VAR: case PARAMETER:
-										initializationType = TypeUtil.resolve(initializationType, processor, processor.script());
-										break;
-									default:
-										break;
-									}
 									AccessVar av = new AccessVar(initialization.variable);
 									judgement(av, initializationType, TypingJudgementMode.Unify, processor);
 								}
@@ -1680,7 +1630,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<PropListExpression>(PropListExpression.class) {
 				@Override
-				public IType unresolvedType(PropListExpression node, ScriptProcessor processor) {
+				public IType type(PropListExpression node, ScriptProcessor processor) {
 					return node.definedDeclaration();
 				}
 				@Override
@@ -1695,19 +1645,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<Parenthesized>(Parenthesized.class) {
 				@Override
-				public IType unresolvedType(Parenthesized node, ScriptProcessor processor) {
-					return reporter(node.innerExpression()).unresolvedType(node.innerExpression(), processor);
+				public IType type(Parenthesized node, ScriptProcessor processor) {
+					return reporter(node.innerExpression()).type(node.innerExpression(), processor);
 				}
 			},
 
 			new ProblemReporter<MemberOperator>(MemberOperator.class) {
 				@Override
-				public IType unresolvedType(MemberOperator node, ScriptProcessor processor) {
+				public IType type(MemberOperator node, ScriptProcessor processor) {
 					if (node.id() != null)
 						return processor.script().nearestDefinitionWithId(node.id());
 					// stuff before -> decides
 					ASTNode pred = node.predecessorInSequence();
-					return pred != null ? reporter(pred).unresolvedType(pred, processor) : supr.unresolvedType(node, processor);
+					return pred != null ? reporter(pred).type(pred, processor) : supr.type(node, processor);
 				}
 				@Override
 				public boolean typingJudgement(MemberOperator node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
@@ -1761,7 +1711,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType type = ty(arrayExpr, processor);
 					if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 						processor.incompatibleTypes(node, arrayExpr, type, PrimitiveType.ARRAY);
-					IType elmType = TypeUtil.resolve(ArrayType.elementTypeSet(type), processor, reporter(arrayExpr).callerType(arrayExpr, processor));
+					IType elmType = ArrayType.elementTypeSet(type);
 					processor.newTypeEnvironment();
 					{
 						if (loopVariable != null) {
