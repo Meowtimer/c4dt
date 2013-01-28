@@ -32,9 +32,11 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
+import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.parser.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.parser.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
@@ -241,18 +243,18 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					if (spec instanceof AccessDeclaration) {
 						AccessDeclaration accessDec = (AccessDeclaration) spec;
 						String s = UI.input(
-								PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-								Messages.ClonkQuickAssistProcessor_SpecifyValue,
-								String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.declarationName()), accessDec.declarationName(),
-								new IInputValidator() {
-									@Override
-									public String isValid(String newText) {
-										if (!validIdentifierPattern.matcher(newText).matches())
-											return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
-										else
-											return null;
-									}
+							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							Messages.ClonkQuickAssistProcessor_SpecifyValue,
+							String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.declarationName()), accessDec.declarationName(),
+							new IInputValidator() {
+								@Override
+								public String isValid(String newText) {
+									if (!validIdentifierPattern.matcher(newText).matches())
+										return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
+									else
+										return null;
 								}
+							}
 						);
 						if (s != null)
 							accessDec.setDeclarationName(s);
@@ -369,12 +371,14 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.offending = offending;
 			this.existingList = existingList;
 		}
-		public Replacement add(String replacement, ASTNode elm, boolean alwaysStatement, ASTNode... specifiable) {
+		public Replacement add(String replacement, ASTNode elm, boolean alwaysStatement, Boolean regionSpecified, ASTNode... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
 			if (elm.end() == elm.start() && offending != null)
 				elm.setLocation(offending.start(), offending.end());
 			Replacement newOne = new Replacement(replacement, elm, specifiable);
+			if (regionSpecified != null)
+				newOne.regionToBeReplacedSpecifiedByReplacementExpression = regionSpecified;
 			// don't add duplicates
 			for (Replacement existing : this)
 				if (existing.equals(newOne))
@@ -386,7 +390,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return newOne;
 		}
 		public Replacement add(String replacement, ASTNode elm, ASTNode... specifiable) {
-			return add(replacement, elm, true, specifiable);
+			return add(replacement, elm, true, null, specifiable);
 		}
 	}
 
@@ -485,7 +489,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
 							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).getId(), 3);
 							opWithTilde.setLocation(offendingExpression.predecessorInSequence());
-							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false).regionToBeReplacedSpecifiedByReplacementExpression = true;
+							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 						}
 					if (offendingExpression instanceof AccessDeclaration) {
 
@@ -495,7 +499,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						Replacement createNewDeclarationReplacement = replacements.add(
 							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
 							ASTNode.NULL_EXPR,
-							false
+							false, false
 						);
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 						if (accessDec instanceof AccessVar)
@@ -537,7 +541,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
 									ASTNode repl = identifierReplacement(accessDec, dec.name());
-									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false);
+									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, false);
 								}
 							}
 
@@ -587,7 +591,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_QuoteExpression,
 							new StringLiteral(offendingExpression.toString()),
-							false
+							false, false
 						);
 					if (
 						isAnyOf(t, PrimitiveType.NILLABLES) &&
@@ -596,7 +600,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						replacements.add(
 							Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
 							new AccessVar(Keywords.Nil),
-							false
+							false, false
 						);
 					break;
 				case NoSideEffects:
@@ -630,7 +634,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						replacements.add(
 							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
-							false
+							false, false
 						);
 					break;
 				case ReturnAsFunction:
@@ -640,11 +644,18 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						if (elms.length >= 2) {
 							ASTNode returnExpr = elms[0];
 							ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
+							Statement[] statements = ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr));
+							Block reordered;
+							if (tuple.parent().parent() instanceof ConditionalStatement && ((ConditionalStatement)tuple.parent().parent()).body() == tuple.parent())
+								reordered = new Block(statements);
+							else
+								reordered = new BunchOfStatements(statements);
+							reordered.setLocation(tuple.parent()); // return statement
 							replacements.add(
 								Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
-								new BunchOfStatements(
-									ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
-								)
+								reordered,
+								false,
+								true
 							);
 						}
 					}
@@ -671,8 +682,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset())
-						).regionToBeReplacedSpecifiedByReplacementExpression = true;
+							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()),
+							false, true
+						);
 					}
 					break;
 				case Garbage:
@@ -725,9 +737,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private Replacement addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
 		Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
-			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()) //$NON-NLS-1$
+			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()), //$NON-NLS-1$
+			false, true
 		);
-		result.regionToBeReplacedSpecifiedByReplacementExpression = true;
 		return result;
 	}
 

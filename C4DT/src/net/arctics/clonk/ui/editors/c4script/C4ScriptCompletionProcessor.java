@@ -102,8 +102,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ProblemReportingStrategy typingStrategy;
 
 	private void setTypingStrategyFromScript(Script script) {
-		typingStrategy = ((ProjectIndex)script.index()).nature().settings().
-			instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
+		if (script.index() instanceof ProjectIndex)
+			typingStrategy = ((ProjectIndex)script.index()).nature().settings().
+				instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
 	}
 
 	public C4ScriptCompletionProcessor(Script script) {

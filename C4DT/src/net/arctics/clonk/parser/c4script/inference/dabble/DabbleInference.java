@@ -489,11 +489,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public void storeType(ASTNode node, IType type) {
 			ITypeInfo requested = requestTypeInfo(node);
-			if (requested != null) {
-				if (DEBUG)
-					markers().warning(parser, ParserErrorCode.TypingJudgment, node, node, 0, node.toString(), type.typeName(true));
+			if (requested != null)
 				requested.storeType(type);
-			}
 		}
 
 		@Override
@@ -626,6 +623,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public boolean typingJudgement(T node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
+//			if (DEBUG)
+//				markers().warning(processor, ParserErrorCode.TypingJudgment, node, node, Markers.NO_THROW, node.printed(), type.typeName(true));
 			ITypeInfo info;
 			switch (mode) {
 			case Expect:
@@ -819,13 +818,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					default:
 						break;
 					}
-					return supr.callerType(node, processor);
+					return super.callerType(node, processor);
 				}
 				@Override
 				public boolean typingJudgement(AccessVar node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
 					if (node.declaration() == Variable.THIS)
 						return true;
-					return supr.typingJudgement(node, type, processor, mode);
+					return super.typingJudgement(node, type, processor, mode);
 				}
 				@Override
 				public void reportProblems(AccessVar node, ScriptProcessor processor) throws ParsingException {
@@ -900,7 +899,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									break;
 								}
 					}
-					supr.assignment(leftSide, rightSide, processor);
+					super.assignment(leftSide, rightSide, processor);
 				}
 				@Override
 				public ITypeInfo createTypeInfo(AccessVar node, ScriptProcessor processor) {
