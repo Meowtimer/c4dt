@@ -44,15 +44,16 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	private Text filterBox;
 	
 	@Override
-	public Control getControl() {
-		return composite;
-	}
+	public Control getControl() { return composite; }
+	public ClonkTextEditor editor() { return editor; }
 
 	private void openForeignDeclarations() {
 		IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
 		for (IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
 			@Override
 			public IIndexEntity convert(Object from) {
+				if (from instanceof IAdaptable)
+					from = ((IAdaptable)from).getAdapter(Declaration.class);
 				return from instanceof Declaration ? ((Declaration)from).parentOfType(IIndexEntity.class) : null;
 			}
 		}))
@@ -174,13 +175,6 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	 */
 	public void setEditor(ClonkTextEditor clonkTextEditor) {
 		this.editor = clonkTextEditor;
-	}
-
-	/**
-	 * @return the editor
-	 */
-	public ClonkTextEditor editor() {
-		return editor;
 	}
 
 	public void refresh() {

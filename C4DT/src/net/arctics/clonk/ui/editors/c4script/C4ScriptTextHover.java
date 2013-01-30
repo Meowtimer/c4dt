@@ -1,6 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.StringUtil;
@@ -27,8 +29,14 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
 		IFile scriptFile = Utilities.fileEditedBy(configuration.editor());
 		StringBuilder messageBuilder = new StringBuilder();
-		if (entityLocator != null && entityLocator.entity() != null)
-			messageBuilder.append(entityLocator.entity().infoText(configuration.editor().script()));
+		if (entityLocator != null && entityLocator.entity() != null) {
+			ASTNode pred = entityLocator.expressionAtRegion().predecessorInSequence();
+			Script context = pred == null
+				? configuration.editor().script()
+				: configuration.editor().textChangeListener().typingStrategy().localTypingContext
+					(configuration.editor().script()).typeOf(pred, Script.class);
+			messageBuilder.append(entityLocator.entity().infoText(context));
+		}
 		else {
 			String superInfo = super.getHoverInfo(viewer, region);
 			if (superInfo != null)

@@ -26,6 +26,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
@@ -41,7 +42,6 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
@@ -417,15 +417,11 @@ public abstract class SpecialEngineRules {
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
 				IType t = processor.typeOf(callFunc.params()[0]);
-				if (t instanceof IHasConstraint) {
-					IHasConstraint ct = (IHasConstraint) t;
-					switch (ct.constraintKind()) {
-					case Exact:
-						return ct.constraint();
-					case Includes: case CallerType:
-						return ConstrainedProplist.object(ct.constraint(), ct.constraintKind());
-					}
-				}
+				IType r = PrimitiveType.OBJECT;
+				for (IType ty : t)
+					if (ty instanceof MetaDefinition)
+						r = TypeUnification.unify(r, ((MetaDefinition)ty).definition());
+				return r;
 			}
 			return null;
 		}
@@ -438,28 +434,20 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
-			Script script = null;
-			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.params().length > 0)
 				t = processor.typeOf(callFunc.params()[0]);
 			else if (callFunc.predecessorInSequence() != null)
 				t = processor.typeOf(callFunc.predecessorInSequence());
-			else {
-				constraintKind = ConstraintKind.CallerType;
-				script = processor.script();
-				t = null;
-			}
-			if (t instanceof IHasConstraint) {
-				IHasConstraint cobj = (IHasConstraint)t;
-				constraintKind = cobj.constraintKind();
-				script = Utilities.as(cobj.constraint(), Script.class);
-			}
-
-			return script != null ? ConstrainedProplist.definition(script, constraintKind) : PrimitiveType.ID;
+			else
+				t = processor.script();
+			if (t instanceof Definition)
+				return ((Definition)t).metaDefinition();
+			else
+				return PrimitiveType.ID;
 		}
 	};
-	
+
 	/**
 	 *  It's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 	 */
@@ -503,22 +491,22 @@ public abstract class SpecialEngineRules {
 					List<IType> types = new ArrayList<IType>(functions.size());
 					for (Declaration f : functions)
 						if (f.script() instanceof Definition)
-							types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
+							types.add(f.script());
 						else for (Directive directive : f.script().directives())
 							if (directive.type() == DirectiveType.APPENDTO) {
 								Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
 								if (def != null)
-									types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
+									types.add(def);
 							}
 					for (Index index : processor.script().index().relevantIndexes())
 						for (Function f : index.declarationsWithName((String)ev, Function.class))
 							if (f.script() instanceof Definition)
-								types.add(ConstrainedProplist.object(f.script(), ConstraintKind.Includes));
+								types.add(f.script());
 							else for (Directive directive : f.script().directives())
 								if (directive.type() == DirectiveType.APPENDTO) {
 									Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
 									if (def != null)
-										types.add(ConstrainedProplist.object(def, ConstraintKind.Includes));
+										types.add(def);
 								}
 					IType ty = TypeUnification.unify(types);
 					return ty;

@@ -16,12 +16,10 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -69,8 +67,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	protected ID id;
 
-	private transient ConstrainedProplist objectType;
-	private transient ConstrainedProplist thisType;
+	private transient MetaDefinition metaDefinition;
 
 	/**
 	 * Creates a new C4Object
@@ -197,28 +194,14 @@ public class Definition extends Script implements IProplistDeclaration {
 		return true;
 	}
 
-	public synchronized ConstrainedProplist objectType() {
-		if (objectType == null)
-			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false) {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				@Override
-				public IType resolve(ProblemReportingContext context, IType callerType) {
-					return this; // don't resolve
-				}
-			};
-		return objectType;
-	}
-
-	public synchronized ConstrainedProplist thisType() {
-		if (thisType == null)
-			thisType = new ConstrainedProplist(this, ConstraintKind.CallerType, true, true);
-		return thisType;
+	public synchronized MetaDefinition metaDefinition() {
+		if (metaDefinition == null)
+			metaDefinition = new MetaDefinition(this);
+		return metaDefinition;
 	}
 
 	@Override
-	public IType simpleType() {
-		return PrimitiveType.OBJECT;
-	}
+	public IType simpleType() { return PrimitiveType.OBJECT; }
 
 	private static class ProxyVarSaveReplacement implements ISerializationResolvable, Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -237,6 +220,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 *
 	 */
 	public final class ProxyVar extends Variable implements IReplacedWhenSaved {
+		public ProxyVar() { super(Definition.this.name(), Scope.STATIC); }
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public String name() { return id().stringValue(); }
@@ -249,7 +233,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		@Override
 		public String infoText(IIndexEntity context) { return Definition.this.infoText(context); }
 		@Override
-		public IType type() { return Definition.this.objectType(); }
+		public IType type() { return Definition.this.metaDefinition(); }
 		@Override
 		public boolean staticallyTyped() { return true; }
 		public final Definition definition() { return Definition.this; }

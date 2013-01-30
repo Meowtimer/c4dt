@@ -11,11 +11,8 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.IResolvableType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;
@@ -37,17 +34,6 @@ public class TypeChoice implements IType {
 		new TypeChoice(PrimitiveType.STRING, PrimitiveType.INT)
 	};
 	
-	private static class ResolvableTypeChoice extends TypeChoice implements IResolvableType {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public ResolvableTypeChoice(IType left, IType right) { super(left, right); }
-		@Override
-		public IType resolve(ProblemReportingContext context, IType callerType) {
-			IType rl = TypeUtil.resolve(left, context, callerType);
-			IType rr = TypeUtil.resolve(right, context, callerType);
-			return rl == left && rr == right ? this : TypeChoice.make(rl, rr);
-		}
-	}
-	
 	public static IType make(IType left, IType right) {
 		if (left == null)
 			return right;
@@ -61,9 +47,7 @@ public class TypeChoice implements IType {
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
-		return ((left instanceof IResolvableType || right instanceof IResolvableType)
-			? new ResolvableTypeChoice(left, right)
-			: new TypeChoice(left, right)).removeDuplicates();
+		return new TypeChoice(left, right).removeDuplicates();
 	}
 	protected IType removeDuplicates() {
 		return remove(this, new IPredicate<IType>() {

@@ -399,15 +399,15 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		if (getTextChangeListener() != null && topLevelDeclaration() instanceof Structure)
-			getTextChangeListener().updateStructure((Structure) topLevelDeclaration());
+		if (textChangeListener() != null && topLevelDeclaration() instanceof Structure)
+			textChangeListener().updateStructure((Structure) topLevelDeclaration());
 	}
 	
 	/**
 	 * Return the {@link TextChangeListenerBase} object being shared for all editors having opened the same file.
 	 * @return
 	 */
-	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+	protected TextChangeListenerBase<?, ?> textChangeListener() {
 		return null;
 	}
 	

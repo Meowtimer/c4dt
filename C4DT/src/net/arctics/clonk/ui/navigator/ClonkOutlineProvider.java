@@ -3,8 +3,6 @@
  */
 package net.arctics.clonk.ui.navigator;
 
-import static net.arctics.clonk.util.Utilities.as;
-
 import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.index.Definition;
@@ -13,8 +11,6 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.util.UI;
@@ -117,10 +113,8 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		if (element instanceof Function) {
 			Function func = ((Function)element);
 			result.append(func.longParameterString(true, false));
-			IType retType = func.returnType();
+			IType retType = func.returnType(context != null ? context.script() : null);
 			if (retType != null && retType != PrimitiveType.UNKNOWN) {
-				if (context != null)
-					retType = TypeUtil.resolve(retType, context, as(root, Script.class));
 				result.append(" : "); //$NON-NLS-1$
 				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
 			}
@@ -128,10 +122,8 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		else if (element instanceof Variable) {
 			Variable var = (Variable)element;
 			result.append(var.name());
-			IType type = var.type();
+			IType type = var.type(context != null ? context.script() : null);
 			if (type != null && type != PrimitiveType.UNKNOWN) {
-				if (context != null && var.parentDeclaration() instanceof Function)
-					type = TypeUtil.resolve(type, context, as(root, Script.class));
 				result.append(" : ");
 				result.append(type.typeName(true));
 			}

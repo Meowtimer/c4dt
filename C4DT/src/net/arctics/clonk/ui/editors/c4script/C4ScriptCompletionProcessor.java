@@ -299,7 +299,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 			if (contextExpression == null && !specifiedParser) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
-				parser = FunctionFragmentParser.update(doc, editorScript, activeFunc, null);
+				FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
+				parser = fparser;
+				if (fparser.update())
+					typingContext.reportProblemsOfFunction(activeFunc);
 				activeFunc.traverse(locator, this);
 				contextExpression = locator.expressionAtRegion();
 			}

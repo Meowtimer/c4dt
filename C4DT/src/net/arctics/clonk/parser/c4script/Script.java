@@ -81,7 +81,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
-public abstract class Script extends IndexEntity implements ITreeNode, IHasConstraint, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
+public abstract class Script extends IndexEntity implements ITreeNode, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -101,8 +101,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 	private transient Scenario scenario;
 
 	private Set<String> dictionary;
-
 	private List<TypeAnnotation> typeAnnotations;
+	private transient Map<Variable, IType> variableTypes;
+	private transient Map<String, IType> functionReturnTypes;
+	
+	public Map<Variable, IType> variableTypes() {
+		requireLoaded();
+		return variableTypes;
+	}
+	public Map<String, IType> functionReturnTypes() {
+		requireLoaded();
+		return functionReturnTypes;
+	}
+	
+	public void setTypings(Map<Variable, IType> variableTypes, Map<String, IType> functionReturnTypes) {
+		this.variableTypes = variableTypes;
+		this.functionReturnTypes = functionReturnTypes;
+	}
 
 	public List<TypeAnnotation> typeAnnotations() {
 		return typeAnnotations;
@@ -140,6 +155,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		super(index);
 	}
 
+	@Override
+	public void save(ObjectOutputStream stream) throws IOException {
+		super.save(stream);
+		stream.writeObject(definedFunctions);
+		stream.writeObject(definedVariables);
+		stream.writeObject(usedScripts);
+		stream.writeObject(definedEffects);
+		stream.writeObject(variableTypes);
+		stream.writeObject(functionReturnTypes);
+		populateDictionary();
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -163,6 +190,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		variableTypes = (Map<Variable, IType>) stream.readObject();
+		functionReturnTypes = (Map<String, IType>) stream.readObject();
 	}
 
 	private void loadIncludes() {
@@ -178,16 +207,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 				default:
 					break;
 				}
-	}
-
-	@Override
-	public void save(ObjectOutputStream stream) throws IOException {
-		super.save(stream);
-		stream.writeObject(definedFunctions);
-		stream.writeObject(definedVariables);
-		stream.writeObject(usedScripts);
-		stream.writeObject(definedEffects);
-		populateDictionary();
 	}
 
 	private static int nextCamelBack(String s, int offset) {
@@ -603,7 +622,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 					return d;
 			if (name.equals(Scenario.PROPLIST_NAME)) {
 				Scenario scenario = Scenario.nearestScenario(this.resource());
-				if (scenario != null && scenario.propList() != null)
+				if (scenario == null)
+					scenario = engine().templateScenario();
+				if (scenario.propList() != null)
 					return scenario.propList();
 			}
 			else if (name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
@@ -1111,27 +1132,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 		return script;
 	}
 
-	@Override
-	public Script constraint() {
-		return this;
-	}
-
-	@Override
-	public ConstraintKind constraintKind() {
-		return ConstraintKind.Exact;
-	}
-
 	/**
 	 * Return script the passed type is associated with (or is literally)
 	 * @param type Type to return a script from
 	 * @return Associated script or null, if type is some primitive type or what have you
 	 */
-	public static Script scriptFrom(IType type) {
-		if (type instanceof IHasConstraint)
-			return Utilities.as(((IHasConstraint)type).constraint(), Script.class);
-		else
-			return null;
-	}
+	public static Script scriptFrom(IType type) { return as(type, Script.class); }
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
@@ -1180,11 +1186,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IHasConst
 
 	@Override
 	public void setTypeDescription(String description) {}
-
-	@Override
-	public IType resolve(ProblemReportingContext context, IType callerType) {
-		return this;
-	}
 
 	private void _generateFindDeclarationCache() {
 		List<IHasIncludes> conglo = this.conglomerate();

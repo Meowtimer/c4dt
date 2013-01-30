@@ -63,12 +63,6 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 			default:
 				continue;
 			}
-			else if (t instanceof StructuralType) {
-				anyDefinitions = true;
-				StructuralType o = (StructuralType)t;
-				if (o.functions().containsAll(functions))
-					return true;
-			}
 		return anyDefinitions ? false : primitives;
 	}
 

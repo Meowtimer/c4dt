@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,10 +148,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
-		
+
 		private static final int REPARSE_DELAY = 700;
 		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,Script>>();
-		
+
 		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
 		private List<ProblemReportingStrategy> problemReportingStrategies;
@@ -159,17 +160,21 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		protected void added() {
 			super.added();
-			problemReportingStrategies = ((ProjectIndex)structure.index()).nature().settings().instantiateProblemReportingStrategies(0);
-			for (ProblemReportingStrategy strategy : problemReportingStrategies)
-				if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
-					typingStrategy = strategy;
-					break;
-				}
+			try {
+				problemReportingStrategies = ((ProjectIndex)structure.index()).nature().settings().instantiateProblemReportingStrategies(0);
+				for (ProblemReportingStrategy strategy : problemReportingStrategies)
+					if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
+						typingStrategy = strategy;
+						break;
+					}
+			} catch (Exception e) {
+				problemReportingStrategies = Arrays.asList(); 
+			}
 		}
-		
+
 		public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
 		public ProblemReportingStrategy typingStrategy() { return typingStrategy; }
-		
+
 		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
 			try {
 				return addTo(listeners, TextChangeListener.class, document, script, client);
@@ -182,7 +187,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		public void documentAboutToBeChanged(DocumentEvent event) {
 		}
-		
+
 		@Override
 		public void documentChanged(DocumentEvent event) {
 			super.documentChanged(event);
@@ -195,7 +200,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing(true);
 		}
-		
+
 		@Override
 		protected void adjustDec(Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
@@ -234,7 +239,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				}
 			}, REPARSE_DELAY);
 		}
-		
+
 		public static void removeMarkers(Function func, Script script) {
 			if (script != null && script.resource() != null)
 				try {
@@ -246,13 +251,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.bodyLocation() : null;
 					for (IMarker m : markers) {
-						
+
 						// delete markers that are explicitly marked as being caused by parsing the function
 						if (func.makeNameUniqueToParent().equals(ParserErrorCode.declarationTag(m))) {
 							m.delete();
 							continue;
 						}
-						
+
 						// delete marks inside the body region
 						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
 						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
@@ -265,7 +270,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					e.printStackTrace();
 				}
 		}
-		
+
 		private void scheduleReparsingOfFunction(final Function fn) {
 			functionReparseTask = cancelTimerTask(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
@@ -311,7 +316,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			functionReparseTask = cancelTimerTask(functionReparseTask);
 			super.cancelReparsingTimer();
 		}
-		
+
 		@Override
 		public void cleanupAfterRemoval() {
 			if (reparseTimer != null)
@@ -328,7 +333,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 			super.cleanupAfterRemoval();
 		}
-		
+
 		public static TextChangeListener listenerFor(IDocument document) {
 			return (TextChangeListener) listeners.get(document);
 		}
@@ -337,11 +342,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private final ColorManager colorManager;
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
 	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
-	
+
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private TextChangeListener textChangeListener;
 	private WeakReference<ProblemReportingContext> cachedDeclarationObtainmentContext;
-	
+
 	@Override
 	public ProblemReportingContext declarationObtainmentContext() {
 		if (cachedDeclarationObtainmentContext != null) {
@@ -359,14 +364,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		return r;
 	}
-	
+
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		//setDocumentProvider(new ClonkDocumentProvider(this));
 	}
-	
+
 	public void showContentAssistance() {
 		// show parameter help
 		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
@@ -389,7 +394,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		else
 			super.setDocumentProvider(input);
 	}
-	
+
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
@@ -404,13 +409,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			document.setDocumentPartitioner(partitioner);
 		}
 	}
-	
+
 	@Override
 	public void refreshOutline() {
 		cachedScript = new WeakReference<Script>(null);
 		super.refreshOutline();
 	}
-	
+
 	@Override
 	protected void refreshStructure() {
 		try {
@@ -419,7 +424,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion region) {
 		try {
@@ -437,7 +442,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected void editorSaved() {
 		if (textChangeListener != null)
@@ -464,7 +469,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private final ShowContentAssistAtKeyUpListener showContentAssistAtKeyUpListener = new ShowContentAssistAtKeyUpListener();
-	
+
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
@@ -484,9 +489,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		colorManager.dispose();
 		super.dispose();
 	}
-	
+
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void createActions() {
@@ -517,15 +522,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			addAction(menu, ClonkTextEditorAction.idString(FindDuplicatesAction.class));
 		}
 	}
-	
+
 	public int cursorPos() {
 		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
 	}
-	
+
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		
+
 		// highlight active function
 		Function f = functionAtCursor();
 		boolean noHighlight = true;
@@ -535,7 +540,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
-		
+
 		// inform auto edit strategy about cursor position change so it can delete its override regions
 		sourceViewerConfiguration().autoEditStrategy().handleCursorPositionChanged(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
@@ -566,12 +571,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
-	
+
 	public Script script() {
 		Script result = cachedScript.get();
 		if (result != null)
 			return result;
-		
+
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput)
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
 
@@ -598,11 +603,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		return result;
 	}
-	
+
 	@Override
-	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
-		return textChangeListener;
-	}
+	protected TextChangeListener textChangeListener() { return textChangeListener; }
 
 	public Function functionAt(int offset) {
 		Script script = script();
@@ -612,7 +615,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		return null;
 	}
-	
+
 	public Function functionAtCursor() {
 		return functionAt(cursorPos());
 	}
@@ -645,7 +648,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.validate();
 		listener.typingStrategy().localTypingContext(parser).reportProblems();
 		parser.markers().deploy();
-		
+
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
@@ -667,12 +670,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			throw new InvalidParameterException("document");
 		return parser;
 	}
-	
+
 	@Override
 	public Script topLevelDeclaration() {
 		return script();
 	}
-	
+
 	public static class FuncCallInfo {
 		public IFunctionCall callFunc;
 		public int parmIndex;
@@ -722,7 +725,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected void initializeEditor() {
 		IFile file = fileEditedBy(this);

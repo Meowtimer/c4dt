@@ -181,7 +181,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+	protected TextChangeListenerBase<?, ?> textChangeListener() {
 		return textChangeListener;
 	}
 	

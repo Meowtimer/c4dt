@@ -75,7 +75,7 @@ public class Command {
 			registerCommandsFromClass(COMMAND_BASESCRIPT, c);
 		registerCommandsFromClass(COMMAND_BASESCRIPT, StaticTypingUtil.class);
 	}
-	
+
 	public static ExecutableScript executableScriptFromCommand(String command) {
 		return new ExecutableScript("command", String.format(Command.COMMAND_SCRIPT_TEMPLATE, command), Command.COMMANDS_INDEX);
 	}
@@ -112,7 +112,7 @@ public class Command {
 	public static void addCommand(Script script, Method method) {
 		script.addDeclaration(new NativeCommandFunction(script, method));
 	}
-	
+
 	public static void addCommand(Method method) {
 		addCommand(COMMAND_BASESCRIPT, method);
 	}

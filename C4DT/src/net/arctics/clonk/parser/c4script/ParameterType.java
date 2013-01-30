@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 import net.arctics.clonk.Core;
 
-public class ParameterType implements IResolvableType {
+public class ParameterType implements IType{
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Variable parameter;
 	public ParameterType(Variable variable) {
@@ -45,20 +45,4 @@ public class ParameterType implements IResolvableType {
 	public IType simpleType() { return PrimitiveType.UNKNOWN; }
 	@Override
 	public void setTypeDescription(String description) {}
-
-	@Override
-	public IType resolve(ProblemReportingContext context, IType callerType) {
-		Variable p = parameter();
-		if (p == null)
-			return PrimitiveType.ANY;
-		/*
-		IFunctionCall call = context.currentFunctionCall();
-		if (call != null && call.quasiCalledFunction(context) == p.parentDeclaration())
-			return call.concreteParameterType(parameter, context);
-		else if (context.currentFunction() != null && context.currentFunction() != p.parentDeclaration())
-			return PrimitiveType.ANY;
-		else
-			return this;*/
-		return PrimitiveType.ANY;
-	}
 }
