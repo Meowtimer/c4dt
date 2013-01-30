@@ -113,7 +113,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		if (element instanceof Function) {
 			Function func = ((Function)element);
 			result.append(func.longParameterString(true, false));
-			IType retType = func.returnType();
+			IType retType = func.returnType(context != null ? context.script() : null);
 			if (retType != null && retType != PrimitiveType.UNKNOWN) {
 				result.append(" : "); //$NON-NLS-1$
 				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
@@ -122,7 +122,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		else if (element instanceof Variable) {
 			Variable var = (Variable)element;
 			result.append(var.name());
-			IType type = var.type();
+			IType type = var.type(context != null ? context.script() : null);
 			if (type != null && type != PrimitiveType.UNKNOWN) {
 				result.append(" : ");
 				result.append(type.typeName(true));

@@ -461,11 +461,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						} catch (ParsingException e) {}
 				}
 			}
-			for (Function f : script.functions()) {
-				if (f.name().equals("TakeObject"))
-					System.out.println("yes");
+			for (Function f : script.functions())
 				reportProblemsOfFunction(f, foreign);
-			}
 		}
 
 		@Override
@@ -662,7 +659,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (pred != null)
 				return ty(pred, processor);
 			else
-				return supr.callerType(node, processor);
+				return processor.script();
 		}
 
 		public final IType predecessorType(ASTNode node, ScriptProcessor processor) {

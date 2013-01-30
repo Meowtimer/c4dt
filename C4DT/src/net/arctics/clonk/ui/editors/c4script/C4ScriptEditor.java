@@ -156,7 +156,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private TimerTask reparseTask, functionReparseTask;
 		private List<ProblemReportingStrategy> problemReportingStrategies;
 		private ProblemReportingStrategy typingStrategy;
-
+		
 		@Override
 		protected void added() {
 			super.added();
@@ -605,9 +605,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
-		return textChangeListener;
-	}
+	protected TextChangeListener textChangeListener() { return textChangeListener; }
 
 	public Function functionAt(int offset) {
 		Script script = script();

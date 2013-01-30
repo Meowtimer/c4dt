@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -177,6 +178,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (returnType == null)
 			returnType = PrimitiveType.UNKNOWN;
 		return returnType;
+	}
+	
+	public IType returnType(Script script) {
+		IType retType = null;
+		if (script != null && script.functionReturnTypes() != null)
+			retType = script.functionReturnTypes().get(this.name());
+		if (retType == null)
+			retType = returnType();
+		return retType;
 	}
 
 	/**
@@ -389,10 +399,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
-		if (returnType() != PrimitiveType.UNKNOWN) {
+		IType retType = returnType(as(context, Script.class));
+		
+		if (retType != PrimitiveType.UNKNOWN) {
 			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
 				Messages.Returns,
-				StringUtil.htmlerize(returnType().typeName(true))));
+				StringUtil.htmlerize(retType.typeName(true))));
 			if (returnDescription != null)
 				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
 		}

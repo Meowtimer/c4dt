@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
@@ -105,6 +107,15 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public IType type() {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
+		return type;
+	}
+	
+	public IType type(Script script) {
+		IType type = null;
+		if (script != null && script.variableTypes() != null)
+			type = script.variableTypes().get(this);
+		if (type == null)
+			type = type();
 		return type;
 	}
 
@@ -245,7 +256,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		IType t = type();
+		IType t = type(as(context, Script.class));
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue
