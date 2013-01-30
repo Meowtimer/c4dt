@@ -1376,8 +1376,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
 						SpecialFuncRule rule = node.specialRuleFromContext(processor, SpecialEngineRules.RETURNTYPE_MODIFIER);
-						if (rule != null)
-							return rule.returnType(processor, node);
+						if (rule != null) {
+							IType type = rule.returnType(processor, node);
+							if (type != null)
+								return type;
+						}
 						Function f = (Function)d;
 						Map<String, IType> typesMap = null;
 						if (f.visibility() != FunctionScope.GLOBAL)
