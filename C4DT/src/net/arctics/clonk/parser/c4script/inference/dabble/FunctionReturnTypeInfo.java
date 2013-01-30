@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Script
 
 final class FunctionReturnTypeInfo extends TypeInfo {
 	private Function function;
+	public Function function() { return function; }
 
 	public FunctionReturnTypeInfo(Function function) {
 		super();

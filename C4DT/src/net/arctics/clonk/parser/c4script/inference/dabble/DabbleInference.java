@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -22,7 +23,10 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
+import net.arctics.clonk.parser.IHasIncludes;
+import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -113,12 +117,18 @@ import org.eclipse.jface.text.Region;
 public class DabbleInference extends ProblemReportingStrategy {
 	private static final boolean UNUSEDPARMWARNING = false;
 	private static final boolean DEBUG = false;
+	private static final Markers NULL_MARKERS = new Markers() {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		@Override
+		public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+			// nope
+		}
+	};
 
 	private static class Shared {
 		C4ScriptParser[] parsers;
 		IProgressMonitor monitor;
 		final Map<Script, ScriptProcessor> processors = new HashMap<>();
-		final Set<Function> finishedFunctions = new HashSet<>();
 	}
 
 	private Shared shared;
@@ -156,16 +166,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return new ScriptProcessor(parser, new Shared());
 	}
 
-	public class ScriptProcessor implements Runnable, ProblemReportingContext {
+	public final class ScriptProcessor implements Runnable, ProblemReportingContext {
 
-		final C4ScriptParser parser;
-		ASTNode reportingNode;
-		TypeEnvironment typeEnvironment;
-		final Typing typing;
-		CachedEngineDeclarations cachedEngineDeclarations;
-		final Shared shared;
+		private final C4ScriptParser parser;
+		private ASTNode reportingNode;
+		private TypeEnvironment typeEnvironment;
+		private final Typing typing;
+		private final CachedEngineDeclarations cachedEngineDeclarations;
+		private final Shared shared;
 		private final Object working = new Object();
-		final int strictLevel;
+		private final int strictLevel;
+		private boolean visiting = false;
+		private final Set<Function> finishedFunctions = new HashSet<>();
+		private final Map<String, IType> functionReturnTypes = new HashMap<>();
+		private final Map<Variable, IType> variableTypes = new HashMap<>();
 
 		@Override
 		public Typing typing() { return typing; }
@@ -196,22 +210,49 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public void reportProblemsOfFunction(Function function) {
+			reportProblemsOfFunction(function, false);
+		}
+
+		public void reportProblemsOfFunction(Function function, boolean visit) {
 			if (function == null || function.body() == null)
 				return;
-			synchronized (shared.finishedFunctions) {
-				if (shared.finishedFunctions.contains(function))
+			synchronized (finishedFunctions) {
+				if (finishedFunctions.contains(function))
 					return;
 				else
-					shared.finishedFunctions.add(function);
+					finishedFunctions.add(function);
 			}
-			if (function.script() == parser.script())
+			if (visit || function.script() == parser.script())
 				synchronized (working) {
-					assignDefaultParmTypesToFunction(function);
 					try {
-						reportProblemsOf(function, function.body().statements(), false);
-					} catch (ParsingException e) {
-						System.out.println(e.getMessage());
+						ASTNode[] statements = function.body().statements();
+						assignReporters(function);
+						newTypeEnvironment();
+						{
+							if (!visiting)
+								assignDefaultParmTypesToFunction(function);
+							else
+								for (Variable l : function.localVars()) {
+									ITypeInfo ti = requestTypeInfo(new AccessVar(l));
+									if (ti != null)
+										ti.storeType(PrimitiveType.UNKNOWN);
+								}
+							for (Variable p : function.parameters())
+								if (p.type() == PrimitiveType.UNKNOWN) {
+									ITypeInfo varTypeInfo = requestTypeInfo(new AccessVar(p));
+									if (varTypeInfo != null)
+										varTypeInfo.storeType(p.parameterType());
+								}
+							for (ASTNode s : statements)
+								reportProblemsOf(s, true);
+						}
+						if (!visiting)
+							typeEnvironment.apply(this, false);
+						endTypeEnvironment(true, true);
+						warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
+						clearReporters(function);
 					}
+					catch (ParsingException e) {}
 				}
 			else {
 				ScriptProcessor other = shared.processors.get(function.script());
@@ -228,7 +269,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					left = PrimitiveType.ANY;
 				if (right == null)
 					right = PrimitiveType.ANY;
-				markers().marker(parser, ParserErrorCode.IncompatibleTypes, node, region.getOffset(), region.getOffset()+region.getLength(), Markers.NO_THROW,
+				this.markers().marker(parser, ParserErrorCode.IncompatibleTypes, node, region.getOffset(), region.getOffset()+region.getLength(), Markers.NO_THROW,
 					typing == Typing.Static ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
 					left.typeName(true), right.typeName(true)
 				);
@@ -343,7 +384,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (initialization.variable == variable) {
 							ASTNode old = reportingNode;
 							reportingNode = decl;
-							markers().warning(parser, code, initialization, initialization, 0, format);
+							this.markers().warning(parser, code, initialization, initialization, 0, format);
 							reportingNode = old;
 							return true;
 						}
@@ -360,7 +401,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (UNUSEDPARMWARNING)
 				for (Variable p : func.parameters())
 					if (!p.isUsed())
-						markers().warning(parser, ParserErrorCode.UnusedParameter, null, p, Markers.ABSOLUTE_MARKER_LOCATION, p.name());
+						this.markers().warning(parser, ParserErrorCode.UnusedParameter, null, p, Markers.ABSOLUTE_MARKER_LOCATION, p.name());
 			if (func.localVars() != null)
 				for (Variable v : func.localVars()) {
 					if (!v.isUsed())
@@ -391,10 +432,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			clearReporters(f);
 		}
 
-		@Override
-		public void reportProblems() {
-			newTypeEnvironment();
-			for (Variable v : script().variables()) {
+		private void visit(Script script, boolean foreign) {
+			for (Variable v : script.variables()) {
 				ASTNode init = v.initializationExpression();
 				if (init != null) {
 					Function owningFunc = as(init.owningDeclaration(), Function.class);
@@ -411,19 +450,51 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					if (v.scope() == Scope.CONST && !init.isConstant())
 						try {
-							markers().error(parser, ParserErrorCode.ConstantValueExpected, init,
+							this.markers().error(parser, ParserErrorCode.ConstantValueExpected, init,
 								owningFunc == null ? init : owningFunc.bodyLocation().add(init),
 									Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, v.name());
 						} catch (ParsingException e) {}
 				}
 			}
-			for (Function f : parser.script().functions())
-				reportProblemsOfFunction(f);
-			typeEnvironment.apply(this, false);
-			for (Variable v : parser.script().variables())
-				if (v.scope() == Scope.CONST)
-					v.lockType();
+			for (Function f : script.functions())
+				reportProblemsOfFunction(f, foreign);
+		}
+
+		@Override
+		public void reportProblems() {
+
+			// revisit all inherited scripts since that is the only way to
+			// accurately type inherited functions with respect to added things from this script
+			Markers oldMarkers = markers;
+			visiting = true;
+			markers = NULL_MARKERS;
+			newTypeEnvironment();
+			{
+				for (IHasIncludes include : script().includes(GatherIncludesOptions.NoAppendages))
+					if (include instanceof Script)
+						visit((Script)include, true);
+				storeTypings(typeEnvironment);
+			}
 			endTypeEnvironment(false, false);
+			visiting = false;
+			markers = oldMarkers;
+
+			newTypeEnvironment();
+			{
+				visit(script(), false);
+				typeEnvironment.apply(this, false);
+			}
+			endTypeEnvironment(false, false);
+		}
+		private void storeTypings(TypeEnvironment typeEnvironment) {
+			for (ITypeInfo info : typeEnvironment) {
+				VariableTypeInfo vti = as(info, VariableTypeInfo.class);
+				if (vti != null && vti.variable().scope() == Scope.LOCAL)
+					variableTypes.put(vti.variable(), vti.type());
+				FunctionReturnTypeInfo ftri = as(info, FunctionReturnTypeInfo.class);
+				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL)
+					functionReturnTypes.put(ftri.function().name(), ftri.type());
+			}
 		}
 		private void clearReporters(ASTNode node) {
 			node.traverse(new IASTVisitor<Void>() {
@@ -542,9 +613,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public Markers markers() {
-			return DabbleInference.this.markers();
-		}
+		public Markers markers() { return markers; }
 	}
 
 	class ProblemReporter<T extends ASTNode> extends PerClass<ASTNode, T, ProblemReporter<? super T>> {
@@ -602,7 +671,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public boolean typingJudgement(T node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
 //			if (DEBUG)
-//				markers().warning(processor, ParserErrorCode.TypingJudgment, node, node, Markers.NO_THROW, node.printed(), type.typeName(true));
+//				processor.markers().warning(processor, ParserErrorCode.TypingJudgment, node, node, Markers.NO_THROW, node.printed(), type.typeName(true));
 			ITypeInfo info;
 			switch (mode) {
 			case Expect:
@@ -669,13 +738,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 			internalObtainDeclaration(node, processor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
-			if (node.declaration() == null)
-				node.setDeclaration(obtainDeclaration(node, processor));
-			if (node.declaration() == null) {
-				processor.script().index().loadScriptsContainingDeclarationsNamed(node.declarationName());
-				node.setDeclaration(obtainDeclaration(node, processor));
+			if (processor.visiting)
+				return obtainDeclaration(node, processor);
+			else {
+				if (node.declaration() == null)
+					node.setDeclaration(obtainDeclaration(node, processor));
+				if (node.declaration() == null) {
+					processor.script().index().loadScriptsContainingDeclarationsNamed(node.declarationName());
+					node.setDeclaration(obtainDeclaration(node, processor));
+				}
+				return node.declaration();
 			}
-			return node.declaration();
 		}
 		@Override
 		public ITypeInfo createTypeInfo(T node, ScriptProcessor processor) {
@@ -716,7 +789,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	public final IType ty(ASTNode node, ScriptProcessor processor) {
-		return ty(node, reporter(node), processor);
+		return node != null ? ty(node, reporter(node), processor) : null;
 	}
 
 	public final <T extends ASTNode> IType ty(T node, ProblemReporter<T> reporter, ScriptProcessor processor) {
@@ -778,6 +851,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return stored;
 					if (d instanceof Function)
 						return new FunctionType((Function)d);
+					else if (d instanceof Variable) {
+						Variable v = (Variable)d;
+						if (node.predecessorInSequence() == null && v.scope() == Scope.LOCAL) {
+							IType type = processor.variableTypes.get(d);
+							if (type != null)
+								return type;
+						}
+						return v.type();
+					}
 					else if (d instanceof ITypeable)
 						return ((ITypeable) d).type();
 					//return new SameTypeAsSomeTypeable((ITypeable)d);
@@ -806,7 +888,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode pred = node.predecessorInSequence();
 					Declaration declaration = node.declaration();
 					if (declaration == null && pred == null)
-						markers().error(processor.parser, ParserErrorCode.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.declarationName());
+						processor.markers().error(processor.parser, ParserErrorCode.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.declarationName());
 					// local variable used in global function
 					else if (declaration instanceof Variable) {
 						Variable var = (Variable) declaration;
@@ -821,7 +903,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 									(f == null && v != null && v.scope() != Scope.LOCAL)
 								)
-									markers().error(processor.parser, ParserErrorCode.LocalUsedInGlobal, node, node, Markers.NO_THROW);
+									processor.markers().error(processor.parser, ParserErrorCode.LocalUsedInGlobal, node, node, Markers.NO_THROW);
 							}
 							break;
 						case STATIC: case CONST:
@@ -831,7 +913,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (processor.parser.currentFunction() != null && var.parentDeclaration() == processor.parser.currentFunction()) {
 								int locationUsed = processor.parser.currentFunction().bodyLocation().getOffset()+node.start();
 								if (locationUsed < var.start())
-									markers().warning(processor.parser, ParserErrorCode.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
+									processor.markers().warning(processor.parser, ParserErrorCode.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
 							}
 							break;
 						case PARAMETER:
@@ -839,7 +921,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					} else if (declaration instanceof Function)
 						if (!processor.parser.script().engine().settings().supportsFunctionRefs)
-							markers().error(processor.parser, ParserErrorCode.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.parser.script().engine().name());
+							processor.markers().error(processor.parser, ParserErrorCode.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.parser.script().engine().name());
 				}
 				public void initializeFromAssignment(Variable var, ASTNode referee, ASTNode expression, ScriptProcessor processor) {
 					IType type = ty(expression, processor);
@@ -877,8 +959,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public ITypeInfo createTypeInfo(AccessVar node, ScriptProcessor processor) {
-					if (node.declaration() instanceof Variable && node.declaration().parentDeclaration() instanceof Function)
-						return new LocalVariableInfo(node);
+					if (node.declaration() instanceof Variable && node.predecessorInSequence() == null)
+						return new VariableTypeInfo(node);
 					else
 						return super.createTypeInfo(node, processor);
 				}
@@ -954,19 +1036,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 						type = PrimitiveType.UNKNOWN;
 					ASTNode arg = node.argument();
 					if (arg == null)
-						markers().warning(processor.parser, ParserErrorCode.MissingExpression, node, node, 0);
+						processor.markers().warning(processor.parser, ParserErrorCode.MissingExpression, node, node, 0);
 					else if (PrimitiveType.UNKNOWN != type && PrimitiveType.ANY != type) {
 						IType argType = ty(arg, processor);
 						ASTNode pred = node.predecessorInSequence();
 						if (argType == PrimitiveType.STRING) {
 							if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
-								markers().warning(processor.parser, ParserErrorCode.NotAProplist, node, pred, 0);
+								processor.markers().warning(processor.parser, ParserErrorCode.NotAProplist, node, pred, 0);
 							else
 								judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.Unify, processor);
 						}
 						else if (argType == PrimitiveType.INT)
 							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
-								markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, pred, 0);
+								processor.markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, pred, 0);
 							else
 								reporter(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
 					}
@@ -981,7 +1063,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					{
 						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type);
 						TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type);
-						markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, node, 0);
+						processor.markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, node, 0);
 					}
 				}
 				@Override
@@ -1026,10 +1108,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					node.setLocation(left.start(), right.end());
 					// i'm an assignment operator and i can't modify my left side :C
 					if (op.modifiesArgument() && !left.isModifiable(processor.parser))
-						markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, left, Markers.NO_THROW);
+						processor.markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, left, Markers.NO_THROW);
 					// obsolete operators in #strict 2impor
 					if ((op == Operator.StringEqual || op == Operator.ne) && (processor.strictLevel >= 2))
-						markers().warning(processor.parser, ParserErrorCode.ObsoleteOperator, node, node, 0, op.operatorName());
+						processor.markers().warning(processor.parser, ParserErrorCode.ObsoleteOperator, node, node, 0, op.operatorName());
 					// wrong parameter types
 					if (!validForType(left, op.firstArgType(), processor))
 						processor.incompatibleTypes(node, left, op.firstArgType(), ty(left, processor));
@@ -1075,7 +1157,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					supr.reportProblems(node, processor);
 					ASTNode arg = node.argument();
 					if (node.operator().modifiesArgument() && !arg.isModifiable(processor.parser))
-						markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
+						processor.markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
 					ProblemReporter<? super ASTNode> rarg = reporter(arg);
 					if (!rarg.validForType(arg, node.operator().firstArgType(), processor))
 						processor.incompatibleTypes(node, arg, node.operator().firstArgType(),
@@ -1091,7 +1173,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.parent() instanceof BinaryOp) {
 						Operator op = ((BinaryOp) node.parent()).operator();
 						if (op == Operator.And || op == Operator.Or)
-							markers().warning(processor.parser, ParserErrorCode.BoolLiteralAsOpArg, node, node, 0, this.toString());
+							processor.markers().warning(processor.parser, ParserErrorCode.BoolLiteralAsOpArg, node, node, 0, this.toString());
 					}
 				}
 			},
@@ -1100,7 +1182,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void reportProblems(ContinueStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
-						markers().error(processor.parser, ParserErrorCode.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+						processor.markers().error(processor.parser, ParserErrorCode.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
 					supr.reportProblems(node, processor);
 				}
 			},
@@ -1109,7 +1191,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void reportProblems(BreakStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
-						markers().error(processor.parser, ParserErrorCode.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+						processor.markers().error(processor.parser, ParserErrorCode.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
 					supr.reportProblems(node, processor);
 				}
 			},
@@ -1120,9 +1202,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return;
 					if (node instanceof Tuple)
 						if (tupleIsError)
-							markers().error(processor.parser, ParserErrorCode.TuplesNotAllowed, node, node, Markers.NO_THROW);
+							processor.markers().error(processor.parser, ParserErrorCode.TuplesNotAllowed, node, node, Markers.NO_THROW);
 						else if (processor.strictLevel >= 2)
-							markers().error(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, Markers.NO_THROW);
+							processor.markers().error(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, Markers.NO_THROW);
 					ASTNode[] subElms = node.subElements();
 					for (ASTNode e : subElms)
 						warnAboutTupleInReturnExpr(processor, e, true);
@@ -1134,7 +1216,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					warnAboutTupleInReturnExpr(processor, returnExpr, false);
 					Function currentFunction = node.parentOfType(Function.class);
 					if (currentFunction == null)
-						markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
+						processor.markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
 					else if (returnExpr != null)
 						if (processor.typing == Typing.Static && currentFunction.staticallyTyped()) {
 							if (!reporter(returnExpr).validForType(returnExpr, currentFunction.returnType(), processor))
@@ -1263,7 +1345,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (rule != null)
 							return rule.returnType(processor, node);
 						Function f = (Function)d;
-						return f.returnType();
+						IType type = processor.functionReturnTypes.get(f.name());
+						if (type != null)
+							return type;
+						else
+							return f.returnType();
 					}
 					if (d instanceof Variable)
 						return ((Variable)d).type();
@@ -1283,18 +1369,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred instanceof MemberOperator)
 						if (((MemberOperator)pred).hasTilde())
 							return false;
-					// wat
-					boolean anythingNonPrimitive = false;
 					// allow this->Unknown()
 					if (pred instanceof AccessDeclaration && (isAnyOf((Object)((AccessDeclaration)pred).declaration(), Variable.THIS, processor.cachedEngineDeclarations().This)))
 						return false;
-					for (IType t : predType) {
-						if (t instanceof PrimitiveType)
-							continue;
-						if (t instanceof Script)
-							return true;
-					}
-					return anythingNonPrimitive;
+					boolean anyDefinitions = false;
+					for (IType t : predType)
+						if (t instanceof Definition)
+							anyDefinitions = true;
+					return anyDefinitions;
 				}
 				@Override
 				public IType type(CallDeclaration node, ScriptProcessor processor) {
@@ -1317,15 +1399,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// return as function
 					if (declarationName.equals(Keywords.Return)) {
 						if (processor.strictLevel >= 2)
-							markers().error(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, Markers.NO_THROW);
+							processor.markers().error(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, Markers.NO_THROW);
 						else
-							markers().warning(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, 0);
+							processor.markers().warning(processor.parser, ParserErrorCode.ReturnAsFunction, node, node, 0);
 					}
 					else {
 						// inherited/_inherited not allowed in non-strict mode
 						if (processor.strictLevel <= 0)
 							if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited))
-								markers().error(processor.parser, ParserErrorCode.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
+								processor.markers().error(processor.parser, ParserErrorCode.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
 
 						// variable as function
 						if (declaration instanceof Variable) {
@@ -1334,7 +1416,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							// no warning when in #strict mode
 							if (processor.strictLevel >= 2)
 								if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-									markers().warning(processor.parser, ParserErrorCode.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
+									processor.markers().warning(processor.parser, ParserErrorCode.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 						} else if (declaration instanceof Function) {
 							Function f = (Function)declaration;
 							if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
@@ -1369,13 +1451,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (declarationName.equals(Keywords.Inherited)) {
 									Function activeFunc = processor.parser.currentFunction();
 									if (activeFunc != null)
-										markers().error(processor.parser, ParserErrorCode.NoInheritedFunction, node, start, start+declarationName.length(), Markers.NO_THROW, processor.parser.currentFunction().name(), true);
+										processor.markers().error(processor.parser, ParserErrorCode.NoInheritedFunction, node, start, start+declarationName.length(), Markers.NO_THROW, processor.parser.currentFunction().name(), true);
 									else
-										markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
+										processor.markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
 								}
 								// _inherited yields no warning or error
 								else if (!declarationName.equals(Keywords.SafeInherited))
-									markers().error(processor.parser, ParserErrorCode.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
+									processor.markers().error(processor.parser, ParserErrorCode.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
 							} else if (predecessor != null && MemberOperator.unforgiving(predecessor))
 								judgement(predecessor, new StructuralType(declarationName), TypingJudgementMode.Unify, processor);
 					}
@@ -1425,7 +1507,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							(e != null && !e.isValidInSequence(p, processor.parser)) ||
 							(p != null && !p.allowsSequenceSuccessor(processor.parser, e))
 							)
-							markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, e, Markers.NO_THROW, e);
+							processor.markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, e, Markers.NO_THROW, e);
 						p = e;
 					}
 				}
@@ -1480,7 +1562,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void reportProblems(Nil node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsNil)
-						markers().error(processor.parser, ParserErrorCode.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, processor.script().engine().name());
+						processor.markers().error(processor.parser, ParserErrorCode.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, processor.script().engine().name());
 				}
 			},
 
@@ -1493,7 +1575,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					long max = processor.script().index().engine().settings().maxStringLen;
 					String lit = node.literal();
 					if (max != 0 && lit.length() > max)
-						markers().warning(processor.parser, ParserErrorCode.StringTooLong, node, node, lit.length(), max);
+						processor.markers().warning(processor.parser, ParserErrorCode.StringTooLong, node, node, lit.length(), max);
 
 					// stringtbl entries
 					// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
@@ -1531,7 +1613,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void reportProblems(FloatLiteral node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsFloats)
-						markers().error(processor.parser, ParserErrorCode.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
+						processor.markers().error(processor.parser, ParserErrorCode.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
 					supr.reportProblems(node, processor);
 				}
 			},
@@ -1564,11 +1646,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void reportProblems(CallExpr node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsFunctionRefs)
-						markers().error(processor.parser, ParserErrorCode.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
+						processor.markers().error(processor.parser, ParserErrorCode.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
 					else {
 						IType type = reporter(node.predecessorInSequence()).type(node.predecessorInSequence(), processor);
 						if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-							markers().error(processor.parser, ParserErrorCode.CallingExpression, node, node, Markers.NO_THROW);
+							processor.markers().error(processor.parser, ParserErrorCode.CallingExpression, node, node, Markers.NO_THROW);
 					}
 				}
 			},
@@ -1581,7 +1663,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				protected void notFinishedError(ASTNode node, ScriptProcessor processor) throws ParsingException {
 					if (!node.isFinishedProperly())
 						// don't traverse children - one not-finished error is enough
-						markers().error(processor.parser, ParserErrorCode.NotFinished, node, node, Markers.NO_THROW, node);
+						processor.markers().error(processor.parser, ParserErrorCode.NotFinished, node, node, Markers.NO_THROW, node);
 				}
 				/**
 				 * Emit a warning if this expression is erroneously used at a place where only expressions with side effects are allowed.
@@ -1591,14 +1673,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.parent() instanceof IterateArrayStatement && ((IterateArrayStatement)node.parent()).elementExpr() == node)
 						return;
 					if (!node.hasSideEffects())
-						markers().warning(processor.parser, ParserErrorCode.NoSideEffects, node, node, 0);
+						processor.markers().warning(processor.parser, ParserErrorCode.NoSideEffects, node, node, 0);
 				}
 				@Override
 				public void reportProblems(Statement node, ScriptProcessor processor) throws ParsingException {
 					supr.reportProblems(node, processor);
 					warnIfNoSideEffects(node, processor);
 					if (!node.flagsEnabled(ASTNode.STATEMENT_REACHED))
-						markers().warning(processor.parser, ParserErrorCode.NeverReached, node, node, 0);
+						processor.markers().warning(processor.parser, ParserErrorCode.NeverReached, node, node, 0);
 					notFinishedError(node, processor);
 				}
 			},
@@ -1637,7 +1719,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void reportProblems(PropListExpression node, ScriptProcessor processor) throws ParsingException {
 					supr.reportProblems(node, processor);
 					if (!processor.script().engine().settings().supportsProplists)
-						markers().error(processor.parser, ParserErrorCode.NotSupported, node, node, Markers.NO_THROW,
+						processor.markers().error(processor.parser, ParserErrorCode.NotSupported, node, node, Markers.NO_THROW,
 							net.arctics.clonk.parser.c4script.ast.Messages.PropListExpression_ProplistsFeature,
 							processor.script().engine().name());
 				}
@@ -1674,13 +1756,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ASTNode sequenceTilMe = pred.sequenceTilMe();
 						ProblemReporter<? super ASTNode> stmReporter = reporter(sequenceTilMe);
 						if (!stmReporter.typingJudgement(sequenceTilMe, requiredType, processor, TypingJudgementMode.Hint))
-							markers().warning(processor.parser, node.dotNotation() ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject, node, node, 0,
+							processor.markers().warning(processor.parser, node.dotNotation() ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject, node, node, 0,
 								ty(sequenceTilMe, stmReporter, processor).typeName(false));
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
-						markers().error(processor.parser, ParserErrorCode.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
+						processor.markers().error(processor.parser, ParserErrorCode.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
 					if (node.dotNotation() && !settings.supportsProplists)
-						markers().error(processor.parser, ParserErrorCode.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
+						processor.markers().error(processor.parser, ParserErrorCode.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
 				}
 			},
 
@@ -1738,7 +1820,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void reportProblems(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
 					BinaryOp op = as(node.expression(), BinaryOp.class);
 					if (op != null && !op.operator().modifiesArgument())
-						markers().warning(processor.parser, ParserErrorCode.NoAssignment, node, op, 0);
+						processor.markers().warning(processor.parser, ParserErrorCode.NoAssignment, node, op, 0);
 					supr.reportProblems(node, processor);
 				}
 			},
@@ -1765,11 +1847,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return;
 					Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(node.parentOfType(Function.class)));
 					if (Boolean.FALSE.equals(condEv))
-						markers().warning(processor, ParserErrorCode.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
+						processor.markers().warning(processor, ParserErrorCode.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
 					else if (Boolean.TRUE.equals(condEv)) {
 						EnumSet<ControlFlow> flows = node.body().possibleControlFlows();
 						if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-							markers().warning(processor, ParserErrorCode.InfiniteLoop, node, node, Markers.NO_THROW);
+							processor.markers().warning(processor, ParserErrorCode.InfiniteLoop, node, node, Markers.NO_THROW);
 					}
 				}
 			},
@@ -1798,7 +1880,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!condition.containsConst()) {
 						Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(node.parentOfType(Function.class)));
 						if (condEv != null && condEv != ASTNode.EVALUATION_COMPLEX)
-							markers().warning(processor.parser,
+							processor.markers().warning(processor.parser,
 								condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
 								condition, condition, 0, condition);
 					}
@@ -1833,14 +1915,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ProblemReporter<MissingStatement>(MissingStatement.class) {
 				@Override
 				public void reportProblems(MissingStatement node, ScriptProcessor processor) throws ParsingException {
-					markers().error(processor.parser, ParserErrorCode.MissingStatement, node, node, Markers.NO_THROW);
+					processor.markers().error(processor.parser, ParserErrorCode.MissingStatement, node, node, Markers.NO_THROW);
 				}
 			},
 
 			new ProblemReporter<GarbageStatement>(GarbageStatement.class) {
 				@Override
 				public void reportProblems(GarbageStatement node, ScriptProcessor processor) throws ParsingException {
-					markers().error(processor.parser, ParserErrorCode.Garbage, node, node, Markers.NO_THROW, node.garbage());
+					processor.markers().error(processor.parser, ParserErrorCode.Garbage, node, node, Markers.NO_THROW, node.garbage());
 				}
 			},
 
@@ -1855,7 +1937,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							StringTbl stringTbl = processor.script().localStringTblMatchingLanguagePref();
 							String entryName = part.substring(1, part.length()-1);
 							if (stringTbl == null || stringTbl.map().get(entryName) == null)
-								markers().warning(processor.parser, ParserErrorCode.UndeclaredIdentifier, node,
+								processor.markers().warning(processor.parser, ParserErrorCode.UndeclaredIdentifier, node,
 									new Region(node.start()+off, part.length()), 0, entryName);
 						}
 						off += part.length()+1;
@@ -1884,7 +1966,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (lineEnd == -1)
 								lineEnd = s.length();
 							searchStart = lineEnd;
-							markers().todo(processor.parser.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+							processor.markers().todo(processor.parser.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
 						}
 					} while (markerPriority > IMarker.PRIORITY_LOW);
 				}

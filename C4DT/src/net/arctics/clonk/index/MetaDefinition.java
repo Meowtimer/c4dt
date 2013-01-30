@@ -12,15 +12,17 @@ public class MetaDefinition implements IType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private final Definition definition;
-	
+
+	public IType definition() { return definition; }
+
 	public MetaDefinition(Definition definition) {
 		super();
 		this.definition = definition;
 	}
-	
+
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable((IType)PrimitiveType.ID, definition).iterator();
+		return iterable(PrimitiveType.ID, this).iterator();
 	}
 
 	@Override

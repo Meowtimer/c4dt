@@ -64,10 +64,10 @@ import org.xml.sax.SAXException;
  * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
  */
 public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
-	
+
 	public static final String HUMAN_READABLE_NAME = Messages.HumanReadableName;
 	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
-	
+
 	/**
 	 * The Plugin-ID
 	 */
@@ -77,7 +77,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * id for Clonk project natures
 	 */
 	public static final String NATURE_ID = id("clonknature"); //$NON-NLS-1$
-	
+
 	/**
 	 * Binding context for Clonk related editing activities
 	 */
@@ -88,7 +88,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 */
 	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$
 	public static final String MARKER_C4SCRIPT_ERROR_WHILE_TYPING = id("c4scripterrorwhiletyping"); //$NON-NLS-1$
-	
+
 	/**
 	 * id for error markers that denote errors in a ini file
 	 */
@@ -97,16 +97,16 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id"); //$NON-NLS-1$
 	public static final QualifiedName FOLDER_DEFINITION_REFERENCE_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
 	public static final QualifiedName FILE_STRUCTURE_REFERENCE_ID = new QualifiedName(PLUGIN_ID, "structure"); //$NON-NLS-1$
-	
+
 	public static final String MENU_GROUP_CLONK = id("ui.editors.actions.clonkGroup");
-	
+
 	public static final long SERIAL_VERSION_UID = 1L;
 
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
 	private Engine activeEngine;
-	
+
 	/**
 	 * List of engines currently loaded
 	 */
@@ -121,7 +121,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * Provider used by the plugin to provide text of documents
 	 */
 	private final TextFileDocumentProvider textFileDocumentProvider;
-	
+
 	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
 	private final boolean runsHeadless;
@@ -131,11 +131,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		this.textFileDocumentProvider = runsHeadless() ? null : new TextFileDocumentProvider();
 	}
 	public Core() { this(false); }
-	
+
 	public Version versionFromLastRun() {
 		return versionFromLastRun;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
@@ -149,9 +149,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		} catch (Exception e) {
 			versionFromLastRun = new Version(0, 5, 0); // oold
 		}
-		
+
 		instance = this;
-		
+
 		loadActiveEngine();
 
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
@@ -180,13 +180,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			(minor == -1 || version.getMinor() >= minor) &&
 			(micro == -1 || version.getMicro() >= micro);
 	}
-	
+
 	private static boolean versionGap(Version oldVersion, Version newVersion, int baselineMajor, int baselineMinor, int baselineMicro) {
 		return
 			versionAtLeast(newVersion, baselineMajor, baselineMinor, baselineMicro) &&
 			!versionAtLeast(oldVersion, baselineMajor, baselineMinor, baselineMicro);
 	}
-	
+
 	private void informAboutUpdate(Version oldVersion, Version newVersion) {
 		// only if there are projects at all
 		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0)
@@ -200,14 +200,14 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		LandscapeScript.register();
 		SystemScript.register();
 	}
-	
+
 	private String engineNameFromPath(String path) {
 		String folderName = path.endsWith("/") //$NON-NLS-1$
 			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
 			: path.substring(path.lastIndexOf('/')+1);
 		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
-	
+
 	public List<String> namesOfAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
@@ -229,7 +229,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			}
 		return result;
 	}
-	
+
 	public Iterable<Engine> loadedEngines() {
 		return new Iterable<Engine>() {
 			@Override
@@ -238,24 +238,26 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			}
 		};
 	}
-	
+
 	public Engine loadEngine(final String engineName) {
 		if (engineName == null || engineName.equals("")) //$NON-NLS-1$
 			return null;
-		Engine result = loadedEngines.get(engineName);
-		if (result != null)
+		synchronized (loadedEngines) {
+			Engine result = loadedEngines.get(engineName);
+			if (result != null)
+				return result;
+			IStorageLocation[] locations;
+			if (getBundle() != null)
+				// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
+				locations = storageLocations(engineName);
+			else
+				// no bundle? seems to run headlessly
+				locations = headlessStorageLocations(engineName);
+			result = Engine.loadFromStorageLocations(locations);
+			if (result != null)
+				loadedEngines.put(engineName, result);
 			return result;
-		IStorageLocation[] locations;
-		if (getBundle() != null)
-			// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
-			locations = storageLocations(engineName);
-		else
-			// no bundle? seems to run headlessly
-			locations = headlessStorageLocations(engineName);
-		result = Engine.loadFromStorageLocations(locations);
-		if (result != null)
-			loadedEngines.put(engineName, result);
-		return result;
+		}
 	}
 
 	private IStorageLocation[] storageLocations(final String engineName) {
@@ -325,9 +327,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public IPath workspaceStorageLocationForActiveEngine() {
 		return workspaceStorageLocationForEngine(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 	}
-	
+
 	public IPath workspaceStorageLocationForEngine(String engineName) {
-		IPath path = workspaceStorageLocationForEngines(); 
+		IPath path = workspaceStorageLocationForEngines();
 		path = path.append(String.format("%s", engineName));
 		File dir = path.toFile();
 		if (!dir.exists())
@@ -338,7 +340,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	private IPath workspaceStorageLocationForEngines() {
 	    return getStateLocation().append("engines"); //$NON-NLS-1$
     }
-	
+
 	/**
 	 * Request that a folder with the supplied name be created in the plugin state folder.<br>
 	 * Utilization of the folder is up to the caller.
@@ -368,9 +370,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}		
+		}
 	}
-	
+
 	public void saveEngineInWorkspace(String engineName) {
 		try {
 			IPath engine = workspaceStorageLocationForEngine(engineName);
@@ -391,7 +393,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void saveActiveEngineInWorkspace() {
 		saveEngineInWorkspace(activeEngine().name());
 	}
@@ -408,7 +410,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		instance = null;
 		super.stop(context);
 	}
-	
+
 	public static boolean stopped() { return instance == null; }
 
 	/**
@@ -419,7 +421,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public static Core instance() {
 		return instance;
 	}
-	
+
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (instance == null) {
 			instance = new Core(true);
@@ -442,7 +444,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/**
 	 * Returns an icon image (uses image registry where possible). If the icon doesn't exist,
 	 * a "missing" image is returned.
-	 * 
+	 *
 	 * @param iconName Name of the icon
 	 */
 	public Image iconImageFor(String iconName) {
@@ -503,7 +505,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			break;
 		}
 	}
-	
+
 	private void rememberCurrentVersion() {
 		File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
 		try {
@@ -524,7 +526,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				removeRecursively(fi);
 		f.delete();
 	}
-	
+
 	private void removeOldIndexes() {
 		File stateDir = getStateLocation().toFile();
 		for (String file : stateDir.list())
@@ -547,7 +549,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	private void setActiveEngine(Engine activeEngine) {
 		this.activeEngine = activeEngine;
 	}
-	
+
 	public void setActiveEngineByName(String engineName) {
 		Engine e = loadEngine(engineName);
 		// make sure names are correct
@@ -571,11 +573,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public TextFileDocumentProvider textFileDocumentProvider() {
 		return textFileDocumentProvider;
 	}
-	
+
 	public interface IDocumentAction<T> {
 		T run(IDocument document);
 	}
-	
+
 	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) {
 		IDocumentProvider provider = textFileDocumentProvider();
 		try {
@@ -613,11 +615,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			e.printStackTrace();
 		}
 	}
-	
+
 	public boolean updateTookPlace() {
 		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
-	
+
 	public boolean runsHeadless() {
 		return runsHeadless;
 	}

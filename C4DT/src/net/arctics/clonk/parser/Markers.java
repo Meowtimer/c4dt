@@ -72,6 +72,12 @@ public class Markers extends LinkedList<Marker> {
 	 * @throws ParsingException
 	 */
 	public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+		if (!errorEnabled(code))
+			return;
+
+		if (code == ParserErrorCode.UndeclaredIdentifier && args[0].equals("angle"))
+			System.out.println("here");
+
 		if (listener != null) {
 			if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 				markerStart += positionProvider.fragmentOffset();
@@ -81,8 +87,6 @@ public class Markers extends LinkedList<Marker> {
 				return;
 		}
 
-		if (!errorEnabled(code))
-			return;
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0 && node != null) {
 			Function f = node.parentOfType(Function.class);
 			if (f != null) {

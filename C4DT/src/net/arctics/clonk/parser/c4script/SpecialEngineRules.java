@@ -26,6 +26,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
@@ -416,10 +417,11 @@ public abstract class SpecialEngineRules {
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
 				IType t = processor.typeOf(callFunc.params()[0]);
-				if (t instanceof Definition)
-					return t;
-				else
-					return PrimitiveType.OBJECT;
+				IType r = PrimitiveType.OBJECT;
+				for (IType ty : t)
+					if (ty instanceof MetaDefinition)
+						r = TypeUnification.unify(r, ((MetaDefinition)ty).definition());
+				return r;
 			}
 			return null;
 		}
@@ -446,7 +448,7 @@ public abstract class SpecialEngineRules {
 				return PrimitiveType.ID;
 		}
 	};
-	
+
 	/**
 	 *  It's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 	 */
