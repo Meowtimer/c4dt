@@ -71,33 +71,31 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
 public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
 
-	private transient CachedEngineDeclarations cachedDeclarations;
-	private transient Map<String, Variable[]> cachedPrefixedVariables;
-
-	private transient EngineSettings intrinsicSettings;
-	private transient EngineSettings currentSettings;
-
-	private transient IStorageLocation[] storageLocations;
-	private transient IniData iniConfigurations;
-
-	private transient SpecialEngineRules specialRules;
+	private CachedEngineDeclarations cachedDeclarations;
+	private Map<String, Variable[]> cachedPrefixedVariables;
+	private EngineSettings intrinsicSettings;
+	private EngineSettings currentSettings;
+	private IStorageLocation[] storageLocations;
+	private IniData iniConfigurations;
+	private SpecialEngineRules specialRules;
+	private Index index;
+	private Scenario templateScenario;
+	private final transient XMLDocImporter xmlDocImporter = new XMLDocImporter();
+	private IniDescriptionsLoader iniDescriptionsLoader;
 
 	/**
 	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
 	 * @return The {@link SpecialEngineRules} object
 	 */
-	public SpecialEngineRules specialRules() {
-		return specialRules;
-	}
+	public SpecialEngineRules specialRules() { return specialRules; }
 
 	/**
 	 * Return the {@link EngineSettings} read from the configuration.ini file embedded into the plugin jar.
 	 * @return The intrinsic settings
 	 */
-	public EngineSettings intrinsicSettings() {
-		return intrinsicSettings;
-	}
+	public EngineSettings intrinsicSettings() { return intrinsicSettings; }
 
 	/**
 	 * Set {@link #settings()}, save them to the workspace configuration.ini file and reinitialize anything that needs reinitializing
@@ -122,25 +120,19 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * Return the currently active {@link EngineSettings}.
 	 * @return The current settings
 	 */
-	public EngineSettings settings() {
-		return currentSettings;
-	}
+	public EngineSettings settings() { return currentSettings; }
 
 	/**
 	 * Return {@link CachedEngineDeclarations} for this engine.
 	 * @return The {@link CachedEngineDeclarations}
 	 */
-	public final CachedEngineDeclarations cachedDeclarations() {
-		return cachedDeclarations;
-	}
+	public final CachedEngineDeclarations cachedDeclarations() { return cachedDeclarations; }
 
 	/**
 	 * Return {@link IniData} configuration for this engine
 	 * @return The {@link IniData} configuration
 	 */
-	public IniData iniConfigurations() {
-		return iniConfigurations;
-	}
+	public IniData iniConfigurations() { return iniConfigurations; }
 
 	/**
 	 * Create new engine with the specified name.
@@ -183,34 +175,23 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param text The ID text
 	 * @return Whether accepted or not
 	 */
-	public boolean acceptsId(String text) {
-		return specialRules().parseId(new BufferedScanner(text)) != null;
-	}
-
-	private boolean hasCustomSettings() {
-		return !currentSettings.equals(intrinsicSettings);
-	}
+	public boolean acceptsId(String text) { return specialRules().parseId(new BufferedScanner(text)) != null; }
+	private boolean hasCustomSettings() { return !currentSettings.equals(intrinsicSettings); }
 
 	/**
 	 * I am my own engine!
 	 */
 	@Override
-	public Engine engine() {
-		return this;
-	}
-
+	public Engine engine() { return this; }
 	@Override
-	public IFile scriptStorage() {
-		return null;
-	}
+	public IFile scriptStorage() { return null; }
+	public Scenario templateScenario() { return templateScenario; }
 
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
 		resetCache();
 	}
-
-	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
 
 	/**
 	 * Load settings from this engine's {@link #storageLocations()}
@@ -554,6 +535,15 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			e.printStackTrace();
 		}
 		reinitializeDocImporter();
+
+		index = new Index() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Engine engine() {
+				return Engine.this;
+			}
+		};
+		templateScenario = new Scenario(index, "ScenarioOfTheMind", null);
 	}
 
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
@@ -774,9 +764,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
 	}
 
-	private final XMLDocImporter xmlDocImporter = new XMLDocImporter();
-	private IniDescriptionsLoader iniDescriptionsLoader;
-
 	/**
 	 * Return a XML Documentation importer for importing documentation from the repository path specified in the {@link #settings()}.
 	 * @return
@@ -788,14 +775,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 	}
 
-	public IStorageLocation[] storageLocations() {
-		return storageLocations;
-	}
-
+	public IStorageLocation[] storageLocations() { return storageLocations; }
 	@Override
-	public String qualifiedName() {
-		return name();
-	}
+	public String qualifiedName() { return name(); }
 
 	public boolean supportsPrimitiveType(PrimitiveType type) {
 		switch (type) {

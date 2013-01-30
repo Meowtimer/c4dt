@@ -603,7 +603,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					return d;
 			if (name.equals(Scenario.PROPLIST_NAME)) {
 				Scenario scenario = Scenario.nearestScenario(this.resource());
-				if (scenario != null && scenario.propList() != null)
+				if (scenario == null)
+					scenario = engine().templateScenario();
+				if (scenario.propList() != null)
 					return scenario.propList();
 			}
 			else if (name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
@@ -1165,7 +1167,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public void setTypeDescription(String description) {}
-	
+
 	private void _generateFindDeclarationCache() {
 		List<IHasIncludes> conglo = this.conglomerate();
 		Collections.reverse(conglo);
