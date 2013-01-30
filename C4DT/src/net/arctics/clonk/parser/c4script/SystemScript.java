@@ -3,11 +3,16 @@ package net.arctics.clonk.parser.c4script;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -127,6 +132,26 @@ public class SystemScript extends Script implements Serializable {
 				return null;
 			}
 		});
+	}
+	
+	@Override
+	public String typeName(boolean special) {
+		if (!special)
+			return PrimitiveType.OBJECT.typeName(false);
+		List<Definition> targets = new ArrayList<>(3);
+		for (Directive d : directives())
+			if (d.type() == DirectiveType.APPENDTO) {
+				ID id = d.contentAsID();
+				if (id != null) {
+					Definition def = index().definitionNearestTo(scriptFile(), id);
+					if (def != null)
+						targets.add(def);
+				}
+			}
+		if (targets.size() == 1)
+			return String.format("%s+", targets.get(0).typeName(true));
+		else
+			return super.typeName(special);
 	}
 
 }
