@@ -26,7 +26,7 @@ public class Markers extends LinkedList<Marker> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public Markers() {}
-	public Markers(IMarkerListener listener) { this.listener = listener; }
+	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
 
 	/**
 	 * Whether to not create any error markers at all - set if script is contained in linked group
@@ -74,9 +74,6 @@ public class Markers extends LinkedList<Marker> {
 	public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
 		if (!errorEnabled(code))
 			return;
-
-		if (code == ParserErrorCode.UndeclaredIdentifier && args[0].equals("angle"))
-			System.out.println("here");
 
 		if (listener != null) {
 			if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {

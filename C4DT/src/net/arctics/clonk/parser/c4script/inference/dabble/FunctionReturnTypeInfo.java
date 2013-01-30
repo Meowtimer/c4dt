@@ -12,8 +12,6 @@ final class FunctionReturnTypeInfo extends TypeInfo {
 	public FunctionReturnTypeInfo(Function function) {
 		super();
 		this.function = function;
-		if (function != null)
-			type = function.returnType();
 	}
 
 	@Override

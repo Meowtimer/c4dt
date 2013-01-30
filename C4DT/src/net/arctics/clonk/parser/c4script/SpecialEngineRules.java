@@ -434,7 +434,6 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
-			Script script = null;
 			IType t;
 			if (callFunc.params().length > 0)
 				t = processor.typeOf(callFunc.params()[0]);

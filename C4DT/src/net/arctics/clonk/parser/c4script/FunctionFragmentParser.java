@@ -40,23 +40,27 @@ public class FunctionFragmentParser extends C4ScriptParser {
 	protected String functionSource(Function function) {
 		return buffer;
 	}
-	public void update() {
+	public boolean update() {
 		String functionSource = functionSource(function);
 		FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;
 		// if block is non-existent or outdated, parse function code and store block
-		if (cachedBlock == null) try {
-			if (function != null)
-				function.clearLocalVars();
-			strictLevel = script().strictLevel();
-			markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
-			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
-			setCurrentFunction(function);
-			parseStatementBlock(offset, statements, options, false);
-			cachedBlock = new FunctionBody(function, statements);
-			if (function != null)
-				function.storeBody(cachedBlock, functionSource);
-		} catch (ParsingException pe) {}
+		if (cachedBlock == null) {
+			try {
+				if (function != null)
+					function.clearLocalVars();
+				strictLevel = script().strictLevel();
+				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
+				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+				LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
+				setCurrentFunction(function);
+				parseStatementBlock(offset, statements, options, false);
+				cachedBlock = new FunctionBody(function, statements);
+				if (function != null)
+					function.storeBody(cachedBlock, functionSource);
+			} catch (ParsingException pe) {}
+			return true;
+		} else
+			return false;
 	}
 	public static FunctionFragmentParser update(IDocument document, Script script, Function function, Markers markers) {
 		FunctionFragmentParser updater = new FunctionFragmentParser(document, script, function, markers);

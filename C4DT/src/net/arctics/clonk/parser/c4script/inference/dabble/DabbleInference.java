@@ -180,12 +180,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Set<Function> finishedFunctions = new HashSet<>();
 		private final Map<String, IType> functionReturnTypes = new HashMap<>();
 		private final Map<Variable, IType> variableTypes = new HashMap<>();
+		private boolean finished = false;
+		private Markers markers;
 
 		@Override
 		public Typing typing() { return typing; }
 		public C4ScriptParser parser() { return parser; }
 
 		public ScriptProcessor(C4ScriptParser parser, Shared shared) {
+			this.markers = DabbleInference.this.markers();
 			this.shared = shared;
 			this.parser = parser;
 			this.typing = parser.typing();
@@ -390,6 +393,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 			return false;
 		}
+		
 		/**
 		 * Warn about variables declared inside the given block that have not been referenced elsewhere ({@link Variable#isUsed() == false})
 		 * @param func The function the block belongs to.
@@ -412,6 +416,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
 				}
 		}
+		
 		public void reportProblemsOf(Function f, ASTNode[] statements, boolean onlyTypeLocals) throws ParsingException {
 			assignReporters(f);
 			newTypeEnvironment();
@@ -456,13 +461,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 						} catch (ParsingException e) {}
 				}
 			}
-			for (Function f : script.functions())
+			for (Function f : script.functions()) {
+				if (f.name().equals("TakeObject"))
+					System.out.println("yes");
 				reportProblemsOfFunction(f, foreign);
+			}
 		}
 
 		@Override
 		public void reportProblems() {
-
+			synchronized (working) {
+				if (!finished) {
+					finished = true;
+					internalWork();
+				}
+			}
+		}
+		
+		private void internalWork() {
 			// revisit all inherited scripts since that is the only way to
 			// accurately type inherited functions with respect to added things from this script
 			Markers oldMarkers = markers;
@@ -470,7 +486,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			markers = NULL_MARKERS;
 			newTypeEnvironment();
 			{
-				for (IHasIncludes include : script().includes(GatherIncludesOptions.NoAppendages))
+				for (IHasIncludes include : script().includes(GatherIncludesOptions.Recursive))
 					if (include instanceof Script)
 						visit((Script)include, true);
 				storeTypings(typeEnvironment);
@@ -482,6 +498,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			newTypeEnvironment();
 			{
 				visit(script(), false);
+				storeTypings(typeEnvironment);
+				script().setTypings(variableTypes, functionReturnTypes);
 				typeEnvironment.apply(this, false);
 			}
 			endTypeEnvironment(false, false);
@@ -517,12 +535,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public void run() {
+			if (finished)
+				return;
 			if (shared.monitor.isCanceled())
 				return;
 			shared.monitor.subTask(String.format("Reporting problems for '%s'", script().name()));
-			synchronized (working) {
-				reportProblems();
-			}
+			reportProblems();
 			shared.monitor.worked(1);
 		}
 
@@ -814,6 +832,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
 					((AccessDeclarationProblemReporter<? super AccessVar>)supr).obtainDeclaration(node, processor);
 					ASTNode sequencePredecessor = node.predecessorInSequence();
+					if (sequencePredecessor == null && node.declarationName().equals(Variable.THIS.name()))
+						return Variable.THIS;
 					IType type = processor.script();
 					if (sequencePredecessor != null)
 						type = processor.queryTypeOfExpression(sequencePredecessor, null);
@@ -853,8 +873,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return new FunctionType((Function)d);
 					else if (d instanceof Variable) {
 						Variable v = (Variable)d;
-						if (node.predecessorInSequence() == null && v.scope() == Scope.LOCAL) {
-							IType type = processor.variableTypes.get(d);
+						Map<Variable, IType> typesMap= null;
+						if (v.scope() == Scope.LOCAL) {
+							if (node.predecessorInSequence() == null)
+								typesMap = processor.variableTypes;
+							else {
+								IType targetType = ty(node.predecessorInSequence(), processor);
+								if (targetType instanceof Script) {
+									ScriptProcessor other = processor.shared.processors.get(targetType);
+									if (other != null) {
+										other.reportProblems();
+										typesMap = other.variableTypes;
+									} else
+										typesMap = ((Script)targetType).variableTypes();
+								}
+							}
+							IType type = typesMap != null ? typesMap.get(d) : null;
 							if (type != null)
 								return type;
 						}
@@ -1345,7 +1379,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (rule != null)
 							return rule.returnType(processor, node);
 						Function f = (Function)d;
-						IType type = processor.functionReturnTypes.get(f.name());
+						Map<String, IType> typesMap = null;
+						if (f.visibility() != FunctionScope.GLOBAL)
+							if (node.predecessorInSequence() == null)
+								typesMap = processor.functionReturnTypes;
+							else {
+								IType targetType = ty(node.predecessorInSequence(), processor);
+								if (targetType instanceof Script) {
+									ScriptProcessor other = processor.shared.processors.get(targetType);
+									if (other != null) {
+										other.reportProblems();
+										typesMap = other.functionReturnTypes;
+									} else
+										typesMap = ((Script)targetType).functionReturnTypes();
+								}
+							}
+						IType type = typesMap != null ? typesMap.get(d.name()) : null;
 						if (type != null)
 							return type;
 						else
@@ -1369,6 +1418,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred instanceof MemberOperator)
 						if (((MemberOperator)pred).hasTilde())
 							return false;
+						else
+							pred = pred.predecessorInSequence();
 					// allow this->Unknown()
 					if (pred instanceof AccessDeclaration && (isAnyOf((Object)((AccessDeclaration)pred).declaration(), Variable.THIS, processor.cachedEngineDeclarations().This)))
 						return false;

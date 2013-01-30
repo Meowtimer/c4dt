@@ -101,8 +101,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Scenario scenario;
 
 	private Set<String> dictionary;
-
 	private List<TypeAnnotation> typeAnnotations;
+	private transient Map<Variable, IType> variableTypes;
+	private transient Map<String, IType> functionReturnTypes;
+	
+	public Map<Variable, IType> variableTypes() {
+		requireLoaded();
+		return variableTypes;
+	}
+	public Map<String, IType> functionReturnTypes() {
+		requireLoaded();
+		return functionReturnTypes;
+	}
+	
+	public void setTypings(Map<Variable, IType> variableTypes, Map<String, IType> functionReturnTypes) {
+		this.variableTypes = variableTypes;
+		this.functionReturnTypes = functionReturnTypes;
+	}
 
 	public List<TypeAnnotation> typeAnnotations() {
 		return typeAnnotations;
@@ -140,6 +155,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		super(index);
 	}
 
+	@Override
+	public void save(ObjectOutputStream stream) throws IOException {
+		super.save(stream);
+		stream.writeObject(definedFunctions);
+		stream.writeObject(definedVariables);
+		stream.writeObject(usedScripts);
+		stream.writeObject(definedEffects);
+		stream.writeObject(variableTypes);
+		stream.writeObject(functionReturnTypes);
+		populateDictionary();
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -163,6 +190,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		variableTypes = (Map<Variable, IType>) stream.readObject();
+		functionReturnTypes = (Map<String, IType>) stream.readObject();
 	}
 
 	private void loadIncludes() {
@@ -178,16 +207,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				default:
 					break;
 				}
-	}
-
-	@Override
-	public void save(ObjectOutputStream stream) throws IOException {
-		super.save(stream);
-		stream.writeObject(definedFunctions);
-		stream.writeObject(definedVariables);
-		stream.writeObject(usedScripts);
-		stream.writeObject(definedEffects);
-		populateDictionary();
 	}
 
 	private static int nextCamelBack(String s, int offset) {
