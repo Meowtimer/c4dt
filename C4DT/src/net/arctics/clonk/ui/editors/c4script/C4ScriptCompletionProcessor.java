@@ -308,7 +308,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					(typingContext = typingStrategy.localTypingContext(parser)).reportProblemsOfFunction(activeFunc);
 				activeFunc.traverse(locator, this);
 				contextExpression = locator.expressionAtRegion();
-				if (contextExpression != null && contextExpression.start() == preservedOffset)
+				if (contextExpression != null && contextExpression.start() == preservedOffset && contextExpression.predecessorInSequence() != null)
 					contextExpression = contextExpression.predecessorInSequence();
 			}
 			if (typingContext == null && parser != null)
