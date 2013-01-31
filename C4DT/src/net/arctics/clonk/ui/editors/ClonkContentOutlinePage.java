@@ -54,7 +54,12 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			public IIndexEntity convert(Object from) {
 				if (from instanceof IAdaptable)
 					from = ((IAdaptable)from).getAdapter(Declaration.class);
-				return from instanceof Declaration ? ((Declaration)from).parentOfType(IIndexEntity.class) : null;
+				if (from instanceof IIndexEntity)
+					return (IIndexEntity)from;
+				else if (from instanceof Declaration)
+					return ((Declaration)from).parentOfType(IIndexEntity.class);
+				else
+					return null;
 			}
 		}))
 			if (entity != null) {

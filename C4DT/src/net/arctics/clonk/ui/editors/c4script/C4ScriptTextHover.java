@@ -30,7 +30,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 		IFile scriptFile = Utilities.fileEditedBy(configuration.editor());
 		StringBuilder messageBuilder = new StringBuilder();
 		if (entityLocator != null && entityLocator.entity() != null) {
-			ASTNode pred = entityLocator.expressionAtRegion().predecessorInSequence();
+			ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
 			Script context = pred == null
 				? configuration.editor().script()
 				: configuration.editor().textChangeListener().typingStrategy().localTypingContext

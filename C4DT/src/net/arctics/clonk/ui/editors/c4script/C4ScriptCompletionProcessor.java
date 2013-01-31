@@ -97,7 +97,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
 	private Script _currentEditorScript;
-	private ProblemReportingContext typingContext;
 	private String untamperedPrefix;
 	private ProblemReportingStrategy typingStrategy;
 
@@ -193,6 +192,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				prefix = doc.get(wordOffset, offset - wordOffset);
 				offset = wordOffset;
 			}
+			String brombeeren = doc.get(offset, viewer.getSelectedRange().x-offset);
+			if (brombeeren.length() > 0 && !ClonkCompletionProposal.VALID_PREFIX_PATTERN.matcher(brombeeren).matches())
+				return null;
 		} catch (BadLocationException e) { }
 
 		this.untamperedPrefix = prefix;
@@ -297,16 +299,20 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
+			ProblemReportingContext typingContext = null;
 			if (contextExpression == null && !specifiedParser) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
 				parser = fparser;
 				if (fparser.update())
-					typingContext.reportProblemsOfFunction(activeFunc);
+					(typingContext = typingStrategy.localTypingContext(parser)).reportProblemsOfFunction(activeFunc);
 				activeFunc.traverse(locator, this);
 				contextExpression = locator.expressionAtRegion();
+				if (contextExpression != null && contextExpression.start() == preservedOffset)
+					contextExpression = contextExpression.predecessorInSequence();
 			}
-			this.typingContext = typingStrategy.localTypingContext(parser);
+			if (typingContext == null && parser != null)
+				typingContext = typingStrategy.localTypingContext(parser);
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
 				innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);

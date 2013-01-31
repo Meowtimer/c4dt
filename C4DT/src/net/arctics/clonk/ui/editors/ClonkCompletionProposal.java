@@ -224,7 +224,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return result;
 	}
 	
-	private static final Pattern VALID_PREFIX = Pattern.compile("\\w+");
+	public static final Pattern VALID_PREFIX_PATTERN = Pattern.compile("\\w+");
 	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
@@ -234,7 +234,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
 				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (!VALID_PREFIX.matcher(prefix).matches())
+				if (!VALID_PREFIX_PATTERN.matcher(prefix).matches())
 					return false;
 				for (String s : identifiers())
 					if (s.toLowerCase().contains(prefix))
