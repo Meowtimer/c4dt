@@ -1353,8 +1353,19 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		this.seek(offset);
 		return false;
 	}
-
+	
+	private transient ASTNode[] _elementsReusable = new ASTNode[4];
+	private transient boolean _elementsInUse = false;
+	
 	private ASTNode parseSequence(boolean reportErrors) throws ParsingException {
+		ASTNode[] _elements;
+		boolean useReusable = !_elementsInUse;
+		if (useReusable) {
+			_elements = _elementsReusable;
+			_elementsInUse = true;
+		} else
+			_elements = new ASTNode[4];
+		
 		int sequenceParseStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;
@@ -1371,7 +1382,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			return result;
 		} else
 			this.seek(sequenceStart); // don't skip operators that aren't prefixy
-		ArrayList<ASTNode> elements = new ArrayList<ASTNode>(5);
+		int num = 0;
 		ASTNode elm;
 		ASTNode prevElm = null;
 		int noWhitespaceEating = sequenceStart;
@@ -1390,7 +1401,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				break;
 			}
 			// kind of a hack; stop at 'in' but only if there were other things before it
-			if (elements.size() > 0 && Keywords.In.equals(readIdent())) {
+			if (num > 0 && Keywords.In.equals(readIdent())) {
 				this.seek(elmStart);
 				break;
 			}
@@ -1538,7 +1549,12 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				} else {
 					// add to sequence even if not valid so the quickfixer can separate them
 					setExprRegionRelativeToFuncBody(elm, elmStart, this.offset);
-					elements.add(elm);
+					if (num == _elements.length) {
+						ASTNode[] n = new ASTNode[_elements.length+10];
+						System.arraycopy(_elements, 0, n, 0, _elements.length);
+						_elements = n;
+					}
+					_elements[num++] = elm;
 					prevElm = elm;
 				}
 
@@ -1547,13 +1563,13 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		} while (elm != null);
 		this.seek(noWhitespaceEating);
 		ASTNode lastElm;
-		if (elements.size() == 1) {
+		if (num == 1) {
 			// no need for sequences containing one element
-			result = elements.get(elements.size()-1);
+			result = _elements[0];
 			lastElm = result;
-		} else if (elements.size() > 1) {
-			result = new Sequence(elements.toArray(new ASTNode[0]));
-			lastElm = elements.get(elements.size()-1);
+		} else if (num > 1) {
+			result = new Sequence(_elements, num);
+			lastElm = _elements[num-1];
 		} else {
 			result = null;
 			lastElm = null;
@@ -1576,8 +1592,9 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		} else
 			this.seek(sequenceParseStart);
 
+		if (useReusable)
+			_elementsInUse = false;
 		return result;
-
 	}
 
 	protected Placeholder makePlaceholder(String placeholder) throws ParsingException {

@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,6 +14,8 @@ public class Sequence extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	public Sequence(ASTNode[] elms, int num) { this(Arrays.copyOf(elms, num)); }
+	
 	public Sequence(ASTNode... elms) {
 		super(elms);
 		ASTNode prev = null;
