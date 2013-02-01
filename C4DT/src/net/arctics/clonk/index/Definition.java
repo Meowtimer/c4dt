@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,10 +174,14 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final List<IHasIncludes> set, final int options) {
+	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final Collection<IHasIncludes> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
-		Scenario originScenario = origin instanceof IHasRelatedResource ? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
+		Scenario originScenario = origin instanceof Script
+			? ((Script)origin).scenario()
+				: origin instanceof IHasRelatedResource
+			? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
+				: null;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0)
 			for (Index i : contextIndex.relevantIndexes()) {
 				List<Script> appendages = i.appendagesOf(Definition.this);
