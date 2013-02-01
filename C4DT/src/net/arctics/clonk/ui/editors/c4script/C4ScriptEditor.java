@@ -149,8 +149,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
 
-		private static final int REPARSE_DELAY = 700;
-		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,Script>>();
+		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners =
+			new HashMap<>();
 
 		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
@@ -185,8 +185,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public void documentAboutToBeChanged(DocumentEvent event) {
-		}
+		public void documentAboutToBeChanged(DocumentEvent event) {}
 
 		@Override
 		public void documentChanged(DocumentEvent event) {
@@ -237,7 +236,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						e.printStackTrace();
 					}
 				}
-			}, REPARSE_DELAY);
+			}, 1000);
 		}
 
 		public static void removeMarkers(Function func, Script script) {
@@ -288,8 +287,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								int markerStart, int markerEnd, int flags,
 								int severity, Object... args
 							) {
-								if (!markers.errorEnabled(code))
-									return Decision.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
@@ -307,7 +304,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						}
 					}
 				}
-			}, REPARSE_DELAY);
+			}, 1000);
 		}
 
 		@Override
