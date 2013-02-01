@@ -6,7 +6,6 @@ import static net.arctics.clonk.util.Utilities.objectsEqual;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
@@ -32,7 +31,7 @@ public class TypeUnification {
 			return a;
 		if (a.equals(b))
 			return a;
-		
+
 		if (a instanceof PrimitiveType)
 			switch ((PrimitiveType)a) {
 			case ARRAY:
@@ -62,7 +61,7 @@ public class TypeUnification {
 			default:
 				break;
 			}
-		
+
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
 			TypeChoice tcb = (TypeChoice)b;
@@ -77,7 +76,7 @@ public class TypeUnification {
 			else
 				return null;
 		}
-		
+
 		if (a instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
 			IType l = tca.left();
@@ -93,11 +92,11 @@ public class TypeUnification {
 			else
 				return TypeChoice.make(l_, r_);
 		}
-		
+
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
 			((IRefinedPrimitiveType)a).primitiveType() == b)
 			return a;
-		
+
 		if (a instanceof ArrayType && b instanceof ArrayType) {
 			ArrayType ata = (ArrayType)a;
 			ArrayType atb = (ArrayType)b;
@@ -115,7 +114,7 @@ public class TypeUnification {
 			}
 			return result;
 		}
-		
+
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
 			final ProplistDeclaration _a = (ProplistDeclaration) a;
 			final ProplistDeclaration _b = (ProplistDeclaration) b;
@@ -126,11 +125,9 @@ public class TypeUnification {
 			return new ProplistDeclaration(new ArrayList<Variable>()) {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
-				public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
-					if (set.contains(this))
+				public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+					if (!set.add(this))
 						return false;
-					else
-						set.add(this);
 					if ((options & GatherIncludesOptions.Recursive) != 0) {
 						_a.gatherIncludes(contextIndex, origin, set, options);
 						_b.gatherIncludes(contextIndex, origin, set, options);
@@ -152,7 +149,7 @@ public class TypeUnification {
 				}
 			};
 		}
-		
+
 		if (a instanceof WrappedType) {
 			IType u = unifyLeft(WrappedType.unwrap(a), b);
 			if (u != null)
@@ -161,20 +158,20 @@ public class TypeUnification {
 				else if (a instanceof ReferenceType)
 					return ReferenceType.make(u);
 		}
-		
+
 		if (a instanceof ParameterType && b instanceof PrimitiveType)
 			return b;
-		
+
 		if (a instanceof StructuralType && b instanceof StructuralType) {
 			StructuralType sa = (StructuralType) a;
 			StructuralType sb = (StructuralType) b;
 			return new StructuralType(sa, sb);
 		}
-		
+
 		if (a instanceof StructuralType && b instanceof Definition)
 			if (((StructuralType)a).satisfiedBy((Definition)b))
 				return b;
-		
+
 		return null;
 	}
 	public static IType unifyNoChoice(IType a, IType b) {

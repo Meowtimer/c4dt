@@ -207,17 +207,15 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
-		List<IHasIncludes> includes = new ArrayList<IHasIncludes>(10);
+		Set<IHasIncludes> includes = new HashSet<IHasIncludes>(10);
 		gatherIncludes(contextIndex, this, includes, GatherIncludesOptions.Recursive);
 		return includes.contains(other);
 	}
 
 	@Override
-	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
-		if (set.contains(this))
+	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+		if (!set.add(this))
 			return false;
-		else
-			set.add(this);
 		IHasIncludes proto = prototype();
 		if (proto != null)
 			if ((options & GatherIncludesOptions.Recursive) == 0)

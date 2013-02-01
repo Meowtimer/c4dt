@@ -1,8 +1,6 @@
 package net.arctics.clonk.ui.navigator.actions;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -29,7 +27,7 @@ public class LookupLocalDeclarationHandler extends AbstractHandler {
 		if (part instanceof C4ScriptEditor) {
 			Script script = ((C4ScriptEditor)part).script();
 			if (script != null) {
-				List<IHasIncludes> scripts = new ArrayList<IHasIncludes>();
+				Set<IHasIncludes> scripts = new HashSet<IHasIncludes>();
 				script.gatherIncludes(script.index(), script, scripts, GatherIncludesOptions.Recursive);
 				Set<Declaration> declarations = new HashSet<Declaration>();
 				for (IHasIncludes s : scripts)

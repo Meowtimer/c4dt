@@ -2,7 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.index.IHasSubDeclarations;
@@ -15,12 +15,12 @@ import net.arctics.clonk.parser.c4script.Script;
  * @author madeen
  */
 public interface IHasIncludes extends IHasSubDeclarations, IType {
-	
+
 	public static class GatherIncludesOptions {
 		public static final int Recursive = 1;
 		public static final int NoAppendages = 2;
 	}
-	
+
 	Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes origin, int options);
 	/**
 	 * Return whether this type includes another one.
@@ -30,19 +30,19 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 	boolean doesInclude(Index contextIndex, IHasIncludes other);
 	/**
 	 * Gather includes from some {@link Index} into a set. This operation can be performed recursively or not.
-	 * @param set The set which will contain the includes. For recursion catching, the type itself is also added to this set. 
+	 * @param set The set which will contain the includes. For recursion catching, the type itself is also added to this set.
 	 * @param index The index to look for includes in
 	 * @param options A bitmask Whether includes of includes will also be added and so on.
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
-	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head. 
+	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head.
 	 */
-	boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options);
-	
+	boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options);
+
 	/**
 	 * Empty list representing "no includes".
 	 */
 	static final Collection<IHasIncludes> NO_INCLUDES = new ArrayList<IHasIncludes>(0);
-	
+
 	/**
 	 * Default implementation for some interface methods.
 	 * @author madeen
@@ -57,7 +57,7 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */
 		public static Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes instance, IHasIncludes origin, int options) {
-			List<IHasIncludes> result = new ArrayList<IHasIncludes>(10);
+			Set<IHasIncludes> result = new HashSet<IHasIncludes>(10);
 			instance.gatherIncludes(contextIndex, origin, result, options);
 			result.remove(instance);
 			return result;

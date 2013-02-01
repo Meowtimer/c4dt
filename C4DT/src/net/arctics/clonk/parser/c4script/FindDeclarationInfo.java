@@ -23,14 +23,15 @@ public final class FindDeclarationInfo {
 	private Script first;
 	
 	public boolean startSearchingIn(Script script) {
-		if (script == first || (alreadySearched != null && alreadySearched.contains(script)))
+		if (script == first)
 			return false;
-		if (first == null)
+		else if (first == null)
 			first = script;
 		else {
 			if (alreadySearched == null)
-				alreadySearched = new HashSet<Script>(3);
-			alreadySearched.add(script);
+				alreadySearched = new HashSet<>(3);
+			if (!alreadySearched.add(script))
+				return false;
 		}
 		return true;
 	}

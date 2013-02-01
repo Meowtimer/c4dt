@@ -80,8 +80,16 @@ public class Markers extends LinkedList<Marker> {
 				markerStart += positionProvider.fragmentOffset();
 				markerEnd += positionProvider.fragmentOffset();
 			}
-			if (listener.markerEncountered(this, positionProvider, code, node, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
-				return;
+			synchronized (listener) {
+				IMarkerListener saved = listener;
+				listener = null;
+				try {
+					if (saved.markerEncountered(this, positionProvider, code, node, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
+						return;
+				} finally {
+					listener = saved;
+				}
+			}
 		}
 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0 && node != null) {

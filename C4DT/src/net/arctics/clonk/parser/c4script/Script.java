@@ -104,7 +104,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private List<TypeAnnotation> typeAnnotations;
 	private transient Map<Variable, IType> variableTypes;
 	private transient Map<String, IType> functionReturnTypes;
-	
+
 	public Map<Variable, IType> variableTypes() {
 		requireLoaded();
 		return variableTypes;
@@ -113,7 +113,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		return functionReturnTypes;
 	}
-	
+
 	public void setTypings(Map<Variable, IType> variableTypes, Map<String, IType> functionReturnTypes) {
 		this.variableTypes = variableTypes;
 		this.functionReturnTypes = functionReturnTypes;
@@ -166,7 +166,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		stream.writeObject(functionReturnTypes);
 		populateDictionary();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -336,16 +336,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts)
-	 * @param set The list to be filled with the includes
-	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
+	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts).
+	 * Attention: The passed collection needs to reject duplicates, meaning its {@link Collection#add(Object)} method needs to return false when an attempt is being
+	 * made to add an already-existing item. {@link Set} classes are good candidates.
+	 * @param set A collection to be filled with the includes gathered.
+	 * @param contextIndex The project index to search for includes in.
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, List<IHasIncludes> set, int options) {
-		if (set.contains(this))
+	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+		if (!set.add(this))
 			return false;
-		else
-			set.add(this);
 		if (definedDirectives != null) {
 			List<Directive> directivesCopy;
 			synchronized(definedDirectives) {
@@ -818,11 +818,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Function findLocalFunction(String name, HashSet<Script> alreadySearched) {
 		requireLoaded();
-		if (alreadySearched != null) {
-			if (alreadySearched.contains(this))
-				return null;
-			alreadySearched.add(this);
-		}
+		if (alreadySearched != null && !alreadySearched.add(this))
+			return null;
 		for (Function func: functions())
 			if (func.name().equals(name))
 				return func;
@@ -953,7 +950,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public List<IHasIncludes> conglomerate() {
 		requireLoaded();
-		List<IHasIncludes> s = new ArrayList<IHasIncludes>(10);
+		@SuppressWarnings("serial")
+		List<IHasIncludes> s = new ArrayList<IHasIncludes>(10) {
+			@Override
+			public boolean add(IHasIncludes e) {
+				if (contains(e))
+					return false;
+				else
+					return super.add(e);
+			}
+		};
 		gatherIncludes(index(), this, s, GatherIncludesOptions.Recursive);
 		return s;
 	}
@@ -1210,8 +1216,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public void generateFindDeclarationCache() {
 		//populateDictionary();
-		cachedFunctionMap = new HashMap<String, Function>();
-		cachedVariableMap = new HashMap<String, Variable>();
+		cachedFunctionMap = new HashMap<>();
+		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
 		populateDictionary();
 	}
