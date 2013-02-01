@@ -327,16 +327,14 @@
 			priority="100" />
 	</extension>
 	
-	<extension id="net.arctics.clonk.c4scripterror" name="%C4ScriptError"
-		point="org.eclipse.core.resources.markers">
+	<extension id="net.arctics.clonk.c4scripterror" name="%C4ScriptError" point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
 		<super type="org.eclipse.core.resources.textmarker" />
 	</extension>
 	
-	<extension id="net.arctics.clonk.c4scripterrorwhiletyping" name="%C4ScriptError"
-		point="org.eclipse.core.resources.markers">
-		<persistent value="true" />
+	<extension id="net.arctics.clonk.c4scripterrorwhiletyping" name="%C4ScriptError" point="org.eclipse.core.resources.markers">
+		<persistent value="false" />
 		<super type="org.eclipse.core.resources.problemmarker" />
 		<super type="org.eclipse.core.resources.textmarker" />
 		<super type="net.arctics.clonk.c4scripterror" />
