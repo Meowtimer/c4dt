@@ -1055,12 +1055,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 						return t;
 					ASTNode pred = node.predecessorInSequence();
-					if (pred != null)
-						for (IType ty : ty(pred, processor)) {
+					if (pred != null) {
+						IType predTy = ty(pred, processor);
+						for (IType ty : predTy) {
 							ArrayType at = as(ty, ArrayType.class);
 							if (at != null)
 								return at.typeForElementWithIndex(ASTNode.evaluateAtParseTime(node.argument(), processor));
 						}
+					}
 					return PrimitiveType.ANY;
 				}
 				@Override
@@ -1116,8 +1118,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else if (argType == PrimitiveType.INT)
 							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 								processor.markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, pred, 0);
-							else
-								reporter(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
+							//else
+							//	reporter(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
 					}
 				}
 			},
@@ -1226,10 +1228,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.operator().modifiesArgument() && !arg.isModifiable(processor.parser))
 						processor.markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
 					ProblemReporter<? super ASTNode> rarg = reporter(arg);
-					if (!rarg.validForType(arg, node.operator().firstArgType(), processor))
-						processor.incompatibleTypes(node, arg, node.operator().firstArgType(),
+					PrimitiveType firstArgType = node.operator().firstArgType();
+					if (!rarg.validForType(arg, firstArgType, processor))
+						processor.incompatibleTypes(node, arg, firstArgType,
 							ty(arg, rarg, processor));
-					rarg.typingJudgement(arg, node.operator().firstArgType(), processor, TypingJudgementMode.Expect);
+					if (firstArgType != PrimitiveType.ANY)
+						rarg.typingJudgement(arg, firstArgType, processor, TypingJudgementMode.Expect);
 				}
 			},
 
