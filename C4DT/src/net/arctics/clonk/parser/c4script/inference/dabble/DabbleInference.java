@@ -1383,8 +1383,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 					ASTNode p = node.predecessorInSequence();
-					if (p instanceof MemberOperator)
-						p = p.predecessorInSequence();
+//					if (p instanceof MemberOperator)
+//						p = p.predecessorInSequence();
 					if (potentialDeclarationsOutput != null)
 						node.setPotentialDeclarations(potentialDeclarationsOutput);
 					return findFunction(node, declarationName, ty(p, processor), processor, potentialDeclarationsOutput);
