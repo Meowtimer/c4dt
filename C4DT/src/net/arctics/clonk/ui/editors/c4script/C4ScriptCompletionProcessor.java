@@ -251,19 +251,28 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		final Function activeFunc
 	) {
 		try {
-			boolean arrow = false;
-			for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
+			boolean targetCall = false;
+			Loop: for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
 				char c = doc.getChar(arrowOffset);
-				if (c == '>') {
+				switch (c) {
+				case '>':
 					if (doc.getChar(arrowOffset-1) != '-')
 						return false;
-					arrow = true;
-				} else if (Character.isWhitespace(c))
-					continue;
-				else
-					break;
+					targetCall = true;
+					break Loop;
+				case ':':
+					if (doc.getChar(arrowOffset-1) != ':')
+						return false;
+					targetCall = true;
+					break Loop;
+				default:
+					if (Character.isWhitespace(c))
+						continue Loop;
+					else
+						break Loop;
+				}
 			}
-			if (!arrow && wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
+			if (!targetCall && wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
 				return false;
 		} catch (BadLocationException bl) {
 			return false;
@@ -701,7 +710,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void configureActivation() {
 		proposalAutoActivationCharacters = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? "_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
+			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
 			: new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};
 	}
