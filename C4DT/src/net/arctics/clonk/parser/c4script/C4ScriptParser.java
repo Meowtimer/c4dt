@@ -40,7 +40,6 @@ import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallExpr;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
-import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
@@ -71,6 +70,7 @@ import net.arctics.clonk.parser.c4script.ast.True;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
+import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
@@ -116,11 +116,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	private TypeAnnotation parsedTypeAnnotation;
-
-	/**
-	 * Whether the current statement is not reached
-	 */
-	private boolean statementReached;
 	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
@@ -293,7 +288,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			script.containsGlobals = false;
 			script.setTypeAnnotations(null);
 		}
-		statementReached = true;
 	}
 
 	/**
@@ -1428,7 +1422,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 						if (prototype == null)
 							treatNewAsVarName = true;
 						else {
-							prototype.setFinishedProperly(true); // :/
 							eatWhitespace();
 							ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 							if (proplDec != null)
@@ -1567,7 +1560,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		}
 		if (result != null) {
 			proper &= lastElm == null || lastElm.isValidAtEndOfSequence(this);
-			result.setFinishedProperly(proper);
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
 			if (proper) {
 				int saved = this.offset;
@@ -1775,7 +1767,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 						arg = ((SimpleStatement)arg).expression();
 						arg.setParent(null);
 					}
-					arg.setFinishedProperly(true);
 					listToAddElementsTo.add(arg);
 				}
 				expectingComma = true;
@@ -1816,9 +1807,9 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 					switch (state) {
 					case START:
 						root = parseSequence(reportErrors);
-						if (root == null || root.isFinishedProperly()) {
+						if (root != null) {
 							current = root;
-							state = current != null ? OPERATOR : DONE;
+							state = OPERATOR;
 						} else
 							state = DONE;
 						break;
@@ -1920,7 +1911,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	}
 
 	private final void handleExpressionCreated(boolean reportErrors, ASTNode root) throws ParsingException {
-		root.setFlagsEnabled(ASTNode.STATEMENT_REACHED, statementReached);
 		if (visitor != null && parseExpressionRecursion <= 1)
 			visitor.visitNode(root, this);
 	}
@@ -2111,7 +2101,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 							eatWhitespace();
 							if (read() != ';') {
 								seek(rewind);
-								result.setFinishedProperly(false);
+								result = new Unfinished(result);
 							}
 						}
 					}
@@ -2129,11 +2119,11 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				int afterExpression = this.offset;
 				if (expression != null) {
 					result = new SimpleStatement(expression);
-					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement)) {
+					if (!options.contains(ParseStatementOption.InitializationStatement)) {
 						int beforeWhitespace = this.offset;
 						eatWhitespace();
 						if (read() != ';') {
-							result.setFinishedProperly(false);
+							result = new Unfinished(result);
 							this.seek(beforeWhitespace);
 						}
 					} else
@@ -2163,7 +2153,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	}
 
 	private void handleStatementCreated(Statement statement) throws ParsingException {
-		statement.setFlagsEnabled(ASTNode.STATEMENT_REACHED, statementReached);
 		if (parseStatementRecursion == 1)
 			if (visitor != null)
 				switch (visitor.visitNode(statement, this)) {
@@ -2187,11 +2176,8 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 */
 	protected void parseStatementBlock(int start, List<ASTNode> statements, EnumSet<ParseStatementOption> options, boolean oldStyle) throws ParsingException {
 		boolean done = false;
-		boolean reached = true;
 		int garbageStart = -1;
-		boolean oldStatementReached = this.statementReached;
 		while (!reachedEOF()) {
-			this.statementReached = reached;
 			int potentialGarbageEnd = offset;
 			//eatWhitespace();
 			Statement statement = parseStatement(options);
@@ -2208,8 +2194,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 					garbageStart = maybeAddGarbageStatement(statements, garbageStart, potentialGarbageEnd);
 			statements.add(statement);
 			boolean statementIsComment = statement instanceof Comment;
-			if (reached)
-				reached = statement.controlFlow() == ControlFlow.Continue;
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment)
 				options.remove(ParseStatementOption.ExpectFuncDesc);
@@ -2222,7 +2206,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			//error(ParserErrorCode.BlockNotClosed, start, start+1, NO_THROW);
 		} else if (!oldStyle)
 			read(); // should be }
-		this.statementReached = oldStatementReached;
 	}
 
 	private int maybeAddGarbageStatement(List<ASTNode> statements, int garbageStart, int potentialGarbageEnd) throws ParsingException {
@@ -2292,8 +2275,9 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		}
 	}
 
-	private <T extends Statement> T needsSemicolon(T statement) {
-		statement.setFinishedProperly(parseSemicolonOrReturnFalse());
+	private Statement needsSemicolon(Statement statement) {
+		if (!parseSemicolonOrReturnFalse())
+			statement = new Unfinished(statement);
 		return statement;
 	}
 
@@ -2304,8 +2288,8 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 * @return The parsed KeywordStatement or null if the keyword was not recognized
 	 * @throws ParsingException
 	 */
-	private KeywordStatement parseKeyword(String keyWord) throws ParsingException {
-		KeywordStatement result = null;
+	private Statement parseKeyword(String keyWord) throws ParsingException {
+		Statement result = null;
 		if (keyWord.equals(Keywords.If))
 			result = parseIf();
 		else if (keyWord.equals(Keywords.While))
@@ -2331,8 +2315,8 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 * @return The parsed return statement
 	 * @throws ParsingException
 	 */
-	private ReturnStatement parseReturn() throws ParsingException {
-		ReturnStatement result;
+	private Statement parseReturn() throws ParsingException {
+		Statement result;
 		eatWhitespace();
 		ASTNode returnExpr;
 		if (peek() == ';')
@@ -2343,7 +2327,8 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				error(ParserErrorCode.ValueExpected, this.offset, this.offset+1, Markers.NO_THROW);
 		}
 		result = new ReturnStatement(returnExpr);
-		result.setFinishedProperly(parseSemicolonOrReturnFalse());
+		if (!parseSemicolonOrReturnFalse())
+			result = new Unfinished(result);
 		return result;
 	}
 

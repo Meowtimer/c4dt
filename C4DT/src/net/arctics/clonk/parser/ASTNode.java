@@ -104,10 +104,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		};
 	};
 
-	public static final int PROPERLY_FINISHED = 1;
-	public static final int STATEMENT_REACHED = 2;
-	public static final int MISPLACED = 4;
-
 	/**
 	 * Create a new expression to signify some non-expression at a given location.
 	 * @param start The start of the location to mark as 'missing an expression'
@@ -122,21 +118,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	protected transient ASTNode parent, predecessorInSequence;
-	private transient int flags = PROPERLY_FINISHED;
-
-	public final boolean flagsEnabled(int flags) {
-		return (this.flags & flags) == flags;
-	}
-
-	public final void setFlagsEnabled(int flags, boolean enabled) {
-		if (enabled)
-			this.flags |= flags;
-		else
-			this.flags &= ~flags;
-	}
-
-	public boolean isFinishedProperly() {return flagsEnabled(PROPERLY_FINISHED);}
-	public void setFinishedProperly(boolean finished) {setFlagsEnabled(PROPERLY_FINISHED, finished);}
 
 	/**
 	 * Assign 'this' as the parent element of all elements returned by {@link #subElements()}.
@@ -794,7 +775,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public void postLoad(ASTNode parent, ProblemReportingContext context) {
-		this.setFlagsEnabled(flags, true); // meh
 		this.parent = parent;
 		ASTNode prev = null;
 		for (ASTNode e : subElements()) {

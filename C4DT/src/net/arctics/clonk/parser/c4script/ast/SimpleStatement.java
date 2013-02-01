@@ -14,16 +14,6 @@ public class SimpleStatement extends Statement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode expression;
-
-	@Override
-	public boolean isFinishedProperly() {
-		return expression.isFinishedProperly();
-	}
-	
-	@Override
-	public void setFinishedProperly(boolean finishedProperly) {
-		expression.setFinishedProperly(finishedProperly);
-	}
 	
 	public SimpleStatement(ASTNode expression) {
 		super();
@@ -90,10 +80,9 @@ public class SimpleStatement extends Statement {
 	}
 	
 	public static ASTNode unwrap(ASTNode expr) {
-		if (expr instanceof SimpleStatement)
-			return ((SimpleStatement)expr).expression();
-		else
-			return expr;
+		while (expr instanceof SimpleStatement)
+			expr = ((SimpleStatement)expr).expression();
+		return expr;
 	}
 	
 	public static Statement[] wrapExpressions(ASTNode... expressions) {

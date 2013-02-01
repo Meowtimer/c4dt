@@ -112,7 +112,6 @@ public class BinaryOp extends OperatorExpression {
 	public void setRightSide(ASTNode rightSide) {
 		this.rightSide = rightSide;
 		rightSide.setParent(this);
-		setFinishedProperly(rightSide.isFinishedProperly());
 	}
 
 	@Override
