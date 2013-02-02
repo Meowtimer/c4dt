@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
@@ -174,11 +173,11 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public  boolean gatherIncludes(Index contextIndex, IHasIncludes origin, final Collection<IHasIncludes> set, final int options) {
+	public  boolean gatherIncludes(Index contextIndex, Script origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
 		Scenario originScenario = origin instanceof Script
-			? ((Script)origin).scenario()
+			? origin.scenario()
 				: origin instanceof IHasRelatedResource
 			? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
 				: null;

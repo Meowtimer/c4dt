@@ -5,13 +5,13 @@ import java.util.Collection;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Script;
 
 
 public class ExecutableScript extends SelfContainedScript {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private final Function main;
 
 	public ExecutableScript(String name, String script, Index index) {
@@ -20,8 +20,8 @@ public class ExecutableScript extends SelfContainedScript {
 	}
 
 	@Override
-	public Collection<IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
-		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
+	public Collection<Script> includes(Index index, Script origin, int options) {
+		return Arrays.asList(Command.COMMAND_BASESCRIPT);
 	}
 
 	public Function main() {

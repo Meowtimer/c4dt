@@ -404,8 +404,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		for (IHasSubDeclarations s : contextStructures) {
 			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			if (s instanceof IHasIncludes) {
-				Iterable<? extends IHasIncludes> includes = ((IHasIncludes)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
-				for (IHasIncludes inc : includes)
+				@SuppressWarnings("unchecked")
+				Iterable<? extends IHasIncludes<?>> includes = ((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
+				for (IHasIncludes<?> inc : includes)
 					proposalsForStructure(inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
 			}
 		}

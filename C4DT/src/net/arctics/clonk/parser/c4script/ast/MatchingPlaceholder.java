@@ -20,7 +20,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -152,7 +151,7 @@ public class MatchingPlaceholder extends Placeholder {
 					{
 						private static final long serialVersionUID = 1L;
 						@Override
-						public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
+						public Collection<Script> includes(Index index, Script origin, int options) {
 							return Arrays.asList(TRANSFORMATIONS);
 						};
 					}.findFunction("Transform");

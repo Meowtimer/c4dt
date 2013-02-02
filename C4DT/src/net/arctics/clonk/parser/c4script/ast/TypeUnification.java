@@ -11,7 +11,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
@@ -125,7 +124,7 @@ public class TypeUnification {
 			return new ProplistDeclaration(new ArrayList<Variable>()) {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
-				public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+				public boolean gatherIncludes(Index contextIndex, ProplistDeclaration origin, Collection<ProplistDeclaration> set, int options) {
 					if (!set.add(this))
 						return false;
 					if ((options & GatherIncludesOptions.Recursive) != 0) {

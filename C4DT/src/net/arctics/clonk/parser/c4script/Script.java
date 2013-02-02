@@ -81,7 +81,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
-public abstract class Script extends IndexEntity implements ITreeNode, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes {
+public abstract class Script extends IndexEntity implements ITreeNode, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes<Script> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -97,7 +97,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
-	private transient Collection<? extends IHasIncludes> includes;
+	private transient Collection<Script> includes;
 	private transient Scenario scenario;
 
 	private Set<String> dictionary;
@@ -343,7 +343,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @param contextIndex The project index to search for includes in.
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
 		if (!set.add(this))
 			return false;
 		if (definedDirectives != null) {
@@ -379,9 +379,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @param recursive Whether the returned collection also contains includes of the includes.
 	 * @return The includes
 	 */
-	public Collection<? extends IHasIncludes> includes(int options) {
+	public Collection<Script> includes(int options) {
 		if (index() == null)
-			return NO_INCLUDES;
+			return Collections.emptySet();
 		else
 			return includes(index(), this, options);
 	}
@@ -397,7 +397,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The includes
 	 */
 	@Override
-	public Collection<? extends IHasIncludes> includes(Index index, IHasIncludes origin, int options) {
+	public Collection<Script> includes(Index index, Script origin, int options) {
 		synchronized (this) {
 			int indexHash = index != null ? index.hashCode() : 0;
 			int originHash = origin != null ? origin.hashCode() : 0;
@@ -582,7 +582,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 			info.recursion++;
 			{
-				for (IHasIncludes o : includes(info.index, info.searchOrigin, 0)) {
+				for (Script o : includes(info.index, info.searchOrigin, 0)) {
 					Declaration result = o.findDeclaration(name, info);
 					if (result != null)
 						return result;
@@ -797,12 +797,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return True if this script includes the other one, false if not.
 	 */
 	@Override
-	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
+	public boolean doesInclude(Index contextIndex, Script other) {
 		requireLoaded();
 		if (other == this)
 			return true;
-		Iterable<? extends IHasIncludes> incs = this.includes(0);
-		for (IHasIncludes o : incs)
+		Iterable<Script> incs = this.includes(0);
+		for (Script o : incs)
 			if (o == other)
 				return true;
 		return false;
@@ -948,12 +948,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * Returns a list containing all scripts that are included by this script plus the script itself.
 	 * @return The list
 	 */
-	public List<IHasIncludes> conglomerate() {
+	public List<Script> conglomerate() {
 		requireLoaded();
 		@SuppressWarnings("serial")
-		List<IHasIncludes> s = new ArrayList<IHasIncludes>(10) {
+		List<Script> s = new ArrayList<Script>(10) {
 			@Override
-			public boolean add(IHasIncludes e) {
+			public boolean add(Script e) {
 				if (contains(e))
 					return false;
 				else
@@ -968,7 +968,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public INode[] subDeclarationsForOutline() {
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
-		for (IHasIncludes c : conglomerate())
+		for (Script c : conglomerate())
 			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0)))
 				all.add(sd);
 		return all.toArray(new INode[all.size()]);
@@ -1194,11 +1194,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void setTypeDescription(String description) {}
 
 	private void _generateFindDeclarationCache() {
-		List<IHasIncludes> conglo = this.conglomerate();
+		List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);
-		for (IHasIncludes i : conglo)
+		for (Script i : conglo)
 			if (i instanceof Script) {
-				Script s = (Script)i;
+				Script s = i;
 				if (s.definedFunctions != null)
 					for (Function f : s.definedFunctions) {
 						// prefer putting non-global functions into the map so when in doubt the object function is picked

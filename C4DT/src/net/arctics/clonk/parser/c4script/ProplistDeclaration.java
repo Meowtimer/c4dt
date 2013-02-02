@@ -24,7 +24,7 @@ import net.arctics.clonk.util.StringUtil;
  * @author madeen
  *
  */
-public class ProplistDeclaration extends Structure implements IRefinedPrimitiveType, IHasIncludes, Cloneable, IProplistDeclaration {
+public class ProplistDeclaration extends Structure implements IRefinedPrimitiveType, IHasIncludes<ProplistDeclaration>, Cloneable, IProplistDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected List<Variable> components;
@@ -201,22 +201,22 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> includes(Index contextIndex, IHasIncludes origin, int options) {
+	public Collection<ProplistDeclaration> includes(Index contextIndex, ProplistDeclaration origin, int options) {
 		return IHasIncludes.Default.includes(contextIndex, this, origin, options);
 	}
 
 	@Override
-	public boolean doesInclude(Index contextIndex, IHasIncludes other) {
-		Set<IHasIncludes> includes = new HashSet<IHasIncludes>(10);
+	public boolean doesInclude(Index contextIndex, ProplistDeclaration other) {
+		Set<ProplistDeclaration> includes = new HashSet<ProplistDeclaration>(10);
 		gatherIncludes(contextIndex, this, includes, GatherIncludesOptions.Recursive);
 		return includes.contains(other);
 	}
 
 	@Override
-	public boolean gatherIncludes(Index contextIndex, IHasIncludes origin, Collection<IHasIncludes> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, ProplistDeclaration origin, Collection<ProplistDeclaration> set, int options) {
 		if (!set.add(this))
 			return false;
-		IHasIncludes proto = prototype();
+		ProplistDeclaration proto = prototype();
 		if (proto != null)
 			if ((options & GatherIncludesOptions.Recursive) == 0)
 				set.add(proto);
