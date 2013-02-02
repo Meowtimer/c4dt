@@ -3,19 +3,18 @@ package net.arctics.clonk.index;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 
-public final class DocumentedFunction extends Function implements IDocumentedDeclaration {
+public final class DocumentedFunction extends EngineFunction implements IDocumentedDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private boolean fleshedOut;
 	private String originInfo;
-	
+
 	public String originInfo() {
 		return originInfo;
 	}
-	
+
 	public void setOriginInfo(String originInfo) {
 		this.originInfo = originInfo;
 	}
@@ -23,12 +22,12 @@ public final class DocumentedFunction extends Function implements IDocumentedDec
 	public DocumentedFunction(String name, IType returnType) {
 		super(name, returnType);
 	}
-	
+
 	public DocumentedFunction(String name, IType returnType, String origin) {
 		this(name, returnType);
 		setOriginInfo(origin);
 	}
-	
+
 	public DocumentedFunction(String name, FunctionScope scope) {
 		super(name, scope);
 	}
@@ -52,7 +51,7 @@ public final class DocumentedFunction extends Function implements IDocumentedDec
 		else
 			return false;
 	}
-	
+
 	@Override
 	public String infoText(IIndexEntity context) {
 		fetchDocumentation();

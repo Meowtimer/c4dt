@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -55,4 +56,7 @@ final class VarFunctionsTypeInfo extends TypeInfo {
 	public String toString() {
 		return String.format("[%s(%d): %s in %s]", varFunction.name(), varIndex, type().typeName(true), scope.name()); //$NON-NLS-1$
 	}
+
+	@Override
+	public Declaration declaration(ScriptProcessor processor) { return null; }
 }

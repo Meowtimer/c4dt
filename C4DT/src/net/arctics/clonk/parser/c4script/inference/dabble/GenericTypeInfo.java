@@ -98,4 +98,9 @@ public final class GenericTypeInfo extends TypeInfo {
 			return null;
 	}
 
+	@Override
+	public Declaration declaration(ScriptProcessor processor) {
+		return as(typeableFromExpression(expression, processor), Declaration.class);
+	}
+
 }

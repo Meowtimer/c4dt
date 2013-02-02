@@ -1,17 +1,19 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
 final class FunctionReturnTypeInfo extends TypeInfo {
-	private Function function;
+	private final Function baseFunction, function;
 	public Function function() { return function; }
 
 	public FunctionReturnTypeInfo(Function function) {
 		super();
 		this.function = function;
+		this.baseFunction = function.baseFunction();
 	}
 
 	@Override
@@ -26,7 +28,7 @@ final class FunctionReturnTypeInfo extends TypeInfo {
 
 	@Override
 	public boolean refersToSameExpression(ITypeInfo other) {
-		return other instanceof FunctionReturnTypeInfo && ((FunctionReturnTypeInfo)other).function == this.function;
+		return other instanceof FunctionReturnTypeInfo && ((FunctionReturnTypeInfo)other).baseFunction == this.baseFunction;
 	}
 
 	@Override
@@ -38,9 +40,11 @@ final class FunctionReturnTypeInfo extends TypeInfo {
 	public void apply(boolean soft, ScriptProcessor processor) {
 		if (function == null)
 			return;
-		function = (Function) function.latestVersion();
 		if (!soft && !function.isEngineDeclaration())
 			function.assignType(type(), false);
 	}
+
+	@Override
+	public Declaration declaration(ScriptProcessor processor) { return function; }
 
 }

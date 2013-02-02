@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 import static net.arctics.clonk.util.Utilities.threadPool;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +26,6 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -185,6 +185,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private boolean finished = false;
 		private ControlFlow controlFlow;
 		private Markers markers;
+		private List<Script> visitees;
 
 		@Override
 		public Typing typing() { return typing; }
@@ -222,17 +223,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void reportProblemsOfFunction(Function function, boolean visit) {
 			if (function == null || function.body() == null)
 				return;
-			if (visit || function.script() == parser.script()) {
-				if (finishedFunctions.contains(function))
+			Script funScript = function.script();
+			if (visit || (visitees != null && visitees.contains(funScript)) || script() == funScript) {
+				if (!finishedFunctions.add(function))
 					return;
-				else
-					finishedFunctions.add(function);
 				try {
 					ASTNode[] statements = function.body().statements();
 					assignReporters(function);
 					newTypeEnvironment();
 					{
-						if (!visiting)
+						if (!visiting || funScript == script())
 							assignDefaultParmTypesToFunction(function);
 						else
 							for (Variable l : function.localVars()) {
@@ -484,10 +484,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 			markers = NULL_MARKERS;
 			newTypeEnvironment();
 			{
-				for (IHasIncludes include : script().includes(GatherIncludesOptions.Recursive))
-					if (include instanceof Script)
-						visit((Script)include, true);
+				visitees = script().conglomerate();
+				for (Script include : script().includes(GatherIncludesOptions.Recursive))
+					visit(include, true);
+				visitees = Arrays.asList(script());
 				storeTypings(typeEnvironment);
+			}
+			for (ITypeInfo ti : typeEnvironment) {
+				Declaration d = ti.declaration(this);
+				if (d != null && d.containedIn(script()))
+					ti.apply(false, this);
 			}
 			endTypeEnvironment(false, false);
 			visiting = false;
@@ -751,7 +757,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {
 			super.reportProblems(node, processor);
-			internalObtainDeclaration(node, processor);
+			if (!processor.visiting)
+				internalObtainDeclaration(node, processor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
 			if (processor.visiting)

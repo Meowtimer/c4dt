@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -32,4 +33,6 @@ public class VariableTypeInfo extends TypeInfo {
 	public String toString() {
 		return String.format("[%s: %s]", variable.name(), type().typeName(true));
 	}
+	@Override
+	public Declaration declaration(ScriptProcessor processor) { return variable; }
 }

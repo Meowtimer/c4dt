@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -59,4 +60,5 @@ public interface ITypeInfo {
 	 * @throws CloneNotSupportedException
 	 */
 	Object clone() throws CloneNotSupportedException; // Cloneable does not declare the method :c
+	Declaration declaration(ScriptProcessor processor);
 }

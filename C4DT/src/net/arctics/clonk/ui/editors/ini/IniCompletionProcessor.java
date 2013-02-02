@@ -9,7 +9,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -59,7 +58,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	public IniCompletionProcessor(IniTextEditor editor, ContentAssistant assistant) {
 		super(editor, assistant);
 	}
-	
+
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		super.computeCompletionProposals(viewer, offset);
@@ -86,13 +85,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			entryName = m.group(1);
 			prefix = m.group(2);
 			assignment = true;
-			wordOffset = lineStart + m.start(2); 
+			wordOffset = lineStart + m.start(2);
 		}
 		else if ((m = IniSourceViewerConfiguration.NO_ASSIGN_PATTERN.matcher(line)).matches()) {
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
 		}
-		prefix = prefix.toLowerCase();	
+		prefix = prefix.toLowerCase();
 		this.prefix = prefix;
 
 		editor().ensureIniUnitUpToDate();
@@ -201,7 +200,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor).getParent());
 		if (obj != null)
-			for (IHasIncludes include : obj.conglomerate()) {
+			for (Script include : obj.conglomerate()) {
 				Script script = Utilities.as(include, Script.class);
 				if (script == null)
 					continue;

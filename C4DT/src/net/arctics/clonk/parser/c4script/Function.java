@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
@@ -20,7 +22,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -48,7 +49,7 @@ import org.eclipse.jface.text.IRegion;
  */
 public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode {
 
-	private static final long serialVersionUID = 3848213897251037684L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private FunctionScope visibility;
 	private List<Variable> localVars;
 	protected List<Variable> parameters;
@@ -89,20 +90,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			var.setParentDeclaration(this);
 		}
 		visibility = FunctionScope.GLOBAL;
-	}
-
-	/**
-	 * Do NOT use this constructor! Its for engine-functions only.
-	 * @param name
-	 * @param type
-	 * @param desc
-	 * @param pars
-	 */
-	public Function(String name, String type, String desc, Variable... pars) {
-		this(name, PrimitiveType.fromString(type), pars);
-		description = desc;
-		parent = null; // since engine function only
-		localVars = null;
 	}
 
 	public Function() {
@@ -179,7 +166,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			returnType = PrimitiveType.UNKNOWN;
 		return returnType;
 	}
-	
+
 	public IType returnType(Script script) {
 		IType retType = null;
 		if (script != null && script.functionReturnTypes() != null)
@@ -201,10 +188,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	@Override
 	public String obtainUserDescription() {
-		if (isEngineDeclaration())
-			return engine().obtainDescription(this);
-		else
-			return description;
+		return description;
 	}
 
 	@Override
@@ -400,7 +384,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		IType retType = returnType(as(context, Script.class));
-		
+
 		if (retType != PrimitiveType.UNKNOWN) {
 			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
 				Messages.Returns,
@@ -450,15 +434,24 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this.isOldStyle = isOldStyle;
 	}
 
+	private transient Function cachedInherited;
+
+	private static final Function NO_FUNCTION = new Function();
+
 	/**
 	 * Return the function this one inherits from
 	 * @return The inherited function
 	 */
 	public Function inheritedFunction() {
+		if (cachedInherited == null)
+			cachedInherited = defaulting(internalInherited(), NO_FUNCTION);
+		return cachedInherited == NO_FUNCTION ? null : cachedInherited;
+	}
 
+	private Function internalInherited() {
 		// search in #included scripts
-		Collection<? extends IHasIncludes> includesCollection = script().includes(0);
-		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
+		Collection<Script> includesCollection = script().includes(0);
+		Script[] includes = includesCollection.toArray(new Script[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			Function fun = includes[i].findFunction(name());
 			if (fun != null && fun != this)
@@ -471,7 +464,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			Function f = null;
 			int rating = -1;
 			for (Declaration d : decsWithSameName) {
-				// get latest version since getInherited() might also be called when finding links in a modified but not yet saved script
+				// get latest version since inheritedFunction() might also be called when finding links in a modified but not yet saved script
 				// in which case the calling function (on-the-fly-parsed) differs from the function in the index
 				d = d.latestVersion();
 				if (d == this || !(d instanceof Function))
@@ -504,12 +497,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Function result = this;
 		Set<Function> alreadyVisited = new HashSet<Function>();
 		for (Function f = this; f != null; f = f.inheritedFunction()) {
-			if (alreadyVisited.contains(f)) {
-				System.out.println(String.format("%s causes inherited loop", f.qualifiedName())); //$NON-NLS-1$
+			if (!alreadyVisited.add(f))
 				break;
-			}
 			result = f;
-			alreadyVisited.add(f);
 		}
 		return result;
 	}
@@ -816,7 +806,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public boolean staticallyTyped() {
-		return staticallyTyped||(staticallyTyped=isEngineDeclaration());
+		return staticallyTyped;
 	}
 
 	public void resetLocalVarTypes() {
@@ -918,14 +908,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public boolean isLocal() {
-		return true;
-	}
+	public boolean isLocal() { return true; }
 
 	@Override
-	public ASTNode code() {
-		return body();
-	}
+	public ASTNode code() { return body(); }
 
 	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, Variable... parameters) {
 		StringBuilder builder = new StringBuilder();
@@ -940,14 +926,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] { body() };
-	}
-
+	public ASTNode[] subElements() { return new ASTNode[] { body() }; }
 	@Override
-	public void setSubElements(ASTNode[] elms) {
-		storeBody((FunctionBody) elms[0], "");
-	}
+	public void setSubElements(ASTNode[] elms) { storeBody((FunctionBody) elms[0], ""); }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {

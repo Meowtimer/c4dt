@@ -459,6 +459,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							));
 							super.marker(code, errorStart, errorEnd, flags, severity, args);
 						}
+						@Override
+						protected Function newFunction(String nameWillBe) {
+							return new EngineFunction();
+						}
 					};
 					try {
 						parser.parse();

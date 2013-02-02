@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.inference.dabble;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
@@ -95,6 +96,11 @@ public class LinkedTypeInfo implements ITypeInfo {
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
+	}
+
+	@Override
+	public Declaration declaration(ScriptProcessor processor) {
+		return null;
 	}
 
 }
