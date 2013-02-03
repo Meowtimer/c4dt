@@ -460,9 +460,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							super.marker(code, errorStart, errorEnd, flags, severity, args);
 						}
 						@Override
-						protected Function newFunction(String nameWillBe) {
-							return new EngineFunction();
-						}
+						protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
+						@Override
+						protected Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
 					};
 					try {
 						parser.parse();

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.DocumentedVariable;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.Function;
@@ -60,13 +61,13 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
 
 public class EngineDeclarationsView extends ViewPart implements IPropertyChangeListener {
-	
+
 	protected class EditDeclarationInputDialog extends Dialog {
-		
+
 		private class ParameterCombination {
 			private final Combo type;
 			private final Text name;
-			
+
 			public ParameterCombination(Combo type, Text name) {
 				this.type = type;
 				this.name = name;
@@ -86,7 +87,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				return name;
 			}
 		}
-		
+
 		private Button newParameter;
 		private Declaration declaration;
 		private Text declarationNameField;
@@ -94,7 +95,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		private Combo returnTypeBox;
 		private Combo scopeBox;
 		private final List<ParameterCombination> parameters = new ArrayList<ParameterCombination>();
-		
+
 		/**
 		 * Edits the currently selected identifer
 		 * @param parent
@@ -102,7 +103,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		public EditDeclarationInputDialog(Shell parent) {
 			super(parent);
 		}
-		
+
 		/**
 		 * Edits the specified declaration
 		 * @param parent
@@ -112,15 +113,15 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			super(parent);
 			this.declaration = declaration;
 		}
-		
+
 		/* (non-Javadoc)
 		 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 		 */
 		@Override
 		protected Control createDialogArea(Composite parent) {
-			
+
 			Composite composite = (Composite) super.createDialogArea(parent);
-			
+
 			composite.setLayout(new GridLayout(2,false));
 			if (declaration == null) {
 				Object activeElement = getActiveElement();
@@ -128,15 +129,15 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					return null;
 				declaration = (Declaration) activeElement;
 			}
-			
+
 			if (declaration instanceof Function)
 				createFunctionEditDialog(composite, (Function) declaration);
 			else if (declaration instanceof Variable)
 				createVariableEditDialog(composite, (Variable) declaration);
-			
+
 			return composite;
 		}
-		
+
 		private void createNewParameterButton(final Composite parent) {
 			if (newParameter != null) {
 				newParameter.dispose();
@@ -156,11 +157,11 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					parent.layout(true); // show new controls
 					parent.pack(true); // resize sub composite
 					parent.getParent().pack(true); // resize composite
-					parent.getParent().getParent().pack(true); // resize window 
+					parent.getParent().getParent().pack(true); // resize window
 				}
 			});
 		}
-		
+
 		@Override
 		protected void okPressed() {
 			if (declaration instanceof Function) {
@@ -169,10 +170,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				func.forceType(PrimitiveType.fromString(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
-				
+
 				func.clearParameters();
 				for(ParameterCombination par : parameters) {
-					Variable var = new Variable(par.getName().getText(),Scope.LOCAL);
+					Variable var = new DocumentedVariable(par.getName().getText(),Scope.LOCAL);
 					var.forceType(getSelectedType(par.getType()));
 					func.addParameter(var);
 				}
@@ -183,10 +184,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				var.forceType(PrimitiveType.fromString(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
 				var.setScope(Scope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
-			
+
 			super.okPressed();
 		}
-		
+
 		private PrimitiveType getSelectedType(Combo combo) {
 			return PrimitiveType.fromString(combo.getItem(combo.getSelectionIndex()));
 		}
@@ -195,39 +196,39 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				Variable var) {
 			// set title
 			parent.getShell().setText(String.format(Messages.Engine_EditVariable, var.name()));
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
-			
+
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(var.name());
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_TypeTitle);
 			returnTypeBox = createComboBoxForType(parent, var.type());
-		
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, var.scope());
 		}
 
 		private void createFunctionEditDialog(Composite parent, Function func) {
-			
+
 			// set title
 			parent.getShell().setText(String.format(Messages.Engine_EditFunction, func.name()));
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
-			
+
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(func.name());
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ReturnTypeTitle);
 			returnTypeBox = createComboBoxForType(parent, func.returnType());
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, func.visibility());
-			
+
 			new Label(parent, SWT.NONE).setText(Messages.Engine_DescriptionTitle);
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 			if (func.obtainUserDescription() != null) descriptionField.setText(func.obtainUserDescription());
-			
+
 			GridData gridData =
 			      new GridData(
 			        GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
@@ -236,28 +237,28 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 
 			descriptionField.setSize(400, 100);
 			descriptionField.setLayoutData(gridData);
-			
+
 			new Label(parent, SWT.NONE).setText(" "); // placeholder //$NON-NLS-1$
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
 			if (func.parameters() != null)
 				for(Variable par : func.parameters())
 					createParameterControls(parent, par.type(), par.name());
-			
+
 			createNewParameterButton(parent);
-			
+
 		}
-		
+
 		private void createParameterControls(Composite parent) {
 			createParameterControls(parent, PrimitiveType.ANY, ""); //$NON-NLS-1$
 		}
-		
+
 		private void createParameterControls(Composite parent, IType type, String parameterName) {
 			Combo combo = createComboBoxForType(parent, type);
 			Text parNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			parNameField.setText(parameterName);
 			parameters.add(new ParameterCombination(combo, parNameField));
 		}
-		
+
 		private Combo createComboBoxForScope(Composite parent, Object scope) {
 			Object[] values = null;
 			if (scope instanceof Scope)
@@ -275,11 +276,11 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					select = i;
 			}
 			combo.setItems(items.toArray(new String[items.size()]));
-			combo.select(select);	
-			
+			combo.select(select);
+
 			return combo;
 		}
-		
+
 		private Combo createComboBoxForType(Composite parent, IType currentType) {
 			Combo combo = new Combo(parent, SWT.READ_ONLY);
 			int select = 0;
@@ -290,16 +291,16 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					select = i;
 			}
 			combo.setItems(items.toArray(new String[items.size()]));
-			combo.select(select);	
-			
+			combo.select(select);
+
 			return combo;
 		}
-		
+
 		private Object getActiveElement() {
 			return viewer.getTree().getSelection()[0].getData();
 		}
 	}
-	
+
 	protected TreeViewer viewer;
 	private DrillDownAdapter drillDownAdapter;
 	private Action editAction;
@@ -327,7 +328,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		drillDownAdapter = new DrillDownAdapter(viewer);
-		
+
 		ClonkOutlineProvider provider = new ClonkOutlineProvider(null);
 		viewer.setContentProvider(provider);
 		viewer.setLabelProvider(provider);
@@ -338,7 +339,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			}
 		});
 		refresh();
-		
+
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
@@ -352,7 +353,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		viewer.setInput(Core.instance().activeEngine());
 		//viewer.refresh();
 	}
-	
+
 	private void hookContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);
@@ -388,7 +389,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		// Other plug-ins can contribute their actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
-	
+
 	private void fillLocalToolBar(IToolBarManager manager) {
 //		manager.add(editAction);
 		manager.add(addFunctionAction);
@@ -419,11 +420,11 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		addFunctionAction.setText(Messages.Engine_AddFunction);
 		addFunctionAction.setToolTipText(Messages.Engine_AddFunctionDesc);
-		
+
 		addVariableAction = new Action() {
 			@Override
 			public void run() {
-				Variable var = new Variable();
+				Variable var = new DocumentedVariable();
 				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),var);
 				dialog.create();
 				dialog.getShell().setSize(400,600);
@@ -435,7 +436,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		addVariableAction.setText(Messages.Engine_AddVariable);
 		addVariableAction.setToolTipText(Messages.Engine_AddVariableDesc);
-		
+
 		editAction = new Action() {
 			@Override
 			public void run() {
@@ -456,7 +457,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		editAction.setToolTipText(Messages.Engine_EditDesc);
 		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
+
 		deleteAction = new Action() {
 			@Override
 			public void run() {
@@ -474,7 +475,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		deleteAction.setText(Messages.Engine_Delete);
 		deleteAction.setToolTipText(Messages.Engine_DeleteDesc);
 		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
-		
+
 		saveAction = new Action() {
 			@Override
 			public void run() {
@@ -488,9 +489,9 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		saveAction.setText(Messages.Engine_Save);
 		saveAction.setToolTipText(Messages.Engine_SaveTitle);
 		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
-		
+
 		doubleClickAction = editAction;
-		
+
 		importFromRepoAction = new Action() {
 			@Override
 			public void run() {
@@ -521,13 +522,13 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		importFromRepoAction.setToolTipText(Messages.Engine_ImportFromRepoDesc);
 		importFromRepoAction.setText(Messages.Engine_ImportFromRepo);
-		
+
 		reloadAction = new Action() {
 			@Override
 			public void run() {
 			    try {
 	                Core.instance().loadActiveEngine();
-                } catch (Exception e) { 
+                } catch (Exception e) {
 	                e.printStackTrace();
                 }
 			    refresh();
@@ -535,7 +536,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		reloadAction.setToolTipText(Messages.Engine_ReloadDesc);
 		reloadAction.setText(Messages.Engine_Reload);
-		
+
 		exportXMLAction = new Action() {
 			@Override
 			public void run() {
@@ -545,7 +546,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 						Core.instance().activeEngine().name(),
 						null
 				);
-				switch (dialog.open()) {				
+				switch (dialog.open()) {
 				case Window.OK:
 					Core.instance().exportEngineToXMLInWorkspace(dialog.getValue());
 					break;
@@ -554,7 +555,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		exportXMLAction.setToolTipText(Messages.EngineDeclarationsView_ExportToXML);
 		exportXMLAction.setText(Messages.EngineDeclarationsView_ExportToXML);
-		
+
 	}
 
 	private void hookDoubleClickAction() {
@@ -585,10 +586,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 			refresh();
 	}
-	
+
 	@Override
 	public void dispose() {
 		Core.instance().getPreferenceStore().removePropertyChangeListener(this);
 	}
-	
+
 }

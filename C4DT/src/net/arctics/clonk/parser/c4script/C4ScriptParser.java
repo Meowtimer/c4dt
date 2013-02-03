@@ -871,7 +871,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		if (result != null)
 			return result;
 
-		result = new Variable(varName, scope);
+		result = newVariable(varName, scope);
 		switch (scope) {
 		case PARAMETER:
 			result.setParentDeclaration(function);
@@ -888,6 +888,9 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		result.setLocation(absoluteSourceLocation(start, end));
 		result.setUserDescription(description != null ? description.text().trim() : null);
 		return result;
+	}
+	protected Variable newVariable(String varName, Scope scope) {
+		return new Variable(varName, scope);
 	}
 
 	private IType parseTypeAnnotation(boolean topLevel, boolean required) throws ParsingException {

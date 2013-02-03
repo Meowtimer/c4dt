@@ -26,7 +26,6 @@ import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
@@ -58,11 +57,11 @@ public class XMLDocImporter {
 	private static final XPathExpression rtypeExpr = xp("./funcs/*[self::func or self::const]/syntax/rtype[1]"); //$NON-NLS-1$
 	private static final XPathExpression parmsExpr = xp("./funcs/*[self::func or self::const]/syntax/params/param"); //$NON-NLS-1$
 	private static final XPathExpression descExpr = xp("./funcs/*[self::func or self::const]/desc[1]"); //$NON-NLS-1$
-	
+
 	private static Pattern fileLocationPattern = Pattern.compile("#: (.*?)\\:([0-9]+)\\((.*?)\\)");
 	private static Pattern msgIdPattern = Pattern.compile("msgid \\\"(.*?)\"$");
 	private static Pattern msgStrPattern = Pattern.compile("msgstr \\\"(.*?)\"$");
-	
+
 	private static class PoTranslationFragment {
 		int line;
 		String english;
@@ -76,9 +75,9 @@ public class XMLDocImporter {
 			return String.format("Line %d: %s = %s", line, english, localized);
 		}
 	}
-	
-	private final Map<String, Map<String, List<PoTranslationFragment>>> translationFragments = new HashMap<String, Map<String, List<PoTranslationFragment>>>(); 
-	
+
+	private final Map<String, Map<String, List<PoTranslationFragment>>> translationFragments = new HashMap<String, Map<String, List<PoTranslationFragment>>>();
+
 	private String repositoryPath;
 	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>"); //$NON-NLS-1$
 	private boolean initialized = false;
@@ -86,12 +85,12 @@ public class XMLDocImporter {
 	public synchronized String repositoryPath() {
 		return repositoryPath;
 	}
-	
+
 	public synchronized void discardInitialization() {
 		translationFragments.clear();
 		initialized = false;
 	}
-	
+
 	public synchronized XMLDocImporter initialize() {
 		if (!initialized) {
 			readTranslationFragmentsFromPoFiles();
@@ -169,27 +168,18 @@ public class XMLDocImporter {
 			}
 		}
 	}
-	
+
 	public class ExtractedDeclarationDocumentation {
 		public String name;
 		public List<Variable> parameters = new LinkedList<Variable>();
 		public String description;
 		public IType returnType;
 		public boolean isVariable;
-		public Declaration toDeclaration() {
-			if (isVariable)
-				return new Variable(name, returnType, description, Scope.CONST);
-			else {
-				Function f = new Function(name, returnType, parameters.toArray(new Variable[parameters.size()]));
-				f.setUserDescription(description);
-				return f;
-			}
-		}
 	}
-	
+
 	public static final int DOCUMENTATION = 1;
 	public static final int SIGNATURE = 2;
-	
+
 	public ExtractedDeclarationDocumentation extractDeclarationInformationFromFunctionXml(String functionName, String langId, int flags) {
 		if (!initialized || repositoryPath == null)
 			return null;
@@ -203,7 +193,7 @@ public class XMLDocImporter {
 				DocumentBuilder builder;
 				try {
 					builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-					builder.setEntityResolver(new EntityResolver() {	
+					builder.setEntityResolver(new EntityResolver() {
 						@Override
 						public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 							if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
@@ -215,7 +205,7 @@ public class XMLDocImporter {
 					e.printStackTrace();
 					return null;
 				}
-				String text = StreamUtil.stringFromInputStream(stream); 
+				String text = StreamUtil.stringFromInputStream(stream);
 				boolean importDocumentation = (flags & DOCUMENTATION) != 0;
 				if (importDocumentation)
 					try {
@@ -268,7 +258,7 @@ public class XMLDocImporter {
 				Node rTypeNode = (Node) rtypeExpr.evaluate(doc, XPathConstants.NODE);
 				NodeList parmNodes = (NodeList) parmsExpr.evaluate(doc, XPathConstants.NODESET);
 				Node descNode = importDocumentation ? (Node) descExpr.evaluate(doc, XPathConstants.NODE) : null;
-				
+
 				if (titleNode != null && rTypeNode != null) {
 					ExtractedDeclarationDocumentation result = new ExtractedDeclarationDocumentation();
 					result.name = getTextIncludingTags(titleNode);
@@ -302,7 +292,7 @@ public class XMLDocImporter {
 			return null;
 		}
 	}
-	
+
 	private static void appendContentsOfNode(Node n, StringBuilder builder) {
 		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
 			Node c = n.getChildNodes().item(i);
@@ -315,7 +305,7 @@ public class XMLDocImporter {
 			}
 		}
 	}
-	
+
 	private static String getTextIncludingTags(Node n) {
 		StringBuilder b = new StringBuilder();
 		appendContentsOfNode(n, b);
@@ -325,7 +315,7 @@ public class XMLDocImporter {
 	public boolean initialized() {
 		return initialized;
 	}
-	
+
 	public <T extends ITypeable & IHasSubDeclarations> boolean fleshOutPlaceholder(T placeholder, boolean placeholdersFleshedOutFlag) {
 		if (!placeholdersFleshedOutFlag) {
 			ExtractedDeclarationDocumentation d = extractDeclarationInformationFromFunctionXml(placeholder.name(), ClonkPreferences.languagePref(), XMLDocImporter.SIGNATURE);
