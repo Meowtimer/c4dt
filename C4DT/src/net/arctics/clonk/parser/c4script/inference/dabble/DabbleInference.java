@@ -182,6 +182,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Set<Function> finishedFunctions = new HashSet<>();
 		private final Map<String, IType> functionReturnTypes = new HashMap<>();
 		private final Map<Variable, IType> variableTypes = new HashMap<>();
+		private final IType thisType;
 		private boolean finished = false;
 		private ControlFlow controlFlow;
 		private Markers markers;
@@ -198,6 +199,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.typing = parser.typing();
 			this.cachedEngineDeclarations = this.parser.script().engine().cachedDeclarations();
 			this.strictLevel = parser.script().strictLevel();
+			this.thisType = TypeChoice.make(
+				script(),
+				script() instanceof Definition ? ((Definition)script()).metaDefinition() : PrimitiveType.ID
+			);
 		}
 
 		public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
@@ -876,7 +881,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return Variable.THIS;
 					IType type = processor.script();
 					if (sequencePredecessor != null)
-						type = processor.queryTypeOfExpression(sequencePredecessor, null);
+						type = ty(sequencePredecessor, processor);
 					if (type != null) for (IType t : type) {
 						Script scriptToLookIn;
 						if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
@@ -905,7 +910,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					Declaration d = internalObtainDeclaration(node, processor);
 					// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 					if (d == Variable.THIS)
-						return processor.script();
+						return processor.thisType;
 					IType stored = processor.queryTypeOfExpression(node, null);
 					if (stored != null)
 						return stored;
@@ -1415,7 +1420,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// calling this() as function -> return object type belonging to script
 					if (node.params().length == 0 && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
-						return processor.script();
+						return processor.thisType;
 
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
