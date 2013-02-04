@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder.Multiplicity;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ASTNodeMatcher extends ASTComparisonDelegate {
@@ -83,6 +83,10 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
 	public static ASTNode matchingExpr(ASTNode node) {
+		if (node instanceof Unfinished) {
+			node = Unfinished.unwrap(node);
+			node.setParent(null);
+		}
 		return node.transformRecursively(new ITransformer() {
 			private ASTNode toMatchingPlaceholder(ASTNode expression) {
 				if (expression != null)
@@ -127,11 +131,6 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
 				)
 					return expression.subElements()[0];
-				else if (expression instanceof SimpleStatement) {
-					ASTNode inner = ((SimpleStatement)expression).expression();
-					if (inner instanceof MatchingPlaceholder || expression.parent() == null)
-						return inner;
-				}
 				return expression;
 			}
 		});
