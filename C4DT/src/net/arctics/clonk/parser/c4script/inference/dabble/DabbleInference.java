@@ -187,6 +187,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private ControlFlow controlFlow;
 		private Markers markers;
 		private List<Script> visitees;
+		private Script visitee;
 
 		@Override
 		public Typing typing() { return typing; }
@@ -444,6 +445,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void visit(Script script, boolean foreign) {
+			visitee = script;
 			for (Variable v : script.variables()) {
 				ASTNode init = v.initializationExpression();
 				if (init != null) {
@@ -469,6 +471,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			for (Function f : script.functions())
 				reportProblemsOfFunction(f, foreign);
+			visitee = null;
 		}
 
 		@Override
@@ -762,13 +765,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {
 			super.reportProblems(node, processor);
-			if (!processor.visiting)
-				internalObtainDeclaration(node, processor);
+			internalObtainDeclaration(node, processor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
-			if (processor.visiting)
-				return obtainDeclaration(node, processor);
-			else {
+			if (!processor.visiting || processor.script() == node.parentOfType(Script.class)) {
 				if (node.declaration() == null)
 					node.setDeclaration(obtainDeclaration(node, processor));
 				if (node.declaration() == null) {
@@ -776,7 +776,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					node.setDeclaration(obtainDeclaration(node, processor));
 				}
 				return node.declaration();
-			}
+			} else
+				return obtainDeclaration(node, processor);
 		}
 		@Override
 		public ITypeInfo createTypeInfo(T node, ScriptProcessor processor) {
