@@ -255,6 +255,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			Loop: for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
 				char c = doc.getChar(arrowOffset);
 				switch (c) {
+				case '.':
+					targetCall = true;
+					break Loop;
 				case '>':
 					if (doc.getChar(arrowOffset-1) != '-')
 						return false;
