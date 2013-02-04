@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.StructureVariable;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -14,30 +15,17 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
 public class PlayerControlsUnit extends IniUnitWithNamedSections {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
 	private final List<Variable> controlVariables = new LinkedList<Variable>();
-	
 	@Override
-	protected String configurationName() {
-		return "PlayerControls.txt"; //$NON-NLS-1$
-	}
-	
-	public List<Variable> controlVariables() {
-		return controlVariables;
-	}
-
-	public PlayerControlsUnit(Object input) {
-		super(input);
-	}
-	
+	protected String configurationName() { return "PlayerControls.txt"; } //$NON-NLS-1$
+	public List<Variable> controlVariables() { return controlVariables; }
+	public PlayerControlsUnit(Object input) { super(input); }
 	@Override
 	public void startParsing() {
 		super.startParsing();
 		controlVariables.clear();
 	}
-	
 	/**
 	 * Creates global const variables for definitions in the PlayerControls.txt file so they can be used in scripts.
 	 */
@@ -53,7 +41,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 						if (identifierEntry instanceof IniEntry) {
 							IniEntry e = (IniEntry) identifierEntry;
 							String ident = e.stringValue();
-							Variable var = new Variable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
+							Variable var = new StructureVariable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(Scope.CONST);
 							var.setParentDeclaration(this);
 							var.setLocation(e);
@@ -63,7 +51,6 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 				}
 		super.endParsing();
 	}
-	
 	@Override
 	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
 		if (section != null && section.parentSection() != null) {
@@ -77,7 +64,6 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		}
 		return super.nameOfEntryToTakeSectionNameFrom(section);
 	}
-	
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass == Variable.class && declarationName.startsWith("CON_"))
@@ -86,7 +72,6 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 					return var;
 		return super.findLocalDeclaration(declarationName, declarationClass);
 	}
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T of) {
@@ -99,5 +84,4 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 					return (T) c;
 		return null;
 	};
-
 }

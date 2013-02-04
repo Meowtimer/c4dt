@@ -62,7 +62,7 @@ import org.eclipse.core.runtime.CoreException;
  * <li>{@link Definition}s</li>
  * <li>{@link Script}s</li>
  * <li>{@link Scenario}s</li>
- * </ul></p> 
+ * </ul></p>
  * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
  * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link Script} objects requires calling {@link #allScripts()}
  * which yields an {@link Iterable} to iterate over {@link Definition}s, {@link SystemScript}s and {@link Scenario}s.</p>
@@ -73,7 +73,7 @@ import org.eclipse.core.runtime.CoreException;
 public class Index extends Declaration implements Serializable, ILatestDeclarationVersionProvider {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public static final String GLOBAL_PROPLIST_NAME = "Global"; 
+	public static final String GLOBAL_PROPLIST_NAME = "Global";
 
 	public transient Object saveSynchronizer = new Object();
 	public transient Object loadSynchronizer = new Object();
@@ -95,7 +95,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 	private Variable globalProplist;
-	
+
 	public synchronized Variable global() {
 		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
 			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
@@ -107,10 +107,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		return globalProplist;
 	}
-	
+
 	protected File folder;
 	protected boolean built;
-	
+
 	public boolean built() { return built; }
 	public void built(boolean b) { built = b; }
 
@@ -275,8 +275,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		detectAppendages(script, detectedAppendages);
 	}
-	
-	public void addStaticVariables(Collection<? extends Variable> variables) { 
+
+	public void addStaticVariables(Collection<? extends Variable> variables) {
 		staticVariables.addAll(variables);
 		for (Variable v : variables)
 			addToDeclarationMap(v);
@@ -531,7 +531,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Return the last {@link Definition} with the specified {@link ID}, whereby 'last' is arbitrary, maybe loosely based on the directory and lexical structure of the project. 
+	 * Return the last {@link Definition} with the specified {@link ID}, whereby 'last' is arbitrary, maybe loosely based on the directory and lexical structure of the project.
 	 * @param id The id
 	 * @return The 'last' {@link Definition} with that id
 	 */
@@ -613,7 +613,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Return all declarations with the specified name that are instances of the specified class.
 	 * @param <T> Genericly typed so no casting necessary
 	 * @param name The name
-	 * @param declarationClass The class of the declarations to return 
+	 * @param declarationClass The class of the declarations to return
 	 * @return An Iterable to iterate over the matching declarations
 	 */
 	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> declarationClass) {
@@ -720,7 +720,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on an entity-by-entity basis. 
+	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on an entity-by-entity basis.
 	 * @param <T> {@link Index} class to return.
 	 * @param indexClass The class to instantiate
 	 * @param indexFolder File to load the index from
@@ -759,7 +759,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Finds a script by its path. This may be a path to an actual file or some other kind of path understood by the kind of index. But since the only relevant subclass of ClonkIndex is {@link ProjectIndex}, that's moot! 
+	 * Finds a script by its path. This may be a path to an actual file or some other kind of path understood by the kind of index. But since the only relevant subclass of ClonkIndex is {@link ProjectIndex}, that's moot!
 	 * @param path the path
 	 * @return the script or null if not found
 	 */
