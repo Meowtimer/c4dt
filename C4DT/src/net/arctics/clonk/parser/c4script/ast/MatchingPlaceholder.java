@@ -123,16 +123,15 @@ public class MatchingPlaceholder extends Placeholder {
 		String entry = scanner.readIdent();
 		if (scanner.peek() == ':')
 			scanner.read();
-		while (!scanner.reachedEOF())
-			switch (scanner.read()) {
-			case '/': {
-				int start = scanner.tell();
-				int end = start;
+		while (!scanner.reachedEOF()) {
+			int start, end;
+			switch (scanner.read()) { 
+			case '/':
+				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.read() != '/')
 					end++;
 				stringRepresentationPattern = Pattern.compile(scanner.readStringAt(start, end));
 				break;
-			}
 			case ',':
 				break;
 			case '.':
@@ -157,26 +156,22 @@ public class MatchingPlaceholder extends Placeholder {
 						};
 					}.findFunction("Transform");
 				break;
-			case '^': {
-				int start = scanner.tell();
-				int end = start;
+			case '^':
+				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.read() != '^')
 					end++;
 				associatedDeclarationNamePattern = Pattern.compile(scanner.readStringAt(start, end));
 				break;
-			}
-			case '>': {
-				int start = scanner.tell();
-				int end = start;
+			case '>':
+				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.peek() != ',') {
 					scanner.read();
 					end++;
 				}
 				property = scanner.readStringAt(start, end);
 				break;
-			}
 			case '[':
-				int end = start;
+				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.peek() != ']') {
 					scanner.read();
 					end++;
@@ -192,7 +187,12 @@ public class MatchingPlaceholder extends Placeholder {
 				break;
 			default:
 				scanner.unread();
-				String className = scanner.readIdent();
+				start = scanner.tell(); end = start;
+				while (!scanner.reachedEOF() && scanner.peek() != ',') {
+					scanner.read();
+					end++;
+				}
+				String className = scanner.readStringAt(start, end);
 				if (className.length() == 0) {
 					scanner.read();
 					continue;
@@ -217,6 +217,7 @@ public class MatchingPlaceholder extends Placeholder {
 				if (requiredClass == null)
 					throw new ParsingException(String.format("AST class not found: %s", className));
 			}
+		}
 		this.entryName = entry;
 	}
 
