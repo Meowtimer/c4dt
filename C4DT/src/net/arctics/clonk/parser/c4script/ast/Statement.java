@@ -67,6 +67,8 @@ public class Statement extends ASTNode implements Cloneable {
 		attachments.addAll(attachmentsToAdd);
 	}
 	
+	public List<Attachment> attachments() { return attachments; }
+	
 	@SuppressWarnings("unchecked")
 	public <T extends Attachment> T attachmentOfType(Class<T> cls) {
 		if (attachments != null)
