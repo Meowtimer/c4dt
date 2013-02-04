@@ -187,14 +187,14 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			}
 		});
 
-		Label customTemplateLabel = new Label(ctrl, SWT.LEFT);
-		customTemplateLabel.setText(Messages.C4ScriptSearchPage_Template);
-		customTemplateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		Label templateLabel = new Label(ctrl, SWT.LEFT);
+		templateLabel.setText(Messages.C4ScriptSearchPage_Template);
+		templateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 
 		templateText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_templateText = new GridData(GridData.FILL_BOTH);
-		gd_templateText.widthHint = 527;
-		gd_templateText.heightHint = 150;
+		//gd_templateText.widthHint = 527;
+		gd_templateText.heightHint = 80;
 		templateText.setLayoutData(gd_templateText);
 
 		Label replacementLabel = new Label(ctrl, SWT.LEFT);
@@ -203,7 +203,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 
 		replacementText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
 		GridData gd_replacementText = new GridData(GridData.FILL_BOTH);
-		gd_replacementText.heightHint = 168;
+		gd_replacementText.heightHint = 80;
 		replacementText.setLayoutData(gd_replacementText);
 	}
 
