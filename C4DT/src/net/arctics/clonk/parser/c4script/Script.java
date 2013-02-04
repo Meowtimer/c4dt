@@ -343,7 +343,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @param contextIndex The project index to search for includes in.
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
 		if (!set.add(this))
 			return false;
 		if (definedDirectives != null) {
@@ -397,7 +397,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The includes
 	 */
 	@Override
-	public Collection<Script> includes(Index index, Script origin, int options) {
+	public Collection<Script> includes(Index index, Object origin, int options) {
 		synchronized (this) {
 			int indexHash = index != null ? index.hashCode() : 0;
 			int originHash = origin != null ? origin.hashCode() : 0;

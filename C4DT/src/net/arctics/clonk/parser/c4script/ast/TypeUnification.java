@@ -124,7 +124,7 @@ public class TypeUnification {
 			return new ProplistDeclaration(new ArrayList<Variable>()) {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
-				public boolean gatherIncludes(Index contextIndex, ProplistDeclaration origin, Collection<ProplistDeclaration> set, int options) {
+				public boolean gatherIncludes(Index contextIndex, Object origin, Collection<ProplistDeclaration> set, int options) {
 					if (!set.add(this))
 						return false;
 					if ((options & GatherIncludesOptions.Recursive) != 0) {

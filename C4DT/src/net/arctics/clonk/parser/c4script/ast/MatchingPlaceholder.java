@@ -151,7 +151,7 @@ public class MatchingPlaceholder extends Placeholder {
 					{
 						private static final long serialVersionUID = 1L;
 						@Override
-						public Collection<Script> includes(Index index, Script origin, int options) {
+						public Collection<Script> includes(Index index, Object origin, int options) {
 							return Arrays.asList(TRANSFORMATIONS);
 						};
 					}.findFunction("Transform");
