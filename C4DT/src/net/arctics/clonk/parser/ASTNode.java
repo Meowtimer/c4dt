@@ -411,7 +411,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				differentSubElms = true;
 				ASTNode[] multi = (ASTNode[])t;
 				ASTNode[] newNew = new ASTNode[j+multi.length+newSubElms.length-j-1];
-				System.arraycopy(subElms, 0, newNew, 0, j);
+				System.arraycopy(newSubElms, 0, newNew, 0, j);
 				System.arraycopy(multi, 0, newNew, j, multi.length);
 				newSubElms = newNew;
 				j += multi.length-1;
