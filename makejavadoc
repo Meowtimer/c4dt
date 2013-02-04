@@ -1,0 +1,1 @@
+javadoc -d node/static/doc -sourcepath C4DT/src -subpackages net
