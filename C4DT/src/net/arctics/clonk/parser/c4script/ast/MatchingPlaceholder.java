@@ -15,6 +15,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
+import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
@@ -208,7 +209,8 @@ public class MatchingPlaceholder extends Placeholder {
 				for (String pkgFormat : packageFormats)
 					try {
 						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
-						break;
+						if (ASTNode.class.isAssignableFrom(requiredClass))
+							break;
 					} catch (ClassNotFoundException e) {
 						continue;
 					}
@@ -244,11 +246,13 @@ public class MatchingPlaceholder extends Placeholder {
 	public boolean satisfiedBy(ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
+			AccessVar av = as(element, AccessVar.class);
 			if (requiredClass == IDLiteral.class) {
-				AccessVar av = as(element, AccessVar.class);
-				if (av != null && av.proxiedDefinition() != null)
+				if (av != null && av.declaration() instanceof ProxyVar)
 					break RequiredClass;
 			}
+			else if (requiredClass == AccessVar.class && av != null && av.declaration instanceof ProxyVar)
+				return false;
 			if (!requiredClass.isInstance(element))
 				return false;
 		}
