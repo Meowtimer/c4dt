@@ -1,14 +1,16 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.parser.Structure;
+
 import org.eclipse.search.ui.text.Match;
 
 public class ClonkSearchMatch extends Match {
 
-	private String line;
-	private int lineOffset;
-	private boolean potential;
-	private boolean indirect;
+	private final String line;
+	private final int lineOffset;
+	private final boolean potential;
+	private final boolean indirect;
 	
 	@Override
 	public String toString() {
@@ -17,7 +19,7 @@ public class ClonkSearchMatch extends Match {
 	
 	public ClonkSearchMatch(String line, int lineOffset, Object element, int offset, int length, boolean potential, boolean indirect) {
 		super(element, offset, length);
-		this.line = line;
+		this.line = defaulting(line, "...");
 		this.lineOffset = lineOffset;
 		this.potential = potential;
 		this.indirect = indirect;
