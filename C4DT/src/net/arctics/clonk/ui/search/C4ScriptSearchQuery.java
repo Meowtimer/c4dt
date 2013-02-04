@@ -15,6 +15,8 @@ import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ScriptsHelper;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -112,8 +114,16 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 							IRegion r = expression.absolute();
 							addMatch(expression, parser, r.getOffset(), r.getLength(), subst);
 							return TraversalContinuation.SkipSubElements;
-						} else
+						} else {
+							if (expression instanceof Statement) {
+								Statement stmt = (Statement) expression;
+								if (stmt.attachments() != null)
+									for (Attachment a : stmt.attachments())
+										if (a instanceof ASTNode)
+											visitNode((ASTNode)a, parser);	
+							}
 							return TraversalContinuation.Continue;
+						}
 					}
 				}
 				for (final Script s : scope)

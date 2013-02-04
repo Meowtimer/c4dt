@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
@@ -24,7 +25,7 @@ import net.arctics.clonk.util.StringUtil;
  * @author madeen
  *
  */
-public class Comment extends Statement implements Statement.Attachment {
+public class Comment extends Statement implements Statement.Attachment, IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private String comment;
@@ -269,5 +270,8 @@ public class Comment extends Statement implements Statement.Attachment {
 		}
 		return builder.toString();
 	}
+
+	@Override
+	public String patternMatchingText() { return text(); }
 
 }
