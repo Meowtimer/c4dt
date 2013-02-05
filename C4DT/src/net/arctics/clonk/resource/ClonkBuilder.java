@@ -31,7 +31,6 @@ import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
-import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -118,7 +117,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	@Override
 	@SuppressWarnings({"rawtypes"})
-	@Profiled
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		IProject proj = getProject();
 		this.index = ClonkProjectNature.get(getProject()).index();
@@ -373,7 +371,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}.schedule();
 	}
 
-	@Profiled
 	private void parseDeclarations(Index index) {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
@@ -417,7 +414,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 	}
 
-	@Profiled
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
@@ -440,8 +436,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				break;
 			if (parser == null)
 				continue;
-			final Script s = parser.script();
-			final Definition def = as(s, Definition.class);
+			final Definition def = as(parser.script(), Definition.class);
 			if (def != null)
 				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 					@Override
