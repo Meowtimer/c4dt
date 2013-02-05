@@ -286,4 +286,6 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return replacementString;
 	}
 	
+	public boolean requiresDocumentReparse() { return false; }
+	
 }

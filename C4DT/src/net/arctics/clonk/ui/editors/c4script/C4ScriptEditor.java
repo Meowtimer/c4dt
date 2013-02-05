@@ -197,7 +197,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				scheduleReparsingOfFunction(f);
 			else
 				// only schedule reparsing when editing outside of existing function
-				scheduleReparsing(true);
+				scheduleReparsing(false);
 		}
 
 		@Override
@@ -552,7 +552,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		try {
-			reparseWithDocumentContents(true);
+			if (proposal.requiresDocumentReparse()) {
+				reparseWithDocumentContents(true);
+				textChangeListener().scheduleReparsing(false);
+			}
 		} catch (IOException | ParsingException e) {
 			e.printStackTrace();
 		}
@@ -643,7 +646,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.parseDeclarations();
 		parser.script().generateFindDeclarationCache();
 		parser.validate();
-		listener.typingStrategy().localTypingContext(parser).reportProblems();
+		if (!onlyDeclarations)
+			listener.typingStrategy().localTypingContext(parser).reportProblems();
 		parser.markers().deploy();
 
 		// make sure it's executed on the ui thread

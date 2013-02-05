@@ -145,8 +145,9 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 				Declaration d = (Declaration)element;
 				if (!d.containedIn(editor.topLevelDeclaration()))
 					multiplier = 1000;
+				return d.sortCategory() * multiplier;
 			}
-			return ((Declaration)element).sortCategory() * multiplier;
+			return 10000;
 		}
 	};
 	

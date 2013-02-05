@@ -302,9 +302,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			});
 		}
 
-		public Replacement getReplacement() {
-			return replacement;
-		}
+		public Replacement replacement() { return replacement; }
+		@Override
+		public boolean requiresDocumentReparse() { return replacement.additionalDeclarations().size() > 0; }
 	}
 
 	private static class Replacement {
@@ -385,7 +385,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					return existing;
 			for (ICompletionProposal prop : existingList)
 				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne))
-					return ((ParameterizedProposal)prop).getReplacement();
+					return ((ParameterizedProposal)prop).replacement();
 			this.add(newOne);
 			return newOne;
 		}

@@ -54,7 +54,6 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
-import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -177,7 +176,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 	}
 
-	@Profiled
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		super.computeCompletionProposals(viewer, offset);
@@ -312,12 +310,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 			ProblemReportingContext typingContext = null;
-			if (contextExpression == null && !specifiedParser) {
-				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
+			if (!specifiedParser) {
 				FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
 				parser = fparser;
-				if (fparser.update())
-					(typingContext = typingStrategy.localTypingContext(parser)).reportProblemsOfFunction(activeFunc);
+				fparser.update();
+				(typingContext = typingStrategy.localTypingContext(parser)).reportProblemsOfFunction(activeFunc);
+			}
+			if (contextExpression == null) {
+				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				activeFunc.traverse(locator, this);
 				contextExpression = locator.expressionAtRegion();
 				if (contextExpression != null && contextExpression.start() == preservedOffset && contextExpression.predecessorInSequence() != null)
