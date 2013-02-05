@@ -18,7 +18,6 @@ import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
-import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -107,6 +106,7 @@ import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.PerClass;
+import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IFile;
@@ -118,15 +118,6 @@ import org.eclipse.jface.text.Region;
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
 public class DabbleInference extends ProblemReportingStrategy {
 	private static final boolean UNUSEDPARMWARNING = false;
-	private static final boolean DEBUG = false;
-	private static final Markers NULL_MARKERS = new Markers() {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		@Override
-		public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
-			// nope
-		}
-	};
-
 	private static class Shared {
 		C4ScriptParser[] parsers;
 		IProgressMonitor monitor;
@@ -155,6 +146,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					pool.execute(processor);
 			}
 		}, 20);
+		for (ScriptProcessor processor : shared.processors.values())
+			processor.clearReporters(processor.script());
 	}
 
 	@Override
@@ -188,6 +181,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private Markers markers;
 		private List<Script> visitees;
 		private Script visitee;
+		private final Map<String, Declaration> variableMap = new HashMap<>();
+		private final Map<String, Declaration> functionMap = new HashMap<>();
 
 		@Override
 		public Typing typing() { return typing; }
@@ -235,7 +230,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return;
 				try {
 					ASTNode[] statements = function.body().statements();
-					assignReporters(function);
 					newTypeEnvironment();
 					{
 						if (!visiting || funScript == script())
@@ -445,6 +439,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void visit(Script script, boolean foreign) {
+			script.requireLoaded();
+			assignReporters(script);
 			visitee = script;
 			for (Variable v : script.variables()) {
 				ASTNode init = v.initializationExpression();
@@ -453,7 +449,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (owningFunc == null) {
 						newTypeEnvironment();
 						{
-							assignReporters(init);
 							try { reportProblemsOf(init, true); }
 							catch (ParsingException e) {}
 							judgement(new AccessVar(v), ty(init, this), TypingJudgementMode.Force, this);
@@ -474,6 +469,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			visitee = null;
 		}
 
+		@Profiled
 		@Override
 		public void reportProblems() {
 			synchronized (working) {
@@ -487,9 +483,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private void internalWork() {
 			// revisit all inherited scripts since that is the only way to
 			// accurately type inherited functions with respect to added things from this script
-			Markers oldMarkers = markers;
+			final Markers oldMarkers = markers;
 			visiting = true;
-			markers = NULL_MARKERS;
+			markers = new Markers() {
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+				@Override
+				public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+					if (node == null || !node.containedIn(script()))
+						return;
+					else
+						oldMarkers.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
+				}
+			};
 			newTypeEnvironment();
 			{
 				visitees = script().conglomerate();
@@ -874,16 +879,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new AccessDeclarationProblemReporter<AccessDeclaration>(AccessDeclaration.class),
 
 			new AccessDeclarationProblemReporter<AccessVar>(AccessVar.class) {
-				@Override
-				public Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
-					((AccessDeclarationProblemReporter<? super AccessVar>)supr).obtainDeclaration(node, processor);
-					ASTNode sequencePredecessor = node.predecessorInSequence();
-					if (sequencePredecessor == null && node.declarationName().equals(Variable.THIS.name()))
-						return Variable.THIS;
-					IType type = processor.script();
-					if (sequencePredecessor != null)
-						type = ty(sequencePredecessor, processor);
-					if (type != null) for (IType t : type) {
+				private Declaration findUsingType(ScriptProcessor processor, AccessVar node, ASTNode predecessor, IType type) {
+					for (IType t : type) {
 						Script scriptToLookIn;
 						if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 							// find pseudo-variable from proplist expression
@@ -894,9 +891,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						} else {
 							FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
-							info.contextFunction = sequencePredecessor == null ? node.parentOfType(Function.class) : null;
 							info.searchOrigin = scriptToLookIn;
-							info.findGlobalVariables = sequencePredecessor == null;
+							info.findGlobalVariables = predecessor == null;
 							Declaration v = scriptToLookIn.findDeclaration(node.declarationName(), info);
 							if (v instanceof Definition)
 								v = ((Definition)v).proxyVar();
@@ -905,6 +901,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 					return null;
+				}
+				@Override
+				protected Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
+					((AccessDeclarationProblemReporter<? super AccessVar>)supr).obtainDeclaration(node, processor);
+					ASTNode p = node.predecessorInSequence();
+					if (p == null && node.declarationName().equals(Variable.THIS.name()))
+						return Variable.THIS;
+					IType type = processor.script();
+					if (p != null)
+						type = ty(p, processor);
+					if (p == null) {
+						Function f = node.parentOfType(Function.class);
+						if (f != null) {
+							Variable v = f.findVariable(node.declarationName());
+							if (v != null)
+								return v;
+						}
+						Declaration v = processor.variableMap.get(node.declarationName());
+						if (v == null && !processor.variableMap.containsKey(node.declarationName())) {
+							v = findUsingType(processor, node, null, type);
+							processor.variableMap.put(node.declarationName(), v);
+						}
+						return v;
+					}
+					else
+						return findUsingType(processor, node, p, type);
 				}
 				@Override
 				public IType type(AccessVar node, ScriptProcessor processor) {
@@ -1320,19 +1342,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new AccessDeclarationProblemReporter<CallDeclaration>(CallDeclaration.class) {
 				/**
 				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReportingContext)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
-				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
-				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
 				 * @param processor Context to use for searching
+				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
+				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
 				 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 				 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 				 */
-				private Declaration findFunction(
-					CallDeclaration node,
-					String functionName, IType callerType,
+				private Declaration findUsingType(
 					ScriptProcessor processor,
-					Set<IIndexEntity> listToAddPotentialDeclarationsTo
+					CallDeclaration node, String functionName,
+					IType type
 				) {
-					IType lookIn = callerType != null ? callerType : processor.script();
+					IType lookIn = type != null ? type : processor.script();
 					if (lookIn != null) for (IType ty : lookIn) {
 						Script script = as(ty, Script.class);
 						if (script == null)
@@ -1340,18 +1361,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
 						info.searchOrigin = processor.script();
 						info.contextFunction = node.parentOfType(Function.class);
-						info.findGlobalVariables = callerType == null;
+						info.findGlobalVariables = type == null;
 						Declaration dec = script.findDeclaration(functionName, info);
 						// parse function before this one
 						if (dec instanceof Function && node.parentOfType(Function.class) != null)
 							processor.reportProblemsOfFunction((Function)dec);
 						if (dec != null)
-							if (listToAddPotentialDeclarationsTo == null)
-								return dec;
-							else
-								listToAddPotentialDeclarationsTo.add(dec);
+							return dec;
 					}
-					if (callerType != null) {
+					if (type != null) {
 						// find global function
 						Declaration declaration;
 						try {
@@ -1374,17 +1392,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 						// only return found global function if it's the only choice
 						if (declaration != null && numCandidates == 1)
-							if (listToAddPotentialDeclarationsTo == null)
-								return declaration;
-							else
-								listToAddPotentialDeclarationsTo.add(declaration);
+							return declaration;
 					}
-					if (listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0)
-						return ArrayUtil.filteredIterable(listToAddPotentialDeclarationsTo, Declaration.class).iterator().next();
-					else
-						return null;
+					return null;
 				}
-				protected Declaration _obtainDeclaration(CallDeclaration node, Set<IIndexEntity> potentialDeclarationsOutput, ScriptProcessor processor) {
+				@Override
+				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
+					((AccessDeclarationProblemReporter<? super CallDeclaration>)supr).obtainDeclaration(node, processor);
 					String declarationName = node.declarationName();
 					if (declarationName.equals(Keywords.Return))
 						return null;
@@ -1392,24 +1406,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Function activeFunc = node.parentOfType(Function.class);
 						if (activeFunc != null) {
 							Function inher = activeFunc.inheritedFunction();
-							if (inher != null) {
-								if (potentialDeclarationsOutput != null)
-									potentialDeclarationsOutput.add(inher);
+							if (inher != null)
 								return inher;
-							}
 						}
 					}
 					ASTNode p = node.predecessorInSequence();
-//					if (p instanceof MemberOperator)
-//						p = p.predecessorInSequence();
-					if (potentialDeclarationsOutput != null)
-						node.setPotentialDeclarations(potentialDeclarationsOutput);
-					return findFunction(node, declarationName, ty(p, processor), processor, potentialDeclarationsOutput);
-				}
-				@Override
-				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
-					((AccessDeclarationProblemReporter<? super CallDeclaration>)supr).obtainDeclaration(node, processor);
-					return _obtainDeclaration(node, null, processor);
+					if (p == null) {
+						Declaration f = processor.functionMap.get(node.declarationName());
+						if (f == null && !processor.functionMap.containsKey(node.declarationName())) {
+							f = findUsingType(processor, node, declarationName, processor.script());
+							processor.functionMap.put(declarationName, f);
+						}
+						return f;
+					}
+					else
+						return findUsingType(processor, node, declarationName, ty(p, processor));
 				}
 				private IType declarationType(CallDeclaration node, ScriptProcessor processor) {
 					Declaration d = internalObtainDeclaration(node, processor);
@@ -2024,27 +2035,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ProblemReporter<Comment>(Comment.class) {
 				@Override
 				public void reportProblems(Comment node, ScriptProcessor processor) throws ParsingException {
-					String s = node.text();
-					int markerPriority;
-					int searchStart = 0;
-					do {
-						markerPriority = IMarker.PRIORITY_LOW;
-						int todoIndex = s.indexOf("TODO", searchStart);
-						if (todoIndex != -1)
-							markerPriority = IMarker.PRIORITY_NORMAL;
-						else {
-							todoIndex = s.indexOf("FIXME", searchStart);
+					if (!processor.visiting || node.parentOfType(Script.class) == processor.script()) {
+						String s = node.text();
+						int markerPriority;
+						int searchStart = 0;
+						do {
+							markerPriority = IMarker.PRIORITY_LOW;
+							int todoIndex = s.indexOf("TODO", searchStart);
 							if (todoIndex != -1)
-								markerPriority = IMarker.PRIORITY_HIGH;
-						}
-						if (todoIndex != -1) {
-							int lineEnd = s.indexOf('\n', todoIndex);
-							if (lineEnd == -1)
-								lineEnd = s.length();
-							searchStart = lineEnd;
-							processor.markers().todo(processor.parser.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
-						}
-					} while (markerPriority > IMarker.PRIORITY_LOW);
+								markerPriority = IMarker.PRIORITY_NORMAL;
+							else {
+								todoIndex = s.indexOf("FIXME", searchStart);
+								if (todoIndex != -1)
+									markerPriority = IMarker.PRIORITY_HIGH;
+							}
+							if (todoIndex != -1) {
+								int lineEnd = s.indexOf('\n', todoIndex);
+								if (lineEnd == -1)
+									lineEnd = s.length();
+								searchStart = lineEnd;
+								processor.markers().todo(processor.parser.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+							}
+						} while (markerPriority > IMarker.PRIORITY_LOW);
+					}
 				}
 			},
 

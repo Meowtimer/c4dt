@@ -44,6 +44,7 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
@@ -950,7 +951,7 @@ public abstract class SpecialEngineRules {
 			if (SignedInteger.class.isAssignableFrom(cls))
 				return PrimitiveType.INT;
 			if (IDArray.class == cls)
-				return PrimitiveType.ID;
+				return TypeChoice.make(PrimitiveType.ID, PrimitiveType.INT);
 			return PrimitiveType.ANY;
 		}
 	};

@@ -556,15 +556,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public final boolean containedIn(ASTNode expression) {
+		if (expression == null)
+			return false;
 		if (expression == this)
 			return true;
-		try {
 			for (ASTNode e : expression.subElements())
 				if (this.containedIn(e))
 					return true;
-		} catch (NullPointerException e) {
-			System.out.println(expression);
-		}
 		return false;
 	}
 
