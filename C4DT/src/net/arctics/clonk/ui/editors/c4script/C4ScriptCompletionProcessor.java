@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -665,24 +666,30 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {
 						funcCallInfo.locator.initializeProposedDeclarations(editor().script(), d, null, (ASTNode)funcCallInfo.callFunc);
+						Function commono = null;
 						if (funcCallInfo.locator.potentialEntities() != null)
 							for (IIndexEntity e : funcCallInfo.locator.potentialEntities())
 								if (entity == null)
 									entity = e;
 								else {
-									entity = null;
-									break;
+									if (commono == null)
+										commono = new Function("<Multiple candidates>", FunctionScope.PRIVATE);
+									entity = commono;
+									Function f = functionFromEntity(e);
+									if (f != null)
+										for (int i = 0; i < f.numParameters(); i++) {
+											Variable fpar = f.parameter(i);
+											Variable cpar = commono.numParameters() > i + 1
+												? commono.parameter(i)
+												: commono.addParameter(new Variable(fpar.name(), fpar.type()));
+											cpar.forceType(TypeUnification.unify(cpar.type(), fpar.type()));
+											if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name()))
+												cpar.setName(cpar.name()+"/"+fpar.name());
+										}
 								}
 					}
 				}
-				Function function = null;
-				if (entity instanceof Function)
-					function = (Function)entity;
-				else if (entity instanceof Variable) {
-					IType type = ((Variable)entity).type();
-					if (type instanceof FunctionType)
-						function = ((FunctionType)type).prototype();
-				}
+				Function function = functionFromEntity(entity);
 				if (function != null) {
 					if (function instanceof IDocumentedDeclaration)
 						((IDocumentedDeclaration)function).fetchDocumentation();
@@ -708,6 +715,18 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		} finally {
 			prevInformation = info;
 		}
+	}
+
+	protected Function functionFromEntity(IIndexEntity entity) {
+		Function function = null;
+		if (entity instanceof Function)
+			function = (Function)entity;
+		else if (entity instanceof Variable) {
+			IType type = ((Variable)entity).type();
+			if (type instanceof FunctionType)
+				function = ((FunctionType)type).prototype();
+		}
+		return function;
 	}
 
 	private char[] proposalAutoActivationCharacters, contextInformationAutoActivationCharacters;

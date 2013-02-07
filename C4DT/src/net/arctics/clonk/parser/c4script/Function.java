@@ -129,9 +129,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return parameters;
 	}
 
-	public void addParameter(Variable parameter) {
+	public Variable addParameter(Variable parameter) {
 		synchronized (parameters) {
 			parameters.add(parameter);
+			return parameter;
 		}
 	}
 
