@@ -25,9 +25,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	
 	public abstract ProblemReportingContext localTypingContext(Script script);
 	public abstract ProblemReportingContext localTypingContext(C4ScriptParser parser);
-	public void initialize(Markers markers, ClonkBuilder builder) {
-		this.markers = markers;
-	}
+	public void initialize(Markers markers, ClonkBuilder builder) { this.markers = markers; }
 	
 	public final int capabilities() {
 		Capabilities caps = getClass().getAnnotation(Capabilities.class);

@@ -28,7 +28,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.util.Sink;
@@ -237,8 +236,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 			
-			if (ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
-				reportProblems(parsers, scripts);
+			reportProblems(parsers, scripts);
 			
 			for (C4ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)

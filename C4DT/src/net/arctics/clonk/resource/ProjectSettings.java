@@ -1,6 +1,8 @@
 package net.arctics.clonk.resource;
 
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.inireader.IniField;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StringUtil;
 
@@ -112,6 +115,8 @@ public class ProjectSettings extends SettingsBase {
 	}
 	
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
+		if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+			return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
 		Collection<Class<? extends ProblemReportingStrategy>> classes = problemReportingStrategies();
 		List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
 		for (Class<? extends ProblemReportingStrategy> c : classes) {
