@@ -33,13 +33,9 @@ public class FunctionFragmentParser extends C4ScriptParser {
 		this.findDefinitionViaCall = true;
 	}
 	@Override
-	public int sectionOffset() {
-		return 0;
-	}
+	public int sectionOffset() { return 0; }
 	@Override
-	protected String functionSource(Function function) {
-		return buffer;
-	}
+	protected String functionSource(Function function) { return buffer; }
 	public boolean update() {
 		String functionSource = functionSource(function);
 		FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;

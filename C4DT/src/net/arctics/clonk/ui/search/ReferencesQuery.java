@@ -139,8 +139,12 @@ public class ReferencesQuery extends SearchQueryBase {
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
-		this.strategy = ((ProjectIndex)this.declaration.index()).nature().settings()
-			.instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
+		try {
+			this.strategy = ((ProjectIndex)this.declaration.index()).nature().settings()
+				.instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			return Status.CANCEL_STATUS;
+		}
 		Utilities.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {

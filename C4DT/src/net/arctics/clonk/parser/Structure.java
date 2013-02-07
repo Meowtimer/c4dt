@@ -13,6 +13,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -178,11 +179,16 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
 	public static Structure createStructureForFile(IResource file, boolean duringBuild) {
-		for (IStructureFactory factory : structureFactories) {
-			Structure result = factory.create(file, duringBuild);
-			if (result != null)
-				return result;
-		}
+		for (IStructureFactory factory : structureFactories)
+			try {
+				Structure result = factory.create(file, duringBuild);
+				if (result != null)
+					return result;
+			} catch (Exception e) {
+				Core.instance().getLog().log(new Status(Status.ERROR, Core.PLUGIN_ID,
+					String.format("Some Structure factory caused an exception while operating on '%s'", file.getProjectRelativePath().toOSString()), e)
+				);
+			}
 		return null;
 	}
 	
