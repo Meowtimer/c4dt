@@ -732,7 +732,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return proposalAutoActivationCharacters;
+		return editor().functionAtCursor() != null ? proposalAutoActivationCharacters : new char[0];
 	}
 
 	@Override
