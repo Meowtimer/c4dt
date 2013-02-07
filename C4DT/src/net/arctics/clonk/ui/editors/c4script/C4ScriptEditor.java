@@ -156,7 +156,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private TimerTask reparseTask, functionReparseTask;
 		private List<ProblemReportingStrategy> problemReportingStrategies;
 		private ProblemReportingStrategy typingStrategy;
-		
+
 		@Override
 		protected void added() {
 			super.added();
@@ -168,7 +168,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						break;
 					}
 			} catch (Exception e) {
-				problemReportingStrategies = Arrays.asList(); 
+				problemReportingStrategies = Arrays.asList();
 			}
 		}
 
@@ -294,9 +294,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							}
 						});
 						markers.applyProjectSettings(structure.index());
-						C4ScriptParser parser = FunctionFragmentParser.update(document, structure, f, markers);
-						for (ProblemReportingStrategy strategy : problemReportingStrategies)
-							strategy.localTypingContext(parser).reportProblemsOfFunction(f);
+						reparseFunction(f, markers);
 						for (Variable localVar : f.localVars()) {
 							SourceLocation l = localVar;
 							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
@@ -305,6 +303,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					}
 				}
 			}, 1000);
+		}
+
+		public void reparseFunction(final Function function, Markers markers) {
+			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
+			for (ProblemReportingStrategy strategy : problemReportingStrategies)
+				strategy.localTypingContext(parser).reportProblemsOfFunction(function);
 		}
 
 		@Override
@@ -561,7 +565,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
-			public void run() { showContentAssistance(); }
+			public void run() {
+				Function f = functionAtCursor();
+				if (f != null)
+					textChangeListener().reparseFunction(f, null);
+				showContentAssistance();
+			}
 		});
 		super.completionProposalApplied(proposal);
 	}
