@@ -284,6 +284,9 @@ public class IniSection extends Declaration implements
 							} else if (val instanceof Long && f.getType() == java.lang.Boolean.TYPE) {
 								f.set(object, (Long)val != 0);
 								continue;
+							} else if (val instanceof java.lang.Boolean && f.getType() == Integer.TYPE) {
+								f.set(object, ((java.lang.Boolean)val) ? 1 : 0);
+								continue;
 							}
 							// unboxing failed
 							try {
