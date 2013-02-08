@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 public class MetaDefinition implements IType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Definition definition;
-	public IType definition() { return definition; }
+	public Definition definition() { return definition; }
 	public MetaDefinition(Definition definition) {
 		super();
 		this.definition = definition;

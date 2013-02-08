@@ -18,6 +18,7 @@ import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -1356,6 +1357,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType lookIn = type != null ? type : processor.script();
 					if (lookIn != null) for (IType ty : lookIn) {
 						Script script = as(ty, Script.class);
+						if (script == null && ty instanceof MetaDefinition)
+							script = ((MetaDefinition)ty).definition();
 						if (script == null)
 							continue;
 						FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
