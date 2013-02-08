@@ -289,7 +289,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			ASTNode saved = reportingNode;
 			reportingNode = expression;
-			try {
+			{
 				ProblemReporter<? super T> reporter = reporter(expression);
 				ControlFlow old = controlFlow;
 				if (recursive && !reporter.skipReportingProblemsForSubElements())
@@ -300,9 +300,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				reporter.reportProblems(expression, this);
 				if (controlFlow == ControlFlow.Continue)
 					controlFlow = expression.controlFlow();
-			} finally {
-				reportingNode = saved;
 			}
+			reportingNode = saved;
 			return expression;
 		}
 
@@ -490,7 +489,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				@Override
 				public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
-					if (node == null || !node.containedIn(script()))
+					if (node == null || script() != visitee)
 						return;
 					else
 						oldMarkers.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
@@ -503,11 +502,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visit(include, true);
 				visitees = Arrays.asList(script());
 				storeTypings(typeEnvironment);
-			}
-			for (ITypeInfo ti : typeEnvironment) {
-				Declaration d = ti.declaration(this);
-				if (d != null && d.containedIn(script()))
-					ti.apply(false, this);
+				for (ITypeInfo ti : typeEnvironment) {
+					Declaration d = ti.declaration(this);
+					if (d != null && d.containedIn(script()))
+						ti.apply(false, this);
+				}
 			}
 			endTypeEnvironment(false, false);
 			visiting = false;
@@ -765,9 +764,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	class AccessDeclarationProblemReporter<T extends AccessDeclaration> extends ProblemReporter<T> {
 		public AccessDeclarationProblemReporter(Class<T> cls) { super(cls); }
-		protected Declaration obtainDeclaration(T node, ScriptProcessor processor) {
-			return null;
-		}
+		protected Declaration obtainDeclaration(T node, ScriptProcessor processor) { return null; }
 		@Override
 		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {
 			super.reportProblems(node, processor);
@@ -905,7 +902,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				protected Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
-					((AccessDeclarationProblemReporter<? super AccessVar>)supr).obtainDeclaration(node, processor);
 					ASTNode p = node.predecessorInSequence();
 					if (p == null && node.declarationName().equals(Variable.THIS.name()))
 						return Variable.THIS;
@@ -1401,7 +1397,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
-					((AccessDeclarationProblemReporter<? super CallDeclaration>)supr).obtainDeclaration(node, processor);
 					String declarationName = node.declarationName();
 					if (declarationName.equals(Keywords.Return))
 						return null;
