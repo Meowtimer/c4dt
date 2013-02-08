@@ -89,7 +89,7 @@ public class TypeUtil {
 			public IType typeOf(ASTNode node) {
 				AccessDeclaration ad = as(node, AccessDeclaration.class);
 				return ad != null && ad.declaration() instanceof ITypeable
-					? ((ITypeable)ad).type() : PrimitiveType.UNKNOWN;
+					? ((ITypeable)ad.declaration()).type() : PrimitiveType.UNKNOWN;
 			}
 
 			@Override
