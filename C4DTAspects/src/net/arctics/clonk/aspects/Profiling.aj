@@ -21,9 +21,17 @@ public aspect Profiling {
 	private static pointcut profilingMethods(): within(Profiling);
 	private static pointcut allMethods(): !profiledMethods() && !profilingMethods() && execution(* *(..));
 	
-	private static class ProfilingFrame {
+	private static final class Timer {
+		public final Signature signature;
+		public long time;
+		public Timer parent;
+		public Timer(Signature signature) { this.signature = signature; }
+	}
+	
+	private static final class ProfilingFrame {
 		public final Thread thread;
 		public final Map<Signature, Long> times = new HashMap<Signature, Long>();
+		public Timer timer;
 		public ProfilingFrame() {
 			thread = Thread.currentThread();
 		}
@@ -84,17 +92,26 @@ public aspect Profiling {
 		if (frames.empty())
 			return proceed();
 		else {
-			long start = System.currentTimeMillis();
+			final ProfilingFrame frame = frames.peek();
+			final Timer timer = new Timer(thisJoinPoint.getSignature());
+			timer.parent = frame.timer;
+			frame.timer = timer;
+			final long start = System.currentTimeMillis();
 			Object r = proceed();
-			long took = System.currentTimeMillis() - start;
-			Map<Signature, Long> times = frames.peek().times;
+			final long took = System.currentTimeMillis() - start;
+			for (Timer p = timer.parent; p != null; p = p.parent)
+				p.time -= took;
+			timer.time += took;
+			frame.timer = timer.parent;
+			final Map<Signature, Long> times = frame.times;
 			synchronized (times) {
-				Long s = times.get(thisJoinPoint.getSignature());
+				final Signature sig = thisJoinPoint.getSignature();
+				Long s = times.get(sig);
 				if (s == null)
 					s = took;
 				else
 					s = s + took;
-				times.put(thisJoinPoint.getSignature(), s);
+				times.put(sig, s);
 			}
 			return r;
 		}
