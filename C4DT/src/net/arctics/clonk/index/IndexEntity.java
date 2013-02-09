@@ -160,6 +160,6 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	}
 
 	@Override
-	public Object saveReplacement() { return index.saveReplacementForEntity(this); }
+	public Object saveReplacement(Index context) { return context.saveReplacementForEntity(this); }
 
 }

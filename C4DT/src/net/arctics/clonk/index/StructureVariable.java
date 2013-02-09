@@ -38,7 +38,7 @@ public class StructureVariable extends Variable implements IReplacedWhenSaved {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public StructureVariable(String name, IType type) { super(name, type); }
 	@Override
-	public Object saveReplacement() {
+	public Object saveReplacement(Index context) {
 		return new Ticket(name(), ((IHasRelatedResource)parent()).resource().getProjectRelativePath().toOSString());
 	}
 }

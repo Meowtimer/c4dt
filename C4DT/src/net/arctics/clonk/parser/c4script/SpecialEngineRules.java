@@ -172,7 +172,7 @@ public abstract class SpecialEngineRules {
 		}
 
 		@Override
-		public Object saveReplacement() { return new Ticket(this); }
+		public Object saveReplacement(Index context) { return new Ticket(this); }
 
 		public String name;
 

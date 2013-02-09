@@ -26,5 +26,5 @@ public class EngineVariable extends Variable implements IReplacedWhenSaved {
 	public EngineVariable() { super(); }
 	public EngineVariable(String name, String scope) { super(name, scope); }
 	@Override
-	public Object saveReplacement() { return new Ticket(name()); }
+	public Object saveReplacement(Index context) { return new Ticket(name()); }
 }

@@ -30,5 +30,5 @@ public class EngineFunction extends Function implements IReplacedWhenSaved {
 	@Override
 	public boolean staticallyTyped() { return true; }
 	@Override
-	public Object saveReplacement() { return new Ticket(name()); }
+	public Object saveReplacement(Index context) { return new Ticket(name()); }
 }

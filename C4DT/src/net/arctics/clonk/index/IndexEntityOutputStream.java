@@ -22,7 +22,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 	protected Object replaceObject(Object obj) throws IOException {
 		try {
 			if (obj instanceof IReplacedWhenSaved)
-				return ((IReplacedWhenSaved)obj).saveReplacement();
+				return ((IReplacedWhenSaved)obj).saveReplacement(index);
 			if (obj instanceof Declaration && !(obj instanceof Index))
 				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
 			if (entity != null && obj instanceof ASTNode) {

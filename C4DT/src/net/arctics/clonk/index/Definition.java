@@ -215,7 +215,7 @@ public class Definition extends Script implements IProplistDeclaration {
 			this.definition = definition;
 		}
 		@Override
-		public Object resolve(Index index) { return definition.proxyVar(); }
+		public Object resolve(Index index) { return definition != null ? definition.proxyVar() : null; }
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		@Override
 		public Script script() { return Definition.this.script(); }
 		@Override
-		public Object saveReplacement() { return new ProxyVarSaveReplacement(definition()); }
+		public Object saveReplacement(Index context) { return new ProxyVarSaveReplacement(definition()); }
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
