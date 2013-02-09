@@ -429,7 +429,6 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		setCurrentDeclaration(null);
 		for (Directive directive : script.directives())
 			directive.validate(this);
-		script.notDirty();
 		distillAdditionalInformation();
 		if (markers != null)
 			markers.deploy();
@@ -440,10 +439,8 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	 */
 	public void distillAdditionalInformation() {
 		if (script instanceof Definition) {
-
 			final Definition obj = (Definition) script;
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
-
 			// local Name = "Exploder";
 			Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
@@ -545,7 +542,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 	protected Declaration parseDeclaration() throws ParsingException {
 		final int startOfDeclaration = this.offset;
 		Declaration result = null;
-		
+
 		if (peek() == '#') {
 			read();
 			// directive
@@ -567,7 +564,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 				result = directive;
 			}
 		}
-			
+
 		if (result == null) {
 			FunctionHeader functionHeader = FunctionHeader.parse(this, true);
 			if (functionHeader != null) {
@@ -586,7 +583,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 					result = new Variables(v);
 			}
 		}
-		
+
 		if (result == null)
 			this.seek(startOfDeclaration);
 		return result;
@@ -1130,7 +1127,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 					int readByte = read();
 					if (
 						('0' <= readByte && readByte <= '9') ||
-						('A' <= readByte && readByte <= 'F') || 
+						('A' <= readByte && readByte <= 'F') ||
 						('a' <= readByte && readByte <= 'f')
 					) {
 						count++;
@@ -1356,10 +1353,10 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 		this.seek(offset);
 		return false;
 	}
-	
+
 	private transient ASTNode[] _elementsReusable = new ASTNode[4];
 	private transient boolean _elementsInUse = false;
-	
+
 	private ASTNode parseSequence(boolean reportErrors) throws ParsingException {
 		ASTNode[] _elements;
 		boolean useReusable = !_elementsInUse;
@@ -1368,7 +1365,7 @@ public class C4ScriptParser extends CStyleScanner implements IEvaluationContext,
 			_elementsInUse = true;
 		} else
 			_elements = new ASTNode[4];
-		
+
 		int sequenceParseStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;

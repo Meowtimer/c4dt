@@ -64,10 +64,10 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  *
  */
 public class ClonkTextEditor extends TextEditor {
-	
+
 	protected ClonkContentOutlinePage outlinePage;
 	private ShowInAdapter showInAdapter;
-	
+
 	/**
 	 * Select and reveal some location in the text file.
 	 * @param location
@@ -75,7 +75,7 @@ public class ClonkTextEditor extends TextEditor {
 	public void selectAndReveal(IRegion location) {
 		this.selectAndReveal(location.getOffset(), location.getLength());
 	}
-	
+
 	public void selectAndRevealLine(int line) {
 		IDocument d = getSourceViewer().getDocument();
 		try {
@@ -85,7 +85,7 @@ public class ClonkTextEditor extends TextEditor {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Clear the outline.
 	 */
@@ -93,7 +93,7 @@ public class ClonkTextEditor extends TextEditor {
 		if (outlinePage != null)
 			outlinePage.clear();
 	}
-	
+
 	/**
 	 * Refresh the outline so the new contents of the {@link #topLevelDeclaration()} will be shown.
 	 */
@@ -103,7 +103,7 @@ public class ClonkTextEditor extends TextEditor {
 		if (outlinePage != null) // don't start lazy loading of outlinePage
 			outlinePage.refresh();
 	}
-	
+
 	/**
 	 * Return the outline page of this text editor.
 	 * @return
@@ -115,7 +115,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return outlinePage;
 	}
-	
+
 	/**
 	 * Handle adaptering for {@link IContentOutlinePage} and {@link IShowInSource}
 	 */
@@ -131,7 +131,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return super.getAdapter(adapter);
 	}
-	
+
 	/**
 	 * Utility method to open some {@link Declaration} in some variant of ClonkTextEditor.
 	 * @param target The {@link Declaration} to open
@@ -174,7 +174,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * See {@link #openDeclaration(Declaration, boolean)}. The editor will always be revealed.
 	 * @param target The {@link Declaration} to open.
@@ -210,7 +210,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return null;
 	}
-	
+
 	protected void refreshStructure() {
 
 	}
@@ -229,8 +229,6 @@ public class ClonkTextEditor extends TextEditor {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure) {
-				if (structure.isDirty())
-					clonkTextEditor.refreshStructure();
 				Declaration old = target;
 				target = target.latestVersion();
 				if (target == null)
@@ -243,7 +241,7 @@ public class ClonkTextEditor extends TextEditor {
 			ed.selectAndReveal(target.start(), target.getLength());
 		}
 	}
-	
+
 	/**
 	 * Return the declaration that represents the file being edited
 	 * @return the declaration
@@ -251,9 +249,9 @@ public class ClonkTextEditor extends TextEditor {
 	public Declaration topLevelDeclaration() {
 		return null;
 	}
-	
+
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
-	
+
 	@SuppressWarnings("unchecked")
 	protected void addActions(ResourceBundle messagesBundle, Class<? extends ClonkTextEditorAction>... classes) {
 		for (Class<? extends ClonkTextEditorAction> c : classes) {
@@ -270,7 +268,7 @@ public class ClonkTextEditor extends TextEditor {
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void createActions() {
@@ -282,7 +280,7 @@ public class ClonkTextEditor extends TextEditor {
 			setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 		}
 	}
-	
+
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
@@ -291,11 +289,11 @@ public class ClonkTextEditor extends TextEditor {
 			addAction(menu, ClonkTextEditorAction.idString(OpenDeclarationAction.class));
 		}
 	}
-	
+
 	/**
 	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
-	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link ClonkTextEditor} class returning adequate hyperlinks. 
-	 * @param offset The offset 
+	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link ClonkTextEditor} class returning adequate hyperlinks.
+	 * @param offset The offset
 	 * @return
 	 */
 	public IHyperlink hyperlinkAtOffset(int offset) {
@@ -310,7 +308,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Invoke {@link #hyperlinkAtOffset(int)} using the current selection offset.
 	 * @return The hyperlink returned by {@link #hyperlinkAtOffset(int)}
@@ -320,7 +318,7 @@ public class ClonkTextEditor extends TextEditor {
 		IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
 		return hyperlink;
 	}
-	
+
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
@@ -335,17 +333,17 @@ public class ClonkTextEditor extends TextEditor {
 		super.initializeEditor();
 		setPreferenceStore(EditorsUI.getPreferenceStore());
 	}
-	
+
 	public ContentAssistant contentAssistant() {
 		return (ContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
 	}
-	
+
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
-	
+
 	public void refreshSyntaxColoring() {
 		((ClonkSourceViewerConfiguration<?>) getSourceViewerConfiguration()).refreshSyntaxColoring();
 	}
-	
+
 	/**
 	 * Given a {@link ISourceViewer}, look for the corresponding {@link ClonkTextEditor}.
 	 * @param <T> Return type specified by the passed cls.
@@ -365,7 +363,7 @@ public class ClonkTextEditor extends TextEditor {
 				}
 		return null;
 	}
-	
+
 	/**
 	 * Return an existing editor for the specified {@link IResource}.
 	 * @param <T> Return type specified by the passed cls.
@@ -385,7 +383,7 @@ public class ClonkTextEditor extends TextEditor {
 				}
 		return null;
 	}
-	
+
 	/**
 	 * Relax protectedness of {@link #getSourceViewer()}
 	 * @return
@@ -400,7 +398,7 @@ public class ClonkTextEditor extends TextEditor {
 		if (textChangeListener() != null && topLevelDeclaration() instanceof Structure)
 			textChangeListener().updateStructure((Structure) topLevelDeclaration());
 	}
-	
+
 	/**
 	 * Return the {@link TextChangeListenerBase} object being shared for all editors having opened the same file.
 	 * @return
@@ -408,13 +406,13 @@ public class ClonkTextEditor extends TextEditor {
 	protected TextChangeListenerBase<?, ?> textChangeListener() {
 		return null;
 	}
-	
+
 	@Override
 	protected void initializeKeyBindingScopes() {
 		super.initializeKeyBindingScopes();
 		setKeyBindingScopes(new String[] { Core.CONTEXT_ID });
 	}
-	
+
 	public void reconfigureSourceViewer() {
 		ISourceViewer viewer= getSourceViewer();
 
@@ -424,12 +422,12 @@ public class ClonkTextEditor extends TextEditor {
 		((ISourceViewerExtension2)viewer).unconfigure();
 		viewer.configure(getSourceViewerConfiguration());
 	}
-	
+
 	// projection support
 	protected ProjectionSupport projectionSupport;
 	protected ProjectionAnnotationModel projectionAnnotationModel;
 	protected Annotation[] oldAnnotations;
-	
+
 	protected void initializeProjectionSupport() {
 		ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
 		projectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(), getSharedColors());
@@ -437,22 +435,22 @@ public class ClonkTextEditor extends TextEditor {
 		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
 		projectionAnnotationModel = projectionViewer.getProjectionAnnotationModel();
 	}
-	
+
 	@Override
 	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
 		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;
 	}
-	
+
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 		initializeProjectionSupport();
 	}
-	
+
 	public ProblemReportingContext declarationObtainmentContext() {
 		return null;
 	}
-	
+
 }

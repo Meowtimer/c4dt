@@ -28,12 +28,12 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected StructureType structure;
 	protected IDocument document;
 	protected Map<IDocument, TextChangeListenerBase<EditorType, StructureType>> listeners;
-	
+
 	/**
 	 * Called after the text change listener was added to a {@link IDocument} -> {@link TextChangeListenerBase} map.
 	 */
 	protected void added() {}
-	
+
 	/**
 	 * Add a text change listener of some supplied listener class to a {@link IDocument} -> {@link TextChangeListenerBase} map.
 	 * If there is already a listener in the map matching the document, this listener will be returned instead.
@@ -43,7 +43,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @param listeners The listeners map
 	 * @param listenerClass The listener class
 	 * @param document The document
-	 * @param structure The {@link Structure} corresponding to the document 
+	 * @param structure The {@link Structure} corresponding to the document
 	 * @param client One editor editing the document.
 	 * @return The listener that has been either created and added to the map or was already found in the map.
 	 * @throws InstantiationException
@@ -69,19 +69,19 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 		r.clients.add(client);
 		return r;
 	}
-	
+
 	/*+
 	 * Cancel a pending timed reparsing of the document.
 	 */
 	public void cancelReparsingTimer() {}
-	
+
 	/**
-	 * Perform some cleanup after all corresponding editors have been closed. 
+	 * Perform some cleanup after all corresponding editors have been closed.
 	 */
 	public void cleanupAfterRemoval() {}
-	
+
 	/**
-	 * Remove an editor 
+	 * Remove an editor
 	 * @param client
 	 */
 	public void removeClient(EditorType client) {
@@ -96,10 +96,9 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 
 	@Override
 	public void documentAboutToBeChanged(DocumentEvent event) {}
-	
+
 	@Override
 	public void documentChanged(DocumentEvent event) {
-		structure.markAsDirty();
 		adjustDeclarationLocations(event);
 	}
 
@@ -158,7 +157,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 				}
 		}
 	}
-	
+
 	/**
 	 * Cancel a {@link TimerTask} having been fired by this listener. May be null in which case nothing happens
 	 * @param whichTask The task to cancel
@@ -173,13 +172,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			}
 		return null;
 	}
-	
+
 	/**
 	 * The structure this listener corresponds to.
 	 * @return The {@link Structure}
 	 */
 	public StructureType structure() { return structure; }
-	
+
 	/**
 	 * To be called when the old {@link Structure} has become stale and a new one has been created.
 	 * @param structure The new {@link Structure} that represents the same file as the old one.

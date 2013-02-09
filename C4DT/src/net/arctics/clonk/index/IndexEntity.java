@@ -33,30 +33,8 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * Flag indicating whether the entity was loaded already loaded from disk or not.
 	 */
 	protected transient boolean loaded = true;
-	protected transient boolean dirty = false;
 	protected transient Index index;
 	protected long entityId;
-
-	/**
-	 * Mark this entity as being out of sync with the file it was read from.
-	 * @param flag Dirty or not dirty.
-	 */
-	@Override
-	public void markAsDirty() {
-		dirty = true;
-	}
-
-	/**
-	 * Mark this entity as not dirty (@see {@link #markAsDirty()})
-	 */
-	public void notDirty() {
-		dirty = false;
-	}
-
-	@Override
-	public boolean isDirty() {
-		return dirty;
-	}
 
 	public IndexEntity(Index index) {
 		this.index = index;

@@ -22,7 +22,7 @@ import org.eclipse.ui.part.FileEditorInput;
  * Provides support for being pinned to files in the project tree using {@link IResource} session properties.
  */
 public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider {
-	
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	/**
@@ -34,7 +34,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
-	
+
 	/**
 	 * Finds a declaration without requiring a specific class
 	 * @param declarationName the name of the declaration
@@ -43,9 +43,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public Declaration findDeclaration(String declarationName) {
 		return findDeclaration(declarationName, Declaration.class);
 	}
-	
+
 	public abstract Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass);
-	
+
 	/**
 	 * Returns an editor input for this structure
 	 * @return the editor input
@@ -58,7 +58,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 			return new ScriptWithStorageEditorInput((Script) this);
 		return null;
 	}
-	
+
 	/**
 	 * Returns whether this structure is editable
 	 * @return
@@ -66,7 +66,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public boolean isEditable() {
 		return true;
 	}
-	
+
 	/**
 	 * Pins this structure to a file (should be the file the structure was read from)
 	 * @param resource the file
@@ -79,7 +79,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Returns the structure pinned to a file creating it if force is true and the structure does not already exist
 	 * @param file the file to return the pinned structure of
@@ -105,7 +105,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 			return null;
 		}
 	}
-	
+
 	public void setFile(IFile file) {
 		// i'll do that
 	}
@@ -114,11 +114,11 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild, Class<T> cls) {
 		return (T)pinned(file, force, duringBuild);
 	}
-	
+
 	/**
 	 * Remove the structure pinned to the given file
 	 * @param file the file to remove the reference from
-	 * @return the previously pinned structure or null if there was none 
+	 * @return the previously pinned structure or null if there was none
 	 * @throws CoreException
 	 */
 	public static Structure unPinFrom(IFile file) {
@@ -131,22 +131,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 			}
 		return pinned;
 	}
-	
-	/**
-	 * Return true if this {@link Structure} is out of sync with the file it was read from.
-	 * @return Dirtyness flag.
-	 */
-	public boolean isDirty() {
-		return false;
-	}
-	
-	/**
-	 * Mark the Structure as being out of sync with the file it's defined in.
-	 * No guarantees given as to whether the return value of {@link #dirty()} and calling this method will be consistent (a.k.a: Those methods are declared empty in Structure and only {@link Script} overrides them).m
-	 * @param dirty Dirty flag
-	 */
-	public void markAsDirty() {}
-	
+
 	/**
 	 * factory for creating structures
 	 */
@@ -159,12 +144,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		 */
 		public Structure create(IResource resource, boolean duringBuild);
 	}
-	
+
 	/**
 	 * Registered structure factories that are queried if a structure for a file is to be created
 	 */
 	private static Collection<IStructureFactory> structureFactories = new LinkedList<IStructureFactory>();
-	
+
 	/**
 	 * Registers a new structure factory
 	 * @param factory the factory
@@ -172,7 +157,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public static void registerStructureFactory(IStructureFactory factory) {
 		structureFactories.add(factory);
 	}
-	
+
 	/**
 	 * Creates a structure for a file. This is achieved by querying registered structure factories
 	 * @param file file
@@ -191,7 +176,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 			}
 		return null;
 	}
-	
+
 	/**
 	 * Commits data of this structure to the script. Primarily for {@link Definition}s which are defined by various files in addition to the script file.
 	 * @param script the script to commit to
@@ -200,7 +185,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public void commitTo(Script script, ClonkBuilder builder) {
 		// placeholder
 	}
-	
+
 	/**
 	 * Returns whether changing a structure (by editing the corresponding file) causes a reparsing of the associated script if there is one.
 	 * @return Whether a script reparse is required or not.
@@ -208,18 +193,18 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public boolean requiresScriptReparse() {
 		return false;
 	}
-	
+
 	/**
 	 * Called by the {@link ClonkBuilder} in phase 2 to give Structure files a chance to complain about things like missing functions (which ought to have been created as of now since the {@link ClonkBuilder} is in phase 2)
 	 */
 	public void validate() {}
-	
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T latestVersionOf(T from) {
 		return (T) findLocalDeclaration(from.name(), from.getClass());
 	}
-	
+
 	/**
 	 * Find a declaration by its path as returned by {@link #pathRelativeToIndexEntity()}.
 	 * @param path The path to find the {@link Declaration} of
@@ -238,5 +223,5 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		}
 		return d;
 	}
-	
+
 }
