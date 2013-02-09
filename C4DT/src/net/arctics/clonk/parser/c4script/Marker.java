@@ -15,12 +15,12 @@ public class Marker {
 	public int start, end;
 	public int severity;
 	public Object[] args;
-	
+
 	private final Declaration cf;
 	private final ASTNode reporter;
 	private final IFile scriptFile;
 	private final Declaration container;
-	
+
 	public Marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int start, int end, int severity, Object[] args) {
 		super();
 		this.code = code;
@@ -28,7 +28,7 @@ public class Marker {
 		this.end = end;
 		this.severity = severity;
 		this.args = args;
-		
+
 		this.cf = node != null ? node.parentOfType(Declaration.class) : null;
 		this.reporter = node;
 		this.scriptFile = positionProvider.file();
@@ -36,12 +36,11 @@ public class Marker {
 	}
 	public IMarker deploy() {
 		IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
-		if (cf != null)
+		if (cf != null && result != null)
 			ParserErrorCode.setDeclarationTag(result, cf.makeNameUniqueToParent());
 		IRegion exprLocation = reporter;
 		if (exprLocation != null)
 			ParserErrorCode.setExpressionLocation(result, exprLocation);
-		//result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
 		return result;
 	}
 	@Override
