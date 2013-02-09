@@ -126,6 +126,14 @@ public class ClonkHyperlink implements IHyperlink {
 
 	public static void openDocumentationForFunction(String functionName, Engine engine) throws PartInitException, MalformedURLException {
 		String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
+		URL url = new URL(String.format(
+			docURLTemplate,
+			functionName, ClonkPreferences.languagePref().toLowerCase()
+		));
+		openURL(url);
+	}
+
+	public static void openURL(URL url) throws PartInitException {
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
 		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable())
@@ -136,10 +144,7 @@ public class ClonkHyperlink implements IHyperlink {
 				internalBrowser = new WeakReference<IWebBrowser>(browser = support.createBrowser(null));
 		}
 		if (browser != null)
-			browser.openURL(new URL(String.format(
-				docURLTemplate,
-				functionName, ClonkPreferences.languagePref().toLowerCase()
-			)));
+			browser.openURL(url);
 	}
 
 	public IRegion region() {

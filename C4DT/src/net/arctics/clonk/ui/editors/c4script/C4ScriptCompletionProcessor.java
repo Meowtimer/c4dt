@@ -729,12 +729,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return function;
 	}
 
-	private char[] proposalAutoActivationCharacters, contextInformationAutoActivationCharacters;
+	private final char[][] proposalAutoActivationCharacters = new char[2][];
+	private char[] contextInformationAutoActivationCharacters;
 
 	private void configureActivation() {
-		proposalAutoActivationCharacters = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
+		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
 			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
 			: new char[0];
+		proposalAutoActivationCharacters[0] = new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};
 	}
 
@@ -751,7 +753,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return editor().functionAtCursor() != null ? proposalAutoActivationCharacters : new char[0];
+		return proposalAutoActivationCharacters[editor().functionAtCursor() != null ? 1 : 0];
 	}
 
 	@Override

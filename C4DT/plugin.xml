@@ -398,6 +398,12 @@
 			name="%Meta_About" />
 		
 		<command categoryId="net.arctics.clonk.commands"
+			description="%Meta_InfoSiteDesc"
+			id="net.arctics.clonk.ui.InfoSite"
+			defaultHandler="net.arctics.clonk.ui.actions.InfoSiteHandler"
+			name="%Meta_InfoSite" />
+		
+		<command categoryId="net.arctics.clonk.commands"
 			description="%Meta_CreateCustomizationProject"
 			id="net.arctics.clonk.ui.CreateCustomizationProject"
 			defaultHandler="net.arctics.clonk.ui.actions.CreateCustomizationProjectHandler"
@@ -535,6 +541,8 @@
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
 				<command commandId="net.arctics.clonk.ui.CreateCustomizationProject" label="%Meta_CreateCustomizationProject" />
+				<command commandId="net.arctics.clonk.ui.InfoSite" label="%Meta_InfoSite" />
+				<separator name="BeforeAbout" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.About" label="%Meta_About" />
 			</menu>
 		</menuContribution>
