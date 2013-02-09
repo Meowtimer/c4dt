@@ -84,7 +84,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private boolean isSystemGroup(IContainer container) {
-		return index().engine().groupTypeForFileName(container.getName()) == GroupType.ResourceGroup;
+		return container.getName().equals(index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$
 	}
 
 	private static String buildTask(String text, IProject project) {
