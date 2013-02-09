@@ -287,6 +287,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								int markerStart, int markerEnd, int flags,
 								int severity, Object... args
 							) {
+								if (node == null || !node.containedIn(f))
+									return Decision.DropCharges;
 								if (structure.scriptStorage() instanceof IFile)
 									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
