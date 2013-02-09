@@ -412,7 +412,7 @@ public abstract class SpecialEngineRules {
 	/**
 	 * CreateObject and similar functions that will return an object of the specified type
 	 */
-	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction"})
+	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction", "PlaceAnimal"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
