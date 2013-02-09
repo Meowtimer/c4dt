@@ -54,7 +54,7 @@ public class TypeUnification {
 			case UNKNOWN:
 				return b;
 			case ANY:
-				return b;
+				return TypeChoice.make(a, b);
 			case REFERENCE:
 				return b;
 			default:

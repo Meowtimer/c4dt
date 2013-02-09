@@ -284,7 +284,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @throws ParsingException
 		 * @return The expression parameter is returned to allow for expression chaining.
 		 */
-		public <T extends ASTNode> T reportProblemsOf(T expression, boolean recursive) throws ParsingException {
+		public final <T extends ASTNode> T reportProblemsOf(T expression, boolean recursive) throws ParsingException {
 			if (expression == null)
 				return null;
 			ASTNode saved = reportingNode;
@@ -1161,11 +1161,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
 						TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
-					{
-						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type);
-						TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type);
 						processor.markers().warning(processor.parser, ParserErrorCode.NotAnArrayOrProplist, node, node, 0);
-					}
 				}
 				@Override
 				public void reportProblems(ArraySliceExpression node, ScriptProcessor processor) throws ParsingException {
