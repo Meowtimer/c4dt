@@ -72,7 +72,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private final Markers markers = new Markers();
 	private int buildKind;
 	private Index index;
-	
+
 	public void addGatheredStructure(Structure structure) { gatheredStructures.add(structure); }
 	public Markers markers() { return markers; }
 	public Index index() { return index; }
@@ -84,11 +84,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private boolean isSystemGroup(IContainer container) {
-		return index().engine().groupName("System", GroupType.ResourceGroup).equals(container.getName()); //$NON-NLS-1$
+		return index().engine().groupTypeForFileName(container.getName()) == GroupType.ResourceGroup;
 	}
 
 	private static String buildTask(String text, IProject project) {
-		return String.format(text, project.getName()); 
+		return String.format(text, project.getName());
 	}
 
 	private String buildTask(String text) {
@@ -126,12 +126,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				return new IProject[] { proj };
 			index.built(true);
 		}
-		
+
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
-		
+
 		//clearUIOfReferencesBeforeBuild();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
@@ -195,14 +195,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 		}
 	}
-	
+
 	private Script[] performBuildPhases(
 		List<IResource> listOfResourcesToBeRefreshed,
 		final IProject proj,
 		IResourceDelta delta
 	) throws CoreException {
 
-		nature = ClonkProjectNature.get(proj); 
+		nature = ClonkProjectNature.get(proj);
 		Index index = nature.index();
 
 		// visit files to open C4Groups if files are contained in c4group file system
@@ -232,18 +232,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
-			
+
 			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
-			
+
 			reportProblems(parsers, scripts);
-			
+
 			for (C4ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)
 					parser.script().setTypeAnnotations(parser.typeAnnotations());
-			
+
 			new SaveScriptsJob(proj, scripts).schedule();
-			
+
 			final ProjectSettings settings = nature.settings();
 			if (buildKind == FULL_BUILD)
 				if (settings.migrationTyping != null) switch (settings.migrationTyping) {
@@ -280,7 +280,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
 		}
 	}
-	
+
 	private void migrateToStaticTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
 		new Job("Static Typing Migration") {
 			@Override
@@ -328,7 +328,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 		}.schedule();
 	}
-	
+
 	private void migrateToDynamicTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
 		new Job("Dynamic Typing Migration") {
 			@Override
@@ -422,7 +422,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 		Display.getDefault().asyncExec(new UIRefresher(scripts));
 	}
-	
+
 	private void clearState() {
 		gatheredStructures.clear();
 		parserMap.clear();

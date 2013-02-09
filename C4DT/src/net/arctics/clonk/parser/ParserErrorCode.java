@@ -94,27 +94,27 @@ public enum ParserErrorCode {
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
 	public static final String MARKER_DECLARATIONTAG = "c4ScriptErrorDeclarationTag"; //$NON-NLS-1$
-	
+
 	public static String[] MARKER_ARGS;
-	
+
 	static {
 		MARKER_ARGS = new String[3];
 		for (int i = 0; i < MARKER_ARGS.length; i++)
 			MARKER_ARGS[i] = String.format("c4ScriptErrorArg%d", i); //$NON-NLS-1$
 	}
-	
+
 	private String message;
 	private String[] formatArgumentDescriptions;
-	
+
 	ParserErrorCode(String message) {
 		this.message = message;
 	}
-	
+
 	ParserErrorCode(String message, String... formatArgumentDescriptions) {
 		this(message);
 		this.formatArgumentDescriptions = formatArgumentDescriptions;
 	}
-	
+
 	public String makeErrorString(Object... format) {
 		return String.format(message, format);
 	}
@@ -122,11 +122,11 @@ public enum ParserErrorCode {
 	public String message() {
 		return message;
 	}
-	
+
 	public String[] formatArgumentDescriptions() {
 		return formatArgumentDescriptions;
 	}
-	
+
 	public static ParserErrorCode errorCode(IMarker marker) {
 		try {
 			return values()[marker.getAttribute(MARKER_ERRORCODE, -1)];
@@ -134,11 +134,11 @@ public enum ParserErrorCode {
 			return null;
 		}
 	}
-	
+
 	public static IRegion expressionLocation(IMarker marker) {
 		return new SourceLocation(marker.getAttribute(MARKER_EXPRESSIONSTART, -1), marker.getAttribute(MARKER_EXPRESSIONEND, -1));
 	}
-	
+
 	public static void setExpressionLocation(IMarker marker, IRegion location) {
 		try {
 			marker.setAttribute(MARKER_EXPRESSIONSTART, location != null ? location.getOffset() : -1);
@@ -147,11 +147,11 @@ public enum ParserErrorCode {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static String arg(IMarker marker, int index) {
 		return marker.getAttribute(String.format(MARKER_ARGS[index], index), ""); //$NON-NLS-1$
 	}
-	
+
 	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
 		if (file == null)
 			return null;
@@ -167,9 +167,11 @@ public enum ParserErrorCode {
 		}
 		return null;
 	}
-	
+
 	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, makeErrorString(args));
+		if (marker == null)
+			return null;
 		if (expressionRegion instanceof ASTNode)
 			try {
 				marker.setAttribute(IMarker.LOCATION, expressionRegion.toString());
@@ -194,7 +196,7 @@ public enum ParserErrorCode {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static String declarationTag(IMarker marker) {
 		return marker.getAttribute(MARKER_DECLARATIONTAG, ""); //$NON-NLS-1$
 	}
@@ -209,5 +211,5 @@ public enum ParserErrorCode {
 			}
 		return msg;
 	}
-	
+
 }
