@@ -596,7 +596,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public Definition definition() { return parser.definition(); }
 		@Override
-		public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) { return parser.absoluteSourceLocationFromExpr(expression); }
+		public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
+			Function f = expression.parentOfType(Function.class);
+			int bodyOffset = f != null ? f.bodyLocation().start() : 0;
+			return parser.absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
+		}
 		@Override
 		public CachedEngineDeclarations cachedEngineDeclarations() { return cachedEngineDeclarations; }
 		@Override
