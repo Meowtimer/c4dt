@@ -28,9 +28,14 @@ public aspect Profiling {
 		public Timer(Signature signature) { this.signature = signature; }
 	}
 	
+	private static final class SignatureProfile {
+		public long executionTime;
+		public long timesCalled;
+	}
+	
 	private static final class ProfilingFrame {
 		public final Thread thread;
-		public final Map<Signature, Long> times = new HashMap<Signature, Long>();
+		public final Map<Signature, SignatureProfile> times = new HashMap<Signature, SignatureProfile>();
 		public Timer timer;
 		public ProfilingFrame() {
 			thread = Thread.currentThread();
@@ -103,15 +108,20 @@ public aspect Profiling {
 				p.time -= took;
 			timer.time += took;
 			frame.timer = timer.parent;
-			final Map<Signature, Long> times = frame.times;
+			final Map<Signature, SignatureProfile> times = frame.times;
 			synchronized (times) {
 				final Signature sig = thisJoinPoint.getSignature();
-				Long s = times.get(sig);
-				if (s == null)
-					s = took;
-				else
-					s = s + took;
-				times.put(sig, s);
+				SignatureProfile s = times.get(sig);
+				if (s == null) {
+					s = new SignatureProfile();
+					s.executionTime = took;
+					s.timesCalled = 1;
+					times.put(sig, s);
+				}
+				else {
+					s.executionTime += took;
+					s.timesCalled++;
+				}
 			}
 			return r;
 		}
@@ -128,29 +138,33 @@ public aspect Profiling {
 	
 	public static void end(String name) {
 		System.out.println("End " + name);
-		List<Entry<Signature, Long>> list;
+		List<Entry<Signature, SignatureProfile>> list;
 		final Stack<ProfilingFrame> frames = frames();
 		ProfilingFrame frame = frames.pop();
 		if (frame.thread != Thread.currentThread())
 			return; // sanity
-		Map<Signature, Long> times = frame.times;
+		Map<Signature, SignatureProfile> times = frame.times;
 		synchronized (times) {
-			list = new ArrayList<Entry<Signature, Long>>(times.size());
-			for (Entry<Signature, Long> s : times.entrySet())
+			list = new ArrayList<Entry<Signature, SignatureProfile>>(times.size());
+			for (Entry<Signature, SignatureProfile> s : times.entrySet())
 				list.add(s);
 		}
-		Collections.sort(list, new Comparator<Entry<Signature, Long>>() {
+		Collections.sort(list, new Comparator<Entry<Signature, SignatureProfile>>() {
 			@Override
-			public int compare(Entry<Signature, Long> o1, Entry<Signature, Long> o2) {
-				double diff = o2.getValue() - o1.getValue();
+			public int compare(Entry<Signature, SignatureProfile> o1, Entry<Signature, SignatureProfile> o2) {
+				double diff = o2.getValue().executionTime - o1.getValue().executionTime;
 				return diff > 0 ? 1 : diff < 0 ? -1 : 0;
 			}
 		});
 		try {
 			PrintWriter pw = new PrintWriter(csvFile(name));
 			try {
-				for (Entry<Signature, Long> s : list)
-					pw.print(String.format("%s,%s\n", s.getKey().toString().replaceAll(",", " "), s.getValue()));
+				for (Entry<Signature, SignatureProfile> s : list)
+					pw.print(String.format("%s,%s,%s\n",
+						s.getKey().toString().replaceAll(",", " "),
+						s.getValue().executionTime,
+						s.getValue().timesCalled
+					));
 			} finally {
 				pw.close();
 			}
