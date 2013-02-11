@@ -67,37 +67,33 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 
+	private Variable(String name) {
+		this.name = name;
+	}
+
 	private Variable(String name, IType type, String desc) {
-		this(name, type, desc, Scope.VAR);
-		staticallyTyped = true;
+		this(name);
+		this.type = type;
+		this.description = desc;
+		this.scope = Scope.VAR;
+		this.staticallyTyped = true;
 	}
 
 	public Variable(String name, IType type) {
-		this.name = name;
+		this(name);
 		forceType(type);
 	}
 
 	public Variable(String name, Scope scope) {
-		this.name = name;
+		this(name);
 		this.scope = scope;
 		description = ""; //$NON-NLS-1$
 		type = PrimitiveType.UNKNOWN;
 	}
 
-	public Variable(String name, IType type, String desc, Scope scope) {
-		this.name = name;
-		this.type = type;
-		this.description = desc;
-		this.scope = scope;
-	}
-
 	public Variable() {
-		name = ""; //$NON-NLS-1$
+		this(""); //$NON-NLS-1$
 		scope = Scope.VAR;
-	}
-
-	public Variable(String name, String scope) {
-		this(name,Scope.makeScope(scope));
 	}
 
 	/**
