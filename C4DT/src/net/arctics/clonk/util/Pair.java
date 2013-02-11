@@ -30,6 +30,8 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	}
 	@Override
 	public String toString() {
+		Object first = this.first != null ? this.first : "<null>";
+		Object second = this.second != null ? this.second : "<null>";
 		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	@Override

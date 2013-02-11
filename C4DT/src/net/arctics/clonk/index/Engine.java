@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -521,6 +523,20 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		return result;
 	}
 
+	public static class TemplateScenario extends Scenario {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public static class Ticket implements Serializable, ISerializationResolvable {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Object resolve(Index index) {
+				return index.engine().templateScenario();
+			}
+		}
+		public TemplateScenario(Index index, String name, IContainer container) { super(index, name, container); }
+		@Override
+		public Object saveReplacement(Index context) { return new Ticket(); }
+	}
+
 	private void load(final IStorageLocation... providers) {
 		this.storageLocations = providers;
 		try {
@@ -547,7 +563,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				return Engine.this;
 			}
 		};
-		templateScenario = new Scenario(index, "ScenarioOfTheMind", null);
+		templateScenario = new TemplateScenario(index, "ScenarioOfTheMind", null);
 	}
 
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
