@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -155,31 +156,48 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		super(index);
 	}
 
+	public static class Declarations implements Serializable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public Map<String, Effect> effects;
+		public List<Function> functions;
+		public List<Variable> variables;
+		public Set<Script> used;
+		public Map<Variable, IType> variableTypes;
+		public Map<String, IType> functionReturnTypes;
+		public Declarations(Map<String, Effect> effects, List<Function> functions, List<Variable> variables, Set<Script> used, Map<Variable, IType> variableTypes, Map<String, IType> functionTypes) {
+			super();
+			this.effects = effects;
+			this.functions = functions;
+			this.variables = variables;
+			this.used = used;
+			this.variableTypes = variableTypes;
+			this.functionReturnTypes = functionTypes;
+		}
+	}
+
 	@Override
 	public void save(ObjectOutputStream stream) throws IOException {
 		super.save(stream);
-		stream.writeObject(definedFunctions);
-		stream.writeObject(definedVariables);
-		stream.writeObject(usedScripts);
-		stream.writeObject(definedEffects);
-		stream.writeObject(variableTypes);
-		stream.writeObject(functionReturnTypes);
+		stream.writeObject(new Declarations(
+			definedEffects,
+			definedFunctions,
+			definedVariables,
+			usedScripts,
+			variableTypes,
+			functionReturnTypes
+		));
 		populateDictionary();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 		loadIncludes();
-		definedFunctions = (List<Function>) stream.readObject();
-		definedVariables = (List<Variable>) stream.readObject();
-		usedScripts = (Set<Script>) stream.readObject();
-		try {
-			definedEffects = (Map<String, Effect>)stream.readObject();
-		} catch (Exception e) {
-			// that's ok
-		}
+		Declarations declarations = (Declarations)stream.readObject();
+		definedEffects = declarations.effects;
+		definedFunctions = declarations.functions;
+		definedVariables = declarations.variables;
+		usedScripts = declarations.used;
 		purgeNullEntries(definedFunctions, definedVariables, usedScripts);
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
@@ -190,8 +208,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		variableTypes = (Map<Variable, IType>) stream.readObject();
-		functionReturnTypes = (Map<String, IType>) stream.readObject();
+		variableTypes = declarations.variableTypes;
+		functionReturnTypes = declarations.functionReturnTypes;
 	}
 
 	private void loadIncludes() {
@@ -487,6 +505,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			addAllSynchronized(definedVariables, decs);
 		if ((mask & DIRECTIVES) != 0)
 			addAllSynchronized(definedDirectives, decs);
+		if ((mask & OTHER) != 0 && definedEffects != null)
+			addAllSynchronized(definedEffects.values(), decs);
 		return decs;
 	}
 

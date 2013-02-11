@@ -5,7 +5,6 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -137,8 +136,13 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if ((mask & VARIABLES) != 0)
-			return Collections.unmodifiableCollection(components);
+		if ((mask & VARIABLES) != 0) {
+			ArrayList<Variable> items = new ArrayList<>(components.size()+(adhocComponents != null ? adhocComponents.size() : 0));
+			items.addAll(components);
+			if (adhocComponents != null)
+				items.addAll(adhocComponents);
+			return items;
+		}
 		else
 			return NO_SUB_DECLARATIONS;
 	}

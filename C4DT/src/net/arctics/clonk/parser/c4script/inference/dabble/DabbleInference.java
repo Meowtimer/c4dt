@@ -1042,10 +1042,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (predType instanceof IProplistDeclaration) {
 								IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
 								if (proplDecl.isAdHoc()) {
-									Variable var = new Variable(leftSide.declarationName(), Variable.Scope.VAR);
-									initializeFromAssignment(var, leftSide, rightSide, processor);
-									proplDecl.addComponent(var, true);
+									Variable var = proplDecl.addComponent(
+										new Variable(leftSide.declarationName(), Variable.Scope.VAR),
+										true
+									);
 									declaration = var;
+									initializeFromAssignment(var, leftSide, rightSide, processor);
 								}
 							} else for (IType t : predType)
 								if (t == processor.script()) {
