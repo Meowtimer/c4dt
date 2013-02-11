@@ -309,6 +309,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		public void reparseFunction(final Function function, Markers markers) {
 			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
+			structure.generateFindDeclarationCache();
 			for (ProblemReportingStrategy strategy : problemReportingStrategies)
 				strategy.localTypingContext(parser).reportProblemsOfFunction(function);
 		}

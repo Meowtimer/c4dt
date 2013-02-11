@@ -104,7 +104,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
 	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 
-	private Function currentFunction;
+	protected Function currentFunction;
 	private Declaration currentDeclaration;
 	private TypeAnnotation parsedTypeAnnotation;
 
@@ -133,14 +133,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	public ClonkBuilder builder() {return builder;}
 	public final Typing typing() { return typing; }
 	public Script script() { return script; }
-
-	/**
-	 * Returns the function that is currently being parsed or otherwise considered "current"
-	 * @return the current function
-	 */
-	public Function currentFunction() {
-		return currentFunction;
-	}
 
 	/**
 	 * Sets the current function. There should be a good reason to call this.
@@ -601,7 +593,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		final int backtrack = this.offset;
 
 		List<VarInitialization> createdVariables = null;
-		Function currentFunc = currentFunction();
+		Function currentFunc = currentFunction;
 
 		eatWhitespace();
 		switch (scope) {
@@ -670,7 +662,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 				Declaration outerDec = currentDeclaration();
 				try {
-					Variable var = createVarInScope(currentFunction(), varName, scope, bt, this.offset, comment);
+					Variable var = createVarInScope(currentFunction, varName, scope, bt, this.offset, comment);
 					if (typeAnnotation != null)
 						typeAnnotation.setTarget(var);
 					if (staticType != null)
@@ -747,12 +739,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		case VAR:
 			return function != null ? function.findVariable(name) : null;
 		case CONST: case STATIC: case LOCAL:
-			/*
-			C4Declaration globalDeclaration = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
-			if (globalDeclaration instanceof C4Variable)
-				return (C4Variable) globalDeclaration;
-			// not yet in index - search locally
-		case LOCAL: */
 			return script().findLocalVariable(name, false);
 		default:
 			return null;
@@ -778,7 +764,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			result.setParent(script());
 			script().addDeclaration(result);
 		}
-		result.setLocation(absoluteSourceLocation(start, end));
+		result.setLocation(start, end);
 		result.setUserDescription(description != null ? description.text().trim() : null);
 		return result;
 	}
@@ -1502,8 +1488,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
 			ASTNode elm = new PropListExpression(proplDec);
-			if (currentFunction() != null)
-				currentFunction().addOtherDeclaration(proplDec);
+			if (currentFunction != null)
+				currentFunction.addOtherDeclaration(proplDec);
 			//proplDec.setName(elm.toString());
 			return elm;
 		}
@@ -1544,7 +1530,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 								error(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION, (char)read());
 							}
 							eatWhitespace();
-							Variable v = new Variable(name, currentFunction() != null ? Scope.VAR : Scope.LOCAL);
+							Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 							Declaration outerDec = currentDeclaration();
 							setCurrentDeclaration(v);
@@ -1951,7 +1937,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			String readWord;
 			int rewind = this.offset;
 			// new oldstyle-func begun
-			if (currentFunction() != null && currentFunction().isOldStyle() && FunctionHeader.parse(this, true) != null) {
+			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, true) != null) {
 				this.seek(rewind);
 				return null;
 			}
@@ -2509,7 +2495,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
 	 */
 	public int sectionOffset() {
-		Function f = currentFunction();
+		Function f = currentFunction;
 		if (f != null && f.bodyLocation() != null)
 			return f.bodyLocation().start();
 		else

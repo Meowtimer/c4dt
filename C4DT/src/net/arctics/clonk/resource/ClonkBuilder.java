@@ -409,6 +409,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			queueDependentScripts(enqueuedFromLastIteration, newlyEnqueuedParsers);
 		}
 		while (parserMapSize != parserMap.size());
+		for (Script script : parserMap.keySet())
+			script.generateFindDeclarationCache();
 		markers.deploy();
 	}
 

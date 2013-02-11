@@ -1215,11 +1215,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public void generateFindDeclarationCache() {
-		//populateDictionary();
+		populateDictionary();
 		cachedFunctionMap = new HashMap<>();
 		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
-		populateDictionary();
 	}
 
 	@Override
