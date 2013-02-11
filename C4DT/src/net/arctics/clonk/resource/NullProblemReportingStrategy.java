@@ -27,7 +27,7 @@ import org.eclipse.jface.text.IRegion;
 final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	@Override
 	public void run() {}
-	
+
 	@Override
 	public ProblemReportingContext localTypingContext(Script script) { return localTypingContext(new C4ScriptParser(script)); }
 
@@ -61,17 +61,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public Declaration container() { return parser.script(); }
 			@Override
-			public Object valueForVariable(String varName) { return ASTNode.EVALUATION_COMPLEX; }
-			@Override
 			public Script script() { return parser.script(); }
-			@Override
-			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { }
-			@Override
-			public Function function() { return null; }
-			@Override
-			public int codeFragmentOffset() { return 0; }
-			@Override
-			public Object[] arguments() { return null; }
 			@Override
 			public BufferedScanner scanner() { return parser; }
 			@Override

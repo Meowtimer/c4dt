@@ -43,7 +43,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 							String ident = e.stringValue();
 							Variable var = new StructureVariable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(Scope.CONST);
-							var.setParentDeclaration(this);
+							var.setParent(this);
 							var.setLocation(e);
 							controlVariables.add(var);
 						}

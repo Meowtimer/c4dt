@@ -14,7 +14,6 @@ import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
@@ -127,13 +126,6 @@ public class PropListExpression extends ASTNode {
 		for (Variable component : components)
 			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
 		return map;
-	}
-
-	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
-		if (context.currentVariable() != null)
-			return context.script().engine().iniConfigurations().configurationFor(context.currentVariable().name()+".txt"); //$NON-NLS-1$
-		else
-			return null;
 	}
 
 	public ASTNode value(String key) {

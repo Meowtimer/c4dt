@@ -100,9 +100,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
 			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
 			type.setLocation(SourceLocation.ZERO);
-			type.setParentDeclaration(this);
+			type.setParent(this);
 			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, type);
-			globalProplist.setParentDeclaration(this);
+			globalProplist.setParent(this);
 			globalProplist.setScope(Scope.STATIC);
 		}
 		return globalProplist;
@@ -906,7 +906,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 						}
 			}
 			else
-				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s'", this.toString()));
+				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s' from '%s'", this.toString(), index.name()));
 			return result;
 		}
 	}

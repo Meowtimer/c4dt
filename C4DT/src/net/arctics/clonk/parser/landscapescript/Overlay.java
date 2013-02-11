@@ -119,7 +119,7 @@ public class Overlay extends OverlayBase {
 		}
 		if (result != null) {
 			result.setName(name);
-			result.setParentDeclaration(this);
+			result.setParent(this);
 			result.prev = this.subOverlays.size() > 0 ? this.subOverlays.get(this.subOverlays.size()-1) : null;
 			this.subOverlays.add(result);
 		}
@@ -129,7 +129,7 @@ public class Overlay extends OverlayBase {
 	public Overlay createOverlay(Class<? extends Overlay> cls, String name) throws InstantiationException, IllegalAccessException {
 		Overlay result = cls.newInstance();
 		result.name = name;
-		result.setParentDeclaration(this);
+		result.setParent(this);
 		this.subOverlays.add(result);
 		return result;
 	}

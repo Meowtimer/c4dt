@@ -87,7 +87,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		parameters = new ArrayList<Variable>(pars.length);
 		for (Variable var : pars) {
 			parameters.add(var);
-			var.setParentDeclaration(this);
+			var.setParent(this);
 		}
 		visibility = FunctionScope.GLOBAL;
 	}

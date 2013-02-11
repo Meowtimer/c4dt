@@ -42,15 +42,15 @@ import org.eclipse.jface.text.IRegion;
 public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable, IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	protected Declaration() {}
 	protected Declaration(int start, int end) { super(start, end); }
-	
+
 	/**
 	 * The name of this declaration
 	 */
 	protected String name;
-	
+
 	/**
 	 * result to be returned of occurenceScope if there is no scope
 	 */
@@ -63,7 +63,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public String name() {
 		return name;
 	}
-	
+
 	/**
 	 * Sets the name.
 	 * @param name the new name
@@ -71,7 +71,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	/**
 	 * @param Set the location of the declaration in its declaring file.
 	 */
@@ -79,7 +79,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		this.start = location != null ? location.start() : 0;
 		this.end = location != null ? location.end() : 0;
 	}
-	
+
 	/**
 	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns this object since it already is a location.
 	 * @return The region to select when using editor navigation commands
@@ -87,7 +87,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public IRegion regionToSelect() {
 		return this;
 	}
-	
+
 	/**
 	 * Returns an integer that is supposed to be different for different types of declarations (functions, variables)
 	 * so that sorting of declarations by type is possible based on this value.
@@ -96,15 +96,15 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public int sortCategory() {
 		return 0;
 	}
-	
+
 	/**
 	 * Set the script of this declaration.
 	 * @param script the object to set
 	 */
 	public void setScript(Script script) {
-		setParentDeclaration(script);
+		setParent(script);
 	}
-	
+
 	/**
 	 * Same as {@link #parentOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
 	 * @param type
@@ -118,7 +118,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 				result = (T) f;
 		return result;
 	}
-	
+
 	/**
 	 * Returns the top-level {@link Structure} this declaration is declared in.
 	 * @return the {@link Structure}
@@ -126,7 +126,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public Structure topLevelStructure() {
 		return topLevelParentDeclarationOfType(Structure.class);
 	}
-	
+
 	/**
 	 * Returns the {@link Script} this declaration is declared in.
 	 * @return the {@link Script}
@@ -134,7 +134,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public Script script() {
 		return topLevelParentDeclarationOfType(Script.class);
 	}
-	
+
 	/**
 	 * Return the {@link Scenario} this declaration is declared in.
 	 * @return The {@link Scenario}
@@ -142,15 +142,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public Scenario scenario() {
 		return parent != null ? ((Declaration)parent).scenario() : null;
 	}
-	
-	/**
-	 * Sets the parent declaration of this declaration.
-	 * @param field the new parent declaration
-	 */
-	public void setParentDeclaration(Declaration field) {
-		this.parent = field;
-	}
-	
+
 	/**
 	 * Returns a brief info string describing the declaration. Meant for UI presentation.
 	 * @return The short info string.
@@ -159,11 +151,11 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public String infoText(IIndexEntity context) {
 		return name();
 	}
-	
+
 	public String displayString(IIndexEntity context) {
 		return infoText(this);
 	}
-	
+
 	/**
 	 * Returns an array of all sub declarations meant to be displayed in the outline.
 	 * @return
@@ -191,7 +183,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		else
 			return this;
 	}
-	
+
 	/**
 	 * Returns the name of this declaration
 	 */
@@ -199,7 +191,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public String toString() {
 		return name != null ? name : getClass().getSimpleName();
 	}
-	
+
 	/**
 	 * Returns the objects this declaration might be referenced in (includes {@link Function}s, {@link IResource}s and other {@link Script}s)
 	 * @param project
@@ -214,7 +206,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		// next, in case of a definition, add items including the definition, so matches in derived definitions
 		// will be found next
 		if (parent instanceof Definition) {
-			// first, add the definition this 
+			// first, add the definition this
 			final Definition def = (Definition)parent;
 			final Index projectIndex = project.index();
 			result.add(def);
@@ -239,7 +231,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			});
 		return result.toArray();
 	}
-	
+
 	/**
 	 * Returns the resource this declaration is declared in
 	 */
@@ -247,7 +239,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public IResource resource() {
 		return parentDeclaration() != null ? parentDeclaration().resource() : null;
 	}
-	
+
 	/**
 	 * Returns the parent declaration this one is contained in
 	 * @return
@@ -255,9 +247,9 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public Declaration parentDeclaration() {
 		return (Declaration)parent;
 	}
-	
+
 	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.iterable();
-	
+
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.
@@ -267,7 +259,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		return NO_SUB_DECLARATIONS;
 	}
-	
+
 	/**
 	 * Return {@link #subDeclarations(Index, int)} with the contextIndex parameter set to {@link #index()}
 	 * @param mask The mask, passed on to {@link #subDeclarations(Index, int)}
@@ -276,17 +268,17 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public final Iterable<? extends Declaration> accessibleDeclarations(int mask) {
 		return subDeclarations(index(), mask);
 	}
-	
+
 	@Override
 	public Function findFunction(String functionName) {
 		return null;
 	}
-	
+
 	@Override
 	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
 		return null;
 	}
-	
+
 	/**
 	 * Adds a sub-declaration
 	 * @param declaration
@@ -294,7 +286,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public void addSubDeclaration(Declaration declaration) {
 		System.out.println(String.format("Attempt to add sub declaration %s to %s", declaration, this));
 	}
-	
+
 	/**
 	 * Called after deserialization to restore transient references
 	 * @param parent the parent
@@ -302,21 +294,21 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public void postLoad(Declaration parent, Index index) {
 		if (name != null)
 			name = name.intern();
-		setParentDeclaration(parent);
+		setParent(parent);
 		Iterable<? extends Declaration> subDecs = this.accessibleDeclarations(ALL);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.postLoad(this, index);
 	}
-	
+
 	/**
-	 * Returns whether this declaration is global (functions are global when declared as "global" while variables are global when declared as "static") 
+	 * Returns whether this declaration is global (functions are global when declared as "global" while variables are global when declared as "static")
 	 * @return true if global, false if not
 	 */
 	public boolean isGlobal() {
 		return false;
 	}
-	
+
 	/**
 	 * Used to filter declarations based on their name
 	 * @param matcher The matcher, obtained from a {@link Pattern}, that will be {@link Matcher#reset(CharSequence)} with all the strings the user might want to filter for in order to refer to this declaration.
@@ -330,12 +322,12 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			return true;
 		return false;
 	}
-	
+
 	@Override
 	public String nodeName() {
 		return name();
 	}
-	
+
 	/**
 	 * Returns whether the supplied name looks like the name of a constant e.g begins with a prefix in caps followed by an underscore and a name
 	 * @param name the string to check
@@ -360,10 +352,10 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean isEngineDeclaration() {
 		return parentDeclaration() instanceof Engine;
 	}
-	
+
 	public Engine engine() {
 		Declaration parent = parentDeclaration();
-		return parent != null ? parent.engine() : null; 
+		return parent != null ? parent.engine() : null;
 	}
 
 	@Override
@@ -380,11 +372,11 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 				return null;
 		}
 	}
-	
+
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		System.out.println("dunno");
 	}
-	
+
 	public StringTbl localStringTblMatchingLanguagePref() {
 		IResource res = resource();
 		if (res == null)
@@ -396,21 +388,21 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			return (StringTbl) Structure.pinned(tblFile, true, false);
 		return null;
 	}
-	
+
 	public int absoluteExpressionsOffset() {return 0;}
-	
+
 	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
 			new DeclarationLocation(this, this, resource())
 		};
 	}
-	
+
 	/**
 	 * Return a name that uniquely identifies the declaration in its script
 	 * @return The unique name
 	 */
 	public String makeNameUniqueToParent() { return this.pathRelativeToIndexEntity(); }
-	
+
 	/**
 	 * Return the {@link Declaration}'s path, which is a concatenation of its parent declaration's and its own name, separated by '.'
 	 * Concatenating the path will stop at the earliest {@link IndexEntity} in the declaration hierarchy.
@@ -428,7 +420,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			}
 		return builder.toString();
 	}
-	
+
 	/**
 	 * Return a string identifying the declaration and the {@link Script} it's declared in.
 	 * @return
@@ -439,7 +431,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		else
 			return name();
 	}
-	
+
 	/**
 	 * Whether this Declaration is contained in the given one.
 	 * @param parent The declaration to check for parentedness
@@ -451,29 +443,29 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 				return true;
 		return false;
 	}
-	
+
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return adapter.isInstance(this) ? this : null;
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		return this == other; // identity
 	}
-	
+
 	protected Typing typing() {
 		Typing typing = Typing.ParametersOptionallyTyped;
 		if (index() instanceof ProjectIndex)
 			typing = ((ProjectIndex)index()).nature().settings().typing;
 		return typing;
 	}
-	
+
 	@Override
 	public String patternMatchingText() {
 		return name();
 	}
-	
+
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
@@ -483,5 +475,5 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			return false;
 		return true;
 	}
-	
+
 }

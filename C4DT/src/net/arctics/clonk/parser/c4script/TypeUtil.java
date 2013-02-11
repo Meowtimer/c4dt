@@ -41,31 +41,8 @@ public class TypeUtil {
 			}
 
 			@Override
-			public Object[] arguments() {
-				return new Object[0];
-			}
-
-			@Override
-			public Function function() {
-				return as(context, Function.class);
-			}
-
-			@Override
 			public Script script() {
 				return context.script();
-			}
-
-			@Override
-			public int codeFragmentOffset() {
-				return 0;
-			}
-
-			@Override
-			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
-
-			@Override
-			public Object valueForVariable(String varName) {
-				return null;
 			}
 
 			@Override

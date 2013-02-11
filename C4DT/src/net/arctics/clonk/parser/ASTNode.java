@@ -175,6 +175,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return (T) e;
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T thisOrParentOfType(Class<T> cls) {
+		ASTNode e;
+		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
+		return (T) e;
+	}
+
 	/**
 	 * Set the parent of this expression.
 	 * @param parent
@@ -454,16 +461,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		if (!(result instanceof ASTNode))
 			System.out.println("nope");
 		return (ASTNode)result;
-	}
-
-	/**
-	 * Returns whether the expression can be converted to the given type
-	 * @param otherType the type to test convertibility to
-	 * @return true if conversion is possible or false if not
-	 */
-	public static boolean canBeConvertedTo(IType type, IType otherType, C4ScriptParser context) {
-		// 5555 is ID
-		return type == PrimitiveType.INT && otherType == PrimitiveType.ID && context.engine().settings().integersConvertibleToIDs;
 	}
 
 	/**

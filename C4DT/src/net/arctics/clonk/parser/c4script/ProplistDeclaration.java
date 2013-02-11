@@ -82,7 +82,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			else
 				list = components;
 			list.add(variable);
-			variable.setParentDeclaration(this);
+			variable.setParent(this);
 			return variable;
 		}
 	}

@@ -109,7 +109,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			type = PrimitiveType.UNKNOWN;
 		return type;
 	}
-	
+
 	public IType type(Script script) {
 		IType type = null;
 		if (script != null && script.variableTypes() != null)
@@ -314,14 +314,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return scope == Scope.STATIC || scope == Scope.CONST;
 	}
 
-	private void ensureTypeLockedIfPredefined(Declaration declaration) {
+	private void ensureTypeLockedIfPredefined(ASTNode declaration) {
 		if (!staticallyTyped && declaration instanceof Engine)
 			staticallyTyped = true;
 	}
 
 	@Override
-	public void setParentDeclaration(Declaration declaration) {
-		super.setParentDeclaration(declaration);
+	public void setParent(ASTNode declaration) {
+		super.setParent(declaration);
 		ensureTypeLockedIfPredefined(declaration);
 	}
 

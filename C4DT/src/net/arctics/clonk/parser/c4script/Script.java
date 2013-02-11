@@ -244,7 +244,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				if (definedEffects == null)
 					definedEffects = new HashMap<String, Effect>();
 				Effect effect = new Effect(effectName, effectCandidates);
-				effect.setParentDeclaration(this);
+				effect.setParent(this);
 				definedEffects.put(effectName, effect);
 			}
 		}

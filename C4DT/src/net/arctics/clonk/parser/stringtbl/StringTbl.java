@@ -59,7 +59,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	@Override
 	public void addTblEntry(String key, String value, int start, int end) {
 		NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
-		nv.setParentDeclaration(this);
+		nv.setParent(this);
 		map.put(key, nv);
 	}
 

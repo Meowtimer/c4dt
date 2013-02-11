@@ -198,7 +198,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (result == null) {
 			result = new IniSection(null, name);
 			result.setSubItems(new HashMap<String, IniItem>(), new LinkedList<IniItem>());
-			result.setParentDeclaration(this);
+			result.setParent(this);
 			result.setDefinition(dataSection);
 			sectionsMap.put(name, result);
 			sectionsList.add(result);
@@ -506,7 +506,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public IniSection addSection(IniSection parentSection, int start, String name, int end) {
 		IniSection section = new IniSection(new SourceLocation(start, end), name);
-		section.setParentDeclaration(parentSection != null ? parentSection : this);
+		section.setParent(parentSection != null ? parentSection : this);
 		return section;
 	}
 

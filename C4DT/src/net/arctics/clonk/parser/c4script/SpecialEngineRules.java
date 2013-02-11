@@ -47,6 +47,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -300,13 +301,6 @@ public abstract class SpecialEngineRules {
 		public Function newFunction(String name) {
 			return null;
 		}
-
-		/**
-		 * Called when a function is about to be parsed.
-		 * @param function
-		 */
-		@SignifiesRole(role=FUNCTION_EVENT_LISTENER)
-		public void functionAboutToBeParsed(Function function, C4ScriptParser processor) {}
 
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
@@ -908,8 +902,8 @@ public abstract class SpecialEngineRules {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
 			int arrayLength = ArrayType.NO_PRESUMED_LENGTH;
-			if (callFunc.params().length >= 1) {
-				Object ev = callFunc.params()[0].evaluateAtParseTime(processor);
+			if (callFunc.params().length >= 1 && processor instanceof IEvaluationContext) {
+				Object ev = callFunc.params()[0].evaluateAtParseTime((IEvaluationContext)processor);
 				if (ev instanceof Number)
 					arrayLength = ((Number) ev).intValue();
 			}

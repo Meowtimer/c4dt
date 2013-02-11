@@ -36,7 +36,9 @@ public class Marker {
 	}
 	public IMarker deploy() {
 		IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
-		if (cf != null && result != null)
+		if (result == null)
+			return null;
+		if (cf != null)
 			ParserErrorCode.setDeclarationTag(result, cf.makeNameUniqueToParent());
 		IRegion exprLocation = reporter;
 		if (exprLocation != null)

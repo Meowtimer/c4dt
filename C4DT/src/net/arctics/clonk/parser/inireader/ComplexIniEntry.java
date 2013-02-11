@@ -42,7 +42,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.definition = config;
 		cmpl.extendedValue = extendedValue;
-		cmpl.setParentDeclaration(entry.parentDeclaration());
+		cmpl.setParent(entry.parentDeclaration());
 		return cmpl;
 	}
 	

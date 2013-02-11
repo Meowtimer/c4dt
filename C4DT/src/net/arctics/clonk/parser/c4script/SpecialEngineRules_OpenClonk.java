@@ -159,7 +159,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					var.forceType(processor.typeOf(arguments[1]));
 					AccessVar av = new AccessVar(var);
 					processor.assignment(av, arguments[1]);
-					var.setParentDeclaration(node.parentOfType(Function.class));
+					var.setParent(node.parentOfType(Function.class));
 					//parser.getContainer().addDeclaration(var);
 				}
 			}

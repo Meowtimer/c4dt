@@ -109,7 +109,7 @@ public class IniSection extends Declaration implements
 		if (!itemMap.containsKey(item.key())) {
 			itemMap.put(item.key(), item);
 			itemList.add(item);
-			((Declaration)item).setParentDeclaration(this);
+			((Declaration)item).setParent(this);
 			try {
 				return item instanceof IniEntry
 					? (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false)
@@ -171,7 +171,7 @@ public class IniSection extends Declaration implements
 	public void putEntry(IniEntry entry) {
 		itemMap.put(entry.name(), entry);
 		itemList.add(entry);
-		entry.setParentDeclaration(this);
+		entry.setParent(this);
 	}
 
 	@Override

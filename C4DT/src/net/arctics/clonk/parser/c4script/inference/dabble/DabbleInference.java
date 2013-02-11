@@ -34,6 +34,8 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -67,7 +69,6 @@ import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
-import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.FloatLiteral;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
@@ -101,6 +102,7 @@ import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -162,7 +164,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return new ScriptProcessor(parser, new Shared());
 	}
 
-	public final class ScriptProcessor implements Runnable, ProblemReportingContext {
+	public final class ScriptProcessor implements Runnable, ProblemReportingContext, IEvaluationContext {
+
+		public static final int MAX_PAR = 10;
+		public static final int MAX_NUMVAR = 20;
+		public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 
 		private final C4ScriptParser parser;
 		private ASTNode reportingNode;
@@ -172,6 +178,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Shared shared;
 		private final Object working = new Object();
 		private final int strictLevel;
+		private final boolean hasAppendTo;
 		private boolean visiting = false;
 		private final Set<Function> finishedFunctions = new HashSet<>();
 		private final Map<String, IType> functionReturnTypes = new HashMap<>();
@@ -200,6 +207,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				script(),
 				script() instanceof Definition ? ((Definition)script()).metaDefinition() : PrimitiveType.ID
 			);
+			boolean hasAppendTo = false;
+			for (Directive d : script().directives())
+				if (d.type() == DirectiveType.APPENDTO) {
+					hasAppendTo = true;
+					break;
+				}
+			this.hasAppendTo = hasAppendTo;
 		}
 
 		public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
@@ -562,31 +576,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public Object[] arguments() {
-			return parser.arguments();
-		}
-
-		@Override
-		public Function function() {
-			return parser.function();
-		}
-
-		@Override
-		public int codeFragmentOffset() {
-			return parser.codeFragmentOffset();
-		}
-
-		@Override
-		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-			parser.reportOriginForExpression(expression, location, file);
-		}
-
-		@Override
-		public Object valueForVariable(String varName) {
-			return ASTNode.EVALUATION_COMPLEX;
-		}
-
-		@Override
 		public void storeType(ASTNode node, IType type) {
 			ITypeInfo requested = requestTypeInfo(node);
 			if (requested != null)
@@ -653,6 +642,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public Markers markers() { return markers; }
+		@Override
+		public Object valueForVariable(String varName) { return null; }
+		@Override
+		public Object[] arguments() { return null; }
+		@Override
+		public Function function() { return null; }
+		@Override
+		public int codeFragmentOffset() { return 0; }
+		@Override
+		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 	}
 
 	class ProblemReporter<T extends ASTNode> extends PerClass<ASTNode, T, ProblemReporter<? super T>> {
@@ -709,8 +708,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public boolean typingJudgement(T node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
-//			if (DEBUG)
-//				processor.markers().warning(processor, ParserErrorCode.TypingJudgment, node, node, Markers.NO_THROW, node.printed(), type.typeName(true));
 			ITypeInfo info;
 			switch (mode) {
 			case Expect:
@@ -1013,8 +1010,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 							processor.parser.script().addUsedScript(var.script());
 							break;
 						case VAR:
-							if (processor.parser.currentFunction() != null && var.parentDeclaration() == processor.parser.currentFunction()) {
-								int locationUsed = processor.parser.currentFunction().bodyLocation().getOffset()+node.start();
+							Function currentFunction = node.parentOfType(Function.class);
+							if (currentFunction != null && var.parentDeclaration() == currentFunction) {
+								int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
 								if (locationUsed < var.start())
 									processor.markers().warning(processor.parser, ParserErrorCode.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
 							}
@@ -1562,9 +1560,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (unknownFunctionShouldBeError(node, processor)) {
 								int start = node.start();
 								if (declarationName.equals(Keywords.Inherited)) {
-									Function activeFunc = processor.parser.currentFunction();
+									Function activeFunc = node.parentOfType(Function.class);
 									if (activeFunc != null)
-										processor.markers().error(processor.parser, ParserErrorCode.NoInheritedFunction, node, start, start+declarationName.length(), Markers.NO_THROW, processor.parser.currentFunction().name(), true);
+										processor.markers().error(processor.parser, ParserErrorCode.NoInheritedFunction, node, start, start+declarationName.length(), Markers.NO_THROW, node.parentOfType(Function.class).name(), true);
 									else
 										processor.markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
 								}
@@ -1695,7 +1693,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// stringtbl entries
 					// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 					// and checking for the existence of the table entries there is overkill
-					if (processor.parser.hasAppendTo() || processor.script().resource() == null)
+					if (processor.hasAppendTo || processor.script().resource() == null)
 						return;
 					String value = lit;
 					int valueLen = value.length();
@@ -1920,14 +1918,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<Ellipsis>(Ellipsis.class) {
-				@Override
-				public void reportProblems(Ellipsis node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
-					processor.parser.unnamedParamaterUsed(node);
-				};
-			},
-
 			new ProblemReporter<SimpleStatement>(SimpleStatement.class) {
 				@Override
 				public void reportProblems(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
@@ -2014,7 +2004,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ProblemReporter<FunctionDescription>(FunctionDescription.class) {
 				@Override
 				public void reportProblems(FunctionDescription node, ScriptProcessor processor) throws ParsingException {
-					if (processor.parser.hasAppendTo())
+					if (processor.hasAppendTo)
 						return;
 					int off = 1;
 					for (String part : node.contents().split("\\|")) { //$NON-NLS-1$

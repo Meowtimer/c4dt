@@ -20,12 +20,12 @@ import net.arctics.clonk.util.Utilities.Folder;
 public class TypeChoice implements IType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	protected final IType left, right;
-	
+
 	public IType left() { return left; }
 	public IType right() { return right; }
-	
+
 	private static final TypeChoice[] HARD_CHOICES = {
 		new TypeChoice(PrimitiveType.OBJECT, PrimitiveType.ID),
 		new TypeChoice(PrimitiveType.BOOL, PrimitiveType.INT),
@@ -33,7 +33,7 @@ public class TypeChoice implements IType {
 		new TypeChoice(PrimitiveType.ID, PrimitiveType.INT),
 		new TypeChoice(PrimitiveType.STRING, PrimitiveType.INT)
 	};
-	
+
 	public static IType make(IType left, IType right) {
 		if (left == null)
 			return right;
@@ -65,7 +65,7 @@ public class TypeChoice implements IType {
 			}
 		});
 	}
-	
+
 	public static IType make(Collection<? extends IType> types) {
 		if (types.size() == 0)
 			return null;
@@ -76,15 +76,15 @@ public class TypeChoice implements IType {
 			public TypeChoice fold(IType interim, IType next, int index) {
 				return new TypeChoice(interim, next);
 			}
-			
+
 		}).removeDuplicates();
 	}
-	
+
 	private TypeChoice(IType left, IType right) {
-		this.left = left;
-		this.right = right;
+		this.left = left != null ? left : PrimitiveType.UNKNOWN;
+		this.right = right != null ? right : PrimitiveType.UNKNOWN;
 	}
-	
+
 	@Override
 	public Iterator<IType> iterator() {
 		return flatten().iterator();
@@ -120,7 +120,7 @@ public class TypeChoice implements IType {
 	public void setTypeDescription(String description) {
 
 	}
-	
+
 	private void collect(Collection<IType> types) {
 		if (left instanceof TypeChoice)
 			((TypeChoice) left).collect(types);
@@ -131,7 +131,7 @@ public class TypeChoice implements IType {
 		else if (!types.contains(right))
 			types.add(right);
 	}
-	
+
 	public static IType remove(IType type, IPredicate<? super IType> predicate) {
 		if (predicate.test(type))
 			return null;
@@ -153,15 +153,15 @@ public class TypeChoice implements IType {
 		else
 			return type;
 	}
-	
+
 	public List<IType> flatten() {
 		LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
 		return types;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public static <T extends IType> T contained(IType type, Class<T> containedType) { 
+	public static <T extends IType> T contained(IType type, Class<T> containedType) {
 		if (containedType.isInstance(type))
 			return (T) type;
 		if (type instanceof TypeChoice) {
@@ -175,12 +175,12 @@ public class TypeChoice implements IType {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public String toString() {
 		return typeName(true);
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof TypeChoice) {

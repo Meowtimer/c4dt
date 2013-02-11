@@ -174,7 +174,7 @@ public class IniUnitParser extends CStyleScanner {
 		}
 		//eat(BufferedScanner.NEWLINE_CHARS);
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
-		entry.setParentDeclaration(section);
+		entry.setParent(section);
 		try {
 			return unit.validateEntry(entry, section, modifyMarkers);
 		} catch (IniParserException e) {

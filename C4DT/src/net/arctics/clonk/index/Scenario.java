@@ -31,9 +31,9 @@ public class Scenario extends Definition {
 		if (scenarioPropList == null && engine().settings().supportsGlobalProplists) {
 			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
 			type.setLocation(SourceLocation.ZERO);
-			type.setParentDeclaration(this);
+			type.setParent(this);
 			scenarioPropList = new Variable(PROPLIST_NAME, type);
-			scenarioPropList.setParentDeclaration(this);
+			scenarioPropList.setParent(this);
 			scenarioPropList.setScope(Scope.STATIC);
 		}
 		return scenarioPropList;

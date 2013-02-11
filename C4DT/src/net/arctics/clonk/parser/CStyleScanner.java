@@ -11,9 +11,9 @@ import net.arctics.clonk.parser.c4script.ast.Comment;
  *
  */
 public class CStyleScanner extends BufferedScanner {
-	
+
 	protected Comment lastComment;
-	
+
 	public CStyleScanner(Object source) {
 		super(source);
 	}
@@ -57,37 +57,14 @@ public class CStyleScanner extends BufferedScanner {
 			return null;
 		}
 	}
-	
-	public final void setExprRegionRelativeToFuncBody(ASTNode expr, int start, int end) {
-		int bodyOffset = sectionOffset();
-		expr.setLocation(start-bodyOffset, end-bodyOffset);
-	}
-	
-	protected int sectionOffset() {
-		return 0;
-	}
-	
-	protected boolean parseComment() {
-		int offset = this.offset;
-		Comment c = parseCommentObject();
-		if (c != null) {
-			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
-				c.previousComment = lastComment;
-			setExprRegionRelativeToFuncBody(c, offset, this.offset);
-			c.setAbsoluteOffset(offset);
-			lastComment = c;
-			return true;
-		}
-		return false;
-	}
-	
+
 	@Override
 	public int eatWhitespace() {
 		int pos = offset;
-		while (super.eatWhitespace() > 0 || parseComment());
+		while (super.eatWhitespace() > 0 || parseCommentObject() != null);
 		return offset-pos;
 	}
-	
+
 	public List<Comment> collectComments() {
 		List<Comment> result = null;
 		while (true) {

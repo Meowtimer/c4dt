@@ -7,14 +7,14 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
-public interface ProblemReportingContext extends IEvaluationContext, IASTPositionProvider, ITypingContext {
+public interface ProblemReportingContext extends IASTPositionProvider, ITypingContext {
 	Definition definition();
 	SourceLocation absoluteSourceLocationFromExpr(ASTNode expression);
 	CachedEngineDeclarations cachedEngineDeclarations();
 	BufferedScanner scanner();
 	Markers markers();
+	Script script();
 	void reportProblems();
 	void reportProblemsOfFunction(Function function);
 }

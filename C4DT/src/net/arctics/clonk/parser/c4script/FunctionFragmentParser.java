@@ -30,7 +30,6 @@ public class FunctionFragmentParser extends C4ScriptParser {
 		setMarkers(markers);
 		this.function = function;
 		this.offsetOfScriptFragment = function.bodyLocation().start();
-		this.findDefinitionViaCall = true;
 	}
 	@Override
 	public int sectionOffset() { return 0; }
@@ -44,11 +43,9 @@ public class FunctionFragmentParser extends C4ScriptParser {
 			try {
 				if (function != null)
 					function.clearLocalVars();
-				strictLevel = script().strictLevel();
 				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
-				setCurrentFunction(function);
 				parseStatementBlock(offset, statements, options, false);
 				cachedBlock = new FunctionBody(function, statements);
 				if (function != null)
