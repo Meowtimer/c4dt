@@ -44,28 +44,38 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 public class EntityChooser extends FilteredItemsSelectionDialog {
 
 	protected final class Filter extends ItemsFilter {
-		private Pattern[] patterns;
-
-		public Pattern[] getPatterns() {
-			if (patterns == null)
-				patterns = ArrayUtil.map(this.getPattern().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
-			return patterns;
+		private final Pattern[] patterns;
+		public Filter() {
+			super();
+			patterns = ArrayUtil.map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS); 
 		}
-		
 		@Override
-		public boolean isConsistentItem(Object item) {
+		public boolean equalsFilter(ItemsFilter filter) {
+			if (filter instanceof Filter) {
+				Filter f = (Filter)filter;
+				if (f.patterns.length != this.patterns.length)
+					return false;
+				for (int i = 0; i < patterns.length; i++)
+					if (!patterns[i].equals(f.patterns[i]))
+						return false;
+				return true;
+			}
 			return false;
 		}
-
+		public Pattern[] getPatterns() { return patterns; }
+		@Override
+		public boolean isConsistentItem(Object item) { return false; }
 		@Override
 		public boolean matchItem(Object item) {
 			IIndexEntity entity = (IIndexEntity)item;
 			for (Pattern p : getPatterns()) {
 				Matcher matcher = p.matcher("");
-				if (entity.matchedBy(matcher))
-					return true;
+				if (!entity.matchedBy(matcher))
+					return false;
 			}
-			return false;
+			for (Pattern p : getPatterns())
+				entity.matchedBy(p.matcher(""));
+			return true;
 		}
 	}
 
@@ -102,9 +112,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		setListLabelProvider(new LabelProvider());
 	}
 	
-	public EntityChooser(String title, Shell shell) {
-		this(title, shell, null);
-	}
+	public EntityChooser(String title, Shell shell) { this(title, shell, null); }
 
 	@Override
 	public void create() { 
@@ -126,9 +134,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	};
 	
 	@Override
-	protected ItemsFilter createFilter() {
-		return new Filter();
-	}
+	protected ItemsFilter createFilter() { return new Filter(); }
 	
 	@Override
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor) throws CoreException {

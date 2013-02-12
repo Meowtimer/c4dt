@@ -318,7 +318,8 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean matchedBy(Matcher matcher) {
 		if (name() != null && matcher.reset(name()).lookingAt())
 			return true;
-		if (topLevelStructure() != null && topLevelStructure() != this && topLevelStructure().matchedBy(matcher))
+		Structure tls = topLevelStructure();
+		if (tls != null && tls != this && tls.matchedBy(matcher))
 			return true;
 		return false;
 	}

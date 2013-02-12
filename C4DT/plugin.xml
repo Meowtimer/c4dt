@@ -785,6 +785,12 @@
 			sequence="M1+M2+T">
 		</key>
 		<key
+			commandId="net.arctics.clonk.ui.OpenLocalResource"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+M3+2">
+		</key>
+		<key
 			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="net.arctics.clonk.context"
