@@ -512,6 +512,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}
+			@Override
+			public boolean requiresDocumentReparse() { return true; }
 		};
 		proposals.add(prop);
 		return prop;

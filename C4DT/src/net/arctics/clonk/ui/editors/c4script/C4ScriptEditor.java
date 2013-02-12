@@ -658,7 +658,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.parseDeclarations();
 		parser.script().generateFindDeclarationCache();
 		parser.validate();
-		if (!onlyDeclarations)
+		if (!onlyDeclarations && listener != null && listener.typingStrategy() != null)
 			listener.typingStrategy().localTypingContext(parser).reportProblems();
 		parser.markers().deploy();
 

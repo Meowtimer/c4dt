@@ -922,7 +922,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
 		f.printHeader(printer);
 		Conf.blockPrelude(printer, 0);
-		builder.append("{\n\n}"); //$NON-NLS-1$
+		builder.append("{\n"); //$NON-NLS-1$
+		builder.append(Conf.indentString);
+		builder.append("\n}"); //$NON-NLS-1$
 		return builder.toString();
 	}
 
