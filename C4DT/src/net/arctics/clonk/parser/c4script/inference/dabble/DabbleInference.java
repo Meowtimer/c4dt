@@ -1882,7 +1882,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void reportProblems(IterateArrayStatement node, ScriptProcessor processor) throws ParsingException {
 					ControlFlow t = processor.controlFlow;
 					processor.controlFlow = ControlFlow.Continue;
-
 					Variable loopVariable;
 					AccessVar accessVar;
 					ASTNode elementExpr = node.elementExpr();
@@ -1890,12 +1889,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (elementExpr instanceof VarDeclarationStatement)
 						loopVariable = ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable;
 					else if ((accessVar = as(SimpleStatement.unwrap(elementExpr), AccessVar.class)) != null) {
-						if (processor.obtainDeclaration(accessVar) == null) {
+						Declaration d = processor.obtainDeclaration(accessVar);
+						if (d == null) {
 							// implicitly create loop variable declaration if not found
 							SourceLocation varPos = processor.absoluteSourceLocationFromExpr(accessVar);
 							loopVariable = processor.parser.createVarInScope(node.parentOfType(Function.class), accessVar.declarationName(), Scope.VAR, varPos.start(), varPos.end(), null);
 						} else
-							loopVariable = as(accessVar.declaration(), Variable.class);
+							loopVariable = as(d, Variable.class);
 					} else
 						loopVariable = null;
 
@@ -1909,9 +1909,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					processor.newTypeEnvironment();
 					{
 						if (loopVariable != null) {
-							if (elmType != null)
-								judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, processor);
 							loopVariable.setUsed(true);
+							judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, processor);
 						}
 						processor.reportProblemsOf(node.body(), true);
 					}
