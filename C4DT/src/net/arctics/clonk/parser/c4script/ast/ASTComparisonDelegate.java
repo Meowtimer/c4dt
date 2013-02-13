@@ -59,7 +59,10 @@ public class ASTComparisonDelegate {
 	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {}
 	
 	public boolean equal(ASTNode left, ASTNode right) {
-		return left.compare(right, this) || ignoreSubElementDifference(left, right);
+		return
+			(left == null && right == null) ||
+			(left != null && left.compare(right, this)) ||
+			ignoreSubElementDifference(left, right);
 	}
 	
 	public ASTNode[][] compareSubElements(ASTNode[] mine, ASTNode[] others) {
