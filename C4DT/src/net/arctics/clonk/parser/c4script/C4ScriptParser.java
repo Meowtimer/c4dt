@@ -1618,8 +1618,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					} else {
 						unread();
 						ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
-						if (arrayElement != null)
+						if (arrayElement != null) {
+							if (peek() != ',' && peek() != ']')
+								arrayElement = new Unfinished(arrayElement);
 							arrayElms.add(arrayElement);
+						}
 						else {
 							properlyClosed = false;
 							break;

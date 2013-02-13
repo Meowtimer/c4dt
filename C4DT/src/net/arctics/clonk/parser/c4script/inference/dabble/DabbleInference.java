@@ -2052,6 +2052,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ProblemReporter<Unfinished>(Unfinished.class) {
 				@Override
+				public IType type(Unfinished node, ScriptProcessor processor) {
+					return ty(node.expression(), processor);
+				}
+				@Override
 				public void reportProblems(Unfinished node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor.parser, ParserErrorCode.NotFinished, node, node, Markers.NO_THROW, node);
 				}
