@@ -417,7 +417,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		for (ProblemReportingStrategy strategy : ((ProjectIndex)index).nature().settings().instantiateProblemReportingStrategies(0)) {
+		for (ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
 			strategy.initialize(markers, this);
 			strategy.run();
 		}

@@ -4,7 +4,6 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -140,7 +139,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
 		try {
-			this.strategy = ((ProjectIndex)this.declaration.index()).nature().settings()
+			this.strategy = this.declaration.index().nature()
 				.instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
 			return Status.CANCEL_STATUS;

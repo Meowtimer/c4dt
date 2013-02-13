@@ -11,6 +11,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugEvent;
@@ -25,7 +26,7 @@ public class ScriptThread extends DebugElement implements IThread {
 	
 	private StackFrame[] stackFrames;
 	
-	private Map<Script, Function[]> lineToFunctionMaps = new HashMap<Script, Function[]>(); 
+	private final Map<Script, Function[]> lineToFunctionMaps = new HashMap<Script, Function[]>(); 
 	
 	private void nullOut() {
 		stackFrames = NO_STACKFRAMES;
@@ -38,8 +39,8 @@ public class ScriptThread extends DebugElement implements IThread {
 		if (script != null)
 			return script;
 		alreadySearched.add(index);
-		if (index instanceof ProjectIndex) {
-			for (IProject proj : ((ProjectIndex) index).project().getReferencedProjects()) {
+		if (index instanceof ProjectIndex)
+			for (IProject proj : ((ProjectIndex) index).nature().getProject().getReferencedProjects()) {
 				ProjectIndex projIndex = ProjectIndex.get(proj);
 				if (projIndex != null) {
 					Script _result = findScript(path, projIndex, alreadySearched);
@@ -47,7 +48,6 @@ public class ScriptThread extends DebugElement implements IThread {
 						return _result;
 				}
 			}
-		}
 		return null;
 	}
 
@@ -74,13 +74,12 @@ public class ScriptThread extends DebugElement implements IThread {
 			Script script = findScript(sourcePath, index, new HashSet<Index>());
 			Function f = script != null ? funcAtLine(script, line) : null;
 			Object funObj = f != null ? f : fullSourcePath;
-			if (stillToBeReused > 0) {
+			if (stillToBeReused > 0)
 				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
 					newStackFrames[i] = stackFrames[--stillToBeReused];
 					newStackFrames[i].setLine(line);
 					continue;
 				}
-			}
 			newStackFrames[i] = new StackFrame(this, f != null ? f : fullSourcePath, line);
 		}
 		stackFrames = newStackFrames;

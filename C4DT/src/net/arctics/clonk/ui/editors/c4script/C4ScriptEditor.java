@@ -20,7 +20,6 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -161,7 +160,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		protected void added() {
 			super.added();
 			try {
-				problemReportingStrategies = ((ProjectIndex)structure.index()).nature().settings().instantiateProblemReportingStrategies(0);
+				problemReportingStrategies = structure.index().nature().instantiateProblemReportingStrategies(0);
 				for (ProblemReportingStrategy strategy : problemReportingStrategies)
 					if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 						typingStrategy = strategy;
@@ -618,6 +617,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected TextChangeListener textChangeListener() { return textChangeListener; }
+	
+	public ProblemReportingStrategy typingStrategy() { return textChangeListener().typingStrategy(); }
 
 	public Function functionAt(int offset) {
 		Script script = script();

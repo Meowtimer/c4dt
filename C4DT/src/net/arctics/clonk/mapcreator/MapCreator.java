@@ -26,7 +26,7 @@ public abstract class MapCreator {
 		IContainer materialsContainer = null;
 		for (Index i : scenarioConfiguration.index().relevantIndexes())
 			if (i instanceof ProjectIndex) {
-				materialsContainer = as(i.project().findMember
+				materialsContainer = as(i.nature().getProject().findMember
 					(i.engine().groupName("Material", GroupType.ResourceGroup)), IContainer.class);
 				if (materialsContainer != null)
 					break;

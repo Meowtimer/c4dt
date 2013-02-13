@@ -148,7 +148,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										if (index instanceof ProjectIndex) {
 											ProjectIndex pi = (ProjectIndex) index;
 											IPath path = Path.fromPortableString(value.replaceAll("\\\\", "/"));
-											IResource res = pi.project().findMember(path);
+											IResource res = pi.nature().getProject().findMember(path);
 											if (res instanceof IContainer)
 												return new IHyperlink[] {
 													new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())

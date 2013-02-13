@@ -551,7 +551,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			ProjectIndex projIndex = (ProjectIndex) index;
 			try {
 				List<Index> newOnes = new LinkedList<Index>();
-				for (IProject p : projIndex.project().getReferencedProjects()) {
+				for (IProject p : projIndex.nature().getProject().getReferencedProjects()) {
 					ClonkProjectNature n = ClonkProjectNature.get(p);
 					if (n != null && n.index() != null && !result.contains(n.index()))
 						newOnes.add(n.index());
@@ -768,14 +768,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex#project()}.
+	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex#nature()}.
 	 * @return The project
 	 */
-	public IProject project() {return null;}
+	public ClonkProjectNature nature() {return null;}
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj == this || (obj instanceof Index && ((Index)obj).project() == this.project());
+		return obj == this || (obj instanceof Index && ((Index)obj).nature() == this.nature());
 	}
 
 	/**
@@ -783,8 +783,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	@Override
 	public int hashCode() {
-		if (project() != null)
-			return project().getName().hashCode(); // project name should be unique
+		if (nature() != null)
+			return nature().getProject().getName().hashCode(); // project name should be unique
 		else
 			return super.hashCode();
 	}

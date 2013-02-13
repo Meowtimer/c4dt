@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,10 +16,13 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.StreamUtil;
 
@@ -64,27 +68,16 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private ProjectSettings settings;
 
-	public ClonkProjectNature() {
-	}
+	public ClonkProjectNature() {}
 
 	@Override
-	public void configure() throws CoreException {
-		System.out.println("ClonkProjectNature.configure"); //$NON-NLS-1$
-	}
-
+	public void configure() throws CoreException {}
 	@Override
-	public void deconfigure() throws CoreException {
-	}
-
+	public void deconfigure() throws CoreException {}
 	@Override
-	public IProject getProject() {
-		return project;
-	}
-
+	public IProject getProject() { return project; }
 	@Override
-	public void setProject(IProject project) {
-		this.project = project;
-	}
+	public void setProject(IProject project) { this.project = project; }
 
 	/**
 	 * Returns the index of the project, loading it from disk if necessary.
@@ -278,7 +271,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
 			return get((IResource)((IStructuredSelection)selection).getFirstElement());
 		else if (part instanceof ClonkTextEditor)
-			return ClonkProjectNature.get(((ClonkTextEditor)part).topLevelDeclaration().index().project());
+			return ClonkProjectNature.get(((ClonkTextEditor)part).topLevelDeclaration().index().nature().getProject());
 		return null;
 	}
 
@@ -343,6 +336,25 @@ public class ClonkProjectNature implements IProjectNature {
 			return engineFromResource((IResource) ((IStructuredSelection)selection).getFirstElement());
 		else
 			return null;
+	}
+	
+	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
+		if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+			return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
+		Collection<Class<? extends ProblemReportingStrategy>> classes = settings().problemReportingStrategies();
+		List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
+		for (Class<? extends ProblemReportingStrategy> c : classes) {
+			Capabilities caps = c.getAnnotation(Capabilities.class);
+			if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
+				continue;
+			try {
+				instances.add(c.newInstance());
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		return instances;
 	}
 
 }

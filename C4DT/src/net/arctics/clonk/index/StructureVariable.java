@@ -25,7 +25,7 @@ public class StructureVariable extends Variable implements IReplacedWhenSaved {
 		public Object resolve(Index index) {
 			ProjectIndex prj = as(index, ProjectIndex.class);
 			if (prj != null) {
-				IResource res = prj.project().findMember(resourcePath);
+				IResource res = prj.nature().getProject().findMember(resourcePath);
 				if (res != null) {
 					Structure structure = Structure.pinned(res, true, false);
 					if (structure != null)

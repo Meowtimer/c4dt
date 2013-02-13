@@ -2,7 +2,6 @@ package net.arctics.clonk.resource;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,10 +13,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.inireader.IniField;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StringUtil;
 
@@ -112,25 +109,6 @@ public class ProjectSettings extends SettingsBase {
 				_problemReportingStrategies.add(DabbleInference.class);
 			}
 		return _problemReportingStrategies;
-	}
-	
-	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
-		if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
-			return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
-		Collection<Class<? extends ProblemReportingStrategy>> classes = problemReportingStrategies();
-		List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
-		for (Class<? extends ProblemReportingStrategy> c : classes) {
-			Capabilities caps = c.getAnnotation(Capabilities.class);
-			if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
-				continue;
-			try {
-				instances.add(c.newInstance());
-			} catch (InstantiationException | IllegalAccessException e) {
-				e.printStackTrace();
-				continue;
-			}
-		}
-		return instances;
 	}
 	
 	public void setDisabledErrors(String disabledErrors) {

@@ -32,17 +32,13 @@ public class ProjectIndex extends Index {
 	private transient ClonkProjectNature nature;
 	
 	@Override
-	public Engine engine() {
-		return nature.settings().engine();
-	}
-	
+	public Engine engine() { return nature.settings().engine(); }
 	/**
-	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #project()})
+	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #nature()})
 	 * @return The {@link ClonkProjectNature}
 	 */
-	public final ClonkProjectNature nature() {
-		return nature;
-	}
+	@Override
+	public ClonkProjectNature nature() { return nature; }
 	
 	/**
 	 * Initialize a new ProjectIndex for the given project.
@@ -71,14 +67,6 @@ public class ProjectIndex extends Index {
 		nature = ClonkProjectNature.get(project);
 	}
 	
-	/**
-	 * Return the project the index belongs to.
-	 */
-	@Override
-	public IProject project() {
-		return project;
-	}
-
 	@Override
 	public void postLoad() throws CoreException {
 		super.postLoad();
@@ -119,7 +107,7 @@ public class ProjectIndex extends Index {
 	 */
 	@Override
 	public Script findScriptByPath(String path) {
-		IResource res = project().findMember(new Path(path));
+		IResource res = nature().getProject().findMember(new Path(path));
 		if (res != null) {
 			Script result;
 			try {
@@ -170,7 +158,7 @@ public class ProjectIndex extends Index {
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {
-					((ProjectIndex)i).project().accept(finder);
+					((ProjectIndex)i).nature().getProject().accept(finder);
 				} catch (CoreException e) {
 					e.printStackTrace();
 					continue;

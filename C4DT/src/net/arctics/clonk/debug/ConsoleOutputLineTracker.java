@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -54,15 +56,15 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		resourcesInRelevantProjects = getSubResourcesFromResourceCollection(ArrayUtil.map(nature.index().relevantIndexes(), new IConverter<Index, IResource>() {
 			@Override
 			public IResource convert(Index from) {
-				return from.project();
+				return from.nature().getProject();
 			}
 		}), null);
 	}
 	
 	private static class FileHyperlink implements IHyperlink {
 		
-		private IFile file;
-		private int line;
+		private final IFile file;
+		private final int line;
 
 		public FileHyperlink(IFile file, int line) {
 			super();
@@ -80,9 +82,8 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		public void linkActivated() {
 			try {
 				IEditorPart part = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), file);
-				if (part instanceof ClonkTextEditor) {
+				if (part instanceof ClonkTextEditor)
 					((ClonkTextEditor)part).selectAndRevealLine(line);
-				}
 			} catch (PartInitException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -95,14 +96,13 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		if (parentName != null)
 			parentName = parentName.toUpperCase();
 		List<IResource> result = new LinkedList<IResource>();
-		for (IResource r : parentResources) {
+		for (IResource r : parentResources)
 			if (r instanceof IContainer && (parentName == null || r.getName().toUpperCase().equals(parentName)))
 				try {
 					result.addAll(Arrays.asList(((IContainer)r).members()));
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-		}
 		return result;
 	}
 
@@ -153,12 +153,11 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 				for (lineStart = ++i; i < lineStr.length() && Character.isDigit(lineStr.charAt(i)); i++);
 				try {
 					int lineNumber = Integer.parseInt(lineStr.substring(lineStart, i));
-					for (IResource r : resourceCandidatesAtCurrentFolderLevel) {
+					for (IResource r : resourceCandidatesAtCurrentFolderLevel)
 						if (r instanceof IFile && r.getName().toUpperCase().equals(lastPathPart)) {
 							console.addLink(new FileHyperlink((IFile) r, lineNumber), lineRegion.getOffset()+pathStart, i-pathStart);
 							break;
 						}
-					}
 				} catch (Exception e) {
 					// probably no line number
 					i++;

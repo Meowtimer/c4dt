@@ -604,7 +604,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private void readVariablesFromPlayerControlsFile(final Index index) {
 		try {
-			index.project().accept(new IResourceVisitor() {
+			index.nature().getProject().accept(new IResourceVisitor() {
 				@Override
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource instanceof IContainer)
