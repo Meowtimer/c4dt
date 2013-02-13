@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -45,6 +46,7 @@ import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
+import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -86,7 +88,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private static final ICompletionProposal[] NO_SUGGESTIONS = new ICompletionProposal[0];
 	private static C4ScriptQuickAssistProcessor singleton;
 
-	public static C4ScriptQuickAssistProcessor getSingleton() { return singleton; }
+	public static C4ScriptQuickAssistProcessor singleton() { return singleton; }
 
 	public C4ScriptQuickAssistProcessor() {
 		super();
@@ -411,30 +413,30 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return "par"+index; //$NON-NLS-1$
 	}
 
-	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Object editorOrScript) {
-
+	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, C4ScriptEditor editor) {
+		if (document == null)
+			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+		if (document == null)
+			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script()));
+	}
+	
+	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
 		ParserErrorCode errorCode = ParserErrorCode.errorCode(marker);
 		final IRegion expressionRegion = ParserErrorCode.expressionLocation(marker);
 		if (expressionRegion.getOffset() == -1)
 			return;
-		C4ScriptEditor editor = editorOrScript instanceof C4ScriptEditor ? (C4ScriptEditor)editorOrScript : null;
-		Script script = editorOrScript instanceof Script
-			? (Script)editorOrScript
-			: editor != null ? editor.script() : null;
 		Object needToDisconnect = null;
-		if (document == null)
-			if (editor != null)
-				document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			else if (script != null && script.scriptStorage() instanceof IFile) {
-				needToDisconnect = script.scriptStorage();
-				try {
-					Core.instance().textFileDocumentProvider().connect(needToDisconnect);
-				} catch (CoreException e) {
-					e.printStackTrace();
-					return;
-				}
-				document = Core.instance().textFileDocumentProvider().getDocument(needToDisconnect);
+		if (document == null && script != null && script.scriptStorage() instanceof IFile) {
+			needToDisconnect = script.scriptStorage();
+			try {
+				Core.instance().textFileDocumentProvider().connect(needToDisconnect);
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return;
 			}
+			document = Core.instance().textFileDocumentProvider().getDocument(needToDisconnect);
+		}
 		try {
 			if (script == null || document == null)
 				return;
@@ -456,15 +458,16 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).declarationName()), 0)
 					);
 					break;
-				case NeverReached: {
-					String s = topLevel.toString();
-					replacements.add(
-						Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-						new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
-					);
-					addRemoveReplacement(document, expressionRegion, replacements, func);
-					break;
-				}
+				case NeverReached:
+					{
+						String s = topLevel.toString();
+						replacements.add(
+							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
+							new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
+						);
+						addRemoveReplacement(document, expressionRegion, replacements, func);
+						break;
+					}
 				case KeywordInWrongPlace:
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
@@ -472,7 +475,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).expression()))
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-							topLevel // will be added by converting topLevel to string
+							topLevel instanceof Unfinished ? Unfinished.unwrap(topLevel) : topLevel // will be added by converting topLevel to string
 						);
 					break;
 				case UndeclaredIdentifier:
@@ -492,7 +495,6 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 						}
 					if (offendingExpression instanceof AccessDeclaration) {
-
 						AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
 
 						// create new variable or function
@@ -517,7 +519,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 							int p = 0;
 							for (ASTNode parm : callFunc.params())
-								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.inferredType()));
+								parms.add(new Variable(parmNameFromExpression(parm, ++p), problemReporting.typeOf(parm)));
 							function.setParameters(parms);
 						}
 
@@ -701,7 +703,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				try {
 					replacements.add(
 						Messages.ClonkQuickAssistProcessor_TidyUp,
-						topLevel.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()))
+						topLevel.exhaustiveOptimize(problemReporting)
 					);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
