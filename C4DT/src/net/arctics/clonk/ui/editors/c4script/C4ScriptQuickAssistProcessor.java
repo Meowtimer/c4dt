@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -32,6 +33,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
@@ -446,7 +448,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			func.traverse(locator, this);
 			FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 			ASTNode offendingExpression = locator.expressionAtRegion();
-			Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
+			final Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
 
 			if (offendingExpression != null && topLevel != null) {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
@@ -461,10 +463,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				case NeverReached:
 					{
 						String s = topLevel.toString();
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-							new Comment(topLevel.toString(), s.contains("\n"), false) //$NON-NLS-1$
-						);
+						try {
+							replacements.add(
+								Messages.ClonkQuickAssistProcessor_CommentOutStatement,
+								new Comment(document.get(expressionRegion.getOffset()+func.bodyLocation().start(), expressionRegion.getLength()),
+									s.contains("\n"), false) //$NON-NLS-1$
+							);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
 						addRemoveReplacement(document, expressionRegion, replacements, func);
 						break;
 					}
@@ -472,11 +479,20 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
 				case NotFinished:
-					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).expression()))
+					if (topLevel instanceof Unfinished) {
+						final boolean arrayElement = topLevel.parent() instanceof ArrayExpression;
 						replacements.add(
-							Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-							topLevel instanceof Unfinished ? Unfinished.unwrap(topLevel) : topLevel // will be added by converting topLevel to string
-						);
+							arrayElement ? Messages.C4ScriptQuickAssistProcessor_AddMissingComma : Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+							new ASTNode() {
+								private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+								@Override
+								public void doPrint(ASTNodePrinter output, int depth) {
+									Unfinished.unwrap(topLevel).print(output, depth);
+									output.append(arrayElement ? ',' : ';');
+								}
+							}, false, true
+						);	
+					}
 					break;
 				case UndeclaredIdentifier:
 					if (offendingExpression instanceof AccessVar && offendingExpression.parent() instanceof BinaryOp) {
@@ -494,7 +510,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							opWithTilde.setLocation(offendingExpression.predecessorInSequence());
 							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 						}
-					if (offendingExpression instanceof AccessDeclaration) {
+					if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessorInSequence() == null) {
 						AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
 
 						// create new variable or function
@@ -589,12 +605,15 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					break;
 				case IncompatibleTypes:
 					PrimitiveType t = PrimitiveType.fromString(ParserErrorCode.arg(marker, 0), true);
-					if (t == PrimitiveType.STRING)
+					if (t == PrimitiveType.STRING) {
+						StringLiteral str = new StringLiteral(offendingExpression.toString());
+						str.setLocation(offendingExpression);
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_QuoteExpression,
-							new StringLiteral(offendingExpression.toString()),
-							false, false
+							str,
+							false, true
 						);
+					}
 					if (
 						isAnyOf(t, PrimitiveType.NILLABLES) &&
 						(offendingExpression instanceof IntegerLiteral && ((IntegerLiteral)offendingExpression).longValue() == 0)
@@ -677,7 +696,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								if (parser.peek() == ',')
 									regionToDelete.setStartAndEnd(parser.tell(), cur.end());
 							} else {
-								addRemoveReplacement(document, expressionRegion, replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
+								addRemoveReplacement(document, offendingExpression.parent(), replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
 								break;
 							}
 						} else

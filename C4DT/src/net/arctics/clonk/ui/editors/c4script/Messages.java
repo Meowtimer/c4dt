@@ -18,6 +18,7 @@ public class Messages extends NLS {
 	public static String C4ScriptCompletionProcessor_ShownData;
 	public static String C4ScriptCompletionProcessor_NoParameters;
 	public static String C4ScriptCompletionProcessor_NoProposalsAvailable;
+	public static String C4ScriptQuickAssistProcessor_AddMissingComma;
 	public static String C4ScriptQuickAssistProcessor_Replace0WithNil;
 	public static String C4ScriptSourceViewerConfiguration_StandardProposals;
 	public static String C4ScriptSourceViewerConfiguration_PressTabOrClick;
