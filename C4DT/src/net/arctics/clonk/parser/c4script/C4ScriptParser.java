@@ -1605,29 +1605,35 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				Vector<ASTNode> arrayElms = new Vector<ASTNode>(10);
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
-				while (!reachedEOF()) {
+				Loop: while (!reachedEOF()) {
 					eatWhitespace();
 					c = read();
-					if (c == ',') {
+					switch (c) {
+					case ',':
 						if (!expectingComma)
 							arrayElms.add(null);
-						expectingComma = false;
-					} else if (c == ']') {
-						properlyClosed = true;
+						else
+							expectingComma = false;
 						break;
-					} else {
+					case ']':
+						properlyClosed = true;
+						break Loop;
+					case ';':
+						properlyClosed = false;
+						break Loop;
+					default:
 						unread();
 						ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
 						if (arrayElement != null) {
-							if (peek() != ',' && peek() != ']')
-								arrayElement = new Unfinished(arrayElement);
+							if (expectingComma) {
+								ASTNode last = arrayElms.get(arrayElms.size()-1);
+								if (last != null)
+									arrayElms.set(arrayElms.size()-1, new Unfinished(last));
+								expectingComma = false;
+							}
 							arrayElms.add(arrayElement);
+							expectingComma = true;
 						}
-						else {
-							properlyClosed = false;
-							break;
-						}
-						expectingComma = true;
 					}
 				}
 				if (!properlyClosed)
