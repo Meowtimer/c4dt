@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -247,8 +248,9 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	 * Create error markers in scripts for StringTbl references where the entry is missing from some of the StringTbl**.txt files
 	 * @param context The parser
 	 * @param region The region describing the string table reference in question
+	 * @param node
 	 */
-	public static void reportMissingStringTblEntries(ProblemReportingContext context, EntityRegion region) {
+	public static void reportMissingStringTblEntries(ProblemReportingContext context, EntityRegion region, ASTNode node) {
 		StringBuilder listOfLangFilesItsMissingIn = null;
 		try {
 			for (IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
@@ -271,7 +273,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		} catch (CoreException e) {}
 		if (listOfLangFilesItsMissingIn != null)
-			context.markers().warning(context, ParserErrorCode.MissingLocalizations, null, region.region(), 0, listOfLangFilesItsMissingIn);
+			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, listOfLangFilesItsMissingIn);
 	}
 
 }

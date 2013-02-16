@@ -1704,7 +1704,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (i+1 < valueLen && value.charAt(i) == '$') {
 							EntityRegion region = StringTbl.entryRegionInString(lit, node.start(), (i+1));
 							if (region != null) {
-								StringTbl.reportMissingStringTblEntries(processor, region);
+								StringTbl.reportMissingStringTblEntries(processor, region, node);
 								i += region.region().getLength();
 								continue;
 							}
@@ -1984,7 +1984,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ProblemReporter<Placeholder>(Placeholder.class) {
 				@Override
 				public void reportProblems(Placeholder node, ScriptProcessor processor) throws ParsingException {
-					StringTbl.reportMissingStringTblEntries(processor, new EntityRegion(null, node, node.entryName()));
+					StringTbl.reportMissingStringTblEntries(processor, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
