@@ -1213,6 +1213,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public void setTypeDescription(String description) {}
 
+	/**
+	 * Return whether this function is accessible from this script - that is, it belongs to this script or one included by it and is
+	 * not overridden.
+	 * @param function
+	 * @return
+	 */
+	public final boolean seesFunction(Function function) {
+		return cachedFunctionMap.get(function.name()) == function;
+	}
+
 	private void _generateFindDeclarationCache() {
 		List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);

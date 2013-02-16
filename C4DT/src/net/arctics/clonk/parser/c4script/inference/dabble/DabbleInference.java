@@ -478,8 +478,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 						} catch (ParsingException e) {}
 				}
 			}
-			for (Function f : script.functions())
+			for (Function f : script.functions()) {
+				// skip function that have been overridden
+				if (foreign && !script().seesFunction(f))
+					continue;
 				reportProblemsOfFunction(f, foreign);
+			}
 			visitee = null;
 		}
 
@@ -962,7 +966,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					else if (d instanceof ITypeable)
 						return ((ITypeable) d).type();
-					//return new SameTypeAsSomeTypeable((ITypeable)d);
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
@@ -1483,7 +1486,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else
 							pred = pred.predecessorInSequence();
 					// allow this->Unknown()
-					if (pred instanceof AccessDeclaration && (isAnyOf((Object)((AccessDeclaration)pred).declaration(), Variable.THIS, processor.cachedEngineDeclarations().This)))
+					AccessDeclaration ad = as(pred, AccessDeclaration.class);
+					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == processor.cachedEngineDeclarations().This))
 						return false;
 					boolean anyDefinitions = false;
 					for (IType t : predType)

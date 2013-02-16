@@ -20,7 +20,7 @@ final class FunctionReturnTypeInfo extends TypeInfo {
 	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
 		if (expr instanceof CallDeclaration) {
 			CallDeclaration callFunc = (CallDeclaration) expr;
-			if (callFunc.declaration() == this.function)
+			if (callFunc.declaration() instanceof Function && ((Function)callFunc.declaration()).baseFunction() == baseFunction)
 				return true;
 		}
 		return false;
