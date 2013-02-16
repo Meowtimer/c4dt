@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 
-public class Tuple extends ExprElmWithSubElementsArray {
+public class Tuple extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 

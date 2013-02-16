@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
-public class ArrayExpression extends ExprElmWithSubElementsArray {
+public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 

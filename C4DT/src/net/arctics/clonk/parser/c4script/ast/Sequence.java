@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
-public class Sequence extends ExprElmWithSubElementsArray {
+public class Sequence extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
