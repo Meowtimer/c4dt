@@ -422,7 +422,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script()));
 	}
-	
+
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
 		ParserErrorCode errorCode = ParserErrorCode.errorCode(marker);
 		final IRegion expressionRegion = ParserErrorCode.expressionLocation(marker);
@@ -491,7 +491,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									output.append(arrayElement ? ',' : ';');
 								}
 							}, false, true
-						);	
+						);
 					}
 					break;
 				case UndeclaredIdentifier:
@@ -506,7 +506,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					if (offendingExpression instanceof CallDeclaration)
 						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
-							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).getId(), 3);
+							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).id(), 3);
 							opWithTilde.setLocation(offendingExpression.predecessorInSequence());
 							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 						}

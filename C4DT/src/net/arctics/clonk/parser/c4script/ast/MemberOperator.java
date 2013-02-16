@@ -6,17 +6,13 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 import org.eclipse.jface.text.Region;
 
 /**
- * Either '->' or '.' operator. As a middleman, this operator delegates some of its operations to its predecessor, like
- * type expectations ({@link #typeJudgement(IType, C4ScriptParser, TypingJudgementMode, ParserErrorCode)}) or obtainment of its own type ({@link #unresolvedType(ProblemReportingContext)}).<br/>
- * Different typing assumptions are made based on the notation.
+ * Either '->' or '.' operator.
  * @author madeen
  *
  */
@@ -25,11 +21,12 @@ public class MemberOperator extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	boolean dotNotation;
 	private final boolean hasTilde;
-	private ID id;
+	private final ID id;
 	private int idOffset;
 
 	public ID id() { return id; }
 	public boolean dotNotation() { return dotNotation; }
+	public boolean hasTilde() { return hasTilde; }
 
 	@Override
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
@@ -65,9 +62,7 @@ public class MemberOperator extends ASTNode {
 		this.idOffset = idOffset;
 	}
 
-	public static MemberOperator dotOperator() {
-		return new MemberOperator(true, false, null, 0);
-	}
+	public static MemberOperator makeDotOperator() { return new MemberOperator(true, false, null, 0); }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
@@ -87,38 +82,12 @@ public class MemberOperator extends ASTNode {
 	}
 
 	/**
-	 * Get the optionally specified id (->CLNK::)
-	 * @return The {@link ID} or null
-	 */
-	public ID getId() {
-		return id;
-	}
-
-	/**
-	 * Set the optionally specified id.
-	 * @param id The {@link ID} to set
-	 */
-	public void setId(ID id) {
-		this.id = id;
-	}
-
-	/**
 	 * MemberOperators are never valid when not preceded by another {@link ASTNode}
 	 */
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
-		if (predecessor != null)
-			/*IType t = predecessor.getType(context);
-			if (t == null || t.subsetOfType(C4TypeSet.ARRAY_OR_STRING))
-				return false;*/
-			return true;
-		return false;
-	}
-
+	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor != null; }
 	@Override
-	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
-		return false;
-	}
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return false; }
 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
@@ -137,16 +106,12 @@ public class MemberOperator extends ASTNode {
 		return true;
 	}
 
-	public boolean hasTilde() {
-		return hasTilde;
-	}
-
 	@Override
 	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
 		if (context.script().engine().settings().supportsProplists) {
 			ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
-				return dotOperator();
+				return makeDotOperator();
 		}
 		return super.optimize(context);
 	}
