@@ -273,7 +273,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		} catch (CoreException e) {}
 		if (listOfLangFilesItsMissingIn != null)
-			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, listOfLangFilesItsMissingIn);
+			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, region.text(), listOfLangFilesItsMissingIn);
 	}
 
 }

@@ -33,11 +33,11 @@ import org.eclipse.jface.util.PropertyChangeEvent;
  *
  */
 public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy implements IPropertyChangeListener {
-	
+
 	private static class Autopair {
 		public static final int FOLLOWSIDENT = 1;
 		public static final int PRECEDESWHITESPACE = 2;
-		
+
 		public String start, end;
 		public int flags;
 
@@ -52,13 +52,14 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			return (flags & situation) == flags && c.text.endsWith(start);
 		}
 	}
-	
+
 	private static final Autopair PARM_BRACKETS_AUTOPAIR = new Autopair("(", ")", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE);
 	private static final Autopair[] AUTOPAIRS = {
 		PARM_BRACKETS_AUTOPAIR,
-		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE)
+		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE),
+		new Autopair("$", "$", 0)
 	};
-	
+
 	private static class AutoInsertedRegion extends MutableRegion {
 		public MutableRegion cause;
 		public AutoInsertedRegion(int offset, int length, MutableRegion cause) {
@@ -66,7 +67,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			this.cause = cause;
 		}
 	}
-	
+
 	private static class WeakListenerManagerPCL extends WeakListenerManager<IPropertyChangeListener> implements IPropertyChangeListener	{
 		public WeakListenerManagerPCL() {
 			Core.instance().getPreferenceStore().addPropertyChangeListener(this);
@@ -79,13 +80,13 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					ref.get().propertyChange(event);
 		}
 	}
-	
+
 	private static final WeakListenerManagerPCL weakListenerManager = new WeakListenerManagerPCL();
-	
+
 	private final C4ScriptSourceViewerConfiguration configuration;
 	private final List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	private boolean disabled;
-	
+
 	public C4ScriptSourceViewerConfiguration getConfiguration() {
 		return configuration;
 	}
@@ -120,7 +121,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 		if (tabOverOverrideRegion(c))
@@ -183,9 +184,9 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		overrideRegionTrespassed = ignoreUserInputIfDuplicatingAutoPair(d, c);
 
 		AutoInsertedRegion newOne = null;
-		
+
 		if (!overrideRegionTrespassed && !disabled) {
-			
+
 			// look out for creation of new override region
 			int situation = 0;
 			try {
@@ -196,7 +197,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 				if (Character.isWhitespace(d.getChar(c.offset)))
 					situation |= Autopair.PRECEDESWHITESPACE;
 			} catch (BadLocationException e) {}
-			
+
 			for (Autopair autopair : AUTOPAIRS)
 				if (autopair.applies(c, d, situation)) {
 					overrideRegions.add(0, newOne = new AutoInsertedRegion(c.offset+c.text.length(), autopair.end.length(), new MutableRegion(c.offset, c.text.length())));
@@ -206,7 +207,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					break;
 				}
 		}
-		
+
 		// inc offset of existing regions
 		for (int i = newOne != null ? 1 : 0; i < overrideRegions.size(); i++) {
 			AutoInsertedRegion r = overrideRegions.get(i);
@@ -268,7 +269,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			}
 		}
 	}
-	
+
 	public void handleCursorPositionChanged(int cursorPos, IDocument d) {
 		if (!overrideRegions.isEmpty())
 			try {
@@ -322,5 +323,5 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		if (event.getProperty().equals(ClonkPreferences.NO_AUTOBRACKETPAIRS))
 			disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
-	
+
 }

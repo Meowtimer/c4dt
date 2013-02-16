@@ -22,10 +22,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
-	
+
 	/** Associated declaration */
 	private final Declaration declaration;
-	
+
 	/** The string to be displayed in the completion proposal popup. */
 	private String displayString;
 	/** The string to be displayed after the display string. */
@@ -45,19 +45,19 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	private final IContextInformation contextInformation;
 	/** The additional info of this proposal. */
 	private String additionalProposalInfo;
-	
+
 	/** Editor the proposal was created for */
 	private ClonkTextEditor editor;
-	
+
 	/** Category for sorting */
 	private int category;
-	
+
 	private boolean displayStringRecomputationNecessary;
 
 	public void setEditor(ClonkTextEditor editor) {
 		this.editor = editor;
 	}
-	
+
 	public String replacementString() { return replacementString; }
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
@@ -129,7 +129,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		);
 		displayStringRecomputationNecessary = true;
 	}
-	
+
 	public Declaration declaration() {
 		return declaration;
 	}
@@ -223,13 +223,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		result.append(postInfo, StyledString.QUALIFIER_STYLER);
 		return result;
 	}
-	
+
 	public static final Pattern VALID_PREFIX_PATTERN = Pattern.compile("\\w+");
-	
+
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
-		if (declaration == null)
-			return false;
 		try {
 			int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
@@ -240,10 +238,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 					if (s.toLowerCase().contains(prefix))
 						return true;
 				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (declaration.name().toLowerCase().contains(content))
-					return true;
-				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
-					return true;
+				if (declaration != null) {
+					if (declaration.name().toLowerCase().contains(content))
+						return true;
+					if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
+						return true;
+				}
 			}
 		} catch (BadLocationException e) {
 			// concurrent modification - ignore
@@ -264,7 +264,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	@Override
 	public void unselected(ITextViewer viewer) {
 	}
-	
+
 	public String[] identifiers() {
 		if (declaration != null) {
 			String decName = declaration.name();
@@ -277,7 +277,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		}
 		return new String[] {replacementString()};
 	}
-	
+
 	public String primaryComparisonIdentifier() {
 		if (declaration instanceof Definition)
 			return ((Definition)declaration).id().stringValue();
@@ -285,7 +285,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			return displayString;
 		return replacementString;
 	}
-	
+
 	public boolean requiresDocumentReparse() { return false; }
-	
+
 }

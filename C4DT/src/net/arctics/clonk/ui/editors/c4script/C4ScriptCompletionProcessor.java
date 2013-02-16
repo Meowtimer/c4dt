@@ -5,8 +5,11 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
@@ -21,6 +24,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Directive;
@@ -42,11 +46,14 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
+import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -58,18 +65,16 @@ import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.bindings.TriggerSequence;
 import org.eclipse.jface.bindings.keys.KeySequence;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -214,11 +219,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
-		try {
-			ITypedRegion region = doc.getPartition(wordOffset);
-			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
-				return null;
-		} catch (BadLocationException e) {}
+//		try {
+//			ITypedRegion region = doc.getPartition(wordOffset);
+//			if (region != null && !region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE))
+//				return null;
+//		} catch (BadLocationException e) {}
 
 		boolean returnProposals = activeFunc == null
 			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
@@ -327,6 +332,40 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				typingContext = typingStrategy.localTypingContext(parser);
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
+				if (contextExpression instanceof Placeholder || contextExpression instanceof StringLiteral) {
+					try {
+						if (doc.getChar(offset-1) != '$')
+							return;
+					} catch (BadLocationException e1) {
+						return;
+					}
+					Set<String> availableLocalizationStrings = new HashSet<>();
+					try {
+						for (IResource r : (editorScript.resource() instanceof IContainer ? (IContainer)editorScript.resource() : editorScript.resource().getParent()).members()) {
+							if (!(r instanceof IFile))
+								continue;
+							IFile f = (IFile) r;
+							Matcher m = StringTbl.PATTERN.matcher(r.getName());
+							if (m.matches()) {
+								StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
+								if (tbl != null)
+									availableLocalizationStrings.addAll(tbl.map().keySet());
+							}
+						}
+					} catch (CoreException e) {
+						e.printStackTrace();
+					}
+					Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
+					for (String loc : availableLocalizationStrings) {
+						if (prefix != null && !stringMatchesPrefix(loc, prefix))
+							continue;
+						ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, offset, prefix != null ? prefix.length() : 0 , loc.length(),
+							keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
+						prop.setCategory(cats.Keywords);
+						proposals.add(prop);
+					}
+					return;
+				}
 				innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
 				cats.defaultOrdering();
 				if (innermostCallFunc != null && innermostCallFunc == contextExpression.parent()) {
@@ -426,16 +465,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
-			ImageRegistry reg = Core.instance().getImageRegistry();
-			if (reg.get("keyword") == null) //$NON-NLS-1$
-				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+			Image keywordImg = UI.imageForPath("icons/keyword.png");
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
-				if (prefix != null)
-					if (!stringMatchesPrefix(keyword, prefix))
-						continue;
-				int replacementLength = 0;
-				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
+					continue;
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
+					keyword, null ,null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 				prop.setCategory(cats.Keywords);
 				proposals.add(prop);
 			}
@@ -575,12 +610,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (prefix != null)
 						if (!stringMatchesPrefix(declarator, prefix))
 							continue;
-					ImageRegistry reg = Core.instance().getImageRegistry();
-					if (reg.get("declarator") == null) //$NON-NLS-1$
-						reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(Core.instance().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+					Image declaratorImg = UI.imageForPath("icons/declarator.png");
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 					prop.setCategory(cats.Keywords);
 					proposals.add(prop);
 				}
@@ -735,7 +768,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void configureActivation() {
 		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz".toCharArray()
+			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray()
 			: new char[0];
 		proposalAutoActivationCharacters[0] = new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};
