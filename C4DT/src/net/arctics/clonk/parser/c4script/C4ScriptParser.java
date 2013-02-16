@@ -1426,7 +1426,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null)
-				if (!elm.isValidInSequence(prevElm, this)) {
+				if (!(prevElm instanceof Placeholder || elm.isValidInSequence(prevElm, this))) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					proper = false;
 				} else {
