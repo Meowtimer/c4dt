@@ -444,9 +444,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The inherited function
 	 */
 	public Function inheritedFunction() {
-		if (cachedInherited == null)
-			cachedInherited = defaulting(internalInherited(), NO_FUNCTION);
 		return cachedInherited == NO_FUNCTION ? null : cachedInherited;
+	}
+
+	public final void findInherited() {
+		cachedInherited = defaulting(internalInherited(), NO_FUNCTION);
 	}
 
 	private Function internalInherited() {

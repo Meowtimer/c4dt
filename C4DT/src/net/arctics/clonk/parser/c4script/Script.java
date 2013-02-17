@@ -1249,6 +1249,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		cachedFunctionMap = new HashMap<>();
 		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
+		if (definedFunctions != null && index() != null)
+			for (Function f : definedFunctions)
+				f.findInherited();
 	}
 
 	@Override
