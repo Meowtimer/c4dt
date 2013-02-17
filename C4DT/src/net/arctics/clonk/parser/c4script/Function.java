@@ -461,29 +461,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				return fun;
 		}
 
-		// search in index
-		List<Declaration> decsWithSameName = index().declarationMap().get(this.name());
-		if (decsWithSameName != null) {
-			Function f = null;
-			int rating = -1;
-			for (Declaration d : decsWithSameName) {
-				// get latest version since inheritedFunction() might also be called when finding links in a modified but not yet saved script
-				// in which case the calling function (on-the-fly-parsed) differs from the function in the index
-				d = d.latestVersion();
-				if (d == this || !(d instanceof Function))
-					continue;
-				int rating_ = 0;
-				if (d.parentDeclaration() == this.parentDeclaration())
-					rating_++;
-				if (rating_ > rating) {
-					f = (Function) d;
-					rating = rating_;
-				}
-			}
-			if (f != null)
-				return f;
-		}
-
 		// search in engine
 		Function f = index().engine().findFunction(name());
 		if (f != null)
