@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 
@@ -14,16 +15,16 @@ import net.arctics.clonk.index.Index;
  */
 public final class ID implements Serializable, ISerializationResolvable {
 	private static final Map<String, ID> idPool = new HashMap<String, ID>();
-	private static final long serialVersionUID = 833007356188766488L;
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final ID NULL = get("NULL"); //$NON-NLS-1$
-	
+
 	private final String name;
-	
+
 	private ID(String id) {
 		name = id;
 		idPool.put(id, this);
 	}
-	
+
 	/**
 	 * Resolve serialized {@link ID} by returning an interned version of it.
 	 */
@@ -38,7 +39,7 @@ public final class ID implements Serializable, ISerializationResolvable {
 			return special;
 		}
 	}
-	
+
 	/**
 	 * Return an {@link ID} instance with the specified string value.
 	 * @param stringValue The string value
@@ -46,13 +47,11 @@ public final class ID implements Serializable, ISerializationResolvable {
 	 */
 	public static ID get(String stringValue) {
 		synchronized (idPool) {
-			if (idPool.containsKey(stringValue))
-				return idPool.get(stringValue);
-			else
-				return new ID(stringValue);
+			ID existing = idPool.get(stringValue);
+			return existing != null ? existing : new ID(stringValue);
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
