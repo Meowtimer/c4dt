@@ -440,6 +440,10 @@ public class BufferedScanner implements ICharacterScanner {
 		return result;
 	}
 
+	public final String readStringAt(IRegion region) {
+		return readStringAt(region.getOffset(), region.getOffset()+region.getLength());
+	}
+
 	/**
 	 * Returns whether c is a line delimiter char
 	 * @param c the char

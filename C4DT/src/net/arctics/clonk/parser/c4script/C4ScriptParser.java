@@ -16,12 +16,14 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.MalformedDeclaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
@@ -466,15 +468,39 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			String word = readIdent();
 			Scope scope = word != null ? Scope.makeScope(word) : null;
 			if (scope != null) {
-				List<VarInitialization> v = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
-				if (v != null)
-					result = new Variables(v);
+				List<VarInitialization> vars = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
+				if (vars != null) {
+					for (VarInitialization vi : vars)
+						if (vi.expression != null)
+							synthesizeInitializationFunction(vi);
+					result = new Variables(vars);
+				}
 			}
 		}
 
 		if (result == null)
 			this.seek(startOfDeclaration);
 		return result;
+	}
+
+	protected InitializationFunction synthesizeInitializationFunction(VarInitialization vi) {
+		InitializationFunction synth = new InitializationFunction(vi.variable);
+		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
+		final int es = expressionLocation.start();
+		synth.storeBody(vi.expression, readStringAt(expressionLocation));
+		vi.expression.traverse(new IASTVisitor<Void>() {
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Void parser) {
+				node.setLocation(node.start()-es, node.end()-es);
+				return TraversalContinuation.Continue;
+			}
+		}, null);
+		synth.setBodyLocation(expressionLocation);
+		synth.setName(vi.variable.name()+"=");
+		synth.setLocation(vi.start(), expressionLocation.end());
+		synth.setVisibility(vi.variable.scope() == Scope.STATIC ? FunctionScope.GLOBAL : FunctionScope.PRIVATE);
+		script.addDeclaration(synth);
+		return synth;
 	}
 
 	private String parseDirectiveParms() {
@@ -719,6 +745,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
 	}
+
 	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
 		TypeAnnotation typeAnnotation;
 		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
@@ -1688,7 +1715,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return parseExpression(reportErrors);
 	}
 
-	private ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
+	protected ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
 
 		final int offset = this.offset;
 
@@ -1802,11 +1829,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			return new Region(offset+region.getOffset(), region.getLength());
 	}
 
-	private ASTNode parseExpression(boolean reportErrors) throws ParsingException {
+	protected ASTNode parseExpression(boolean reportErrors) throws ParsingException {
 		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
 	}
 
-	private ASTNode parseExpression() throws ParsingException {
+	protected ASTNode parseExpression() throws ParsingException {
 		return parseExpression(true);
 	}
 

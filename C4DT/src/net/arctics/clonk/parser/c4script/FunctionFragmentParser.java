@@ -46,11 +46,16 @@ public class FunctionFragmentParser extends C4ScriptParser {
 				setCurrentFunction(function);
 				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-				LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
-				parseStatementBlock(offset, statements, options, false);
-				cachedBlock = new FunctionBody(function, statements);
+				ASTNode body;
+				if (function instanceof InitializationFunction)
+					body = parseExpression();
+				else {
+					LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
+					parseStatementBlock(offset, statements, options, false);
+					body = cachedBlock = new FunctionBody(function, statements);
+				}
 				if (function != null)
-					function.storeBody(cachedBlock, functionSource);
+					function.storeBody(body, functionSource);
 			} catch (ParsingException pe) {}
 			return true;
 		} else

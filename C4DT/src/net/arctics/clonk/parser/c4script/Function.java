@@ -817,8 +817,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
 
-	public void storeBody(FunctionBody block, String source) {
-		body = block;
+	public void storeBody(ASTNode block, String source) {
+		body = (FunctionBody)block;
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
 			body.setLocation(0, bodyLocation.getLength());
@@ -933,7 +933,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] { body() }; }
 	@Override
-	public void setSubElements(ASTNode[] elms) { storeBody((FunctionBody) elms[0], ""); }
+	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
