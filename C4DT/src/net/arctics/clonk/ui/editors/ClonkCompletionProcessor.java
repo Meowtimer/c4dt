@@ -141,9 +141,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 
 	@Override
-	public String getErrorMessage() {
-		return null;
-	}
+	public String getErrorMessage() { return null; }
 
 	@Override
 	public int compare(ICompletionProposal a, ICompletionProposal b) {

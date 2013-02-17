@@ -43,6 +43,8 @@ import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
+import net.arctics.clonk.parser.c4script.InitializationFunction;
+import net.arctics.clonk.parser.c4script.InitializationFunction.VarInitializationAccess;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -456,28 +458,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			script.requireLoaded();
 			assignReporters(script);
 			visitee = script;
-			for (Variable v : script.variables()) {
-				ASTNode init = v.initializationExpression();
-				if (init != null) {
-					Function owningFunc = as(init.owningDeclaration(), Function.class);
-					if (owningFunc == null) {
-						newTypeEnvironment();
-						{
-							try { reportProblemsOf(init, true); }
-							catch (ParsingException e) {}
-							judgement(new AccessVar(v), ty(init, this), TypingJudgementMode.Force, this);
-							clearReporters(init);
-						}
-						endTypeEnvironment(true, true);
-					}
-					if (v.scope() == Scope.CONST && !init.isConstant())
-						try {
-							this.markers().error(parser, ParserErrorCode.ConstantValueExpected, init,
-								owningFunc == null ? init : owningFunc.bodyLocation().add(init),
-									Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, v.name());
-						} catch (ParsingException e) {}
-				}
-			}
 			for (Function f : script.functions()) {
 				// skip function that have been overridden
 				if (foreign && !script().seesFunction(f))
@@ -899,8 +879,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 							Declaration v = scriptToLookIn.findDeclaration(node.declarationName(), info);
 							if (v instanceof Definition)
 								v = ((Definition)v).proxyVar();
-							if (v != null)
+							if (v != null) {
+								Variable var = as(v, Variable.class);
+								if (var != null && var.initializationExpression() != null) {
+									Function p = var.initializationExpression().parentOfType(Function.class);
+									if (p != null)
+										processor.reportProblemsOfFunction(p);
+								}
 								return v;
+							}
 						}
 					}
 					return null;
@@ -958,7 +945,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 										typesMap = ((Script)targetType).variableTypes();
 								}
 							}
-							IType type = typesMap != null ? typesMap.get(d) : null;
+							IType type = typesMap != null ? typesMap.get(v) : v.type();
 							if (type != null)
 								return type;
 						}
@@ -1072,6 +1059,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
+			new ProblemReporter<InitializationFunction.VarInitializationAccess>(InitializationFunction.VarInitializationAccess.class) {
+				@Override
+				public void assignment(VarInitializationAccess leftSide, ASTNode rightSide, ScriptProcessor processor) {
+					supr.assignment(leftSide, rightSide, processor);
+					if (leftSide.declaration() instanceof Variable && ((Variable)leftSide.declaration()).scope() == Scope.CONST && !rightSide.isConstant())
+						try {
+							processor.markers().error(processor.parser, ParserErrorCode.NonConstGlobalVarAssignment, rightSide, rightSide, Markers.NO_THROW);
+						} catch (ParsingException e) { }
+				}
+			},
+
 			new ProblemReporter<ArrayExpression>(ArrayExpression.class) {
 				@Override
 				public IType type(ArrayExpression node, final ScriptProcessor processor) {
@@ -1083,7 +1081,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								return from != null ? ty(from, processor) : PrimitiveType.UNKNOWN;
 							}
 						})
-						);
+					);
 				}
 			},
 
@@ -1835,6 +1833,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 						processor.markers().error(processor.parser, ParserErrorCode.NotSupported, node, node, Markers.NO_THROW,
 							net.arctics.clonk.parser.c4script.ast.Messages.PropListExpression_ProplistsFeature,
 							processor.script().engine().name());
+					for (Variable v : node.components())
+						if (v.initializationExpression() != null)
+							judgement(new AccessVar(v), ty(v.initializationExpression(), processor), TypingJudgementMode.Unify, processor);
 				}
 			},
 
