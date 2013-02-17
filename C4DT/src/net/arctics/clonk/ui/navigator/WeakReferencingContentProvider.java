@@ -17,7 +17,7 @@ import org.eclipse.swt.graphics.Image;
 public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeContentProvider & IStyledLabelProvider> implements ILabelProvider, ITreeContentProvider, IStyledLabelProvider {
 
 	private final T wrapped;
-	
+
 	private static class WeakItem extends WeakReference<Object> implements IAdaptable {
 		public WeakItem(Object referent) {
 			super(referent);
@@ -36,7 +36,7 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 				return null;
 		}
 	}
-	
+
 	private static class LabelProviderListenerWrapper implements ILabelProviderListener {
 		private final ILabelProviderListener wrapped;
 		public LabelProviderListenerWrapper(ILabelProviderListener wrapped) {
@@ -55,25 +55,27 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 				return false;
 		}
 	}
-	
+
 	public WeakReferencingContentProvider(T wrapped) {
 		this.wrapped = wrapped;
 	}
 
 	private static Object[] wrap(Object[] raw) {
+		if (raw == null)
+			return null;
 		Object[] r = new WeakItem[raw.length];
 		for (int i = 0; i < raw.length; i++)
 			r[i] = new WeakItem(raw[i]);
 		return r;
 	}
-	
+
 	private static Object unwrap(Object item) {
 		if (item instanceof WeakItem)
 			return ((WeakItem)item).get();
 		else
 			return item;
 	}
-	
+
 	@Override
 	public void addListener(ILabelProviderListener listener) {
 		wrapped.addListener(new LabelProviderListenerWrapper(listener));
