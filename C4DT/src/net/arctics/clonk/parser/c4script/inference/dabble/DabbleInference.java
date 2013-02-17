@@ -1432,7 +1432,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return stored;
 
 					// calling this() as function -> return object type belonging to script
-					if (node.params().length == 0 && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
+					if (node.params().length == 0 && d != null && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
 						return processor.thisType;
 
 					if (d instanceof Function) {
