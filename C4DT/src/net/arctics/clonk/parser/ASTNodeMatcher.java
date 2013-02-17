@@ -8,6 +8,7 @@ import java.util.Map;
 
 import net.arctics.clonk.parser.ASTNode.ITransformer;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallExpr;
@@ -28,7 +29,8 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			(left instanceof MatchingPlaceholder &&
 			 ((MatchingPlaceholder)left).multiplicity() == Multiplicity.One &&
 			 ((MatchingPlaceholder)left).satisfiedBy(right)) ||
-			(left instanceof Block && right instanceof Block);
+			(left instanceof Block && right instanceof Block) ||
+			(left instanceof AccessVar && right instanceof AccessVar);
 	}
 	@Override
 	public boolean consume(ASTNode consumer, ASTNode extra) {

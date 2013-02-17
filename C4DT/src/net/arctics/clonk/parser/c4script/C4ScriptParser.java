@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -487,15 +489,18 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		InitializationFunction synth = new InitializationFunction(vi.variable);
 		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
 		final int es = expressionLocation.start();
-		synth.storeBody(vi.expression, readStringAt(expressionLocation));
 		vi.expression.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void parser) {
 				node.setLocation(node.start()-es, node.end()-es);
+				CallDeclaration cd = as(node, CallDeclaration.class);
+				if (cd != null)
+					cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
 				return TraversalContinuation.Continue;
 			}
 		}, null);
 		synth.setBodyLocation(expressionLocation);
+		synth.storeBody(vi.expression, readStringAt(expressionLocation));
 		synth.setName(vi.variable.name()+"=");
 		synth.setLocation(vi.start(), expressionLocation.end());
 		synth.setVisibility(vi.variable.scope() == Scope.STATIC ? FunctionScope.GLOBAL : FunctionScope.PRIVATE);

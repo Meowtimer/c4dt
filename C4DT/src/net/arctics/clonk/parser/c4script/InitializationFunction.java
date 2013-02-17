@@ -25,9 +25,11 @@ public class InitializationFunction extends Function {
 	public Variable variable() { return variable; }
 	@Override
 	public void storeBody(ASTNode body, String source) {
+		VarInitializationAccess leftSide = new VarInitializationAccess(variable);
+		leftSide.setLocation(variable.start()-bodyLocation().start(), variable.end()-bodyLocation().start());
 		super.storeBody(new FunctionBody(this, Arrays.asList(
 			(ASTNode)new SimpleStatement(new BinaryOp(Operator.Assign,
-				new VarInitializationAccess(variable), body)
+				leftSide, body)
 			))), source);
 	}
 }
