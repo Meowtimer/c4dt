@@ -990,7 +990,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		List<Object> all = new LinkedList<Object>();
 		for (Script c : conglomerate())
 			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0)))
-				all.add(sd);
+				if (!(sd instanceof InitializationFunction))
+					all.add(sd);
 		return all.toArray(new INode[all.size()]);
 	}
 
