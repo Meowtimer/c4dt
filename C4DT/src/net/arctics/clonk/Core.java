@@ -1,5 +1,8 @@
 package net.arctics.clonk;
 
+import static net.arctics.clonk.util.Utilities.apiCall;
+import static net.arctics.clonk.util.Utilities.apiTyped;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -154,7 +157,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 		loadActiveEngine();
 
-		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
+		try {
+			apiCall(ResourcesPlugin.getWorkspace(), "addSaveParticipant", PLUGIN_ID, apiTyped(this, ISaveParticipant.class));
+		} catch (NoSuchMethodException | SecurityException e) {
+			ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
+		}
 
 		registerStructureClasses();
 
