@@ -24,6 +24,7 @@ public class SelfContainedScript extends Script {
 		C4ScriptParser parser = new C4ScriptParser(script, this, null);
 		try {
 			parser.parse();
+			generateFindDeclarationCache();
 			new DabbleInference().localTypingContext(parser).reportProblems();
 		} catch (ParsingException e) {
 			e.printStackTrace();

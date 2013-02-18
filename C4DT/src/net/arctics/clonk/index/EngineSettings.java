@@ -197,7 +197,7 @@ public class EngineSettings extends SettingsBase {
 	/**
 	 * Return documentation URL for a function name. The result will be a local file URL if {@link #useDocsFromRepository} is set,
 	 * a link based on the {@link #docURLTemplate} if not.
-	 * @param functionName The funciton name
+	 * @param functionName The function name
 	 * @return The URL string
 	 */
 	public String documentationURLForFunction(String functionName) {

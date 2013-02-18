@@ -432,15 +432,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void parseEngineScript() {
 		for (IStorageLocation loc : storageLocations) {
 			final URL url = loc.locatorForEntry(name()+".c", false); //$NON-NLS-1$
-			if (url != null) {
-				InputStream stream;
-				try {
-					stream = url.openStream();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-					continue;
-				}
-				try {
+			if (url != null)
+				try (InputStream stream = url.openStream()) {
 					String scriptFromStream = StreamUtil.stringFromInputStream(stream);
 					final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
 					C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
@@ -472,14 +465,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 						e.printStackTrace();
 					}
 					postLoad((Declaration)null, (Index)null);
-				} finally {
-					try {
-						stream.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
-			}
 		}
 	}
 
@@ -614,8 +602,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
 				else
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
-			} else
-				desc = ""; //$NON-NLS-1$
+				writer.append(desc);
+			}
 			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.longParameterString(true, true)); //$NON-NLS-1$
 			writer.append(text);
 		}
@@ -626,15 +614,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true); //$NON-NLS-1$
 			if (scriptFile != null) {
 				OutputStream output = loc.outputStreamForURL(scriptFile);
-				if (output != null) try {
-					Writer writer = new OutputStreamWriter(output);
-					try {
-						writeEngineScript(writer);
-					} finally {
-						writer.close();
-					}
-				} finally {
-					output.close();
+				if (output != null) try (Writer writer = new OutputStreamWriter(output)) {
+					writeEngineScript(writer);
 				}
 				break;
 			}

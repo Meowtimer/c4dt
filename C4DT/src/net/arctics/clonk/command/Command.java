@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -159,14 +158,8 @@ public class Command {
 			setFieldValue(Conf.class, option, value);
 		}
 		@CommandFunction
-		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
-			Engine engine = Core.instance().loadEngine(engineName);
-			FileOutputStream stream = new FileOutputStream(fileName);
-			Writer writer = new OutputStreamWriter(stream);
-			engine.writeEngineScript(writer);
-			writer.flush();
-			writer.close();
-			stream.close();
+		public static void WriteEngineScript(Object context, String engineName) throws IOException {
+			Core.instance().loadEngine(engineName).writeEngineScript();
 		}
 		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
