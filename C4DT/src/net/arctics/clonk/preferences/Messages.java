@@ -42,6 +42,7 @@ public class Messages extends NLS {
 	public static String TogglesPreferencePage_IgnoreSimpleFunctionDupes;
 	public static String TogglesPreferencePage_InstantCompletions;
 	public static String TogglesPreferencePage_JavaStyleBlocks;
+	public static String TogglesPreferencePage_LongParameterInfo;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

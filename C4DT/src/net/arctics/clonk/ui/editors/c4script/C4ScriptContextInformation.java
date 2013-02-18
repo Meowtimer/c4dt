@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -59,17 +60,22 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	}
 
 	private void makeDisplayString(Function function) {
+		final boolean longParameterInfo = ClonkPreferences.toggle(ClonkPreferences.LONG_PARAMETER_INFO, false);
 		StringBuilder builder = new StringBuilder();
 		builder.append(function.name());
 		builder.append(":");
 		if (function.numParameters() == 0) {
-			parameterDisplayStringRanges = new SourceLocation[] { new SourceLocation(builder.length(), builder.length()+"No parameters".length()) };
-			builder.append("No parameters");
+			int start = builder.length();
+			builder.append(" No parameters");
+			parameterDisplayStringRanges = new SourceLocation[] { new SourceLocation(start, builder.length()) };
 		} else {
 			parameterDisplayStringRanges = new SourceLocation[function.numParameters()];
 			int estimate = 0;
-			for (Variable p : function.parameters())
+			for (Variable p : function.parameters()) {
 				estimate += p.type().typeName(true).length() + p.name().length();
+				if (longParameterInfo && p.userDescription() != null)
+					estimate += p.userDescription().length();
+			}
 			String FIRSTPARM, PARM;
 			if (estimate > 60)
 				FIRSTPARM = PARM = "\n\t";
@@ -89,6 +95,15 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 					builder.append(' ');
 				}
 				builder.append(par.name());
+				if (longParameterInfo && par.userDescription() != null && !par.userDescription().equals("")) {
+					builder.append(" (");
+					String desc = par.userDescription().trim();
+					int sentenceEnd = desc.indexOf('.');
+					if (sentenceEnd != -1)
+						desc = desc.substring(0, sentenceEnd);
+					builder.append(desc);
+					builder.append(")");
+				}
 				parameterDisplayStringRanges[i] = new SourceLocation(parmStart, builder.length());
 			}
 		}
@@ -117,6 +132,7 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
     public String getInformationDisplayString() {
 	    return informationDisplayString;
     }
+	
 
 	@Override
 	public int getContextInformationPosition() {

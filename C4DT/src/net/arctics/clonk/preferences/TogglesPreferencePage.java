@@ -25,7 +25,8 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 			ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, Messages.TogglesPreferencePage_IgnoreSimpleFunctionDupes,
 			ClonkPreferences.ANALYZE_CODE, Messages.TogglesPreferencePage_AnalyzeCode,
 			ClonkPreferences.JAVA_STYLE_BLOCKS, Messages.TogglesPreferencePage_JavaStyleBlocks,
-			ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, Messages.TogglesPreferencePage_InstantCompletions
+			ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, Messages.TogglesPreferencePage_InstantCompletions,
+			ClonkPreferences.LONG_PARAMETER_INFO, Messages.TogglesPreferencePage_LongParameterInfo
 		};
 		for (int i = 0; i < toggles.length; i += 2)
 			addField(new BooleanFieldEditor(toggles[i], toggles[i+1], getFieldEditorParent()));

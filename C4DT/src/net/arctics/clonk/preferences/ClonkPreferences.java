@@ -29,6 +29,7 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 	public static final String ANALYZE_CODE = "analyzeCode";
 	public static final String JAVA_STYLE_BLOCKS = "javaStyleBlocks";
 	public static final String INSTANT_C4SCRIPT_COMPLETIONS = "instantC4ScriptCompletions";
+	public static final String LONG_PARAMETER_INFO = "longParameterInfo";
 	
 	// defaults
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
@@ -89,6 +90,7 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
 		store.setDefault(ANALYZE_CODE, true);
 		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, false);
+		store.setDefault(LONG_PARAMETER_INFO, true);
 	}
 	
 }
