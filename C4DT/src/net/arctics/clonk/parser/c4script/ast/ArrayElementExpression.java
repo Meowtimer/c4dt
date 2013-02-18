@@ -1,8 +1,11 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.IEvaluationContext;
 
 public class ArrayElementExpression extends ASTNode {
 
@@ -39,6 +42,15 @@ public class ArrayElementExpression extends ASTNode {
 
 	public ASTNode argument() {
 		return argument;
+	}
+
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		Object array = predecessorInSequence().evaluate(context);
+		if (array instanceof List<?>)
+			return ((List<?>)array).get(((Number)argument.evaluate(context)).intValue());
+		else
+			return null;
 	}
 
 }

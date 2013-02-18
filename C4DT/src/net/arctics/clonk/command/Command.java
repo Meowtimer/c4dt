@@ -14,6 +14,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
@@ -82,9 +83,9 @@ public class Command {
 		private final transient Method method;
 
 		@Override
-		public Object invoke(Object... args) {
+		public Object invoke(IEvaluationContext context) {
 			try {
-				return method.invoke(null, ArrayUtil.concat(this, args));
+				return method.invoke(context, ArrayUtil.concat(context, context.arguments()));
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

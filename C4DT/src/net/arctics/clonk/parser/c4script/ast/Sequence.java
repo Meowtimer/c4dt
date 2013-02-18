@@ -8,6 +8,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 public class Sequence extends ASTNodeWithSubElementsArray {
@@ -85,5 +86,9 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 			if (elements[i] == element)
 				return i+1 < elements.length ? elements[i+1] : null;
 		return null;
+	}
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		return lastElement().evaluate(context);
 	}
 }

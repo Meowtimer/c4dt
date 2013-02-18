@@ -3,27 +3,26 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 public class ArraySliceExpression extends ASTNode {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode lo, hi;
-	
+
 	public ArraySliceExpression(ASTNode lo, ASTNode hi) {
 		this.lo = lo;
 		this.hi = hi;
 		assignParentToSubElements();
 	}
-	
+
 	public ASTNode lo() {
 		return lo;
 	}
-	
+
 	public ASTNode hi() {
 		return hi;
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("["); //$NON-NLS-1$
@@ -34,7 +33,7 @@ public class ArraySliceExpression extends ASTNode {
 			hi.print(output, depth+1);
 		output.append("]"); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public ASTNode[] subElements() {
 		return new ASTNode[] {lo, hi};
@@ -46,5 +45,5 @@ public class ArraySliceExpression extends ASTNode {
 	}
 	@Override
 	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
-	
+
 }

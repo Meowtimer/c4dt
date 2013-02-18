@@ -221,6 +221,50 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this.visibility = visibility;
 	}
 
+	public final class FunctionInvocation implements IEvaluationContext {
+		private final Object[] args;
+		private final IEvaluationContext up;
+
+		public FunctionInvocation(Object[] args, IEvaluationContext up) {
+			this.args = args;
+			this.up = up;
+		}
+
+		@Override
+		public Object valueForVariable(String varName) {
+			int i = 0;
+			for (Variable v : parameters) {
+				if (v.name().equals(varName))
+					return args[i];
+				i++;
+			}
+			return up != null ? up.valueForVariable(varName) : null;
+		}
+
+		@Override
+		public Script script() {
+			return Function.this.script();
+		}
+
+		@Override
+		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
+			Function.this.reportOriginForExpression(expression, location, file);
+		}
+
+		@Override
+		public Function function() {
+			return Function.this;
+		}
+
+		@Override
+		public int codeFragmentOffset() {
+			return Function.this.codeFragmentOffset();
+		}
+
+		@Override
+		public Object[] arguments() { return args; }
+	}
+
 	/**
 	 * The scope of a function.
 	 * @author ZokRadonh
@@ -255,7 +299,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return toString();
 		}
 	}
-	
+
 	public enum ParameterStringOption {
 		FunctionName,
 		EngineCompatible,
@@ -304,7 +348,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					});
 					if (engineCompatible && !par.isActualParm())
 						return null;
-					String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : ""; 
+					String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
 					if (type != PrimitiveType.UNKNOWN && type != null &&
 						(!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)))
 						return comment + type.typeName(false) + " " + par.name();
@@ -678,48 +722,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	/**
 	 * Invoke this function. Left empty for 'regular' functions, only defined in special interpreter functions
-	 * @param args the arguments to pass to the function
+	 * @param context TODO
 	 * @return the result
 	 */
-	public Object invoke(final Object... args) {
+	public Object invoke(IEvaluationContext context) {
 		try {
-			return body != null ? body.evaluate(new IEvaluationContext() {
-				@Override
-				public Object valueForVariable(String varName) {
-					int i = 0;
-					for (Variable v : parameters) {
-						if (v.name().equals(varName))
-							return args[i];
-						i++;
-					}
-					return null;
-				}
-
-				@Override
-				public Script script() {
-					return Function.this.script();
-				}
-
-				@Override
-				public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-					Function.this.reportOriginForExpression(expression, location, file);
-				}
-
-				@Override
-				public Function function() {
-					return Function.this;
-				}
-
-				@Override
-				public int codeFragmentOffset() {
-					return Function.this.codeFragmentOffset();
-				}
-
-				@Override
-				public Object[] arguments() {
-					return args;
-				}
-			}) : null;
+			return body != null ? body.evaluate(context) : null;
 		} catch (ReturnException result) {
 			return result.result();
 		} catch (ControlFlowException e) {

@@ -251,7 +251,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	 * @param node
 	 */
 	public static void reportMissingStringTblEntries(ProblemReportingContext context, EntityRegion region, ASTNode node) {
-		StringBuilder listOfLangFilesItsMissingIn = null;
+		StringBuilder miss = null;
 		try {
 			for (IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
 				if (!(r instanceof IFile))
@@ -263,17 +263,17 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
 					if (tbl != null)
 						if (tbl.map().get(region.text()) == null) {
-							if (listOfLangFilesItsMissingIn == null)
-								listOfLangFilesItsMissingIn = new StringBuilder(10);
-							if (listOfLangFilesItsMissingIn.length() > 0)
-								listOfLangFilesItsMissingIn.append(", "); //$NON-NLS-1$
-							listOfLangFilesItsMissingIn.append(lang);
+							if (miss == null)
+								miss = new StringBuilder(10);
+							if (miss.length() > 0)
+								miss.append(", "); //$NON-NLS-1$
+							miss.append(lang);
 						}
 				}
 			}
 		} catch (CoreException e) {}
-		if (listOfLangFilesItsMissingIn != null)
-			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, region.text(), listOfLangFilesItsMissingIn);
+		if (miss != null)
+			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, region.text(), miss);
 	}
 
 }

@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -71,6 +72,15 @@ public class MatchingPlaceholder extends Placeholder {
 				return str.substring(index.intValue(), length.intValue());
 			else
 				return str.substring(index.intValue());
+		}
+		@CommandFunction
+		public static Object eval(IEvaluationContext context, ASTNode node) {
+			try {
+				return node.evaluate(context);
+			} catch (ControlFlowException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 	}
 
@@ -125,7 +135,7 @@ public class MatchingPlaceholder extends Placeholder {
 			scanner.read();
 		while (!scanner.reachedEOF()) {
 			int start, end;
-			switch (scanner.read()) { 
+			switch (scanner.read()) {
 			case '/':
 				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.read() != '/')
@@ -146,15 +156,17 @@ public class MatchingPlaceholder extends Placeholder {
 				multiplicity = Multiplicity.Multiple;
 				break;
 			case '!':
-				code = new SelfContainedScript(entry, String.format("func Transform(value) { return %s; }",
-					scanner.readString(scanner.bufferSize()-scanner.tell())), new Index())
-					{
-						private static final long serialVersionUID = 1L;
-						@Override
-						public Collection<Script> includes(Index index, Object origin, int options) {
-							return Arrays.asList(TRANSFORMATIONS);
-						};
-					}.findFunction("Transform");
+				String tra = scanner.readString(scanner.bufferSize()-scanner.tell());
+				if (!tra.startsWith("{"))
+					tra = String.format("return %s;", tra);
+				code = new SelfContainedScript(
+					entry, String.format("func Transform(value) { %s }", tra),
+					new Index()
+				) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public Collection<Script> includes(Index index, Object origin, int options) { return Arrays.asList(TRANSFORMATIONS); };
+				}.findFunction("Transform");
 				break;
 			case '^':
 				start = scanner.tell(); end = start;
@@ -233,7 +245,7 @@ public class MatchingPlaceholder extends Placeholder {
 			try {
 				if (substitution instanceof ASTNode[])
 					substitution = Arrays.asList((ASTNode[])substitution);
-				substitution = code.invoke(substitution);
+				substitution = code.invoke(code.new FunctionInvocation(new Object[] {substitution}, null));
 				if (substitution instanceof List)
 					return ((List<ASTNode>)substitution).toArray(new ASTNode[((List<ASTNode>) substitution).size()]);
 			} catch (Exception e) {
@@ -241,6 +253,8 @@ public class MatchingPlaceholder extends Placeholder {
 			}
 		if (substitution instanceof String)
 			substitution = new AccessVar((String)substitution);
+		else if (substitution instanceof Long)
+			substitution = new IntegerLiteral((long)substitution);
 		return substitution;
 	}
 
@@ -321,4 +335,10 @@ public class MatchingPlaceholder extends Placeholder {
 		super(text);
 		parse(text);
 	}
+
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		return this; // so meta
+	}
+
 }

@@ -29,7 +29,7 @@ public class ExecutableScript extends SelfContainedScript {
 	}
 
 	public Object invoke(Object... args) {
-		return main.invoke(args);
+		return main.invoke(null);
 	}
 
 }

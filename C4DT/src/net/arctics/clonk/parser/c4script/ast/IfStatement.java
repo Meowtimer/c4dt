@@ -22,9 +22,11 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public String keyword() {
-		return Keywords.If;
-	}
+	public String keyword() { return Keywords.If; }
+	@Override
+	public ASTNode[] subElements() { return new ASTNode[] {condition, body, elseExpr}; }
+	public ASTNode elseExpression() { return elseExpr; }
+
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
@@ -46,11 +48,6 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] {condition, body, elseExpr};
-	}
-
-	@Override
 	public void setSubElements(ASTNode[] elms) {
 		condition = elms[0];
 		body      = elms[1];
@@ -64,10 +61,6 @@ public class IfStatement extends ConditionalStatement {
 		if (elseExpr != null)
 			result.addAll(elseExpr.possibleControlFlows());
 		return result;
-	}
-
-	public ASTNode elseExpression() {
-		return elseExpr;
 	}
 
 	@Override
