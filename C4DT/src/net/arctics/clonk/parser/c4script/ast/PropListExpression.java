@@ -42,8 +42,6 @@ public class PropListExpression extends ASTNode {
 		final char FIRSTBREAK = (char)255;
 		final char BREAK = (char)254;
 		final char LASTBREAK = (char)253;
-		final char LONGSUBPROPS = (char)252;
-		final char SHORTSUBPROPS = (char)251;
 		StringBuilder builder = new StringBuilder();
 		ASTNodePrinter output = new AppendableBackedExprWriter(builder);
 		output.append('{');
@@ -52,16 +50,10 @@ public class PropListExpression extends ASTNode {
 		for (Variable component : components) {
 			output.append(i > 0 ? BREAK : FIRSTBREAK);
 			output.append(component.name());
-			output.append(": "); //$NON-NLS-1$
-			int ndx;
-			if (component.initializationExpression() instanceof PropListExpression) {
-				ndx = builder.length();
-				output.append(LONGSUBPROPS);
-			} else
-				ndx = -1;
+			output.append(':'); //$NON-NLS-1$
+			if (!(component.initializationExpression() instanceof PropListExpression))
+				output.append(' ');
 			component.initializationExpression().print(output, depth+1);
-			if (ndx != -1 && builder.length() - ndx <= MULTILINEPRINTTHRESHOLD)
-				builder.replace(ndx, ndx+1, String.valueOf(SHORTSUBPROPS));
 			if (i < components.size()-1)
 				output.append(',');
 			else
@@ -70,16 +62,19 @@ public class PropListExpression extends ASTNode {
 		}
 		output.append('}');
 		String s = output.toString();
-		if (s.length() > MULTILINEPRINTTHRESHOLD)
+		if (s.length() > MULTILINEPRINTTHRESHOLD) {
+			Conf.blockPrelude(output_, depth);
 			s = s
-				.replaceAll(String.format("[%c%c]", FIRSTBREAK, LONGSUBPROPS), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
+				.replaceAll(String.format("%c", FIRSTBREAK), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
 				.replaceAll(String.valueOf(BREAK), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
-				.replaceAll(String.valueOf(SHORTSUBPROPS), "")
 				.replace(String.valueOf(LASTBREAK), "\n"+StringUtil.multiply(Conf.indentString, depth));
-		else
+		}
+		else {
+			output_.append(' ');
 			s = s
-				.replaceAll(String.format("[%c%c%c%c]", FIRSTBREAK, LONGSUBPROPS, LASTBREAK, SHORTSUBPROPS), "")
+				.replaceAll(String.format("[%c%c]", FIRSTBREAK, LASTBREAK), "")
 				.replaceAll(String.valueOf(BREAK), " ");
+		}
 		output_.append(s);
 	}
 	@Override

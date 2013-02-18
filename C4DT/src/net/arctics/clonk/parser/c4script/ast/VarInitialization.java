@@ -6,9 +6,8 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -72,9 +71,9 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 		}
 		output.append(name);
 		if (expression != null) {
-			output.append(" = ");
-			if (expression instanceof PropListExpression)
-				Conf.blockPrelude(output, depth);
+			output.append(" =");
+			if (!(expression instanceof PropListExpression))
+				output.append(' ');
 			expression.print(output, depth);
 		}
 	}

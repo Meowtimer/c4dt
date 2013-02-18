@@ -439,6 +439,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public ASTNode[] subElements() { return new ASTNode[] { initializationExpression }; }
+	public ASTNode[] subElements() { return super.subElements(); }
 
 }

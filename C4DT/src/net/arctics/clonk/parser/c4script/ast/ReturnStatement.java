@@ -3,9 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.Conf;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class ReturnStatement extends KeywordStatement {
@@ -39,11 +38,8 @@ public class ReturnStatement extends KeywordStatement {
 			// return(); -> return 0;
 			if (returnExpr == ASTNode.NULL_EXPR)
 				builder.append("0"); //$NON-NLS-1$
-			else {
-				if (returnExpr instanceof PropListExpression)
-					Conf.blockPrelude(builder, depth);
+			else
 				returnExpr.print(builder, depth);
-			}
 		}
 		builder.append(";"); //$NON-NLS-1$
 	}
