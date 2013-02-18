@@ -415,7 +415,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (c != null) {
 			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
 				c.previousComment = lastComment;
-			setExprRegionRelativeToFuncBody(c, offset, this.offset);
+			setRelativeLocation(c, offset, this.offset);
 			c.setAbsoluteOffset(offset);
 			lastComment = c;
 			return true;
@@ -423,7 +423,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return false;
 	}
 
-	public final void setExprRegionRelativeToFuncBody(ASTNode expr, int start, int end) {
+	public final void setRelativeLocation(ASTNode expr, int start, int end) {
 		int bodyOffset = sectionOffset();
 		expr.setLocation(start-bodyOffset, end-bodyOffset);
 	}
@@ -1289,7 +1289,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				followingExpr = placeholderExpression(offset);
 			}
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
-			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
+			setRelativeLocation(result, sequenceStart, this.offset);
 			return result;
 		} else
 			this.seek(sequenceStart); // don't skip operators that aren't prefixy
@@ -1462,7 +1462,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					proper = false;
 				} else {
 					// add to sequence even if not valid so the quickfixer can separate them
-					setExprRegionRelativeToFuncBody(elm, elmStart, this.offset);
+					setRelativeLocation(elm, elmStart, this.offset);
 					if (num == _elements.length) {
 						ASTNode[] n = new ASTNode[_elements.length+10];
 						System.arraycopy(_elements, 0, n, 0, _elements.length);
@@ -1490,14 +1490,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 		if (result != null) {
 			proper &= lastElm == null || lastElm.isValidAtEndOfSequence();
-			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
+			setRelativeLocation(result, sequenceStart, this.offset);
 			if (proper) {
 				int saved = this.offset;
 				eatWhitespace();
 				Operator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					setExprRegionRelativeToFuncBody(op, result.start()+sectionOffset(), this.offset);
+					setRelativeLocation(op, result.start()+sectionOffset(), this.offset);
 					return op;
 				} else
 					// a binary operator following this sequence
@@ -1684,11 +1684,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			switch (read()) {
 			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart));
+					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart-1));
 				break Loop;
 			case ',':
 				if (!expectingComma)
-					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart));
+					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart-1));
 				expectingComma = false;
 				break;
 			default:
@@ -1785,7 +1785,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 								current = root = lastOp = new BinaryOp(op);
 							}
 							lastOp.setLeftSide(newLeftSide);
-							setExprRegionRelativeToFuncBody(lastOp, operatorStartPos, this.offset);
+							setRelativeLocation(lastOp, operatorStartPos, this.offset);
 							state = SECONDOPERAND;
 						} else {
 							this.seek(operatorStartPos); // in case there was an operator but not a binary one
@@ -1807,7 +1807,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				}
 		}
 		if (root != null)
-			setExprRegionRelativeToFuncBody(root, exprStart, this.offset);
+			setRelativeLocation(root, exprStart, this.offset);
 
 		return root;
 
@@ -1815,7 +1815,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private ASTNode placeholderExpression(final int offset) {
 		ASTNode result = new ASTNode();
-		setExprRegionRelativeToFuncBody(result, offset, offset+1);
+		setRelativeLocation(result, offset, offset+1);
 		return result;
 	}
 
@@ -2056,7 +2056,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			if (emptyLines > 0)
 				result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 
-			setExprRegionRelativeToFuncBody(result, start, this.offset);
+			setRelativeLocation(result, start, this.offset);
 		}
 		return result;
 	}
@@ -2278,9 +2278,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (w.equals(Keywords.In)) {
 					// too much manual setting of stuff
 					AccessVar accessVar = new AccessVar(varName);
-					setExprRegionRelativeToFuncBody(accessVar, pos, pos+varName.length());
+					setRelativeLocation(accessVar, pos, pos+varName.length());
 					initialization = new SimpleStatement(accessVar);
-					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
+					setRelativeLocation(initialization, pos, pos+varName.length());
 				} else
 					w = null;
 			}
@@ -2571,7 +2571,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	public final ASTNode whitespace(int start, int length) {
 		ASTNode result = new Whitespace();
-		setExprRegionRelativeToFuncBody(result, start, start+length);
+		setRelativeLocation(result, start, start+length);
 		return result;
 	}
 

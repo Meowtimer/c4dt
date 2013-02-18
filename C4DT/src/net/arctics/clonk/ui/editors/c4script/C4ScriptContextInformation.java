@@ -21,6 +21,8 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	private int parmsStart, parmsEnd;
 	private SourceLocation[] parameterDisplayStringRanges;
 	private Function function;
+	
+	public Function function() { return function; }
 
 	@Override
 	public String toString() {
@@ -59,15 +61,26 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	private void makeDisplayString(Function function) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(function.name());
-		builder.append("(");
+		builder.append(":");
 		if (function.numParameters() == 0) {
 			parameterDisplayStringRanges = new SourceLocation[] { new SourceLocation(builder.length(), builder.length()+"No parameters".length()) };
 			builder.append("No parameters");
 		} else {
 			parameterDisplayStringRanges = new SourceLocation[function.numParameters()];
+			int estimate = 0;
+			for (Variable p : function.parameters())
+				estimate += p.type().typeName(true).length() + p.name().length();
+			String FIRSTPARM, PARM;
+			if (estimate > 60)
+				FIRSTPARM = PARM = "\n\t";
+			else {
+				FIRSTPARM = " ";
+				PARM = ", ";
+			}
+			builder.append(FIRSTPARM);
 			for (int i = 0; i < function.numParameters(); i++) {
 				if (i > 0)
-					builder.append(", ");
+					builder.append(PARM);
 				int parmStart = builder.length();
 				Variable par = function.parameter(i);
 				IType type = par.type();
@@ -79,7 +92,6 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 				parameterDisplayStringRanges[i] = new SourceLocation(parmStart, builder.length());
 			}
 		}
-		builder.append(")");
 		informationDisplayString = builder.toString();
 	}
 

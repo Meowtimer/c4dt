@@ -13,6 +13,7 @@ import org.eclipse.jface.text.contentassist.IContextInformationPresenter;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.widgets.Display;
 
 public class C4ScriptContextInformationValidator implements IContextInformationPresenter, IContextInformationValidator {
 
@@ -38,11 +39,13 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 		SourceLocation par = info.currentParameterDisplayStringRange();
 		if (par == null)
 			return false;
-		StyleRange start = new StyleRange(0, par.start(), null, null, SWT.NORMAL);
-		StyleRange highlightedParameter = new StyleRange(par.start(), par.end()-par.start(), null, null, SWT.BOLD);
-		StyleRange end = new StyleRange(par.end(), info.getInformationDisplayString().length() - par.end(), null, null, SWT.NORMAL);
+		int fnNameLen = info.function().name().length();
+		StyleRange fn = new StyleRange(0, fnNameLen,
+			Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY), null, SWT.ITALIC);
+		StyleRange highlightedParameter = new StyleRange(par.start(), par.end()-par.start(),
+			Display.getCurrent().getSystemColor(SWT.COLOR_BLUE), null, SWT.BOLD);
 		presentation.clear();
-		for (StyleRange r : new StyleRange[] {start, highlightedParameter, end})
+		for (StyleRange r : new StyleRange[] {fn, highlightedParameter})
 			presentation.addStyleRange(r);
 		return true;
 	}
