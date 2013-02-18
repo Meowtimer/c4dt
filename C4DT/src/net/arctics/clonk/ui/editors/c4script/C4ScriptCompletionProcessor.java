@@ -427,7 +427,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
 			for (Variable v : activeFunc.parameters())
 				proposalForVar(v, prefix, wordOffset, proposals);
-			for (Variable v : activeFunc.localVars())
+			for (Variable v : activeFunc.locals())
 				proposalForVar(v, prefix, wordOffset, proposals);
 		}
 

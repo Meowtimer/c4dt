@@ -119,7 +119,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the localVars
 	 */
-	public List<Variable> localVars() {
+	public List<Variable> locals() {
 		return localVars;
 	}
 
@@ -492,7 +492,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Object[] subDeclarationsForOutline() {
-		return ArrayUtil.concat(localVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
+		return ArrayUtil.concat(locals().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}
 
 	/**
@@ -796,7 +796,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public void resetLocalVarTypes() {
-		for (Variable v : localVars())
+		for (Variable v : locals())
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
 

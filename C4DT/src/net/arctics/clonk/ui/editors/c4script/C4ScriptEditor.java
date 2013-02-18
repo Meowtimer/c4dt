@@ -297,7 +297,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							});
 							markers.applyProjectSettings(structure.index());
 							reparseFunction(f, markers);
-							for (Variable localVar : f.localVars()) {
+							for (Variable localVar : f.locals()) {
 								SourceLocation l = localVar;
 								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
 								l.setEnd(f.bodyLocation().getOffset()+l.end());

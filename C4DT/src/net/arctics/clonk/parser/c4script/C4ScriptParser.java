@@ -790,7 +790,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			break;
 		case VAR:
 			result.setParent(function);
-			function.localVars().add(result);
+			function.locals().add(result);
 			break;
 		case CONST: case STATIC: case LOCAL:
 			result.setParent(script());

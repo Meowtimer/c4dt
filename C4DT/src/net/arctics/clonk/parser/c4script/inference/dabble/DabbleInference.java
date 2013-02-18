@@ -252,7 +252,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (!visiting || funScript == script())
 							assignDefaultParmTypesToFunction(function);
 						else
-							for (Variable l : function.localVars()) {
+							for (Variable l : function.locals()) {
 								ITypeInfo ti = requestTypeInfo(new AccessVar(l));
 								if (ti != null)
 									ti.storeType(PrimitiveType.UNKNOWN);
@@ -423,8 +423,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (Variable p : func.parameters())
 					if (!p.isUsed())
 						this.markers().warning(parser, ParserErrorCode.UnusedParameter, null, p, Markers.ABSOLUTE_MARKER_LOCATION, p.name());
-			if (func.localVars() != null)
-				for (Variable v : func.localVars()) {
+			if (func.locals() != null)
+				for (Variable v : func.locals()) {
 					if (!v.isUsed())
 						createWarningAtDeclarationOfVariable(statements, v, ParserErrorCode.Unused, v.name());
 					Variable shadowed = parser.script().findVariable(v.name());

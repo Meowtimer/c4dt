@@ -37,7 +37,7 @@ final class VarFunctionsTypeInfo extends TypeInfo {
 			if (accessVar.declaration() instanceof Variable)
 				return fn != null && (varFunction == processor.cachedEngineDeclarations().Par
 					? fn.parameters()
-					: fn.localVars()).indexOf(accessVar) == varIndex;
+					: fn.locals()).indexOf(accessVar) == varIndex;
 		}
 		return false;
 	}
