@@ -286,7 +286,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									ParserErrorCode code, ASTNode node,
 									int markerStart, int markerEnd, int flags,
 									int severity, Object... args
-									) {
+								) {
 									if (node == null || !node.containedIn(f))
 										return Decision.DropCharges;
 									if (structure.source() instanceof IFile)
