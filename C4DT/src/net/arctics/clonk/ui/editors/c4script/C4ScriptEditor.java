@@ -274,33 +274,37 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				@Override
 				public void run() {
-					if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
-						return;
-					removeMarkers(fn, structure);
-					if (structure.scriptStorage() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.scriptStorage()) == null) {
-						final Function f = (Function) fn.latestVersion();
-						Markers markers = new Markers(new IMarkerListener() {
-							@Override
-							public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider,
-								ParserErrorCode code, ASTNode node,
-								int markerStart, int markerEnd, int flags,
-								int severity, Object... args
-							) {
-								if (node == null || !node.containedIn(f))
-									return Decision.DropCharges;
-								if (structure.scriptStorage() instanceof IFile)
-									code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
-								return Decision.PassThrough;
+					try {
+						if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
+							return;
+						removeMarkers(fn, structure);
+						if (structure.scriptStorage() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.scriptStorage()) == null) {
+							final Function f = (Function) fn.latestVersion();
+							Markers markers = new Markers(new IMarkerListener() {
+								@Override
+								public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider,
+									ParserErrorCode code, ASTNode node,
+									int markerStart, int markerEnd, int flags,
+									int severity, Object... args
+									) {
+									if (node == null || !node.containedIn(f))
+										return Decision.DropCharges;
+									if (structure.scriptStorage() instanceof IFile)
+										code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+											markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
+									return Decision.PassThrough;
+								}
+							});
+							markers.applyProjectSettings(structure.index());
+							reparseFunction(f, markers);
+							for (Variable localVar : f.localVars()) {
+								SourceLocation l = localVar;
+								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
+								l.setEnd(f.bodyLocation().getOffset()+l.end());
 							}
-						});
-						markers.applyProjectSettings(structure.index());
-						reparseFunction(f, markers);
-						for (Variable localVar : f.localVars()) {
-							SourceLocation l = localVar;
-							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
-							l.setEnd(f.bodyLocation().getOffset()+l.end());
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}, 1000);
