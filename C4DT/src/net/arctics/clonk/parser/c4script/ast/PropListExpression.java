@@ -165,10 +165,11 @@ public class PropListExpression extends ASTNode {
 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
-		int absolute = context.fragmentOffset()+start()+offset;
+		int secOff = sectionOffset();
+		int absolute = secOff+start()+offset;
 		for (Variable v : this.components())
 			if (v.isAt(absolute))
-				return new EntityRegion(v, v.relativeTo(new Region(context.fragmentOffset(), 0)));
+				return new EntityRegion(v, v.relativeTo(new Region(secOff, 0)));
 		return super.entityAt(offset, context);
 	}
 
