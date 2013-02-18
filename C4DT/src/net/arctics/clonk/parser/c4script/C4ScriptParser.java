@@ -212,7 +212,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					migrationTyping = nature.settings().migrationTyping;
 				}
 			}
-			script.containsGlobals = false;
 			script.setTypeAnnotations(null);
 		}
 	}
@@ -905,8 +904,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		setCurrentFunction(func = newFunction(header.name));
 		header.apply(func);
 		func.setScript(script);
-		if (header.scope == FunctionScope.GLOBAL)
-			script.containsGlobals = true;
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {

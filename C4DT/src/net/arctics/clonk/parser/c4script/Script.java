@@ -147,14 +147,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return copyListOrReturnDefaultList(usedScripts, NO_SCRIPTS);
 	}
 
-	/**
-	 * Flag hinting that this script contains global functions/static variables. This flag will be consulted to decide whether to fully load the script when looking for global declarations.
-	 */
-	public boolean containsGlobals;
-
-	protected Script(Index index) {
-		super(index);
-	}
+	protected Script(Index index) { super(index); }
 
 	public static class Declarations implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
