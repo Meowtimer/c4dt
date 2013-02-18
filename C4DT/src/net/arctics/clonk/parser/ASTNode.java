@@ -476,7 +476,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	/**
 	 * Return an entity that this expression refers to at the specified relative offset.
 	 * @param offset The offset
-	 * @param parser Script parser context
+	 * @param context {@link ProblemReportingContext} being contexty
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {

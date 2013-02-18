@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -38,8 +37,6 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			public boolean validForType(ASTNode node, IType type) { return true; }
 			@Override
 			public void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode) {}
-			@Override
-			public Typing typing() { return Typing.Dynamic; }
 			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as((IType)PrimitiveType.ANY, cls); }
 			@Override

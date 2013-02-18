@@ -800,6 +800,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		result.setUserDescription(description != null ? description.text().trim() : null);
 		return result;
 	}
+	
 	protected Variable newVariable(String varName, Scope scope) {
 		return new Variable(varName, scope);
 	}

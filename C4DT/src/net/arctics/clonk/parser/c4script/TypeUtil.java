@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -53,8 +52,6 @@ public class TypeUtil {
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as(typeOf(node), cls); }
 			@Override
 			public boolean validForType(ASTNode node, IType type) { return type.canBeAssignedFrom(typeOf(node)); }
-			@Override
-			public Typing typing() { return Typing.ParametersOptionallyTyped; }
 			@Override
 			public Markers markers() { return null; }
 			@Override

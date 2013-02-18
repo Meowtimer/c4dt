@@ -25,7 +25,7 @@ public interface IMarkerListener {
 	}
 	/**
 	 * Called when a marker is about to be created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
-	 * @param parser The parser the listener is attached to
+	 * @param positionProvider Position provider providing positions
 	 * @param code the parser error code
 	 * @param node 
 	 * @param markerStart start of the marker region

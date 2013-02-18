@@ -33,7 +33,7 @@ public interface ITypeInfo {
 	/**
 	 * Return whether the stored type information stores type information for the given expression so that creating a new stored type information object is not necessary.
 	 * @param expr The expression to test for
-	 * @param parser Parser, acting as context
+	 * @param processor Processor serving as context
 	 * @return True, if relevant, false if not.
 	 */
 	boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor);
@@ -46,7 +46,7 @@ public interface ITypeInfo {
 	/**
 	 * Apply this stored type information so the underlying {@link ITypeable} ({@link Variable}, {@link Function} etc) will have its type set.
 	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied.
-	 * @param parser Parser, acting as context
+	 * @param processor Processor serving as context
 	 */
 	void apply(boolean soft, ScriptProcessor processor);
 	/**
