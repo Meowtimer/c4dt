@@ -161,7 +161,7 @@ public class ReferencesQuery extends SearchQueryBase {
 								try {
 									C4ScriptParser parser = new C4ScriptParser(script);
 									ProblemReportingContext ctx = strategy.localTypingContext(parser);
-									visitor.searchScript((IResource) script.scriptStorage(), ctx);
+									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (Exception e) {}
 							}
 						});
@@ -231,7 +231,7 @@ public class ReferencesQuery extends SearchQueryBase {
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			Script script = Utilities.scriptForEditor(editor);
-			if (script != null && match.getElement().equals(script.scriptStorage()))
+			if (script != null && match.getElement().equals(script.source()))
 				return true;
 		}
 		return false;

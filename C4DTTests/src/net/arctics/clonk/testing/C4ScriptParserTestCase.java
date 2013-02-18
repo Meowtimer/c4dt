@@ -131,7 +131,7 @@ public class C4ScriptParserTestCase {
 						"TestScript", script);
 
 				@Override
-				public IStorage scriptStorage() {
+				public IStorage source() {
 					return storage;
 				}
 			};

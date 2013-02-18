@@ -249,7 +249,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (script instanceof Definition)
 			return get(((Definition)script).definitionFolder());
 		if (script instanceof SystemScript)
-			return get(((SystemScript)script).scriptStorage());
+			return get(((SystemScript)script).source());
 		else
 			return null;
 	}

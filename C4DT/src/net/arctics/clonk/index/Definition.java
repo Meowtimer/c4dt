@@ -300,7 +300,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
 	@Override
-	public IFile scriptStorage() { return scriptFile; }
+	public IFile source() { return scriptFile; }
 
 	@Override
 	public void setScriptFile(IFile f) { scriptFile = f; }
@@ -309,7 +309,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	public String scriptText() {
 		try {
-			return StreamUtil.stringFromFileDocument(scriptStorage());
+			return StreamUtil.stringFromFileDocument(source());
 		} catch (Exception e) {
 			return null;
 		}

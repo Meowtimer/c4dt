@@ -188,7 +188,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	@Override
 	public Engine engine() { return this; }
 	@Override
-	public IFile scriptStorage() { return null; }
+	public IFile source() { return null; }
 	public Scenario templateScenario() { return templateScenario; }
 
 	@Override

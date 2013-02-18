@@ -187,7 +187,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(Script script) {
-		this((IFile) script.scriptStorage(), script);
+		this((IFile) script.source(), script);
 		initialize();
 	}
 

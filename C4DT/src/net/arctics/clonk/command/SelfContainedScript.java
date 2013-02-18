@@ -37,7 +37,7 @@ public class SelfContainedScript extends Script {
 	}
 
 	@Override
-	public IStorage scriptStorage() {
+	public IStorage source() {
 		try {
 			return new SimpleScriptStorage(name(), script);
 		} catch (UnsupportedEncodingException e) {

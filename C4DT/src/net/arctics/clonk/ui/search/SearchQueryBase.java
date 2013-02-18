@@ -54,7 +54,7 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			Script script = Utilities.scriptForEditor(editor);
-			if (script != null && match.getElement().equals(script.scriptStorage()))
+			if (script != null && match.getElement().equals(script.source()))
 				return true;
 		}
 		return false;

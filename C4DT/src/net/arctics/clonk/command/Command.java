@@ -43,7 +43,7 @@ public class Command {
 		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public IStorage scriptStorage() {
+			public IStorage source() {
 				try {
 					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 				} catch (UnsupportedEncodingException e) {

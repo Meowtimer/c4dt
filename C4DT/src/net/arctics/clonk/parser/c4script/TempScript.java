@@ -25,7 +25,7 @@ public final class TempScript extends Script {
 	}
 
 	@Override
-	public IStorage scriptStorage() {
+	public IStorage source() {
 		try {
 			return new SimpleScriptStorage(expression, expression);
 		} catch (UnsupportedEncodingException e) {

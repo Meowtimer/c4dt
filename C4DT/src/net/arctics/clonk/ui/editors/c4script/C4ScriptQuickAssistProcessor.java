@@ -429,8 +429,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (expressionRegion.getOffset() == -1)
 			return;
 		Object needToDisconnect = null;
-		if (document == null && script != null && script.scriptStorage() instanceof IFile) {
-			needToDisconnect = script.scriptStorage();
+		if (document == null && script != null && script.source() instanceof IFile) {
+			needToDisconnect = script.source();
 			try {
 				Core.instance().textFileDocumentProvider().connect(needToDisconnect);
 			} catch (CoreException e) {

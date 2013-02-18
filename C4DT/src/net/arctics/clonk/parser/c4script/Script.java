@@ -719,27 +719,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		this.name = name;
 	}
 
-	public abstract IStorage scriptStorage();
+	public abstract IStorage source();
 
 	public final IFile scriptFile() {
-		IStorage storage = scriptStorage();
+		IStorage storage = source();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}
 
 	@Override
-	public Script script() {
-		return this;
-	}
-
+	public Script script() { return this; }
 	@Override
-	public Structure topLevelStructure() {
-		return this;
-	}
-
+	public Structure topLevelStructure() { return this; }
 	@Override
-	public IResource resource() {
-		return null;
-	}
+	public IResource resource() { return null; }
 
 	public Function findFunction(String functionName, FindDeclarationInfo info) {
 		info.resetState();
@@ -1066,7 +1058,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		//requireLoaded();
 		if (sourceComment != null)
 			return sourceComment;
-		Object f = scriptStorage();
+		Object f = source();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile)
@@ -1147,7 +1139,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (script == null)
 			script = Definition.definitionCorrespondingToFolder(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
-		if (onlyForScriptFile && (script == null || script.scriptStorage() == null || !script.scriptStorage().equals(resource)))
+		if (onlyForScriptFile && (script == null || script.source() == null || !script.source().equals(resource)))
 			return null;
 		return script;
 	}

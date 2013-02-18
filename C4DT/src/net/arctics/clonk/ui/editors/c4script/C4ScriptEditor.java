@@ -126,7 +126,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public IStorage scriptStorage() {
+		public IStorage source() {
 			IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 			try {
 				return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
@@ -278,7 +278,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 							return;
 						removeMarkers(fn, structure);
-						if (structure.scriptStorage() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.scriptStorage()) == null) {
+						if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
 							final Function f = (Function) fn.latestVersion();
 							Markers markers = new Markers(new IMarkerListener() {
 								@Override
@@ -289,8 +289,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									) {
 									if (node == null || !node.containedIn(f))
 										return Decision.DropCharges;
-									if (structure.scriptStorage() instanceof IFile)
-										code.createMarker((IFile) structure.scriptStorage(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+									if (structure.source() instanceof IFile)
+										code.createMarker((IFile) structure.source(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 											markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
 									return Decision.PassThrough;
 								}
@@ -329,8 +329,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (reparseTimer != null)
 				reparseTimer.cancel();
 			try {
-				if (structure.scriptStorage() instanceof IFile) {
-					IFile file = (IFile)structure.scriptStorage();
+				if (structure.source() instanceof IFile) {
+					IFile file = (IFile)structure.source();
 					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 					if (file.exists())
 						reparseWithDocumentContents(this, false, file, structure, null);

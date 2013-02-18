@@ -40,7 +40,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	@Override
-	public IFile scriptStorage() {
+	public IFile source() {
 		return scriptFile;
 	}
 	
@@ -79,7 +79,7 @@ public class SystemScript extends Script implements Serializable {
 	
 	@Override
 	public IResource resource() {
-		return scriptStorage();
+		return source();
 	}
 	
 	@Override
