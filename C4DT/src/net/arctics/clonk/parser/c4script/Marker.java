@@ -4,14 +4,14 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.IRegion;
 
 public class Marker {
-	public ParserErrorCode code;
+	public Problem code;
 	public int start, end;
 	public int severity;
 	public Object[] args;
@@ -21,7 +21,7 @@ public class Marker {
 	private final IFile scriptFile;
 	private final Declaration container;
 
-	public Marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int start, int end, int severity, Object[] args) {
+	public Marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int start, int end, int severity, Object[] args) {
 		super();
 		this.code = code;
 		this.start = start;
@@ -39,10 +39,10 @@ public class Marker {
 		if (result == null)
 			return null;
 		if (cf != null)
-			ParserErrorCode.setDeclarationTag(result, cf.makeNameUniqueToParent());
+			Problem.setDeclarationTag(result, cf.makeNameUniqueToParent());
 		IRegion exprLocation = reporter;
 		if (exprLocation != null)
-			ParserErrorCode.setExpressionLocation(result, exprLocation);
+			Problem.setExpressionLocation(result, exprLocation);
 		return result;
 	}
 	@Override

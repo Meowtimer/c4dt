@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -101,20 +101,20 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	@Override
 	public boolean canAssist(IQuickAssistInvocationContext invocationContext) { return true; }
 
-	private static final Set<ParserErrorCode> fixableParserErrorCodes = ArrayUtil.set(
-		ParserErrorCode.VariableCalled,
-		ParserErrorCode.NeverReached,
-		ParserErrorCode.NotFinished,
-		ParserErrorCode.UndeclaredIdentifier,
-		ParserErrorCode.IncompatibleTypes,
-		ParserErrorCode.NoSideEffects,
-		ParserErrorCode.NoAssignment,
-		ParserErrorCode.NoInheritedFunction,
-		ParserErrorCode.ReturnAsFunction,
-		ParserErrorCode.Unused,
-		ParserErrorCode.Garbage,
-		ParserErrorCode.MemberOperatorWithTildeNoSpace,
-		ParserErrorCode.KeywordInWrongPlace
+	private static final Set<Problem> fixableParserErrorCodes = ArrayUtil.set(
+		Problem.VariableCalled,
+		Problem.NeverReached,
+		Problem.NotFinished,
+		Problem.UndeclaredIdentifier,
+		Problem.IncompatibleTypes,
+		Problem.NoSideEffects,
+		Problem.NoAssignment,
+		Problem.NoInheritedFunction,
+		Problem.ReturnAsFunction,
+		Problem.Unused,
+		Problem.Garbage,
+		Problem.MemberOperatorWithTildeNoSpace,
+		Problem.KeywordInWrongPlace
 	);
 
 	@Override
@@ -128,7 +128,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				return false;
 			}
 			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))
-				return fixableParserErrorCodes.contains(ParserErrorCode.errorCode(ma.getMarker()));
+				return fixableParserErrorCodes.contains(Problem.errorCode(ma.getMarker()));
 		}
 		return false;
 	}
@@ -190,7 +190,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private boolean relevant(IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
-				ParserErrorCode.errorCode(marker) == ParserErrorCode.errorCode(originalMarker);
+				Problem.errorCode(marker) == Problem.errorCode(originalMarker);
 		}
 
 		@Override
@@ -424,8 +424,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
-		ParserErrorCode errorCode = ParserErrorCode.errorCode(marker);
-		final IRegion expressionRegion = ParserErrorCode.expressionLocation(marker);
+		Problem errorCode = Problem.errorCode(marker);
+		final IRegion expressionRegion = Problem.expressionLocation(marker);
 		if (expressionRegion.getOffset() == -1)
 			return;
 		Object needToDisconnect = null;
@@ -604,7 +604,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					PrimitiveType t = PrimitiveType.fromString(ParserErrorCode.arg(marker, 0), true);
+					PrimitiveType t = PrimitiveType.fromString(Problem.arg(marker, 0), true);
 					if (t == PrimitiveType.STRING) {
 						StringLiteral str = new StringLiteral(offendingExpression.toString());
 						str.setLocation(offendingExpression);

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -50,7 +50,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	}
 	
 	private final class DisabledErrorsFieldEditor extends FieldEditor implements ICheckStateListener, ICheckStateProvider {
-		HashSet<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
+		HashSet<Problem> disabledErrorCodes = new HashSet<Problem>();
 		private CheckboxTableViewer tableViewer;
 		private Table table;
 		private Text filterBox;
@@ -78,9 +78,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		@Override
 		protected void doLoad() {
-			disabledErrorCodes = (HashSet<ParserErrorCode>) ClonkProjectNature.get(getProject()).settings().disabledErrorsSet().clone();
+			disabledErrorCodes = (HashSet<Problem>) ClonkProjectNature.get(getProject()).settings().disabledErrorsSet().clone();
 			if (tableViewer != null)
-			for (ParserErrorCode c : ParserErrorCode.values())
+			for (Problem c : Problem.values())
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 		}
 
@@ -110,11 +110,11 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 					public void dispose() {}
 					@Override
 					public Object[] getElements(Object inputElement) {
-						if (inputElement == ParserErrorCode.class) {
-							ParserErrorCode[] elms = ParserErrorCode.values().clone();
-							Arrays.sort(elms, new Comparator<ParserErrorCode>() {
+						if (inputElement == Problem.class) {
+							Problem[] elms = Problem.values().clone();
+							Arrays.sort(elms, new Comparator<Problem>() {
 								@Override
-								public int compare(ParserErrorCode o1, ParserErrorCode o2) {
+								public int compare(Problem o1, Problem o2) {
 									return o1.messageWithFormatArgumentDescriptions().compareTo(o2.messageWithFormatArgumentDescriptions());
 								}
 							});
@@ -126,12 +126,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.setLabelProvider(new LabelProvider() {
 					@Override
 					public String getText(Object element) {
-						return ((ParserErrorCode)element).messageWithFormatArgumentDescriptions();
+						return ((Problem)element).messageWithFormatArgumentDescriptions();
 					}
 				});
 				tableViewer.addCheckStateListener(this);
 				tableViewer.setCheckStateProvider(this);
-				tableViewer.setInput(ParserErrorCode.class);
+				tableViewer.setInput(Problem.class);
 			}
 			return table;
 		}
@@ -176,7 +176,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			if (event.getChecked())
 				disabledErrorCodes.remove(event.getElement());
 			else
-				disabledErrorCodes.add((ParserErrorCode) event.getElement());
+				disabledErrorCodes.add((Problem) event.getElement());
 		}
 	}
 

@@ -26,7 +26,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
@@ -251,7 +251,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					for (IMarker m : markers) {
 
 						// delete markers that are explicitly marked as being caused by parsing the function
-						if (func.makeNameUniqueToParent().equals(ParserErrorCode.declarationTag(m))) {
+						if (func.makeNameUniqueToParent().equals(Problem.declarationTag(m))) {
 							m.delete();
 							continue;
 						}
@@ -283,7 +283,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							Markers markers = new Markers(new IMarkerListener() {
 								@Override
 								public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider,
-									ParserErrorCode code, ASTNode node,
+									Problem code, ASTNode node,
 									int markerStart, int markerEnd, int flags,
 									int severity, Object... args
 								) {

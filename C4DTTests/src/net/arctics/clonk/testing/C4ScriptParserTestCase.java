@@ -18,7 +18,7 @@ import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -61,7 +61,7 @@ public class C4ScriptParserTestCase {
 	public class Setup {
 		public Script script;
 		public C4ScriptParser parser;
-		public final List<ParserErrorCode> errors = new ArrayList<ParserErrorCode>(20);
+		public final List<Problem> errors = new ArrayList<Problem>(20);
 
 		public Setup(final String script) throws UnsupportedEncodingException {
 			this.script = new Script(new Index() {
@@ -137,7 +137,7 @@ public class C4ScriptParserTestCase {
 			};
 			this.parser = new C4ScriptParser(script, this.script, null) {
 				@Override
-				public void marker(ParserErrorCode code,
+				public void marker(Problem code,
 						int markerStart, int markerEnd, int flags,
 						int severity, Object... args) throws ParsingException {
 					try {

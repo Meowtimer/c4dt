@@ -20,7 +20,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
@@ -228,15 +228,15 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	protected void startParsing() {}
 	protected void endParsing() {}
 
-	public void marker(String markerType, ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
+	public void marker(String markerType, Problem error, int start, int end, int markerSeverity, Object... args) {
 		error.createMarker(iniFile, this, markerType, start, end, markerSeverity, null, args);
 	}
 
-	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
+	public void marker(Problem error, int start, int end, int markerSeverity, Object... args) {
 		marker(Core.MARKER_INI_ERROR, error, start, end, markerSeverity, args);
 	}
 
-	public void markerAtValue(String markerType, ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
+	public void markerAtValue(String markerType, Problem error, IniEntry entry, int markerSeverity, Object... args) {
 		marker(markerType, error, entry.start(), entry.end(), markerSeverity, args);
 	}
 

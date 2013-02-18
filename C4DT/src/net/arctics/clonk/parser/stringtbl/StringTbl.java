@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.util.ITreeNode;
@@ -273,7 +273,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 		} catch (CoreException e) {}
 		if (miss != null)
-			context.markers().warning(context, ParserErrorCode.MissingLocalizations, node, region.region(), 0, region.text(), miss);
+			context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), miss);
 	}
 
 }

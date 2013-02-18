@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
  */
 public interface IMarkerListener {
 	/**
-	 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, ParserErrorCode, int, int, int, int, Object...)}
+	 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, Problem, int, int, int, int, Object...)}
 	 * @author madeen
 	 *
 	 */
@@ -35,5 +35,5 @@ public interface IMarkerListener {
 	 * @param args Arguments used to construct the marker message
 	 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
 	 */
-	Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args);
+	Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args);
 }

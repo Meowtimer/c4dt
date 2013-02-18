@@ -23,7 +23,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -443,7 +443,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 						C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 							private boolean firstMessage = true;
 							@Override
-							public void marker(ParserErrorCode code,
+							public void marker(Problem code,
 								int errorStart, int errorEnd, int flags,
 								int severity, Object... args) throws ParsingException {
 								if (firstMessage) {

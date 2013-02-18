@@ -24,7 +24,7 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
@@ -228,17 +228,17 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (evTracer.tracedFile == null)
 					return true;
 				if (evTracer.tracedFile.equals(processor.script().scriptFile())) {
-					processor.markers().error(processor, ParserErrorCode.MissingFormatArg, node, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
+					processor.markers().error(processor, Problem.MissingFormatArg, node, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 					return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
 				} else
-					processor.markers().error(processor, ParserErrorCode.MissingFormatArg, node, arguments[0], Markers.NO_THROW,
+					processor.markers().error(processor, Problem.MissingFormatArg, node, arguments[0], Markers.NO_THROW,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 			}
 			else if (!expectedType.canBeAssignedFrom(processor.typeOf(arguments[parmIndex+1]))) {
 				if (evTracer.tracedFile == null)
 					return true;
-				processor.markers().warning(processor, ParserErrorCode.IncompatibleFormatArgType, node, arguments[parmIndex+1],
+				processor.markers().warning(processor, Problem.IncompatibleFormatArgType, node, arguments[parmIndex+1],
 					Markers.NO_THROW, expectedType.typeName(false), processor.typeOf(arguments[parmIndex+1]).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 			}
 			return false;
@@ -280,7 +280,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						parmIndex++;
 					}
 				if (separateIssuesMarker)
-					processor.markers().error(processor, ParserErrorCode.DragonsHere, node, arguments[0], Markers.NO_THROW);
+					processor.markers().error(processor, Problem.DragonsHere, node, arguments[0], Markers.NO_THROW);
 			}
 			return false; // let others validate as well
 		};

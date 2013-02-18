@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.inireader.IniField;
@@ -44,7 +44,7 @@ public class ProjectSettings extends SettingsBase {
 	/** Name of engine to use for this project */
 	@IniField
 	public String engineName;
-	/** String containing list of {@link ParserErrorCode}s that will be disabled when building the project */
+	/** String containing list of {@link Problem}s that will be disabled when building the project */
 	@IniField
 	public String disabledErrors;
 	/** Typing mode for this project. */
@@ -57,7 +57,7 @@ public class ProjectSettings extends SettingsBase {
 	public String problemReportingStrategies;
 	
 	private Engine cachedEngine;
-	private HashSet<ParserErrorCode> disabledErrorsSet;
+	private HashSet<Problem> disabledErrorsSet;
 	private Collection<Class<? extends ProblemReportingStrategy>> _problemReportingStrategies;
 	
 	public ProjectSettings() {}
@@ -72,14 +72,14 @@ public class ProjectSettings extends SettingsBase {
 		return cachedEngine;
 	}
 	
-	public synchronized HashSet<ParserErrorCode> disabledErrorsSet() {
+	public synchronized HashSet<Problem> disabledErrorsSet() {
 		if (disabledErrorsSet == null) {
-			disabledErrorsSet = new HashSet<ParserErrorCode>();
+			disabledErrorsSet = new HashSet<Problem>();
 			if (!disabledErrors.equals("")) {
 				String ds[] = disabledErrors.split(",");
 				for (String d : ds)
 					try {
-						disabledErrorsSet.add(ParserErrorCode.valueOf(d));
+						disabledErrorsSet.add(Problem.valueOf(d));
 					} catch (IllegalArgumentException e) {
 						System.out.println("Unknown parser error: " + d);
 					}
@@ -116,7 +116,7 @@ public class ProjectSettings extends SettingsBase {
 		disabledErrorsSet = null;
 	}
 	
-	public void setDisabledErrorsSet(HashSet<ParserErrorCode> errorCodes) {
+	public void setDisabledErrorsSet(HashSet<Problem> errorCodes) {
 		this.disabledErrorsSet = errorCodes;
 		if (errorCodes != null)
 			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);

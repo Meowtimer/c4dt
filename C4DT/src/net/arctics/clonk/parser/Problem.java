@@ -7,8 +7,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 
-public enum ParserErrorCode {
-
+public enum Problem {
 	TokenExpected(Messages.TokenExpected, Messages.ParserErrorCode_Arg_Token),
 	NotAllowedHere(Messages.NotAllowedHere, Messages.ParserErrorCode_Arg_DisallowedToken),
 	MissingClosingBracket(Messages.MissingClosingBracket, Messages.ParserErrorCode_Arg_Missing),
@@ -106,11 +105,11 @@ public enum ParserErrorCode {
 	private String message;
 	private String[] formatArgumentDescriptions;
 
-	ParserErrorCode(String message) {
+	Problem(String message) {
 		this.message = message;
 	}
 
-	ParserErrorCode(String message, String... formatArgumentDescriptions) {
+	Problem(String message, String... formatArgumentDescriptions) {
 		this(message);
 		this.formatArgumentDescriptions = formatArgumentDescriptions;
 	}
@@ -127,7 +126,7 @@ public enum ParserErrorCode {
 		return formatArgumentDescriptions;
 	}
 
-	public static ParserErrorCode errorCode(IMarker marker) {
+	public static Problem errorCode(IMarker marker) {
 		try {
 			return values()[marker.getAttribute(MARKER_ERRORCODE, -1)];
 		} catch (ArrayIndexOutOfBoundsException e) {

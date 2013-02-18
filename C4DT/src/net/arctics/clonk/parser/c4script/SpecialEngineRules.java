@@ -39,7 +39,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -531,7 +531,7 @@ public abstract class SpecialEngineRules {
 						@Override
 						public Decision markerEncountered(
 							Markers markers, IASTPositionProvider positionProvider,
-							ParserErrorCode code, ASTNode node,
+							Problem code, ASTNode node,
 							int markerStart, int markerEnd, int flags, int severity, Object... args
 						) {
 							switch (code) {

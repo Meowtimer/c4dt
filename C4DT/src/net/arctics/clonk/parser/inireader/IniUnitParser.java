@@ -7,7 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.StreamUtil;
 
@@ -48,12 +48,12 @@ public class IniUnitParser extends CStyleScanner {
 			int end;
 			if (read() != ']') {
 				if (modifyMarkers)
-					unit.marker(ParserErrorCode.TokenExpected, tell()-1, tell(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
+					unit.marker(Problem.TokenExpected, tell()-1, tell(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
 				return null;
 			} else {
 				if (!unit.isSectionNameValid(name, parentSection))
 					if (modifyMarkers)
-						unit.marker(ParserErrorCode.UnknownSection, start+1, tell()-1, IMarker.SEVERITY_WARNING, name);
+						unit.marker(Problem.UnknownSection, start+1, tell()-1, IMarker.SEVERITY_WARNING, name);
 				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
@@ -163,7 +163,7 @@ public class IniUnitParser extends CStyleScanner {
 		eatWhitespace();
 		if (read() != '=')
 			if (modifyMarkers)
-				unit.marker(ParserErrorCode.TokenExpected, keyStart+key.length(), tell(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+				unit.marker(Problem.TokenExpected, keyStart+key.length(), tell(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = tell();
@@ -179,7 +179,7 @@ public class IniUnitParser extends CStyleScanner {
 			return unit.validateEntry(entry, section, modifyMarkers);
 		} catch (IniParserException e) {
 			if (modifyMarkers)
-				unit.marker(ParserErrorCode.GenericError, e.offset(), e.endOffset(), e.severity(), (Object)e.getMessage());
+				unit.marker(Problem.GenericError, e.offset(), e.endOffset(), e.severity(), (Object)e.getMessage());
 			return entry;
 		}
 	}

@@ -32,7 +32,7 @@ public class Markers extends LinkedList<Marker> {
 	 * Whether to not create any error markers at all - set if script is contained in linked group
 	 */
 	private boolean allErrorsDisabled;
-	private final Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
+	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
 
 	public void setListener(IMarkerListener markerListener) { this.listener = markerListener; }
@@ -71,7 +71,7 @@ public class Markers extends LinkedList<Marker> {
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
 	 * @throws ParsingException
 	 */
-	public void marker(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+	public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
 		if (!errorEnabled(code))
 			return;
 
@@ -106,20 +106,20 @@ public class Markers extends LinkedList<Marker> {
 			throw new ParsingException(problem);
 	}
 
-	public void warning(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) {
+	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			marker(positionProvider, code, node, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (ParsingException e) {
 			// won't happen
 		}
 	}
-	public void warning(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, IRegion region, int flags, Object... args) {
+	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion region, int flags, Object... args) {
 		warning(positionProvider, code, node, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, IRegion errorRegion, int flags, Object... args) throws ParsingException {
+	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion errorRegion, int flags, Object... args) throws ParsingException {
 		error(positionProvider, code, node, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, ParserErrorCode code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
+	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
 		marker(positionProvider, code, node, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 
@@ -128,7 +128,7 @@ public class Markers extends LinkedList<Marker> {
 	 * @param error The error to check the enabled status of
 	 * @return Return whether the error is enabled.
 	 */
-	public boolean errorEnabled(ParserErrorCode error) {
+	public boolean errorEnabled(Problem error) {
 		return !(allErrorsDisabled || disabledErrors.contains(error));
 	}
 
@@ -167,7 +167,7 @@ public class Markers extends LinkedList<Marker> {
 			return null;
 	}
 
-	public void enableErrors(Set<ParserErrorCode> set, boolean doEnable) {
+	public void enableErrors(Set<Problem> set, boolean doEnable) {
 		if (doEnable)
 			disabledErrors.removeAll(set);
 		else
@@ -176,7 +176,7 @@ public class Markers extends LinkedList<Marker> {
 	public void disableAllErrors(boolean _do) {
 		allErrorsDisabled = _do;
 	}
-	public boolean enableError(ParserErrorCode error, boolean doEnable) {
+	public boolean enableError(Problem error, boolean doEnable) {
 		boolean result = errorEnabled(error);
 		if (doEnable)
 			disabledErrors.remove(error);

@@ -2,7 +2,7 @@
 
 package net.arctics.clonk.parser.landscapescript;
 
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
@@ -124,7 +124,7 @@ public class LandscapeScriptParser extends Parser {
     		if (current instanceof Overlay) {
     			OverlayBase newOverlay = ((Overlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
     			if (newOverlay == null)
-    				errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
+    				errorWithCode(Problem.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
     			else
     				setCurrentOverlay(newOverlay, typeToken, nameToken);
     		}
@@ -136,13 +136,13 @@ public class LandscapeScriptParser extends Parser {
     private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
     	try {
     		if (valueTokenLo == null)
-    			errorWithCode(ParserErrorCode.ExpressionExpected, endPos(nameToken), endPos(nameToken)+1);
+    			errorWithCode(Problem.ExpressionExpected, endPos(nameToken), endPos(nameToken)+1);
     		else
     			current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
     	} catch (NoSuchFieldException e) {
-    		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
+    		errorWithCode(Problem.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
     	} catch (Exception e) {
-    		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
+    		errorWithCode(Problem.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
     	}
     }
 
@@ -178,7 +178,7 @@ public class LandscapeScriptParser extends Parser {
     	return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
     }
 
-    private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+    private void errorWithCode(Problem code, int errorStart, int errorEnd, Object... args) {
     	String problem = code.makeErrorString(args);
     	createErrorMarker(errorStart, errorEnd, problem);    	
     }
@@ -195,7 +195,7 @@ public class LandscapeScriptParser extends Parser {
     @Override
     public void reportError(RecognitionException error) {
     	if (error.token.getText() != null)	
-    		errorWithCode(ParserErrorCode.UnexpectedToken, startPos(error.token), endPos(error.token), error.token.getText());
+    		errorWithCode(Problem.UnexpectedToken, startPos(error.token), endPos(error.token), error.token.getText());
     	super.reportError(error);
     }
 

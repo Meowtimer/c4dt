@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
@@ -115,12 +115,12 @@ public class Directive extends Declaration implements Serializable {
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (contents() == null)
-				parser.markers().error(parser, ParserErrorCode.MissingDirectiveArgs, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, this.toString());
+				parser.markers().error(parser, Problem.MissingDirectiveArgs, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, this.toString());
 			else {
 				ID id = contentAsID();
 				Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
 				if (obj == null)
-					parser.markers().error(parser, ParserErrorCode.UndeclaredIdentifier, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, contents());
+					parser.markers().error(parser, Problem.UndeclaredIdentifier, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, contents());
 			}
 			break;
 		default:
