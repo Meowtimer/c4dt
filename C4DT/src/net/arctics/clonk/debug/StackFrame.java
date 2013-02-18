@@ -1,9 +1,11 @@
 package net.arctics.clonk.debug;
 
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.core.resources.IContainer;
@@ -19,15 +21,14 @@ public class StackFrame extends DebugElement implements IStackFrame {
 	
 	private int line;
 	private Object function;
-	private ScriptThread thread;
+	private final ScriptThread thread;
 	private DebugVariable[] variables;
 	
 	public int index() throws DebugException {
 		IStackFrame[] frames = thread.getStackFrames();
-		for (int i = 0; i < frames.length; i++) {
+		for (int i = 0; i < frames.length; i++)
 			if (frames[i] == this)
 				return i;
-		}
 		return -1; 
 	}
 	
@@ -43,156 +44,76 @@ public class StackFrame extends DebugElement implements IStackFrame {
 		if (function instanceof Function) {
 			Function f = (Function) function;
 			List<DebugVariable> l = new LinkedList<DebugVariable>();
-			for (Variable parm : f.parameters()) {
+			for (Variable parm : f.parameters())
 				if (parm.isActualParm())
 					l.add(new DebugVariable(this, parm));
-			}
-			for (Variable local : f.localVars()) {
+			for (Variable local : f.localVars())
 				l.add(new DebugVariable(this, local));
-			}
 			variables = l.toArray(new DebugVariable[l.size()]);
-		}
-		else {
+		} else
 			variables = NO_VARIABLES;
-		}
-	}
-
-	public void setLine(int line) {
-		this.line = line;
-	}
-
-	public Object getFunction() {
-		return function;
-	}
-
-	public void setFunction(Object function) {
-		this.function = function;
-	}
-
-	@Override
-	public int getCharEnd() throws DebugException {
-		return -1;
-	}
-
-	@Override
-	public int getCharStart() throws DebugException {
-		return -1;
-	}
-
-	@Override
-	public int getLineNumber() throws DebugException {
-		return line;
 	}
 
 	@Override
 	public String getName() throws DebugException {
 		if (function instanceof Function)
-			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).longParameterString(true), line);
+			return String.format(NAME_FORMAT, ((Function)function).script().name(), ((Function) function).longParameterString
+				(EnumSet.of(ParameterStringOption.FunctionName)), line);
 		else if (function != null)
 			return function.toString();
 		else
 			return null;
 	}
 
+	public void setLine(int line) { this.line = line; }
+	public Object getFunction() { return function; }
+	public void setFunction(Object function) { this.function = function; }
 	@Override
-	public IRegisterGroup[] getRegisterGroups() throws DebugException {
-		return null;
-	}
-
+	public int getCharEnd() throws DebugException { return -1; }
 	@Override
-	public IThread getThread() {
-		return thread;
-	}
-
+	public int getCharStart() throws DebugException { return -1; }
 	@Override
-	public DebugVariable[] getVariables() throws DebugException {
-		return variables;
-	}
-
+	public int getLineNumber() throws DebugException { return line; }
 	@Override
-	public boolean hasRegisterGroups() throws DebugException {
-		return false;
-	}
-
+	public IRegisterGroup[] getRegisterGroups() throws DebugException { return null; }
 	@Override
-	public boolean hasVariables() throws DebugException {
-		return variables.length > 0;
-	}
-
+	public IThread getThread() { return thread; }
 	@Override
-	public boolean canStepInto() {
-		return true;
-	}
-
+	public DebugVariable[] getVariables() throws DebugException { return variables; }
 	@Override
-	public boolean canStepOver() {
-		return true;
-	}
-
+	public boolean hasRegisterGroups() throws DebugException { return false; }
 	@Override
-	public boolean canStepReturn() {
-		return true;
-	}
-
+	public boolean hasVariables() throws DebugException { return variables.length > 0; }
 	@Override
-	public boolean isStepping() {
-		return true;
-	}
-
+	public boolean canStepInto() { return true; }
 	@Override
-	public void stepInto() throws DebugException {
-		thread.stepInto();
-	}
-
+	public boolean canStepOver() { return true; }
 	@Override
-	public void stepOver() throws DebugException {
-		thread.stepOver();
-	}
-
+	public boolean canStepReturn() { return true; }
 	@Override
-	public void stepReturn() throws DebugException {
-		thread.stepReturn();
-	}
-
+	public boolean isStepping() { return true; }
 	@Override
-	public boolean canResume() {
-		return true;
-	}
-
+	public void stepInto() throws DebugException { thread.stepInto(); }
 	@Override
-	public boolean canSuspend() {
-		return !isSuspended();
-	}
-
+	public void stepOver() throws DebugException { thread.stepOver(); }
 	@Override
-	public boolean isSuspended() {
-		return thread.isSuspended();
-	}
-
+	public void stepReturn() throws DebugException { thread.stepReturn(); }
 	@Override
-	public void resume() throws DebugException {
-		thread.resume();
-	}
-
+	public boolean canResume() { return true; }
 	@Override
-	public void suspend() throws DebugException {
-		thread.suspend();
-	}
-
+	public boolean canSuspend() { return !isSuspended(); }
 	@Override
-	public boolean canTerminate() {
-		return true;
-	}
-
+	public boolean isSuspended() { return thread.isSuspended(); }
 	@Override
-	public boolean isTerminated() {
-		return thread.isTerminated();
-	}
-
+	public void resume() throws DebugException { thread.resume(); }
 	@Override
-	public void terminate() throws DebugException {
-		thread.terminate();
-	}
+	public void suspend() throws DebugException { thread.suspend(); }
+	@Override
+	public boolean canTerminate() { return true; }
+	@Override
+	public boolean isTerminated() { return thread.isTerminated(); }
+	@Override
+	public void terminate() throws DebugException { thread.terminate(); }
 	
 	public String getSourcePath() {
 		if (function instanceof Function) {

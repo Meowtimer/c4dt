@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -254,6 +255,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return toString();
 		}
 	}
+	
+	public enum ParameterStringOption {
+		FunctionName,
+		EngineCompatible,
+		ParameterComments
+	}
 
 	/**
 	 * Generates a function string in the form of
@@ -265,29 +272,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param engineCompatible print parameters in an engine-parseable manner
 	 * @return the function string
 	 */
-	public String longParameterString(boolean withFuncName, boolean engineCompatible) {
+	public String longParameterString(EnumSet<ParameterStringOption> options) {
 		StringBuilder string = new StringBuilder();
-		if (withFuncName) {
+		if (options.contains(ParameterStringOption.FunctionName)) {
 			string.append(name());
 			string.append("("); //$NON-NLS-1$
 		}
-		printParameterString(new AppendableBackedExprWriter(string), engineCompatible);
-		if (withFuncName) string.append(")"); //$NON-NLS-1$
+		printParameterString(new AppendableBackedExprWriter(string), options);
+		if (options.contains(ParameterStringOption.FunctionName))
+			string.append(")"); //$NON-NLS-1$
 		return string.toString();
-	}
-
-	public String longParameterString(boolean withFuncName) {
-		return longParameterString(withFuncName, true);
 	}
 
 	@Override
 	public String displayString(IIndexEntity context) {
-		return longParameterString(true);
+		return longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
 	}
 
-	private void printParameterString(ASTNodePrinter output, final boolean engineCompatible) {
+	private void printParameterString(ASTNodePrinter output, final EnumSet<ParameterStringOption> options) {
 		if (numParameters() > 0)
 			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new IConverter<Variable, String>() {
+				final boolean engineCompatible = options.contains(ParameterStringOption.EngineCompatible);
 				@Override
 				public String convert(Variable par) {
 					IType type = engineCompatible ? par.type().simpleType() : par.type();
@@ -299,11 +304,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					});
 					if (engineCompatible && !par.isActualParm())
 						return null;
+					String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : ""; 
 					if (type != PrimitiveType.UNKNOWN && type != null &&
 						(!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)))
-						return type.typeName(false) + " " + par.name();
+						return comment + type.typeName(false) + " " + par.name();
 					else
-						return par.name();
+						return comment + par.name();
 				}
 			}));
 	}
@@ -372,7 +378,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (String line : new String[] {
 			"<i>"+scriptPath+"</i><br/>", //$NON-NLS-1$ //$NON-NLS-2$
-			"<b>"+longParameterString(true, true)+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			"<b>"+longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -550,7 +556,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
-			printParameterString(output, true);
+			printParameterString(output, EnumSet.of(ParameterStringOption.FunctionName));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else
@@ -728,7 +734,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
-		builder.append(longParameterString(true));
+		builder.append(longParameterString(EnumSet.of(ParameterStringOption.FunctionName)));
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n{\n"); //$NON-NLS-1$

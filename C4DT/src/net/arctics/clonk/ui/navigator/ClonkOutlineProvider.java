@@ -4,10 +4,12 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.lang.ref.WeakReference;
+import java.util.EnumSet;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
@@ -112,7 +114,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		}
 		if (element instanceof Function) {
 			Function func = ((Function)element);
-			result.append(func.longParameterString(true, false));
+			result.append(func.longParameterString(EnumSet.of(ParameterStringOption.FunctionName)));
 			IType retType = func.returnType(context != null ? context.script() : null);
 			if (retType != null && retType != PrimitiveType.UNKNOWN) {
 				result.append(" : "); //$NON-NLS-1$

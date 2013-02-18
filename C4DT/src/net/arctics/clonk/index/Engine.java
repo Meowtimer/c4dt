@@ -12,6 +12,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -430,45 +432,47 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	private void parseEngineScript() {
-		for (IStorageLocation loc : storageLocations) {
-			final URL url = loc.locatorForEntry(name()+".c", false); //$NON-NLS-1$
-			if (url != null)
-				try (InputStream stream = url.openStream()) {
-					String scriptFromStream = StreamUtil.stringFromInputStream(stream);
-					final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
-					C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
-						private boolean firstMessage = true;
-						@Override
-						public void marker(ParserErrorCode code,
+		final String lang = ClonkPreferences.languagePref();
+		for (IStorageLocation loc : storageLocations)
+			for (String s : new String[] {String.format("%s%s.c", name(), lang), String.format("%s.c", name())}) {
+				final URL url = loc.locatorForEntry(s, false); //$NON-NLS-1$
+				if (url != null)
+					try (InputStream stream = url.openStream()) {
+						String scriptFromStream = StreamUtil.stringFromInputStream(stream);
+						final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
+						C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
+							private boolean firstMessage = true;
+							@Override
+							public void marker(ParserErrorCode code,
 								int errorStart, int errorEnd, int flags,
 								int severity, Object... args) throws ParsingException {
-							if (firstMessage) {
-								firstMessage = false;
-								System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
+								if (firstMessage) {
+									firstMessage = false;
+									System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
+								}
+								System.out.println(String.format(
+									"%s @(%d, %d)", //$NON-NLS-1$
+									code.makeErrorString(args),
+									lno.obtainLineNumber(errorStart),
+									lno.obtainCharNumberInObtainedLine()
+								));
+								super.marker(code, errorStart, errorEnd, flags, severity, args);
 							}
-							System.out.println(String.format(
-								"%s @(%d, %d)", //$NON-NLS-1$
-								code.makeErrorString(args),
-								lno.obtainLineNumber(errorStart),
-								lno.obtainCharNumberInObtainedLine()
-							));
-							super.marker(code, errorStart, errorEnd, flags, severity, args);
+							@Override
+							protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
+							@Override
+							protected Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
+						};
+						try {
+							parser.parse();
+						} catch (ParsingException e) {
+							e.printStackTrace();
 						}
-						@Override
-						protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
-						@Override
-						protected Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
-					};
-					try {
-						parser.parse();
-					} catch (ParsingException e) {
-						e.printStackTrace();
+						postLoad((Declaration)null, (Index)null);
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
-					postLoad((Declaration)null, (Index)null);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-		}
+			}
 	}
 
 	private void createSpecialRules() {
@@ -604,7 +608,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
 				writer.append(desc);
 			}
-			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, f.longParameterString(true, true)); //$NON-NLS-1$
+			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, //$NON-NLS-1$
+				f.longParameterString(EnumSet.of(
+					ParameterStringOption.FunctionName,
+					ParameterStringOption.EngineCompatible,
+					ParameterStringOption.ParameterComments
+				)));
 			writer.append(text);
 		}
 	}
