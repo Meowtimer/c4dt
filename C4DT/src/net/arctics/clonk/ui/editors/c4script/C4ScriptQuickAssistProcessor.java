@@ -642,7 +642,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 						if (statement.expression() instanceof BinaryOp) {
 							BinaryOp binaryOp = (BinaryOp) statement.expression();
-							if (binaryOp.operator() == Operator.Equal && binaryOp.leftSide().isModifiable(parser))
+							if (binaryOp.operator() == Operator.Equal && problemReporting.isModifiable(binaryOp.leftSide()))
 								replacements.add(
 										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
 										new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())

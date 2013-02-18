@@ -15,7 +15,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.ISerializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.IType;
@@ -33,8 +32,6 @@ import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.Whitespace;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
@@ -103,19 +100,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return false; // never!
 		};
 	};
-
-	/**
-	 * Create a new expression to signify some non-expression at a given location.
-	 * @param start The start of the location to mark as 'missing an expression'
-	 * @param length The length of the null-expression
-	 * @param parser Parser used to adjust the expression location to be relative to the function body
-	 * @return The constructed null expression
-	 */
-	public static final ASTNode whitespace(int start, int length, C4ScriptParser parser) {
-		ASTNode result = new Whitespace();
-		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
-		return result;
-	}
 
 	protected transient ASTNode parent, predecessorInSequence;
 
@@ -238,13 +222,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		print(new AppendableBackedExprWriter(builder), depth);
 	}
 
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor == null; }
-	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return true; }
-	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return true; }
-
-	public boolean isModifiable(C4ScriptParser context) {
-		return true;
-	}
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	public boolean isValidAtEndOfSequence() { return true; }
+	public boolean allowsSequenceSuccessor(ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
 		ASTNode[] subElms = subElements();
@@ -284,17 +264,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public void setLocation(IRegion r) {
 		this.setLocation(r.getOffset(), r.getOffset()+r.getLength());
-	}
-
-	/**
-	 * Reset some cached state so {@link #reportProblems(C4ScriptParser)} is more likely to not report on errors that have since been fixed.
-	 * Also called recursively on {@link #subElements()}.
-	 * @param parser context
-	 */
-	public void reconsider(C4ScriptParser parser) {
-		for (ASTNode e : this.subElements())
-			if (e != null)
-				e.reconsider(parser);
 	}
 
 	public void setPredecessorInSequence(ASTNode p) {
@@ -464,9 +433,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Traverses this expression by calling expressionDetected on the supplied IExpressionListener for the root expression and its sub elements.
+	 * Traverses this expression by calling expressionDetected on the supplied {@link IASTVisitor} for the root expression and its sub elements.
 	 * @param listener the expression listener
-	 * @param parser the parser as context
+	 * @param context Context object
 	 * @return flow control for the calling function
 	 */
 	public <T> TraversalContinuation traverse(IASTVisitor<T> listener, T context) {
@@ -544,7 +513,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	public final boolean isAlways(boolean what, IEvaluationContext context) {
-		Object ev = this.evaluateAtParseTime(context);
+		Object ev = this.evaluateStatic(context);
 		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
 	}
 
@@ -589,7 +558,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param context the context to evaluate in
 	 * @return the result
 	 */
-	public Object evaluateAtParseTime(IEvaluationContext context) {
+	public Object evaluateStatic(IEvaluationContext context) {
 		return EVALUATION_COMPLEX;
 	}
 
@@ -792,8 +761,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 				e.incrementLocation(amount);
 	}
 
-	public static Object evaluateAtParseTime(ASTNode element, IEvaluationContext context) {
-		return element != null ? element.evaluateAtParseTime(context) : null;
+	public static Object evaluateStatic(ASTNode element, IEvaluationContext context) {
+		return element != null ? element.evaluateStatic(context) : null;
 	}
 
 	/**

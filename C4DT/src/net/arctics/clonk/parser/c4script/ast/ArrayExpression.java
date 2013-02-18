@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.parser.IEvaluationContext;
 
 public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
@@ -29,13 +28,8 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return predecessor == null;
-	}
-
-	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return false;
 	}
 
 	@Override

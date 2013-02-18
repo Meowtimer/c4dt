@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -100,11 +101,11 @@ import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
+import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
@@ -306,7 +307,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			ASTNode saved = reportingNode;
 			reportingNode = expression;
 			{
-				ProblemReporter<? super T> reporter = reporter(expression);
+				Expert<? super T> reporter = reporter(expression);
 				ControlFlow old = controlFlow;
 				if (recursive && !reporter.skipReportingProblemsForSubElements())
 					for (ASTNode e : expression.subElements())
@@ -587,6 +588,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public IType typeOf(ASTNode node) { return ty(node, this); }
 		@Override
+		public boolean isModifiable(ASTNode node) { return reporter(node).isModifiable(node, this); }
+		@Override
 		public BufferedScanner scanner() { return parser; }
 
 		@Override
@@ -620,7 +623,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return null;
 		}
 
-		public final <T extends ASTNode> ProblemReporter<? super T> reporter(T node) {
+		public final <T extends ASTNode> Expert<? super T> reporter(T node) {
 			return DabbleInference.this.reporter(node);
 		}
 
@@ -638,12 +641,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 	}
 
-	class ProblemReporter<T extends ASTNode> extends PerClass<ASTNode, T, ProblemReporter<? super T>> {
-		public ProblemReporter(Class<T> cls) { super(cls); }
+	/**
+	 * An object that knows how to answer various questions about nodes of type T.
+	 * These questions span
+	 * <ul>
+	 * 	<li>typing ({@link Expert#type(ASTNode, ScriptProcessor)})</li>
+	 *  <li></li>
+	 * </ul>
+	 * @author madeen
+	 *
+	 * @param <T>
+	 */
+	class Expert<T extends ASTNode> extends PerClass<ASTNode, T, Expert<? super T>> {
+		public Expert(Class<T> cls) { super(cls); }
 		public void findSuper() {
 			for (Class<? super T> s = cls.getSuperclass(); s != null; s = s.getSuperclass()) {
 				@SuppressWarnings("unchecked")
-				ProblemReporter<? super T> sup = (ProblemReporter<? super T>)problemReporters.get(s);
+				Expert<? super T> sup = (Expert<? super T>)problemReporters.get(s);
 				if (sup != null) {
 					supr = sup;
 					return;
@@ -745,9 +759,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public String toString() { return String.format("ProblemReporter<%s>", cls.getSimpleName()); }
+
+		public boolean isModifiable(T node, ScriptProcessor processor) { return true; }
 	}
 
-	class AccessDeclarationProblemReporter<T extends AccessDeclaration> extends ProblemReporter<T> {
+	class AccessDeclarationProblemReporter<T extends AccessDeclaration> extends Expert<T> {
 		public AccessDeclarationProblemReporter(Class<T> cls) { super(cls); }
 		protected Declaration obtainDeclaration(T node, ScriptProcessor processor) { return null; }
 		@Override
@@ -776,7 +792,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	class ConditionalStatementProblemReporter<T extends ConditionalStatement> extends ProblemReporter<T> {
+	class ConditionalStatementProblemReporter<T extends ConditionalStatement> extends Expert<T> {
 		public ConditionalStatementProblemReporter(Class<T> cls) { super(cls); }
 		@Override
 		public boolean skipReportingProblemsForSubElements() {return true;}
@@ -800,7 +816,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			ASTNode condition = node.condition();
 			if (node.body() == null || condition == null || !(node instanceof ILoop))
 				return;
-			Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(node.parentOfType(Function.class)));
+			Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateStatic(node.parentOfType(Function.class)));
 			if (Boolean.FALSE.equals(condEv))
 				processor.markers().warning(processor, ParserErrorCode.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
 			else if (Boolean.TRUE.equals(condEv)) {
@@ -811,7 +827,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	private final ProblemReporter<ASTNode> NULL_REPORTER = new ProblemReporter<ASTNode>(ASTNode.class) {
+	private final Expert<ASTNode> NULL_REPORTER = new Expert<ASTNode>(ASTNode.class) {
 		@Override
 		public IType type(ASTNode node, ScriptProcessor processor) {
 			return PrimitiveType.UNKNOWN;
@@ -822,10 +838,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	};
 
-	private final <T extends ASTNode> ProblemReporter<? super T> findReporter(T node) {
+	private final <T extends ASTNode> Expert<? super T> findReporter(T node) {
 		for (Class<?> cls = node.getClass(); cls != null; cls = cls.getSuperclass()) {
 			@SuppressWarnings("unchecked")
-			ProblemReporter<? super T> reporter = (ProblemReporter<? super T>)problemReporters.get(cls);
+			Expert<? super T> reporter = (Expert<? super T>)problemReporters.get(cls);
 			if (reporter != null)
 				return reporter;
 		}
@@ -833,9 +849,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@SuppressWarnings("unchecked")
-	private final <T extends ASTNode> ProblemReporter<? super T> reporter(T node) {
+	private final <T extends ASTNode> Expert<? super T> reporter(T node) {
 		if (node.temporaryProblemReportingObject != null)
-			return (ProblemReporter<? super T>)node.temporaryProblemReportingObject;
+			return (Expert<? super T>)node.temporaryProblemReportingObject;
 		else
 			return findReporter(node);
 	}
@@ -844,7 +860,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return node != null ? ty(node, reporter(node), processor) : null;
 	}
 
-	public final <T extends ASTNode> IType ty(T node, ProblemReporter<T> reporter, ScriptProcessor processor) {
+	public final <T extends ASTNode> IType ty(T node, Expert<T> reporter, ScriptProcessor processor) {
 		IType type = reporter.type(node, processor);
 		node.inferredType(type);
 		return type;
@@ -854,10 +870,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		reporter(node).typingJudgement(node, type, processor, mode);
 	}
 
-	private final Map<Class<? extends ASTNode>, ProblemReporter<? extends ASTNode>> problemReporters = new HashMap<Class<? extends ASTNode>, ProblemReporter<?>>();
+	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> problemReporters = new HashMap<Class<? extends ASTNode>, Expert<?>>();
 	{
 		@SuppressWarnings("rawtypes")
-		ProblemReporter<?>[] reporters = new ProblemReporter[] {
+		Expert<?>[] reporters = new Expert[] {
 
 			new AccessDeclarationProblemReporter<AccessDeclaration>(AccessDeclaration.class),
 
@@ -1057,9 +1073,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 					else
 						return super.createTypeInfo(node, processor);
 				}
+				@Override
+				public boolean isModifiable(AccessVar node, ScriptProcessor processor) {
+					Declaration declaration = node.declaration();
+					ASTNode pred = node.predecessorInSequence();
+					if (pred == null)
+						return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
+					else
+						return true; // you can never be so sure
+				}
 			},
 
-			new ProblemReporter<InitializationFunction.VarInitializationAccess>(InitializationFunction.VarInitializationAccess.class) {
+			new Expert<InitializationFunction.VarInitializationAccess>(InitializationFunction.VarInitializationAccess.class) {
 				@Override
 				public void assignment(VarInitializationAccess leftSide, ASTNode rightSide, ScriptProcessor processor) {
 					supr.assignment(leftSide, rightSide, processor);
@@ -1068,9 +1093,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							processor.markers().error(processor.parser, ParserErrorCode.NonConstGlobalVarAssignment, rightSide, rightSide, Markers.NO_THROW);
 						} catch (ParsingException e) { }
 				}
+				@Override
+				public boolean isModifiable(VarInitializationAccess node, ScriptProcessor processor) { return true; /* sudo */ }
 			},
 
-			new ProblemReporter<ArrayExpression>(ArrayExpression.class) {
+			new Expert<ArrayExpression>(ArrayExpression.class) {
 				@Override
 				public IType type(ArrayExpression node, final ScriptProcessor processor) {
 					return new ArrayType(
@@ -1083,9 +1110,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						})
 					);
 				}
+				@Override
+				public boolean isModifiable(ArrayExpression node, ScriptProcessor processor) { return false; }
 			},
 
-			new ProblemReporter<ArrayElementExpression>(ArrayElementExpression.class) {
+			new Expert<ArrayElementExpression>(ArrayElementExpression.class) {
 				@Override
 				public IType type(ArrayElementExpression node, ScriptProcessor processor) {
 					IType t = supr.type(node, processor);
@@ -1097,7 +1126,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (IType ty : predTy) {
 							ArrayType at = as(ty, ArrayType.class);
 							if (at != null)
-								return at.typeForElementWithIndex(ASTNode.evaluateAtParseTime(node.argument(), processor));
+								return at.typeForElementWithIndex(ASTNode.evaluateStatic(node.argument(), processor));
 						}
 					}
 					return PrimitiveType.ANY;
@@ -1110,7 +1139,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						IType rightSideType = ty(rightSide, processor);
 						ASTNode pred = leftSide.predecessorInSequence();
 						if (arrayType != null) {
-							Object argEv = ASTNode.evaluateAtParseTime(leftSide.argument(), processor);
+							Object argEv = ASTNode.evaluateStatic(leftSide.argument(), processor);
 							IType mutation;
 							if (argEv instanceof Number)
 								mutation = arrayType.modifiedBySliceAssignment(
@@ -1159,9 +1188,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							//	reporter(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
 					}
 				}
+				@Override
+				public boolean isModifiable(ArrayElementExpression node, ScriptProcessor processor) { return true; }
 			},
 
-			new ProblemReporter<ArraySliceExpression>(ArraySliceExpression.class) {
+			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				private void warnIfNotArray(ASTNode node, ScriptProcessor processor, IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
@@ -1174,16 +1205,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType type = predecessorType(node, processor);
 					warnIfNotArray(node.predecessorInSequence(), processor, type);
 				}
+				@Override
+				public boolean isModifiable(ArraySliceExpression node, ScriptProcessor processor) { return false; }
 			},
 
-			new ProblemReporter<OperatorExpression>(OperatorExpression.class) {
+			new Expert<OperatorExpression>(OperatorExpression.class) {
 				@Override
 				public IType type(OperatorExpression node, ScriptProcessor processor) {
 					return node.operator().resultType();
 				}
+				@Override
+				public boolean isModifiable(OperatorExpression node, ScriptProcessor processor) { return node.operator().returnsRef(); }
 			},
 
-			new ProblemReporter<BinaryOp>(BinaryOp.class) {
+			new Expert<BinaryOp>(BinaryOp.class) {
 				@Override
 				public IType type(BinaryOp node, ScriptProcessor processor) {
 					switch (node.operator()) {
@@ -1209,7 +1244,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode right = node.rightSide();
 					node.setLocation(left.start(), right.end());
 					// i'm an assignment operator and i can't modify my left side :C
-					if (op.modifiesArgument() && !left.isModifiable(processor.parser))
+					if (op.modifiesArgument() && !reporter(left).isModifiable(left, processor))
 						processor.markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, left, Markers.NO_THROW);
 					// obsolete operators in #strict 2impor
 					if ((op == Operator.StringEqual || op == Operator.ne) && (processor.strictLevel >= 2))
@@ -1253,14 +1288,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<UnaryOp>(UnaryOp.class) {
+			new Expert<UnaryOp>(UnaryOp.class) {
 				@Override
 				public void reportProblems(UnaryOp node, ScriptProcessor processor) throws ParsingException {
 					supr.reportProblems(node, processor);
 					ASTNode arg = node.argument();
-					if (node.operator().modifiesArgument() && !arg.isModifiable(processor.parser))
+					if (node.operator().modifiesArgument() && !reporter(arg).isModifiable(arg, processor))
 						processor.markers().error(processor.parser, ParserErrorCode.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
-					ProblemReporter<? super ASTNode> rarg = reporter(arg);
+					Expert<? super ASTNode> rarg = reporter(arg);
 					PrimitiveType firstArgType = node.operator().firstArgType();
 					if (!rarg.validForType(arg, firstArgType, processor))
 						processor.incompatibleTypes(node, arg, firstArgType,
@@ -1268,9 +1303,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (firstArgType != PrimitiveType.ANY)
 						rarg.typingJudgement(arg, firstArgType, processor, TypingJudgementMode.Expect);
 				}
+				@Override
+				public boolean isModifiable(UnaryOp node, ScriptProcessor processor) {
+					return node.placement() == Placement.Prefix && node.operator().returnsRef();
+				}
 			},
 
-			new ProblemReporter<BoolLiteral>(BoolLiteral.class) {
+			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
 				public void reportProblems(BoolLiteral node, ScriptProcessor processor) throws ParsingException {
 					supr.reportProblems(node, processor);
@@ -1282,7 +1321,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<ContinueStatement>(ContinueStatement.class) {
+			new Expert<ContinueStatement>(ContinueStatement.class) {
 				@Override
 				public void reportProblems(ContinueStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
@@ -1291,7 +1330,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<BreakStatement>(BreakStatement.class) {
+			new Expert<BreakStatement>(BreakStatement.class) {
 				@Override
 				public void reportProblems(BreakStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
@@ -1300,7 +1339,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<ReturnStatement>(ReturnStatement.class) {
+			new Expert<ReturnStatement>(ReturnStatement.class) {
 				private void warnAboutTupleInReturnExpr(ScriptProcessor processor, ASTNode node, boolean tupleIsError) throws ParsingException {
 					if (node == null)
 						return;
@@ -1583,7 +1622,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					CachedEngineDeclarations cache = processor.cachedEngineDeclarations();
 					if (isAnyOf(d, cache.VarAccessFunctions)) {
 						Object ev;
-						if (node.params().length == 1 && (ev = node.params()[0].evaluateAtParseTime(node.parentOfType(Function.class))) != null)
+						if (node.params().length == 1 && (ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) != null)
 							if (ev instanceof Number)
 								// Var() with a sane constant number
 								return new VarFunctionsTypeInfo(cache.Local == d ? null : node.parentOfType(Function.class), (Function) d, ((Number)ev).intValue());
@@ -1598,9 +1637,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return new GenericTypeInfo(node, processor);
 					return super.createTypeInfo(node, processor);
 				}
+				@Override
+				public boolean isModifiable(CallDeclaration node, ScriptProcessor processor) {
+					Declaration declaration = node.declaration();
+					IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
+					return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
+				}
 			},
 
-			new ProblemReporter<Sequence>(Sequence.class) {
+			new Expert<Sequence>(Sequence.class) {
 				@Override
 				public IType type(Sequence node, ScriptProcessor processor) {
 					ASTNode[] elements = node.subElements();
@@ -1619,26 +1664,35 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode p = null;
 					for (ASTNode e : node.subElements()) {
 						if (
-							(e != null && !e.isValidInSequence(p, processor.parser)) ||
-							(p != null && !p.allowsSequenceSuccessor(processor.parser, e))
+							(e != null && !e.isValidInSequence(p)) ||
+							(p != null && !p.allowsSequenceSuccessor(e))
 						)
 							processor.markers().error(processor.parser, ParserErrorCode.NotAllowedHere, node, e, Markers.NO_THROW, e);
 						p = e;
 					}
-					if (p != null && !p.isValidAtEndOfSequence(processor.parser))
+					if (p != null && !p.isValidAtEndOfSequence())
 						processor.markers().error(processor, ParserErrorCode.NotFinished, node, node, Markers.NO_THROW, node.printed());
+				}
+				@Override
+				public boolean isModifiable(Sequence node, ScriptProcessor processor) {
+					ASTNode[] elements = node.subElements();
+					if (elements != null && elements.length > 0) {
+						ASTNode last = elements[elements.length-1];
+						return reporter(last).isModifiable(last, processor);
+					} else
+						return false;
 				}
 			},
 
-			new ProblemReporter<ArraySliceExpression>(ArraySliceExpression.class) {
+			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				@Override
 				public IType type(ArraySliceExpression node, ScriptProcessor processor) {
 					ArrayType arrayType = predecessorTypeAs(node, ArrayType.class, processor);
 					if (arrayType != null)
 						return node.lo() == null && node.hi() == null ? arrayType : arrayType.typeForSlice(
-							ASTNode.evaluateAtParseTime(node.lo(), processor),
-							ASTNode.evaluateAtParseTime(node.hi(), processor)
-							);
+							ASTNode.evaluateStatic(node.lo(), processor),
+							ASTNode.evaluateStatic(node.hi(), processor)
+						);
 					else
 						return PrimitiveType.ARRAY;
 				}
@@ -1648,30 +1702,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType sliceType = ty(rightSide, processor);
 					if (arrayType != null)
 						processor.storeType(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
-							ASTNode.evaluateAtParseTime(leftSide.lo(), processor),
-							ASTNode.evaluateAtParseTime(leftSide.hi(), processor),
+							ASTNode.evaluateStatic(leftSide.lo(), processor),
+							ASTNode.evaluateStatic(leftSide.hi(), processor),
 							sliceType
 							));
 				}
 			},
 
-			new ProblemReporter<Literal>(Literal.class) {
+			new Expert<Literal>(Literal.class) {
 				@Override
 				public boolean typingJudgement(Literal node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
 					// constantly steadfast do i resist the pressure of expectancy lied upon me
 					return true;
 				}
 				@Override
-				public void assignment(Literal leftSide, ASTNode rightSide, ScriptProcessor processor) {
-					// don't care
-				}
+				public void assignment(Literal leftSide, ASTNode rightSide, ScriptProcessor processor) { /* don't care */ }
 				@Override
-				public ITypeInfo createTypeInfo(Literal node, ScriptProcessor processor) {
-					return null; // nope
-				}
+				public ITypeInfo createTypeInfo(Literal node, ScriptProcessor processor) { return null; /* nope */ }
+				@Override
+				public boolean isModifiable(Literal node, ScriptProcessor processor) { return false; }
 			},
 
-			new ProblemReporter<Nil>(Nil.class) {
+			new Expert<Nil>(Nil.class) {
 				@Override
 				public IType type(Nil node, ScriptProcessor processor) {
 					return PrimitiveType.UNKNOWN;
@@ -1683,7 +1735,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<StringLiteral>(StringLiteral.class) {
+			new Expert<StringLiteral>(StringLiteral.class) {
 				@Override
 				public IType type(StringLiteral node, ScriptProcessor processor) { return PrimitiveType.STRING; }
 				@Override
@@ -1716,7 +1768,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<IntegerLiteral>(IntegerLiteral.class) {
+			new Expert<IntegerLiteral>(IntegerLiteral.class) {
 				@Override
 				public IType type(IntegerLiteral node, ScriptProcessor processor) {
 					if (node.longValue() == 0 && processor.script().engine().settings().zeroIsAny)
@@ -1726,7 +1778,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<FloatLiteral>(FloatLiteral.class) {
+			new Expert<FloatLiteral>(FloatLiteral.class) {
 				@Override
 				public void reportProblems(FloatLiteral node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsFloats)
@@ -1735,7 +1787,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<IDLiteral>(IDLiteral.class) {
+			new Expert<IDLiteral>(IDLiteral.class) {
 				@Override
 				public IType type(IDLiteral node, ScriptProcessor processor) {
 					Definition obj = processor.script().nearestDefinitionWithId(node.idValue());
@@ -1743,14 +1795,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<BoolLiteral>(BoolLiteral.class) {
+			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
 				public IType type(BoolLiteral node, ScriptProcessor processor) {
 					return PrimitiveType.BOOL;
 				}
 			},
 
-			new ProblemReporter<CallExpr>(CallExpr.class) {
+			new Expert<CallExpr>(CallExpr.class) {
 				@Override
 				public IType type(CallExpr node, ScriptProcessor processor) {
 					ASTNode pred = node.predecessorInSequence();
@@ -1772,7 +1824,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<Statement>(Statement.class) {
+			new Expert<Statement>(Statement.class) {
 				@Override
 				public IType type(Statement node, ScriptProcessor processor) {
 					return PrimitiveType.UNKNOWN;
@@ -1796,7 +1848,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<VarDeclarationStatement>(VarDeclarationStatement.class) {
+			new Expert<VarDeclarationStatement>(VarDeclarationStatement.class) {
 				@Override
 				public void reportProblems(VarDeclarationStatement node, ScriptProcessor processor) throws ParsingException {
 					supr.reportProblems(node, processor);
@@ -1821,7 +1873,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<PropListExpression>(PropListExpression.class) {
+			new Expert<PropListExpression>(PropListExpression.class) {
 				@Override
 				public IType type(PropListExpression node, ScriptProcessor processor) {
 					return node.definedDeclaration();
@@ -1837,16 +1889,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (v.initializationExpression() != null)
 							judgement(new AccessVar(v), ty(v.initializationExpression(), processor), TypingJudgementMode.Unify, processor);
 				}
+				@Override
+				public boolean isModifiable(PropListExpression node, ScriptProcessor processor) { return false; }
 			},
 
-			new ProblemReporter<Parenthesized>(Parenthesized.class) {
+			new Expert<Parenthesized>(Parenthesized.class) {
 				@Override
 				public IType type(Parenthesized node, ScriptProcessor processor) {
 					return ty(node.innerExpression(), processor);
 				}
+				@Override
+				public boolean isModifiable(Parenthesized node, ScriptProcessor processor) {
+					return reporter(node.innerExpression()).isModifiable(node.innerExpression(), processor);
+				}
 			},
 
-			new ProblemReporter<MemberOperator>(MemberOperator.class) {
+			new Expert<MemberOperator>(MemberOperator.class) {
 				@Override
 				public IType type(MemberOperator node, ScriptProcessor processor) {
 					if (node.id() != null)
@@ -1868,7 +1926,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred != null) {
 						IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID);
 						ASTNode sequenceTilMe = pred.sequenceTilMe();
-						ProblemReporter<? super ASTNode> stmReporter = reporter(sequenceTilMe);
+						Expert<? super ASTNode> stmReporter = reporter(sequenceTilMe);
 						if (!stmReporter.typingJudgement(sequenceTilMe, requiredType, processor, TypingJudgementMode.Hint))
 							processor.markers().warning(processor.parser, node.dotNotation() ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject, node, node, 0,
 								ty(sequenceTilMe, stmReporter, processor).typeName(false));
@@ -1880,7 +1938,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<IterateArrayStatement>(IterateArrayStatement.class) {
+			new Expert<IterateArrayStatement>(IterateArrayStatement.class) {
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
@@ -1924,7 +1982,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<SimpleStatement>(SimpleStatement.class) {
+			new Expert<SimpleStatement>(SimpleStatement.class) {
 				@Override
 				public void reportProblems(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
 					BinaryOp op = as(node.expression(), BinaryOp.class);
@@ -1957,7 +2015,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					processor.controlFlow = old;
 
 					if (!condition.containsConst()) {
-						Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(node.parentOfType(Function.class)));
+						Object condEv = PrimitiveType.BOOL.convert(condition.evaluateStatic(node.parentOfType(Function.class)));
 						if (condEv != null && condEv != ASTNode.EVALUATION_COMPLEX)
 							processor.markers().warning(processor.parser,
 								condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
@@ -1979,35 +2037,35 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ConditionalStatementProblemReporter<WhileStatement>(WhileStatement.class),
 
-			new ProblemReporter<NewProplist>(NewProplist.class) {
+			new Expert<NewProplist>(NewProplist.class) {
 				@Override
 				public void reportProblems(NewProplist node, ScriptProcessor processor) throws ParsingException {
 					node.definedDeclaration().setPrototype(as(ty(node.prototype(), processor), ProplistDeclaration.class));
 				}
 			},
 
-			new ProblemReporter<Placeholder>(Placeholder.class) {
+			new Expert<Placeholder>(Placeholder.class) {
 				@Override
 				public void reportProblems(Placeholder node, ScriptProcessor processor) throws ParsingException {
 					StringTbl.reportMissingStringTblEntries(processor, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
-			new ProblemReporter<MissingStatement>(MissingStatement.class) {
+			new Expert<MissingStatement>(MissingStatement.class) {
 				@Override
 				public void reportProblems(MissingStatement node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor.parser, ParserErrorCode.MissingStatement, node, node, Markers.NO_THROW);
 				}
 			},
 
-			new ProblemReporter<GarbageStatement>(GarbageStatement.class) {
+			new Expert<GarbageStatement>(GarbageStatement.class) {
 				@Override
 				public void reportProblems(GarbageStatement node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor.parser, ParserErrorCode.Garbage, node, node, Markers.NO_THROW, node.garbage());
 				}
 			},
 
-			new ProblemReporter<FunctionDescription>(FunctionDescription.class) {
+			new Expert<FunctionDescription>(FunctionDescription.class) {
 				@Override
 				public void reportProblems(FunctionDescription node, ScriptProcessor processor) throws ParsingException {
 					if (processor.hasAppendTo)
@@ -2026,7 +2084,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<Comment>(Comment.class) {
+			new Expert<Comment>(Comment.class) {
 				@Override
 				public void reportProblems(Comment node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.visiting || node.parentOfType(Script.class) == processor.script()) {
@@ -2055,7 +2113,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new ProblemReporter<Unfinished>(Unfinished.class) {
+			new Expert<Unfinished>(Unfinished.class) {
 				@Override
 				public IType type(Unfinished node, ScriptProcessor processor) {
 					return ty(node.expression(), processor);
@@ -2067,9 +2125,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 		};
-		for (ProblemReporter<?> reporter : reporters)
+		for (Expert<?> reporter : reporters)
 			problemReporters.put(reporter.cls(), reporter);
-		for (ProblemReporter<?> reporter : reporters)
+		for (Expert<?> reporter : reporters)
 			reporter.findSuper();
 	}
 

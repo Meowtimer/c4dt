@@ -3,10 +3,9 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Operator;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 public class UnaryOp extends OperatorExpression {
 
@@ -29,18 +28,10 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] {argument};
-	}
-
+	public ASTNode[] subElements() { return new ASTNode[] {argument}; }
 	@Override
-	public void setSubElements(ASTNode[] elements) {
-		argument = elements[0];
-	}
-
-	private boolean needsSpace(UnaryOp other) {
-		return this.operator().spaceNeededBetweenMeAnd(other.operator());
-	}
+	public void setSubElements(ASTNode[] elements) { argument = elements[0]; }
+	public UnaryOp.Placement placement() { return placement; }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
@@ -49,12 +40,12 @@ public class UnaryOp extends OperatorExpression {
 			unop = null;
 		if (placement == Placement.Postfix) {
 			argument.print(output, depth+1);
-			if (unop != null && needsSpace(unop))
+			if (unop != null && this.operator().spaceNeededBetweenMeAnd(unop.operator()))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
 			output.append(operator().operatorName());
 		} else {
 			output.append(operator().operatorName());
-			if (unop != null && needsSpace(unop))
+			if (unop != null && this.operator().spaceNeededBetweenMeAnd(unop.operator()))
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
 			argument.print(output, depth+1);
 		}
@@ -104,14 +95,9 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return placement == Placement.Prefix && operator().returnsRef();
-	}
-
-	@Override
-	public Object evaluateAtParseTime(IEvaluationContext context) {
+	public Object evaluateStatic(IEvaluationContext context) {
 		try {
-			Object ev = argument.evaluateAtParseTime(context);
+			Object ev = argument.evaluateStatic(context);
 			Object conv = operator().firstArgType().convert(ev);
 			switch (operator()) {
 			case Not:
@@ -126,7 +112,7 @@ public class UnaryOp extends OperatorExpression {
 		}
 		catch (ClassCastException e) {}
 		catch (NullPointerException e) {}
-		return super.evaluateAtParseTime(context);
+		return super.evaluateStatic(context);
 	}
 
 }

@@ -6,10 +6,10 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class BinaryOp extends OperatorExpression {
 
@@ -140,10 +140,10 @@ public class BinaryOp extends OperatorExpression {
 
 
 	@Override
-	public Object evaluateAtParseTime(IEvaluationContext context) {
+	public Object evaluateStatic(IEvaluationContext context) {
 		try {
-			Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateAtParseTime(context));
-			Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateAtParseTime(context));
+			Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateStatic(context));
+			Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateStatic(context));
 			if (leftSide != null && leftSide != ASTNode.EVALUATION_COMPLEX) {
 				switch (operator()) {
 				case And:
@@ -165,7 +165,7 @@ public class BinaryOp extends OperatorExpression {
 		}
 		catch (ClassCastException e) {}
 		catch (NullPointerException e) {}
-		return super.evaluateAtParseTime(context);
+		return super.evaluateStatic(context);
 	}
 
 	private Object evaluateOn(Object leftSide, Object rightSide) {

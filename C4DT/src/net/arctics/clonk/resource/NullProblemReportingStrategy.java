@@ -76,6 +76,8 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			public CachedEngineDeclarations cachedEngineDeclarations() { return null; }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) { return expression; }
+			@Override
+			public boolean isModifiable(ASTNode node) { return true; }
 		};
 	}
 }

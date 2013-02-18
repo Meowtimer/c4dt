@@ -36,6 +36,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -47,7 +48,6 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -480,7 +480,7 @@ public abstract class SpecialEngineRules {
 					result = processor.typeOf(node.params()[0], Definition.class);
 			}
 			else if (declarationName.equals("Find_Func") && node.params().length >= 1) {
-				Object ev = node.params()[0].evaluateAtParseTime(node.parentOfType(Function.class));
+				Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));
 				if (ev instanceof String) {
 					List<Declaration> functions = functionsNamed(processor, (String)ev);
 					List<IType> types = new ArrayList<IType>(functions.size());
@@ -524,7 +524,7 @@ public abstract class SpecialEngineRules {
 			Script script = objType != null ? TypeUtil.definition(objType) : null;
 			if (script == null)
 				script = processor.script(); // fallback
-			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
+			Object scriptExpr = arguments[0].evaluateStatic(script);
 			if (scriptExpr instanceof String)
 				try {
 					ScriptsHelper.parseStandaloneNode((String)scriptExpr, node.parentOfType(Function.class), null, new IMarkerListener() {
@@ -598,7 +598,7 @@ public abstract class SpecialEngineRules {
 			Function f = node.declaration() instanceof Function ? (Function)node.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
-				Object command = arguments[1].evaluateAtParseTime(node.parentOfType(Function.class));
+				Object command = arguments[1].evaluateStatic(node.parentOfType(Function.class));
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
 					for (Variable parm : f.parameters()) {
@@ -739,7 +739,7 @@ public abstract class SpecialEngineRules {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
 			Object parmEv;
-			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(node.parentOfType(Function.class))) instanceof String) {
+			if (index == 0 && (parmEv = parmExpression.evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
 				String resourceName = (String)parmEv;
 				ProjectIndex pi = (ProjectIndex)processor.script().index();
 				Set<IIndexEntity> e = locateEntitiesByName(node, resourceName, pi, processor);
@@ -829,7 +829,7 @@ public abstract class SpecialEngineRules {
 		}
 		protected EntityRegion actionLinkForDefinition(Function currentFunction, Definition definition, ASTNode actionNameExpression) {
 			Object parmEv;
-			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
+			if (definition != null && (parmEv = actionNameExpression.evaluateStatic(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
 				if (definition instanceof Definition) {
 					Definition projDef = definition;
@@ -903,7 +903,7 @@ public abstract class SpecialEngineRules {
 		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
 			int arrayLength = ArrayType.NO_PRESUMED_LENGTH;
 			if (callFunc.params().length >= 1 && processor instanceof IEvaluationContext) {
-				Object ev = callFunc.params()[0].evaluateAtParseTime((IEvaluationContext)processor);
+				Object ev = callFunc.params()[0].evaluateStatic((IEvaluationContext)processor);
 				if (ev instanceof Number)
 					arrayLength = ((Number) ev).intValue();
 			}

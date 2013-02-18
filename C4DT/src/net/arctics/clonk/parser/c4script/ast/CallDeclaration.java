@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionType;
@@ -23,11 +23,10 @@ import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialRule;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
@@ -125,14 +124,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
-		return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
-	}
-	@Override
-	public boolean hasSideEffects() {
-		return true;
-	}
+	public boolean hasSideEffects() { return true; }
 
 	/**
 	 * Return a {@link SpecialFuncRule} applying to {@link CallDeclaration}s with the same name as this one.
@@ -149,8 +141,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode elm, C4ScriptParser context) {
-		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;
+	public boolean isValidInSequence(ASTNode elm) {
+		return super.isValidInSequence(elm) || elm instanceof MemberOperator;
 	}
 
 	@Override

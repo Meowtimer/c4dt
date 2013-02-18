@@ -76,6 +76,7 @@ import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.parser.c4script.ast.Whitespace;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.resource.ClonkBuilder;
@@ -371,7 +372,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			if (nameLocal != null) {
 				ASTNode expr = nameLocal.initializationExpression();
 				if (expr != null)
-					obj.setName(expr.evaluateAtParseTime(obj).toString());
+					obj.setName(expr.evaluateStatic(obj).toString());
 			}
 		}
 	}
@@ -1433,7 +1434,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					} else {
 						ASTNode firstExpr = parseExpression(reportErrors);
 						if (firstExpr == null)
-							firstExpr = ASTNode.whitespace(this.offset, 0, this);
+							firstExpr = whitespace(this.offset, 0);
 							// might be disabled
 						eatWhitespace();
 						c = read();
@@ -1458,7 +1459,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null)
-				if (!(prevElm instanceof Placeholder || elm.isValidInSequence(prevElm, this))) {
+				if (!(prevElm instanceof Placeholder || elm.isValidInSequence(prevElm))) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					proper = false;
 				} else {
@@ -1490,7 +1491,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			lastElm = null;
 		}
 		if (result != null) {
-			proper &= lastElm == null || lastElm.isValidAtEndOfSequence(this);
+			proper &= lastElm == null || lastElm.isValidAtEndOfSequence();
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
 			if (proper) {
 				int saved = this.offset;
@@ -1685,11 +1686,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			switch (read()) {
 			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(ASTNode.whitespace(lastStart, this.offset-lastStart, this));
+					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart));
 				break Loop;
 			case ',':
 				if (!expectingComma)
-					listToAddElementsTo.add(ASTNode.whitespace(lastStart, this.offset-lastStart, this));
+					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart));
 				expectingComma = false;
 				break;
 			default:
@@ -2381,7 +2382,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		eatWhitespace();
 		ASTNode condition = parseExpression();
 		if (condition == null)
-			condition = ASTNode.whitespace(this.offset, 0, this); // while () is valid
+			condition = whitespace(this.offset, 0); // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
@@ -2405,7 +2406,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		eatWhitespace();
 		ASTNode condition = parseExpression();
 		if (condition == null)
-			condition = ASTNode.whitespace(this.offset, 0, this); // if () is valid
+			condition = whitespace(this.offset, 0); // if () is valid
 		eatWhitespace();
 		expect(')');
 		int offsetBeforeWhitespace = this.offset;
@@ -2562,6 +2563,18 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	protected String modifyGarbage(String garbage) {
 		return garbage; // normal parser accepts teh garbage
+	}
+
+	/**
+	 * Create a new expression to signify some non-expression at a given location.
+	 * @param start The start of the location to mark as 'missing an expression'
+	 * @param length The length of the null-expression
+	 * @return The constructed whitespace expression
+	 */
+	public final ASTNode whitespace(int start, int length) {
+		ASTNode result = new Whitespace();
+		setExprRegionRelativeToFuncBody(result, start, start+length);
+		return result;
 	}
 
 	public static ASTNode parse(final String source, Engine engine) throws ParsingException {

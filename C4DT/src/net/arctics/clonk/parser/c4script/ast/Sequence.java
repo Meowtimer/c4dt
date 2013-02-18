@@ -15,7 +15,7 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public Sequence(ASTNode[] elms, int num) { this(Arrays.copyOf(elms, num)); }
-	
+
 	public Sequence(ASTNode... elms) {
 		super(elms);
 		ASTNode prev = null;
@@ -33,16 +33,12 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		for (ASTNode e : elements)
 			e.print(output, depth+1);
 	}
-	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return elements != null && elements.length > 0 && elements[elements.length-1].isModifiable(context);
-	}
 	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
 		List<ASTNode> currentSequenceExpressions = new LinkedList<ASTNode>();
 		List<Statement> result = new ArrayList<Statement>(elements.length);
 		ASTNode p = null;
 		for (ASTNode e : elements) {
-			if (!e.isValidInSequence(p, parser)) {
+			if (!e.isValidInSequence(p)) {
 				result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 				currentSequenceExpressions.clear();
 			}

@@ -85,9 +85,9 @@ public class MemberOperator extends ASTNode {
 	 * MemberOperators are never valid when not preceded by another {@link ASTNode}
 	 */
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor != null; }
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
 	@Override
-	public boolean isValidAtEndOfSequence(C4ScriptParser context) { return false; }
+	public boolean isValidAtEndOfSequence() { return false; }
 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {

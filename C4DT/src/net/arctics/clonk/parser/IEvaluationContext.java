@@ -1,11 +1,11 @@
-package net.arctics.clonk.parser.c4script.ast.evaluate;
+package net.arctics.clonk.parser;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
 
 /**
  * Context for evaluating expressions (at parsetime/some other time)

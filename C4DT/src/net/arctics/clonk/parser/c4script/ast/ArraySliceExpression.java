@@ -44,10 +44,7 @@ public class ArraySliceExpression extends ASTNode {
 		lo  = subElements[0];
 		hi = subElements[1];
 	}
-	
 	@Override
-	public boolean isModifiable(C4ScriptParser context) { return true; }
-	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor != null; }
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
 	
 }

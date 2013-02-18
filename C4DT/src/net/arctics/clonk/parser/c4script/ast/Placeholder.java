@@ -5,7 +5,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
@@ -18,11 +17,11 @@ public class Placeholder extends ASTNode {
 		this.entryName = entryName;
 	}
 	@Override
-	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+	public boolean isValidAtEndOfSequence() {
 		return true;
 	}
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return true;
 	}
 

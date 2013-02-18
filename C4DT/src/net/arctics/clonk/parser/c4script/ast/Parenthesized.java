@@ -3,9 +3,8 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class Parenthesized extends ASTNode {
 
@@ -13,13 +12,9 @@ public class Parenthesized extends ASTNode {
 	private ASTNode innerExpr;
 
 	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] {innerExpr};
-	}
+	public ASTNode[] subElements() { return new ASTNode[] {innerExpr}; }
 	@Override
-	public void setSubElements(ASTNode[] elements) {
-		innerExpr = elements[0];
-	}
+	public void setSubElements(ASTNode[] elements) { innerExpr = elements[0]; }
 	public Parenthesized(ASTNode innerExpr) {
 		super();
 		this.innerExpr = innerExpr;
@@ -32,17 +27,8 @@ public class Parenthesized extends ASTNode {
 		output.append(")"); //$NON-NLS-1$
 	}
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return innerExpr.isModifiable(context);
-	}
-	@Override
-	public boolean hasSideEffects() {
-		return innerExpr.hasSideEffects();
-	}
-
-	public ASTNode innerExpression() {
-		return innerExpr;
-	}
+	public boolean hasSideEffects() { return innerExpr.hasSideEffects(); }
+	public ASTNode innerExpression() { return innerExpr; }
 
 	@Override
 	public ASTNode optimize(final ProblemReportingContext context)
@@ -53,8 +39,8 @@ public class Parenthesized extends ASTNode {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(IEvaluationContext context) {
-		return innerExpr.evaluateAtParseTime(context);
+	public Object evaluateStatic(IEvaluationContext context) {
+		return innerExpr.evaluateStatic(context);
 	}
 
 }

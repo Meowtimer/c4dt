@@ -19,4 +19,5 @@ public interface ITypingContext {
 	void assignment(ASTNode leftSide, ASTNode rightSide);
 	void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode);
 	void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right);
+	boolean isModifiable(ASTNode node);
 }

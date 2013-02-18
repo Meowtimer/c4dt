@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 

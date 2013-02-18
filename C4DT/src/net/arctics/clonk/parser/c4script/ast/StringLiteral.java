@@ -4,11 +4,11 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.StringUtil;
 
@@ -60,7 +60,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public String evaluateAtParseTime(IEvaluationContext context) {
+	public String evaluateStatic(IEvaluationContext context) {
 		String escapesEvaluated = StringUtil.evaluateEscapes(literal());
 		if (context == null || context.script() == null)
 			return escapesEvaluated;

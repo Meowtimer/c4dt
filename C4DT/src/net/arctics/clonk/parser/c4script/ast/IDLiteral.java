@@ -6,7 +6,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 public final class IDLiteral extends Literal<ID> {
@@ -42,6 +41,6 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	@Override
-	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return true; }
+	public boolean allowsSequenceSuccessor(ASTNode successor) { return true; }
 
 }

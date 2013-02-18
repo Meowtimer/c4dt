@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 public class ArrayElementExpression extends ASTNode {
 
@@ -24,7 +23,7 @@ public class ArrayElementExpression extends ASTNode {
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return predecessor != null;
 	}
 
@@ -36,11 +35,6 @@ public class ArrayElementExpression extends ASTNode {
 	@Override
 	public void setSubElements(ASTNode[] subElements) {
 		argument = subElements[0];
-	}
-
-	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return true;
 	}
 
 	public ASTNode argument() {

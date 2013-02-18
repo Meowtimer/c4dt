@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -37,7 +38,6 @@ import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.parser.c4script.specialenginerules.Messages;
@@ -104,7 +104,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration node) {
 			Object parmEv;
-			if (node.params().length >= 1 && (parmEv = node.params()[0].evaluateAtParseTime(node.parentOfType(Function.class))) instanceof String) {
+			if (node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
 				String effectName = (String) parmEv;
 				return processor.script().effects().get(effectName);
 			}
@@ -142,7 +142,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) {
 			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction && processor.scanner() instanceof C4ScriptParser) {
 				C4ScriptParser parser = (C4ScriptParser) processor.scanner();
-				Object nameEv = arguments[0].evaluateAtParseTime(node.parentOfType(Function.class));
+				Object nameEv = arguments[0].evaluateStatic(node.parentOfType(Function.class));
 				if (nameEv instanceof String) {
 					SourceLocation loc = processor.absoluteSourceLocationFromExpr(arguments[0]);
 					Variable var = parser.createVarInScope(
@@ -210,7 +210,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		public static EvaluationTracer evaluate(ASTNode expression, Object[] arguments, Script script, Function function) {
 			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
-			tracer.evaluation = expression.evaluateAtParseTime(tracer);
+			tracer.evaluation = expression.evaluateStatic(tracer);
 			return tracer;
 		}
 		public static EvaluationTracer evaluate(ASTNode expression, Function function) {
@@ -298,7 +298,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				EntityRegion result = super.actionLinkForDefinition(currentFunction, definition, parmExpression);
 				if (result != null)
 					return result;
-				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
+				else if ((parmEv = parmExpression.evaluateStatic(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
 					if (actMapLocal != null && actMapLocal.initializationExpression() instanceof PropListExpression) {
 						IProplistDeclaration proplDecl = ((PropListExpression)actMapLocal.initializationExpression()).definedDeclaration();

@@ -4,11 +4,10 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.evaluate.EvaluationContextProxy;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -22,15 +21,6 @@ public class AccessVar extends AccessDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		ASTNode pred = predecessorInSequence();
-		if (pred == null)
-			return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
-		else
-			return true; // you can never be so sure
-	}
-
 	public AccessVar(String varName) {
 		super(varName);
 	}
@@ -41,7 +31,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return
 			// either null or
 			predecessor == null ||
@@ -67,7 +57,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(final IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		Definition obj;
 		if (declaration instanceof Variable) {
 			final Variable var = (Variable) declaration;
@@ -89,7 +79,7 @@ public class AccessVar extends AccessDeclaration {
 			else if ((obj = definitionProxiedBy(var)) != null)
 				return obj.id(); // just return the id
 		}
-		return super.evaluateAtParseTime(context);
+		return super.evaluateStatic(context);
 	}
 
 	public boolean constCondition() {

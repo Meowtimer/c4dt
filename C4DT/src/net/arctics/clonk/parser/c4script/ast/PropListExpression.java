@@ -8,12 +8,11 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
@@ -78,11 +77,7 @@ public class PropListExpression extends ASTNode {
 		output_.append(s);
 	}
 	@Override
-	public boolean isModifiable(C4ScriptParser parser) {
-		return false;
-	}
-	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser parser) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return predecessor == null;
 	}
 	@Override
@@ -115,11 +110,11 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(IEvaluationContext context) {
+	public Object evaluateStatic(IEvaluationContext context) {
 		Collection<Variable> components = components();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components)
-			map.put(component.name(), component.initializationExpression().evaluateAtParseTime(context));
+			map.put(component.name(), component.initializationExpression().evaluateStatic(context));
 		return map;
 	}
 
@@ -132,7 +127,7 @@ public class PropListExpression extends ASTNode {
 	public <T> T valueEvaluated(String key, Class<T> cls) {
 		ASTNode e = value(key);
 		if (e != null) {
-			Object eval = e.evaluateAtParseTime(definedDeclaration.parentOfType(IEvaluationContext.class));
+			Object eval = e.evaluateStatic(definedDeclaration.parentOfType(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
 		} else
 			return null;

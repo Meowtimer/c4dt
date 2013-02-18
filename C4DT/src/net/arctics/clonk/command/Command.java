@@ -8,24 +8,16 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
 import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectConverter;
@@ -33,8 +25,6 @@ import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -234,38 +224,6 @@ public class Command {
 			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			if (nature != null)
 				nature.reloadIndex();
-		}
-		@CommandFunction
-		public static void ReconsiderProblems(Object context) {
-			try {
-				Set<Function> reporters = new HashSet<Function>();
-				Map<Script, C4ScriptParser> parsers = new HashMap<Script, C4ScriptParser>();
-				for (IMarker m : ResourcesPlugin.getWorkspace().getRoot().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_INFINITE)) {
-					Script script = Script.get(m.getResource(), true);
-					if (script != null) {
-						Function f = script.funcAt(m.getAttribute(IMarker.CHAR_START, 0));
-						if (f != null) {
-							reporters.add(f);
-							m.delete();
-						}
-					}
-				}
-				Markers markers = new Markers();
-				for (Function f : reporters) {
-					C4ScriptParser parser = parsers.get(f.script());
-					if (parser == null) {
-						parser = new C4ScriptParser(f.script());
-						parser.setMarkers(markers);
-						parsers.put(f.script(), parser);
-					}
-					f.body().reconsider(parser);
-					ProblemReportingContext ctx = new DabbleInference().localTypingContext(parser);
-					ctx.reportProblemsOfFunction(f);
-				}
-				markers.deploy();
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 

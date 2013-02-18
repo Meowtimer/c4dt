@@ -10,8 +10,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class Overlay extends OverlayBase {
 	

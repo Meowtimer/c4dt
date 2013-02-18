@@ -11,10 +11,10 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IPredicate;
@@ -296,7 +296,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
 		ASTNode e = initializationExpression();
 		if (e != null)
-			return e.evaluateAtParseTime(context);
+			return e.evaluateStatic(context);
 		else
 			return null;
 	}

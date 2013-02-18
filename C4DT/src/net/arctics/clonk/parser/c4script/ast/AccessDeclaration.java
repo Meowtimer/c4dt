@@ -6,7 +6,6 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -35,12 +34,6 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * @param d The declaration to assign this node
 	 */
 	public void setDeclaration(Declaration d) { this.declaration = d; }
-
-	@Override
-	public void reconsider(C4ScriptParser parser) {
-		this.declaration = null;
-		super.reconsider(parser);
-	}
 
 	/**
 	 * Create AccessDeclaration object using a declaration name.

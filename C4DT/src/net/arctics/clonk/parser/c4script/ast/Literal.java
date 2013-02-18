@@ -3,10 +3,9 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -25,17 +24,12 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 
 	@Override
-	public boolean isModifiable(C4ScriptParser context) {
-		return false;
-	}
-
-	@Override
 	public boolean isConstant() {
 		return true;
 	}
 
 	@Override
-	public T evaluateAtParseTime(IEvaluationContext context) {
+	public T evaluateStatic(IEvaluationContext context) {
 		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().scriptFile());
 		return literal();
 	}
@@ -65,7 +59,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 
 	@Override
-	public boolean allowsSequenceSuccessor(C4ScriptParser context, ASTNode successor) { return false; }
+	public boolean allowsSequenceSuccessor(ASTNode successor) { return false; }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) { return predecessor == null; }
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
 }

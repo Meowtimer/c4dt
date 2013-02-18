@@ -30,7 +30,7 @@ final class VarFunctionsTypeInfo extends TypeInfo {
 			return
 				callFunc.declaration() == varFunction &&
 				callFunc.params().length == 1 && // don't bother with more complex cases
-				((ev = callFunc.params()[0].evaluateAtParseTime(fn)) != null) &&
+				((ev = callFunc.params()[0].evaluateStatic(fn)) != null) &&
 				ev.equals(varIndex);
 		} else if (node instanceof AccessVar) {
 			AccessVar accessVar = (AccessVar) node;

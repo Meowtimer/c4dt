@@ -31,7 +31,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor, C4ScriptParser context) {
+	public boolean isValidInSequence(ASTNode predecessor) {
 		return predecessor != null;
 	}
 

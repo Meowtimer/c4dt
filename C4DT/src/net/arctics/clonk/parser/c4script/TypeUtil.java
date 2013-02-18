@@ -18,82 +18,45 @@ import org.eclipse.jface.text.IRegion;
 public class TypeUtil {
 	public static ProblemReportingContext problemReportingContext(final Declaration context) {
 		return new ProblemReportingContext() {
-
 			@Override
-			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) {
-				return null;
-			}
-
+			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) { return null; }
 			@Override
-			public Definition definition() {
-				return script() instanceof Definition ? (Definition)script() : null;
-			}
-
+			public Definition definition() { return script() instanceof Definition ? (Definition)script() : null; }
 			@Override
-			public void storeType(ASTNode exprElm, IType type) {
-				// yeah right
-			}
-
+			public void storeType(ASTNode exprElm, IType type) { /* yeah right */ }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 				int bodyOffset = context.absoluteExpressionsOffset();
 				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 			}
-
 			@Override
-			public Script script() {
-				return context.script();
-			}
-
+			public Script script() { return context.script(); }
 			@Override
-			public CachedEngineDeclarations cachedEngineDeclarations() {
-				return context.engine().cachedDeclarations();
-			}
-
+			public CachedEngineDeclarations cachedEngineDeclarations() { return context.engine().cachedDeclarations(); }
 			@Override
 			public IFile file() { return as(context.resource(), IFile.class); }
 			@Override
 			public Declaration container() { return context; }
 			@Override
 			public int fragmentOffset() { return 0; }
-
 			@Override
-			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
-				return access.declaration();
-			}
-
+			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) { return access.declaration(); }
 			@Override
 			public IType typeOf(ASTNode node) {
 				AccessDeclaration ad = as(node, AccessDeclaration.class);
 				return ad != null && ad.declaration() instanceof ITypeable
 					? ((ITypeable)ad.declaration()).type() : PrimitiveType.UNKNOWN;
 			}
-
 			@Override
-			public BufferedScanner scanner() {
-				return null;
-			}
-
+			public BufferedScanner scanner() { return null; }
 			@Override
-			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) {
-				return as(typeOf(node), cls);
-			}
-
+			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as(typeOf(node), cls); }
 			@Override
-			public boolean validForType(ASTNode node, IType type) {
-				return type.canBeAssignedFrom(typeOf(node));
-			}
-
+			public boolean validForType(ASTNode node, IType type) { return type.canBeAssignedFrom(typeOf(node)); }
 			@Override
-			public Typing typing() {
-				return Typing.ParametersOptionallyTyped;
-			}
-
+			public Typing typing() { return Typing.ParametersOptionallyTyped; }
 			@Override
-			public Markers markers() {
-				return null;
-			}
-
+			public Markers markers() { return null; }
 			@Override
 			public void reportProblems() {}
 			@Override
@@ -104,6 +67,8 @@ public class TypeUtil {
 			public void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode) {}
 			@Override
 			public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {}
+			@Override
+			public boolean isModifiable(ASTNode node) { return false; }
 		};
 	}
 	public static Definition definition(IType type) {

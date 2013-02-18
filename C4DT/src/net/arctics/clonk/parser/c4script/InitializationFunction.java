@@ -14,8 +14,6 @@ public class InitializationFunction extends Function {
 	public static final class VarInitializationAccess extends AccessVar {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public VarInitializationAccess(Declaration declaration) { super(declaration); }
-		@Override
-		public boolean isModifiable(C4ScriptParser context) { return true; /* sudo */ }
 	}
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Variable variable;
