@@ -8,12 +8,12 @@ import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
-final class VarFunctionsTypeInfo extends TypeInfo {
+final class VarFunctionsTypeVariable extends TypeVariable {
 	private final Function scope;
 	private final Function varFunction;
 	private final long varIndex;
 
-	VarFunctionsTypeInfo(Function scope, Function function, long val) {
+	VarFunctionsTypeVariable(Function scope, Function function, long val) {
 		this.scope = scope;
 		this.varFunction = function;
 		this.varIndex = val;
@@ -43,9 +43,9 @@ final class VarFunctionsTypeInfo extends TypeInfo {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeInfo other) {
-		if (other.getClass() == VarFunctionsTypeInfo.class) {
-			VarFunctionsTypeInfo otherInfo = (VarFunctionsTypeInfo) other;
+	public boolean refersToSameExpression(ITypeVariable other) {
+		if (other.getClass() == VarFunctionsTypeVariable.class) {
+			VarFunctionsTypeVariable otherInfo = (VarFunctionsTypeVariable) other;
 			return otherInfo.scope == this.scope && otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex;
 		}
 		else

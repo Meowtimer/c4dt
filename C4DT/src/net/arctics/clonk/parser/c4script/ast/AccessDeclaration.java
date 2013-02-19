@@ -45,11 +45,11 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		output.append(declarationName);
+		output.append(declarationName());
 	}
 
 	public IRegion declarationRegion(int offset) {
-		return new Region(offset+start(), declarationName.length());
+		return new Region(offset+start(), declarationName().length());
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 
 	@Override
 	public int identifierLength() {
-		return declarationName.length();
+		return declarationName().length();
 	}
 
 	/**
@@ -83,7 +83,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * @return Whether or not.
 	 */
 	public boolean indirectAccess() {
-		return declaration == null || !declaration.name().equals(declarationName);
+		return declaration == null || !declaration.name().equals(declarationName());
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 		if (!super.equalAttributes(other))
 			return false;
 		AccessDeclaration otherDec = (AccessDeclaration) other;
-		if (!declarationName.equals(otherDec.declarationName))
+		if (!declarationName().equals(otherDec.declarationName))
 			return false;
 		return true;
 	}

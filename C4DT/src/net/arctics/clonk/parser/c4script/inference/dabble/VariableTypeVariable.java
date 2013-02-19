@@ -8,10 +8,10 @@ import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
-public class VariableTypeInfo extends TypeInfo {
+public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;
 	public Variable variable() { return variable; }
-	public VariableTypeInfo(AccessVar origin) {
+	public VariableTypeVariable(AccessVar origin) {
 		this.variable = (Variable)origin.declaration();
 		this.type = PrimitiveType.UNKNOWN;
 	}
@@ -20,10 +20,10 @@ public class VariableTypeInfo extends TypeInfo {
 		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
 	}
 	@Override
-	public boolean refersToSameExpression(ITypeInfo other) {
+	public boolean refersToSameExpression(ITypeVariable other) {
 		return
-			other instanceof VariableTypeInfo &&
-			((VariableTypeInfo)other).variable == this.variable;
+			other instanceof VariableTypeVariable &&
+			((VariableTypeVariable)other).variable == this.variable;
 	}
 	@Override
 	public void apply(boolean soft, ScriptProcessor processor) {

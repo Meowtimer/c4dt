@@ -22,8 +22,8 @@ import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.MalformedDeclaration;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -40,6 +40,7 @@ import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallExpr;
+import net.arctics.clonk.parser.c4script.ast.CallInherited;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
 import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
@@ -1369,7 +1370,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 							// function call
 							List<ASTNode> args = new LinkedList<ASTNode>();
 							parseRestOfTuple(args, reportErrors);
-							CallDeclaration callFunc = new CallDeclaration(word, args.toArray(new ASTNode[args.size()]));
+							CallDeclaration callFunc;
+							ASTNode[] a = args.toArray(new ASTNode[args.size()]);
+							if (word.equals(Keywords.Inherited))
+								callFunc = new CallInherited(false, a);
+							else if (word.equals(Keywords.SafeInherited))
+								callFunc = new CallInherited(true, a);
+							else
+								callFunc = new CallDeclaration(word, a);
 							callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
 							elm = callFunc;
 						} else {

@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Script
  * @author madeen
  *
  */
-public interface ITypeInfo {
+public interface ITypeVariable {
 	/**
 	 * Type stored for the expression.
 	 * @return The type.
@@ -25,7 +25,7 @@ public interface ITypeInfo {
 	 */
 	void storeType(IType type);
 	/**
-	 * Hint that the expression this {@link ITypeInfo} was created for might be of the given type.
+	 * Hint that the expression this {@link ITypeVariable} was created for might be of the given type.
 	 * @param type The type to hint at
 	 * @return Return true if hinting resulted in changing the type or if the already-set type intersects with the new one.
 	 */
@@ -38,11 +38,11 @@ public interface ITypeInfo {
 	 */
 	boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor);
 	/**
-	 * Return whether another {@link ITypeInfo} refers to the same expression as this one.
+	 * Return whether another {@link ITypeVariable} refers to the same expression as this one.
 	 * @param other The other stored type information
 	 * @return True, if same expression, false if not.
 	 */
-	boolean refersToSameExpression(ITypeInfo other);
+	boolean refersToSameExpression(ITypeVariable other);
 	/**
 	 * Apply this stored type information so the underlying {@link ITypeable} ({@link Variable}, {@link Function} etc) will have its type set.
 	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied.
@@ -53,7 +53,7 @@ public interface ITypeInfo {
 	 * Merge type information with another one which is refering to the same expression.
 	 * @param other The other type information
 	 */
-	void merge(ITypeInfo other);
+	void merge(ITypeVariable other);
 	/**
 	 * Declare here since Cloneable clone is seemingly magic.
 	 * @return The clone

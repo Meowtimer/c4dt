@@ -974,9 +974,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
 		for (Script c : conglomerate())
-			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0)))
-				if (!(sd instanceof InitializationFunction))
+			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0))) {
+				if (sd instanceof InitializationFunction)
+					continue;
+				if (sd instanceof Function && !seesFunction(((Function)sd)))
+					continue;
 					all.add(sd);
+			}
 		return all.toArray(new INode[all.size()]);
 	}
 
@@ -1206,7 +1210,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return
 	 */
 	public final boolean seesFunction(Function function) {
-		return cachedFunctionMap.get(function.name()) == function;
+		return cachedFunctionMap == null || cachedFunctionMap.get(function.name()) == function;
 	}
 
 	private void _generateFindDeclarationCache() {

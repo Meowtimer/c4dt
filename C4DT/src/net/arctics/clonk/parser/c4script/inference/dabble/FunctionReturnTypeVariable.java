@@ -6,11 +6,11 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
-final class FunctionReturnTypeInfo extends TypeInfo {
-	private final Function baseFunction, function;
+public class FunctionReturnTypeVariable extends TypeVariable {
+	protected final Function baseFunction, function;
 	public Function function() { return function; }
 
-	public FunctionReturnTypeInfo(Function function) {
+	public FunctionReturnTypeVariable(Function function) {
 		super();
 		this.function = function;
 		this.baseFunction = function.baseFunction();
@@ -27,13 +27,13 @@ final class FunctionReturnTypeInfo extends TypeInfo {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeInfo other) {
-		return other instanceof FunctionReturnTypeInfo && ((FunctionReturnTypeInfo)other).baseFunction == this.baseFunction;
+	public boolean refersToSameExpression(ITypeVariable other) {
+		return other instanceof FunctionReturnTypeVariable && ((FunctionReturnTypeVariable)other).baseFunction == this.baseFunction;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("[function %s: %s]", function, type().typeName(true));
+		return String.format("[function %s.%s: %s]", function.script().name(), function.name(), type().typeName(true));
 	}
 
 	@Override

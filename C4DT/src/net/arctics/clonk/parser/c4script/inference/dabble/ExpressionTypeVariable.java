@@ -18,10 +18,10 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Script
  * @author madeen
  *
  */
-public final class GenericTypeInfo extends TypeInfo {
+public final class ExpressionTypeVariable extends TypeVariable {
 	private final ASTNode expression;
 
-	public GenericTypeInfo(ASTNode referenceElm, ScriptProcessor processor) {
+	public ExpressionTypeVariable(ASTNode referenceElm, ScriptProcessor processor) {
 		super();
 		this.expression = referenceElm;
 		ITypeable typeable = typeableFromExpression(referenceElm, processor);
@@ -53,9 +53,9 @@ public final class GenericTypeInfo extends TypeInfo {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeInfo other) {
-		if (other instanceof GenericTypeInfo)
-			return ((GenericTypeInfo)other).expression.equals(expression);
+	public boolean refersToSameExpression(ITypeVariable other) {
+		if (other instanceof ExpressionTypeVariable)
+			return ((ExpressionTypeVariable)other).expression.equals(expression);
 		else
 			return false;
 	}
@@ -91,9 +91,9 @@ public final class GenericTypeInfo extends TypeInfo {
 		return String.format("[%s: %s]", expression.toString(), type.typeName(true));
 	}
 
-	public static ITypeInfo makeTypeInfo(Declaration declaration, ScriptProcessor processor) {
+	public static ITypeVariable makeTypeInfo(Declaration declaration, ScriptProcessor processor) {
 		if (declaration != null)
-			return new GenericTypeInfo(new AccessVar(declaration), processor);
+			return new ExpressionTypeVariable(new AccessVar(declaration), processor);
 		else
 			return null;
 	}

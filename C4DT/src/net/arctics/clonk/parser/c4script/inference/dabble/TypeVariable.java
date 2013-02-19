@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 
-public abstract class TypeInfo implements ITypeInfo, Cloneable {
+public abstract class TypeVariable implements ITypeVariable, Cloneable {
 
 	protected IType type = PrimitiveType.UNKNOWN;
 
@@ -33,10 +33,10 @@ public abstract class TypeInfo implements ITypeInfo, Cloneable {
 	public void apply(boolean soft, ScriptProcessor processor) {}
 
 	@Override
-	public void merge(ITypeInfo other) {
+	public void merge(ITypeVariable other) {
 		if (type() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
-			storeType(type);
+			storeType(other.type());
 		else if (!type().equals(other.type()))
 			// assignments of multiple types - unify
 			storeType(TypeUnification.unify(type(), other.type()));

@@ -39,8 +39,8 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
@@ -476,8 +476,15 @@ public abstract class SpecialEngineRules {
 				result = TypeUnification.unify(types);
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-				if (node.params().length >= 1)
-					result = processor.typeOf(node.params()[0], Definition.class);
+				if (node.params().length >= 1) {
+					IType ty = processor.typeOf(node.params()[0]);
+					if (ty != null)
+						for (IType t : ty) {
+							MetaDefinition mdef = as(t, MetaDefinition.class);
+							if (mdef != null)
+								result = TypeUnification.unify(result, mdef.definition());
+						}
+				}
 			}
 			else if (declarationName.equals("Find_Func") && node.params().length >= 1) {
 				Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));

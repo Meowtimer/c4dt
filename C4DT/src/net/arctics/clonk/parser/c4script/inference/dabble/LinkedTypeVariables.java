@@ -9,26 +9,26 @@ import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
 import net.arctics.clonk.util.StringUtil;
 
-public class LinkedTypeInfo implements ITypeInfo {
+public class LinkedTypeVariables implements ITypeVariable {
 
-	private ITypeInfo[] linkedTypeInfos;
+	private ITypeVariable[] linkedTypeInfos;
 	private IType unified;
 
-	public LinkedTypeInfo(ITypeInfo ati, ITypeInfo bti) {
-		boolean ma = ati instanceof LinkedTypeInfo;
-		boolean mb = bti instanceof LinkedTypeInfo;
+	public LinkedTypeVariables(ITypeVariable ati, ITypeVariable bti) {
+		boolean ma = ati instanceof LinkedTypeVariables;
+		boolean mb = bti instanceof LinkedTypeVariables;
 		if (!(ma || mb))
-			linkedTypeInfos = new ITypeInfo[] {ati, bti};
+			linkedTypeInfos = new ITypeVariable[] {ati, bti};
 		else {
-			ITypeInfo[] _a = ma ? ((LinkedTypeInfo)ati).linkedTypeInfos : new ITypeInfo[] {ati};
-			ITypeInfo[] _b = mb ? ((LinkedTypeInfo)bti).linkedTypeInfos : new ITypeInfo[] {bti};
+			ITypeVariable[] _a = ma ? ((LinkedTypeVariables)ati).linkedTypeInfos : new ITypeVariable[] {ati};
+			ITypeVariable[] _b = mb ? ((LinkedTypeVariables)bti).linkedTypeInfos : new ITypeVariable[] {bti};
 			linkedTypeInfos = concat(_a, _b);
 		}
 		IType unified = null;
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			unified = TypeUnification.unify(unified, l.type());
 		this.unified = unified;
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			l.storeType(unified);
 	}
 
@@ -40,30 +40,30 @@ public class LinkedTypeInfo implements ITypeInfo {
 	@Override
 	public void storeType(IType type) {
 		unified = type;
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			l.storeType(type);
 	}
 
 	@Override
 	public boolean hint(IType type) {
 		boolean r = true;
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			r &= l.hint(type);
 		return r;
 	}
 
 	@Override
 	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			if (l.storesTypeInformationFor(expr, processor))
 				return true;
 		return false;
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeInfo other) {
-		for (ITypeInfo o : other instanceof LinkedTypeInfo ? ((LinkedTypeInfo)other).linkedTypeInfos : new ITypeInfo[] {other})
-			for (ITypeInfo l : linkedTypeInfos)
+	public boolean refersToSameExpression(ITypeVariable other) {
+		for (ITypeVariable o : other instanceof LinkedTypeVariables ? ((LinkedTypeVariables)other).linkedTypeInfos : new ITypeVariable[] {other})
+			for (ITypeVariable l : linkedTypeInfos)
 				if (l.refersToSameExpression(o))
 					return true;
 		return false;
@@ -71,15 +71,15 @@ public class LinkedTypeInfo implements ITypeInfo {
 
 	@Override
 	public void apply(boolean soft, ScriptProcessor processor) {
-		for (ITypeInfo l : linkedTypeInfos)
+		for (ITypeVariable l : linkedTypeInfos)
 			l.apply(soft, processor);
 	}
 
 	@Override
-	public void merge(ITypeInfo other) {
+	public void merge(ITypeVariable other) {
 		unified = TypeUnification.unify(unified, other.type());
 		boolean append = true;
-		for (ITypeInfo l : linkedTypeInfos) {
+		for (ITypeVariable l : linkedTypeInfos) {
 			l.storeType(unified);
 			if (l.refersToSameExpression(other))
 				append = false;
