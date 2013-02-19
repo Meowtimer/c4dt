@@ -57,7 +57,7 @@ public class TypeUtil {
 			@Override
 			public void reportProblems() {}
 			@Override
-			public void reportProblemsOfFunction(Function function) {}
+			public void visit(Function function) {}
 			@Override
 			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
 			@Override

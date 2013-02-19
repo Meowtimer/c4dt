@@ -62,7 +62,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public BufferedScanner scanner() { return parser; }
 			@Override
-			public void reportProblemsOfFunction(Function function) {}
+			public void visit(Function function) {}
 			@Override
 			public void reportProblems() {}
 			@Override

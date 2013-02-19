@@ -29,8 +29,8 @@ import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -233,11 +233,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public void reportProblemsOfFunction(Function function) {
-			reportProblemsOfFunction(function, false);
+		public void visit(Function function) {
+			visit(function, false);
 		}
 
-		public void reportProblemsOfFunction(Function function, boolean visit) {
+		public void visit(Function function, boolean visit) {
 			if (function == null || function.body() == null)
 				return;
 			Script funScript = function.script();
@@ -265,7 +265,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ControlFlow old = controlFlow;
 						controlFlow = ControlFlow.Continue;
 						for (ASTNode s : statements)
-							reportProblemsOf(s, true);
+							visitNode(s, true);
 						controlFlow = old;
 					}
 					if (!visiting)
@@ -299,7 +299,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @throws ParsingException
 		 * @return The expression parameter is returned to allow for expression chaining.
 		 */
-		public final <T extends ASTNode> T reportProblemsOf(T expression, boolean recursive) throws ParsingException {
+		public final <T extends ASTNode> T visitNode(T expression, boolean recursive) throws ParsingException {
 			if (expression == null)
 				return null;
 			ASTNode saved = reportingNode;
@@ -310,9 +310,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (recursive && !reporter.skipReportingProblemsForSubElements())
 					for (ASTNode e : expression.subElements())
 						if (e != null)
-							reportProblemsOf(e, true);
+							visitNode(e, true);
 				controlFlow = old;
-				reporter.reportProblems(expression, this);
+				reporter.visit(expression, this);
 				if (controlFlow == ControlFlow.Continue)
 					controlFlow = expression.controlFlow();
 			}
@@ -433,26 +433,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 		}
 
-		public void reportProblemsOf(Function f, ASTNode[] statements, boolean onlyTypeLocals) throws ParsingException {
-			assignReporters(f);
-			newTypeEnvironment();
-			{
-				if (f != null)
-					for (Variable p : f.parameters())
-						if (p.type() == PrimitiveType.UNKNOWN) {
-							ITypeInfo varTypeInfo = requestTypeInfo(new AccessVar(p));
-							if (varTypeInfo != null)
-								varTypeInfo.storeType(p.parameterType());
-						}
-				for (ASTNode s : statements)
-					reportProblemsOf(s, true);
-			}
-			typeEnvironment.apply(this, onlyTypeLocals);
-			endTypeEnvironment(true, true);
-			warnAboutPossibleProblemsWithFunctionLocalVariables(f, statements);
-			clearReporters(f);
-		}
-
 		private void visit(Script script, boolean foreign) {
 			script.requireLoaded();
 			assignReporters(script);
@@ -461,7 +441,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				// skip function that have been overridden
 				if (foreign && !script().seesFunction(f))
 					continue;
-				reportProblemsOfFunction(f, foreign);
+				visit(f, foreign);
 			}
 			visitee = null;
 		}
@@ -665,11 +645,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		/**
-		 * Returning true tells the {@link ScriptProcessor} to not recursively call {@link #reportProblems(ASTNode, ScriptProcessor)} on {@link ASTNode#subElements()}
+		 * Returning true tells the {@link ScriptProcessor} to not recursively call {@link #visit(ASTNode, ScriptProcessor)} on {@link ASTNode#subElements()}
 		 * @return Do you just show up, play the music,
 		 */
 		public boolean skipReportingProblemsForSubElements() {return false;}
-		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {}
+		public void visit(T node, ScriptProcessor processor) throws ParsingException {}
 
 		public IType type(T node, ScriptProcessor processor) { return processor.queryTypeOfExpression(node, PrimitiveType.UNKNOWN); }
 
@@ -765,8 +745,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public AccessDeclarationProblemReporter(Class<T> cls) { super(cls); }
 		protected Declaration obtainDeclaration(T node, ScriptProcessor processor) { return null; }
 		@Override
-		public void reportProblems(T node, ScriptProcessor processor) throws ParsingException {
-			super.reportProblems(node, processor);
+		public void visit(T node, ScriptProcessor processor) throws ParsingException {
+			super.visit(node, processor);
 			internalObtainDeclaration(node, processor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
@@ -795,12 +775,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public boolean skipReportingProblemsForSubElements() {return true;}
 		@Override
-		public void reportProblems(ConditionalStatement node, ScriptProcessor processor) throws ParsingException {
+		public void visit(ConditionalStatement node, ScriptProcessor processor) throws ParsingException {
 			ControlFlow t = processor.controlFlow;
 			processor.controlFlow = ControlFlow.Continue;
-			processor.reportProblemsOf(node.condition(), true);
+			processor.visitNode(node.condition(), true);
 			processor.newTypeEnvironment();
-			processor.reportProblemsOf(node.body(), true);
+			processor.visitNode(node.body(), true);
 			processor.endTypeEnvironment(true, false);
 			loopConditionWarnings(node, processor);
 			processor.controlFlow = t;
@@ -898,7 +878,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (var != null && var.initializationExpression() != null) {
 									Function p = var.initializationExpression().parentOfType(Function.class);
 									if (p != null)
-										processor.reportProblemsOfFunction(p);
+										processor.visit(p);
 								}
 								return v;
 							}
@@ -987,8 +967,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return super.typingJudgement(node, type, processor, mode);
 				}
 				@Override
-				public void reportProblems(AccessVar node, ScriptProcessor processor) throws ParsingException {
-					super.reportProblems(node, processor);
+				public void visit(AccessVar node, ScriptProcessor processor) throws ParsingException {
+					super.visit(node, processor);
 					ASTNode pred = node.predecessorInSequence();
 					Declaration declaration = node.declaration();
 					if (declaration == null && pred == null)
@@ -1162,8 +1142,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 				@Override
-				public void reportProblems(ArrayElementExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(ArrayElementExpression node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					IType type = predecessorType(node, processor);
 					if (type == null)
 						type = PrimitiveType.UNKNOWN;
@@ -1198,8 +1178,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						processor.markers().warning(processor, Problem.NotAnArrayOrProplist, node, node, 0);
 				}
 				@Override
-				public void reportProblems(ArraySliceExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(ArraySliceExpression node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					IType type = predecessorType(node, processor);
 					warnIfNotArray(node.predecessorInSequence(), processor, type);
 				}
@@ -1235,7 +1215,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 				@Override
-				public void reportProblems(BinaryOp node, ScriptProcessor processor) throws ParsingException {
+				public void visit(BinaryOp node, ScriptProcessor processor) throws ParsingException {
 					final Operator op = node.operator();
 					// sanity
 					ASTNode left = node.leftSide();
@@ -1288,8 +1268,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<UnaryOp>(UnaryOp.class) {
 				@Override
-				public void reportProblems(UnaryOp node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(UnaryOp node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					ASTNode arg = node.argument();
 					if (node.operator().modifiesArgument() && !reporter(arg).isModifiable(arg, processor))
 						processor.markers().error(processor, Problem.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
@@ -1309,8 +1289,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public void reportProblems(BoolLiteral node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(BoolLiteral node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					if (node.parent() instanceof BinaryOp) {
 						Operator op = ((BinaryOp) node.parent()).operator();
 						if (op == Operator.And || op == Operator.Or)
@@ -1321,19 +1301,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<ContinueStatement>(ContinueStatement.class) {
 				@Override
-				public void reportProblems(ContinueStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(ContinueStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
 						processor.markers().error(processor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
-					supr.reportProblems(node, processor);
+					supr.visit(node, processor);
 				}
 			},
 
 			new Expert<BreakStatement>(BreakStatement.class) {
 				@Override
-				public void reportProblems(BreakStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(BreakStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
 						processor.markers().error(processor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
-					supr.reportProblems(node, processor);
+					supr.visit(node, processor);
 				}
 			},
 
@@ -1351,8 +1331,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						warnAboutTupleInReturnExpr(processor, e, true);
 				}
 				@Override
-				public void reportProblems(ReturnStatement node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(ReturnStatement node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					ASTNode returnExpr = node.returnExpr();
 					warnAboutTupleInReturnExpr(processor, returnExpr, false);
 					Function currentFunction = node.parentOfType(Function.class);
@@ -1402,7 +1382,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Declaration dec = script.findDeclaration(functionName, info);
 						// parse function before this one
 						if (dec instanceof Function && node.parentOfType(Function.class) != null)
-							processor.reportProblemsOfFunction((Function)dec);
+							processor.visit((Function)dec);
 						if (dec != null)
 							return dec;
 					}
@@ -1539,8 +1519,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return type;
 				}
 				@Override
-				public void reportProblems(CallDeclaration node, ScriptProcessor processor) throws ParsingException {
-					super.reportProblems(node, processor);
+				public void visit(CallDeclaration node, ScriptProcessor processor) throws ParsingException {
+					super.visit(node, processor);
 
 					CachedEngineDeclarations cachedEngineDeclarations = processor.cachedEngineDeclarations();
 					String declarationName = node.declarationName();
@@ -1657,8 +1637,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					reporter(lastElement).assignment(lastElement, rightSide, processor);
 				}
 				@Override
-				public void reportProblems(Sequence node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(Sequence node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					ASTNode p = null;
 					for (ASTNode e : node.subElements()) {
 						if (
@@ -1727,7 +1707,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public void reportProblems(Nil node, ScriptProcessor processor) throws ParsingException {
+				public void visit(Nil node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsNil)
 						processor.markers().error(processor, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, processor.script().engine().name());
 				}
@@ -1737,7 +1717,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public IType type(StringLiteral node, ScriptProcessor processor) { return PrimitiveType.STRING; }
 				@Override
-				public void reportProblems(StringLiteral node, ScriptProcessor processor) throws ParsingException {
+				public void visit(StringLiteral node, ScriptProcessor processor) throws ParsingException {
 					// warn about overly long strings
 					long max = processor.script().index().engine().settings().maxStringLen;
 					String lit = node.literal();
@@ -1778,10 +1758,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<FloatLiteral>(FloatLiteral.class) {
 				@Override
-				public void reportProblems(FloatLiteral node, ScriptProcessor processor) throws ParsingException {
+				public void visit(FloatLiteral node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsFloats)
 						processor.markers().error(processor, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
-					supr.reportProblems(node, processor);
+					supr.visit(node, processor);
 				}
 			},
 
@@ -1811,7 +1791,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return PrimitiveType.ANY;
 				}
 				@Override
-				public void reportProblems(CallExpr node, ScriptProcessor processor) throws ParsingException {
+				public void visit(CallExpr node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.script().engine().settings().supportsFunctionRefs)
 						processor.markers().error(processor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
 					else {
@@ -1838,8 +1818,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						processor.markers().warning(processor, Problem.NoSideEffects, node, node, 0);
 				}
 				@Override
-				public void reportProblems(Statement node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(Statement node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					warnIfNoSideEffects(node, processor);
 					if (processor.controlFlow != ControlFlow.Continue)
 						processor.markers().warning(processor, Problem.NeverReached, node, node, 0);
@@ -1848,8 +1828,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<VarDeclarationStatement>(VarDeclarationStatement.class) {
 				@Override
-				public void reportProblems(VarDeclarationStatement node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(VarDeclarationStatement node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					for (VarInitialization initialization : node.variableInitializations())
 						if (initialization.variable != null)
 							if (initialization.expression != null) {
@@ -1877,8 +1857,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return node.definedDeclaration();
 				}
 				@Override
-				public void reportProblems(PropListExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(PropListExpression node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					if (!processor.script().engine().settings().supportsProplists)
 						processor.markers().error(processor, Problem.NotSupported, node, node, Markers.NO_THROW,
 							net.arctics.clonk.parser.c4script.ast.Messages.PropListExpression_ProplistsFeature,
@@ -1917,8 +1897,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return p != null ? reporter(p).typingJudgement(p, type, processor, mode) : false;
 				}
 				@Override
-				public void reportProblems(MemberOperator node, ScriptProcessor processor) throws ParsingException {
-					supr.reportProblems(node, processor);
+				public void visit(MemberOperator node, ScriptProcessor processor) throws ParsingException {
+					supr.visit(node, processor);
 					ASTNode pred = node.predecessorInSequence();
 					EngineSettings settings = processor.script().engine().settings();
 					if (pred != null) {
@@ -1940,7 +1920,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
-				public void reportProblems(IterateArrayStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(IterateArrayStatement node, ScriptProcessor processor) throws ParsingException {
 					ControlFlow t = processor.controlFlow;
 					processor.controlFlow = ControlFlow.Continue;
 					Variable loopVariable;
@@ -1960,8 +1940,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					} else
 						loopVariable = null;
 
-					processor.reportProblemsOf(elementExpr, true);
-					processor.reportProblemsOf(arrayExpr, true);
+					processor.visitNode(elementExpr, true);
+					processor.visitNode(arrayExpr, true);
 
 					IType type = ty(arrayExpr, processor);
 					if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
@@ -1973,7 +1953,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							loopVariable.setUsed(true);
 							judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, processor);
 						}
-						processor.reportProblemsOf(node.body(), true);
+						processor.visitNode(node.body(), true);
 					}
 					processor.endTypeEnvironment(true, false);
 					processor.controlFlow = t;
@@ -1982,29 +1962,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<SimpleStatement>(SimpleStatement.class) {
 				@Override
-				public void reportProblems(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
 					BinaryOp op = as(node.expression(), BinaryOp.class);
 					if (op != null && !op.operator().modifiesArgument())
 						processor.markers().warning(processor, Problem.NoAssignment, node, op, 0);
-					supr.reportProblems(node, processor);
+					supr.visit(node, processor);
 				}
 			},
 
 			new ConditionalStatementProblemReporter<IfStatement>(IfStatement.class) {
 				@Override
-				public void reportProblems(IfStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(IfStatement node, ScriptProcessor processor) throws ParsingException {
 					ControlFlow old = processor.controlFlow;
 					ASTNode condition = node.condition();
-					processor.reportProblemsOf(condition, true);
+					processor.visitNode(condition, true);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
 					TypeEnvironment ifEnvironment = processor.newTypeEnvironment();
-					processor.reportProblemsOf(node.body(), true);
+					processor.visitNode(node.body(), true);
 					processor.endTypeEnvironment(false, false);
 					processor.controlFlow = old;
 					if (node.elseExpression() != null) {
 						TypeEnvironment elseEnvironment = processor.newTypeEnvironment();
-						processor.reportProblemsOf(node.elseExpression(), true);
+						processor.visitNode(node.elseExpression(), true);
 						processor.endTypeEnvironment(false, false);
 						ifEnvironment.inject(elseEnvironment, false);
 					}
@@ -2024,12 +2004,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ConditionalStatementProblemReporter<ForStatement>(ForStatement.class) {
 				@Override
-				public void reportProblems(ForStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(ForStatement node, ScriptProcessor processor) throws ParsingException {
 					if (node.initializer() != null)
-						processor.reportProblemsOf(node.initializer(), true);
-					super.reportProblems(node, processor);
+						processor.visitNode(node.initializer(), true);
+					super.visit(node, processor);
 					if (node.increment() != null)
-						processor.reportProblemsOf(node.increment(), true);
+						processor.visitNode(node.increment(), true);
 				}
 			},
 
@@ -2037,35 +2017,35 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<NewProplist>(NewProplist.class) {
 				@Override
-				public void reportProblems(NewProplist node, ScriptProcessor processor) throws ParsingException {
+				public void visit(NewProplist node, ScriptProcessor processor) throws ParsingException {
 					node.definedDeclaration().setPrototype(as(ty(node.prototype(), processor), ProplistDeclaration.class));
 				}
 			},
 
 			new Expert<Placeholder>(Placeholder.class) {
 				@Override
-				public void reportProblems(Placeholder node, ScriptProcessor processor) throws ParsingException {
+				public void visit(Placeholder node, ScriptProcessor processor) throws ParsingException {
 					StringTbl.reportMissingStringTblEntries(processor, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
 			new Expert<MissingStatement>(MissingStatement.class) {
 				@Override
-				public void reportProblems(MissingStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(MissingStatement node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor, Problem.MissingStatement, node, node, Markers.NO_THROW);
 				}
 			},
 
 			new Expert<GarbageStatement>(GarbageStatement.class) {
 				@Override
-				public void reportProblems(GarbageStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(GarbageStatement node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor, Problem.Garbage, node, node, Markers.NO_THROW, node.garbage());
 				}
 			},
 
 			new Expert<FunctionDescription>(FunctionDescription.class) {
 				@Override
-				public void reportProblems(FunctionDescription node, ScriptProcessor processor) throws ParsingException {
+				public void visit(FunctionDescription node, ScriptProcessor processor) throws ParsingException {
 					if (processor.hasAppendTo)
 						return;
 					int off = 1;
@@ -2084,7 +2064,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Comment>(Comment.class) {
 				@Override
-				public void reportProblems(Comment node, ScriptProcessor processor) throws ParsingException {
+				public void visit(Comment node, ScriptProcessor processor) throws ParsingException {
 					if (!processor.visiting || node.parentOfType(Script.class) == processor.script()) {
 						String s = node.text();
 						int markerPriority;
@@ -2117,7 +2097,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return ty(node.expression(), processor);
 				}
 				@Override
-				public void reportProblems(Unfinished node, ScriptProcessor processor) throws ParsingException {
+				public void visit(Unfinished node, ScriptProcessor processor) throws ParsingException {
 					processor.markers().error(processor, Problem.NotFinished, node, node, Markers.NO_THROW, node);
 				}
 			}
