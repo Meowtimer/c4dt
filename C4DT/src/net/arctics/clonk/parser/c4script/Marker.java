@@ -1,26 +1,21 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.Problem;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.jface.text.IRegion;
 
 public class Marker {
-	public Problem code;
-	public int start, end;
-	public int severity;
-	public Object[] args;
-
-	private final Declaration cf;
-	private final ASTNode reporter;
-	private final IFile scriptFile;
-	private final Declaration container;
-
+	public final Problem code;
+	public final int start, end;
+	public final int severity;
+	public final Object[] args;
+	public final Declaration cf;
+	public final ASTNode reporter;
+	public final IFile scriptFile;
+	public final Declaration container;
 	public Marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int start, int end, int severity, Object[] args) {
 		super();
 		this.code = code;
@@ -33,17 +28,6 @@ public class Marker {
 		this.reporter = node;
 		this.scriptFile = positionProvider.file();
 		this.container = positionProvider.container();
-	}
-	public IMarker deploy() {
-		IMarker result = code.createMarker(scriptFile, container, Core.MARKER_C4SCRIPT_ERROR, start, end, severity, reporter, args);
-		if (result == null)
-			return null;
-		if (cf != null)
-			Problem.setDeclarationTag(result, cf.makeNameUniqueToParent());
-		IRegion exprLocation = reporter;
-		if (exprLocation != null)
-			Problem.setExpressionLocation(result, exprLocation);
-		return result;
 	}
 	@Override
 	public String toString() {

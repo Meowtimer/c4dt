@@ -12,6 +12,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionDefinition;
 import net.arctics.clonk.util.IHasChildren;
@@ -66,7 +68,7 @@ public class IniSection extends Declaration implements
 	public IniItem subItemByKey(String key) {
 		return itemMap.get(key);
 	}
-	
+
 	public List<IniItem> subItemList() {
 		return itemList;
 	}
@@ -103,7 +105,7 @@ public class IniSection extends Declaration implements
 		else
 			throw new IllegalArgumentException("node");
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends IniItem> T addItem(T item) {
 		if (!itemMap.containsKey(item.key())) {
@@ -121,7 +123,7 @@ public class IniSection extends Declaration implements
 		else
 			throw new IllegalArgumentException("item");
 	}
-	
+
 	public void removeItem(IniItem item) {
 		itemMap.remove(item.key());
 		itemList.remove(item);
@@ -188,7 +190,7 @@ public class IniSection extends Declaration implements
 			writer.append('\n');
 		}
 	}
-	
+
 	public boolean hasPersistentItems() {
 		for (IniItem item : subItemList())
 			if (!item.isTransient())
@@ -197,9 +199,9 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public void validate() {
+	public void validate(Markers markers) throws ParsingException {
 		for (IniItem e : this)
-			e.validate();
+			e.validate(markers);
 	}
 
 	public int indentation() {
@@ -243,8 +245,8 @@ public class IniSection extends Declaration implements
 	public boolean isTransient() {
 		return false;
 	}
-	
-	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	
+
+	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
 		if (f.getType() == Integer.TYPE)
 			f.set(object, Integer.valueOf(val));
 		else if (f.getType() == Long.TYPE)
@@ -252,7 +254,7 @@ public class IniSection extends Declaration implements
 		else if (f.getType() == java.lang.Boolean.TYPE)
 			f.set(object, java.lang.Boolean.valueOf(val));
 	}
-	
+
 	public void commit(Object object, boolean takeIntoAccountCategory) {
 		for (IniItem item : subItemMap().values())
 			if (item instanceof IniSection)

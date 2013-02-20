@@ -7,6 +7,10 @@ import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IASTPositionProvider;
+import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.StreamUtil;
@@ -16,11 +20,12 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class IniUnitParser extends CStyleScanner {
+public class IniUnitParser extends CStyleScanner implements IASTPositionProvider {
 
 	private final IniUnit unit;
 	private IFile file;
-	
+	private final Markers markers = new Markers();
+
 	public IniUnitParser(IniUnit iniUnit, Object source) {
 		super(source);
 		figureOutIndentation();
@@ -28,15 +33,15 @@ public class IniUnitParser extends CStyleScanner {
 		if (source instanceof IFile)
 			file = (IFile) source;
 	}
-	
+
 	@Override
 	public void reset() {
 		super.reset();
 		if (file != null)
 			this.reset(StreamUtil.stringFromFile(file));
 	}
-	
-	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
+
+	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) throws ParsingException {
 		int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
 		int rollback = tell();
 		while (skipComment());
@@ -48,12 +53,12 @@ public class IniUnitParser extends CStyleScanner {
 			int end;
 			if (read() != ']') {
 				if (modifyMarkers)
-					unit.marker(Problem.TokenExpected, tell()-1, tell(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
+					markers.marker(this, Problem.TokenExpected, unit, tell()-1, tell(), Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
 				return null;
 			} else {
 				if (!unit.isSectionNameValid(name, parentSection))
 					if (modifyMarkers)
-						unit.marker(Problem.UnknownSection, start+1, tell()-1, IMarker.SEVERITY_WARNING, name);
+						markers.marker(this, Problem.UnknownSection, unit, start+1, tell()-1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, IMarker.SEVERITY_WARNING, name);
 				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
@@ -113,12 +118,12 @@ public class IniUnitParser extends CStyleScanner {
 			return false;
 		}
 	}
-	
-	public final synchronized void parse(boolean modifyMarkers) {
+
+	public final synchronized void parse(boolean modifyMarkers) throws ParsingException {
 		parse(modifyMarkers, true);
 	}
-	
-	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) {
+
+	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) throws ParsingException {
 		unit.startParsing();
 		try {
 			if (resetScannerWithFileContents)
@@ -142,8 +147,8 @@ public class IniUnitParser extends CStyleScanner {
 			unit.endParsing();
 		}
 	}
-	
-	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+
+	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ParsingException {
 		int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
 		int rollback = tell();
 		while (skipComment());
@@ -163,7 +168,7 @@ public class IniUnitParser extends CStyleScanner {
 		eatWhitespace();
 		if (read() != '=')
 			if (modifyMarkers)
-				unit.marker(Problem.TokenExpected, keyStart+key.length(), tell(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+				markers.marker(this, Problem.TokenExpected, unit, keyStart+key.length(), tell(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = tell();
@@ -179,22 +184,22 @@ public class IniUnitParser extends CStyleScanner {
 			return unit.validateEntry(entry, section, modifyMarkers);
 		} catch (IniParserException e) {
 			if (modifyMarkers)
-				unit.marker(Problem.GenericError, e.offset(), e.endOffset(), e.severity(), (Object)e.getMessage());
+				markers.marker(this, Problem.GenericError, unit, e.offset(), e.endOffset(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, e.severity(), (Object)e.getMessage());
 			return entry;
 		}
 	}
-	
-	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+
+	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ParsingException {
 		IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
 		if (entry != null)
 			return entry;
 		IniSection sec = parseSection(modifyMarkers, parentSection);
 		if (sec != null)
 			return sec;
-		
+
 		return null;
 	}
-	
+
 	public static String category(IniField annot, Class<?> cls) {
 		if (annot.category().equals(""))
 			return defaultSection(cls);
@@ -206,5 +211,12 @@ public class IniUnitParser extends CStyleScanner {
 		IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
 		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}
-	
+
+	@Override
+	public IFile file() { return file; }
+	@Override
+	public Declaration container() { return unit; }
+	@Override
+	public int fragmentOffset() { return 0; }
+
 }

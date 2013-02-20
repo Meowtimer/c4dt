@@ -21,6 +21,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -447,7 +448,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				});
 		}
 		for (Structure s : gatheredStructures) {
-			s.validate();
+			try {
+				s.validate(markers);
+			} catch (ParsingException e) {}
 			if (s.requiresScriptReparse()) {
 				Script script = Script.get(s.resource(), false);
 				if (script != null) {
@@ -466,7 +469,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				if (r instanceof IFile) {
 					Structure pinned = Structure.pinned(r, false, true);
 					if (pinned != null)
-						pinned.validate();
+						try {
+							pinned.validate(markers);
+						} catch (ParsingException e) {}
 				}
 		}
 	}

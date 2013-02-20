@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
@@ -79,7 +80,11 @@ public class IniDescriptionsLoader {
 					InputStream input = descs.openStream();
 					try {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
-						unit.parser().parse(false);
+						try {
+							unit.parser().parse(false);
+						} catch (ParsingException e) {
+							e.printStackTrace();
+						}
 						IniSection section = unit.sectionWithName("Descriptions", false); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();

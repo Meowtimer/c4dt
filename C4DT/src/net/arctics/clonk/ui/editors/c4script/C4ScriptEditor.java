@@ -26,8 +26,8 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -249,13 +249,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.bodyLocation() : null;
 					for (IMarker m : markers) {
-
-						// delete markers that are explicitly marked as being caused by parsing the function
-						if (func.makeNameUniqueToParent().equals(Problem.declarationTag(m))) {
-							m.delete();
-							continue;
-						}
-
 						// delete marks inside the body region
 						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
 						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
@@ -289,9 +282,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								) {
 									if (node == null || !node.containedIn(f))
 										return Decision.DropCharges;
-									if (structure.source() instanceof IFile)
-										code.createMarker((IFile) structure.source(), structure, Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-											markerStart, markerEnd, severity, markers.convertRelativeRegionToAbsolute(node, flags, node), args);
 									return Decision.PassThrough;
 								}
 							});
@@ -621,7 +611,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected TextChangeListener textChangeListener() { return textChangeListener; }
-	
+
 	public ProblemReportingStrategy typingStrategy() { return textChangeListener().typingStrategy(); }
 
 	public Function functionAt(int offset) {

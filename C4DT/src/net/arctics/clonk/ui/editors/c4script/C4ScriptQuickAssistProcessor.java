@@ -128,7 +128,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				return false;
 			}
 			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))
-				return fixableParserErrorCodes.contains(Problem.errorCode(ma.getMarker()));
+				return true;
 		}
 		return false;
 	}
@@ -190,7 +190,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private boolean relevant(IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
-				Problem.errorCode(marker) == Problem.errorCode(originalMarker);
+				Problem.problem(marker) == Problem.problem(originalMarker);
 		}
 
 		@Override
@@ -424,7 +424,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
-		Problem errorCode = Problem.errorCode(marker);
+		Problem errorCode = Problem.problem(marker);
 		final IRegion expressionRegion = Problem.expressionLocation(marker);
 		if (expressionRegion.getOffset() == -1)
 			return;

@@ -2,11 +2,6 @@ package net.arctics.clonk.parser;
 
 import net.arctics.clonk.parser.c4script.Keywords;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IRegion;
-
 public enum Problem {
 	TokenExpected(Messages.TokenExpected, Messages.ParserErrorCode_Arg_Token),
 	NotAllowedHere(Messages.NotAllowedHere, Messages.ParserErrorCode_Arg_DisallowedToken),
@@ -89,19 +84,6 @@ public enum Problem {
 	InvalidType(Messages.InvalidType),
 	UnexpectedBlock(Messages.UnexpectedBlock);
 
-	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
-	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
-	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
-	public static final String MARKER_DECLARATIONTAG = "c4ScriptErrorDeclarationTag"; //$NON-NLS-1$
-
-	public static String[] MARKER_ARGS;
-
-	static {
-		MARKER_ARGS = new String[3];
-		for (int i = 0; i < MARKER_ARGS.length; i++)
-			MARKER_ARGS[i] = String.format("c4ScriptErrorArg%d", i); //$NON-NLS-1$
-	}
-
 	private String message;
 	private String[] formatArgumentDescriptions;
 
@@ -124,80 +106,6 @@ public enum Problem {
 
 	public String[] formatArgumentDescriptions() {
 		return formatArgumentDescriptions;
-	}
-
-	public static Problem errorCode(IMarker marker) {
-		try {
-			return values()[marker.getAttribute(MARKER_ERRORCODE, -1)];
-		} catch (ArrayIndexOutOfBoundsException e) {
-			return null;
-		}
-	}
-
-	public static IRegion expressionLocation(IMarker marker) {
-		return new SourceLocation(marker.getAttribute(MARKER_EXPRESSIONSTART, -1), marker.getAttribute(MARKER_EXPRESSIONEND, -1));
-	}
-
-	public static void setExpressionLocation(IMarker marker, IRegion location) {
-		try {
-			marker.setAttribute(MARKER_EXPRESSIONSTART, location != null ? location.getOffset() : -1);
-			marker.setAttribute(MARKER_EXPRESSIONEND, location != null ? location.getOffset()+location.getLength() : -1);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static String arg(IMarker marker, int index) {
-		return marker.getAttribute(String.format(MARKER_ARGS[index], index), ""); //$NON-NLS-1$
-	}
-
-	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
-		if (file == null)
-			return null;
-		try {
-			IMarker marker = file.createMarker(markerType);
-			marker.setAttributes(
-				new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_ERRORCODE},
-				new Object[] {severity, false, problem, start, end, declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, this.ordinal()}
-			);
-			return marker;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
-		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, makeErrorString(args));
-		if (marker == null)
-			return null;
-		if (expressionRegion instanceof ASTNode)
-			try {
-				marker.setAttribute(IMarker.LOCATION, expressionRegion.toString());
-			} catch (CoreException e1) {
-				e1.printStackTrace();
-			}
-		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++)
-			try {
-				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : ""); //$NON-NLS-1$
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		if (expressionRegion != null)
-			setExpressionLocation(marker, expressionRegion);
-		return marker;
-	}
-
-	public static void setDeclarationTag(IMarker marker, String declarationTag) {
-		try {
-			marker.setAttribute(MARKER_DECLARATIONTAG, declarationTag);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static String declarationTag(IMarker marker) {
-		return marker.getAttribute(MARKER_DECLARATIONTAG, ""); //$NON-NLS-1$
 	}
 
 	public String messageWithFormatArgumentDescriptions() {

@@ -3,6 +3,8 @@ package net.arctics.clonk.parser.inireader;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
@@ -11,9 +13,9 @@ import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
-	
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private Object extendedValue;
 	private IniEntryDefinition definition;
 
@@ -25,19 +27,19 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		super(pos,endPos, key,null);
 		extendedValue = value;
 	}
-	
+
 	public Object extendedValue() {
 		return extendedValue;
 	}
-	
+
 	public void setDefinition(IniEntryDefinition entryConfig) {
 		this.definition = entryConfig;
 	}
-	
+
 	public IniEntryDefinition definition() {
 		return definition;
 	}
-	
+
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniEntryDefinition config, boolean createErrorMarkers) {
 		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.definition = config;
@@ -45,21 +47,21 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		cmpl.setParent(entry.parentDeclaration());
 		return cmpl;
 	}
-	
+
 	public IniUnit iniUnit() {
 		return this.topLevelParentDeclarationOfType(IniUnit.class);
 	}
-	
+
 	@Override
 	public String stringValue() {
 		return extendedValue.toString();
 	}
-	
+
 	@Override
 	public Object value() {
 		return extendedValue;
 	}
-	
+
 	@Override
 	public void setStringValue(String value, Object context) {
 		if (extendedValue instanceof IIniEntryValue)
@@ -87,7 +89,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 			return ((ITreeNode) extendedValue).childCollection();
 		return null;
 	}
-	
+
 	@Override
 	public boolean hasChildren() {
 		return
@@ -99,16 +101,16 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	public Object context() {
 		return this; // is it's own context; over-abstraction is awesome -.-
 	}
-	
+
 	@Override
-	public void validate() {
-		if (extendedValue() instanceof IComplainingIniEntryValue)
-			((IComplainingIniEntryValue)extendedValue()).complain(this);
+	public void validate(Markers markers) throws ParsingException {
+		if (extendedValue() instanceof ISelfValidatingIniEntryValue)
+			((ISelfValidatingIniEntryValue)extendedValue()).validate(markers, this);
 	}
-	
+
 	@Override
 	public boolean isTransient() {
 		return value() instanceof IniEntryValueBase && ((IniEntryValueBase)value()).isEmpty();
 	}
-	
+
 }

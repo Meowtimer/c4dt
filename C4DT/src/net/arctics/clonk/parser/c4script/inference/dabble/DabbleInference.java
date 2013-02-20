@@ -760,7 +760,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					processor.incompatibleTypes(rightSide, rightSide, leftTy, rightTy);
 			} else
 				judgement(leftSide, ty(rightSide, processor), TypingJudgementMode.Force, processor);
-			//processor.linkTypesOf(this, rightSide);
 		}
 
 		public ITypeVariable createTypeInfo(T node, ScriptProcessor processor) {

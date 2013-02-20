@@ -196,8 +196,10 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 
 	/**
 	 * Called by the {@link ClonkBuilder} in phase 2 to give Structure files a chance to complain about things like missing functions (which ought to have been created as of now since the {@link ClonkBuilder} is in phase 2)
+	 * @param markers
+	 * @throws ParsingException
 	 */
-	public void validate() {}
+	public void validate(Markers markers) throws ParsingException {}
 
 	@Override
 	@SuppressWarnings("unchecked")

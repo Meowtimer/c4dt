@@ -17,6 +17,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -85,18 +86,18 @@ import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
 
 public class ScenarioProperties extends PropertyPage implements IWorkbenchPropertyPage {
-	
+
 	private static final String SCENARIO_PROPERTIES_MAIN_TAB_PREF = "scenarioPropertiesMainTab"; //$NON-NLS-1$
 	private Scenario scenario;
 	private ScenarioUnit scenarioConfiguration;
 	private final Map<ID, Image> images = new HashMap<ID, Image>();
 	private Image mapPreviewImage;
 	private int mapPreviewNumPlayers = 1;
-	
+
 	private Image imageForSlider(String entryName) {
 		return scenarioConfiguration.engine().image(entryName);
 	}
-	
+
 	private Image imageFor(Definition def) {
 		if (def != null) {
 			Image img = images.get(def.id());
@@ -142,7 +143,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			Label l = new Label(parent, SWT.NULL);
 			l.setText(label);
 			l.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
-			
+
 			Composite tableComposite = new Composite(parent, SWT.NO_SCROLL);
 			GridData tableLayoutData = new GridData(GridData.FILL_BOTH);
 			tableLayoutData.heightHint = 0;
@@ -259,7 +260,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			tableLayout.setColumnData(imageColumn.getColumn(), new ColumnWeightData(10));
 			tableLayout.setColumnData(defColumn.getColumn(), new ColumnWeightData(80));
 			tableLayout.setColumnData(countColumn.getColumn(), new ColumnWeightData(10));
-			
+
 			Composite buttons = new Composite(parent, SWT.NO_SCROLL);
 			buttons.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
 			GridLayout buttonsLayout = noMargin(new GridLayout(1, true));
@@ -313,7 +314,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			inc.addSelectionListener(changeAmountListener);
 			dec.addSelectionListener(changeAmountListener);
 		}
-		
+
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
 			this.array = (IDArray)entry.value();
@@ -356,7 +357,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						int c = items.indexOf(this.target);
 						if (c == -1)
 							c = items.size();
-						
+
 						PluginTransferData d = (PluginTransferData) data;
 						ByteBuffer b = ByteBuffer.wrap(d.getData());
 						int[] selection = new int[d.getData().length/4];
@@ -429,7 +430,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			viewer.setLabelProvider(new LabelProvider());
 			return viewer;
 		}
-		
+
 		protected void addDefinitions() {
 			final List<Definition> defs = new LinkedList<Definition>();
 			for (Index i : scenario.index().relevantIndexes())
@@ -480,7 +481,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			viewer.refresh();
 		}
 	}
-	
+
 	public static GridLayout noMargin(GridLayout layout) {
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
@@ -491,7 +492,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		layout.verticalSpacing = 0;
 		return layout;
 	}
-	
+
 	private class EntrySlider implements SelectionListener, ModifyListener, VerifyListener {
 		private final String section, entry;
 		private Runnable updateRunnable;
@@ -592,14 +593,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			widgetSelected(e);
 		}
 	}
-	
+
 	public Slider makeValueSlider(Composite parent, String label, String section, String entry) {
 		Label l = new Label(parent, SWT.NULL);
 		l.setText(label);
 		Slider s = new Slider(parent, SWT.NULL);
 		return s;
 	}
-	
+
 	public ScenarioProperties() {
 		// TODO Auto-generated constructor stub
 	}
@@ -608,7 +609,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private Label mapPreviewLabel;
 	private Button screenSizeCheckbox;
 	private Button layersCheckbox;
-	
+
 	private Composite tab(String title) {
 		TabItem tab = new TabItem(tabs, SWT.NULL);
 		tab.setText(title);
@@ -616,14 +617,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		tab.setControl(composite);
 		return composite;
 	}
-	
+
 	@Override
 	public void setElement(IAdaptable element) {
 		scenario = Scenario.get((IContainer)element.getAdapter(IContainer.class));
 		scenarioConfiguration = scenario.scenarioConfiguration();
 		scenario.engine().specialRules().processScenarioConfiguration(scenarioConfiguration, ScenarioConfigurationProcessing.Load);
 	}
-	
+
 	public DefinitionListEditor listEditorFor(Composite parent, String sectionName, String entryName, String friendlyName) {
 		ComplexIniEntry entry;
 		try {
@@ -646,11 +647,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		else
 			return null;
 	}
-	
+
 	public EntrySlider slider(Composite parent, String section, String entry, String label) {
 		return new EntrySlider(parent, SWT.HORIZONTAL, section, entry, label);
 	}
-	
+
 	private Composite[] makeLanes(Composite parent) {
 		Composite leftLane = new Composite(parent, SWT.NO_SCROLL);
 		leftLane.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -660,7 +661,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		rightLane.setLayout(new GridLayout(2, false));
 		return new Composite[] {leftLane, rightLane};
 	}
-	
+
 	@Override
 	protected Control createContents(Composite parent) {
 		tabs = new TabFolder(parent, SWT.NULL);
@@ -669,7 +670,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		makeLandscapeTab();
 		makeEnvironmentTab();
 		makeWeatherTab();
-		
+
 		tabs.addSelectionListener(new SelectionAdapter() {
 			{tabs.setSelection(Core.instance().getPreferenceStore().getInt(SCENARIO_PROPERTIES_MAIN_TAB_PREF));}
 			@Override
@@ -843,7 +844,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					setLanesVisible(extendedLanes, extendedOn);
 					setText();
 				}
-				
+
 				{ setLanesVisible(extendedLanes, false); setText(); }
 			});
 		}
@@ -867,7 +868,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			e.printStackTrace(); // oh well
 		}
 	}
-	
+
 	private void drawMapPreview() {
 		if (mapPreviewImage != null) {
 			mapPreviewImage.dispose();
@@ -900,20 +901,24 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			small.dispose();
 		}
 	}
-	
+
 	@Override
 	public boolean performOk() {
 		scenario.engine().specialRules().processScenarioConfiguration(scenarioConfiguration, ScenarioConfigurationProcessing.Save);
 		scenarioConfiguration.save(true);
 		return super.performOk();
 	}
-	
+
 	@Override
 	public boolean performCancel() {
-		scenarioConfiguration.parser().parse(false, true);
+		try {
+			scenarioConfiguration.parser().parse(false, true);
+		} catch (ParsingException e) {
+			e.printStackTrace();
+		}
 		return super.performCancel();
 	}
-	
+
 	@Override
 	public void dispose() {
 		if (mapPreviewImage != null) {

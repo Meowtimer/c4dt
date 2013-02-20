@@ -2,15 +2,17 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.StringUtil;
 
 public class IniEntry extends NameValueAssignment implements IniItem {
-	
+
 	public IniEntry(int pos, int endPos, String k, String v) {
 		super(pos, endPos, k, v);
 	}
-	
+
 	public Object value() {
 		return stringValue();
 	}
@@ -24,17 +26,16 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 	}
 
 	@Override
-	public void validate() {
-	}
-	
+	public void validate(Markers markers) throws ParsingException {}
+
 	@Override
 	public int sortCategory() {
 		return 0;
 	}
-	
+
 	@Override
 	public boolean isTransient() {
 		return false;
 	}
-	
+
 }

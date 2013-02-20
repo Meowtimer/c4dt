@@ -24,6 +24,7 @@ import org.eclipse.jface.text.Region;
 
 public class Markers extends LinkedList<Marker> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	public static final String MARKER_PROBLEM = "c4dtProblem"; //$NON-NLS-1$
 
 	public Markers() {}
 	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
@@ -47,7 +48,25 @@ public class Markers extends LinkedList<Marker> {
 			this.clear();
 		}
 		for (Marker m : markersToDeploy)
-			m.deploy();
+			deploy(m);
+	}
+
+	public IMarker deploy(Marker marker) {
+		IFile file = marker.scriptFile;
+		Declaration declarationAssociatedWithFile = marker.container;
+		if (file == null)
+			return null;
+		try {
+			IMarker marker1 = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
+			marker1.setAttributes(
+				new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_PROBLEM},
+				new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args), marker.start, marker.end, declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()}
+			);
+			return marker1;
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -191,6 +210,14 @@ public class Markers extends LinkedList<Marker> {
 			ClonkProjectNature nature = projIndex.nature();
 			if (nature != null)
 				enableErrors(nature.settings().disabledErrorsSet(), false);
+		}
+	}
+
+	public static Problem problem(IMarker marker) {
+		try {
+			return Problem.values()[marker.getAttribute(MARKER_PROBLEM, -1)];
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return null;
 		}
 	}
 }

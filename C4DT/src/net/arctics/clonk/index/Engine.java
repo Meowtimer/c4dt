@@ -23,8 +23,8 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CPPSourceDeclarationsImporter;
@@ -414,7 +414,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				}
 				try {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
-					unit.parser().parse(false);
+					try {
+						unit.parser().parse(false);
+					} catch (ParsingException e) {
+						e.printStackTrace();
+					}
 					for (IniSection section : unit.sections()) {
 						Declaration declaration = findDeclaration(section.name());
 						if (declaration != null)
