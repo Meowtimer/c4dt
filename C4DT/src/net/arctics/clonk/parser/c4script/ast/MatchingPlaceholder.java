@@ -86,6 +86,10 @@ public class MatchingPlaceholder extends Placeholder {
 		public static String replace(IEvaluationContext context, Object text, Object what, Object replacement) {
 			return text.toString().replace(what.toString(), replacement.toString());
 		}
+		@CommandFunction
+		public static String quote(IEvaluationContext context, Object text) {
+			return String.format("\"%s\"", text);
+		}
 	}
 
 	/**

@@ -171,7 +171,10 @@ public class BinaryOp extends OperatorExpression {
 	private Object evaluateOn(Object leftSide, Object rightSide) {
         switch (operator()) {
         case Add:
-        	return ((Number)leftSide).doubleValue() + ((Number)rightSide).doubleValue();
+        	if (leftSide instanceof String || rightSide instanceof String)
+        		return leftSide.toString() + rightSide.toString();
+        	else
+        		return ((Number)leftSide).doubleValue() + ((Number)rightSide).doubleValue();
         case Subtract:
         	return ((Number)leftSide).doubleValue() - ((Number)rightSide).doubleValue();
         case Multiply:

@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ASTNodeMatcher extends ASTComparisonDelegate {
+	public ASTNodeMatcher(ASTNode top) { super(top); }
 	public Map<String, Object> result;
 	@Override
 	public boolean ignoreClassDifference() {

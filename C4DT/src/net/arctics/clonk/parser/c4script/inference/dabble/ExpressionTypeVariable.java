@@ -29,7 +29,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 			this.type = typeable.type();
 	}
 
-	private static final ASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new ASTComparisonDelegate() {
+	private static final ASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new ASTComparisonDelegate(null) {
 		@Override
 		public boolean considerDifferent() {
 			AccessDeclaration leftDec = as(left, AccessDeclaration.class);

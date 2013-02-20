@@ -18,8 +18,8 @@ import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -200,7 +200,7 @@ public class C4ScriptParserTestCase {
 		assertTrue(setup.errors.size() == 0);
 		assertTrue(setup.script.findFunction("Test") != null);
 		block.toString();
-		assertTrue(setup.script.findFunction("Test").body().compare(block, new ASTComparisonDelegate()));
+		assertTrue(setup.script.findFunction("Test").body().compare(block, new ASTComparisonDelegate(block)));
 	}
 
 	public static String callingMethod() {
@@ -236,8 +236,8 @@ public class C4ScriptParserTestCase {
 		List<IType> types = choice.flatten();
 		assert(types.size() == 3 && types.contains(PrimitiveType.STRING) && types.contains(PrimitiveType.BOOL) && types.contains(PrimitiveType.INT));
 	}
-	
-	
+
+
 	@Test
 	public void testResultOfUnknownFunctionIsNotCallerType() throws UnsupportedEncodingException, ParsingException {
 		Setup setup = new Setup(file(callingMethod()));

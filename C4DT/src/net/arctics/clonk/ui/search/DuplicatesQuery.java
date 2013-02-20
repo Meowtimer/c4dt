@@ -39,11 +39,11 @@ import org.eclipse.ui.IEditorPart;
  *
  */
 public class DuplicatesQuery extends SearchQueryBase {
-	
+
 	private final Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
 	private final Set<Index> indexes = new HashSet<Index>();
 	private final Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
-	private final ASTComparisonDelegate comparisonDelegate = new ASTComparisonDelegate() {
+	private final ASTComparisonDelegate comparisonDelegate = new ASTComparisonDelegate(null) {
 		private boolean irrelevant(ASTNode leftNode) {
 			return leftNode instanceof Comment || leftNode instanceof FunctionDescription;
 		}
@@ -57,7 +57,7 @@ public class DuplicatesQuery extends SearchQueryBase {
 				return ((Parenthesized)left).innerExpression().compare(right, this);
 			if (right instanceof Parenthesized)
 				return left.compare(((Parenthesized)right).innerExpression(), this);
-			
+
 			// ignore differing variable names if both variables are parameters at the same index in their respective functions
 			if (left instanceof AccessVar && right instanceof AccessVar) {
 				AccessVar varA = (AccessVar)left;
@@ -69,8 +69,8 @@ public class DuplicatesQuery extends SearchQueryBase {
 						return true;
 				}
 			}
-			
-			// ignore order of operands in binary associative operator expression 
+
+			// ignore order of operands in binary associative operator expression
 			if (left.parent() instanceof BinaryOp && right.parent() instanceof BinaryOp) {
 				BinaryOp opA = (BinaryOp) left.parent();
 				BinaryOp opB = (BinaryOp) right.parent();
@@ -82,7 +82,7 @@ public class DuplicatesQuery extends SearchQueryBase {
 						final ASTNode bCounterpart = opB.leftSide() == right ? opB.rightSide() : opB.leftSide();
 						final ASTNode aCounterpart = opA.leftSide() == left ? opA.rightSide() : opA.leftSide();
 						final ASTComparisonDelegate moi = this;
-						ASTComparisonDelegate proxy = new ASTComparisonDelegate() {
+						ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
 							@Override
 							public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
 								if (left == aCounterpart || left == bCounterpart)
@@ -94,17 +94,17 @@ public class DuplicatesQuery extends SearchQueryBase {
 							return true;
 					}
 			}
-			
+
 			return false;
 		}
 	};
-	
+
 	public Map<Function, List<FindDuplicatesMatch>> getDetectedDupes() {
 		return detectedDupes;
 	}
-	
+
 	private DuplicatesQuery() {}
-	
+
 	/**
 	 * Return a new FindDuplicatesQuery that will operate on a list of functions.
 	 * @param functions The function list
@@ -119,7 +119,7 @@ public class DuplicatesQuery extends SearchQueryBase {
 					result.indexes.add(i);
 		return result;
 	}
-	
+
 	/**
 	 * Return a new FindDuplicatesQuery that will operate on all functions contained in the passed scripts
 	 * @param scripts The script list
@@ -148,11 +148,11 @@ public class DuplicatesQuery extends SearchQueryBase {
 			list.add(f);
 		}
 	}
-	
+
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
-		
+
 		detectedDupes.clear();
 		Set<Index> indexes = new HashSet<Index>();
 		Set<Function> deemedDuplicate = new HashSet<Function>();
@@ -239,7 +239,7 @@ public class DuplicatesQuery extends SearchQueryBase {
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		return null;
 	}
-	
+
 	@Override
 	public ISearchResult getSearchResult() {
 		if (result == null)

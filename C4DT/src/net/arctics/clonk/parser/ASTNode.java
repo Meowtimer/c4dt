@@ -650,8 +650,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return this;
 	}
 
-	private static final ASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new ASTComparisonDelegate();
-
 	/**
 	 * Compare element with other element. Return true if there are no differences, false otherwise.
 	 * @param other The other expression
@@ -692,7 +690,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && other.getClass() == this.getClass())
-			return compare((ASTNode) other, NULL_DIFFERENCE_LISTENER);
+			return compare((ASTNode) other, new ASTComparisonDelegate((ASTNode)other));
 		else
 			return false;
 	}
@@ -793,7 +791,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
 	 */
 	public Map<String, Object> match(ASTNode other) {
-		ASTNodeMatcher delegate = new ASTNodeMatcher();
+		ASTNodeMatcher delegate = new ASTNodeMatcher(other);
 		if (delegate.equal(this, other))
 			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
 		else

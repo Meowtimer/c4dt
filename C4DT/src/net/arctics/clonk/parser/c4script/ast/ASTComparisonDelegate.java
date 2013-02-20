@@ -11,30 +11,33 @@ import net.arctics.clonk.parser.ASTNode;
  *
  */
 public class ASTComparisonDelegate {
-	
+
 	/**
 	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if length of respective sub elements differs.
 	 */
 	public static final Object SUBELEMENTS_LENGTH = token("SUBELEMENTS_LENGTH");
-	
+
 	/**
 	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if the {@link ASTNode} elements being compared have differen types.
 	 */
 	public static final Object CLASS = token("CLASS");
-	
+
 	/**
 	 * Special 'what' token informing delegate that previous cautious {@link boolean#IgnoreLeftSideOrTryNext} answer
 	 * was honored.
 	 */
 	public static final Object IGNORELEFTSIDEHONORED = token("IGNORELEFTSIDECHOSEN");
-	
+
 	/**
 	 * Special node passed for {@link Difference#left} or {@link Difference#right} if the respective side has run out of nodes while the other one has not.
 	 */
 	public static final ASTNode OUTOFSTOCK = new ASTNode();
-	
+
+	public final ASTNode top;
 	public ASTNode left, right;
-	
+
+	public ASTComparisonDelegate(ASTNode top) { this.top = top; }
+
 	/**
 	 * Called if some difference was found and an attempt is made to make a previous left node consume a right node
 	 * @param consumer The left node to consume.
@@ -44,7 +47,7 @@ public class ASTComparisonDelegate {
 	public boolean consume(ASTNode consumer, ASTNode consumee) {
 		return false;
 	}
-	
+
 	/**
 	 * Called if class of left and right node differs. Can order the comparer to ignore this difference.
 	 * @return True if the class difference is to be ignored, false if not.
@@ -55,16 +58,22 @@ public class ASTComparisonDelegate {
 	public boolean ignoreRightSubElement(ASTNode rightNode) { return false; }
 	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) { return false; }
 	public boolean considerDifferent() { return false; }
-	
+
 	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {}
-	
+
 	public boolean equal(ASTNode left, ASTNode right) {
-		return
+		if (
 			(left == null && right == null) ||
 			(left != null && left.compare(right, this)) ||
-			ignoreSubElementDifference(left, right);
+			ignoreSubElementDifference(left, right)
+		) {
+			if (top == right)
+				applyLeftToRightMapping(new ASTNode[] {left}, new ASTNode[][] {{right}});
+			return true;
+		} else
+			return false;
 	}
-	
+
 	public ASTNode[][] compareSubElements(ASTNode[] mine, ASTNode[] others) {
 		ASTNode[][] leftToRightMapping = new ASTNode[mine.length][];
 
@@ -97,7 +106,7 @@ public class ASTComparisonDelegate {
 			else
 				return null;
 		}
-		
+
 		if (l != mine.length || r != others.length) {
 			for (; l < mine.length; l++)
 				if (leftToRightMapping[l] != null)
