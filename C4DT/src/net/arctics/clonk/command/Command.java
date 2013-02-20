@@ -23,7 +23,6 @@ import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectConverter;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IStorage;
@@ -85,7 +84,10 @@ public class Command {
 		@Override
 		public Object invoke(IEvaluationContext context) {
 			try {
-				return method.invoke(context, ArrayUtil.concat(context, context.arguments()));
+				Object[] args = new Object[method.getParameterTypes().length];
+				args[0] = context;
+				System.arraycopy(context.arguments(), 0, args, 1, context.arguments().length);
+				return method.invoke(context, args);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
