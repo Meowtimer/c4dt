@@ -211,9 +211,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				switch (d.type()) {
 				case APPENDTO: case INCLUDE:
 					ID id = d.contentAsID();
-					if (id != null)
-						for (Definition def : index.definitionsWithID(id))
-							def.requireLoaded();
+					if (id != null) {
+						List<? extends Definition> defs = index.definitionsWithID(id);
+						if (defs != null)
+							for (Definition def : defs)
+								def.requireLoaded();
+					}
 					break;
 				default:
 					break;
