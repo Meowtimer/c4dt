@@ -184,10 +184,14 @@ public class MatchingPlaceholder extends Placeholder {
 				break;
 			case '>':
 				start = scanner.tell(); end = start;
-				while (!scanner.reachedEOF() && scanner.peek() != ',') {
-					scanner.read();
-					end++;
-				}
+				Loop: while (!scanner.reachedEOF())
+					switch (scanner.peek()) {
+					case ',': case '!': case '^':
+						break Loop;
+					default:
+						scanner.read();
+						end++;
+					}
 				property = scanner.readStringAt(start, end);
 				break;
 			case '[':
@@ -245,14 +249,21 @@ public class MatchingPlaceholder extends Placeholder {
 	public Object transformSubstitution(Object substitution) {
 		if (property() != null)
 			try {
-				substitution = substitution.getClass().getMethod(property()).invoke(substitution);
+				if (substitution instanceof Object[]) {
+					Object[] s = (Object[]) substitution;
+					Object[] n = new Object[s.length];
+					substitution = n;
+					for (int i = 0; i < s.length; i++)
+						n[i] = s[i].getClass().getMethod(property()).invoke(s[i]);
+				} else
+					substitution = substitution.getClass().getMethod(property()).invoke(substitution);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		if (code != null)
 			try {
-				if (substitution instanceof ASTNode[])
-					substitution = Arrays.asList((ASTNode[])substitution);
+				if (substitution instanceof Object[])
+					substitution = Arrays.asList((Object[])substitution);
 				substitution = code.invoke(code.new FunctionInvocation(new Object[] {substitution}, null));
 				if (substitution instanceof List)
 					return ((List<ASTNode>)substitution).toArray(new ASTNode[((List<ASTNode>) substitution).size()]);
