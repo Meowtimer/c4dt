@@ -462,7 +462,7 @@ public abstract class SpecialEngineRules {
 		}
 		private IType searchCriteriaAssumedResult(ProblemReportingContext processor, CallDeclaration node, boolean topLevel) {
 			IType result = null;
-			String declarationName = node.declarationName();
+			String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();

@@ -277,7 +277,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
-		return new EntityRegion(entities, new Region(start(), declarationName().length()));
+		return new EntityRegion(entities, new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {
 		if (params.length == 1)
@@ -286,7 +286,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	@Override
 	public ControlFlow controlFlow() {
-		return declarationName().equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
+		return name().equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
 	@Override
 	public ASTNode[] params() {

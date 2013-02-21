@@ -45,11 +45,11 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		output.append(declarationName());
+		output.append(name());
 	}
 
 	public IRegion declarationRegion(int offset) {
-		return new Region(offset+start(), declarationName().length());
+		return new Region(offset+start(), name().length());
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Return the declaration name this expression uses to refer to a {@link Declaration}.
 	 * @return The declaration name
 	 */
-	public String declarationName() {
+	public String name() {
 		return declarationName;
 	}
 
@@ -69,13 +69,13 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Set the declaration name.
 	 * @param declarationName The name
 	 */
-	public void setDeclarationName(String declarationName) {
+	public void setName(String declarationName) {
 		this.declarationName = declarationName;
 	}
 
 	@Override
 	public int identifierLength() {
-		return declarationName().length();
+		return name().length();
 	}
 
 	/**
@@ -83,7 +83,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * @return Whether or not.
 	 */
 	public boolean indirectAccess() {
-		return declaration == null || !declaration.name().equals(declarationName());
+		return declaration == null || !declaration.name().equals(name());
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 		if (!super.equalAttributes(other))
 			return false;
 		AccessDeclaration otherDec = (AccessDeclaration) other;
-		if (!declarationName().equals(otherDec.declarationName))
+		if (!name().equals(otherDec.declarationName))
 			return false;
 		return true;
 	}
@@ -105,7 +105,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	@Override
-	public String patternMatchingText() { return declarationName(); }
+	public String patternMatchingText() { return name(); }
 
 	@Override
 	public void postLoad(ASTNode parent, ProblemReportingContext context) {

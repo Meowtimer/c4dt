@@ -249,7 +249,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						String s = UI.input(
 							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.ClonkQuickAssistProcessor_SpecifyValue,
-							String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.declarationName()), accessDec.declarationName(),
+							String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.name()), accessDec.name(),
 							new IInputValidator() {
 								@Override
 								public String isValid(String newText) {
@@ -261,7 +261,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							}
 						);
 						if (s != null)
-							accessDec.setDeclarationName(s);
+							accessDec.setName(s);
 					}
 				try {
 					this.replacementString = replacement.replacementExpression().exhaustiveOptimize
@@ -457,7 +457,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					assert(offendingExpression instanceof CallDeclaration);
 					replacements.add(
 						Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-						topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).declarationName()), 0)
+						topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).name()), 0)
 					);
 					break;
 				case NeverReached:
@@ -501,7 +501,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression)
 							replacements.add(
 								Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-								new VarDeclarationStatement(var.declarationName(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+								new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
 					}
 					if (offendingExpression instanceof CallDeclaration)
@@ -515,21 +515,21 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 						// create new variable or function
 						Replacement createNewDeclarationReplacement = replacements.add(
-							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.declarationName()),
+							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.name()),
 							ASTNode.NULL_EXPR,
 							false, false
 						);
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 						if (accessDec instanceof AccessVar)
 							decs.add(new Replacement.AdditionalDeclaration(
-								new Variable(accessDec.declarationName(), Scope.LOCAL),
+								new Variable(accessDec.name(), Scope.LOCAL),
 								ASTNode.NULL_EXPR
 							));
 						else {
 							CallDeclaration callFunc = (CallDeclaration) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
-								function = new Function(accessDec.declarationName(), FunctionScope.PUBLIC),
+								function = new Function(accessDec.name(), FunctionScope.PUBLIC),
 								ASTNode.NULL_EXPR
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
@@ -554,7 +554,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								Declaration dec = clonkProposal.declaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
-								int similarity = StringUtil.similarityOf(dec.name(), accessDec.declarationName());
+								int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
 								if (similarity > 0) {
 									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
@@ -575,7 +575,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									e.printStackTrace();
 									break;
 								}
-								ID defId = ID.get(accessDec.declarationName());
+								ID defId = ID.get(accessDec.name());
 								for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
 										ClonkProjectNature nat = ClonkProjectNature.get(proj);
@@ -651,7 +651,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case NoInheritedFunction:
-					if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).declarationName().equals(Keywords.Inherited))
+					if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).name().equals(Keywords.Inherited))
 						replacements.add(
 							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),

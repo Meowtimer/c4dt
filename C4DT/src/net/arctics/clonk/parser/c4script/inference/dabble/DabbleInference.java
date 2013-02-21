@@ -239,7 +239,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
 			Engine engine = script().engine();
 			if (engine != null && engine.specialRules() != null)
-				return engine.specialRules().funcRuleFor(node.declarationName(), role);
+				return engine.specialRules().funcRuleFor(node.name(), role);
 			else
 				return null;
 		}
@@ -788,7 +788,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (node.declaration() == null)
 					node.setDeclaration(obtainDeclaration(node, processor));
 				if (node.declaration() == null) {
-					processor.script().index().loadScriptsContainingDeclarationsNamed(node.declarationName());
+					processor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
 					node.setDeclaration(obtainDeclaration(node, processor));
 				}
 				return node.declaration();
@@ -898,7 +898,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
 							// find pseudo-variable from proplist expression
 							if (t instanceof IProplistDeclaration) {
-								Variable proplistComponent = ((IProplistDeclaration)t).findComponent(node.declarationName());
+								Variable proplistComponent = ((IProplistDeclaration)t).findComponent(node.name());
 								if (proplistComponent != null)
 									return proplistComponent;
 							}
@@ -906,7 +906,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
 							info.searchOrigin = scriptToLookIn;
 							info.findGlobalVariables = predecessor == null;
-							Declaration v = scriptToLookIn.findDeclaration(node.declarationName(), info);
+							Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
 							if (v instanceof Definition)
 								v = ((Definition)v).proxyVar();
 							if (v != null) {
@@ -925,7 +925,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				protected Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
 					ASTNode p = node.predecessorInSequence();
-					if (p == null && node.declarationName().equals(Variable.THIS.name()))
+					if (p == null && node.name().equals(Variable.THIS.name()))
 						return Variable.THIS;
 					IType type = processor.script();
 					if (p != null)
@@ -933,14 +933,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (p == null) {
 						Function f = node.parentOfType(Function.class);
 						if (f != null) {
-							Variable v = f.findVariable(node.declarationName());
+							Variable v = f.findVariable(node.name());
 							if (v != null)
 								return v;
 						}
-						Declaration v = processor.variableMap.get(node.declarationName());
-						if (v == null && !processor.variableMap.containsKey(node.declarationName())) {
+						Declaration v = processor.variableMap.get(node.name());
+						if (v == null && !processor.variableMap.containsKey(node.name())) {
 							v = findUsingType(processor, node, null, type);
-							processor.variableMap.put(node.declarationName(), v);
+							processor.variableMap.put(node.name(), v);
 						}
 						return v;
 					}
@@ -1008,7 +1008,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ASTNode pred = node.predecessorInSequence();
 					Declaration declaration = node.declaration();
 					if (declaration == null && pred == null)
-						processor.markers().error(processor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.declarationName());
+						processor.markers().error(processor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
 					// local variable used in global function
 					else if (declaration instanceof Variable) {
 						Variable var = (Variable) declaration;
@@ -1063,7 +1063,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
 								if (proplDecl.isAdHoc()) {
 									Variable var = proplDecl.addComponent(
-										new Variable(leftSide.declarationName(), Variable.Scope.VAR),
+										new Variable(leftSide.name(), Variable.Scope.VAR),
 										true
 									);
 									declaration = var;
@@ -1071,7 +1071,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								}
 							} else for (IType t : predType)
 								if (t == processor.script()) {
-									Variable var = new Variable(leftSide.declarationName(), Variable.Scope.LOCAL);
+									Variable var = new Variable(leftSide.name(), Variable.Scope.LOCAL);
 									initializeFromAssignment(var, leftSide, rightSide, processor);
 									processor.script().addDeclaration(var);
 									declaration = var;
@@ -1396,7 +1396,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				/**
 				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReportingContext)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
 				 * @param processor Context to use for searching
-				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #declarationName()}
+				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #name()}
 				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
 				 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 				 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
@@ -1453,13 +1453,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
-					String declarationName = node.declarationName();
+					String declarationName = node.name();
 					if (declarationName.equals(Keywords.Return))
 						return null;
 					ASTNode p = node.predecessorInSequence();
 					if (p == null) {
-						Declaration f = processor.functionMap.get(node.declarationName());
-						if (f == null && !processor.functionMap.containsKey(node.declarationName())) {
+						Declaration f = processor.functionMap.get(node.name());
+						if (f == null && !processor.functionMap.containsKey(node.name())) {
 							f = findUsingType(processor, node, declarationName, processor.script());
 							processor.functionMap.put(declarationName, f);
 						}
@@ -1553,7 +1553,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					super.visit(node, processor);
 
 					CachedEngineDeclarations cachedEngineDeclarations = processor.cachedEngineDeclarations();
-					String declarationName = node.declarationName();
+					String declarationName = node.name();
 					Declaration declaration = node.declaration();
 					ASTNode[] params = node.params();
 					ASTNode predecessor = node.predecessorInSequence();
@@ -1977,7 +1977,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (d == null) {
 							// implicitly create loop variable declaration if not found
 							SourceLocation varPos = processor.absoluteSourceLocationFromExpr(accessVar);
-							loopVariable = processor.parser.createVarInScope(node.parentOfType(Function.class), accessVar.declarationName(), Scope.VAR, varPos.start(), varPos.end(), null);
+							loopVariable = processor.parser.createVarInScope(node.parentOfType(Function.class), accessVar.name(), Scope.VAR, varPos.start(), varPos.end(), null);
 						} else
 							loopVariable = as(d, Variable.class);
 					} else

@@ -69,7 +69,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				CallDeclaration callFunc = (CallDeclaration) expression;
-				return callFunc.declarationName().equals(declaration.name());
+				return callFunc.name().equals(declaration.name());
 			}
 			return false;
 		}

@@ -13,5 +13,5 @@ public class CallInherited extends CallDeclaration {
 		this.failsafe = failsafe;
 	}
 	@Override
-	public String declarationName() { return failsafe ? Keywords.SafeInherited : Keywords.Inherited; }
+	public String name() { return failsafe ? Keywords.SafeInherited : Keywords.Inherited; }
 }
