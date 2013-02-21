@@ -259,9 +259,12 @@ public class MatchingPlaceholder extends Placeholder {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		if (substitution instanceof String)
-			substitution = new AccessVar((String)substitution);
-		else if (substitution instanceof Long)
+		if (substitution instanceof String) {
+			if (subElements().length > 0)
+				substitution = new CallDeclaration((String)substitution, subElements());
+			else
+				substitution = new AccessVar((String)substitution);
+		} else if (substitution instanceof Long)
 			substitution = new IntegerLiteral((long)substitution);
 		return substitution;
 	}
