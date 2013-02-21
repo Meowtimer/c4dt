@@ -310,6 +310,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		Variable g = global(); if (g != null) staticVariables.add(global());
 		declarationMap.clear();
 
+		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
+		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				addGlobalsFromScript(item, newAppendages);
+			}
+		});
+		if (!postLoad)
+			appendages = newAppendages;
+		
 		final int[] counts = new int[3];
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
@@ -323,16 +333,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 					counts[1]++;
 			}
 		});
-
-		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
-		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
-			@Override
-			public void receivedObject(Script item) {
-				addGlobalsFromScript(item, newAppendages);
-			}
-		});
-		if (!postLoad)
-			appendages = newAppendages;
 
 		if (postLoad)
 			allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {

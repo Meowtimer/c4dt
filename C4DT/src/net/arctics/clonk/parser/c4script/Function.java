@@ -510,6 +510,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (fun != null && fun != this)
 				return fun;
 		}
+		
+		// search global
+		Function global = index().findGlobal(Function.class, name());
+		if (global != null)
+			return global;
 
 		// search in engine
 		Function f = index().engine().findFunction(name());
