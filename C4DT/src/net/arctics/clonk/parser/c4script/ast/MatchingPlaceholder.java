@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -245,7 +246,6 @@ public class MatchingPlaceholder extends Placeholder {
 		this.entryName = entry;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Object transformSubstitution(Object substitution) {
 		if (property() != null)
 			try {
@@ -266,17 +266,29 @@ public class MatchingPlaceholder extends Placeholder {
 					substitution = Arrays.asList((Object[])substitution);
 				substitution = code.invoke(code.new FunctionInvocation(new Object[] {substitution}, null));
 				if (substitution instanceof List)
-					return ((List<ASTNode>)substitution).toArray(new ASTNode[((List<ASTNode>) substitution).size()]);
+					substitution = ((List<?>)substitution).toArray(new Object[((List<?>) substitution).size()]);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		if (substitution instanceof String) {
-			if (subElements().length > 0)
-				substitution = new CallDeclaration((String)substitution, subElements());
-			else
-				substitution = new AccessVar((String)substitution);
-		} else if (substitution instanceof Long)
-			substitution = new IntegerLiteral((long)substitution);
+		if (substitution instanceof Object[]) {
+			Object[] s = (Object[]) substitution;
+			ASTNode[] r = new ASTNode[s.length];
+			for (int i = 0; i < s.length; i++) {
+				Object item = s[i];
+				ASTNode node;
+				if (item instanceof String) {
+					if (subElements().length > 0)
+						node = new CallDeclaration((String)item, subElements());
+					else
+						node = new AccessVar((String)item);
+				} else if (item instanceof Long)
+					node = new IntegerLiteral((long)item);
+				else
+					node = new GarbageStatement(defaulting(item, "<null>").toString(), 0);
+				r[i] = node;
+			}
+			substitution = r;
+		}
 		return substitution;
 	}
 
