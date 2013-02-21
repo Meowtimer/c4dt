@@ -10,8 +10,9 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ASTNode.ITransformer;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -51,6 +52,15 @@ public class ProjectConverter implements IResourceVisitor {
 	public ProjectConverter(IProject sourceProject, IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
+		/*try {
+			for (IResource r : this.destinationProject.getProject().members()) {
+				if (r.getName().startsWith("."))
+					continue;
+				r.delete(true, new NullProgressMonitor());
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}*/
 		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
 		assert(sourceEngine() != destinationEngine());
 	}
@@ -88,18 +98,14 @@ public class ProjectConverter implements IResourceVisitor {
 		if (resource instanceof IFile) {
 			IFile sourceFile = (IFile) resource;
 			IFile file = destinationProject.getProject().getFile(path);
-			if (!file.exists()) {
-				InputStream contents = sourceFile.getContents();
-				try {
+			try (InputStream contents = sourceFile.getContents()) {
+				if (file.exists())
+					file.setContents(contents, true, true, monitor);
+				else
 					file.create(contents, true, monitor);
-					convertFileContents(sourceFile, file);
-				} finally {
-					try {
-						contents.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				convertFileContents(sourceFile, file);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		} else if (resource instanceof IFolder) {
 			IFolder container = destinationProject.getProject().getFolder(path);
@@ -123,11 +129,17 @@ public class ProjectConverter implements IResourceVisitor {
 						if (mapped != null)
 							return new AccessVar(mapped);
 					}
-					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
-						Map<String, Object> matched = ct.template().match(expression);
-						if (matched != null)
-							return ct.transformation().transform(matched);
-					}
+					boolean progress;
+					do {
+						progress = false;
+						for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
+							Map<String, Object> matched = ct.template().match(expression);
+							if (matched != null) {
+								expression = ct.transformation().transform(matched);
+								progress = true;
+							}
+						}
+					} while (progress);
 					return expression.transformSubElements(this);
 				}
 			}).transform(null, null, expression);
@@ -140,7 +152,13 @@ public class ProjectConverter implements IResourceVisitor {
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(IDocument document) {
-					codeConverter.runOnDocument(script, null, new C4ScriptParser(script), document);
+					C4ScriptParser parser = new C4ScriptParser(script);
+					try {
+						parser.parse();
+					} catch (ParsingException e) {
+						e.printStackTrace();
+					}
+					codeConverter.runOnDocument(script, null, parser, document);
 					if (script instanceof Definition) {
 						Definition def = (Definition) script;
 						ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);

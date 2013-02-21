@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -18,6 +19,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TempScript;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
+import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -49,10 +51,14 @@ public class ProjectConversionConfiguration {
 			ASTNode unwrapped = SimpleStatement.unwrap(stmt);
 			if (unwrapped instanceof BinaryOp && ((BinaryOp)unwrapped).operator() == Operator.Transform) {
 				BinaryOp op = (BinaryOp)unwrapped;
-				this.template = op.leftSide();
-				this.transformation = op.rightSide();
+				this.template = ASTNodeMatcher.matchingExpr(op.leftSide());
+				this.transformation = ASTNodeMatcher.matchingExpr(op.rightSide());
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
+		}
+		@Override
+		public String toString() {
+			return String.format("%s => %s", template.printed(), transformation.printed());
 		}
 	}
 	
@@ -113,8 +119,11 @@ public class ProjectConversionConfiguration {
 			context.setBodyLocation(new SourceLocation(0, text.length()));
 			ASTNode s = parser.parseStandaloneStatement(text, context);
 			if (s instanceof BunchOfStatements)
-				for (ASTNode stmt : ((BunchOfStatements)s).statements())
+				for (ASTNode stmt : ((BunchOfStatements)s).statements()) {
+					if (stmt instanceof Comment)
+						continue;
 					addTransformationFromStatement(stmt);
+				}
 			else
 				addTransformationFromStatement(s);
 		} catch (ParsingException e) {

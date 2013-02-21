@@ -565,6 +565,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
 
 	private void loadProjectConversionConfigurations() {
+		projectConversionConfigurations.clear();
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation location = storageLocations[i];
 			List<URL> projectConverterFiles = new ArrayList<URL>();
@@ -593,6 +594,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public ProjectConversionConfiguration projectConversionConfigurationForEngine(Engine engine) {
+		loadProjectConversionConfigurations();
 		return projectConversionConfigurations.get(engine.name());
 	}
 
