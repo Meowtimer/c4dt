@@ -477,4 +477,6 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return true;
 	}
 
+	public int nameStart() { return start(); }
+
 }

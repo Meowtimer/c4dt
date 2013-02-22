@@ -65,6 +65,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private boolean isOldStyle;
 	private boolean staticallyTyped;
 	private SourceLocation bodyLocation, header;
+	private int nameStart;
 
 	/**
 	 * Code block kept in memory for speed optimization
@@ -501,7 +502,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (fun != null && fun != this)
 				return fun;
 		}
-		
+
 		// search global
 		Function global = index().findGlobal(Function.class, name());
 		if (global != null)
@@ -548,17 +549,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Return the location of the function header
 	 * @return
 	 */
-	public SourceLocation header() {
-		return header;
-	}
-
+	public SourceLocation header() { return header; }
 	/**
 	 * Set the location of the function header.
 	 * @param header
 	 */
-	public void setHeader(SourceLocation header) {
-		this.header = header;
-	}
+	public void setHeader(SourceLocation header) { this.header = header; }
+
+	public void setNameStart(int start) { this.nameStart = start; }
+	@Override
+	public int nameStart() { return nameStart; }
 
 	/**
 	 * Print the function header into the passed string builder

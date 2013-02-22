@@ -39,16 +39,16 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
 public class RenameDeclarationProcessor extends RenameProcessor {
-	
+
 	/**
 	 * Option: The processor won't attempt to change the id value inside DefCore.txt if the declaration being rename is a {@link Definition}
 	 */
 	public static final int CONSIDER_DEFCORE_ID_ALREADY_CHANGED = 1;
-	
+
 	private final Declaration decl;
 	private String newName;
 	private final String oldName;
-	
+
 	private final int options;
 
 	/**
@@ -118,8 +118,10 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 									e.printStackTrace();
 								}
 						}
-					} else
-						fileChange.addEdit(new ReplaceEdit(decl.start(), decl.getLength(), newName));
+					} else {
+						int nameStart = decl.nameStart();
+						fileChange.addEdit(new ReplaceEdit(nameStart, decl.name().length(), newName));
+					}
 //				else if (element instanceof C4Function) {
 //					C4Function relatedFunc = (C4Function)element;
 //					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
@@ -143,7 +145,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
 		return new RefactoringStatus();
 	}
-	
+
 	@Override
 	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
 			CheckConditionsContext context) throws CoreException,
@@ -152,7 +154,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
 		if (!(baseDecl.index() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
-		
+
 		Declaration existingDec;
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.index());
 		info.declarationClass = decl.getClass();
@@ -162,7 +164,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			if (existingDec != null)
 				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.script().toString()));
 		}
-		
+
 		return new RefactoringStatus();
 	}
 
@@ -194,13 +196,13 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	public Declaration declarationBeingRenamed() {
 		return decl;
 	}
-	
+
 	public void setNewName(String newName) {
 		this.newName = newName;
 	}
-	
+
 	public String getNewName() {
 		return newName;
 	}
-	
+
 }
