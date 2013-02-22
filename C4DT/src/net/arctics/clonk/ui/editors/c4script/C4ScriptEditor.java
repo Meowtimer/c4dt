@@ -305,7 +305,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
 			structure.generateFindDeclarationCache();
 			for (ProblemReportingStrategy strategy : problemReportingStrategies)
-				strategy.localTypingContext(parser).visit(function);
+				strategy.localTypingContext(parser).visitFunction(function);
 		}
 
 		@Override

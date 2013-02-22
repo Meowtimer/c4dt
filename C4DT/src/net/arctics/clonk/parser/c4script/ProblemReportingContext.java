@@ -16,5 +16,5 @@ public interface ProblemReportingContext extends IASTPositionProvider, ITypingCo
 	Markers markers();
 	Script script();
 	void reportProblems();
-	void visit(Function function);
+	Object visitFunction(Function function);
 }

@@ -319,7 +319,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
 				parser = fparser;
 				fparser.update();
-				(typingContext = typingStrategy.localTypingContext(parser)).visit(activeFunc);
+				(typingContext = typingStrategy.localTypingContext(parser)).visitFunction(activeFunc);
 			}
 			if (contextExpression == null) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);

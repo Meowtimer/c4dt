@@ -4,6 +4,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
@@ -27,6 +28,8 @@ public class VariableTypeVariable extends TypeVariable {
 	}
 	@Override
 	public void apply(boolean soft, ScriptProcessor processor) {
+		if (variable.scope() == Scope.PARAMETER)
+			return; // don't type parameters, type is entirely defined by calls to the function
 		variable.expectedToBeOfType(type, TypingJudgementMode.Expect);
 	}
 	@Override

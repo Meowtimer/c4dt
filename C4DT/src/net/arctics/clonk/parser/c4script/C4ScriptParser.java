@@ -613,6 +613,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			func.setName(name);
 			func.setVisibility(scope);
 			func.assignType(returnType, returnType != null);
+			func.setNameStart(nameStart);
 			if (typeAnnotation != null)
 				typeAnnotation.setTarget(func);
 		}

@@ -104,7 +104,8 @@ public class TypeChoice implements IType {
 			collect(types);
 			Set<String> typeNames = new HashSet<>(types.size());
 			for (IType t : types)
-				typeNames.add(t.typeName(false));
+				if (t != null)
+					typeNames.add(t.typeName(false));
 			return StringUtil.blockString("", "", " | ", typeNames);
 		}
 	}
@@ -117,9 +118,7 @@ public class TypeChoice implements IType {
 	}
 
 	@Override
-	public void setTypeDescription(String description) {
-
-	}
+	public void setTypeDescription(String description) {}
 
 	private void collect(Collection<IType> types) {
 		if (left instanceof TypeChoice)

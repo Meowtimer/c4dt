@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +40,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.ConvertingIterable;
@@ -116,7 +116,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient Map<String, List<Declaration>> declarationMap = new Hashtable<String, List<Declaration>>();
+	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<>();
 
 	public Index(File folder) {
 		this.folder = folder;
@@ -130,24 +130,17 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * All the entities stored in this Index.
 	 * @return A collection containing all entities.
 	 */
-	public Collection<IndexEntity> entities() {
-		return entities.values();
-	}
-
+	public Collection<IndexEntity> entities() { return entities.values(); }
 	/**
 	 * List of {@link Declaration}s containing global sub declarations.
 	 */
-	public List<Declaration> globalsContainers() {
-		return globalsContainers;
-	}
+	public List<Declaration> globalsContainers() { return globalsContainers; }
 
 	/**
 	 * Return the number of unique ids
 	 * @return
 	 */
-	public int numUniqueIds() {
-		return indexedDefinitions.size();
-	}
+	public int numUniqueIds() { return indexedDefinitions.size(); }
 
 	/**
 	 * Get a list of all {@link Definition}s with a certain id.
@@ -1114,6 +1107,22 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		ArrayList<Declaration> result = new ArrayList<Declaration>(decs.size());
 		result.addAll(decs);
 		return result;
+	}
+
+	public List<CallDeclaration> callsTo(final String functionName) {
+		final List<CallDeclaration> result = new ArrayList<>(10);
+		allScripts(new Sink<Script>() {
+			@Override
+			public void receivedObject(Script item) {
+				Map<String, List<CallDeclaration>> calls = item.callMap();
+				if (calls != null) synchronized (calls) {
+					List<CallDeclaration> list = calls.get(functionName);
+					if (list != null)
+						result.addAll(list);
+				}
+			}
+		});
+		return result.size() > 0 ? result : null;
 	}
 
 }

@@ -54,8 +54,10 @@ public class FunctionFragmentParser extends C4ScriptParser {
 					parseStatementBlock(offset, statements, options, false);
 					body = cachedBlock = new FunctionBody(function, statements);
 				}
-				if (function != null)
+				if (function != null) {
 					function.storeBody(body, functionSource);
+					script().detectCallsInFunction(function, true);
+				}
 			} catch (ParsingException pe) {}
 			return true;
 		} else

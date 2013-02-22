@@ -45,13 +45,16 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
@@ -100,6 +103,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Map<String, Variable> cachedVariableMap;
 	private transient Collection<Script> includes;
 	private transient Scenario scenario;
+	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
 
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
@@ -120,13 +124,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		this.functionReturnTypes = functionReturnTypes;
 	}
 
-	public List<TypeAnnotation> typeAnnotations() {
-		return typeAnnotations;
-	}
+	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
+	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) { this.typeAnnotations = typeAnnotations; }
 
-	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
-		this.typeAnnotations = typeAnnotations;
-	}
+	public Map<String, List<CallDeclaration>> callMap() { return callMap; }
 
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
@@ -134,9 +135,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * a declaration with some name.
 	 * @return The dictionary
 	 */
-	public Set<String> dictionary() {
-		return dictionary;
-	}
+	public Set<String> dictionary() { return dictionary; }
 
 	/**
 	 * Return list of scripts used by this one. A script is considered to be using another one if it calls a global function or accesses a static variable defined in the other script.
@@ -1221,14 +1220,46 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 	}
 
+	private static final IASTVisitor<Map<String, List<CallDeclaration>>> CALLMAP_POPULATOR = new IASTVisitor<Map<String, List<CallDeclaration>>>() {
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Map<String, List<CallDeclaration>> map) {
+			if (node instanceof CallDeclaration) {
+				CallDeclaration call = (CallDeclaration)node;
+				List<CallDeclaration> list = map.get(call.name());
+				if (list == null)
+					map.put(call.name(), list = new ArrayList<>(3));
+				list.add(call);
+			}
+			return TraversalContinuation.Continue;
+		}
+	};
+
 	public void generateFindDeclarationCache() {
 		populateDictionary();
 		cachedFunctionMap = new HashMap<>();
 		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
+		callMap = new HashMap<>();
 		if (definedFunctions != null && index() != null)
-			for (Function f : definedFunctions)
+			for (Function f : definedFunctions) {
 				f.findInherited();
+				detectCallsInFunction(f, false);
+			}
+	}
+
+	public void detectCallsInFunction(Function function, boolean clearOld) {
+		synchronized (callMap) {
+			if (clearOld)
+				for (Iterator<List<CallDeclaration>> it = callMap.values().iterator(); it.hasNext();) {
+					List<CallDeclaration> list = it.next();
+					for (Iterator<CallDeclaration> it2 = list.iterator(); it2.hasNext();)
+						if (it2.next().containedIn(function))
+							it2.remove();
+					if (list.size() == 0)
+						it.remove();
+				}
+			function.traverse(CALLMAP_POPULATOR, callMap);
+		}
 	}
 
 	@Override

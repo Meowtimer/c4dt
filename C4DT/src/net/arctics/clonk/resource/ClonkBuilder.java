@@ -442,7 +442,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 					@Override
 					public void receivedObject(Script item) {
-						if (!parserMap.containsKey(item) && item.directlyIncludes(def))
+						if (!parserMap.containsKey(item) && item.directlyIncludes(def) && false)
 							newlyAddedParsers.put(item, queueScript(item));
 					}
 				});
@@ -480,11 +480,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			IStorage storage = script.source();
-			if (storage != null) {
+			if (storage != null) try {
 				result = new C4ScriptParser(script);
 				result.setBuilder(this);
+			} catch (Exception e) {
+				e.printStackTrace();
+				result = null;
 			} else
 				result = null;
+
 			parserMap.put(script, result);
 		} else
 			result = parserMap.get(script);
