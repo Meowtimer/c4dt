@@ -17,7 +17,9 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.Problem;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -190,7 +192,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private boolean relevant(IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
-				Problem.problem(marker) == Problem.problem(originalMarker);
+				Markers.problem(marker) == Markers.problem(originalMarker);
 		}
 
 		@Override
@@ -424,8 +426,8 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
-		Problem errorCode = Problem.problem(marker);
-		final IRegion expressionRegion = Problem.expressionLocation(marker);
+		Problem errorCode = Markers.problem(marker);
+		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
 		if (expressionRegion.getOffset() == -1)
 			return;
 		Object needToDisconnect = null;
@@ -451,6 +453,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			final Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
 
 			if (offendingExpression != null && topLevel != null) {
+				expressionRegion = offendingExpression.absolute();
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
 				switch (errorCode) {
 				case VariableCalled:
@@ -604,7 +607,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					PrimitiveType t = PrimitiveType.fromString(Problem.arg(marker, 0), true);
+					PrimitiveType t = Markers.expectedType(marker);
 					if (t == PrimitiveType.STRING) {
 						StringLiteral str = new StringLiteral(offendingExpression.toString());
 						str.setLocation(offendingExpression);

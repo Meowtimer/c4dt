@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.IMarkerListener.Decision;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Marker;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
@@ -25,6 +27,7 @@ import org.eclipse.jface.text.Region;
 public class Markers extends LinkedList<Marker> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final String MARKER_PROBLEM = "c4dtProblem"; //$NON-NLS-1$
+	public static final String MARKER_EXPECTEDTYPE = "c4dtExpectedType";
 
 	public Markers() {}
 	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
@@ -57,12 +60,19 @@ public class Markers extends LinkedList<Marker> {
 		if (file == null)
 			return null;
 		try {
-			IMarker marker1 = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
-			marker1.setAttributes(
-				new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_PROBLEM},
-				new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args), marker.start, marker.end, declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()}
+			IMarker deployed = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
+			String[] attributes = new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_PROBLEM};
+			Object[] attributeValues = new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args), marker.start, marker.end,
+				declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()};
+			if (marker.code == Problem.IncompatibleTypes) {
+				attributes = concat(MARKER_EXPECTEDTYPE, attributes);
+				attributeValues = concat(marker.args[0], attributeValues);
+			}
+			deployed.setAttributes(
+				attributes,
+				attributeValues
 			);
-			return marker1;
+			return deployed;
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -172,11 +182,10 @@ public class Markers extends LinkedList<Marker> {
 				Function f = as(declaration, Function.class);
 				int bodyOffset = f != null ? f.bodyLocation().start() : 0;
 				IMarker marker = file.createMarker(IMarker.TASK);
-				marker.setAttribute(IMarker.CHAR_START, markerStart+bodyOffset);
-				marker.setAttribute(IMarker.CHAR_END, markerEnd+bodyOffset);
-				marker.setAttribute(IMarker.MESSAGE, todoText);
-				marker.setAttribute(IMarker.LOCATION, declaration != null ? declaration.qualifiedName() : ""); //$NON-NLS-1$
-				marker.setAttribute(IMarker.PRIORITY, priority);
+				marker.setAttributes(
+					new String[] {IMarker.CHAR_START, IMarker.CHAR_END, IMarker.MESSAGE, IMarker.LOCATION, IMarker.PRIORITY},
+					new Object[] {markerStart+bodyOffset, markerEnd+bodyOffset, todoText, declaration != null ? declaration.qualifiedName() : "", priority}
+				);
 				return marker;
 			} catch (CoreException e) {
 				e.printStackTrace();
@@ -219,5 +228,10 @@ public class Markers extends LinkedList<Marker> {
 		} catch (ArrayIndexOutOfBoundsException e) {
 			return null;
 		}
+	}
+
+	public static PrimitiveType expectedType(IMarker marker) {
+		String attr = marker.getAttribute(MARKER_EXPECTEDTYPE, null);
+		return attr != null ? PrimitiveType.fromString(attr) : PrimitiveType.ANY;
 	}
 }
