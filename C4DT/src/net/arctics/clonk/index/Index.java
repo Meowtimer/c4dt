@@ -232,12 +232,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	protected void addToDeclarationMap(Declaration field) {
-		List<Declaration> list = declarationMap.get(field.name());
-		if (list == null) {
-			list = new LinkedList<Declaration>();
-			declarationMap.put(field.name(), list);
+		synchronized (declarationMap) {
+			List<Declaration> list = declarationMap.get(field.name());
+			if (list == null) {
+				list = new LinkedList<Declaration>();
+				declarationMap.put(field.name(), list);
+			}
+			list.add(field);
 		}
-		list.add(field);
 	}
 
 	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
@@ -319,7 +321,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		});
 		if (!postLoad)
 			appendages = newAppendages;
-		
+
 		final int[] counts = new int[3];
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
@@ -617,9 +619,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return An Iterable to iterate over the matching declarations
 	 */
 	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> declarationClass) {
-		List<Declaration> list = this.declarationMap.get(name);
-		if (list == null)
-			list = new LinkedList<Declaration>();
+		List<Declaration> list;
+		synchronized (declarationMap) {
+			list = this.declarationMap.get(name);
+			if (list != null)
+				list = new ArrayList<>(list);
+			else
+				list = new ArrayList<>();
+		}
 		return ArrayUtil.filteredIterable(list, declarationClass);
 	}
 
@@ -631,13 +638,15 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T findGlobal(Class<T> whatYouWant, String name) {
-		List<Declaration> decs = declarationMap.get(name);
-		if (decs == null)
+		synchronized (declarationMap) {
+			List<Declaration> decs = declarationMap.get(name);
+			if (decs == null)
+				return null;
+			for (Declaration d : decs)
+				if (d.isGlobal() && whatYouWant.isInstance(d))
+					return (T)d;
 			return null;
-		for (Declaration d : decs)
-			if (d.isGlobal() && whatYouWant.isInstance(d))
-				return (T)d;
-		return null;
+		}
 	}
 
 	/**
@@ -647,14 +656,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return A global {@link Declaration} with a matching name or null.
 	 */
 	public Declaration findGlobalDeclaration(String declName, IResource pivot) {
-		List<Declaration> declarations = declarationMap.get(declName);
-		if (declarations != null)
-			return pivot != null
-			? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
-				: IS_GLOBAL.test(declarations.get(0))
-				? declarations.get(0)
-					: null;
-				return null;
+		synchronized (declarationMap) {
+			List<Declaration> declarations = declarationMap.get(declName);
+			if (declarations != null)
+				return pivot != null
+				? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
+					: IS_GLOBAL.test(declarations.get(0))
+					? declarations.get(0)
+						: null;
+					return null;
+		}
 	}
 
 	/**
