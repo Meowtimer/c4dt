@@ -292,6 +292,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
 								l.setEnd(f.bodyLocation().getOffset()+l.end());
 							}
+							markers.deploy();
 						}
 					} catch (Exception e) {
 						e.printStackTrace();

@@ -95,7 +95,7 @@ public class Markers extends LinkedList<Marker> {
 			return;
 
 		if (listener != null) {
-			if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
+			if ((flags & ABSOLUTE_MARKER_LOCATION) != 0) {
 				markerStart += positionProvider.fragmentOffset();
 				markerEnd += positionProvider.fragmentOffset();
 			}
