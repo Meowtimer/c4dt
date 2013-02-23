@@ -325,7 +325,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						document.set(builder.toString());
 						return null;
 					}
-				});
+				}, true);
 			}
 		}.schedule();
 	}
@@ -365,7 +365,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						document.set(builder.toString());
 						return null;
 					}
-				});
+				}, true);
 			}
 		}.schedule();
 	}
@@ -484,6 +484,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				result = new C4ScriptParser(script);
 				result.setBuilder(this);
 			} catch (Exception e) {
+				System.out.println(script.resource().getProjectRelativePath().toOSString());
 				e.printStackTrace();
 				result = null;
 			} else

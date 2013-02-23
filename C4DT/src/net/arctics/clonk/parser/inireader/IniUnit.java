@@ -126,7 +126,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 					document.set(writer.toString());
 					return null;
 				}
-			});
+			}, true);
 		else
 			throw new IllegalStateException(String.format("%s has no associated file", toString()));
 	}

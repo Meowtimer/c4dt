@@ -1322,7 +1322,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					return false;
 				}
 			}
-		});
+		}, true);
 	}
 
 	@Override

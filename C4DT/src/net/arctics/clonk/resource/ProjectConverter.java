@@ -189,6 +189,6 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					}
 					return null;
 				}
-			});
+			}, true);
 	}
 }

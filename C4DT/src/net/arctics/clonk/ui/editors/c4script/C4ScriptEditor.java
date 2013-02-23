@@ -674,7 +674,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				public C4ScriptParser run(IDocument document) {
 					return new C4ScriptParser(document.get(), script, script.scriptFile());
 				}
-			});
+			}, false);
 		if (parser == null)
 			throw new InvalidParameterException("document");
 		return parser;

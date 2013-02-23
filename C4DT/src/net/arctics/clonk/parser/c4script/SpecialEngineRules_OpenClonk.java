@@ -557,7 +557,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				document.set(builder.toString());
 				return null;
 			}
-		});
+		}, true);
 		try {
 			new C4ScriptParser(script).parse();
 		} catch (ParsingException e) {}

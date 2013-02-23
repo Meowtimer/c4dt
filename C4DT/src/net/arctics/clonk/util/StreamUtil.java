@@ -15,10 +15,11 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.ui.editors.text.TextFileDocumentProvider;
+import org.eclipse.jface.text.IDocument;
 
 public class StreamUtil {
 	public static String stringFromReader(Reader reader) {
@@ -33,7 +34,7 @@ public class StreamUtil {
 		}
 		return builder.toString();
 	}
-	
+
 	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
 		InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding);
 		try {
@@ -42,7 +43,7 @@ public class StreamUtil {
 			inputStreamReader.close();
 		}
 	}
-	
+
 	public static String stringFromInputStream(InputStream stream) {
 		try {
 			return stringFromInputStream(stream, "UTF8"); //$NON-NLS-1$
@@ -51,7 +52,7 @@ public class StreamUtil {
 			return "";
 		}
 	}
-	
+
 	public static String stringFromURL(URL url) {
 		InputStream stream;
 		try {
@@ -70,7 +71,7 @@ public class StreamUtil {
 			}
 		}
 	}
-	
+
 	public static String stringFromFile(IFile file) {
 		InputStream stream;
 		try {
@@ -89,7 +90,7 @@ public class StreamUtil {
 			}
 		}
 	}
-	
+
 	public static String stringFromFile(File file) {
 		InputStream stream;
 		try {
@@ -109,17 +110,12 @@ public class StreamUtil {
 	}
 
 	public static String stringFromFileDocument(IFile file) {
-		TextFileDocumentProvider provider = Core.instance().textFileDocumentProvider();
-		try {
-			provider.connect(file);
-		} catch (CoreException e) {
-			return "";
-		}
-		try {
-			return provider.getDocument(file).get();
-		} finally {
-			provider.disconnect(file);
-		}
+		return Core.instance().performActionsOnFileDocument(file, new IDocumentAction<String>() {
+			@Override
+			public String run(IDocument document) {
+				return document.get();
+			}
+		}, false);
 	}
 	public interface StreamWriteRunnable {
 		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;

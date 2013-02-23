@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
@@ -32,7 +33,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public class TidyUpCodeInBulkHandler extends AbstractHandler {
@@ -47,7 +47,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		final ISelection selection = HandlerUtil.getCurrentSelection(event);		
+		final ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
 			if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
 				return null;
@@ -97,40 +97,29 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 								for (IContainer container : selectedContainers)
 									try {
-										final TextFileDocumentProvider textFileDocProvider = Core.instance().textFileDocumentProvider();
-										final List<IFile> failedSaves = new LinkedList<IFile>();
 										container.accept(new IResourceVisitor() {
 											@Override
 											public boolean visit(IResource resource) throws CoreException {
 												if (monitor.isCanceled())
 													return false;
 												if (resource instanceof IFile) {
-													IFile file = (IFile) resource;
-													Script script = Script.get(file, true);
+													final IFile file = (IFile) resource;
+													final Script script = Script.get(file, true);
 													if (script != null) {
-														C4ScriptParser parser = new C4ScriptParser(file, script);
+														final C4ScriptParser parser = new C4ScriptParser(file, script);
 														try {
 															parser.parse();
 														} catch (ParsingException e1) {
 															e1.printStackTrace();
 														}
-														textFileDocProvider.connect(file);
-														try {
-															IDocument document = textFileDocProvider.getDocument(file);
-
-															if (document != null)
-																TidyUpCodeAction.converter().runOnDocument(script, null, parser, document);
-
-															try {
-																textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
-																textFileDocProvider.saveDocument(null, file, document, true);
-															} catch (CoreException e) {
-																e.printStackTrace();
-																failedSaves.add(file);
+														Core.instance().performActionsOnFileDocument(file, new IDocumentAction<Void>() {
+															@Override
+															public Void run(IDocument document) {
+																if (document != null)
+																	TidyUpCodeAction.converter().runOnDocument(script, null, parser, document);
+																return null;
 															}
-														} finally {
-															textFileDocProvider.disconnect(file);
-														}
+														}, true);
 														monitor.worked(1);
 													}
 												}

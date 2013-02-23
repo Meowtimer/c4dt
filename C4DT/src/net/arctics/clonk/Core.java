@@ -39,12 +39,12 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
 import org.eclipse.core.resources.ISaveParticipant;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -58,7 +58,6 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
@@ -573,37 +572,32 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return activeEngine;
 	}
 
-	/**
-	 * Return the shared text file document provider
-	 * @return the provider
-	 */
-	public TextFileDocumentProvider textFileDocumentProvider() {
-		return textFileDocumentProvider;
-	}
-
 	public interface IDocumentAction<T> {
 		T run(IDocument document);
 	}
 
-	public <T> T performActionsOnFileDocument(IFile file, IDocumentAction<T> action) {
-		IDocumentProvider provider = textFileDocumentProvider();
-		try {
-			provider.connect(file);
-		} catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
-		try {
-			IDocument document = provider.getDocument(file);
-			T result = action.run(document);
+	public <T> T performActionsOnFileDocument(IStorage file, IDocumentAction<T> action, boolean save) {
+		synchronized (textFileDocumentProvider) {
 			try {
-				provider.saveDocument(null, file, document, true);
+				textFileDocumentProvider.connect(file);
 			} catch (CoreException e) {
 				e.printStackTrace();
+				return null;
 			}
-			return result;
-		} finally {
-			provider.disconnect(file);
+			try {
+				IDocument document = textFileDocumentProvider.getDocument(file);
+				T result = action.run(document);
+				if (save)
+					try {
+						textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
+						textFileDocumentProvider.saveDocument(null, file, document, true);
+					} catch (CoreException e) {
+						e.printStackTrace();
+					}
+				return result;
+			} finally {
+				textFileDocumentProvider.disconnect(file);
+			}
 		}
 	}
 

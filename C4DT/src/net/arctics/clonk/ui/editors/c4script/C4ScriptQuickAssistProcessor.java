@@ -305,7 +305,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					apply(document);
 					return null;
 				}
-			});
+			}, true);
 		}
 
 		public Replacement replacement() { return replacement; }
@@ -425,335 +425,339 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script()));
 	}
 
-	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
+	public void collectProposals(
+		final IMarker marker,
+		final Position position,
+		final List<ICompletionProposal> proposals,
+		IDocument document,
+		final Script script,
+		final ProblemReportingContext problemReporting
+	) {
+		if (document != null)
+			internalCollectProposals(marker, position, proposals, document, script, problemReporting);
+		else
+			Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<Void>() {
+				@Override
+				public Void run(IDocument connectedDocument) {
+					internalCollectProposals(marker, position, proposals, connectedDocument, script, problemReporting);
+					return null;
+				}
+			}, false);
+	}
+
+	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
 		Problem errorCode = Markers.problem(marker);
 		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
 		if (expressionRegion.getOffset() == -1)
 			return;
-		Object needToDisconnect = null;
-		if (document == null && script != null && script.source() instanceof IFile) {
-			needToDisconnect = script.source();
-			try {
-				Core.instance().textFileDocumentProvider().connect(needToDisconnect);
-			} catch (CoreException e) {
-				e.printStackTrace();
-				return;
-			}
-			document = Core.instance().textFileDocumentProvider().getDocument(needToDisconnect);
-		}
-		try {
-			if (script == null || document == null)
-				return;
-			Function func = script.funcAt(position.getOffset());
-			final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
-			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
-			func.traverse(locator, this);
-			FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
-			ASTNode offendingExpression = locator.expressionAtRegion();
-			final Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
+		if (script == null || document == null)
+			return;
+		Function func = script.funcAt(position.getOffset());
+		final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
+		ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
+		func.traverse(locator, this);
+		FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
+		ASTNode offendingExpression = locator.expressionAtRegion();
+		final Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
 
-			if (offendingExpression != null && topLevel != null) {
-				expressionRegion = offendingExpression.absolute();
-				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
-				switch (errorCode) {
-				case VariableCalled:
-					assert(offendingExpression instanceof CallDeclaration);
-					replacements.add(
-						Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-						topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).name()), 0)
-					);
-					break;
-				case NeverReached:
-					{
-						String s = topLevel.toString();
-						try {
-							replacements.add(
-								Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-								new Comment(document.get(expressionRegion.getOffset()+func.bodyLocation().start(), expressionRegion.getLength()),
-									s.contains("\n"), false) //$NON-NLS-1$
-							);
-						} catch (BadLocationException e) {
-							e.printStackTrace();
-						}
-						addRemoveReplacement(document, expressionRegion, replacements, func);
-						break;
+		if (offendingExpression != null && topLevel != null) {
+			expressionRegion = offendingExpression.absolute();
+			ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
+			switch (errorCode) {
+			case VariableCalled:
+				assert(offendingExpression instanceof CallDeclaration);
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_RemoveBrackets,
+					topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).name()), 0)
+				);
+				break;
+			case NeverReached:
+				{
+					String s = topLevel.toString();
+					try {
+						replacements.add(
+							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
+							new Comment(document.get(expressionRegion.getOffset()+func.bodyLocation().start(), expressionRegion.getLength()),
+								s.contains("\n"), false) //$NON-NLS-1$
+						);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
 					}
-				case KeywordInWrongPlace:
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
-				case NotFinished:
-					if (topLevel instanceof Unfinished) {
-						final boolean arrayElement = topLevel.parent() instanceof ArrayExpression;
-						replacements.add(
-							arrayElement ? Messages.C4ScriptQuickAssistProcessor_AddMissingComma : Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-							new ASTNode() {
-								private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-								@Override
-								public void doPrint(ASTNodePrinter output, int depth) {
-									Unfinished.unwrap(topLevel).print(output, depth);
-									output.append(arrayElement ? ',' : ';');
-								}
-							}, false, true
-						);
-					}
-					break;
-				case UndeclaredIdentifier:
-					if (offendingExpression instanceof AccessVar && offendingExpression.parent() instanceof BinaryOp) {
-						AccessVar var = (AccessVar) offendingExpression;
-						BinaryOp op = (BinaryOp) offendingExpression.parent();
-						if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression)
-							replacements.add(
-								Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-								new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
-							);
-					}
-					if (offendingExpression instanceof CallDeclaration)
-						if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
-							MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).id(), 3);
-							opWithTilde.setLocation(offendingExpression.predecessorInSequence());
-							replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
-						}
-					if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessorInSequence() == null) {
-						AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
-
-						// create new variable or function
-						Replacement createNewDeclarationReplacement = replacements.add(
-							String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.name()),
-							ASTNode.NULL_EXPR,
-							false, false
-						);
-						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
-						if (accessDec instanceof AccessVar)
-							decs.add(new Replacement.AdditionalDeclaration(
-								new Variable(accessDec.name(), Scope.LOCAL),
-								ASTNode.NULL_EXPR
-							));
-						else {
-							CallDeclaration callFunc = (CallDeclaration) accessDec;
-							Function function;
-							decs.add(new Replacement.AdditionalDeclaration(
-								function = new Function(accessDec.name(), FunctionScope.PUBLIC),
-								ASTNode.NULL_EXPR
-							));
-							List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
-							int p = 0;
-							for (ASTNode parm : callFunc.params())
-								parms.add(new Variable(parmNameFromExpression(parm, ++p), problemReporting.typeOf(parm)));
-							function.setParameters(parms);
-						}
-
-						// gather proposals through ClonkCompletionProcessor and propose those with a similar name
-						ASTNode expr;
-						if (offendingExpression.parent() instanceof Sequence) {
-							Sequence sequence = (Sequence) offendingExpression.parent();
-							expr = sequence.subSequenceUpTo(offendingExpression);
-						} else
-							expr = null;
-						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression
-							(expr, func, parser, document);
-						for (ICompletionProposal p : possible)
-							if (p instanceof ClonkCompletionProposal) {
-								ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
-								Declaration dec = clonkProposal.declaration();
-								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
-									continue;
-								int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
-								if (similarity > 0) {
-									// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
-									// will be replaced -> no unnecessary tidy-up of CallFunc parameters
-									ASTNode repl = identifierReplacement(accessDec, dec.name());
-									replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, false);
-								}
+				}
+			case KeywordInWrongPlace:
+				addRemoveReplacement(document, expressionRegion, replacements, func);
+				break;
+			case NotFinished:
+				if (topLevel instanceof Unfinished) {
+					final boolean arrayElement = topLevel.parent() instanceof ArrayExpression;
+					replacements.add(
+						arrayElement ? Messages.C4ScriptQuickAssistProcessor_AddMissingComma : Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+						new ASTNode() {
+							private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+							@Override
+							public void doPrint(ASTNodePrinter output, int depth) {
+								Unfinished.unwrap(topLevel).print(output, depth);
+								output.append(arrayElement ? ',' : ';');
 							}
+						}, false, true
+					);
+				}
+				break;
+			case UndeclaredIdentifier:
+				if (offendingExpression instanceof AccessVar && offendingExpression.parent() instanceof BinaryOp) {
+					AccessVar var = (AccessVar) offendingExpression;
+					BinaryOp op = (BinaryOp) offendingExpression.parent();
+					if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression)
+						replacements.add(
+							Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
+							new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+						);
+				}
+				if (offendingExpression instanceof CallDeclaration)
+					if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
+						MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).id(), 3);
+						opWithTilde.setLocation(offendingExpression.predecessorInSequence());
+						replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
+					}
+				if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessorInSequence() == null) {
+					AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
 
-						// propose adding projects to the referenced projects which contain a definition with a matching name
-						if (accessDec.parent() instanceof CallDeclaration) {
-							Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
-							if (parm != null && parm.type().canBeAssignedFrom(PrimitiveType.ID)) {
-								final IProject p = marker.getResource().getProject();
-								IProject[] referencedProjects;
-								try {
-									referencedProjects = p.getReferencedProjects();
-								} catch (CoreException e) {
-									e.printStackTrace();
-									break;
-								}
-								ID defId = ID.get(accessDec.name());
-								for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
-									if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
-										ClonkProjectNature nat = ClonkProjectNature.get(proj);
-										if (nat.index().definitionsWithID(defId) != null)
-											replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
-												@Override
-												public void performAdditionalActionsBeforeDoingReplacements() {
-													IProjectDescription desc;
-													try {
-														desc = p.getDescription();
-													} catch (CoreException e) {
-														e.printStackTrace();
-														return;
-													}
-													desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), proj));
-													try {
-														p.setDescription(desc, null);
-													} catch (CoreException e) {
-														e.printStackTrace();
-													}
-												}
-											});
-									}
+					// create new variable or function
+					Replacement createNewDeclarationReplacement = replacements.add(
+						String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.name()),
+						ASTNode.NULL_EXPR,
+						false, false
+					);
+					List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
+					if (accessDec instanceof AccessVar)
+						decs.add(new Replacement.AdditionalDeclaration(
+							new Variable(accessDec.name(), Scope.LOCAL),
+							ASTNode.NULL_EXPR
+						));
+					else {
+						CallDeclaration callFunc = (CallDeclaration) accessDec;
+						Function function;
+						decs.add(new Replacement.AdditionalDeclaration(
+							function = new Function(accessDec.name(), FunctionScope.PUBLIC),
+							ASTNode.NULL_EXPR
+						));
+						List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
+						int p = 0;
+						for (ASTNode parm : callFunc.params())
+							parms.add(new Variable(parmNameFromExpression(parm, ++p), problemReporting.typeOf(parm)));
+						function.setParameters(parms);
+					}
+
+					// gather proposals through ClonkCompletionProcessor and propose those with a similar name
+					ASTNode expr;
+					if (offendingExpression.parent() instanceof Sequence) {
+						Sequence sequence = (Sequence) offendingExpression.parent();
+						expr = sequence.subSequenceUpTo(offendingExpression);
+					} else
+						expr = null;
+					List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression
+						(expr, func, parser, document);
+					for (ICompletionProposal p : possible)
+						if (p instanceof ClonkCompletionProposal) {
+							ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
+							Declaration dec = clonkProposal.declaration();
+							if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
+								continue;
+							int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
+							if (similarity > 0) {
+								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
+								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
+								ASTNode repl = identifierReplacement(accessDec, dec.name());
+								replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, false);
 							}
 						}
-					}
-					break;
-				case IncompatibleTypes:
-					PrimitiveType t = Markers.expectedType(marker);
-					if (t == PrimitiveType.STRING) {
-						StringLiteral str = new StringLiteral(offendingExpression.toString());
-						str.setLocation(offendingExpression);
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_QuoteExpression,
-							str,
-							false, true
-						);
-					}
-					if (
-						isAnyOf(t, PrimitiveType.NILLABLES) &&
-						(offendingExpression instanceof IntegerLiteral && ((IntegerLiteral)offendingExpression).longValue() == 0)
-					)
-						replacements.add(
-							Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
-							new AccessVar(Keywords.Nil),
-							false, false
-						);
-					break;
-				case NoSideEffects:
-					if (topLevel instanceof SimpleStatement) {
-						SimpleStatement statement = (SimpleStatement) topLevel;
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_ConvertToReturn,
-							new ReturnStatement((statement.expression()))
-						);
-						addRemoveReplacement(document, expressionRegion, replacements, func);
-						CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
-						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
-					}
-					break;
-				case NoAssignment:
-					if (topLevel instanceof SimpleStatement) {
-						SimpleStatement statement = (SimpleStatement) topLevel;
 
-						if (statement.expression() instanceof BinaryOp) {
-							BinaryOp binaryOp = (BinaryOp) statement.expression();
-							if (binaryOp.operator() == Operator.Equal && problemReporting.isModifiable(binaryOp.leftSide()))
-								replacements.add(
-										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-										new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
-								);
-						}
-					}
-					break;
-				case NoInheritedFunction:
-					if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).name().equals(Keywords.Inherited))
-						replacements.add(
-							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
-							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
-							false, false
-						);
-					break;
-				case ReturnAsFunction:
-					if (offendingExpression instanceof Tuple) {
-						Tuple tuple = (Tuple) offendingExpression;
-						ASTNode[] elms = tuple.subElements();
-						if (elms.length >= 2) {
-							ASTNode returnExpr = elms[0];
-							ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
-							Statement[] statements = ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr));
-							Block reordered;
-							if (tuple.parent().parent() instanceof ConditionalStatement && ((ConditionalStatement)tuple.parent().parent()).body() == tuple.parent())
-								reordered = new Block(statements);
-							else
-								reordered = new BunchOfStatements(statements);
-							reordered.setLocation(tuple.parent()); // return statement
-							replacements.add(
-								Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
-								reordered,
-								false,
-								true
-							);
-						}
-					}
-					break;
-				case Unused:
-					if (offendingExpression instanceof VarInitialization) {
-						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
-						VarInitialization cur = (VarInitialization) offendingExpression;
-						VarInitialization next = cur.succeedingInitialization();
-						VarInitialization previous = cur.precedingInitialization();
-						String replacementString = ""; //$NON-NLS-1$
-						if (next == null) {
-							if (previous != null) {
-								// removing last initialization -> change ',' before it to ';'
-								parser.seek(previous.end());
-								parser.eatWhitespace();
-								if (parser.peek() == ',')
-									regionToDelete.setStartAndEnd(parser.tell(), cur.end());
-							} else {
-								addRemoveReplacement(document, offendingExpression.parent(), replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
+					// propose adding projects to the referenced projects which contain a definition with a matching name
+					if (accessDec.parent() instanceof CallDeclaration) {
+						Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
+						if (parm != null && parm.type().canBeAssignedFrom(PrimitiveType.ID)) {
+							final IProject p = marker.getResource().getProject();
+							IProject[] referencedProjects;
+							try {
+								referencedProjects = p.getReferencedProjects();
+							} catch (CoreException e) {
+								e.printStackTrace();
 								break;
 							}
-						} else
-							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+							ID defId = ID.get(accessDec.name());
+							for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+								if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
+									ClonkProjectNature nat = ClonkProjectNature.get(proj);
+									if (nat.index().definitionsWithID(defId) != null)
+										replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
+											@Override
+											public void performAdditionalActionsBeforeDoingReplacements() {
+												IProjectDescription desc;
+												try {
+													desc = p.getDescription();
+												} catch (CoreException e) {
+													e.printStackTrace();
+													return;
+												}
+												desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), proj));
+												try {
+													p.setDescription(desc, null);
+												} catch (CoreException e) {
+													e.printStackTrace();
+												}
+											}
+										});
+								}
+						}
+					}
+				}
+				break;
+			case IncompatibleTypes:
+				PrimitiveType t = Markers.expectedType(marker);
+				if (t == PrimitiveType.STRING) {
+					StringLiteral str = new StringLiteral(offendingExpression.toString());
+					str.setLocation(offendingExpression);
+					replacements.add(
+						Messages.ClonkQuickAssistProcessor_QuoteExpression,
+						str,
+						false, true
+					);
+				}
+				if (
+					isAnyOf(t, PrimitiveType.NILLABLES) &&
+					(offendingExpression instanceof IntegerLiteral && ((IntegerLiteral)offendingExpression).longValue() == 0)
+				)
+					replacements.add(
+						Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
+						new AccessVar(Keywords.Nil),
+						false, false
+					);
+				break;
+			case NoSideEffects:
+				if (topLevel instanceof SimpleStatement) {
+					SimpleStatement statement = (SimpleStatement) topLevel;
+					replacements.add(
+						Messages.ClonkQuickAssistProcessor_ConvertToReturn,
+						new ReturnStatement((statement.expression()))
+					);
+					addRemoveReplacement(document, expressionRegion, replacements, func);
+					CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
+					replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
+				}
+				break;
+			case NoAssignment:
+				if (topLevel instanceof SimpleStatement) {
+					SimpleStatement statement = (SimpleStatement) topLevel;
+
+					if (statement.expression() instanceof BinaryOp) {
+						BinaryOp binaryOp = (BinaryOp) statement.expression();
+						if (binaryOp.operator() == Operator.Equal && problemReporting.isModifiable(binaryOp.leftSide()))
+							replacements.add(
+									Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
+									new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
+							);
+					}
+				}
+				break;
+			case NoInheritedFunction:
+				if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).name().equals(Keywords.Inherited))
+					replacements.add(
+						String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
+						identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
+						false, false
+					);
+				break;
+			case ReturnAsFunction:
+				if (offendingExpression instanceof Tuple) {
+					Tuple tuple = (Tuple) offendingExpression;
+					ASTNode[] elms = tuple.subElements();
+					if (elms.length >= 2) {
+						ASTNode returnExpr = elms[0];
+						ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
+						Statement[] statements = ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr));
+						Block reordered;
+						if (tuple.parent().parent() instanceof ConditionalStatement && ((ConditionalStatement)tuple.parent().parent()).body() == tuple.parent())
+							reordered = new Block(statements);
+						else
+							reordered = new BunchOfStatements(statements);
+						reordered.setLocation(tuple.parent()); // return statement
 						replacements.add(
-							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()),
-							false, true
+							Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
+							reordered,
+							false,
+							true
 						);
 					}
-					break;
-				case Garbage:
-					addRemoveReplacement(document, expressionRegion, replacements, func);
-					break;
-				case MemberOperatorWithTildeNoSpace:
-					// just print out topLevel, space will be removed automatically
-					replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, topLevel);
-					break;
-				default:
-					break;
 				}
-
-				try {
+				break;
+			case Unused:
+				if (offendingExpression instanceof VarInitialization) {
+					final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
+					VarInitialization cur = (VarInitialization) offendingExpression;
+					VarInitialization next = cur.succeedingInitialization();
+					VarInitialization previous = cur.precedingInitialization();
+					String replacementString = ""; //$NON-NLS-1$
+					if (next == null) {
+						if (previous != null) {
+							// removing last initialization -> change ',' before it to ';'
+							parser.seek(previous.end());
+							parser.eatWhitespace();
+							if (parser.peek() == ',')
+								regionToDelete.setStartAndEnd(parser.tell(), cur.end());
+						} else {
+							addRemoveReplacement(document, offendingExpression.parent(), replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
+							break;
+						}
+					} else
+						regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
 					replacements.add(
-						Messages.ClonkQuickAssistProcessor_TidyUp,
-						topLevel.exhaustiveOptimize(problemReporting)
+						Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
+						new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()),
+						false, true
 					);
-				} catch (CloneNotSupportedException e) {
-					e.printStackTrace();
 				}
-
-				for (final Replacement replacement : replacements) {
-					String replacementAsString = "later"; //$NON-NLS-1$
-					int offset = func.bodyLocation().getOffset();
-					int length;
-					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
-						offset += replacement.replacementExpression().start();
-						length = replacement.replacementExpression().getLength();
-					} else {
-						offset += expressionRegion.getOffset();
-						if (replacement.replacementExpression() instanceof Statement)
-							// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
-							length = topLevel.getLength();
-						else
-							length = expressionRegion.getLength();
-					}
-					proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
-							replacementAsString.length(), null, replacement.title(), null, null, null, null,
-							replacement, tabIndentation, parser, func));
-				}
+				break;
+			case Garbage:
+				addRemoveReplacement(document, expressionRegion, replacements, func);
+				break;
+			case MemberOperatorWithTildeNoSpace:
+				// just print out topLevel, space will be removed automatically
+				replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, topLevel);
+				break;
+			default:
+				break;
 			}
-		} finally {
-			if (needToDisconnect != null)
-				Core.instance().textFileDocumentProvider().disconnect(needToDisconnect);
+
+			try {
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_TidyUp,
+					topLevel.exhaustiveOptimize(problemReporting)
+				);
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
+
+			for (final Replacement replacement : replacements) {
+				String replacementAsString = "later"; //$NON-NLS-1$
+				int offset = func.bodyLocation().getOffset();
+				int length;
+				if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
+					offset += replacement.replacementExpression().start();
+					length = replacement.replacementExpression().getLength();
+				} else {
+					offset += expressionRegion.getOffset();
+					if (replacement.replacementExpression() instanceof Statement)
+						// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
+						length = topLevel.getLength();
+					else
+						length = expressionRegion.getLength();
+				}
+				proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
+						replacementAsString.length(), null, replacement.title(), null, null, null, null,
+						replacement, tabIndentation, parser, func));
+			}
 		}
 
 	}
