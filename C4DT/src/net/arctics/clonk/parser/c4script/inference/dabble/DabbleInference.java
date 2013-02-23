@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
-import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 import static net.arctics.clonk.util.Utilities.threadPool;
@@ -116,7 +115,6 @@ import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
-import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -203,7 +201,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Typing typing;
 		private final CachedEngineDeclarations cachedEngineDeclarations;
 		private final Shared shared;
-		private final Object working = new Object();
 		private final int strictLevel;
 		private final boolean hasAppendTo;
 		private final Set<Function> finishedFunctions = new HashSet<>();
@@ -288,41 +285,48 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						List<Variable> parameters = function.parameters();
 						Function baseFunction = function.baseFunction();
+						boolean typeFromCalls =
+							ownedFunction &&
+							typing == Typing.ParametersOptionallyTyped &&
+							baseFunction.visibility() != FunctionScope.GLOBAL &&
+							script instanceof Definition;
 						for (int i = 0; i < parameters.size(); i++) {
 							Variable p = parameters.get(i);
 							IType t = p.type();
-							if ((t == PrimitiveType.UNKNOWN) || (t == PrimitiveType.OBJECT) && typing == Typing.ParametersOptionallyTyped) {
-								if (ownedFunction) {
-									List<CallDeclaration> calls = index.callsTo(function.name());
-									if (calls != null)
-										for (CallDeclaration call : calls) {
-											Script other = call.parentOfType(Script.class);
-											ScriptProcessor processor = shared.processors.get(other);
-											if (processor != null)
-												processor.reportProblems();
-											if (call.params().length > i) {
-												Function f = as(processor != null ? processor.obtainDeclaration(call) : call.declaration(), Function.class);
-												if (f != null) {
-													f = f.baseFunction();
-													if (f != null)
-														f = (Function)f.latestVersion();
-												}
-												if (f == baseFunction) {
-													script.addUsedScript(other);
-													t = TypeUnification.unify(t, processor != null ? processor.typeOf(call.params()[i]) : call.params()[i].inferredType());
-												}
+							if (typeFromCalls && (t == PrimitiveType.UNKNOWN) || (t == PrimitiveType.OBJECT)) {
+								List<CallDeclaration> calls = index.callsTo(function.name());
+								if (calls != null)
+									for (CallDeclaration call : calls) {
+										Script other = call.parentOfType(Script.class);
+										ScriptProcessor processor = shared.processors.get(other);
+										if (processor == this) {
+											Function f = other.parentOfType(Function.class);
+											if (f != null)
+												visitFunction(f);
+										} else if (processor != null)
+											processor.reportProblems();
+										if (call.params().length > i) {
+											Function f = as(processor != null ? processor.obtainDeclaration(call) : call.declaration(), Function.class);
+											if (f != null) {
+												f = f.baseFunction();
+												if (f != null)
+													f = (Function)f.latestVersion();
+											}
+											if (f == baseFunction) {
+												script.addUsedScript(other);
+												t = TypeUnification.unify(t, processor != null ? processor.typeOf(call.params()[i]) : call.params()[i].inferredType());
 											}
 										}
-								}
-								if (t == PrimitiveType.UNKNOWN)
-									t = p.parameterType();
-
-								if (ownedFunction)
-									p.assignType(t, true);
-								ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
-								if (varTypeInfo != null)
-									varTypeInfo.storeType(t);
+									}
 							}
+							if (t == PrimitiveType.UNKNOWN)
+								t = p.parameterType();
+
+							if (ownedFunction)
+								p.assignType(t, true);
+							ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
+							if (varTypeInfo != null)
+								varTypeInfo.storeType(t);
 						}
 						ControlFlow old = controlFlow;
 						controlFlow = ControlFlow.Continue;
@@ -542,12 +546,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (!finished) {
 					finished = true;
 					internalWork();
-					System.out.println(String.format("%s: used scripts: %s", script.name(), StringUtil.blockString("", "", ",  ", map(script.usedScripts(), new IConverter<Script, String>() {
-						@Override
-						public String convert(Script from) {
-							return from.name();
-						}
-					}))));
 				}
 			}
 		}
@@ -766,7 +764,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (type == null)
 				return true;
 			IType myType = ty(node, processor);
-			return type.canBeAssignedFrom(myType);
+			return TypeUnification.unifyNoChoice(type, myType) != null;
 		}
 
 		public boolean typingJudgement(T node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
@@ -1615,47 +1613,41 @@ public class DabbleInference extends ProblemReportingStrategy {
 							processor.markers().error(processor, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
 						else
 							processor.markers().warning(processor, Problem.ReturnAsFunction, node, node, 0);
-					} else // variable as function
-						if (declaration instanceof Variable) {
-							((Variable)declaration).setUsed(true);
-							IType type = declarationType(node, processor);
-							// no warning when in #strict mode
-							if (processor.strictLevel >= 2)
-								if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-									processor.markers().warning(processor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
-						} else if (declaration instanceof Function) {
-							Function f = (Function)declaration;
-							if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
-								processor.script().addUsedScript(f.script());
+					} else if (declaration instanceof Variable) {
+						// variable as function
+						((Variable)declaration).setUsed(true);
+						IType type = declarationType(node, processor);
+						// no warning when in #strict mode
+						if (processor.strictLevel >= 2)
+							if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+								processor.markers().warning(processor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
+					} else if (declaration instanceof Function) {
+						Function f = (Function)declaration;
+						if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
+							processor.script().addUsedScript(f.script());
 
-							SpecialFuncRule rule = processor.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);
-							boolean specialCaseHandled =
-								rule != null &&
-								rule.validateArguments(node, params, processor);
+						SpecialFuncRule rule = processor.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);
+						boolean specialCaseHandled =
+							rule != null &&
+							rule.validateArguments(node, params, processor);
 
-							// not a special case... check regular parameter types
-							if (!specialCaseHandled) {
-								int givenParam = 0;
-								for (Variable parm : f.parameters()) {
-									if (givenParam >= params.length)
-										break;
-									ASTNode given = params[givenParam++];
-									if (given == null)
-										continue;
-									if (!validForType(given, parm.type(), processor)) {
-										validForType(given, parm.type(), processor);
-										processor.incompatibleTypes(node, given, parm.type(), ty(given, processor));
-									}
-									//else
-										//judgement(given, parm.type(), TypingJudgementMode.Unify, processor);
-								}
+						// not a special case... check regular parameter types
+						if (!specialCaseHandled) {
+							int givenParam = 0;
+							for (Variable parm : f.parameters()) {
+								if (givenParam >= params.length)
+									break;
+								ASTNode given = params[givenParam++];
+								if (given == null)
+									continue;
+								if (!validForType(given, parm.type(), processor))
+									processor.incompatibleTypes(node, given, parm.type(), ty(given, processor));
 							}
-					}
-					else if (declaration == null)
-						if (unknownFunctionShouldBeError(node, processor)) {
-							int start = node.start();
-							processor.markers().error(processor, Problem.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
 						}
+					} else if (declaration == null && unknownFunctionShouldBeError(node, processor)) {
+						int start = node.start();
+						processor.markers().error(processor, Problem.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
+					}
 				}
 				@Override
 				public ITypeVariable createTypeVariable(CallDeclaration node, ScriptProcessor processor) {

@@ -1208,9 +1208,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private void warning(Problem code, IRegion region, int flags, Object... args) {
 		warning(code, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	private void error(Problem code, IRegion errorRegion, int flags, Object... args) throws ParsingException {
-		error(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
-	}
 	private void error(Problem code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
 		marker(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}

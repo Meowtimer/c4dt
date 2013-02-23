@@ -38,19 +38,16 @@ public class TypeUnification {
 			case OBJECT:
 			case INT:
 			case STRING:
-			case BOOL:
 				break;
+			case BOOL:
+				return b;
 			case PROPLIST:
-				if (b instanceof PrimitiveType)
-					switch ((PrimitiveType)b) {
-					case OBJECT: case ID:
-						return a;
-					default:
-						break;
-					}
+				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
+					return a;
 				else if (b instanceof Definition)
 					return b;
-				break;
+				else
+					break;
 			case UNKNOWN:
 				return b;
 			case ANY:
@@ -158,7 +155,7 @@ public class TypeUnification {
 					return ReferenceType.make(u);
 		}
 
-		if (a instanceof ParameterType && b instanceof PrimitiveType)
+		if (a instanceof ParameterType)
 			return b;
 
 		if (a instanceof StructuralType && b instanceof StructuralType) {

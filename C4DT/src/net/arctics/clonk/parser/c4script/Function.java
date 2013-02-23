@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -413,23 +414,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			? script().resource().getProjectRelativePath().toOSString()
 			: script().name();
 		for (String line : new String[] {
-			"<i>"+scriptPath+"</i><br/>", //$NON-NLS-1$ //$NON-NLS-2$
-			"<b>"+longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))+"</b><br/>", //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<b>{0}</b><br/>", longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
 		})
 			builder.append(line);
 		if (numParameters() > 0) {
-			builder.append("<br/><b>"+Messages.Parameters+"</b><br/>"); //$NON-NLS-1$ //$NON-NLS-3$
+			builder.append(MessageFormat.format("<br/><b>{0}</b><br/>", Messages.Parameters)); //$NON-NLS-1$ //$NON-NLS-3$
 			for (Variable p : parameters())
-				builder.append("<b>"+p.name()+"</b> "+p.userDescription()+"<br/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				builder.append(MessageFormat.format("<b>{0} {1}</b> {2}<br/>", StringUtil.htmlerize(p.type().typeName(true)), p.name(), p.userDescription())); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		IType retType = returnType(as(context, Script.class));
 
 		if (retType != PrimitiveType.UNKNOWN) {
-			builder.append(String.format("<br/><b>%s </b>%s<br/>", //$NON-NLS-1$
+			builder.append(MessageFormat.format("<br/><b>{0} </b>{1}<br/>", //$NON-NLS-1$
 				Messages.Returns,
 				StringUtil.htmlerize(retType.typeName(true))));
 			if (returnDescription != null)
@@ -505,7 +506,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 		// search global
 		Function global = index().findGlobal(Function.class, name());
-		if (global != null)
+		if (global != null && global != this)
 			return global;
 
 		// search in engine

@@ -97,17 +97,13 @@ public class TypeChoice implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		if (special)
-			return String.format("%s | %s", left.typeName(special), right.typeName(special));
-		else {
-			List<IType> types = new ArrayList<>(10);
-			collect(types);
-			Set<String> typeNames = new HashSet<>(types.size());
-			for (IType t : types)
-				if (t != null)
-					typeNames.add(t.typeName(false));
-			return StringUtil.blockString("", "", " | ", typeNames);
-		}
+		List<IType> types = new ArrayList<>(10);
+		collect(types);
+		Set<String> typeNames = new HashSet<>(types.size());
+		for (IType t : types)
+			if (t != null)
+				typeNames.add(t.typeName(special));
+		return StringUtil.blockString("", "", " | ", typeNames);
 	}
 
 	@Override
