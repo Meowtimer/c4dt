@@ -155,7 +155,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 		}, 20);
 		for (ScriptProcessor processor : shared.processors.values())
-			processor.clearReporters(processor.script());
+			processor.dismissExperts(processor.script());
 	}
 
 	@Override
@@ -292,7 +292,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 							Variable p = parameters.get(i);
 							IType t = p.type();
 							if ((t == PrimitiveType.UNKNOWN) || (t == PrimitiveType.OBJECT) && typing == Typing.ParametersOptionallyTyped) {
-								t = PrimitiveType.UNKNOWN;
 								if (ownedFunction) {
 									List<CallDeclaration> calls = index.callsTo(function.name());
 									if (calls != null)
@@ -335,7 +334,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						typeEnvironment.apply(this, false);
 					endTypeEnvironment(true, true);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
-					clearReporters(function);
+					dismissExperts(function);
 				}
 				catch (ParsingException e) { return null; }
 				finally {
@@ -377,14 +376,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			ASTNode saved = reportingNode;
 			reportingNode = expression;
 			{
-				Expert<? super T> reporter = expert(expression);
+				Expert<? super T> expert = expert(expression);
 				ControlFlow old = controlFlow;
-				if (recursive && !reporter.skipReportingProblemsForSubElements())
+				if (recursive && !expert.skipReportingProblemsForSubElements())
 					for (ASTNode e : expression.subElements())
 						if (e != null)
 							visitNode(e, true);
 				controlFlow = old;
-				reporter.visit(expression, this);
+				expert.visit(expression, this);
 				if (controlFlow == ControlFlow.Continue)
 					controlFlow = expression.controlFlow();
 			}
@@ -580,6 +579,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			endTypeEnvironment(false, false);
 		}
+
 		private void storeTypings(TypeEnvironment typeEnvironment) {
 			for (ITypeVariable info : typeEnvironment) {
 				VariableTypeVariable vti = as(info, VariableTypeVariable.class);
@@ -590,7 +590,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					functionReturnTypes.put(ftri.function().name(), ftri.type());
 			}
 		}
-		private void clearReporters(ASTNode node) {
+
+		private void dismissExperts(ASTNode node) {
 			node.traverse(new IASTVisitor<Void>() {
 				@Override
 				public TraversalContinuation visitNode(ASTNode node, Void parser) {
@@ -599,6 +600,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}, null);
 		}
+
 		private void assignExperts(ASTNode node) {
 			node.traverse(new IASTVisitor<Void>() {
 				@Override
@@ -655,8 +657,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
 			@SuppressWarnings("unchecked")
-			AccessDeclarationExpert<T> reporter = (AccessDeclarationExpert<T>)expert(access);
-			return reporter.obtainDeclaration(access, this);
+			AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)expert(access);
+			return expert.obtainDeclaration(access, this);
 		}
 
 		@Override
@@ -904,9 +906,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private final <T extends ASTNode> Expert<? super T> findReporter(T node) {
 		for (Class<?> cls = node.getClass(); cls != null; cls = cls.getSuperclass()) {
 			@SuppressWarnings("unchecked")
-			Expert<? super T> reporter = (Expert<? super T>)problemReporters.get(cls);
-			if (reporter != null)
-				return reporter;
+			Expert<? super T> expert = (Expert<? super T>)problemReporters.get(cls);
+			if (expert != null)
+				return expert;
 		}
 		return NULL_REPORTER;
 	}
@@ -923,8 +925,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return node != null ? ty(node, expert(node), processor) : null;
 	}
 
-	public final <T extends ASTNode> IType ty(T node, Expert<T> reporter, ScriptProcessor processor) {
-		IType type = reporter.type(node, processor);
+	public final <T extends ASTNode> IType ty(T node, Expert<T> expert, ScriptProcessor processor) {
+		IType type = expert.type(node, processor);
 		node.inferredType(type);
 		return type;
 	}
@@ -936,7 +938,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> problemReporters = new HashMap<Class<? extends ASTNode>, Expert<?>>();
 	{
 		@SuppressWarnings("rawtypes")
-		Expert<?>[] reporters = new Expert[] {
+		Expert<?>[] experts = new Expert[] {
 
 			new AccessDeclarationExpert<AccessDeclaration>(AccessDeclaration.class),
 
@@ -1248,7 +1250,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 								processor.markers().warning(processor, Problem.NotAnArrayOrProplist, node, pred, 0);
 							//else
-							//	reporter(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
+							//	expert(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
 					}
 				}
 				@Override
@@ -2194,10 +2196,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 		};
-		for (Expert<?> reporter : reporters)
-			problemReporters.put(reporter.cls(), reporter);
-		for (Expert<?> reporter : reporters)
-			reporter.findSuper();
+		for (Expert<?> expert : experts)
+			problemReporters.put(expert.cls(), expert);
+		for (Expert<?> expert : experts)
+			expert.findSuper();
 	}
 
 }
