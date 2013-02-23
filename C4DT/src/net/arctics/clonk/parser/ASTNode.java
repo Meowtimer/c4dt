@@ -842,7 +842,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		});
 	}
 
-	private transient IType inferredType;
+	private IType inferredType;
 	public IType inferredType() { return inferredType; }
 	public void inferredType(IType type) { inferredType = type; }
 
