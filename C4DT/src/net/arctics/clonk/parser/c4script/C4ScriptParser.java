@@ -1673,6 +1673,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 							arrayElms.add(arrayElement);
 							expectingComma = true;
 						}
+						else {
+							tokenExpectedError("]");
+							break Loop;
+						}
 					}
 				}
 				if (!properlyClosed)
