@@ -79,12 +79,9 @@ public class ASTComparisonDelegate {
 
 		int l, r;
 		for (l = 0, r = 0; l < mine.length && r < others.length; l++, r++) {
-			//ASTNode prevLeft = l > 0 ? mine[l-1] : null;
 			ASTNode left = mine[l];
 			ASTNode nextLeft = l + 1 < mine.length ? mine[l+1] : null;
-
 			ASTNode right = r < others.length ? others[r] : null;
-			//ASTNode nextRight = r + 1 < others.length ? others[r+1] : null;
 
 			if (equal(left, right))
 				leftToRightMapping[l] = new ASTNode[] { right };

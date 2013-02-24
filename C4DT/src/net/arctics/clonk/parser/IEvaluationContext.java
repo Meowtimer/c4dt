@@ -1,11 +1,11 @@
 package net.arctics.clonk.parser;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
-
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Context for evaluating expressions (at parsetime/some other time)
@@ -40,4 +40,9 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * @param file The file
 	 */
 	void reportOriginForExpression(ASTNode expression, IRegion location, IFile file);
+	/**
+	 * Arbitrary context object.
+	 * @return The context
+	 */
+	Object cookie();
 }

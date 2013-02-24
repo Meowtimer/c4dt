@@ -652,6 +652,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public int codeFragmentOffset() { return 0; }
 		@Override
 		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
+		@Override
+		public Object cookie() { return null; }
 	}
 
 	/**

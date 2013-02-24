@@ -1,5 +1,7 @@
 package net.arctics.clonk.resource;
 
+import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -9,12 +11,17 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
+import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNode.ITransformer;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
@@ -38,7 +45,7 @@ import org.eclipse.jface.text.IDocument;
  * @author madeen
  *
  */
-public class ProjectConverter implements IResourceVisitor {
+public class ProjectConverter implements IResourceVisitor, Runnable {
 	private final ClonkProjectNature sourceProject, destinationProject;
 	private IProgressMonitor monitor;
 	private final ProjectConversionConfiguration configuration;
@@ -75,17 +82,21 @@ public class ProjectConverter implements IResourceVisitor {
 		}
 		return result;
 	}
+	@Override
+	public void run() {
+		try {
+			sourceProject.getProject().accept(this);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * Perform the conversion, reporting progress back to a {@link IProgressMonitor}
 	 * @param monitor The monitor to report progress to
 	 */
 	public void convert(IProgressMonitor monitor) {
 		this.monitor = monitor;
-		try {
-			sourceProject.getProject().accept(this);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
+		runWithoutAutoBuild(this);
 	}
 	/**
 	 * By letting this converter visit the source project the actual conversion is performed.
@@ -116,10 +127,10 @@ public class ProjectConverter implements IResourceVisitor {
 	}
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
-		protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression) {
+		protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
 			if (configuration == null)
 				return expression;
-			return (ASTNode)(new ITransformer() {
+			ASTNode node = (ASTNode)(new ITransformer() {
 				@Override
 				public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 					if (expression == null)
@@ -129,23 +140,34 @@ public class ProjectConverter implements IResourceVisitor {
 						if (mapped != null)
 							return new AccessVar(mapped);
 					}
-					boolean progress;
-					do {
-						progress = false;
-						for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
-							Map<String, Object> matched = ct.template().match(expression);
+					expression = expression.transformSubElements(this);
+					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
+						boolean success = false;
+						for (CodeTransformation c = ct; c != null; c = c.chain()) {
+							Map<String, Object> matched = c.template().match(expression);
 							if (matched != null) {
-								expression = ct.transformation().transform(matched);
-								progress = true;
+								expression = c.transformation().transform(matched, context);
+								success = true;
 							}
 						}
-					} while (progress);
-					return expression.transformSubElements(this);
+						if (success)
+							break;
+					}
+					return expression;
 				}
 			}).transform(null, null, expression);
+			if (node != null)
+				try {
+					node = node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()));
+				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
+				}
+			return node;
 		}
 	};
-	private boolean skipResource(IResource sourceResource) { return false; }
+	private boolean skipResource(IResource sourceResource) {
+		return sourceResource.getName().equals(".project");
+	}
 	private void convertFileContents(IFile sourceFile, IFile destinationFile) throws CoreException {
 		final Script script = Script.get(sourceFile, true);
 		if (script != null)
@@ -158,6 +180,8 @@ public class ProjectConverter implements IResourceVisitor {
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}
+					for (Directive d : script.directives())
+						if (d.type() == DirectiveType.STRICT)
 					codeConverter.runOnDocument(script, null, parser, document);
 					if (script instanceof Definition) {
 						Definition def = (Definition) script;

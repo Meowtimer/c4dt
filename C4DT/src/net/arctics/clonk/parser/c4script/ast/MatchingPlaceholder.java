@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IStorage;
@@ -91,6 +92,13 @@ public class MatchingPlaceholder extends Placeholder {
 		public static String quote(IEvaluationContext context, Object text) {
 			return String.format("\"%s\"", text);
 		}
+		@CommandFunction
+		public static String var(IEvaluationContext context, String name) {
+			if (context.cookie() instanceof CodeConverter.ICodeConverterContext)
+				return ((CodeConverter.ICodeConverterContext)context.cookie()).var(name);
+			else
+				return null;
+		}
 	}
 
 	/**
@@ -119,6 +127,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private Pattern associatedDeclarationNamePattern;
 	private String property;
 	private EnumSet<Flag> flags;
+	private boolean negated;
 
 	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
@@ -145,6 +154,9 @@ public class MatchingPlaceholder extends Placeholder {
 		while (!scanner.reachedEOF()) {
 			int start, end;
 			switch (scanner.read()) {
+			case '~':
+				negated = true;
+				break;
 			case '/':
 				start = scanner.tell(); end = start;
 				while (!scanner.reachedEOF() && scanner.read() != '/')
@@ -246,53 +258,55 @@ public class MatchingPlaceholder extends Placeholder {
 		this.entryName = entry;
 	}
 
-	public Object transformSubstitution(Object substitution) {
+	public Object transformSubstitution(Object substitution, Object context) {
+		if (!(substitution instanceof Object[]))
+			return null;
+		Object[] s = (Object[]) substitution;
+		Object[] n = new Object[s.length];
+		System.arraycopy(s, 0, n, 0, s.length);
+
 		if (property() != null)
 			try {
-				if (substitution instanceof Object[]) {
-					Object[] s = (Object[]) substitution;
-					Object[] n = new Object[s.length];
-					substitution = n;
-					for (int i = 0; i < s.length; i++)
-						n[i] = s[i].getClass().getMethod(property()).invoke(s[i]);
-				} else
-					substitution = substitution.getClass().getMethod(property()).invoke(substitution);
+				for (int i = 0; i < s.length; i++)
+					n[i] = n[i].getClass().getMethod(property()).invoke(s[i]);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 		if (code != null)
-			try {
-				if (substitution instanceof Object[])
-					substitution = Arrays.asList((Object[])substitution);
-				substitution = code.invoke(code.new FunctionInvocation(new Object[] {substitution}, null));
-				if (substitution instanceof List)
-					substitution = ((List<?>)substitution).toArray(new Object[((List<?>) substitution).size()]);
+			for (int i = 0; i < n.length; i++) try {
+				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i]}, null, context));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		if (substitution instanceof Object[]) {
-			Object[] s = (Object[]) substitution;
-			ASTNode[] r = new ASTNode[s.length];
-			for (int i = 0; i < s.length; i++) {
-				Object item = s[i];
-				ASTNode node;
-				if (item instanceof String) {
-					if (subElements().length > 0)
-						node = new CallDeclaration((String)item, subElements());
-					else
-						node = new AccessVar((String)item);
-				} else if (item instanceof Long)
-					node = new IntegerLiteral((long)item);
+
+		ASTNode[] r = new ASTNode[n.length];
+		for (int i = 0; i < s.length; i++) {
+			Object item = n[i];
+			ASTNode node;
+			if (item instanceof ASTNode)
+				node = (ASTNode)item;
+			if (item instanceof String) {
+				if (subElements().length > 0)
+					node = new CallDeclaration((String)item, subElements());
 				else
-					node = new GarbageStatement(defaulting(item, "<null>").toString(), 0);
-				r[i] = node;
-			}
-			substitution = r;
+					node = new AccessVar((String)item);
+			} else if (item instanceof Long)
+				node = new IntegerLiteral((long)item);
+			else
+				node = new GarbageStatement(defaulting(item, "<null>").toString(), 0);
+			r[i] = node;
 		}
-		return substitution;
+		return r;
 	}
 
 	public boolean satisfiedBy(ASTNode element) {
+		boolean r = internalSatisfied(element);
+		if (negated)
+			r = !r;
+		return r;
+	}
+	private boolean internalSatisfied(ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
 			AccessVar av = as(element, AccessVar.class);

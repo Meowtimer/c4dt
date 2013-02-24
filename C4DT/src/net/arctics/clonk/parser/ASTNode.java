@@ -23,7 +23,6 @@ import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ControlFlow;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
@@ -426,7 +425,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			}
 		}.transform(null, null, this);
 		if (result instanceof ASTNode[])
-			result = new BunchOfStatements((ASTNode[])result);
+			result = new Sequence((ASTNode[])result);
 		if (!(result instanceof ASTNode))
 			System.out.println("nope");
 		return (ASTNode)result;
@@ -826,7 +825,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param substitutions The map to use as source for {@link Placeholder} substitutions
 	 * @return The transformed expression
 	 */
-	public ASTNode transform(final Map<String, Object> substitutions) {
+	public ASTNode transform(final Map<String, Object> substitutions, final Object cookie) {
 		return transformRecursively(new ITransformer() {
 			@Override
 			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
@@ -834,7 +833,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 					MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
 					Object substitution = substitutions.get(((Placeholder)expression).entryName());
 					if (substitution != null)
-						return mp != null ? mp.transformSubstitution(substitution) : substitution;
+						return mp != null ? mp.transformSubstitution(substitution, cookie) : substitution;
 					else
 						return REMOVE;
 				}

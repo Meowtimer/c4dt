@@ -224,12 +224,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public final class FunctionInvocation implements IEvaluationContext {
 		private final Object[] args;
 		private final IEvaluationContext up;
-
-		public FunctionInvocation(Object[] args, IEvaluationContext up) {
+		private final Object context;
+		public FunctionInvocation(Object[] args, IEvaluationContext up, Object context) {
 			this.args = args;
 			this.up = up;
+			this.context = context;
 		}
-
 		@Override
 		public Object valueForVariable(String varName) {
 			int i = 0;
@@ -240,29 +240,20 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			}
 			return up != null ? up.valueForVariable(varName) : null;
 		}
-
 		@Override
-		public Script script() {
-			return Function.this.script();
-		}
-
+		public Script script() { return Function.this.script(); }
 		@Override
 		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 			Function.this.reportOriginForExpression(expression, location, file);
 		}
-
 		@Override
-		public Function function() {
-			return Function.this;
-		}
-
+		public Function function() { return Function.this; }
 		@Override
-		public int codeFragmentOffset() {
-			return Function.this.codeFragmentOffset();
-		}
-
+		public int codeFragmentOffset() { return Function.this.codeFragmentOffset(); }
 		@Override
 		public Object[] arguments() { return args; }
+		@Override
+		public Object cookie() { return context; }
 	}
 
 	/**
@@ -892,23 +883,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Function function() {
-		return this;
-	}
-
+	public Object cookie() { return null; }
 	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-		// oh interesting
-	}
-
+	public Function function() { return this; }
 	@Override
-	public int codeFragmentOffset() {
-		return bodyLocation != null ? bodyLocation.getOffset() : 0;
-	}
-
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { /* oh interesting */ }
+	@Override
+	public int codeFragmentOffset() { return bodyLocation != null ? bodyLocation.getOffset() : 0; }
 	@Override
 	public boolean isLocal() { return true; }
-
 	@Override
 	public ASTNode code() { return body(); }
 

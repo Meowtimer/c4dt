@@ -100,7 +100,7 @@ public class CLI implements IApplication {
 				String command = scanner.nextLine();
 				ExecutableScript script = Command.executableScriptFromCommand(command);
 				if (script != null) try {
-					Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null));
+					Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
 					if (result != null)
 						System.out.println(result.toString());
 				} catch (Exception e) {

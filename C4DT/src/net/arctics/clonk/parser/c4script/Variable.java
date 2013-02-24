@@ -368,6 +368,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean staticallyTyped() {
 		return staticallyTyped || isEngineDeclaration();
 	}
+	
+	@Override
+	public Object cookie() {
+		return null;
+	}
 
 	/**
 	 * Return the parameter index of this variable if it is a function parameter.

@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TempScript;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
 import net.arctics.clonk.parser.c4script.ast.Placeholder;
@@ -36,25 +37,30 @@ public class ProjectConversionConfiguration {
 	public class CodeTransformation {
 		private final ASTNode template;
 		private final ASTNode transformation;
-		public CodeTransformation(ASTNode template, ASTNode transformation) {
+		private final CodeTransformation chain;
+		public CodeTransformation(ASTNode template, ASTNode transformation, CodeTransformation chain) {
 			super();
 			this.template = template;
 			this.transformation = transformation;
+			this.chain = chain;
 		}
-		public ASTNode template() {
-			return template;
-		}
-		public ASTNode transformation() {
-			return transformation;
-		}
-		public CodeTransformation(ASTNode stmt) {
-			ASTNode unwrapped = SimpleStatement.unwrap(stmt);
-			if (unwrapped instanceof BinaryOp && ((BinaryOp)unwrapped).operator() == Operator.Transform) {
-				BinaryOp op = (BinaryOp)unwrapped;
+		public ASTNode template() { return template; }
+		public ASTNode transformation() { return transformation; }
+		public CodeTransformation chain() { return chain; }
+		public CodeTransformation(ASTNode stmt, CodeTransformation chain) {
+			this.chain = chain;
+			if (stmt instanceof BinaryOp && ((BinaryOp)stmt).operator() == Operator.Transform) {
+				BinaryOp op = (BinaryOp)stmt;
 				this.template = ASTNodeMatcher.matchingExpr(op.leftSide());
 				this.transformation = ASTNodeMatcher.matchingExpr(op.rightSide());
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
+		}
+		public CodeTransformation(ASTNode[] tuple, int tupleElementIndex) {
+			this(tuple[tupleElementIndex], tuple.length > tupleElementIndex+1
+				? new CodeTransformation(tuple, tupleElementIndex+1)
+				: null
+			);
 		}
 		@Override
 		public String toString() {
@@ -72,7 +78,16 @@ public class ProjectConversionConfiguration {
 	
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
-			transformations.add(new CodeTransformation(stmt));
+			stmt = SimpleStatement.unwrap(stmt);
+			if (stmt instanceof CallDeclaration) {
+				CallDeclaration call = (CallDeclaration) stmt;
+				if (call.name().equals("Chain"))
+					transformations.add(new CodeTransformation(call.params(), 0));
+				else
+					throw new IllegalArgumentException(String.format("Unknown call '%s'", call.name()));
+			}
+			else
+				transformations.add(new CodeTransformation(stmt, null));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

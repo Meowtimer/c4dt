@@ -24,8 +24,8 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
@@ -182,25 +182,15 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			this.script = script;
 		}
 		@Override
-		public Object[] arguments() {
-			return arguments;
-		}
+		public Object[] arguments() { return arguments; }
 		@Override
-		public Script script() {
-			return script;
-		}
+		public Script script() { return script; }
 		@Override
-		public int codeFragmentOffset() {
-			return function != null ? function.codeFragmentOffset() : 0;
-		}
+		public int codeFragmentOffset() { return function != null ? function.codeFragmentOffset() : 0; }
 		@Override
-		public Object valueForVariable(String varName) {
-			return function != null ? function.valueForVariable(varName) : null;
-		}
+		public Object valueForVariable(String varName) { return function != null ? function.valueForVariable(varName) : null; }
 		@Override
-		public Function function() {
-			return function;
-		}
+		public Function function() { return function; }
 		@Override
 		public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 			if (expression == topLevelExpression) {
@@ -208,6 +198,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				tracedFile = file;
 			}
 		}
+		@Override
+		public Object cookie() { return null; }
 		public static EvaluationTracer evaluate(ASTNode expression, Object[] arguments, Script script, Function function) {
 			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
 			tracer.evaluation = expression.evaluateStatic(tracer);
@@ -257,7 +249,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						if (j >= formatString.length())
 							break;
 						String format = formatString.substring(i, j+1);
-						IType requiredType = null;
+						IType requiredType;
 						switch (formatString.charAt(j)) {
 						case 'd': case 'x': case 'X': case 'c':
 							requiredType = PrimitiveType.INT;
@@ -271,7 +263,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						case 's':
 							requiredType = PrimitiveType.STRING;
 							break;
-						case '%':
+						default:
+							requiredType = null;
+							parmIndex--;
 							break;
 						}
 						if (requiredType != null)
@@ -425,7 +419,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
 						"id", new AccessVar(kv.key().stringValue()),
 						"placeCall", new CallDeclaration("Place", new IntegerLiteral(kv.value()))
-					)));
+					), null));
 					wholeFunc = true;
 					function.body().addStatements(newStatement);
 				}

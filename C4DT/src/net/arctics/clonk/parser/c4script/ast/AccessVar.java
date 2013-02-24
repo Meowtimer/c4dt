@@ -5,6 +5,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.evaluate.EvaluationContextProxy;
@@ -65,7 +66,8 @@ public class AccessVar extends AccessDeclaration {
 				// if the whole of the initialization expression of the const gets evaluated to some traceable location,
 				// report that to the original context as the origin of the AccessVar expression
 				// evaluate in the context of the var by proxy
-				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(var) {
+				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(
+					var.initializationExpression().parentOfType(Function.class)) {
 					@Override
 					public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 						if (expression == var.initializationExpression())

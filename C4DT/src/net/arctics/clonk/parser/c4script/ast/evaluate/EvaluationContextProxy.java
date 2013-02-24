@@ -9,41 +9,20 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 public class EvaluationContextProxy implements IEvaluationContext {
-
-	private IEvaluationContext base;
-	
-	public EvaluationContextProxy(IEvaluationContext base) {
-		this.base = base;
-	}
-
+	private final IEvaluationContext base;
+	public EvaluationContextProxy(IEvaluationContext base) { this.base = base; }
 	@Override
-	public Object valueForVariable(String varName) {
-		return base.valueForVariable(varName);
-	}
-
+	public Object valueForVariable(String varName) { return base.valueForVariable(varName); }
 	@Override
-	public Object[] arguments() {
-		return base.arguments();
-	}
-
+	public Object[] arguments() { return base.arguments(); }
 	@Override
-	public Function function() {
-		return base.function();
-	}
-
+	public Function function() { return base.function(); }
 	@Override
-	public Script script() {
-		return base.script();
-	}
-
+	public Script script() { return base.script(); }
 	@Override
-	public int codeFragmentOffset() {
-		return base.codeFragmentOffset();
-	}
-
+	public int codeFragmentOffset() { return base.codeFragmentOffset(); }
 	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-		base.reportOriginForExpression(expression, location, file);
-	}
-
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { base.reportOriginForExpression(expression, location, file); }
+	@Override
+	public Object cookie() { return null; }
 }

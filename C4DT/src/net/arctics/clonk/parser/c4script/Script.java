@@ -1174,37 +1174,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	@Override
-	public IType simpleType() {
-		return PrimitiveType.OBJECT;
-	}
-
+	public IType simpleType() { return PrimitiveType.OBJECT; }
 	@Override
-	public Function function() {
-		return null;
-	}
-
+	public Function function() { return null; }
 	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-		// cool.
-	}
-
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { /* cool */ }
 	@Override
-	public Object[] arguments() {
-		return new Object[0];
-	}
-
+	public Object[] arguments() { return new Object[0]; }
 	@Override
-	public Object valueForVariable(String varName) {
-		return findLocalVariable(varName, true); // whatever
-	}
-
+	public Object valueForVariable(String varName) { return findLocalVariable(varName, true); /* whatever */ }
 	@Override
-	public int codeFragmentOffset() {
-		return 0;
-	}
-
+	public int codeFragmentOffset() { return 0; }
 	@Override
 	public void setTypeDescription(String description) {}
+	@Override
+	public Object cookie() { return null; }
 
 	/**
 	 * Return whether this function is accessible from this script - that is, it belongs to this script or one included by it and is

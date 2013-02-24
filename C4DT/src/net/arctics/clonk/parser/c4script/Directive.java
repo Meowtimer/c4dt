@@ -1,22 +1,25 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
-public class Directive extends Declaration implements Serializable {
+public class Directive extends Declaration implements Serializable, IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -153,5 +156,15 @@ public class Directive extends Declaration implements Serializable {
 			output.append(contents());
 		}
 	}
-
+	
+	@Override
+	public boolean equalAttributes(ASTNode other) {
+		Directive d = (Directive) other;
+		if (objectsEqual(d.content, this.content))
+			return true;
+		return false;
+	}
+	
+	@Override
+	public String patternMatchingText() { return type().toString(); }
 }

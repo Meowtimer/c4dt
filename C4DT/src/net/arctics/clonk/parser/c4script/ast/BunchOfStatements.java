@@ -8,17 +8,9 @@ import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.c4script.Conf;
 
 public class BunchOfStatements extends Block {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
-	public BunchOfStatements(List<ASTNode> statements) {
-		super(statements);
-	}
-
-	public BunchOfStatements(ASTNode... statements) {
-		super(statements);
-	}
-
+	public BunchOfStatements(List<ASTNode> statements) { super(statements); }
+	public BunchOfStatements(ASTNode... statements) { super(statements); }
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		boolean first = true;

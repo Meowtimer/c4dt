@@ -320,7 +320,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 					e.printStackTrace();
 				}
 	    	Function f = (Function)declaration;
-			return f.invoke(f.new FunctionInvocation(args, context));
+			return f.invoke(f.new FunctionInvocation(args, context, context != null ? context.cookie() : null));
 	    }
 	    else
 	    	return null;

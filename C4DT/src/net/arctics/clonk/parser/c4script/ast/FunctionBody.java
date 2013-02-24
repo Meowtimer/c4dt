@@ -26,6 +26,11 @@ public class FunctionBody extends BunchOfStatements {
 		this.owner = owner;
 		this.postLoaded = true;
 	}
+	public FunctionBody(Function owner, ASTNode... statements) {
+		super(statements);
+		this.owner = owner;
+		this.postLoaded = true;
+	}
 	@Override
 	public Declaration owningDeclaration() {
 		return owner;

@@ -1,5 +1,8 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,9 +17,14 @@ import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.InitializationFunction;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.parser.c4script.ast.FunctionBody;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,8 +40,15 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public abstract class CodeConverter {
 
+	public interface ICodeConverterContext {
+		String var(String name);
+	}
+
 	private ASTNode codeFor(Declaration declaration) {
-		return declaration instanceof IHasCode ? ((IHasCode)declaration).code() : null;
+		if (declaration instanceof IHasCode)
+			return ((IHasCode)declaration).code();
+		else
+			return declaration;
 	}
 
 	public void runOnDocument(
@@ -46,7 +61,7 @@ public abstract class CodeConverter {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			List<Declaration> decs = new ArrayList<Declaration>();
-			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.VARIABLES|IHasSubDeclarations.FUNCTIONS))
+			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.ALL))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
@@ -54,7 +69,7 @@ public abstract class CodeConverter {
 				public int compare(Declaration a, Declaration b) {
 					ASTNode codeA = codeFor(a);
 					ASTNode codeB = codeFor(b);
-					return codeB.start()-codeA.start();
+					return codeB.absolute().getOffset()-codeA.absolute().getOffset();
 				}
 			});
 			for (Declaration d : decs)
@@ -67,6 +82,7 @@ public abstract class CodeConverter {
 						StringBuilder header = new StringBuilder(f.header().getLength()+10);
 						f.printHeader(new AppendableBackedExprWriter(header), false);
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
+						f.setOldStyle(false);
 					}
 					replaceExpression(d, document, elms, parser, textChange);
 				} catch (CloneNotSupportedException e1) {
@@ -82,7 +98,7 @@ public abstract class CodeConverter {
 		}
 	}
 
-	protected abstract ASTNode performConversion(C4ScriptParser parser, ASTNode expression);
+	protected abstract ASTNode performConversion(C4ScriptParser parser, ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
@@ -92,16 +108,40 @@ public abstract class CodeConverter {
 		final IRegion region = e.absolute(); 
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
-		while (superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
+		while (oldStart - 1 >= 0 && superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
 			oldStart--;
 			oldLength++;
 		}
+		oldLength = Math.min(oldLength, document.getLength()-oldStart);
 		String oldString = document.get(oldStart, oldLength);
 		StringBuilder builder = new StringBuilder();
 		ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
-		if (d instanceof Function)
+		final Function function = as(d, Function.class);
+		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);
-		performConversion(parser, e).print(newStringWriter, 0);
+		final class CodeConverterContext implements ICodeConverterContext {
+			private final List<VarInitialization> addedVars = new ArrayList<>(10);
+			@Override
+			public String var(String name) {
+				if (function != null && function.findVariable(name) == null) {
+					Variable var = new Variable(name, PrimitiveType.ANY);
+					function.locals().add(var);
+					addedVars.add(new VarInitialization(name, null, 0, 0, var));
+				}
+				return name;
+			}
+			public ASTNode postProcess(ASTNode converted) {
+				if (converted instanceof FunctionBody && addedVars.size() > 0)
+					converted = new FunctionBody(function, concat(
+						new VarDeclarationStatement(addedVars, Scope.VAR),
+						converted.subElements()));
+				return converted;
+			}
+		}
+		CodeConverterContext cookie = new CodeConverterContext();
+		ASTNode conv = performConversion(parser, e, d, cookie);
+		conv = cookie.postProcess(conv);
+		conv.print(newStringWriter, 0);
 		String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));

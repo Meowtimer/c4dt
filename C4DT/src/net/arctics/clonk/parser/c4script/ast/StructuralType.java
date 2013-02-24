@@ -80,6 +80,8 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 
 	@Override
 	public String typeName(boolean special) {
+		if (!special)
+			return PrimitiveType.OBJECT.typeName(false);
 		List<String> x = new ArrayList<String>(functions.size()+1);
 		x.addAll(functions);
 		x.add("...");

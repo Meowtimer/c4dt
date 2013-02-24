@@ -372,7 +372,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			if (nameLocal != null) {
 				ASTNode expr = nameLocal.initializationExpression();
 				if (expr != null)
-					obj.setName(expr.evaluateStatic(obj).toString());
+					obj.setName(expr.evaluateStatic(nameLocal.initializationExpression().parentOfType(Function.class)).toString());
 			}
 		}
 	}
@@ -441,7 +441,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (peek() == '#') {
 			read();
 			// directive
-			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
+			String directiveName = parseIdentifier();
 			DirectiveType type = DirectiveType.makeType(directiveName);
 			if (type == null) {
 				warning(Problem.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
@@ -801,7 +801,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		result.setUserDescription(description != null ? description.text().trim() : null);
 		return result;
 	}
-	
+
 	protected Variable newVariable(String varName, Scope scope) {
 		return new Variable(varName, scope);
 	}
@@ -1259,11 +1259,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private boolean parseStaticFieldOperator() {
 		final int offset = this.offset;
-		String o = this.readString(2);
-		if (o != null && o.equals("::")) //$NON-NLS-1$
+		final int a = read(), b = read();
+		if (a == ':' && b == ':')
 			return true;
-		this.seek(offset);
-		return false;
+		else {
+			this.seek(offset);
+			return false;
+		}
 	}
 
 	private transient ASTNode[] _elementsReusable = new ASTNode[4];
@@ -1804,7 +1806,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				case SECONDOPERAND:
 					ASTNode rightSide = parseSequence(reportErrors);
 					if (rightSide == null) {
-						error(Problem.OperatorNeedsRightSide, lastOp, Markers.NO_THROW);
+						error(Problem.OperatorNeedsRightSide, offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 						rightSide = placeholderExpression(offset);
 					}
 					((BinaryOp)current).setRightSide(rightSide);
