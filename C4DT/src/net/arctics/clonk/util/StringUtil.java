@@ -69,11 +69,11 @@ public class StringUtil {
 		}
 		return returnString ? output.toString() : null;
 	}
-	
+
 	public static String blockString(CharSequence startBlock, CharSequence endBlock, CharSequence delimiter, Iterable<?> enumeration) {
 		return writeBlock(null, startBlock, endBlock, delimiter, enumeration);
 	}
-	
+
 	/**
 	 * Evaluate escapes such as \" and \\
 	 * @param str The string containing escapes
@@ -96,7 +96,7 @@ public class StringUtil {
 		}
 		return sBuilder.toString();
 	}
-	
+
 	public static String wildcardToRegex(String wildcard){
         StringBuffer s = new StringBuffer(wildcard.length());
         s.append('^');
@@ -124,7 +124,7 @@ public class StringUtil {
         s.append('$');
         return(s.toString());
     }
-	
+
 	public static Pattern patternFromRegExOrWildcard(String pattern) {
 		try {
 			return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
@@ -136,7 +136,7 @@ public class StringUtil {
 			}
 		}
 	}
-	
+
 	public static String rawFileName(String s) {
 
 	    String separator = System.getProperty("file.separator");
@@ -156,14 +156,14 @@ public class StringUtil {
 
 	    return filename.substring(0, extensionIndex);
 	}
-	
+
 	public static String unquote(String s) {
 		if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"')
 			return s.substring(1, s.length()-1);
 		else
 			return s;
 	}
-	
+
 	public static Iterable<String> lines(final Reader reader) {
 		return new Iterable<String>() {
 			@Override
@@ -172,7 +172,7 @@ public class StringUtil {
 
 					private final BufferedReader bufferedReader = new BufferedReader(reader);
 					private String line;
-					
+
 					@Override
 					public boolean hasNext() {
 						try {
@@ -192,14 +192,14 @@ public class StringUtil {
 					public void remove() {
 						// ignore
 					}
-					
+
 				};
 			}
 		};
 	}
-	
+
 	// Copy-Pasta org.eclipse.jdt.internal.ui.text.correction.NameMatcher
-	
+
 	/**
 	 * Returns a similarity value of the two names.
 	 * The range of is from 0 to 256. no similarity is negative
@@ -215,28 +215,28 @@ public class StringUtil {
 		}
 		int name1len= name1.length();
 		int name2len= name2.length();
-	
+
 		int nMatched= 0;
-	
+
 		int i= 0;
 		while (i < name1len && StringUtil.isSimilarChar(name1.charAt(i), name2.charAt(i))) {
 			i++;
 			nMatched++;
 		}
-	
+
 		int k= name1len;
 		int diff= name2len - name1len;
 		while (k > i && StringUtil.isSimilarChar(name1.charAt(k - 1), name2.charAt(k + diff - 1))) {
 			k--;
 			nMatched++;
 		}
-	
+
 		if (nMatched == name2len)
 			return 200;
-	
+
 		if (name2len - nMatched > nMatched)
 			return -1;
-	
+
 		int tolerance= name2len / 4 + 1;
 		return (tolerance - (k - i)) * 256 / tolerance;
 	}
@@ -254,6 +254,7 @@ public class StringUtil {
 			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
+			replace("\t", " "). //$NON-NLS-1$ //$NON-NLS-2$
+			replace("&", "&amp;");
 	}
 }
