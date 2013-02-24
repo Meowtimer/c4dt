@@ -442,7 +442,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 					@Override
 					public void receivedObject(Script item) {
-						if (!parserMap.containsKey(item) && item.directlyIncludes(def) && false)
+						if (!parserMap.containsKey(item) && item.directlyIncludes(def))
 							newlyAddedParsers.put(item, queueScript(item));
 					}
 				});
