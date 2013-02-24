@@ -289,7 +289,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							ownedFunction &&
 							typing == Typing.ParametersOptionallyTyped &&
 							baseFunction.visibility() != FunctionScope.GLOBAL &&
-							script instanceof Definition;
+							script instanceof Definition &&
+							!(script instanceof Scenario);
 						for (int i = 0; i < parameters.size(); i++) {
 							Variable p = parameters.get(i);
 							IType t = p.type();
