@@ -11,19 +11,19 @@ public abstract class TypeVariable implements ITypeVariable, Cloneable {
 	protected IType type = PrimitiveType.UNKNOWN;
 
 	@Override
-	public IType type() {
+	public IType get() {
 		return type;
 	}
 
 	@Override
-	public void storeType(IType type) {
+	public void set(IType type) {
 		this.type = defaulting(type, PrimitiveType.UNKNOWN);
 	}
 
 	@Override
 	public boolean hint(IType hint) {
 		if (type == PrimitiveType.UNKNOWN)
-			storeType(hint);
+			set(hint);
 		else if (type == PrimitiveType.ANY)
 			type = TypeUnification.unify(type, hint);
 		return true;
@@ -34,12 +34,12 @@ public abstract class TypeVariable implements ITypeVariable, Cloneable {
 
 	@Override
 	public void merge(ITypeVariable other) {
-		if (type() == PrimitiveType.UNKNOWN)
+		if (get() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
-			storeType(other.type());
-		else if (!type().equals(other.type()))
+			set(other.get());
+		else if (!get().equals(other.get()))
 			// assignments of multiple types - unify
-			storeType(TypeUnification.unify(type(), other.type()));
+			set(TypeUnification.unify(get(), other.get()));
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public abstract class TypeVariable implements ITypeVariable, Cloneable {
 
 	@Override
 	public String toString() {
-		return "<>: " + type(); //$NON-NLS-1$
+		return "<>: " + get(); //$NON-NLS-1$
 	}
 
 }

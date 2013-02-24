@@ -42,7 +42,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	};
 
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, ScriptProcessor processor) {
 		if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
 			return !isAnyOf(((AccessDeclaration)expr).declaration(), processor.cachedEngineDeclarations().VarAccessFunctions);
 		ASTNode chainA, chainB;
@@ -53,7 +53,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		if (other instanceof ExpressionTypeVariable)
 			return ((ExpressionTypeVariable)other).expression.equals(expression);
 		else

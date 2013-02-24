@@ -18,12 +18,12 @@ public interface ITypeVariable {
 	 * Type stored for the expression.
 	 * @return The type.
 	 */
-	IType type();
+	IType get();
 	/**
 	 * Store the type.
 	 * @param type The type to store
 	 */
-	void storeType(IType type);
+	void set(IType type);
 	/**
 	 * Hint that the expression this {@link ITypeVariable} was created for might be of the given type.
 	 * @param type The type to hint at
@@ -36,13 +36,13 @@ public interface ITypeVariable {
 	 * @param processor Processor serving as context
 	 * @return True, if relevant, false if not.
 	 */
-	boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor);
+	boolean binds(ASTNode expr, ScriptProcessor processor);
 	/**
 	 * Return whether another {@link ITypeVariable} refers to the same expression as this one.
 	 * @param other The other stored type information
 	 * @return True, if same expression, false if not.
 	 */
-	boolean refersToSameExpression(ITypeVariable other);
+	boolean same(ITypeVariable other);
 	/**
 	 * Apply this stored type information so the underlying {@link ITypeable} ({@link Variable}, {@link Function} etc) will have its type set.
 	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied.

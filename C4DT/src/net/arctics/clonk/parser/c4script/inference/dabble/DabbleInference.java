@@ -129,6 +129,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		C4ScriptParser[] parsers;
 		IProgressMonitor monitor;
 		final Map<Script, ScriptProcessor> processors = new HashMap<>();
+		final ThreadLocal<TypeEnvironment> typeEnvironment = new ThreadLocal<>();
 	}
 	private Shared shared;
 
@@ -164,7 +165,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public ProblemReportingContext localTypingContext(C4ScriptParser parser) {
 		markers = parser.markers();
-		return new ScriptProcessor(parser, new Shared());
+		Shared shared = new Shared();
+		ScriptProcessor processor = new ScriptProcessor(parser, shared) {
+			
+		};
+		shared.processors.put(parser.script(), processor);
+		return processor;
 	}
 
 	private static final class RoamingMarkers extends Markers {
@@ -186,7 +192,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	public final class ScriptProcessor implements Runnable, ProblemReportingContext, IEvaluationContext {
+	public class ScriptProcessor implements Runnable, ProblemReportingContext, IEvaluationContext {
 
 		static final int
 			MAX_PAR = 10,
@@ -212,7 +218,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Map<String, Declaration> functionMap = new HashMap<>();
 
 		private ASTNode reportingNode;
-		private TypeEnvironment typeEnvironment;
 		private boolean finished = false;
 		private ControlFlow controlFlow;
 		private Markers markers;
@@ -256,24 +261,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return;
 		}
 
-
 		@Override
 		public ITypeVariable visitFunction(Function function) {
 			if (function == null || function.body() == null)
 				return null;
 			Script funScript = function.script();
 			if (roaming || (visitees != null && visitees.contains(funScript)) || script() == funScript) {
-				if (!finishedFunctions.add(function))
-					return null;
+				synchronized (finishedFunctions) {
+					if (!finishedFunctions.add(function))
+						return null;
+				}
 				ITypeVariable oldReturnType = returnType;
 				returnType = new CurrentFunctionReturnTypeVariable(function);
 				ITypeVariable oldInheritedReturnType = inheritedReturnType;
 				inheritedReturnType = null;
 				try {
 					ASTNode[] statements = function.body().statements();
-					newTypeEnvironment();
+					TypeEnvironment env = newTypeEnvironment();
 					{
-						typeEnvironment.add(returnType);
+						env.add(returnType);
 						boolean ownedFunction = !roaming || funScript == script();
 						if (ownedFunction)
 							assignDefaultParmTypesToFunction(function);
@@ -281,7 +287,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							for (Variable l : function.locals()) {
 								ITypeVariable ti = requestTypeInfo(new AccessVar(l));
 								if (ti != null)
-									ti.storeType(PrimitiveType.UNKNOWN);
+									ti.set(PrimitiveType.UNKNOWN);
 							}
 						List<Variable> parameters = function.parameters();
 						Function baseFunction = function.baseFunction();
@@ -291,43 +297,45 @@ public class DabbleInference extends ProblemReportingStrategy {
 							baseFunction.visibility() != FunctionScope.GLOBAL &&
 							script instanceof Definition &&
 							!(script instanceof Scenario);
-						for (int i = 0; i < parameters.size(); i++) {
-							Variable p = parameters.get(i);
-							IType t = p.type();
-							if (typeFromCalls && (t == PrimitiveType.UNKNOWN) || (t == PrimitiveType.OBJECT)) {
-								List<CallDeclaration> calls = index.callsTo(function.name());
-								if (calls != null)
-									for (CallDeclaration call : calls) {
-										Script other = call.parentOfType(Script.class);
-										ScriptProcessor processor = shared.processors.get(other);
-										if (processor == this) {
-											Function f = other.parentOfType(Function.class);
-											if (f != null)
-												visitFunction(f);
-										} else if (processor != null)
-											processor.reportProblems();
-										if (call.params().length > i) {
-											Function f = as(processor != null ? processor.obtainDeclaration(call) : call.declaration(), Function.class);
-											if (f != null) {
-												f = f.baseFunction();
-												if (f != null)
-													f = (Function)f.latestVersion();
-											}
-											if (f == baseFunction) {
-												script.addUsedScript(other);
-												t = TypeUnification.unify(t, processor != null ? processor.typeOf(call.params()[i]) : call.params()[i].inferredType());
-											}
+						List<CallDeclaration> calls = null;
+						IType[] callTypes = new IType[parameters.size()];
+						if (typeFromCalls && parameters.size() > 0) {
+							calls = index.callsTo(function.name());
+							if (calls != null)
+								for (CallDeclaration call : calls) {
+									Function f = call.parentOfType(Function.class);
+									Script other = f.parentOfType(Script.class);
+									ScriptProcessor processor = shared.processors.get(other);
+									if (processor != null)
+										processor.visitFunction(f);
+									Function ref = as(obtainDeclaration(call), Function.class);
+									if (ref != null) {
+										ref = ref.baseFunction();
+										if (ref != null)
+											ref = (Function)ref.latestVersion();
+										if (ref == baseFunction) {
+											int parNum = Math.min(callTypes.length, call.params().length);
+											for (int pa = 0; pa < parNum; pa++)
+												if (function.parameter(pa).type() == PrimitiveType.UNKNOWN) {
+													ASTNode concretePar = call.params()[pa];
+													if (concretePar != null)
+														callTypes[pa] = TypeUnification.unify(callTypes[pa],
+															processor != null ? processor.typeOf(concretePar) : concretePar.inferredType());
+												}
 										}
 									}
-							}
-							if (t == PrimitiveType.UNKNOWN)
-								t = p.parameterType();
-
+								}
+						}
+						for (int i = 0; i < callTypes.length; i++)
+							if (callTypes[i] == null)
+								callTypes[i] = function.parameter(i).parameterType();
+						for (int i = 0; i < callTypes.length; i++) {
+							Variable p = function.parameter(i);
 							if (ownedFunction)
-								p.assignType(t, true);
+								p.assignType(callTypes[i], true);
 							ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
 							if (varTypeInfo != null)
-								varTypeInfo.storeType(t);
+								varTypeInfo.set(callTypes[i]);
 						}
 						ControlFlow old = controlFlow;
 						controlFlow = ControlFlow.Continue;
@@ -336,14 +344,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 						controlFlow = old;
 					}
 					if (!roaming)
-						typeEnvironment.apply(this, false);
-					endTypeEnvironment(true, true);
+						env.apply(this, false);
+					endTypeEnvironment(env, true, true);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
 					dismissExperts(function);
 				}
 				catch (ParsingException e) { return null; }
 				finally {
-					function.assignType(returnType.type(), false);
+					function.assignType(returnType.get(), false);
 					ITypeVariable r = returnType;
 					returnType = oldReturnType;
 					oldReturnType = r;
@@ -378,35 +386,30 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public final <T extends ASTNode> T visitNode(T expression, boolean recursive) throws ParsingException {
 			if (expression == null)
 				return null;
-			ASTNode saved = reportingNode;
-			reportingNode = expression;
-			{
-				Expert<? super T> expert = expert(expression);
-				ControlFlow old = controlFlow;
-				if (recursive && !expert.skipReportingProblemsForSubElements())
-					for (ASTNode e : expression.subElements())
-						if (e != null)
-							visitNode(e, true);
-				controlFlow = old;
-				expert.visit(expression, this);
-				if (controlFlow == ControlFlow.Continue)
-					controlFlow = expression.controlFlow();
-			}
-			reportingNode = saved;
+			Expert<? super T> expert = expert(expression);
+			ControlFlow old = controlFlow;
+			if (recursive && !expert.skipReportingProblemsForSubElements())
+				for (ASTNode e : expression.subElements())
+					if (e != null)
+						visitNode(e, true);
+			controlFlow = old;
+			expert.visit(expression, this);
+			if (controlFlow == ControlFlow.Continue)
+				controlFlow = expression.controlFlow();
 			return expression;
 		}
 
 		public TypeEnvironment newTypeEnvironment() {
 			TypeEnvironment l = new TypeEnvironment();
-			l.up = this.typeEnvironment;
-			this.typeEnvironment = l;
+			l.up = shared.typeEnvironment.get();
+			shared.typeEnvironment.set(l);
 			return l;
 		}
 
-		public void endTypeEnvironment(boolean inject, boolean ignoreLocals) {
-			if (inject && typeEnvironment.up != null)
-				typeEnvironment.up.inject(typeEnvironment, ignoreLocals);
-			typeEnvironment = typeEnvironment.up;
+		public void endTypeEnvironment(TypeEnvironment env, boolean inject, boolean ignoreLocals) {
+			if (inject && env.up != null)
+				env.up.inject(env, ignoreLocals);
+			shared.typeEnvironment.set(env.up);
 		}
 
 		/**
@@ -415,13 +418,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return the type information or null if none has been stored
 		 */
 		public ITypeVariable requestTypeInfo(ASTNode expression) {
-			if (typeEnvironment == null || typing == Typing.Static || typing == Typing.Dynamic)
+			TypeEnvironment env = shared.typeEnvironment.get();
+			if (env == null || typing == Typing.Static || typing == Typing.Dynamic)
 				return null;
 			boolean topMostLayer = true;
 			ITypeVariable base = null;
-			for (TypeEnvironment list = typeEnvironment; list != null; list = list.up) {
+			for (TypeEnvironment list = env; list != null; list = list.up) {
 				for (ITypeVariable info : list)
-					if (info.storesTypeInformationFor(expression, this))
+					if (info.binds(expression, this))
 						if (!topMostLayer) {
 							base = info;
 							break;
@@ -434,7 +438,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (newlyCreated != null) {
 				if (base != null)
 					newlyCreated.merge(base);
-				typeEnvironment.add(newlyCreated);
+				env.add(newlyCreated);
 			}
 			return newlyCreated;
 		}
@@ -445,11 +449,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return The typeinfo or null if nothing was found
 		 */
 		public ITypeVariable queryTypeInfo(ASTNode expression) {
-			if (typeEnvironment == null)
+			TypeEnvironment env = shared.typeEnvironment.get();
+			if (env == null)
 				return null;
-			for (TypeEnvironment list = typeEnvironment; list != null; list = list.up)
+			for (TypeEnvironment list = env; list != null; list = list.up)
 				for (ITypeVariable info : list)
-					if (info.storesTypeInformationFor(expression, this))
+					if (info.binds(expression, this))
 						return info;
 			return null;
 		}
@@ -464,7 +469,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public IType queryTypeOfExpression(ASTNode expression, IType defaultType) {
 			ITypeVariable info = queryTypeInfo(expression);
-			return info != null ? info.type() : defaultType;
+			return info != null ? info.get() : defaultType;
 		}
 
 		private boolean createWarningAtDeclarationOfVariable(
@@ -477,10 +482,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class))
 					for (VarInitialization initialization : decl.variableInitializations())
 						if (initialization.variable == variable) {
-							ASTNode old = reportingNode;
-							reportingNode = decl;
 							this.markers().warning(this, code, initialization, initialization, 0, format);
-							reportingNode = old;
 							return true;
 						}
 			return false;
@@ -509,7 +511,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 		}
 
-		private final void startRoaming(Script visitee) {
+		private final void startRoaming() {
 			if (markers instanceof RoamingMarkers)
 				((RoamingMarkers)markers).depth++;
 			else {
@@ -529,7 +531,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			script.requireLoaded();
 			assignExperts(script);
 			if (roaming)
-				startRoaming(script);
+				startRoaming();
 			for (Function f : script.functions()) {
 				// skip function that have been overridden
 				if (roaming && !script().seesFunction(f))
@@ -554,39 +556,39 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private void internalWork() {
 			// revisit all inherited scripts since that is the only way to
 			// accurately type inherited functions with respect to added things from this script
-			newTypeEnvironment();
+			TypeEnvironment env1 = newTypeEnvironment();
 			{
 				visitees = script().conglomerate();
 				for (Script include : script().includes(GatherIncludesOptions.Recursive))
 					visit(include, true);
 				visitees = Arrays.asList(script());
-				storeTypings(typeEnvironment);
-				for (ITypeVariable ti : typeEnvironment) {
+				storeTypings(env1);
+				for (ITypeVariable ti : env1) {
 					Declaration d = ti.declaration(this);
 					if (d != null && d.containedIn(script()))
 						ti.apply(false, this);
 				}
 			}
-			endTypeEnvironment(false, false);
+			endTypeEnvironment(env1, false, false);
 
-			newTypeEnvironment();
+			TypeEnvironment env2 = newTypeEnvironment();
 			{
 				visit(script(), false);
-				storeTypings(typeEnvironment);
+				storeTypings(env2);
 				script().setTypings(variableTypes, functionReturnTypes);
-				typeEnvironment.apply(this, false);
+				env2.apply(this, false);
 			}
-			endTypeEnvironment(false, false);
+			endTypeEnvironment(env2, false, false);
 		}
 
 		private void storeTypings(TypeEnvironment typeEnvironment) {
 			for (ITypeVariable info : typeEnvironment) {
 				VariableTypeVariable vti = as(info, VariableTypeVariable.class);
 				if (vti != null && vti.variable().scope() == Scope.LOCAL)
-					variableTypes.put(vti.variable(), vti.type());
+					variableTypes.put(vti.variable(), vti.get());
 				FunctionReturnTypeVariable ftri = as(info, FunctionReturnTypeVariable.class);
 				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL)
-					functionReturnTypes.put(ftri.function().name(), ftri.type());
+					functionReturnTypes.put(ftri.function().name(), ftri.get());
 			}
 		}
 
@@ -625,7 +627,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void storeType(ASTNode node, IType type) {
 			ITypeVariable requested = requestTypeInfo(node);
 			if (requested != null)
-				requested.storeType(type);
+				requested.set(type);
 		}
 
 		@Override
@@ -774,8 +776,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			case Expect:
 				info = processor.requestTypeInfo(node);
 				if (info != null)
-					if (info.type() == PrimitiveType.UNKNOWN || info.type() == PrimitiveType.ANY) {
-						info.storeType(type);
+					if (info.get() == PrimitiveType.UNKNOWN || info.get() == PrimitiveType.ANY) {
+						info.set(type);
 						return true;
 					} else
 						return false;
@@ -783,7 +785,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			case Force:
 				info = processor.requestTypeInfo(node);
 				if (info != null) {
-					info.storeType(type);
+					info.set(type);
 					return true;
 				} else
 					return false;
@@ -793,7 +795,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			case Unify:
 				info = processor.requestTypeInfo(node);
 				if (info != null) {
-					info.storeType(TypeUnification.unify(info.type(), type));
+					info.set(TypeUnification.unify(info.get(), type));
 					return true;
 				} else
 					return false;
@@ -862,12 +864,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void visit(ConditionalStatement node, ScriptProcessor processor) throws ParsingException {
 			ControlFlow t = processor.controlFlow;
 			processor.controlFlow = ControlFlow.Continue;
-			processor.newTypeEnvironment();
+			TypeEnvironment env = processor.newTypeEnvironment();
 			processor.visitNode(node.condition(), true);
-			processor.endTypeEnvironment(true, false);
-			processor.newTypeEnvironment();
+			processor.endTypeEnvironment(env, true, false);
+			env = processor.newTypeEnvironment();
 			processor.visitNode(node.body(), true);
-			processor.endTypeEnvironment(true, false);
+			processor.endTypeEnvironment(env, true, false);
 			loopConditionWarnings(node, processor);
 			processor.controlFlow = t;
 		}
@@ -1684,14 +1686,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public IType type(CallInherited node, ScriptProcessor processor) {
 					Function inherited = node.parentOfType(Function.class).inheritedFunction();
 					if (inherited != null) {
-						processor.startRoaming(inherited.script());
+						processor.startRoaming();
 						ITypeVariable ty = processor.visitFunction(inherited);
 						if (ty != null)
 							processor.inheritedReturnType = ty;
 						else
 							ty = processor.inheritedReturnType;
 						processor.endRoaming();
-						return ty != null ? ty.type() : PrimitiveType.UNKNOWN;
+						return ty != null ? ty.get() : PrimitiveType.UNKNOWN;
 					} else
 						return PrimitiveType.UNKNOWN;
 				}
@@ -2033,7 +2035,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
 						processor.incompatibleTypes(node, arrayExpr, type, PrimitiveType.ARRAY);
 					IType elmType = ArrayType.elementTypeSet(type);
-					processor.newTypeEnvironment();
+					TypeEnvironment env = processor.newTypeEnvironment();
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
@@ -2041,7 +2043,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						processor.visitNode(node.body(), true);
 					}
-					processor.endTypeEnvironment(true, false);
+					processor.endTypeEnvironment(env, true, false);
 					processor.controlFlow = t;
 				}
 			},
@@ -2066,12 +2068,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// gathered information afterwards
 					TypeEnvironment ifEnvironment = processor.newTypeEnvironment();
 					processor.visitNode(node.body(), true);
-					processor.endTypeEnvironment(false, false);
+					processor.endTypeEnvironment(ifEnvironment, false, false);
 					processor.controlFlow = old;
 					if (node.elseExpression() != null) {
 						TypeEnvironment elseEnvironment = processor.newTypeEnvironment();
 						processor.visitNode(node.elseExpression(), true);
-						processor.endTypeEnvironment(false, false);
+						processor.endTypeEnvironment(elseEnvironment, false, false);
 						ifEnvironment.inject(elseEnvironment, false);
 					}
 					if (ifEnvironment.up != null)

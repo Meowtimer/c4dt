@@ -26,22 +26,22 @@ public class LinkedTypeVariables implements ITypeVariable {
 		}
 		IType unified = null;
 		for (ITypeVariable l : linkedTypeInfos)
-			unified = TypeUnification.unify(unified, l.type());
+			unified = TypeUnification.unify(unified, l.get());
 		this.unified = unified;
 		for (ITypeVariable l : linkedTypeInfos)
-			l.storeType(unified);
+			l.set(unified);
 	}
 
 	@Override
-	public IType type() {
+	public IType get() {
 		return unified;
 	}
 
 	@Override
-	public void storeType(IType type) {
+	public void set(IType type) {
 		unified = type;
 		for (ITypeVariable l : linkedTypeInfos)
-			l.storeType(type);
+			l.set(type);
 	}
 
 	@Override
@@ -53,18 +53,18 @@ public class LinkedTypeVariables implements ITypeVariable {
 	}
 
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, ScriptProcessor processor) {
 		for (ITypeVariable l : linkedTypeInfos)
-			if (l.storesTypeInformationFor(expr, processor))
+			if (l.binds(expr, processor))
 				return true;
 		return false;
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		for (ITypeVariable o : other instanceof LinkedTypeVariables ? ((LinkedTypeVariables)other).linkedTypeInfos : new ITypeVariable[] {other})
 			for (ITypeVariable l : linkedTypeInfos)
-				if (l.refersToSameExpression(o))
+				if (l.same(o))
 					return true;
 		return false;
 	}
@@ -77,11 +77,11 @@ public class LinkedTypeVariables implements ITypeVariable {
 
 	@Override
 	public void merge(ITypeVariable other) {
-		unified = TypeUnification.unify(unified, other.type());
+		unified = TypeUnification.unify(unified, other.get());
 		boolean append = true;
 		for (ITypeVariable l : linkedTypeInfos) {
-			l.storeType(unified);
-			if (l.refersToSameExpression(other))
+			l.set(unified);
+			if (l.same(other))
 				append = false;
 		}
 		if (append)

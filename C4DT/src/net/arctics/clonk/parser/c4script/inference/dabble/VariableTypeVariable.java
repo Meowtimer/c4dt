@@ -17,11 +17,11 @@ public class VariableTypeVariable extends TypeVariable {
 		this.type = PrimitiveType.UNKNOWN;
 	}
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, ScriptProcessor processor) {
 		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
 	}
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		return
 			other instanceof VariableTypeVariable &&
 			((VariableTypeVariable)other).variable == this.variable;
@@ -34,7 +34,7 @@ public class VariableTypeVariable extends TypeVariable {
 	}
 	@Override
 	public String toString() {
-		return String.format("[%s: %s]", variable.name(), type().typeName(true));
+		return String.format("[%s: %s]", variable.name(), get().typeName(true));
 	}
 	@Override
 	public Declaration declaration(ScriptProcessor processor) { return variable; }

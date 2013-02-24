@@ -17,7 +17,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, ScriptProcessor processor) {
 		if (expr instanceof CallDeclaration) {
 			CallDeclaration callFunc = (CallDeclaration) expr;
 			if (callFunc.declaration() instanceof Function && ((Function)callFunc.declaration()).baseFunction() == baseFunction)
@@ -27,13 +27,13 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		return other instanceof FunctionReturnTypeVariable && ((FunctionReturnTypeVariable)other).baseFunction == this.baseFunction;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("[function %s.%s: %s]", function.script().name(), function.name(), type().typeName(true));
+		return String.format("[function %s.%s: %s]", function.script().name(), function.name(), get().typeName(true));
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 		if (function == null)
 			return;
 		if (!soft && !function.isEngineDeclaration())
-			function.assignType(type(), false);
+			function.assignType(get(), false);
 	}
 
 	@Override

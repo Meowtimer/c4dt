@@ -8,16 +8,16 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Script
 public class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
 	public CurrentFunctionReturnTypeVariable(Function function) { super(function); }
 	@Override
-	public boolean storesTypeInformationFor(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, ScriptProcessor processor) {
 		if (expr instanceof ReturnStatement && expr.parentOfType(Function.class) == function)
 			return true;
 		return false;
 	}
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		return
 			(other instanceof CurrentFunctionReturnTypeVariable && ((CurrentFunctionReturnTypeVariable)other).function == function) ||
-			super.refersToSameExpression(other);
+			super.same(other);
 	}
 	@Override
 	public void apply(boolean soft, ScriptProcessor processor) { /* done by Dabble */ }

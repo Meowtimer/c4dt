@@ -20,7 +20,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean storesTypeInformationFor(ASTNode node, ScriptProcessor processor) {
+	public boolean binds(ASTNode node, ScriptProcessor processor) {
 		Function fn = node.parentOfType(Function.class);
 		if (scope != null && fn != scope)
 			return false;
@@ -43,7 +43,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean refersToSameExpression(ITypeVariable other) {
+	public boolean same(ITypeVariable other) {
 		if (other.getClass() == VarFunctionsTypeVariable.class) {
 			VarFunctionsTypeVariable otherInfo = (VarFunctionsTypeVariable) other;
 			return otherInfo.scope == this.scope && otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex;
@@ -54,7 +54,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 
 	@Override
 	public String toString() {
-		return String.format("[%s(%d): %s in %s]", varFunction.name(), varIndex, type().typeName(true), scope.name()); //$NON-NLS-1$
+		return String.format("[%s(%d): %s in %s]", varFunction.name(), varIndex, get().typeName(true), scope.name()); //$NON-NLS-1$
 	}
 
 	@Override

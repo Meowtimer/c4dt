@@ -28,7 +28,7 @@ public class TypeEnvironment extends ArrayList<ITypeVariable> {
 			ITypeVariable otherInfo = otherIt.next();
 			for (Iterator<ITypeVariable> it = this.iterator(); it.hasNext();) {
 				ITypeVariable myInfo = it.next();
-				if (myInfo.refersToSameExpression(otherInfo)) {
+				if (myInfo.same(otherInfo)) {
 					if (merged == null)
 						merged = new LinkedList<ITypeVariable>();
 					merged.add(merge(myInfo, otherInfo));
