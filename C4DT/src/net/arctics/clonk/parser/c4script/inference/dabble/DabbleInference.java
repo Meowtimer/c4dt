@@ -167,7 +167,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		markers = parser.markers();
 		Shared shared = new Shared();
 		ScriptProcessor processor = new ScriptProcessor(parser, shared) {
-			
+
 		};
 		shared.processors.put(parser.script(), processor);
 		return processor;
@@ -189,6 +189,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return;
 			else
 				oldMarkers.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
+		}
+	}
+
+	public static class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
+		public CurrentFunctionReturnTypeVariable(Function function) { super(function); }
+		@Override
+		public boolean binds(ASTNode expr, ScriptProcessor processor) {
+			return expr instanceof ReturnStatement && expr.parentOfType(Function.class) == function;
+		}
+		@Override
+		public boolean same(ITypeVariable other) {
+			return other instanceof CurrentFunctionReturnTypeVariable && ((CurrentFunctionReturnTypeVariable)other).function == function;
+		}
+		@Override
+		public void apply(boolean soft, ScriptProcessor processor) { /* done by Dabble */ }
+	}
+
+	public static class InheritedFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
+		public InheritedFunctionReturnTypeVariable(Function function) { super(function); }
+		@Override
+		public boolean binds(ASTNode expr, ScriptProcessor processor) {
+			return expr instanceof CallInherited && expr.parentOfType(Function.class) == function;
+		}
+		@Override
+		public boolean same(ITypeVariable other) {
+			return other instanceof InheritedFunctionReturnTypeVariable && ((InheritedFunctionReturnTypeVariable)other).function == function;
 		}
 	}
 
@@ -217,12 +243,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private final Map<String, Declaration> variableMap = new HashMap<>();
 		private final Map<String, Declaration> functionMap = new HashMap<>();
 
-		private ASTNode reportingNode;
 		private boolean finished = false;
 		private ControlFlow controlFlow;
 		private Markers markers;
 		private List<Script> visitees;
-		private ITypeVariable returnType, inheritedReturnType;
 
 		public ScriptProcessor(C4ScriptParser parser, Shared shared) {
 			this.markers = DabbleInference.this.markers();
@@ -261,6 +285,34 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return;
 		}
 
+		private void initialParameterTypesFromCalls(Function function, Function baseFunction, IType[] callTypes) {
+			List<CallDeclaration> calls = index.callsTo(function.name());
+			if (calls != null)
+				for (CallDeclaration call : calls) {
+					Function f = call.parentOfType(Function.class);
+					Script other = f.parentOfType(Script.class);
+					ScriptProcessor processor = shared.processors.get(other);
+					if (processor != null)
+						processor.visitFunction(f);
+					Function ref = as(obtainDeclaration(call), Function.class);
+					if (ref != null) {
+						ref = ref.baseFunction();
+						if (ref != null)
+							ref = (Function)ref.latestVersion();
+						if (ref == baseFunction) {
+							int parNum = Math.min(callTypes.length, call.params().length);
+							for (int pa = 0; pa < parNum; pa++)
+								if (function.parameter(pa).type() == PrimitiveType.UNKNOWN) {
+									ASTNode concretePar = call.params()[pa];
+									if (concretePar != null)
+										callTypes[pa] = TypeUnification.unify(callTypes[pa],
+											processor != null ? processor.typeOf(concretePar) : concretePar.inferredType());
+								}
+						}
+					}
+				}
+		}
+
 		@Override
 		public ITypeVariable visitFunction(Function function) {
 			if (function == null || function.body() == null)
@@ -271,10 +323,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!finishedFunctions.add(function))
 						return null;
 				}
-				ITypeVariable oldReturnType = returnType;
-				returnType = new CurrentFunctionReturnTypeVariable(function);
-				ITypeVariable oldInheritedReturnType = inheritedReturnType;
-				inheritedReturnType = null;
+				ITypeVariable returnType = new CurrentFunctionReturnTypeVariable(function);
 				try {
 					ASTNode[] statements = function.body().statements();
 					TypeEnvironment env = newTypeEnvironment();
@@ -297,35 +346,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 							baseFunction.visibility() != FunctionScope.GLOBAL &&
 							script instanceof Definition &&
 							!(script instanceof Scenario);
-						List<CallDeclaration> calls = null;
 						IType[] callTypes = new IType[parameters.size()];
-						if (typeFromCalls && parameters.size() > 0) {
-							calls = index.callsTo(function.name());
-							if (calls != null)
-								for (CallDeclaration call : calls) {
-									Function f = call.parentOfType(Function.class);
-									Script other = f.parentOfType(Script.class);
-									ScriptProcessor processor = shared.processors.get(other);
-									if (processor != null)
-										processor.visitFunction(f);
-									Function ref = as(obtainDeclaration(call), Function.class);
-									if (ref != null) {
-										ref = ref.baseFunction();
-										if (ref != null)
-											ref = (Function)ref.latestVersion();
-										if (ref == baseFunction) {
-											int parNum = Math.min(callTypes.length, call.params().length);
-											for (int pa = 0; pa < parNum; pa++)
-												if (function.parameter(pa).type() == PrimitiveType.UNKNOWN) {
-													ASTNode concretePar = call.params()[pa];
-													if (concretePar != null)
-														callTypes[pa] = TypeUnification.unify(callTypes[pa],
-															processor != null ? processor.typeOf(concretePar) : concretePar.inferredType());
-												}
-										}
-									}
-								}
-						}
+						if (typeFromCalls && parameters.size() > 0)
+							initialParameterTypesFromCalls(function, baseFunction, callTypes);
 						for (int i = 0; i < callTypes.length; i++)
 							if (callTypes[i] == null)
 								callTypes[i] = function.parameter(i).parameterType();
@@ -350,14 +373,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					dismissExperts(function);
 				}
 				catch (ParsingException e) { return null; }
-				finally {
-					function.assignType(returnType.get(), false);
-					ITypeVariable r = returnType;
-					returnType = oldReturnType;
-					oldReturnType = r;
-					inheritedReturnType = oldInheritedReturnType;
-				}
-				return oldReturnType;
+				finally { function.assignType(returnType.get(), false); }
+				return returnType;
 			}
 			return null;
 		}
@@ -587,7 +604,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (vti != null && vti.variable().scope() == Scope.LOCAL)
 					variableTypes.put(vti.variable(), vti.get());
 				FunctionReturnTypeVariable ftri = as(info, FunctionReturnTypeVariable.class);
-				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL)
+				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL && script.seesFunction(ftri.function()))
 					functionReturnTypes.put(ftri.function().name(), ftri.get());
 			}
 		}
@@ -1684,18 +1701,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new AccessDeclarationExpert<CallInherited>(CallInherited.class) {
 				@Override
 				public IType type(CallInherited node, ScriptProcessor processor) {
+					ITypeVariable tyVar = processor.queryTypeInfo(node);
+					if (tyVar != null)
+						return tyVar.get();
 					Function inherited = node.parentOfType(Function.class).inheritedFunction();
 					if (inherited != null) {
 						processor.startRoaming();
 						ITypeVariable ty = processor.visitFunction(inherited);
-						if (ty != null)
-							processor.inheritedReturnType = ty;
-						else
-							ty = processor.inheritedReturnType;
 						processor.endRoaming();
-						return ty != null ? ty.get() : PrimitiveType.UNKNOWN;
-					} else
-						return PrimitiveType.UNKNOWN;
+						if (ty != null) {
+							judgement(node, ty.get(), TypingJudgementMode.Force, processor);
+							return ty.get();
+						}
+					}
+					return PrimitiveType.UNKNOWN;
 				}
 				@Override
 				public void visit(CallInherited node, ScriptProcessor processor) throws ParsingException {
@@ -1708,6 +1727,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (node.declaration() == null && !node.failsafe())
 							processor.markers().error(processor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, node.parentOfType(Function.class).name());
 					}
+				}
+				@Override
+				public ITypeVariable createTypeVariable(CallInherited node, ScriptProcessor processor) {
+					Function inherited = node.parentOfType(Function.class).inheritedFunction();
+					return inherited != null ? new InheritedFunctionReturnTypeVariable(inherited) : null;
 				}
 			},
 
