@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 import net.arctics.clonk.util.StringUtil;
 
 public class LinkedTypeVariables implements ITypeVariable {
@@ -53,7 +53,7 @@ public class LinkedTypeVariables implements ITypeVariable {
 	}
 
 	@Override
-	public boolean binds(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, Visitation processor) {
 		for (ITypeVariable l : linkedTypeInfos)
 			if (l.binds(expr, processor))
 				return true;
@@ -70,7 +70,7 @@ public class LinkedTypeVariables implements ITypeVariable {
 	}
 
 	@Override
-	public void apply(boolean soft, ScriptProcessor processor) {
+	public void apply(boolean soft, Visitation processor) {
 		for (ITypeVariable l : linkedTypeInfos)
 			l.apply(soft, processor);
 	}
@@ -99,7 +99,7 @@ public class LinkedTypeVariables implements ITypeVariable {
 	}
 
 	@Override
-	public Declaration declaration(ScriptProcessor processor) {
+	public Declaration declaration(Visitation processor) {
 		return null;
 	}
 

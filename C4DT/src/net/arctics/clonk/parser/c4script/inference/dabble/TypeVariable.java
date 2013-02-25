@@ -4,7 +4,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 
 public abstract class TypeVariable implements ITypeVariable, Cloneable {
 
@@ -30,7 +30,7 @@ public abstract class TypeVariable implements ITypeVariable, Cloneable {
 	}
 
 	@Override
-	public void apply(boolean soft, ScriptProcessor processor) {}
+	public void apply(boolean soft, Visitation processor) {}
 
 	@Override
 	public void merge(ITypeVariable other) {

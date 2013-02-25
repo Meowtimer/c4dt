@@ -30,7 +30,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IHasSubDeclarat
 	/**
 	 * Gather includes from some {@link Index} into a set. This operation can be performed recursively or not.
 	 * @param set The set which will contain the includes. For recursion catching, the type itself is also added to this set.
-	 * @param index The index to look for includes in
+	 * @param data.index The index to look for includes in
 	 * @param options A bitmask Whether includes of includes will also be added and so on.
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
 	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head.
@@ -46,7 +46,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IHasSubDeclarat
 		/**
 		 * Get includes by gathering them using {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}.
 		 * @param instance The instance to call {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)} on
-		 * @param index The index to pass to {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}
+		 * @param data.index The index to pass to {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}
 		 * @param recursive The recursive parameter to pass to {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */

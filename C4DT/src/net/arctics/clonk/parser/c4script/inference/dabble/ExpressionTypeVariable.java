@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 
 /**
  * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ASTNode} and setting its type.
@@ -21,7 +21,7 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Script
 public final class ExpressionTypeVariable extends TypeVariable {
 	private final ASTNode expression;
 
-	public ExpressionTypeVariable(ASTNode referenceElm, ScriptProcessor processor) {
+	public ExpressionTypeVariable(ASTNode referenceElm, Visitation processor) {
 		super();
 		this.expression = referenceElm;
 		ITypeable typeable = typeableFromExpression(referenceElm, processor);
@@ -42,7 +42,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	};
 
 	@Override
-	public boolean binds(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, Visitation processor) {
 		if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
 			return !isAnyOf(((AccessDeclaration)expr).declaration(), processor.cachedEngineDeclarations().VarAccessFunctions);
 		ASTNode chainA, chainB;
@@ -60,7 +60,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 			return false;
 	}
 
-	public static ITypeable typeableFromExpression(ASTNode referenceElm, ScriptProcessor processor) {
+	public static ITypeable typeableFromExpression(ASTNode referenceElm, Visitation processor) {
 		EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, processor);
 		if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
 			return decRegion.entityAs(ITypeable.class);
@@ -69,7 +69,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public void apply(boolean soft, ScriptProcessor processor) {
+	public void apply(boolean soft, Visitation processor) {
 		ITypeable typeable = typeableFromExpression(expression, processor);
 		if (typeable != null) {
 			// don't apply typing to non-local things if only applying type information softly
@@ -91,7 +91,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 		return String.format("[%s: %s]", expression.toString(), type.typeName(true));
 	}
 
-	public static ITypeVariable makeTypeInfo(Declaration declaration, ScriptProcessor processor) {
+	public static ITypeVariable makeTypeInfo(Declaration declaration, Visitation processor) {
 		if (declaration != null)
 			return new ExpressionTypeVariable(new AccessVar(declaration), processor);
 		else
@@ -99,7 +99,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public Declaration declaration(ScriptProcessor processor) {
+	public Declaration declaration(Visitation processor) {
 		return as(typeableFromExpression(expression, processor), Declaration.class);
 	}
 

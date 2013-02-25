@@ -4,7 +4,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 
 public class FunctionReturnTypeVariable extends TypeVariable {
 	protected final Function baseFunction, function;
@@ -17,7 +17,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean binds(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, Visitation processor) {
 		if (expr instanceof CallDeclaration) {
 			CallDeclaration callFunc = (CallDeclaration) expr;
 			if (callFunc.declaration() instanceof Function && ((Function)callFunc.declaration()).baseFunction() == baseFunction)
@@ -37,7 +37,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public void apply(boolean soft, ScriptProcessor processor) {
+	public void apply(boolean soft, Visitation processor) {
 		if (function == null)
 			return;
 		if (!soft && !function.isEngineDeclaration())
@@ -45,6 +45,6 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public Declaration declaration(ScriptProcessor processor) { return function; }
+	public Declaration declaration(Visitation processor) { return function; }
 
 }

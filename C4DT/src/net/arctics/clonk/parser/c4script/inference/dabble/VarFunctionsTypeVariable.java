@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 
 final class VarFunctionsTypeVariable extends TypeVariable {
 	private final Function scope;
@@ -20,7 +20,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean binds(ASTNode node, ScriptProcessor processor) {
+	public boolean binds(ASTNode node, Visitation processor) {
 		Function fn = node.parentOfType(Function.class);
 		if (scope != null && fn != scope)
 			return false;
@@ -58,5 +58,5 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public Declaration declaration(ScriptProcessor processor) { return null; }
+	public Declaration declaration(Visitation processor) { return null; }
 }

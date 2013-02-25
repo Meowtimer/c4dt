@@ -7,10 +7,8 @@ import static net.arctics.clonk.util.Utilities.threadPool;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
@@ -129,7 +127,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		C4ScriptParser[] parsers;
 		IProgressMonitor monitor;
 		final Map<Script, ScriptProcessor> processors = new HashMap<>();
-		final ThreadLocal<TypeEnvironment> typeEnvironment = new ThreadLocal<>();
 	}
 	private Shared shared;
 
@@ -150,11 +147,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (p != null)
 						shared.processors.put(p.script(), new ScriptProcessor(p, shared));
 				for (final ScriptProcessor processor : shared.processors.values())
-					pool.execute(processor);
+					pool.execute(new Visitation(processor));
 			}
 		}, 20);
 		for (ScriptProcessor processor : shared.processors.values())
-			processor.dismissExperts(processor.script());
+			dismissExperts(processor.script());
 	}
 
 	@Override
@@ -166,11 +163,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public ProblemReportingContext localTypingContext(C4ScriptParser parser) {
 		markers = parser.markers();
 		Shared shared = new Shared();
-		ScriptProcessor processor = new ScriptProcessor(parser, shared) {
-
-		};
+		ScriptProcessor processor = new ScriptProcessor(parser, shared);
 		shared.processors.put(parser.script(), processor);
-		return processor;
+		return new Visitation(processor);
 	}
 
 	private static final class RoamingMarkers extends Markers {
@@ -193,9 +188,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	public static class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
+		public boolean pending = true;
 		public CurrentFunctionReturnTypeVariable(Function function) { super(function); }
 		@Override
-		public boolean binds(ASTNode expr, ScriptProcessor processor) {
+		public boolean binds(ASTNode expr, Visitation visitation) {
 			return expr instanceof ReturnStatement && expr.parentOfType(Function.class) == function;
 		}
 		@Override
@@ -203,13 +199,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return other instanceof CurrentFunctionReturnTypeVariable && ((CurrentFunctionReturnTypeVariable)other).function == function;
 		}
 		@Override
-		public void apply(boolean soft, ScriptProcessor processor) { /* done by Dabble */ }
+		public void apply(boolean soft, Visitation visitation) { /* done by Dabble */ }
 	}
 
 	public static class InheritedFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
 		public InheritedFunctionReturnTypeVariable(Function function) { super(function); }
 		@Override
-		public boolean binds(ASTNode expr, ScriptProcessor processor) {
+		public boolean binds(ASTNode expr, Visitation visitation) {
 			return expr instanceof CallInherited && expr.parentOfType(Function.class) == function;
 		}
 		@Override
@@ -218,8 +214,47 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	public class ScriptProcessor implements Runnable, ProblemReportingContext, IEvaluationContext {
-
+	protected final class ScriptProcessor {
+		final C4ScriptParser parser;
+		final Script script;
+		final Index index;
+		final Typing typing;
+		final CachedEngineDeclarations cachedEngineDeclarations;
+		final Shared shared;
+		final int strictLevel;
+		final boolean hasAppendTo;
+		final Map<Function, CurrentFunctionReturnTypeVariable> finishedFunctions = new HashMap<>();
+		final Map<String, IType> functionReturnTypes = new HashMap<>();
+		final Map<Variable, IType> variableTypes = new HashMap<>();
+		final IType thisType;
+		final Map<String, Declaration> variableMap = new HashMap<>();
+		final Map<String, Declaration> functionMap = new HashMap<>();
+		boolean finished = false;
+		public Script script() { return script; }
+		public ScriptProcessor(C4ScriptParser parser, Shared shared) {
+			this.shared = shared;
+			this.parser = parser;
+			this.script = parser.script();
+			this.index = parser.script().index();
+			this.typing = parser.typing();
+			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
+			this.strictLevel = script.strictLevel();
+			this.thisType = TypeChoice.make(
+				script,
+				script instanceof Definition ? ((Definition)script).metaDefinition() : PrimitiveType.ID
+			);
+			boolean hasAppendTo = false;
+			for (Directive d : script.directives())
+				if (d.type() == DirectiveType.APPENDTO) {
+					hasAppendTo = true;
+					break;
+				}
+			this.hasAppendTo = hasAppendTo;
+		}
+	}
+	
+	public class Visitation implements Runnable, ProblemReportingContext, IEvaluationContext {
+		
 		static final int
 			MAX_PAR = 10,
 			MAX_NUMVAR = 20,
@@ -227,47 +262,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 		static final boolean
 			UNUSEDPARMWARNING = false;
 
-		private final C4ScriptParser parser;
-		private final Script script;
-		private final Index index;
-		private final Typing typing;
-		private final CachedEngineDeclarations cachedEngineDeclarations;
-		private final Shared shared;
-		private final int strictLevel;
-		private final boolean hasAppendTo;
-		private final Set<Function> finishedFunctions = new HashSet<>();
-		private final Map<String, IType> functionReturnTypes = new HashMap<>();
-		private final Map<Variable, IType> variableTypes = new HashMap<>();
-		private final IType thisType;
-
-		private final Map<String, Declaration> variableMap = new HashMap<>();
-		private final Map<String, Declaration> functionMap = new HashMap<>();
-
-		private boolean finished = false;
+		private final ScriptProcessor base;
+		
 		private ControlFlow controlFlow;
 		private Markers markers;
 		private List<Script> visitees;
+		private TypeEnvironment typeEnvironment;
 
-		public ScriptProcessor(C4ScriptParser parser, Shared shared) {
+		public Visitation(ScriptProcessor data) {
 			this.markers = DabbleInference.this.markers();
-			this.shared = shared;
-			this.parser = parser;
-			this.script = parser.script();
-			this.index = script.index();
-			this.typing = parser.typing();
-			this.cachedEngineDeclarations = this.script().engine().cachedDeclarations();
-			this.strictLevel = script().strictLevel();
-			this.thisType = TypeChoice.make(
-				script(),
-				script() instanceof Definition ? ((Definition)script()).metaDefinition() : PrimitiveType.ID
-			);
-			boolean hasAppendTo = false;
-			for (Directive d : script().directives())
-				if (d.type() == DirectiveType.APPENDTO) {
-					hasAppendTo = true;
-					break;
-				}
-			this.hasAppendTo = hasAppendTo;
+			this.base = data;
 		}
 
 		public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
@@ -278,23 +282,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 		}
 
-		private void assignDefaultParmTypesToFunction(Function function) {
-			if (parser.specialEngineRules() != null)
-				for (SpecialFuncRule funcRule : parser.specialEngineRules().defaultParmTypeAssignerRules())
+		private boolean assignDefaultParmTypesToFunction(Function function) {
+			if (base.parser.specialEngineRules() != null)
+				for (SpecialFuncRule funcRule : base.parser.specialEngineRules().defaultParmTypeAssignerRules())
 					if (funcRule.assignDefaultParmTypes(this, function))
-						return;
+						return true;
+			return false;
 		}
 
 		private void initialParameterTypesFromCalls(Function function, Function baseFunction, IType[] callTypes) {
-			List<CallDeclaration> calls = index.callsTo(function.name());
+			List<CallDeclaration> calls = base.index.callsTo(function.name());
 			if (calls != null)
 				for (CallDeclaration call : calls) {
 					Function f = call.parentOfType(Function.class);
 					Script other = f.parentOfType(Script.class);
-					ScriptProcessor processor = shared.processors.get(other);
-					if (processor != null)
-						processor.visitFunction(f);
-					Function ref = as(obtainDeclaration(call), Function.class);
+					ScriptProcessor processor = base.shared.processors.get(other);
+					Visitation visitation;
+					if (processor != null) {
+						visitation = new Visitation(processor);
+						visitation.visitFunction(f);
+					} else
+						visitation = null;
+					Function ref = as(visitation != null ? visitation.obtainDeclaration(call) : call.declaration(), Function.class);
 					if (ref != null) {
 						ref = ref.baseFunction();
 						if (ref != null)
@@ -306,7 +315,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									ASTNode concretePar = call.params()[pa];
 									if (concretePar != null)
 										callTypes[pa] = TypeUnification.unify(callTypes[pa],
-											processor != null ? processor.typeOf(concretePar) : concretePar.inferredType());
+											visitation != null ? visitation.typeOf(concretePar) : concretePar.inferredType());
 								}
 						}
 					}
@@ -319,61 +328,68 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			Script funScript = function.script();
 			if (roaming || (visitees != null && visitees.contains(funScript)) || script() == funScript) {
-				synchronized (finishedFunctions) {
-					if (!finishedFunctions.add(function))
-						return null;
+				CurrentFunctionReturnTypeVariable returnType;
+				synchronized (base.finishedFunctions) {
+					returnType = base.finishedFunctions.get(function);
+					if (returnType != null)
+						return returnType;
+					else
+						base.finishedFunctions.put(function, returnType = new CurrentFunctionReturnTypeVariable(function));
 				}
-				ITypeVariable returnType = new CurrentFunctionReturnTypeVariable(function);
-				try {
-					ASTNode[] statements = function.body().statements();
-					TypeEnvironment env = newTypeEnvironment();
-					{
-						env.add(returnType);
-						boolean ownedFunction = !roaming || funScript == script();
-						if (ownedFunction)
-							assignDefaultParmTypesToFunction(function);
-						else
-							for (Variable l : function.locals()) {
-								ITypeVariable ti = requestTypeInfo(new AccessVar(l));
-								if (ti != null)
-									ti.set(PrimitiveType.UNKNOWN);
+				synchronized (returnType) {
+					try {
+						ASTNode[] statements = function.body().statements();
+						TypeEnvironment env = newTypeEnvironment();
+						{
+							env.add(returnType);
+							boolean ownedFunction = !roaming || funScript == script();
+							if (!ownedFunction)
+								for (Variable l : function.locals()) {
+									ITypeVariable ti = requestTypeInfo(new AccessVar(l));
+									if (ti != null)
+										ti.set(PrimitiveType.UNKNOWN);
+								}
+							List<Variable> parameters = function.parameters();
+							Function baseFunction = function.baseFunction();
+							boolean typeFromCalls =
+								ownedFunction && !assignDefaultParmTypesToFunction(function) &&
+								base.typing == Typing.ParametersOptionallyTyped &&
+								baseFunction.visibility() != FunctionScope.GLOBAL &&
+								base.script instanceof Definition &&
+								!(base.script instanceof Scenario);
+							IType[] callTypes = new IType[parameters.size()];
+							if (typeFromCalls && parameters.size() > 0)
+								initialParameterTypesFromCalls(function, baseFunction, callTypes);
+							for (int i = 0; i < callTypes.length; i++)
+								if (callTypes[i] == null)
+									callTypes[i] = function.parameter(i).parameterType();
+							for (int i = 0; i < callTypes.length; i++) {
+								Variable p = function.parameter(i);
+								if (ownedFunction)
+									p.assignType(callTypes[i], false);
+								ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
+								if (varTypeInfo != null)
+									varTypeInfo.set(callTypes[i]);
 							}
-						List<Variable> parameters = function.parameters();
-						Function baseFunction = function.baseFunction();
-						boolean typeFromCalls =
-							ownedFunction &&
-							typing == Typing.ParametersOptionallyTyped &&
-							baseFunction.visibility() != FunctionScope.GLOBAL &&
-							script instanceof Definition &&
-							!(script instanceof Scenario);
-						IType[] callTypes = new IType[parameters.size()];
-						if (typeFromCalls && parameters.size() > 0)
-							initialParameterTypesFromCalls(function, baseFunction, callTypes);
-						for (int i = 0; i < callTypes.length; i++)
-							if (callTypes[i] == null)
-								callTypes[i] = function.parameter(i).parameterType();
-						for (int i = 0; i < callTypes.length; i++) {
-							Variable p = function.parameter(i);
-							if (ownedFunction)
-								p.assignType(callTypes[i], true);
-							ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
-							if (varTypeInfo != null)
-								varTypeInfo.set(callTypes[i]);
+							ControlFlow old = controlFlow;
+							controlFlow = ControlFlow.Continue;
+							for (ASTNode s : statements)
+								visitNode(s, true);
+							controlFlow = old;
 						}
-						ControlFlow old = controlFlow;
-						controlFlow = ControlFlow.Continue;
-						for (ASTNode s : statements)
-							visitNode(s, true);
-						controlFlow = old;
+						if (!roaming)
+							env.apply(this, false);
+						endTypeEnvironment(env, true, true);
+						warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
+						dismissExperts(function);
 					}
-					if (!roaming)
-						env.apply(this, false);
-					endTypeEnvironment(env, true, true);
-					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
-					dismissExperts(function);
+					catch (ParsingException e) { return null; }
+					finally {
+						function.assignType(returnType.get(), false);
+						returnType.pending = false;
+						returnType.notifyAll();
+					}
 				}
-				catch (ParsingException e) { return null; }
-				finally { function.assignType(returnType.get(), false); }
 				return returnType;
 			}
 			return null;
@@ -387,7 +403,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (right == null)
 					right = PrimitiveType.ANY;
 				this.markers().marker(this, Problem.IncompatibleTypes, node, region.getOffset(), region.getOffset()+region.getLength(), Markers.NO_THROW,
-					typing == Typing.Static ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
+					base.typing == Typing.Static ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
 					left.typeName(true), right.typeName(true)
 				);
 			} catch (ParsingException e) {}
@@ -418,15 +434,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public TypeEnvironment newTypeEnvironment() {
 			TypeEnvironment l = new TypeEnvironment();
-			l.up = shared.typeEnvironment.get();
-			shared.typeEnvironment.set(l);
-			return l;
+			l.up = typeEnvironment;
+			return typeEnvironment = l;
 		}
 
 		public void endTypeEnvironment(TypeEnvironment env, boolean inject, boolean ignoreLocals) {
 			if (inject && env.up != null)
 				env.up.inject(env, ignoreLocals);
-			shared.typeEnvironment.set(env.up);
+			typeEnvironment = env.up;
 		}
 
 		/**
@@ -435,8 +450,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return the type information or null if none has been stored
 		 */
 		public ITypeVariable requestTypeInfo(ASTNode expression) {
-			TypeEnvironment env = shared.typeEnvironment.get();
-			if (env == null || typing == Typing.Static || typing == Typing.Dynamic)
+			TypeEnvironment env = typeEnvironment;
+			if (env == null || base.typing == Typing.Static || base.typing == Typing.Dynamic)
 				return null;
 			boolean topMostLayer = true;
 			ITypeVariable base = null;
@@ -466,7 +481,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return The typeinfo or null if nothing was found
 		 */
 		public ITypeVariable queryTypeInfo(ASTNode expression) {
-			TypeEnvironment env = shared.typeEnvironment.get();
+			TypeEnvironment env = typeEnvironment;
 			if (env == null)
 				return null;
 			for (TypeEnvironment list = env; list != null; list = list.up)
@@ -558,13 +573,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (roaming)
 				endRoaming();
 		}
-
-		@Profiled
+		
 		@Override
+		@Profiled
 		public void reportProblems() {
-			synchronized (shared) {
-				if (!finished) {
-					finished = true;
+			synchronized (base) {
+				if (!base.finished) {
+					base.finished = true;
 					internalWork();
 				}
 			}
@@ -592,7 +607,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			{
 				visit(script(), false);
 				storeTypings(env2);
-				script().setTypings(variableTypes, functionReturnTypes);
+				script().setTypings(base.variableTypes, base.functionReturnTypes);
 				env2.apply(this, false);
 			}
 			endTypeEnvironment(env2, false, false);
@@ -602,42 +617,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 			for (ITypeVariable info : typeEnvironment) {
 				VariableTypeVariable vti = as(info, VariableTypeVariable.class);
 				if (vti != null && vti.variable().scope() == Scope.LOCAL)
-					variableTypes.put(vti.variable(), vti.get());
+					base.variableTypes.put(vti.variable(), vti.get());
 				FunctionReturnTypeVariable ftri = as(info, FunctionReturnTypeVariable.class);
-				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL && script.seesFunction(ftri.function()))
-					functionReturnTypes.put(ftri.function().name(), ftri.get());
+				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL && base.script.seesFunction(ftri.function()))
+					base.functionReturnTypes.put(ftri.function().name(), ftri.get());
 			}
-		}
-
-		private void dismissExperts(ASTNode node) {
-			node.traverse(new IASTVisitor<Void>() {
-				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void parser) {
-					node.temporaryProblemReportingObject = null;
-					return TraversalContinuation.Continue;
-				}
-			}, null);
-		}
-
-		private void assignExperts(ASTNode node) {
-			node.traverse(new IASTVisitor<Void>() {
-				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void parser) {
-					node.temporaryProblemReportingObject = findReporter(node);
-					return TraversalContinuation.Continue;
-				}
-			}, null);
 		}
 
 		@Override
 		public void run() {
-			if (finished)
+			if (base.finished)
 				return;
-			if (shared.monitor.isCanceled())
+			if (base.shared.monitor.isCanceled())
 				return;
-			shared.monitor.subTask(String.format("Reporting problems for '%s'", script().name()));
+			base.shared.monitor.subTask(String.format("Reporting problems for '%s'", script().name()));
 			reportProblems();
-			shared.monitor.worked(1);
+			base.shared.monitor.worked(1);
 		}
 
 		@Override
@@ -648,29 +643,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public Definition definition() { return parser.definition(); }
+		public Definition definition() { return base.parser.definition(); }
 		@Override
 		public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 			Function f = expression.parentOfType(Function.class);
 			int bodyOffset = f != null ? f.bodyLocation().start() : 0;
-			return parser.absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
+			return base.parser.absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 		}
 		@Override
-		public CachedEngineDeclarations cachedEngineDeclarations() { return cachedEngineDeclarations; }
+		public CachedEngineDeclarations cachedEngineDeclarations() { return base.cachedEngineDeclarations; }
 		@Override
-		public Script script() { return script; }
+		public Script script() { return base.script; }
 		@Override
 		public IFile file() { return script().scriptFile(); }
 		@Override
 		public Declaration container() { return script(); }
 		@Override
-		public int fragmentOffset() { return parser.fragmentOffset(); }
+		public int fragmentOffset() { return base.parser.fragmentOffset(); }
 		@Override
 		public IType typeOf(ASTNode node) { return ty(node, this); }
 		@Override
 		public boolean isModifiable(ASTNode node) { return expert(node).isModifiable(node, this); }
 		@Override
-		public BufferedScanner scanner() { return parser; }
+		public BufferedScanner scanner() { return base.parser; }
 
 		@Override
 		public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
@@ -681,7 +676,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public boolean validForType(ASTNode node, IType type) {
-			return expert(node).validForType(node, type, this);
+			return expert(node).unifyDeclaredAndGiven(node, type, this) != null;
 		}
 
 		@Override
@@ -727,7 +722,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * An object that knows how to answer various questions about nodes of type T.
 	 * These questions span
 	 * <ul>
-	 * 	<li>typing ({@link Expert#type(ASTNode, ScriptProcessor)})</li>
+	 * 	<li>typing ({@link Expert#type(ASTNode, Visitation)})</li>
 	 *  <li></li>
 	 * </ul>
 	 * @author madeen
@@ -739,39 +734,39 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void findSuper() {
 			for (Class<? super T> s = cls.getSuperclass(); s != null; s = s.getSuperclass()) {
 				@SuppressWarnings("unchecked")
-				Expert<? super T> sup = (Expert<? super T>)problemReporters.get(s);
+				Expert<? super T> sup = (Expert<? super T>)committee.get(s);
 				if (sup != null) {
 					supr = sup;
 					return;
 				}
 			}
-			supr = NULL_REPORTER;
+			supr = MASTER_OF_NONE;
 		}
 
 		/**
-		 * Returning true tells the {@link ScriptProcessor} to not recursively call {@link #visit(ASTNode, ScriptProcessor)} on {@link ASTNode#subElements()}
+		 * Returning true tells the {@link Visitation} to not recursively call {@link #visit(ASTNode, Visitation)} on {@link ASTNode#subElements()}
 		 * @return Do you just show up, play the music,
 		 */
 		public boolean skipReportingProblemsForSubElements() {return false;}
-		public void visit(T node, ScriptProcessor processor) throws ParsingException {}
+		public void visit(T node, Visitation visitation) throws ParsingException {}
 
-		public IType type(T node, ScriptProcessor processor) { return processor.queryTypeOfExpression(node, PrimitiveType.UNKNOWN); }
+		public IType type(T node, Visitation visitation) { return visitation.queryTypeOfExpression(node, PrimitiveType.UNKNOWN); }
 
-		public IType callerType(T node, ScriptProcessor processor) {
+		public IType callerType(T node, Visitation visitation) {
 			ASTNode pred = node.predecessorInSequence();
 			if (pred != null)
-				return ty(pred, processor);
+				return ty(pred, visitation);
 			else
-				return processor.script();
+				return visitation.script();
 		}
 
-		public final IType predecessorType(ASTNode node, ScriptProcessor processor) {
+		public final IType predecessorType(ASTNode node, Visitation visitation) {
 			ASTNode p = node.predecessorInSequence();
-			return p != null ? ty(p, processor) : null;
+			return p != null ? ty(p, visitation) : null;
 		}
 
-		public final <X extends IType> X predecessorTypeAs(ASTNode node, Class<X> cls, ScriptProcessor processor) {
-			return as(predecessorType(node, processor), cls);
+		public final <X extends IType> X predecessorTypeAs(ASTNode node, Class<X> cls, Visitation visitation) {
+			return as(predecessorType(node, visitation), cls);
 		}
 
 		/**
@@ -780,18 +775,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @param context Script parser context
 		 * @return True if valid, false if not.
 		 */
-		public final boolean validForType(ASTNode node, IType type, ScriptProcessor processor) {
+		public final IType unifyDeclaredAndGiven(ASTNode node, IType type, Visitation visitation) {
+			IType myType = ty(node, visitation);
 			if (type == null)
-				return true;
-			IType myType = ty(node, processor);
-			return TypeUnification.unifyNoChoice(type, myType) != null;
+				return myType;
+			return TypeUnification.unifyNoChoice(type, myType);
 		}
 
-		public boolean typingJudgement(T node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
+		public boolean typingJudgement(T node, IType type, Visitation visitation, TypingJudgementMode mode) {
 			ITypeVariable info;
 			switch (mode) {
 			case Expect:
-				info = processor.requestTypeInfo(node);
+				info = visitation.requestTypeInfo(node);
 				if (info != null)
 					if (info.get() == PrimitiveType.UNKNOWN || info.get() == PrimitiveType.ANY) {
 						info.set(type);
@@ -800,17 +795,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return false;
 				return true;
 			case Force:
-				info = processor.requestTypeInfo(node);
+				info = visitation.requestTypeInfo(node);
 				if (info != null) {
 					info.set(type);
 					return true;
 				} else
 					return false;
 			case Hint:
-				info = processor.queryTypeInfo(node);
+				info = visitation.queryTypeInfo(node);
 				return info == null || info.hint(type);
 			case Unify:
-				info = processor.requestTypeInfo(node);
+				info = visitation.requestTypeInfo(node);
 				if (info != null) {
 					info.set(TypeUnification.unify(info.get(), type));
 					return true;
@@ -821,114 +816,134 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 		}
 
-		public void assignment(T leftSide, ASTNode rightSide, ScriptProcessor processor) {
-			if (processor.typing == Typing.Static) {
-				IType leftTy = ty(leftSide, this, processor);
-				IType rightTy = ty(rightSide, processor);
+		public void assignment(T leftSide, ASTNode rightSide, Visitation visitation) {
+			if (visitation.base.typing == Typing.Static) {
+				IType leftTy = ty(leftSide, this, visitation);
+				IType rightTy = ty(rightSide, visitation);
 				if (!leftTy.canBeAssignedFrom(rightTy))
-					processor.incompatibleTypes(rightSide, rightSide, leftTy, rightTy);
+					visitation.incompatibleTypes(rightSide, rightSide, leftTy, rightTy);
 			} else
-				judgement(leftSide, ty(rightSide, processor), TypingJudgementMode.Force, processor);
+				judgement(leftSide, ty(rightSide, visitation), TypingJudgementMode.Force, visitation);
 		}
 
-		public ITypeVariable createTypeVariable(T node, ScriptProcessor processor) {
-			ITypeable d = ExpressionTypeVariable.typeableFromExpression(node, processor);
+		public ITypeVariable createTypeVariable(T node, Visitation visitation) {
+			ITypeable d = ExpressionTypeVariable.typeableFromExpression(node, visitation);
 			if (d != null && !d.staticallyTyped())
-				return new ExpressionTypeVariable(node, processor);
+				return new ExpressionTypeVariable(node, visitation);
 			return null;
 		}
 
 		@Override
 		public String toString() { return String.format("Expert<%s>", cls.getSimpleName()); }
 
-		public boolean isModifiable(T node, ScriptProcessor processor) { return true; }
+		public boolean isModifiable(T node, Visitation visitation) { return true; }
 	}
 
 	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
 		public AccessDeclarationExpert(Class<T> cls) { super(cls); }
-		protected Declaration obtainDeclaration(T node, ScriptProcessor processor) { return null; }
+		protected Declaration obtainDeclaration(T node, Visitation visitation) { return null; }
 		@Override
-		public void visit(T node, ScriptProcessor processor) throws ParsingException {
-			super.visit(node, processor);
-			internalObtainDeclaration(node, processor);
+		public void visit(T node, Visitation visitation) throws ParsingException {
+			super.visit(node, visitation);
+			internalObtainDeclaration(node, visitation);
 		}
-		protected final Declaration internalObtainDeclaration(T node, ScriptProcessor processor) {
-			if (!processor.roaming || processor.script() == node.parentOfType(Script.class)) {
+		protected final Declaration internalObtainDeclaration(T node, Visitation visitation) {
+			if (!visitation.roaming || visitation.script() == node.parentOfType(Script.class)) {
 				if (node.declaration() == null)
-					node.setDeclaration(obtainDeclaration(node, processor));
+					node.setDeclaration(obtainDeclaration(node, visitation));
 				if (node.declaration() == null) {
-					processor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
-					node.setDeclaration(obtainDeclaration(node, processor));
+					visitation.script().index().loadScriptsContainingDeclarationsNamed(node.name());
+					node.setDeclaration(obtainDeclaration(node, visitation));
 				}
 				return node.declaration();
 			} else
-				return obtainDeclaration(node, processor);
+				return obtainDeclaration(node, visitation);
 		}
 		@Override
-		public ITypeVariable createTypeVariable(T node, ScriptProcessor processor) {
+		public ITypeVariable createTypeVariable(T node, Visitation visitation) {
 			if (node.declaration() instanceof ITypeable && ((ITypeable)node.declaration()).staticallyTyped())
 				return null;
 			else
-				return super.createTypeVariable(node, processor);
+				return super.createTypeVariable(node, visitation);
 		}
 	}
 
-	class ConditionalStatementProblemReporter<T extends ConditionalStatement> extends Expert<T> {
-		public ConditionalStatementProblemReporter(Class<T> cls) { super(cls); }
+	class ConditionalStatementExpert<T extends ConditionalStatement> extends Expert<T> {
+		public ConditionalStatementExpert(Class<T> cls) { super(cls); }
 		@Override
 		public boolean skipReportingProblemsForSubElements() {return true;}
 		@Override
-		public void visit(ConditionalStatement node, ScriptProcessor processor) throws ParsingException {
-			ControlFlow t = processor.controlFlow;
-			processor.controlFlow = ControlFlow.Continue;
-			TypeEnvironment env = processor.newTypeEnvironment();
-			processor.visitNode(node.condition(), true);
-			processor.endTypeEnvironment(env, true, false);
-			env = processor.newTypeEnvironment();
-			processor.visitNode(node.body(), true);
-			processor.endTypeEnvironment(env, true, false);
-			loopConditionWarnings(node, processor);
-			processor.controlFlow = t;
+		public void visit(ConditionalStatement node, Visitation visitation) throws ParsingException {
+			ControlFlow t = visitation.controlFlow;
+			visitation.controlFlow = ControlFlow.Continue;
+			TypeEnvironment env = visitation.newTypeEnvironment();
+			visitation.visitNode(node.condition(), true);
+			visitation.endTypeEnvironment(env, true, false);
+			env = visitation.newTypeEnvironment();
+			visitation.visitNode(node.body(), true);
+			visitation.endTypeEnvironment(env, true, false);
+			loopConditionWarnings(node, visitation);
+			visitation.controlFlow = t;
 		}
 		/**
 		 * Emit warnings about loop conditions that could result in loops never executing or never ending.
 		 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
 		 * @param condition The loop condition to check
 		 */
-		protected void loopConditionWarnings(ConditionalStatement node, ScriptProcessor processor) {
+		protected void loopConditionWarnings(ConditionalStatement node, Visitation visitation) {
 			ASTNode condition = node.condition();
 			if (node.body() == null || condition == null || !(node instanceof ILoop))
 				return;
 			Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateStatic(node.parentOfType(Function.class)));
 			if (Boolean.FALSE.equals(condEv))
-				processor.markers().warning(processor, Problem.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
+				visitation.markers().warning(visitation, Problem.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
 			else if (Boolean.TRUE.equals(condEv)) {
 				EnumSet<ControlFlow> flows = node.body().possibleControlFlows();
 				if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-					processor.markers().warning(processor, Problem.InfiniteLoop, node, node, Markers.NO_THROW);
+					visitation.markers().warning(visitation, Problem.InfiniteLoop, node, node, Markers.NO_THROW);
 			}
 		}
 	}
 
-	private final Expert<ASTNode> NULL_REPORTER = new Expert<ASTNode>(ASTNode.class) {
+	private final Expert<ASTNode> MASTER_OF_NONE = new Expert<ASTNode>(ASTNode.class) {
 		@Override
-		public IType type(ASTNode node, ScriptProcessor processor) {
+		public IType type(ASTNode node, Visitation visitation) {
 			return PrimitiveType.UNKNOWN;
 		}
 		@Override
-		public IType callerType(ASTNode node, ScriptProcessor processor) {
+		public IType callerType(ASTNode node, Visitation visitation) {
 			return PrimitiveType.ANY;
 		}
 	};
 
-	private final <T extends ASTNode> Expert<? super T> findReporter(T node) {
+	private final <T extends ASTNode> Expert<? super T> findExpert(T node) {
 		for (Class<?> cls = node.getClass(); cls != null; cls = cls.getSuperclass()) {
 			@SuppressWarnings("unchecked")
-			Expert<? super T> expert = (Expert<? super T>)problemReporters.get(cls);
+			Expert<? super T> expert = (Expert<? super T>)committee.get(cls);
 			if (expert != null)
 				return expert;
 		}
-		return NULL_REPORTER;
+		return MASTER_OF_NONE;
+	}
+	
+	private void dismissExperts(ASTNode node) {
+		node.traverse(new IASTVisitor<Void>() {
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Void parser) {
+				node.temporaryProblemReportingObject = null;
+				return TraversalContinuation.Continue;
+			}
+		}, null);
+	}
+
+	private void assignExperts(ASTNode node) {
+		node.traverse(new IASTVisitor<Void>() {
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Void parser) {
+				node.temporaryProblemReportingObject = findExpert(node);
+				return TraversalContinuation.Continue;
+			}
+		}, null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -936,32 +951,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 		if (node.temporaryProblemReportingObject != null)
 			return (Expert<? super T>)node.temporaryProblemReportingObject;
 		else
-			return findReporter(node);
+			return findExpert(node);
 	}
 
-	public final IType ty(ASTNode node, ScriptProcessor processor) {
-		return node != null ? ty(node, expert(node), processor) : null;
+	public final IType ty(ASTNode node, Visitation visitation) {
+		return node != null ? ty(node, expert(node), visitation) : null;
 	}
 
-	public final <T extends ASTNode> IType ty(T node, Expert<T> expert, ScriptProcessor processor) {
-		IType type = expert.type(node, processor);
+	public final <T extends ASTNode> IType ty(T node, Expert<T> expert, Visitation visitation) {
+		IType type = expert.type(node, visitation);
 		node.inferredType(type);
 		return type;
 	}
 
-	public final void judgement(ASTNode node, IType type, TypingJudgementMode mode, ScriptProcessor processor) {
-		expert(node).typingJudgement(node, type, processor, mode);
+	public final void judgement(ASTNode node, IType type, TypingJudgementMode mode, Visitation visitation) {
+		expert(node).typingJudgement(node, type, visitation, mode);
 	}
 
-	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> problemReporters = new HashMap<Class<? extends ASTNode>, Expert<?>>();
+	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
 	{
 		@SuppressWarnings("rawtypes")
-		Expert<?>[] experts = new Expert[] {
+		Expert<?>[] classes = new Expert[] {
 
 			new AccessDeclarationExpert<AccessDeclaration>(AccessDeclaration.class),
 
 			new AccessDeclarationExpert<AccessVar>(AccessVar.class) {
-				private Declaration findUsingType(ScriptProcessor processor, AccessVar node, ASTNode predecessor, IType type) {
+				private Declaration findUsingType(Visitation visitation, AccessVar node, ASTNode predecessor, IType type) {
 					for (IType t : type) {
 						Script scriptToLookIn;
 						if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
@@ -972,7 +987,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									return proplistComponent;
 							}
 						} else {
-							FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
+							FindDeclarationInfo info = new FindDeclarationInfo(visitation.script().index());
 							info.searchOrigin = scriptToLookIn;
 							info.findGlobalVariables = predecessor == null;
 							Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
@@ -983,7 +998,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (var != null && var.initializationExpression() != null) {
 									Function p = var.initializationExpression().parentOfType(Function.class);
 									if (p != null)
-										processor.visitFunction(p);
+										visitation.visitFunction(p);
 								}
 								return v;
 							}
@@ -992,13 +1007,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return null;
 				}
 				@Override
-				protected Declaration obtainDeclaration(AccessVar node, ScriptProcessor processor) {
+				protected Declaration obtainDeclaration(AccessVar node, Visitation visitation) {
 					ASTNode p = node.predecessorInSequence();
 					if (p == null && node.name().equals(Variable.THIS.name()))
 						return Variable.THIS;
-					IType type = processor.script();
+					IType type = visitation.script();
 					if (p != null)
-						type = ty(p, processor);
+						type = ty(p, visitation);
 					if (p == null) {
 						Function f = node.parentOfType(Function.class);
 						if (f != null) {
@@ -1006,23 +1021,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (v != null)
 								return v;
 						}
-						Declaration v = processor.variableMap.get(node.name());
-						if (v == null && !processor.variableMap.containsKey(node.name())) {
-							v = findUsingType(processor, node, null, type);
-							processor.variableMap.put(node.name(), v);
+						Declaration v = visitation.base.variableMap.get(node.name());
+						if (v == null && !visitation.base.variableMap.containsKey(node.name())) {
+							v = findUsingType(visitation, node, null, type);
+							visitation.base.variableMap.put(node.name(), v);
 						}
 						return v;
 					}
 					else
-						return findUsingType(processor, node, p, type);
+						return findUsingType(visitation, node, p, type);
 				}
 				@Override
-				public IType type(AccessVar node, ScriptProcessor processor) {
-					Declaration d = internalObtainDeclaration(node, processor);
+				public IType type(AccessVar node, Visitation visitation) {
+					Declaration d = internalObtainDeclaration(node, visitation);
 					// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 					if (d == Variable.THIS)
-						return processor.thisType;
-					IType stored = processor.queryTypeOfExpression(node, null);
+						return visitation.base.thisType;
+					IType stored = visitation.queryTypeOfExpression(node, null);
 					if (stored != null)
 						return stored;
 					if (d instanceof Function)
@@ -1032,13 +1047,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Map<Variable, IType> typesMap= null;
 						if (v.scope() == Scope.LOCAL) {
 							if (node.predecessorInSequence() == null)
-								typesMap = processor.variableTypes;
+								typesMap = visitation.base.variableTypes;
 							else {
-								IType targetType = ty(node.predecessorInSequence(), processor);
+								IType targetType = ty(node.predecessorInSequence(), visitation);
 								if (targetType instanceof Script) {
-									ScriptProcessor other = processor.shared.processors.get(targetType);
+									ScriptProcessor other = visitation.base.shared.processors.get(targetType);
 									if (other != null) {
-										other.reportProblems();
+										new Visitation(other).reportProblems();
 										typesMap = other.variableTypes;
 									} else
 										typesMap = ((Script)targetType).variableTypes();
@@ -1055,7 +1070,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public IType callerType(AccessVar node, ScriptProcessor processor) {
+				public IType callerType(AccessVar node, Visitation visitation) {
 					Variable v = as(node.declaration(), Variable.class);
 					if (v != null) switch (v.scope()) {
 					case CONST: case STATIC:
@@ -1063,21 +1078,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 					default:
 						break;
 					}
-					return super.callerType(node, processor);
+					return super.callerType(node, visitation);
 				}
 				@Override
-				public boolean typingJudgement(AccessVar node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
+				public boolean typingJudgement(AccessVar node, IType type, Visitation visitation, TypingJudgementMode mode) {
 					if (node.declaration() == Variable.THIS)
 						return true;
-					return super.typingJudgement(node, type, processor, mode);
+					return super.typingJudgement(node, type, visitation, mode);
 				}
 				@Override
-				public void visit(AccessVar node, ScriptProcessor processor) throws ParsingException {
-					super.visit(node, processor);
+				public void visit(AccessVar node, Visitation visitation) throws ParsingException {
+					super.visit(node, visitation);
 					ASTNode pred = node.predecessorInSequence();
 					Declaration declaration = node.declaration();
 					if (declaration == null && pred == null)
-						processor.markers().error(processor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
+						visitation.markers().error(visitation, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
 					// local variable used in global function
 					else if (declaration instanceof Variable) {
 						Variable var = (Variable) declaration;
@@ -1092,41 +1107,41 @@ public class DabbleInference extends ProblemReportingStrategy {
 									(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 									(f == null && v != null && v.scope() != Scope.LOCAL)
 								)
-									processor.markers().error(processor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
+									visitation.markers().error(visitation, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
 							}
 							break;
 						case STATIC: case CONST:
-							processor.script().addUsedScript(var.script());
+							visitation.script().addUsedScript(var.script());
 							break;
 						case VAR:
 							Function currentFunction = node.parentOfType(Function.class);
 							if (currentFunction != null && var.parentDeclaration() == currentFunction) {
 								int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
 								if (locationUsed < var.start())
-									processor.markers().warning(processor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
+									visitation.markers().warning(visitation, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
 							}
 							break;
 						case PARAMETER:
 							break;
 						}
 					} else if (declaration instanceof Function)
-						if (!processor.script().engine().settings().supportsFunctionRefs)
-							processor.markers().error(processor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
+						if (!visitation.script().engine().settings().supportsFunctionRefs)
+							visitation.markers().error(visitation, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitation.script().engine().name());
 				}
-				public void initializeFromAssignment(Variable var, ASTNode referee, ASTNode expression, ScriptProcessor processor) {
-					IType type = ty(expression, processor);
+				public void initializeFromAssignment(Variable var, ASTNode referee, ASTNode expression, Visitation visitation) {
+					IType type = ty(expression, visitation);
 					var.expectedToBeOfType(type, TypingJudgementMode.Expect);
-					var.setLocation(processor.absoluteSourceLocationFromExpr(referee));
+					var.setLocation(visitation.absoluteSourceLocationFromExpr(referee));
 					var.forceType(type);
 					var.setInitializationExpression(expression);
 				}
 				@Override
-				public void assignment(AccessVar leftSide, ASTNode rightSide, ScriptProcessor processor) {
+				public void assignment(AccessVar leftSide, ASTNode rightSide, Visitation visitation) {
 					Declaration declaration = leftSide.declaration();
 					if (declaration == Variable.THIS)
 						return;
 					if (declaration == null) {
-						IType predType = predecessorType(leftSide, processor);
+						IType predType = predecessorType(leftSide, visitation);
 						if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST))
 							if (predType instanceof IProplistDeclaration) {
 								IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
@@ -1136,28 +1151,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 										true
 									);
 									declaration = var;
-									initializeFromAssignment(var, leftSide, rightSide, processor);
+									initializeFromAssignment(var, leftSide, rightSide, visitation);
 								}
 							} else for (IType t : predType)
-								if (t == processor.script()) {
+								if (t == visitation.script()) {
 									Variable var = new Variable(leftSide.name(), Variable.Scope.LOCAL);
-									initializeFromAssignment(var, leftSide, rightSide, processor);
-									processor.script().addDeclaration(var);
+									initializeFromAssignment(var, leftSide, rightSide, visitation);
+									visitation.script().addDeclaration(var);
 									declaration = var;
 									break;
 								}
 					}
-					super.assignment(leftSide, rightSide, processor);
+					super.assignment(leftSide, rightSide, visitation);
 				}
 				@Override
-				public ITypeVariable createTypeVariable(AccessVar node, ScriptProcessor processor) {
+				public ITypeVariable createTypeVariable(AccessVar node, Visitation visitation) {
 					if (node.declaration() instanceof Variable && node.predecessorInSequence() == null)
 						return new VariableTypeVariable(node);
 					else
-						return super.createTypeVariable(node, processor);
+						return super.createTypeVariable(node, visitation);
 				}
 				@Override
-				public boolean isModifiable(AccessVar node, ScriptProcessor processor) {
+				public boolean isModifiable(AccessVar node, Visitation visitation) {
 					Declaration declaration = node.declaration();
 					ASTNode pred = node.predecessorInSequence();
 					if (pred == null)
@@ -1169,60 +1184,60 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<InitializationFunction.VarInitializationAccess>(InitializationFunction.VarInitializationAccess.class) {
 				@Override
-				public void assignment(VarInitializationAccess leftSide, ASTNode rightSide, ScriptProcessor processor) {
-					supr.assignment(leftSide, rightSide, processor);
+				public void assignment(VarInitializationAccess leftSide, ASTNode rightSide, Visitation visitation) {
+					supr.assignment(leftSide, rightSide, visitation);
 					if (leftSide.declaration() instanceof Variable && ((Variable)leftSide.declaration()).scope() == Scope.CONST && !rightSide.isConstant())
 						try {
-							processor.markers().error(processor, Problem.NonConstGlobalVarAssignment, rightSide, rightSide, Markers.NO_THROW);
+							visitation.markers().error(visitation, Problem.NonConstGlobalVarAssignment, rightSide, rightSide, Markers.NO_THROW);
 						} catch (ParsingException e) { }
 				}
 				@Override
-				public boolean isModifiable(VarInitializationAccess node, ScriptProcessor processor) { return true; /* sudo */ }
+				public boolean isModifiable(VarInitializationAccess node, Visitation visitation) { return true; /* sudo */ }
 			},
 
 			new Expert<ArrayExpression>(ArrayExpression.class) {
 				@Override
-				public IType type(ArrayExpression node, final ScriptProcessor processor) {
+				public IType type(ArrayExpression node, final Visitation visitation) {
 					return new ArrayType(
 						null,
 						ArrayUtil.map(node.subElements(), IType.class, new IConverter<ASTNode, IType>() {
 							@Override
 							public IType convert(ASTNode from) {
-								return from != null ? ty(from, processor) : PrimitiveType.UNKNOWN;
+								return from != null ? ty(from, visitation) : PrimitiveType.UNKNOWN;
 							}
 						})
 					);
 				}
 				@Override
-				public boolean isModifiable(ArrayExpression node, ScriptProcessor processor) { return false; }
+				public boolean isModifiable(ArrayExpression node, Visitation visitation) { return false; }
 			},
 
 			new Expert<ArrayElementExpression>(ArrayElementExpression.class) {
 				@Override
-				public IType type(ArrayElementExpression node, ScriptProcessor processor) {
-					IType t = supr.type(node, processor);
+				public IType type(ArrayElementExpression node, Visitation visitation) {
+					IType t = supr.type(node, visitation);
 					if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 						return t;
 					ASTNode pred = node.predecessorInSequence();
 					if (pred != null) {
-						IType predTy = ty(pred, processor);
+						IType predTy = ty(pred, visitation);
 						for (IType ty : predTy) {
 							ArrayType at = as(ty, ArrayType.class);
 							if (at != null)
-								return at.typeForElementWithIndex(ASTNode.evaluateStatic(node.argument(), processor));
+								return at.typeForElementWithIndex(ASTNode.evaluateStatic(node.argument(), visitation));
 						}
 					}
 					return PrimitiveType.ANY;
 				}
 				@Override
-				public void assignment(ArrayElementExpression leftSide, ASTNode rightSide, ScriptProcessor processor) {
-					IType predType_ = predecessorType(leftSide, processor);
+				public void assignment(ArrayElementExpression leftSide, ASTNode rightSide, Visitation visitation) {
+					IType predType_ = predecessorType(leftSide, visitation);
 					for (IType predType : predType_) {
 						ArrayType arrayType = as(predType, ArrayType.class);
-						IType rightSideType = ty(rightSide, processor);
+						IType rightSideType = ty(rightSide, visitation);
 						ASTNode pred = leftSide.predecessorInSequence();
 						if (arrayType != null) {
-							Object argEv = ASTNode.evaluateStatic(leftSide.argument(), processor);
+							Object argEv = ASTNode.evaluateStatic(leftSide.argument(), visitation);
 							IType mutation;
 							if (argEv instanceof Number)
 								mutation = arrayType.modifiedBySliceAssignment(
@@ -1235,108 +1250,108 @@ public class DabbleInference extends ProblemReportingStrategy {
 									TypeUnification.unify(rightSideType, arrayType.generalElementType()),
 									ArrayType.NO_PRESUMED_LENGTH
 								);
-							processor.storeType(pred, mutation);
+							visitation.storeType(pred, mutation);
 							break;
 						} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
 							judgement(
 								pred,
 								new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
 								TypingJudgementMode.Force,
-								processor
+								visitation
 							);
 					}
 				}
 				@Override
-				public void visit(ArrayElementExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
-					IType type = predecessorType(node, processor);
+				public void visit(ArrayElementExpression node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
+					IType type = predecessorType(node, visitation);
 					if (type == null)
 						type = PrimitiveType.UNKNOWN;
 					ASTNode arg = node.argument();
 					if (arg == null)
-						processor.markers().warning(processor, Problem.MissingExpression, node, node, 0);
+						visitation.markers().warning(visitation, Problem.MissingExpression, node, node, 0);
 					else if (PrimitiveType.UNKNOWN != type && PrimitiveType.ANY != type) {
-						IType argType = ty(arg, processor);
+						IType argType = ty(arg, visitation);
 						ASTNode pred = node.predecessorInSequence();
 						if (argType == PrimitiveType.STRING) {
 							if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
-								processor.markers().warning(processor, Problem.NotAProplist, node, pred, 0);
+								visitation.markers().warning(visitation, Problem.NotAProplist, node, pred, 0);
 							else
-								judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.Unify, processor);
+								judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.Unify, visitation);
 						}
 						else if (argType == PrimitiveType.INT)
 							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
-								processor.markers().warning(processor, Problem.NotAnArrayOrProplist, node, pred, 0);
+								visitation.markers().warning(visitation, Problem.NotAnArrayOrProplist, node, pred, 0);
 							//else
 							//	expert(pred).typingJudgement(pred, PrimitiveType.ARRAY, processor, TypingJudgementMode.Unify);
 					}
 				}
 				@Override
-				public boolean isModifiable(ArrayElementExpression node, ScriptProcessor processor) { return true; }
+				public boolean isModifiable(ArrayElementExpression node, Visitation visitation) { return true; }
 			},
 
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
-				private void warnIfNotArray(ASTNode node, ScriptProcessor processor, IType type) {
+				private void warnIfNotArray(ASTNode node, Visitation visitation, IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
 						TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
-						processor.markers().warning(processor, Problem.NotAnArrayOrProplist, node, node, 0);
+						visitation.markers().warning(visitation, Problem.NotAnArrayOrProplist, node, node, 0);
 				}
 				@Override
-				public void visit(ArraySliceExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
-					IType type = predecessorType(node, processor);
-					warnIfNotArray(node.predecessorInSequence(), processor, type);
+				public void visit(ArraySliceExpression node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
+					IType type = predecessorType(node, visitation);
+					warnIfNotArray(node.predecessorInSequence(), visitation, type);
 				}
 				@Override
-				public boolean isModifiable(ArraySliceExpression node, ScriptProcessor processor) { return false; }
+				public boolean isModifiable(ArraySliceExpression node, Visitation visitation) { return false; }
 			},
 
 			new Expert<OperatorExpression>(OperatorExpression.class) {
 				@Override
-				public IType type(OperatorExpression node, ScriptProcessor processor) {
+				public IType type(OperatorExpression node, Visitation visitation) {
 					return node.operator().resultType();
 				}
 				@Override
-				public boolean isModifiable(OperatorExpression node, ScriptProcessor processor) { return node.operator().returnsRef(); }
+				public boolean isModifiable(OperatorExpression node, Visitation visitation) { return node.operator().returnsRef(); }
 			},
 
 			new Expert<BinaryOp>(BinaryOp.class) {
 				@Override
-				public IType type(BinaryOp node, ScriptProcessor processor) {
+				public IType type(BinaryOp node, Visitation visitation) {
 					switch (node.operator()) {
 					// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 					case And: case Or: case JumpNotNil:
-						IType leftSideType = ty(node.leftSide(), processor);
-						IType rightSideType = ty(node.rightSide(), processor);
+						IType leftSideType = ty(node.leftSide(), visitation);
+						IType rightSideType = ty(node.rightSide(), visitation);
 						if (leftSideType == rightSideType)
 							return leftSideType;
 						else
 							return TypeUnification.unify(leftSideType, rightSideType);
 					case Assign:
-						return ty(node.rightSide(), processor);
+						return ty(node.rightSide(), visitation);
 					default:
-						return supr.type(node, processor);
+						return supr.type(node, visitation);
 					}
 				}
 				@Override
-				public void visit(BinaryOp node, ScriptProcessor processor) throws ParsingException {
+				public void visit(BinaryOp node, Visitation visitation) throws ParsingException {
 					final Operator op = node.operator();
 					// sanity
 					ASTNode left = node.leftSide();
 					ASTNode right = node.rightSide();
 					node.setLocation(left.start(), right.end());
 					// i'm an assignment operator and i can't modify my left side :C
-					if (op.modifiesArgument() && !expert(left).isModifiable(left, processor))
-						processor.markers().error(processor, Problem.ExpressionNotModifiable, node, left, Markers.NO_THROW);
+					if (op.modifiesArgument() && !expert(left).isModifiable(left, visitation))
+						visitation.markers().error(visitation, Problem.ExpressionNotModifiable, node, left, Markers.NO_THROW);
 					// obsolete operators in #strict 2impor
-					if ((op == Operator.StringEqual || op == Operator.ne) && (processor.strictLevel >= 2))
-						processor.markers().warning(processor, Problem.ObsoleteOperator, node, node, 0, op.operatorName());
+					if ((op == Operator.StringEqual || op == Operator.ne) && (visitation.base.strictLevel >= 2))
+						visitation.markers().warning(visitation, Problem.ObsoleteOperator, node, node, 0, op.operatorName());
 					// wrong parameter types
-					if (!validForType(left, op.firstArgType(), processor))
-						processor.incompatibleTypes(node, left, op.firstArgType(), ty(left, processor));
-					if (!validForType(right, op.secondArgType(), processor))
-						processor.incompatibleTypes(node, right, op.secondArgType(), ty(right, processor));
+					if (unifyDeclaredAndGiven(left, op.firstArgType(), visitation) == null)
+						visitation.incompatibleTypes(node, left, op.firstArgType(), ty(left, visitation));
+					if (unifyDeclaredAndGiven(right, op.secondArgType(), visitation) == null)
+						visitation.incompatibleTypes(node, right, op.secondArgType(), ty(right, visitation));
 
 					IType expectedLeft, expectedRight;
 					switch (op) {
@@ -1351,112 +1366,112 @@ public class DabbleInference extends ProblemReportingStrategy {
 					switch (op) {
 					case Assign: case AssignAdd: case AssignSubtract:
 					case AssignMultiply: case AssignModulo: case AssignDivide:
-						expert(left).assignment(left, right, processor);
+						expert(left).assignment(left, right, visitation);
 						break;
 					default:
 						break;
 					}
 
 					if (expectedLeft != null)
-						judgement(left, expectedLeft, TypingJudgementMode.Unify, processor);
+						judgement(left, expectedLeft, TypingJudgementMode.Unify, visitation);
 					if (expectedRight != null)
-						judgement(right, expectedRight, TypingJudgementMode.Unify, processor);
+						judgement(right, expectedRight, TypingJudgementMode.Unify, visitation);
 				}
 				@Override
-				public ITypeVariable createTypeVariable(BinaryOp node, ScriptProcessor processor) {
+				public ITypeVariable createTypeVariable(BinaryOp node, Visitation visitation) {
 					ASTNode leftSide = node.leftSide();
 					if (node.operator() == Operator.Assign && leftSide != null)
-						return expert(leftSide).createTypeVariable(leftSide, processor);
-					return super.createTypeVariable(node, processor);
+						return expert(leftSide).createTypeVariable(leftSide, visitation);
+					return super.createTypeVariable(node, visitation);
 				}
 			},
 
 			new Expert<UnaryOp>(UnaryOp.class) {
 				@Override
-				public void visit(UnaryOp node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(UnaryOp node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					ASTNode arg = node.argument();
-					if (node.operator().modifiesArgument() && !expert(arg).isModifiable(arg, processor))
-						processor.markers().error(processor, Problem.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
+					if (node.operator().modifiesArgument() && !expert(arg).isModifiable(arg, visitation))
+						visitation.markers().error(visitation, Problem.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
 					Expert<? super ASTNode> rarg = expert(arg);
 					PrimitiveType firstArgType = node.operator().firstArgType();
-					if (!rarg.validForType(arg, firstArgType, processor))
-						processor.incompatibleTypes(node, arg, firstArgType,
-							ty(arg, rarg, processor));
+					if (rarg.unifyDeclaredAndGiven(arg, firstArgType, visitation) == null)
+						visitation.incompatibleTypes(node, arg, firstArgType,
+							ty(arg, rarg, visitation));
 					if (firstArgType != PrimitiveType.ANY)
-						rarg.typingJudgement(arg, firstArgType, processor, TypingJudgementMode.Expect);
+						rarg.typingJudgement(arg, firstArgType, visitation, TypingJudgementMode.Expect);
 				}
 				@Override
-				public boolean isModifiable(UnaryOp node, ScriptProcessor processor) {
+				public boolean isModifiable(UnaryOp node, Visitation visitation) {
 					return node.placement() == Placement.Prefix && node.operator().returnsRef();
 				}
 			},
 
 			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public void visit(BoolLiteral node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(BoolLiteral node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					if (node.parent() instanceof BinaryOp) {
 						Operator op = ((BinaryOp) node.parent()).operator();
 						if (op == Operator.And || op == Operator.Or)
-							processor.markers().warning(processor, Problem.BoolLiteralAsOpArg, node, node, 0, this.toString());
+							visitation.markers().warning(visitation, Problem.BoolLiteralAsOpArg, node, node, 0, this.toString());
 					}
 				}
 			},
 
 			new Expert<ContinueStatement>(ContinueStatement.class) {
 				@Override
-				public void visit(ContinueStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(ContinueStatement node, Visitation visitation) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
-						processor.markers().error(processor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
-					supr.visit(node, processor);
+						visitation.markers().error(visitation, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+					supr.visit(node, visitation);
 				}
 			},
 
 			new Expert<BreakStatement>(BreakStatement.class) {
 				@Override
-				public void visit(BreakStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(BreakStatement node, Visitation visitation) throws ParsingException {
 					if (node.parentOfType(ILoop.class) == null)
-						processor.markers().error(processor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
-					supr.visit(node, processor);
+						visitation.markers().error(visitation, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+					supr.visit(node, visitation);
 				}
 			},
 
 			new Expert<ReturnStatement>(ReturnStatement.class) {
-				private void warnAboutTupleInReturnExpr(ScriptProcessor processor, ASTNode node, boolean tupleIsError) throws ParsingException {
+				private void warnAboutTupleInReturnExpr(Visitation visitation, ASTNode node, boolean tupleIsError) throws ParsingException {
 					if (node == null)
 						return;
 					if (node instanceof Tuple)
 						if (tupleIsError)
-							processor.markers().error(processor, Problem.TuplesNotAllowed, node, node, Markers.NO_THROW);
-						else if (processor.strictLevel >= 2)
-							processor.markers().error(processor, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
+							visitation.markers().error(visitation, Problem.TuplesNotAllowed, node, node, Markers.NO_THROW);
+						else if (visitation.base.strictLevel >= 2)
+							visitation.markers().error(visitation, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
 					ASTNode[] subElms = node.subElements();
 					for (ASTNode e : subElms)
-						warnAboutTupleInReturnExpr(processor, e, true);
+						warnAboutTupleInReturnExpr(visitation, e, true);
 				}
 				@Override
-				public void visit(ReturnStatement node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(ReturnStatement node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					ASTNode returnExpr = node.returnExpr();
-					warnAboutTupleInReturnExpr(processor, returnExpr, false);
+					warnAboutTupleInReturnExpr(visitation, returnExpr, false);
 					Function currentFunction = node.parentOfType(Function.class);
 					if (currentFunction == null)
-						processor.markers().error(processor, Problem.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
+						visitation.markers().error(visitation, Problem.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
 					else if (returnExpr != null)
-						if (processor.typing == Typing.Static && currentFunction.staticallyTyped()) {
-							if (!expert(returnExpr).validForType(returnExpr, currentFunction.returnType(), processor))
-								processor.incompatibleTypes(node,
-									returnExpr, currentFunction.returnType(), ty(returnExpr, processor));
+						if (visitation.base.typing == Typing.Static && currentFunction.staticallyTyped()) {
+							if (expert(returnExpr).unifyDeclaredAndGiven(returnExpr, currentFunction.returnType(), visitation) == null)
+								visitation.incompatibleTypes(node,
+									returnExpr, currentFunction.returnType(), ty(returnExpr, visitation));
 						}
 						else {
-							IType type = ty(returnExpr, processor);
-							judgement(node, type, TypingJudgementMode.Unify, processor);
+							IType type = ty(returnExpr, visitation);
+							judgement(node, type, TypingJudgementMode.Unify, visitation);
 							//parser.linkTypesOf(dummy, returnExpr);
 						}
 				}
 				@Override
-				public ITypeVariable createTypeVariable(ReturnStatement node, ScriptProcessor processor) {
+				public ITypeVariable createTypeVariable(ReturnStatement node, Visitation visitation) {
 					return new CurrentFunctionReturnTypeVariable(node.parentOfType(Function.class));
 				}
 			},
@@ -1471,25 +1486,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 				 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 				 */
 				private Declaration findUsingType(
-					ScriptProcessor processor,
+					Visitation visitation,
 					CallDeclaration node, String functionName,
 					IType type
 				) {
-					IType lookIn = type != null ? type : processor.script();
+					IType lookIn = type != null ? type : visitation.script();
 					if (lookIn != null) for (IType ty : lookIn) {
 						Script script = as(ty, Script.class);
 						if (script == null && ty instanceof MetaDefinition)
 							script = ((MetaDefinition)ty).definition();
 						if (script == null)
 							continue;
-						FindDeclarationInfo info = new FindDeclarationInfo(processor.script().index());
-						info.searchOrigin = processor.script();
+						FindDeclarationInfo info = new FindDeclarationInfo(visitation.script().index());
+						info.searchOrigin = visitation.script();
 						info.contextFunction = node.parentOfType(Function.class);
 						info.findGlobalVariables = type == null;
 						Declaration dec = script.findDeclaration(functionName, info);
 						// parse function before this one
 						if (dec instanceof Function && node.parentOfType(Function.class) != null)
-							processor.visitFunction((Function)dec);
+							visitation.visitFunction((Function)dec);
 						if (dec != null)
 							return dec;
 					}
@@ -1497,17 +1512,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 						// find global function
 						Declaration declaration;
 						try {
-							declaration = processor.script().index().findGlobal(Declaration.class, functionName);
+							declaration = visitation.script().index().findGlobal(Declaration.class, functionName);
 						} catch (Exception e) {
 							e.printStackTrace();
 							return null;
 						}
 						// find engine function
 						if (declaration == null)
-							declaration = processor.script().index().engine().findFunction(functionName);
+							declaration = visitation.script().index().engine().findFunction(functionName);
 
-						List<Declaration> allFromLocalIndex = processor.script().index().declarationMap().get(functionName);
-						Declaration decl = processor.script().engine().findLocalFunction(functionName, false);
+						List<Declaration> allFromLocalIndex = visitation.script().index().declarationMap().get(functionName);
+						Declaration decl = visitation.script().engine().findLocalFunction(functionName, false);
 						int numCandidates = 0;
 						if (allFromLocalIndex != null)
 							numCandidates += allFromLocalIndex.size();
@@ -1521,39 +1536,39 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return null;
 				}
 				@Override
-				protected Declaration obtainDeclaration(CallDeclaration node, ScriptProcessor processor) {
+				protected Declaration obtainDeclaration(CallDeclaration node, Visitation visitation) {
 					String declarationName = node.name();
 					if (declarationName.equals(Keywords.Return))
 						return null;
 					ASTNode p = node.predecessorInSequence();
 					if (p == null) {
-						Declaration f = processor.functionMap.get(node.name());
-						if (f == null && !processor.functionMap.containsKey(node.name())) {
-							f = findUsingType(processor, node, declarationName, processor.script());
-							processor.functionMap.put(declarationName, f);
+						Declaration f = visitation.base.functionMap.get(node.name());
+						if (f == null && !visitation.base.functionMap.containsKey(node.name())) {
+							f = findUsingType(visitation, node, declarationName, visitation.script());
+							visitation.base.functionMap.put(declarationName, f);
 						}
 						return f;
 					}
 					else
-						return findUsingType(processor, node, declarationName, ty(p, processor));
+						return findUsingType(visitation, node, declarationName, ty(p, visitation));
 				}
-				private IType declarationType(CallDeclaration node, ScriptProcessor processor) {
-					Declaration d = internalObtainDeclaration(node, processor);
+				private IType declarationType(CallDeclaration node, Visitation visitation) {
+					Declaration d = internalObtainDeclaration(node, visitation);
 
 					// look for gathered type information
-					IType stored = processor.queryTypeOfExpression(node, null);
+					IType stored = visitation.queryTypeOfExpression(node, null);
 					if (stored != null)
 						return stored;
 
 					// calling this() as function -> return object type belonging to script
-					if (node.params().length == 0 && d != null && (d == processor.cachedEngineDeclarations().This || d == Variable.THIS))
-						return processor.thisType;
+					if (node.params().length == 0 && d != null && (d == visitation.cachedEngineDeclarations().This || d == Variable.THIS))
+						return visitation.base.thisType;
 
 					if (d instanceof Function) {
 						// Some special rule applies and the return type is set accordingly
-						SpecialFuncRule rule = node.specialRuleFromContext(processor, SpecialEngineRules.RETURNTYPE_MODIFIER);
+						SpecialFuncRule rule = node.specialRuleFromContext(visitation, SpecialEngineRules.RETURNTYPE_MODIFIER);
 						if (rule != null) {
-							IType type = rule.returnType(processor, node);
+							IType type = rule.returnType(visitation, node);
 							if (type != null)
 								return type;
 						}
@@ -1561,13 +1576,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Map<String, IType> typesMap = null;
 						if (f.visibility() != FunctionScope.GLOBAL)
 							if (node.predecessorInSequence() == null)
-								typesMap = processor.functionReturnTypes;
+								typesMap = visitation.base.functionReturnTypes;
 							else {
-								IType targetType = ty(node.predecessorInSequence(), processor);
+								IType targetType = ty(node.predecessorInSequence(), visitation);
 								if (targetType instanceof Script) {
-									ScriptProcessor other = processor.shared.processors.get(targetType);
+									ScriptProcessor other = visitation.base.shared.processors.get(targetType);
 									if (other != null) {
-										other.reportProblems();
+										new Visitation(other).reportProblems();
 										typesMap = other.functionReturnTypes;
 									} else
 										typesMap = ((Script)targetType).functionReturnTypes();
@@ -1582,15 +1597,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (d instanceof Variable)
 						return ((Variable)d).type();
 
-					return supr != null ? supr.type(node, processor) : PrimitiveType.UNKNOWN;
+					return supr != null ? supr.type(node, visitation) : PrimitiveType.UNKNOWN;
 				}
-				private boolean unknownFunctionShouldBeError(CallDeclaration node, ScriptProcessor processor) {
+				private boolean unknownFunctionShouldBeError(CallDeclaration node, Visitation visitation) {
 					ASTNode pred = node.predecessorInSequence();
 					// stand-alone function? always bark!
 					if (pred == null)
 						return true;
 					// not typed? weird
-					IType predType = ty(pred, processor);
+					IType predType = ty(pred, visitation);
 					if (predType == null)
 						return false;
 					// called via ~? ok
@@ -1601,7 +1616,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							pred = pred.predecessorInSequence();
 					// allow this->Unknown()
 					AccessDeclaration ad = as(pred, AccessDeclaration.class);
-					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == processor.cachedEngineDeclarations().This))
+					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == visitation.cachedEngineDeclarations().This))
 						return false;
 					boolean anyDefinitions = false;
 					for (IType t : predType)
@@ -1610,18 +1625,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return anyDefinitions;
 				}
 				@Override
-				public IType type(CallDeclaration node, ScriptProcessor processor) {
-					IType type = declarationType(node, processor);
+				public IType type(CallDeclaration node, Visitation visitation) {
+					IType type = declarationType(node, visitation);
 					if (type instanceof FunctionType)
 						return ((FunctionType)type).prototype().returnType();
 					else
 						return type;
 				}
 				@Override
-				public void visit(CallDeclaration node, ScriptProcessor processor) throws ParsingException {
-					super.visit(node, processor);
+				public void visit(CallDeclaration node, Visitation visitation) throws ParsingException {
+					super.visit(node, visitation);
 
-					CachedEngineDeclarations cachedEngineDeclarations = processor.cachedEngineDeclarations();
+					CachedEngineDeclarations cachedEngineDeclarations = visitation.cachedEngineDeclarations();
 					String declarationName = node.name();
 					Declaration declaration = node.declaration();
 					ASTNode[] params = node.params();
@@ -1629,27 +1644,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// return as function
 					if (declarationName.equals(Keywords.Return)) {
-						if (processor.strictLevel >= 2)
-							processor.markers().error(processor, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
+						if (visitation.base.strictLevel >= 2)
+							visitation.markers().error(visitation, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
 						else
-							processor.markers().warning(processor, Problem.ReturnAsFunction, node, node, 0);
+							visitation.markers().warning(visitation, Problem.ReturnAsFunction, node, node, 0);
 					} else if (declaration instanceof Variable) {
 						// variable as function
 						((Variable)declaration).setUsed(true);
-						IType type = declarationType(node, processor);
+						IType type = declarationType(node, visitation);
 						// no warning when in #strict mode
-						if (processor.strictLevel >= 2)
+						if (visitation.base.strictLevel >= 2)
 							if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-								processor.markers().warning(processor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
+								visitation.markers().warning(visitation, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 					} else if (declaration instanceof Function) {
 						Function f = (Function)declaration;
 						if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
-							processor.script().addUsedScript(f.script());
+							visitation.script().addUsedScript(f.script());
 
-						SpecialFuncRule rule = processor.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);
+						SpecialFuncRule rule = visitation.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);
 						boolean specialCaseHandled =
 							rule != null &&
-							rule.validateArguments(node, params, processor);
+							rule.validateArguments(node, params, visitation);
 
 						// not a special case... check regular parameter types
 						if (!specialCaseHandled) {
@@ -1660,19 +1675,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 								ASTNode given = params[givenParam++];
 								if (given == null)
 									continue;
-								if (!validForType(given, parm.type(), processor))
-									processor.incompatibleTypes(node, given, parm.type(), ty(given, processor));
+								IType unified = unifyDeclaredAndGiven(given, parm.type(), visitation);
+								if (unified == null)
+									visitation.incompatibleTypes(node, given, parm.type(), ty(given, visitation));
+								else
+									judgement(given, unified, TypingJudgementMode.Unify, visitation);
 							}
 						}
-					} else if (declaration == null && unknownFunctionShouldBeError(node, processor)) {
+					} else if (declaration == null && unknownFunctionShouldBeError(node, visitation)) {
 						int start = node.start();
-						processor.markers().error(processor, Problem.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
+						visitation.markers().error(visitation, Problem.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
 					}
 				}
 				@Override
-				public ITypeVariable createTypeVariable(CallDeclaration node, ScriptProcessor processor) {
+				public ITypeVariable createTypeVariable(CallDeclaration node, Visitation visitation) {
 					Declaration d = node.declaration();
-					CachedEngineDeclarations cache = processor.cachedEngineDeclarations();
+					CachedEngineDeclarations cache = visitation.cachedEngineDeclarations();
 					if (isAnyOf(d, cache.VarAccessFunctions)) {
 						Object ev;
 						if (node.params().length == 1 && (ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) != null)
@@ -1687,11 +1705,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return new FunctionReturnTypeVariable((Function)d);
 					}
 					else if (d != null)
-						return new ExpressionTypeVariable(node, processor);
-					return super.createTypeVariable(node, processor);
+						return new ExpressionTypeVariable(node, visitation);
+					return super.createTypeVariable(node, visitation);
 				}
 				@Override
-				public boolean isModifiable(CallDeclaration node, ScriptProcessor processor) {
+				public boolean isModifiable(CallDeclaration node, Visitation visitation) {
 					Declaration declaration = node.declaration();
 					IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
 					return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
@@ -1700,36 +1718,36 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new AccessDeclarationExpert<CallInherited>(CallInherited.class) {
 				@Override
-				public IType type(CallInherited node, ScriptProcessor processor) {
-					ITypeVariable tyVar = processor.queryTypeInfo(node);
+				public IType type(CallInherited node, Visitation visitation) {
+					ITypeVariable tyVar = visitation.queryTypeInfo(node);
 					if (tyVar != null)
 						return tyVar.get();
 					Function inherited = node.parentOfType(Function.class).inheritedFunction();
 					if (inherited != null) {
-						processor.startRoaming();
-						ITypeVariable ty = processor.visitFunction(inherited);
-						processor.endRoaming();
+						visitation.startRoaming();
+						ITypeVariable ty = visitation.visitFunction(inherited);
+						visitation.endRoaming();
 						if (ty != null) {
-							judgement(node, ty.get(), TypingJudgementMode.Force, processor);
+							judgement(node, ty.get(), TypingJudgementMode.Force, visitation);
 							return ty.get();
 						}
 					}
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public void visit(CallInherited node, ScriptProcessor processor) throws ParsingException {
-					if (!processor.roaming || node.parentOfType(Script.class) == processor.script()) {
+				public void visit(CallInherited node, Visitation visitation) throws ParsingException {
+					if (!visitation.roaming || node.parentOfType(Script.class) == visitation.script()) {
 						// inherited/_inherited not allowed in non-strict mode
-						if (processor.strictLevel <= 0)
-							processor.markers().error(processor, Problem.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
+						if (visitation.base.strictLevel <= 0)
+							visitation.markers().error(visitation, Problem.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
 
 						node.setDeclaration(node.parentOfType(Function.class).inheritedFunction());
 						if (node.declaration() == null && !node.failsafe())
-							processor.markers().error(processor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, node.parentOfType(Function.class).name());
+							visitation.markers().error(visitation, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, node.parentOfType(Function.class).name());
 					}
 				}
 				@Override
-				public ITypeVariable createTypeVariable(CallInherited node, ScriptProcessor processor) {
+				public ITypeVariable createTypeVariable(CallInherited node, Visitation visitation) {
 					Function inherited = node.parentOfType(Function.class).inheritedFunction();
 					return inherited != null ? new InheritedFunctionReturnTypeVariable(inherited) : null;
 				}
@@ -1737,38 +1755,38 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Sequence>(Sequence.class) {
 				@Override
-				public IType type(Sequence node, ScriptProcessor processor) {
+				public IType type(Sequence node, Visitation visitation) {
 					ASTNode[] elements = node.subElements();
 					return (elements == null || elements.length == 0)
 						? PrimitiveType.UNKNOWN
-						: ty(elements[elements.length-1], processor);
+						: ty(elements[elements.length-1], visitation);
 				}
 				@Override
-				public void assignment(Sequence leftSide, ASTNode rightSide, ScriptProcessor processor) {
+				public void assignment(Sequence leftSide, ASTNode rightSide, Visitation visitation) {
 					ASTNode lastElement = leftSide.lastElement();
-					expert(lastElement).assignment(lastElement, rightSide, processor);
+					expert(lastElement).assignment(lastElement, rightSide, visitation);
 				}
 				@Override
-				public void visit(Sequence node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(Sequence node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					ASTNode p = null;
 					for (ASTNode e : node.subElements()) {
 						if (
 							(e != null && !e.isValidInSequence(p)) ||
 							(p != null && !p.allowsSequenceSuccessor(e))
 						)
-							processor.markers().error(processor, Problem.NotAllowedHere, node, e, Markers.NO_THROW, e);
+							visitation.markers().error(visitation, Problem.NotAllowedHere, node, e, Markers.NO_THROW, e);
 						p = e;
 					}
 					if (p != null && !p.isValidAtEndOfSequence())
-						processor.markers().error(processor, Problem.NotFinished, node, node, Markers.NO_THROW, node.printed());
+						visitation.markers().error(visitation, Problem.NotFinished, node, node, Markers.NO_THROW, node.printed());
 				}
 				@Override
-				public boolean isModifiable(Sequence node, ScriptProcessor processor) {
+				public boolean isModifiable(Sequence node, Visitation visitation) {
 					ASTNode[] elements = node.subElements();
 					if (elements != null && elements.length > 0) {
 						ASTNode last = elements[elements.length-1];
-						return expert(last).isModifiable(last, processor);
+						return expert(last).isModifiable(last, visitation);
 					} else
 						return false;
 				}
@@ -1776,24 +1794,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				@Override
-				public IType type(ArraySliceExpression node, ScriptProcessor processor) {
-					ArrayType arrayType = predecessorTypeAs(node, ArrayType.class, processor);
+				public IType type(ArraySliceExpression node, Visitation visitation) {
+					ArrayType arrayType = predecessorTypeAs(node, ArrayType.class, visitation);
 					if (arrayType != null)
 						return node.lo() == null && node.hi() == null ? arrayType : arrayType.typeForSlice(
-							ASTNode.evaluateStatic(node.lo(), processor),
-							ASTNode.evaluateStatic(node.hi(), processor)
+							ASTNode.evaluateStatic(node.lo(), visitation),
+							ASTNode.evaluateStatic(node.hi(), visitation)
 						);
 					else
 						return PrimitiveType.ARRAY;
 				}
 				@Override
-				public void assignment(ArraySliceExpression leftSide, ASTNode rightSide, ScriptProcessor processor) {
-					ArrayType arrayType = predecessorTypeAs(leftSide, ArrayType.class, processor);
-					IType sliceType = ty(rightSide, processor);
+				public void assignment(ArraySliceExpression leftSide, ASTNode rightSide, Visitation visitation) {
+					ArrayType arrayType = predecessorTypeAs(leftSide, ArrayType.class, visitation);
+					IType sliceType = ty(rightSide, visitation);
 					if (arrayType != null)
-						processor.storeType(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
-							ASTNode.evaluateStatic(leftSide.lo(), processor),
-							ASTNode.evaluateStatic(leftSide.hi(), processor),
+						visitation.storeType(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
+							ASTNode.evaluateStatic(leftSide.lo(), visitation),
+							ASTNode.evaluateStatic(leftSide.hi(), visitation),
 							sliceType
 							));
 				}
@@ -1801,45 +1819,45 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Literal>(Literal.class) {
 				@Override
-				public boolean typingJudgement(Literal node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
+				public boolean typingJudgement(Literal node, IType type, Visitation visitation, TypingJudgementMode mode) {
 					// constantly steadfast do i resist the pressure of expectancy lied upon me
 					return true;
 				}
 				@Override
-				public void assignment(Literal leftSide, ASTNode rightSide, ScriptProcessor processor) { /* don't care */ }
+				public void assignment(Literal leftSide, ASTNode rightSide, Visitation visitation) { /* don't care */ }
 				@Override
-				public ITypeVariable createTypeVariable(Literal node, ScriptProcessor processor) { return null; /* nope */ }
+				public ITypeVariable createTypeVariable(Literal node, Visitation visitation) { return null; /* nope */ }
 				@Override
-				public boolean isModifiable(Literal node, ScriptProcessor processor) { return false; }
+				public boolean isModifiable(Literal node, Visitation visitation) { return false; }
 			},
 
 			new Expert<Nil>(Nil.class) {
 				@Override
-				public IType type(Nil node, ScriptProcessor processor) {
+				public IType type(Nil node, Visitation visitation) {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public void visit(Nil node, ScriptProcessor processor) throws ParsingException {
-					if (!processor.script().engine().settings().supportsNil)
-						processor.markers().error(processor, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, processor.script().engine().name());
+				public void visit(Nil node, Visitation visitation) throws ParsingException {
+					if (!visitation.script().engine().settings().supportsNil)
+						visitation.markers().error(visitation, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, visitation.script().engine().name());
 				}
 			},
 
 			new Expert<StringLiteral>(StringLiteral.class) {
 				@Override
-				public IType type(StringLiteral node, ScriptProcessor processor) { return PrimitiveType.STRING; }
+				public IType type(StringLiteral node, Visitation visitation) { return PrimitiveType.STRING; }
 				@Override
-				public void visit(StringLiteral node, ScriptProcessor processor) throws ParsingException {
+				public void visit(StringLiteral node, Visitation visitation) throws ParsingException {
 					// warn about overly long strings
-					long max = processor.script().index().engine().settings().maxStringLen;
+					long max = visitation.script().index().engine().settings().maxStringLen;
 					String lit = node.literal();
 					if (max != 0 && lit.length() > max)
-						processor.markers().warning(processor, Problem.StringTooLong, node, node, lit.length(), max);
+						visitation.markers().warning(visitation, Problem.StringTooLong, node, node, lit.length(), max);
 
 					// stringtbl entries
 					// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 					// and checking for the existence of the table entries there is overkill
-					if (processor.hasAppendTo || processor.script().resource() == null)
+					if (visitation.base.hasAppendTo || visitation.script().resource() == null)
 						return;
 					String value = lit;
 					int valueLen = value.length();
@@ -1848,7 +1866,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (i+1 < valueLen && value.charAt(i) == '$') {
 							EntityRegion region = StringTbl.entryRegionInString(lit, node.start(), (i+1));
 							if (region != null) {
-								StringTbl.reportMissingStringTblEntries(processor, region, node);
+								StringTbl.reportMissingStringTblEntries(visitation, region, node);
 								i += region.region().getLength();
 								continue;
 							}
@@ -1860,8 +1878,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<IntegerLiteral>(IntegerLiteral.class) {
 				@Override
-				public IType type(IntegerLiteral node, ScriptProcessor processor) {
-					if (node.longValue() == 0 && processor.script().engine().settings().zeroIsAny)
+				public IType type(IntegerLiteral node, Visitation visitation) {
+					if (node.longValue() == 0 && visitation.script().engine().settings().zeroIsAny)
 						return PrimitiveType.ANY;
 					else
 						return PrimitiveType.INT;
@@ -1870,94 +1888,94 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<FloatLiteral>(FloatLiteral.class) {
 				@Override
-				public void visit(FloatLiteral node, ScriptProcessor processor) throws ParsingException {
-					if (!processor.script().engine().settings().supportsFloats)
-						processor.markers().error(processor, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
-					supr.visit(node, processor);
+				public void visit(FloatLiteral node, Visitation visitation) throws ParsingException {
+					if (!visitation.script().engine().settings().supportsFloats)
+						visitation.markers().error(visitation, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
+					supr.visit(node, visitation);
 				}
 			},
 
 			new Expert<IDLiteral>(IDLiteral.class) {
 				@Override
-				public IType type(IDLiteral node, ScriptProcessor processor) {
-					Definition obj = processor.script().nearestDefinitionWithId(node.idValue());
+				public IType type(IDLiteral node, Visitation visitation) {
+					Definition obj = visitation.script().nearestDefinitionWithId(node.idValue());
 					return obj != null ? obj.metaDefinition() : PrimitiveType.ID;
 				}
 			},
 
 			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public IType type(BoolLiteral node, ScriptProcessor processor) {
+				public IType type(BoolLiteral node, Visitation visitation) {
 					return PrimitiveType.BOOL;
 				}
 			},
 
 			new Expert<CallExpr>(CallExpr.class) {
 				@Override
-				public IType type(CallExpr node, ScriptProcessor processor) {
+				public IType type(CallExpr node, Visitation visitation) {
 					ASTNode pred = node.predecessorInSequence();
-					IType type = ty(pred, processor);
+					IType type = ty(pred, visitation);
 					if (type instanceof FunctionType)
 						return ((FunctionType)type).prototype().returnType();
 					else
 						return PrimitiveType.ANY;
 				}
 				@Override
-				public void visit(CallExpr node, ScriptProcessor processor) throws ParsingException {
-					if (!processor.script().engine().settings().supportsFunctionRefs)
-						processor.markers().error(processor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, processor.script().engine().name());
+				public void visit(CallExpr node, Visitation visitation) throws ParsingException {
+					if (!visitation.script().engine().settings().supportsFunctionRefs)
+						visitation.markers().error(visitation, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitation.script().engine().name());
 					else {
-						IType type = expert(node.predecessorInSequence()).type(node.predecessorInSequence(), processor);
+						IType type = expert(node.predecessorInSequence()).type(node.predecessorInSequence(), visitation);
 						if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
-							processor.markers().error(processor, Problem.CallingExpression, node, node, Markers.NO_THROW);
+							visitation.markers().error(visitation, Problem.CallingExpression, node, node, Markers.NO_THROW);
 					}
 				}
 			},
 
 			new Expert<Statement>(Statement.class) {
 				@Override
-				public IType type(Statement node, ScriptProcessor processor) {
+				public IType type(Statement node, Visitation visitation) {
 					return PrimitiveType.UNKNOWN;
 				}
 				/**
 				 * Emit a warning if this expression is erroneously used at a place where only expressions with side effects are allowed.
 				 * @param processor The processor
 				 */
-				public void warnIfNoSideEffects(Statement node, ScriptProcessor processor) {
+				public void warnIfNoSideEffects(Statement node, Visitation visitation) {
 					if (node.parent() instanceof IterateArrayStatement && ((IterateArrayStatement)node.parent()).elementExpr() == node)
 						return;
 					if (!node.hasSideEffects())
-						processor.markers().warning(processor, Problem.NoSideEffects, node, node, 0);
+						visitation.markers().warning(visitation, Problem.NoSideEffects, node, node, 0);
 				}
 				@Override
-				public void visit(Statement node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
-					warnIfNoSideEffects(node, processor);
-					if (processor.controlFlow != ControlFlow.Continue)
-						processor.markers().warning(processor, Problem.NeverReached, node, node, 0);
+				public void visit(Statement node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
+					warnIfNoSideEffects(node, visitation);
+					if (visitation.controlFlow != ControlFlow.Continue)
+						visitation.markers().warning(visitation, Problem.NeverReached, node, node, 0);
 				}
 			},
 
 			new Expert<VarDeclarationStatement>(VarDeclarationStatement.class) {
 				@Override
-				public void visit(VarDeclarationStatement node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(VarDeclarationStatement node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					for (VarInitialization initialization : node.variableInitializations())
 						if (initialization.variable != null)
 							if (initialization.expression != null) {
-								IType initializationType = ty(initialization.expression, processor);
+								IType initializationType = ty(initialization.expression, visitation);
 								if (
 									initialization.variable.staticallyTyped() &&
 									!initialization.variable.type().canBeAssignedFrom(initializationType)
 								)
-									processor.incompatibleTypes(
+									visitation.incompatibleTypes(
 										node,
 										initialization.expression,
 										initialization.variable.type(), initializationType
 									);
 								else {
 									AccessVar av = new AccessVar(initialization.variable);
-									judgement(av, initializationType, TypingJudgementMode.Unify, processor);
+									judgement(av, initializationType, TypingJudgementMode.Unify, visitation);
 								}
 							}
 				}
@@ -1965,66 +1983,66 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<PropListExpression>(PropListExpression.class) {
 				@Override
-				public IType type(PropListExpression node, ScriptProcessor processor) {
+				public IType type(PropListExpression node, Visitation visitation) {
 					return node.definedDeclaration();
 				}
 				@Override
-				public void visit(PropListExpression node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
-					if (!processor.script().engine().settings().supportsProplists)
-						processor.markers().error(processor, Problem.NotSupported, node, node, Markers.NO_THROW,
+				public void visit(PropListExpression node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
+					if (!visitation.script().engine().settings().supportsProplists)
+						visitation.markers().error(visitation, Problem.NotSupported, node, node, Markers.NO_THROW,
 							net.arctics.clonk.parser.c4script.ast.Messages.PropListExpression_ProplistsFeature,
-							processor.script().engine().name());
+							visitation.script().engine().name());
 					for (Variable v : node.components())
 						if (v.initializationExpression() != null)
-							judgement(new AccessVar(v), ty(v.initializationExpression(), processor), TypingJudgementMode.Unify, processor);
+							judgement(new AccessVar(v), ty(v.initializationExpression(), visitation), TypingJudgementMode.Unify, visitation);
 				}
 				@Override
-				public boolean isModifiable(PropListExpression node, ScriptProcessor processor) { return false; }
+				public boolean isModifiable(PropListExpression node, Visitation visitation) { return false; }
 			},
 
 			new Expert<Parenthesized>(Parenthesized.class) {
 				@Override
-				public IType type(Parenthesized node, ScriptProcessor processor) {
-					return ty(node.innerExpression(), processor);
+				public IType type(Parenthesized node, Visitation visitation) {
+					return ty(node.innerExpression(), visitation);
 				}
 				@Override
-				public boolean isModifiable(Parenthesized node, ScriptProcessor processor) {
-					return expert(node.innerExpression()).isModifiable(node.innerExpression(), processor);
+				public boolean isModifiable(Parenthesized node, Visitation visitation) {
+					return expert(node.innerExpression()).isModifiable(node.innerExpression(), visitation);
 				}
 			},
 
 			new Expert<MemberOperator>(MemberOperator.class) {
 				@Override
-				public IType type(MemberOperator node, ScriptProcessor processor) {
+				public IType type(MemberOperator node, Visitation visitation) {
 					if (node.id() != null)
-						return processor.script().nearestDefinitionWithId(node.id());
+						return visitation.script().nearestDefinitionWithId(node.id());
 					// stuff before -> decides
 					ASTNode pred = node.predecessorInSequence();
-					return pred != null ? ty(pred, processor) : supr.type(node, processor);
+					return pred != null ? ty(pred, visitation) : supr.type(node, visitation);
 				}
 				@Override
-				public boolean typingJudgement(MemberOperator node, IType type, ScriptProcessor processor, TypingJudgementMode mode) {
+				public boolean typingJudgement(MemberOperator node, IType type, Visitation visitation, TypingJudgementMode mode) {
 					ASTNode p = node.predecessorInSequence();
-					return p != null ? expert(p).typingJudgement(p, type, processor, mode) : false;
+					return p != null ? expert(p).typingJudgement(p, type, visitation, mode) : false;
 				}
 				@Override
-				public void visit(MemberOperator node, ScriptProcessor processor) throws ParsingException {
-					supr.visit(node, processor);
+				public void visit(MemberOperator node, Visitation visitation) throws ParsingException {
+					supr.visit(node, visitation);
 					ASTNode pred = node.predecessorInSequence();
-					EngineSettings settings = processor.script().engine().settings();
+					EngineSettings settings = visitation.script().engine().settings();
 					if (pred != null) {
 						IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : TypeChoice.make(PrimitiveType.OBJECT, PrimitiveType.ID);
 						ASTNode sequenceTilMe = pred.sequenceTilMe();
 						Expert<? super ASTNode> stmReporter = expert(sequenceTilMe);
-						if (!stmReporter.typingJudgement(sequenceTilMe, requiredType, processor, TypingJudgementMode.Hint))
-							processor.markers().warning(processor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
-								ty(sequenceTilMe, stmReporter, processor).typeName(false));
+						if (!stmReporter.typingJudgement(sequenceTilMe, requiredType, visitation, TypingJudgementMode.Hint))
+							visitation.markers().warning(visitation, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
+								ty(sequenceTilMe, stmReporter, visitation).typeName(false));
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
-						processor.markers().error(processor, Problem.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
+						visitation.markers().error(visitation, Problem.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
 					if (node.dotNotation() && !settings.supportsProplists)
-						processor.markers().error(processor, Problem.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
+						visitation.markers().error(visitation, Problem.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
 				}
 			},
 
@@ -2032,9 +2050,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
-				public void visit(IterateArrayStatement node, ScriptProcessor processor) throws ParsingException {
-					ControlFlow t = processor.controlFlow;
-					processor.controlFlow = ControlFlow.Continue;
+				public void visit(IterateArrayStatement node, Visitation visitation) throws ParsingException {
+					ControlFlow t = visitation.controlFlow;
+					visitation.controlFlow = ControlFlow.Continue;
 					Variable loopVariable;
 					AccessVar accessVar;
 					ASTNode elementExpr = node.elementExpr();
@@ -2042,131 +2060,131 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (elementExpr instanceof VarDeclarationStatement)
 						loopVariable = ((VarDeclarationStatement)elementExpr).variableInitializations()[0].variable;
 					else if ((accessVar = as(SimpleStatement.unwrap(elementExpr), AccessVar.class)) != null) {
-						Declaration d = processor.obtainDeclaration(accessVar);
+						Declaration d = visitation.obtainDeclaration(accessVar);
 						if (d == null) {
 							// implicitly create loop variable declaration if not found
-							SourceLocation varPos = processor.absoluteSourceLocationFromExpr(accessVar);
-							loopVariable = processor.parser.createVarInScope(node.parentOfType(Function.class), accessVar.name(), Scope.VAR, varPos.start(), varPos.end(), null);
+							SourceLocation varPos = visitation.absoluteSourceLocationFromExpr(accessVar);
+							loopVariable = visitation.base.parser.createVarInScope(node.parentOfType(Function.class), accessVar.name(), Scope.VAR, varPos.start(), varPos.end(), null);
 						} else
 							loopVariable = as(d, Variable.class);
 					} else
 						loopVariable = null;
 
-					processor.visitNode(elementExpr, true);
-					processor.visitNode(arrayExpr, true);
+					visitation.visitNode(elementExpr, true);
+					visitation.visitNode(arrayExpr, true);
 
-					IType type = ty(arrayExpr, processor);
+					IType type = ty(arrayExpr, visitation);
 					if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
-						processor.incompatibleTypes(node, arrayExpr, type, PrimitiveType.ARRAY);
+						visitation.incompatibleTypes(node, arrayExpr, type, PrimitiveType.ARRAY);
 					IType elmType = ArrayType.elementTypeSet(type);
-					TypeEnvironment env = processor.newTypeEnvironment();
+					TypeEnvironment env = visitation.newTypeEnvironment();
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
-							judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, processor);
+							judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, visitation);
 						}
-						processor.visitNode(node.body(), true);
+						visitation.visitNode(node.body(), true);
 					}
-					processor.endTypeEnvironment(env, true, false);
-					processor.controlFlow = t;
+					visitation.endTypeEnvironment(env, true, false);
+					visitation.controlFlow = t;
 				}
 			},
 
 			new Expert<SimpleStatement>(SimpleStatement.class) {
 				@Override
-				public void visit(SimpleStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(SimpleStatement node, Visitation visitation) throws ParsingException {
 					BinaryOp op = as(node.expression(), BinaryOp.class);
 					if (op != null && !op.operator().modifiesArgument())
-						processor.markers().warning(processor, Problem.NoAssignment, node, op, 0);
-					supr.visit(node, processor);
+						visitation.markers().warning(visitation, Problem.NoAssignment, node, op, 0);
+					supr.visit(node, visitation);
 				}
 			},
 
-			new ConditionalStatementProblemReporter<IfStatement>(IfStatement.class) {
+			new ConditionalStatementExpert<IfStatement>(IfStatement.class) {
 				@Override
-				public void visit(IfStatement node, ScriptProcessor processor) throws ParsingException {
-					ControlFlow old = processor.controlFlow;
+				public void visit(IfStatement node, Visitation visitation) throws ParsingException {
+					ControlFlow old = visitation.controlFlow;
 					ASTNode condition = node.condition();
-					processor.visitNode(condition, true);
+					visitation.visitNode(condition, true);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
-					TypeEnvironment ifEnvironment = processor.newTypeEnvironment();
-					processor.visitNode(node.body(), true);
-					processor.endTypeEnvironment(ifEnvironment, false, false);
-					processor.controlFlow = old;
+					TypeEnvironment ifEnvironment = visitation.newTypeEnvironment();
+					visitation.visitNode(node.body(), true);
+					visitation.endTypeEnvironment(ifEnvironment, false, false);
+					visitation.controlFlow = old;
 					if (node.elseExpression() != null) {
-						TypeEnvironment elseEnvironment = processor.newTypeEnvironment();
-						processor.visitNode(node.elseExpression(), true);
-						processor.endTypeEnvironment(elseEnvironment, false, false);
+						TypeEnvironment elseEnvironment = visitation.newTypeEnvironment();
+						visitation.visitNode(node.elseExpression(), true);
+						visitation.endTypeEnvironment(elseEnvironment, false, false);
 						ifEnvironment.inject(elseEnvironment, false);
 					}
 					if (ifEnvironment.up != null)
 						ifEnvironment.up.inject(ifEnvironment, false);
-					processor.controlFlow = old;
+					visitation.controlFlow = old;
 
 					if (!condition.containsConst()) {
 						Object condEv = PrimitiveType.BOOL.convert(condition.evaluateStatic(node.parentOfType(Function.class)));
 						if (condEv != null && condEv != ASTNode.EVALUATION_COMPLEX)
-							processor.markers().warning(processor,
+							visitation.markers().warning(visitation,
 								condEv.equals(true) ? Problem.ConditionAlwaysTrue : Problem.ConditionAlwaysFalse,
 								condition, condition, 0, condition);
 					}
 				};
 			},
 
-			new ConditionalStatementProblemReporter<ForStatement>(ForStatement.class) {
+			new ConditionalStatementExpert<ForStatement>(ForStatement.class) {
 				@Override
-				public void visit(ForStatement node, ScriptProcessor processor) throws ParsingException {
+				public void visit(ForStatement node, Visitation visitation) throws ParsingException {
 					if (node.initializer() != null)
-						processor.visitNode(node.initializer(), true);
-					super.visit(node, processor);
+						visitation.visitNode(node.initializer(), true);
+					super.visit(node, visitation);
 					if (node.increment() != null)
-						processor.visitNode(node.increment(), true);
+						visitation.visitNode(node.increment(), true);
 				}
 			},
 
-			new ConditionalStatementProblemReporter<WhileStatement>(WhileStatement.class),
+			new ConditionalStatementExpert<WhileStatement>(WhileStatement.class),
 
 			new Expert<NewProplist>(NewProplist.class) {
 				@Override
-				public void visit(NewProplist node, ScriptProcessor processor) throws ParsingException {
-					node.definedDeclaration().setPrototype(as(ty(node.prototype(), processor), ProplistDeclaration.class));
+				public void visit(NewProplist node, Visitation visitation) throws ParsingException {
+					node.definedDeclaration().setPrototype(as(ty(node.prototype(), visitation), ProplistDeclaration.class));
 				}
 			},
 
 			new Expert<Placeholder>(Placeholder.class) {
 				@Override
-				public void visit(Placeholder node, ScriptProcessor processor) throws ParsingException {
-					StringTbl.reportMissingStringTblEntries(processor, new EntityRegion(null, node, node.entryName()), node);
+				public void visit(Placeholder node, Visitation visitation) throws ParsingException {
+					StringTbl.reportMissingStringTblEntries(visitation, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
 			new Expert<MissingStatement>(MissingStatement.class) {
 				@Override
-				public void visit(MissingStatement node, ScriptProcessor processor) throws ParsingException {
-					processor.markers().error(processor, Problem.MissingStatement, node, node, Markers.NO_THROW);
+				public void visit(MissingStatement node, Visitation visitation) throws ParsingException {
+					visitation.markers().error(visitation, Problem.MissingStatement, node, node, Markers.NO_THROW);
 				}
 			},
 
 			new Expert<GarbageStatement>(GarbageStatement.class) {
 				@Override
-				public void visit(GarbageStatement node, ScriptProcessor processor) throws ParsingException {
-					processor.markers().error(processor, Problem.Garbage, node, node, Markers.NO_THROW, node.garbage());
+				public void visit(GarbageStatement node, Visitation visitation) throws ParsingException {
+					visitation.markers().error(visitation, Problem.Garbage, node, node, Markers.NO_THROW, node.garbage());
 				}
 			},
 
 			new Expert<FunctionDescription>(FunctionDescription.class) {
 				@Override
-				public void visit(FunctionDescription node, ScriptProcessor processor) throws ParsingException {
-					if (processor.hasAppendTo)
+				public void visit(FunctionDescription node, Visitation visitation) throws ParsingException {
+					if (visitation.base.hasAppendTo)
 						return;
 					int off = 1;
 					for (String part : node.contents().split("\\|")) { //$NON-NLS-1$
 						if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-							StringTbl stringTbl = processor.script().localStringTblMatchingLanguagePref();
+							StringTbl stringTbl = visitation.script().localStringTblMatchingLanguagePref();
 							String entryName = part.substring(1, part.length()-1);
 							if (stringTbl == null || stringTbl.map().get(entryName) == null)
-								processor.markers().warning(processor, Problem.UndeclaredIdentifier, node,
+								visitation.markers().warning(visitation, Problem.UndeclaredIdentifier, node,
 									new Region(node.start()+off, part.length()), 0, entryName);
 						}
 						off += part.length()+1;
@@ -2176,8 +2194,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Comment>(Comment.class) {
 				@Override
-				public void visit(Comment node, ScriptProcessor processor) throws ParsingException {
-					if (!processor.roaming || node.parentOfType(Script.class) == processor.script()) {
+				public void visit(Comment node, Visitation visitation) throws ParsingException {
+					if (!visitation.roaming || node.parentOfType(Script.class) == visitation.script()) {
 						String s = node.text();
 						int markerPriority;
 						int searchStart = 0;
@@ -2196,7 +2214,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (lineEnd == -1)
 									lineEnd = s.length();
 								searchStart = lineEnd;
-								processor.markers().todo(processor.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+								visitation.markers().todo(visitation.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
 							}
 						} while (markerPriority > IMarker.PRIORITY_LOW);
 					}
@@ -2205,19 +2223,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Unfinished>(Unfinished.class) {
 				@Override
-				public IType type(Unfinished node, ScriptProcessor processor) {
-					return ty(node.expression(), processor);
+				public IType type(Unfinished node, Visitation visitation) {
+					return ty(node.expression(), visitation);
 				}
 				@Override
-				public void visit(Unfinished node, ScriptProcessor processor) throws ParsingException {
-					processor.markers().error(processor, Problem.NotFinished, node, node, Markers.NO_THROW, node);
+				public void visit(Unfinished node, Visitation visitation) throws ParsingException {
+					visitation.markers().error(visitation, Problem.NotFinished, node, node, Markers.NO_THROW, node);
 				}
 			}
 
 		};
-		for (Expert<?> expert : experts)
-			problemReporters.put(expert.cls(), expert);
-		for (Expert<?> expert : experts)
+		for (Expert<?> expert : classes)
+			committee.put(expert.cls(), expert);
+		for (Expert<?> expert : classes)
 			expert.findSuper();
 	}
 

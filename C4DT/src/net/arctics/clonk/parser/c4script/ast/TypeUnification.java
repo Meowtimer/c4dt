@@ -147,7 +147,7 @@ public class TypeUnification {
 		}
 
 		if (a instanceof WrappedType) {
-			IType u = unifyLeft(WrappedType.unwrap(a), b);
+			IType u = unifyNoChoice(WrappedType.unwrap(a), b);
 			if (u != null)
 				if (a instanceof NillableType)
 					return NillableType.make(u);

@@ -4,10 +4,9 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.ScriptProcessor;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
 
 public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;
@@ -17,7 +16,7 @@ public class VariableTypeVariable extends TypeVariable {
 		this.type = PrimitiveType.UNKNOWN;
 	}
 	@Override
-	public boolean binds(ASTNode expr, ScriptProcessor processor) {
+	public boolean binds(ASTNode expr, Visitation processor) {
 		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
 	}
 	@Override
@@ -27,9 +26,7 @@ public class VariableTypeVariable extends TypeVariable {
 			((VariableTypeVariable)other).variable == this.variable;
 	}
 	@Override
-	public void apply(boolean soft, ScriptProcessor processor) {
-		if (variable.scope() == Scope.PARAMETER)
-			return; // don't type parameters, type is entirely defined by calls to the function
+	public void apply(boolean soft, Visitation processor) {
 		variable.expectedToBeOfType(type, TypingJudgementMode.Expect);
 	}
 	@Override
@@ -37,5 +34,5 @@ public class VariableTypeVariable extends TypeVariable {
 		return String.format("[%s: %s]", variable.name(), get().typeName(true));
 	}
 	@Override
-	public Declaration declaration(ScriptProcessor processor) { return variable; }
+	public Declaration declaration(Visitation processor) { return variable; }
 }
