@@ -505,10 +505,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
 		}
-		if (parser != null) {
-			parser.clean();
-			parser.parseDeclarations();
-		}
+		if (parser != null)
+			try {
+				parser.parse();
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
 	}
 
 }
