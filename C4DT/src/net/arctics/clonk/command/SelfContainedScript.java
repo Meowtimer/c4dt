@@ -25,7 +25,7 @@ public class SelfContainedScript extends Script {
 		try {
 			parser.parse();
 			generateFindDeclarationCache();
-			new DabbleInference().localTypingContext(parser).reportProblems();
+			new DabbleInference().localTypingContext(parser, null).reportProblems();
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		}

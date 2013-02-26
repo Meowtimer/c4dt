@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -304,8 +306,17 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public void reparseFunction(final Function function, Markers markers) {
 			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
 			structure.generateFindDeclarationCache();
-			for (ProblemReportingStrategy strategy : problemReportingStrategies)
-				strategy.localTypingContext(parser).visitFunction(function);
+			for (ProblemReportingStrategy strategy : problemReportingStrategies) {
+				ProblemReportingContext mainTyping = strategy.localTypingContext(parser, null);
+				mainTyping.visitFunction(function);
+				for (Collection<CallDeclaration> cdc : parser.script().callMap().values())
+					for (CallDeclaration cd : cdc)
+						if (cd.containedIn(function)) {
+							Function called = as(cd.declaration(), Function.class);
+							if (called != null && called.body() != null)
+								strategy.localTypingContext(called.parentOfType(Script.class), mainTyping).visitFunction(called);
+						}
+			}
 		}
 
 		@Override
@@ -356,7 +367,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		for (ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
 			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
-					r = strategy.localTypingContext(parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script()))
+					r = strategy.localTypingContext(parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script()), null)
 				);
 				break;
 			}
@@ -655,7 +666,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.script().generateFindDeclarationCache();
 		parser.validate();
 		if (!onlyDeclarations && listener != null && listener.typingStrategy() != null)
-			listener.typingStrategy().localTypingContext(parser).reportProblems();
+			listener.typingStrategy().localTypingContext(parser, null).reportProblems();
 		parser.markers().deploy();
 
 		// make sure it's executed on the ui thread

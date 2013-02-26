@@ -319,7 +319,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
 				parser = fparser;
 				fparser.update();
-				(typingContext = typingStrategy.localTypingContext(parser)).visitFunction(activeFunc);
+				(typingContext = typingStrategy.localTypingContext(parser, null)).visitFunction(activeFunc);
 			}
 			if (contextExpression == null) {
 				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
@@ -329,7 +329,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					contextExpression = contextExpression.predecessorInSequence();
 			}
 			if (typingContext == null && parser != null)
-				typingContext = typingStrategy.localTypingContext(parser);
+				typingContext = typingStrategy.localTypingContext(parser, null);
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 			if (contextExpression != null) {
 				if (contextExpression instanceof Placeholder || contextExpression instanceof StringLiteral) {
@@ -460,7 +460,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					ASTNode parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localTypingContext(parser), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localTypingContext(parser, null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
 				}
 			}
 		}

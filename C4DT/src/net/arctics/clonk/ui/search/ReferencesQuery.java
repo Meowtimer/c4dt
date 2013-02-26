@@ -109,7 +109,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		
 		public void searchScript(IResource resource, Script script) {
 			C4ScriptParser parser = new C4ScriptParser(script);
-			ProblemReportingContext ctx = strategy.localTypingContext(parser);
+			ProblemReportingContext ctx = strategy.localTypingContext(parser, null);
 			searchScript(resource, ctx);
 		}
 		
@@ -160,7 +160,7 @@ public class ReferencesQuery extends SearchQueryBase {
 							public void run() {
 								try {
 									C4ScriptParser parser = new C4ScriptParser(script);
-									ProblemReportingContext ctx = strategy.localTypingContext(parser);
+									ProblemReportingContext ctx = strategy.localTypingContext(parser, null);
 									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (Exception e) {}
 							}
@@ -169,7 +169,7 @@ public class ReferencesQuery extends SearchQueryBase {
 					else if (scope instanceof Function) {
 						Function func = (Function)scope;
 						C4ScriptParser parser = new C4ScriptParser(func.script());
-						func.traverse(visitor, strategy.localTypingContext(parser));
+						func.traverse(visitor, strategy.localTypingContext(parser, null));
 					}
 			}
 		}, 20);

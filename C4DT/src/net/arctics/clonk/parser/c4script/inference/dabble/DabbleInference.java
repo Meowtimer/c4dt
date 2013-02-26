@@ -155,14 +155,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public ProblemReportingContext localTypingContext(Script script) {
-		return localTypingContext(new C4ScriptParser(script));
+	public ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain) {
+		return localTypingContext(new C4ScriptParser(script), chain);
 	}
 
 	@Override
-	public ProblemReportingContext localTypingContext(C4ScriptParser parser) {
+	public ProblemReportingContext localTypingContext(C4ScriptParser parser, ProblemReportingContext chain) {
 		markers = parser.markers();
-		Shared shared = new Shared();
+		Shared shared = chain instanceof Visitation ? ((Visitation)chain).base.shared : new Shared();
 		ScriptProcessor processor = new ScriptProcessor(parser, shared);
 		shared.processors.put(parser.script(), processor);
 		return new Visitation(processor);

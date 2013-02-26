@@ -28,10 +28,10 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	public void run() {}
 
 	@Override
-	public ProblemReportingContext localTypingContext(Script script) { return localTypingContext(new C4ScriptParser(script)); }
+	public ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain) { return localTypingContext(new C4ScriptParser(script), null); }
 
 	@Override
-	public ProblemReportingContext localTypingContext(final C4ScriptParser parser) {
+	public ProblemReportingContext localTypingContext(final C4ScriptParser parser, ProblemReportingContext chain) {
 		return new ProblemReportingContext() {
 			@Override
 			public boolean validForType(ASTNode node, IType type) { return true; }

@@ -422,7 +422,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script()));
+		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script(), null));
 	}
 
 	public void collectProposals(
