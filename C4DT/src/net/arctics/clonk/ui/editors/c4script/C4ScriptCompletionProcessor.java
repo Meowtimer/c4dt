@@ -465,7 +465,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
-			Image keywordImg = UI.imageForPath("icons/keyword.png");
+			Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
 					continue;
@@ -610,7 +610,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (prefix != null)
 						if (!stringMatchesPrefix(declarator, prefix))
 							continue;
-					Image declaratorImg = UI.imageForPath("icons/declarator.png");
+					Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
@@ -618,7 +618,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposals.add(prop);
 				}
 				// propose directives (#include, ...)
-				Image directiveIcon = UI.imageForPath("icons/directive.png");
+				Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
 				for(Directive directive : Directive.CANONICALS) {
 					String txt = directive.type().toString();
 					if (prefix != null)
@@ -626,7 +626,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 							continue;
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					txt = "#"+txt+" ";
+					txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(
 						directive, txt, offset, replacementLength, txt.length(),
 						directiveIcon, directive.type().toString(), null, null,
@@ -707,7 +707,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 									entity = e;
 								else {
 									if (commono == null)
-										commono = new Function("<Multiple candidates>", FunctionScope.PRIVATE);
+										commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
 									entity = commono;
 									Function f = functionFromEntity(e);
 									if (f != null)
@@ -717,8 +717,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 												? commono.parameter(i)
 												: commono.addParameter(new Variable(fpar.name(), fpar.type()));
 											cpar.forceType(TypeUnification.unify(cpar.type(), fpar.type()));
-											if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name()))
-												cpar.setName(cpar.name()+"/"+fpar.name());
+											if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
+												cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
 										}
 								}
 					}
@@ -768,7 +768,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void configureActivation() {
 		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray()
+			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
 			: new char[0];
 		proposalAutoActivationCharacters[0] = new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};

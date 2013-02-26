@@ -15,6 +15,7 @@ public class Messages extends NLS {
 	public static String C4ScriptCompletionProcessor_ExternalLibraries;
 	public static String C4ScriptCompletionProcessor_EngineFunctions;
 	public static String C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString;
+	public static String C4ScriptCompletionProcessor_MultipleCandidates;
 	public static String C4ScriptCompletionProcessor_ShownData;
 	public static String C4ScriptCompletionProcessor_NoParameters;
 	public static String C4ScriptCompletionProcessor_NoProposalsAvailable;
