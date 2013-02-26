@@ -167,6 +167,15 @@ public class TypeUnification {
 		if (a instanceof StructuralType && b instanceof Definition)
 			if (((StructuralType)a).satisfiedBy((Definition)b))
 				return b;
+		
+		if (a instanceof Definition && b instanceof Definition) {
+			Definition da = (Definition)a;
+			Definition db = (Definition)b;
+			if (db.doesInclude(db.index(), da))
+				return da;
+			else
+				return PrimitiveType.OBJECT;
+		}
 
 		return null;
 	}
@@ -175,8 +184,6 @@ public class TypeUnification {
 		if (u != null)
 			return u;
 		u = unifyLeft(b, a);
-//		if (u != null)
-//			System.out.println(String.format("unify %s | %s -> %s", a.typeName(true), b.typeName(true), u.typeName(true)));
 		if (u != null)
 			return u;
 		return null;

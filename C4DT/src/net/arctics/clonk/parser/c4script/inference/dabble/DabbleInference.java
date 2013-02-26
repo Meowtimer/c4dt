@@ -313,9 +313,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 							for (int pa = 0; pa < parNum; pa++)
 								if (!function.parameter(pa).staticallyTyped()) {
 									ASTNode concretePar = call.params()[pa];
-									if (concretePar != null)
-										callTypes[pa] = TypeUnification.unify(callTypes[pa],
-											visitation != null ? visitation.typeOf(concretePar) : concretePar.inferredType());
+									if (concretePar != null) {
+										IType concreteTy = visitation != null ? visitation.typeOf(concretePar) : concretePar.inferredType();
+										IType unified = TypeUnification.unifyNoChoice(callTypes[pa],
+											concreteTy);
+										if (unified == null) {
+											if (visitation != null)
+												visitation.incompatibleTypes(concretePar, concretePar, callTypes[pa], concreteTy);
+										}
+										else
+											callTypes[pa] = unified;
+									}
 								}
 						}
 					}
