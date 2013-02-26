@@ -262,7 +262,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(true)),
 				name(),
 				initializationExpression != null
-					? String.format(valueFormat, StringUtil.htmlerize(initializationExpression.toString()))
+					? String.format(valueFormat, initializationExpression.toString())
 					: "", //$NON-NLS-1$
 				obtainUserDescription() != null && obtainUserDescription().length() > 0
 					? String.format(descriptionFormat, obtainUserDescription())

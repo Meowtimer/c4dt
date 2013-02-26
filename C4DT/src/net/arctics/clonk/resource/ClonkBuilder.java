@@ -377,30 +377,30 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		final Map<Script, C4ScriptParser> newlyEnqueuedParsers = new HashMap<Script, C4ScriptParser>();
 		final Map<Script, C4ScriptParser> enqueuedFromLastIteration = new HashMap<Script, C4ScriptParser>();
 		newlyEnqueuedParsers.putAll(parserMap);
+		boolean firstPass = true;
 		do {
 			parserMapSize = parserMap.size();
 			for (Script s : newlyEnqueuedParsers.keySet())
 				nature.index().addScript(s);
-			Utilities.threadPool(new Sink<ExecutorService>() {
-				@Override
-				public void receivedObject(ExecutorService pool) {
-					for (final Script script : newlyEnqueuedParsers.keySet())
-						pool.execute(new Runnable() {
-							@Override
-							public void run() {
-								if (monitor.isCanceled())
-									return;
-								performParseDeclarations(script);
-								monitor.worked(1);
-							}
-						});
-				}
-			}, 20);
-			Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
-			// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
-			// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
-			// if the function being referenced is defined in an #appendto from this index
-			index.refreshIndex(false);
+			if (firstPass) {
+				firstPass = false;
+				Utilities.threadPool(new Sink<ExecutorService>() {
+					@Override
+					public void receivedObject(ExecutorService pool) {
+						for (final Script script : newlyEnqueuedParsers.keySet())
+							pool.execute(new Runnable() {
+								@Override
+								public void run() {
+									if (monitor.isCanceled())
+										return;
+									performParseDeclarations(script);
+									monitor.worked(1);
+								}
+							});
+					}
+				}, 20);
+				Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
+			}
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 				break;
@@ -410,6 +410,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			queueDependentScripts(enqueuedFromLastIteration, newlyEnqueuedParsers);
 		}
 		while (parserMapSize != parserMap.size());
+		// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
+		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
+		// if the function being referenced is defined in an #appendto from this index
+		index.refreshIndex(false);
 		for (Script script : parserMap.keySet())
 			script.generateFindDeclarationCache();
 		markers.deploy();
