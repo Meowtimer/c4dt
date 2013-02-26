@@ -262,7 +262,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		static final boolean
 			UNUSEDPARMWARNING = false;
 
-		private final ScriptProcessor base;
+		final ScriptProcessor base;
 		
 		private ControlFlow controlFlow;
 		private Markers markers;
@@ -311,7 +311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (ref == baseFunction) {
 							int parNum = Math.min(callTypes.length, call.params().length);
 							for (int pa = 0; pa < parNum; pa++)
-								if (function.parameter(pa).type() == PrimitiveType.UNKNOWN) {
+								if (!function.parameter(pa).staticallyTyped()) {
 									ASTNode concretePar = call.params()[pa];
 									if (concretePar != null)
 										callTypes[pa] = TypeUnification.unify(callTypes[pa],
