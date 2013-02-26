@@ -80,7 +80,7 @@ public class TypeChoice implements IType {
 		}).removeDuplicates();
 	}
 
-	private TypeChoice(IType left, IType right) {
+	protected TypeChoice(IType left, IType right) {
 		this.left = left != null ? left : PrimitiveType.UNKNOWN;
 		this.right = right != null ? right : PrimitiveType.UNKNOWN;
 	}

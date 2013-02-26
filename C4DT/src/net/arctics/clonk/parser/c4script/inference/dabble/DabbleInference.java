@@ -95,6 +95,7 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.ThisType;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
@@ -156,6 +157,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain) {
+		if (chain instanceof Visitation) {
+			ScriptProcessor p = ((Visitation) chain).base.shared.processors.get(script);
+			if (p != null)
+				return new Visitation(p);
+		}
 		return localTypingContext(new C4ScriptParser(script), chain);
 	}
 
@@ -239,10 +245,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.typing = parser.typing();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
-			this.thisType = TypeChoice.make(
-				script,
-				script instanceof Definition ? ((Definition)script).metaDefinition() : PrimitiveType.ID
-			);
+			this.thisType = new ThisType(script);
 			boolean hasAppendTo = false;
 			for (Directive d : script.directives())
 				if (d.type() == DirectiveType.APPENDTO) {

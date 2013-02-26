@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.objectsEqual;
 
@@ -19,6 +20,7 @@ import net.arctics.clonk.parser.c4script.ParameterType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ReferenceType;
+import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.WrappedType;
 
@@ -58,6 +60,18 @@ public class TypeUnification {
 				break;
 			}
 
+		if (a instanceof ThisType) {
+			Script sa = ((ThisType)a).script();
+			if (b instanceof Script)
+				return defaulting(unifyNoChoice(sa, b), PrimitiveType.OBJECT);
+			else if (b instanceof ThisType) {
+				Script sb = ((ThisType)b).script();
+				Script u = as(unifyNoChoice(sa, sb), Script.class);
+				if (u != null)
+					return new ThisType(u);
+			}
+		}
+		
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			TypeChoice tca = (TypeChoice)a;
 			TypeChoice tcb = (TypeChoice)b;
@@ -173,6 +187,8 @@ public class TypeUnification {
 			Definition db = (Definition)b;
 			if (db.doesInclude(db.index(), da))
 				return da;
+			else if (da.doesInclude(da.index(), db))
+				return db;
 			else
 				return PrimitiveType.OBJECT;
 		}
