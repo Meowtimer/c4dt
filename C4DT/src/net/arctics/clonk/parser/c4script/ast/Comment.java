@@ -131,13 +131,13 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * @param script Script text queried for content to determine the return value.
 	 * @return Whether this comment precedes the offset as described.
 	 */
-	public boolean precedesOffset(int offset, CharSequence script) {
+	public boolean precedesOffset(int offset, char[] script) {
 		int count = 0;
 		if (offset > absoluteOffset+getLength()) {
 			for (int i = absoluteOffset+getLength(); i < offset; i++) {
-				if (!BufferedScanner.isLineDelimiterChar(script.charAt(i)))
+				if (!BufferedScanner.isLineDelimiterChar(script[i]))
 					return false;
-				if (script.charAt(i) == '\n' && ++count > 1)
+				if (script[i] == '\n' && ++count > 1)
 					return false;
 			}
 			return true;

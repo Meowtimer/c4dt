@@ -1016,7 +1016,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private Comment collectPrecedingComment(int absoluteOffset) {
-		Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer())) ? lastComment : null;
+		Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer)) ? lastComment : null;
 		lastComment = null;
 		return c;
 	}
@@ -1253,7 +1253,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private void tokenExpectedError(String token) throws ParsingException {
 		int off = this.offset;
-		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
+		while (off >= 0 && off < size && buffer[off] == '\t')
 			off--;
 		error(Problem.TokenExpected, off, off+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, token);
 	}
@@ -2120,7 +2120,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private int maybeAddGarbageStatement(List<ASTNode> statements, int garbageStart, int potentialGarbageEnd) throws ParsingException {
-		String garbageString = buffer.substring(garbageStart, Math.min(potentialGarbageEnd, buffer.length()));
+		String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null && garbageString.length() > 0) {
 			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-sectionOffset());
@@ -2566,7 +2566,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (function == null)
 			return null;
 		else
-			return buffer.substring(function.bodyLocation().start(), function.bodyLocation().end());
+			return new String(buffer, function.bodyLocation().start(), function.bodyLocation().getLength());
 	}
 
 	/**

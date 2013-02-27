@@ -292,7 +292,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return new C4ScriptSearchQuery(templateText.getText(), replacementText.getText(), scope);
 		} catch (ParsingException e) {
 			e.printStackTrace();
-			MessageDialog.openError(this.getShell(), e.parser().buffer(), e.getMessage());
+			MessageDialog.openError(this.getShell(), e.parser().bufferSequence(0).toString(), e.getMessage());
 			return null;
 		}
 	}

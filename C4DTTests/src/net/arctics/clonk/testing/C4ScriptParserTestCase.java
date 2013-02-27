@@ -80,10 +80,7 @@ public class C4ScriptParserTestCase {
 							// zillions of err0rs
 							if (scanner instanceof C4ScriptParser)
 								return null;
-							if (ID_MATCHER.reset(
-									scanner.buffer().substring(
-											scanner.tell()))
-									.lookingAt()) {
+							if (ID_MATCHER.reset(scanner.bufferSequence(scanner.tell())).lookingAt()) {
 								String idString = ID_MATCHER.group();
 								scanner.advance(idString.length());
 								if (BufferedScanner.isWordPart(scanner

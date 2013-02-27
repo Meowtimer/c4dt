@@ -1,10 +1,11 @@
 package net.arctics.clonk.parser;
 
+import java.io.CharArrayReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.StringReader;
 import java.math.BigInteger;
+import java.nio.CharBuffer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -44,7 +45,7 @@ public class BufferedScanner implements ICharacterScanner {
 	/**
 	 * The buffer
 	 */
-	protected String buffer;
+	protected char[] buffer;
 
 	/**
 	 * Size of the buffer
@@ -67,7 +68,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	protected byte figureOutIndentation() {
 		Set<BigInteger> leadingWhitespaceCounts = null;
-		for (String line : StringUtil.lines(new StringReader(buffer)))
+		for (String line : StringUtil.lines(new CharArrayReader(buffer)))
 			if (line.length() > 0 && line.charAt(0) == '\t')
 				// one tab is enough to conclude that
 				return indentationMode = TABINDENTATIONMODE;
@@ -99,8 +100,8 @@ public class BufferedScanner implements ICharacterScanner {
 
 	protected final void init(String withString) {
 		offset = 0;
-		buffer = withString;
-		size = buffer.length();
+		buffer = withString.toCharArray();
+		size = buffer.length;
 	}
 
 	public BufferedScanner(Object source) {
@@ -132,7 +133,7 @@ public class BufferedScanner implements ICharacterScanner {
 			offset++; // increment anyway so unread works as expected
 			return -1;
 		}
-		return buffer.charAt(offset++);
+		return buffer[offset++];
 	}
 
 	/**
@@ -152,9 +153,13 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String readString(int length) {
 		if (offset+length > size)
 			return null;
-		String result = buffer.substring(offset, offset+length);
+		String result = new String(buffer, offset, length);
 		offset += length;
 		return result;
+	}
+	
+	public final CharSequence bufferSequence(int start) {
+		return CharBuffer.wrap(buffer).subSequence(start, size);
 	}
 
 	/**
@@ -342,7 +347,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param indentationMode Indentation mode: {@link #TABINDENTATIONMODE} for tab indentation, number for number-of-whitespace-characters indentation
 	 * @return The indentation at the specified position.
 	 */
-	public static int indentationOfStringAtPos(String s, int pos, byte indentationMode) {
+	public static int indentationOfStringAtPos(CharSequence s, int pos, byte indentationMode) {
 		if (pos >= s.length())
 			pos = s.length();
 		switch (indentationMode) {
@@ -371,11 +376,11 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	public final int indentationAt(int offset) {
-		return indentationOfStringAtPos(buffer, offset, indentationMode);
+		return indentationOfStringAtPos(CharBuffer.wrap(buffer), offset, indentationMode);
 	}
 
 	public final int currentIndentation() {
-		return indentationOfStringAtPos(buffer, tell(), indentationMode);
+		return indentationOfStringAtPos(CharBuffer.wrap(buffer), tell(), indentationMode);
 	}
 
 	/**
@@ -473,7 +478,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final String lineAtRegion(IRegion region) {
 		IRegion lineRegion = regionOfLineContainingRegion(region);
-		return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
+		return new String(buffer, lineRegion.getOffset(), lineRegion.getLength());
 	}
 
 	/**
@@ -491,10 +496,10 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @param regionInLine the region
 	 * @return the line region
 	 */
-	public static IRegion regionOfLineContainingRegion(String text, IRegion regionInLine) {
+	public static IRegion regionOfLineContainingRegion(char[] text, IRegion regionInLine) {
 		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end+1 < text.length() && !isLineDelimiterChar(text.charAt(end+1)); end++);
+		for (start = regionInLine.getOffset(); start > 0 && start < text.length && !isLineDelimiterChar(text[start-1]); start--);
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end+1 < text.length && !isLineDelimiterChar(text[end+1]); end++);
 		return new Region(start, end-start+1);
 	}
 
@@ -508,14 +513,6 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final int bufferSize() {
 		return size;
-	}
-
-	/**
-	 * Return the buffer the scanner operates on
-	 * @return the buffer
-	 */
-	public final String buffer() {
-		return buffer;
 	}
 
 	@Override
@@ -553,15 +550,15 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	public final String stringAtRegion(IRegion region) {
-		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
+		return new String(buffer, region.getOffset(), +region.getLength());
 	}
 
 	public final void reset(String text) {
 		if (text == null)
 			text = "";
-		buffer = text;
+		buffer = text.toCharArray();
 		offset = 0;
-		size = buffer.length();
+		size = buffer.length;
 	}
 
 	public void reset() {
