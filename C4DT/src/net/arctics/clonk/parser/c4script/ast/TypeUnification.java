@@ -7,11 +7,13 @@ import static net.arctics.clonk.util.Utilities.objectsEqual;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
@@ -189,8 +191,17 @@ public class TypeUnification {
 				return da;
 			else if (da.doesInclude(da.index(), db))
 				return db;
-			else
-				return PrimitiveType.OBJECT;
+			else {
+				List<Script> cda = da.conglomerate();
+				List<Script> cdb = db.conglomerate();
+				cda.retainAll(cdb);
+				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT;
+			}
+		}
+		
+		else if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
+			IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
+			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID;
 		}
 
 		return null;
