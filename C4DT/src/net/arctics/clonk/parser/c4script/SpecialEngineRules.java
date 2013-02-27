@@ -464,7 +464,20 @@ public abstract class SpecialEngineRules {
 			IType result = null;
 			String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
-			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
+			If: if (topLevel || declarationName.equals("Find_And")) {
+				List<IType> types = new LinkedList<IType>();
+				for (ASTNode parm : node.params())
+					if (parm instanceof CallDeclaration) {
+						CallDeclaration call = (CallDeclaration)parm;
+						IType t = searchCriteriaAssumedResult(processor, call, false);
+						if (t != null && call.name().equals("Find_ID")) {
+							result = t;
+							break If;
+						}
+					}
+				result = TypeUnification.unify(types);
+			}
+			else if (declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();
 				for (ASTNode parm : node.params())
 					if (parm instanceof CallDeclaration) {
