@@ -92,8 +92,8 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 /**
- * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
- * The parser can also perform a second parse phase that creates syntax trees from c4script functions. Those can be used for various purposes, including
+ * A C4Script parser. Parses declarations in a script and stores it in a {@link Script} object (sold separately). Also parses syntax trees of functions.
+ * Those can be used for various purposes, including
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
