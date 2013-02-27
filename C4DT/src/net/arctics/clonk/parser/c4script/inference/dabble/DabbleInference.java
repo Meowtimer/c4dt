@@ -969,8 +969,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		node.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void parser) {
-				if (node instanceof AccessDeclaration)
-					((AccessDeclaration)node).setDeclaration(null);
 				node.temporaryProblemReportingObject = findExpert(node);
 				return TraversalContinuation.Continue;
 			}
