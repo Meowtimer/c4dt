@@ -194,8 +194,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	public static class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
-		public boolean pending = true;
-		public CurrentFunctionReturnTypeVariable(Function function) { super(function); }
+		public Thread thread;
+		public CurrentFunctionReturnTypeVariable(Function function) {
+			super(function);
+			thread = Thread.currentThread();
+		}
 		@Override
 		public boolean binds(ASTNode expr, Visitation visitation) {
 			return expr instanceof ReturnStatement && expr.parentOfType(Function.class) == function;
@@ -255,9 +258,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.hasAppendTo = hasAppendTo;
 		}
 	}
-	
+
 	public class Visitation implements Runnable, ProblemReportingContext, IEvaluationContext {
-		
+
 		static final int
 			MAX_PAR = 10,
 			MAX_NUMVAR = 20,
@@ -266,7 +269,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			UNUSEDPARMWARNING = false;
 
 		final ScriptProcessor base;
-		
+
 		private ControlFlow controlFlow;
 		private Markers markers;
 		private List<Script> visitees;
@@ -303,7 +306,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					Visitation visitation;
 					if (processor != null) {
 						visitation = new Visitation(processor);
-						visitation.visitFunction(f);
+						visitation.visitFunction(f, function);
 					} else
 						visitation = null;
 					Function ref = as(visitation != null ? visitation.obtainDeclaration(call) : call.declaration(), Function.class);
@@ -318,8 +321,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									ASTNode concretePar = call.params()[pa];
 									if (concretePar != null) {
 										IType concreteTy = visitation != null ? visitation.typeOf(concretePar) : concretePar.inferredType();
-										IType unified = TypeUnification.unifyNoChoice(callTypes[pa],
-											concreteTy);
+										IType unified = TypeUnification.unifyNoChoice(callTypes[pa], concreteTy);
 										if (unified == null) {
 											if (visitation != null)
 												visitation.incompatibleTypes(concretePar, concretePar, callTypes[pa], concreteTy);
@@ -334,70 +336,85 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public ITypeVariable visitFunction(Function function) {
+		public ITypeVariable visitFunction(Function function) { return visitFunction(function, null); }
+		
+		public ITypeVariable visitFunction(Function function, Declaration hello) {
 			if (function == null || function.body() == null)
 				return null;
 			Script funScript = function.script();
 			if (roaming || (visitees != null && visitees.contains(funScript)) || script() == funScript) {
 				CurrentFunctionReturnTypeVariable returnType;
+				boolean kickOff = false;
 				synchronized (base.finishedFunctions) {
 					returnType = base.finishedFunctions.get(function);
-					if (returnType != null)
-						return returnType;
-					else
+					if (returnType == null) {
 						base.finishedFunctions.put(function, returnType = new CurrentFunctionReturnTypeVariable(function));
-				}
-				synchronized (returnType) {
-					try {
-						ASTNode[] statements = function.body().statements();
-						TypeEnvironment env = newTypeEnvironment();
-						{
-							env.add(returnType);
-							boolean ownedFunction = !roaming || funScript == script();
-							if (!ownedFunction)
-								for (Variable l : function.locals()) {
-									ITypeVariable ti = requestTypeInfo(new AccessVar(l));
-									if (ti != null)
-										ti.set(PrimitiveType.UNKNOWN);
-								}
-							List<Variable> parameters = function.parameters();
-							Function baseFunction = function.baseFunction();
-							boolean typeFromCalls =
-								ownedFunction && !assignDefaultParmTypesToFunction(function) &&
-								base.typing == Typing.ParametersOptionallyTyped &&
-								baseFunction.visibility() != FunctionScope.GLOBAL &&
-								base.script instanceof Definition &&
-								!(base.script instanceof Scenario);
-							IType[] callTypes = new IType[parameters.size()];
-							if (typeFromCalls && parameters.size() > 0)
-								initialParameterTypesFromCalls(function, baseFunction, callTypes);
-							for (int i = 0; i < callTypes.length; i++)
-								if (callTypes[i] == null)
-									callTypes[i] = function.parameter(i).parameterType();
-							for (int i = 0; i < callTypes.length; i++) {
-								Variable p = function.parameter(i);
-								if (ownedFunction)
-									p.assignType(callTypes[i], false);
-								ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
-								if (varTypeInfo != null)
-									varTypeInfo.set(callTypes[i]);
-							}
-							ControlFlow old = controlFlow;
-							controlFlow = ControlFlow.Continue;
-							for (ASTNode s : statements)
-								visitNode(s, true);
-							controlFlow = old;
-						}
-						if (!roaming)
-							env.apply(this, false);
-						endTypeEnvironment(env, true, true);
-						warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
-						dismissExperts(function);
+						kickOff = true;
 					}
-					catch (ParsingException e) { return null; }
-					finally {
+				}
+				if (!kickOff) synchronized (returnType) {
+					int i;
+					for (i = 0; i < 3 && returnType.thread != null && returnType.thread != Thread.currentThread(); i++)
+						try {
+							returnType.wait(100);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					if (i == 3 && hello != null)
+						System.out.println(String.format("'%s' gave up waiting for '%s'", hello.qualifiedName(), function.qualifiedName()));
+					return returnType;
+				}
+				try {
+					ASTNode[] statements = function.body().statements();
+					TypeEnvironment env = newTypeEnvironment();
+					{
+						env.add(returnType);
+						boolean ownedFunction = !roaming || funScript == script();
+						if (!ownedFunction)
+							for (Variable l : function.locals()) {
+								ITypeVariable ti = requestTypeInfo(new AccessVar(l));
+								if (ti != null)
+									ti.set(PrimitiveType.UNKNOWN);
+							}
+						List<Variable> parameters = function.parameters();
+						Function baseFunction = function.baseFunction();
+						boolean typeFromCalls =
+							ownedFunction && !assignDefaultParmTypesToFunction(function) &&
+							base.typing == Typing.ParametersOptionallyTyped &&
+							baseFunction.visibility() != FunctionScope.GLOBAL &&
+							base.script instanceof Definition &&
+							!(base.script instanceof Scenario);
+						IType[] callTypes = new IType[parameters.size()];
+						if (typeFromCalls && parameters.size() > 0)
+							initialParameterTypesFromCalls(function, baseFunction, callTypes);
+						for (int i = 0; i < callTypes.length; i++)
+							if (callTypes[i] == null)
+								callTypes[i] = function.parameter(i).parameterType();
+						for (int i = 0; i < callTypes.length; i++) {
+							Variable p = function.parameter(i);
+							if (ownedFunction)
+								p.assignType(callTypes[i], false);
+							ITypeVariable varTypeInfo = requestTypeInfo(new AccessVar(p));
+							if (varTypeInfo != null)
+								varTypeInfo.set(callTypes[i]);
+						}
+						ControlFlow old = controlFlow;
+						controlFlow = ControlFlow.Continue;
+						for (ASTNode s : statements)
+							visitNode(s, true);
+						controlFlow = old;
+					}
+					if (!roaming)
+						env.apply(this, false);
+					endTypeEnvironment(env, true, true);
+					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
+					dismissExperts(function);
+				}
+				catch (ParsingException e) { return null; }
+				finally {
+					synchronized (returnType) {
 						function.assignType(returnType.get(), false);
-						returnType.pending = false;
+						returnType.thread = null;
 						returnType.notifyAll();
 					}
 				}
@@ -584,16 +601,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (roaming)
 				endRoaming();
 		}
-		
+
 		@Override
 		@Profiled
 		public void reportProblems() {
 			synchronized (base) {
-				if (!base.finished) {
+				if (base.finished)
+					return;
+				else
 					base.finished = true;
-					internalWork();
-				}
 			}
+			internalWork();
 		}
 
 		private void internalWork() {
@@ -936,7 +954,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		return MASTER_OF_NONE;
 	}
-	
+
 	private void dismissExperts(ASTNode node) {
 		node.traverse(new IASTVisitor<Void>() {
 			@Override
@@ -951,6 +969,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		node.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void parser) {
+				if (node instanceof AccessDeclaration)
+					((AccessDeclaration)node).setDeclaration(null);
 				node.temporaryProblemReportingObject = findExpert(node);
 				return TraversalContinuation.Continue;
 			}
@@ -1009,7 +1029,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (var != null && var.initializationExpression() != null) {
 									Function p = var.initializationExpression().parentOfType(Function.class);
 									if (p != null)
-										visitation.visitFunction(p);
+										visitation.visitFunction(p, node.parentOfType(Function.class));
 								}
 								return v;
 							}
@@ -1515,7 +1535,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Declaration dec = script.findDeclaration(functionName, info);
 						// parse function before this one
 						if (dec instanceof Function && node.parentOfType(Function.class) != null)
-							visitation.visitFunction((Function)dec);
+							visitation.visitFunction((Function)dec, node.parentOfType(Function.class));
 						if (dec != null)
 							return dec;
 					}
