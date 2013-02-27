@@ -434,7 +434,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				Messages.Returns,
 				StringUtil.htmlerize(retType.typeName(true))));
 			if (returnDescription != null)
-				builder.append(StringUtil.htmlerize(returnDescription)+"<br/>");
+				builder.append(returnDescription+"<br/>");
 		}
 		return builder.toString();
 	}

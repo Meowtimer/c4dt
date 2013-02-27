@@ -339,7 +339,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private void parseInitialSourceComment() {
 		eat(WHITESPACE_CHARS);
 		Comment sourceComment = null;
-		for (Comment c; (c = parseCommentObject()) != null;)
+		for (Comment c; (c = parseComment()) != null;)
 			sourceComment = c;
 		if (sourceComment != null)
 			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -410,18 +410,19 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return v;
 	}
 
-	protected boolean parseComment() {
+	@Override
+	protected Comment parseComment() {
 		int offset = this.offset;
-		Comment c = parseCommentObject();
+		Comment c = super.parseComment();
 		if (c != null) {
 			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
 				c.previousComment = lastComment;
 			setRelativeLocation(c, offset, this.offset);
 			c.setAbsoluteOffset(offset);
 			lastComment = c;
-			return true;
+			return c;
 		}
-		return false;
+		return null;
 	}
 
 	public final void setRelativeLocation(ASTNode expr, int start, int end) {
@@ -511,7 +512,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private String parseDirectiveParms() {
 		StringBuffer buffer = new StringBuffer(80);
-		while (!reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)peek()) && !parseComment())
+		while (!reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)peek()) && parseComment() == null)
 			buffer.append((char)read());
 		// do let the comment be eaten
 		return buffer.length() != 0
@@ -520,14 +521,15 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private static class FunctionHeader {
-		public String name;
-		public FunctionScope scope;
-		public boolean isOldStyle;
-		public int nameStart;
-		public int start;
-		public IType returnType;
-		public TypeAnnotation typeAnnotation;
-		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, IType returnType, TypeAnnotation typeAnnotation) {
+		public final String name;
+		public final FunctionScope scope;
+		public final boolean isOldStyle;
+		public final int nameStart;
+		public final int start;
+		public final IType returnType;
+		public final TypeAnnotation typeAnnotation;
+		public final Comment desc;
+		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, IType returnType, TypeAnnotation typeAnnotation, Comment desc) {
 			super();
 			this.start = start;
 			this.name = name;
@@ -536,8 +538,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			this.nameStart = nameStart;
 			this.returnType = returnType;
 			this.typeAnnotation = typeAnnotation;
+			this.desc = desc;
 		}
 		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ParsingException {
+			Comment desc = parser.collectPrecedingComment(parser.offset);
 			int initialOffset = parser.offset;
 			int nameStart = parser.offset;
 			boolean isOldStyle = false;
@@ -601,9 +605,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
 						parser.seek(backtrack);
 						if (isProperLabel)
-							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType, typeAnnotation);
+							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType, typeAnnotation, desc);
 					} else if (parser.peekAfterWhitespace() == '(')
-						return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType, typeAnnotation);
+						return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType, typeAnnotation, desc);
 			}
 			parser.seek(initialOffset);
 			return null;
@@ -898,7 +902,6 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	private Function parseFunctionDeclaration(FunctionHeader header) throws ParsingException {
 		int endOfHeader;
-		Comment desc = collectPrecedingComment(header.start);
 		eatWhitespace();
 		setCurrentFunction(null);
 		if (header.isOldStyle)
@@ -919,11 +922,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			boolean parmExpected = false;
 			do {
 				eat(WHITESPACE_CHARS);
-				Comment parameterCommentPre = parseCommentObject();
+				Comment parameterCommentPre = parseComment();
 				eat(WHITESPACE_CHARS);
 				Variable parm = parseParameter(func);
 				eat(WHITESPACE_CHARS);
-				Comment parameterCommentPost = parseCommentObject();
+				Comment parameterCommentPost = parseComment();
 				eat(WHITESPACE_CHARS);
 				if (parm != null) {
 					StringBuilder commentBuilder = new StringBuilder(30);
@@ -974,8 +977,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			func.setBodyLocation(null);
 		int funEnd = this.offset;
 		eatWhitespace();
-		if (desc != null)
-			desc.applyDocumentation(func);
+		if (header.desc != null)
+			header.desc.applyDocumentation(func);
 		else {
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
@@ -1022,7 +1025,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		int pos = this.offset;
 		this.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (this.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
-			Comment c = parseCommentObject();
+			Comment c = parseComment();
 			if (c != null)
 				return c.text();
 		}
@@ -1983,7 +1986,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		Scope scope;
 
 		// comment statement oO
-		result = parseCommentObject();
+		result = parseComment();
 
 		if (result == null) {
 			String readWord;
@@ -2137,7 +2140,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read())
 			if (r == '/') {
 				unread();
-				c = parseCommentObject();
+				c = parseComment();
 				break;
 			}
 		if (c != null)

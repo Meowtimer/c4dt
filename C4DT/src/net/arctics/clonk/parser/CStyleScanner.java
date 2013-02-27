@@ -18,7 +18,7 @@ public class CStyleScanner extends BufferedScanner {
 		super(source);
 	}
 
-	protected Comment parseCommentObject() {
+	protected Comment parseComment() {
 		int start = this.offset;
 		int a = this.read();
 		int b = this.read();
@@ -61,7 +61,7 @@ public class CStyleScanner extends BufferedScanner {
 	@Override
 	public int eatWhitespace() {
 		int pos = offset;
-		while (super.eatWhitespace() > 0 || parseCommentObject() != null);
+		while (super.eatWhitespace() > 0 || parseComment() != null);
 		return offset-pos;
 	}
 
@@ -70,7 +70,7 @@ public class CStyleScanner extends BufferedScanner {
 		while (true) {
 			if (super.eatWhitespace() > 0)
 				continue;
-			Comment c = parseCommentObject();
+			Comment c = parseComment();
 			if (c != null) {
 				c.setPrependix(true);
 				if (result == null)
