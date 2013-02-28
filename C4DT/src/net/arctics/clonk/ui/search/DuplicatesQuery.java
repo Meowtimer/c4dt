@@ -150,7 +150,7 @@ public class DuplicatesQuery extends SearchQueryBase {
 	}
 
 	@Override
-	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
 		boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
 
 		detectedDupes.clear();

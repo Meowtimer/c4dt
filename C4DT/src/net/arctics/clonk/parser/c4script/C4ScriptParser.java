@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodeMatcher;
@@ -97,7 +98,7 @@ import org.eclipse.jface.text.Region;
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
-public class C4ScriptParser extends CStyleScanner implements IASTPositionProvider {
+public class C4ScriptParser extends CStyleScanner implements IASTPositionProvider, IVariableFactory {
 
 	static final EnumSet<Problem> DISABLED_INSTANT_ERRORS = EnumSet.of(
 		Problem.TokenExpected,
@@ -699,7 +700,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 				Declaration outerDec = currentDeclaration();
 				try {
-					Variable var = createVarInScope(currentFunction, varName, scope, bt, this.offset, comment);
+					Variable var = script.createVarInScope(this, currentFunction, varName, scope, bt, this.offset, comment);
 					if (typeAnnotation != null)
 						typeAnnotation.setTarget(var);
 					if (staticType != null)
@@ -772,42 +773,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		error(Problem.TypeExpected, typeExpectedAt, typeExpectedAt+1,  Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 	}
 
-	private Variable findVar(Function function, String name, Scope scope) {
-		switch (scope) {
-		case VAR:
-			return function != null ? function.findVariable(name) : null;
-		case CONST: case STATIC: case LOCAL:
-			return script().findLocalVariable(name, false);
-		default:
-			return null;
-		}
-	}
-
-	public Variable createVarInScope(Function function, String varName, Scope scope, int start, int end, Comment description) {
-		Variable result = findVar(function, varName, scope);
-		if (result != null)
-			return result;
-
-		result = newVariable(varName, scope);
-		switch (scope) {
-		case PARAMETER:
-			result.setParent(function);
-			function.parameters().add(result);
-			break;
-		case VAR:
-			result.setParent(function);
-			function.locals().add(result);
-			break;
-		case CONST: case STATIC: case LOCAL:
-			result.setParent(script());
-			script().addDeclaration(result);
-		}
-		result.setLocation(start, end);
-		result.setUserDescription(description != null ? description.text().trim() : null);
-		return result;
-	}
-
-	protected Variable newVariable(String varName, Scope scope) {
+	@Override
+	public Variable newVariable(String varName, Scope scope) {
 		return new Variable(varName, scope);
 	}
 

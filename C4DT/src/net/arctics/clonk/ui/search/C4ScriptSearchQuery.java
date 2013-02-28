@@ -79,7 +79,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	}
 
 	@Override
-	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
 		threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService item) {

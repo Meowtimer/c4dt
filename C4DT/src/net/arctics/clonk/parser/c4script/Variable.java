@@ -8,6 +8,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
@@ -137,13 +138,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.staticallyTyped = typeLocked;
 	}
 
-	public void lockType() {
-		staticallyTyped = true;
-	}
-
-	public void assignType(IType type) {
-		assignType(type, false);
-	}
+	public void lockType() { staticallyTyped = true; }
+	public void assignType(IType type) { assignType(type, false); }
 
 	@Override
 	public void assignType(IType type, boolean _static) {
@@ -156,9 +152,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * @return the scope
 	 */
-	public Scope scope() {
-		return scope;
-	}
+	public Scope scope() { return scope; }
 
 	/**
 	 * @return the description
@@ -445,5 +439,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public ASTNode[] subElements() { return super.subElements(); }
+	
+	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = new IVariableFactory() {
+		@Override
+		public Variable newVariable(String varName, Scope scope) {
+			return new Variable(varName, scope);
+		}
+	};
 
 }

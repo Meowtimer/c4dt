@@ -79,6 +79,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public Index index() { return index; }
 	public IProgressMonitor monitor() { return monitor; }
 	public Collection<C4ScriptParser> parsers() { return parserMap.values(); }
+	public Collection<Script> scripts() { return parserMap.keySet(); }
 
 	public boolean isSystemScript(IResource resource) {
 		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
@@ -374,20 +375,26 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
-		final Map<Script, C4ScriptParser> newlyEnqueuedParsers = new HashMap<Script, C4ScriptParser>();
-		final Map<Script, C4ScriptParser> enqueuedFromLastIteration = new HashMap<Script, C4ScriptParser>();
-		newlyEnqueuedParsers.putAll(parserMap);
-		boolean firstPass = true;
+		final Map<Script, C4ScriptParser>
+			newEnqueued = new HashMap<Script, C4ScriptParser>(),
+			lastEnqueued = new HashMap<Script, C4ScriptParser>();
+		newEnqueued.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
-			for (Script s : newlyEnqueuedParsers.keySet())
+			for (Script s : newEnqueued.keySet())
 				nature.index().addScript(s);
-			if (firstPass) {
-				firstPass = false;
+			if (newEnqueued.size() < 8)
+				for (final Script script : newEnqueued.keySet()) {
+					if (monitor.isCanceled())
+						return;
+					performParseDeclarations(script);
+					monitor.worked(1);
+				}
+			else
 				Utilities.threadPool(new Sink<ExecutorService>() {
 					@Override
 					public void receivedObject(ExecutorService pool) {
-						for (final Script script : newlyEnqueuedParsers.keySet())
+						for (final Script script : newEnqueued.keySet())
 							pool.execute(new Runnable() {
 								@Override
 								public void run() {
@@ -399,17 +406,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 							});
 					}
 				}, 20);
-				Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet().toArray(new Script[newlyEnqueuedParsers.keySet().size()])));
-			}
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 				break;
-			enqueuedFromLastIteration.clear();
-			enqueuedFromLastIteration.putAll(newlyEnqueuedParsers);
-			newlyEnqueuedParsers.clear();
-			queueDependentScripts(enqueuedFromLastIteration, newlyEnqueuedParsers);
+			lastEnqueued.clear();
+			lastEnqueued.putAll(newEnqueued);
+			newEnqueued.clear();
+			queueDependentScripts(lastEnqueued, newEnqueued);
 		}
 		while (parserMapSize != parserMap.size());
+		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
 		// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index

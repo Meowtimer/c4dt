@@ -4,11 +4,9 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -28,11 +26,9 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	public void run() {}
 
 	@Override
-	public ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain) { return localTypingContext(new C4ScriptParser(script), null); }
-
-	@Override
-	public ProblemReportingContext localTypingContext(final C4ScriptParser parser, ProblemReportingContext chain) {
+	public ProblemReportingContext localTypingContext(final Script script, int fragmentOffset, ProblemReportingContext chain) {
 		return new ProblemReportingContext() {
+			final Markers markers = new Markers();
 			@Override
 			public boolean validForType(ASTNode node, IType type) { return true; }
 			@Override
@@ -54,27 +50,29 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public int fragmentOffset() { return 0; }
 			@Override
-			public IFile file() { return parser.script().scriptFile(); }
+			public IFile file() { return script.scriptFile(); }
 			@Override
-			public Declaration container() { return parser.script(); }
+			public Declaration container() { return script; }
 			@Override
-			public Script script() { return parser.script(); }
-			@Override
-			public BufferedScanner scanner() { return parser; }
+			public Script script() { return script; }
 			@Override
 			public Object visitFunction(Function function) { return null; }
 			@Override
 			public void reportProblems() {}
 			@Override
-			public Markers markers() { return parser.markers(); }
+			public Markers markers() { return markers; }
 			@Override
-			public Definition definition() { return parser.definition(); }
+			public void setMarkers(Markers markers) { /* ignore */ }
+			@Override
+			public Definition definition() { return as(script, Definition.class); }
 			@Override
 			public CachedEngineDeclarations cachedEngineDeclarations() { return null; }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) { return expression; }
 			@Override
 			public boolean isModifiable(ASTNode node) { return true; }
+			@Override
+			public boolean triggersRevisit(Function function, Function called) { return false; }
 		};
 	}
 }

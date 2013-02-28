@@ -65,9 +65,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private boolean staticallyTyped;
+	private boolean typeFromCallsHint;
 	private SourceLocation bodyLocation, header;
 	private int nameStart;
-
+	
 	/**
 	 * Code block kept in memory for speed optimization
 	 */
@@ -121,16 +122,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the localVars
 	 */
-	public List<Variable> locals() {
-		return localVars;
-	}
+	public List<Variable> locals() { return localVars; }
 
 	/**
 	 * @return the parameter
 	 */
-	public List<Variable> parameters() {
-		return parameters;
-	}
+	public List<Variable> parameters() { return parameters; }
+	
+	public boolean typeFromCallsHint() { return typeFromCallsHint; 	}
+	public void setTypeFromCallsHint(boolean typeFromCallsHint) { this.typeFromCallsHint = typeFromCallsHint; }
 
 	public Variable addParameter(Variable parameter) {
 		synchronized (parameters) {

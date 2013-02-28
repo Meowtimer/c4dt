@@ -109,7 +109,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		
 		public void searchScript(IResource resource, Script script) {
 			C4ScriptParser parser = new C4ScriptParser(script);
-			ProblemReportingContext ctx = strategy.localTypingContext(parser, null);
+			ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 			searchScript(resource, ctx);
 		}
 		
@@ -135,7 +135,7 @@ public class ReferencesQuery extends SearchQueryBase {
 	}
 
 	@Override
-	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
 		try {
@@ -160,7 +160,7 @@ public class ReferencesQuery extends SearchQueryBase {
 							public void run() {
 								try {
 									C4ScriptParser parser = new C4ScriptParser(script);
-									ProblemReportingContext ctx = strategy.localTypingContext(parser, null);
+									ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (Exception e) {}
 							}
@@ -169,7 +169,7 @@ public class ReferencesQuery extends SearchQueryBase {
 					else if (scope instanceof Function) {
 						Function func = (Function)scope;
 						C4ScriptParser parser = new C4ScriptParser(func.script());
-						func.traverse(visitor, strategy.localTypingContext(parser, null));
+						func.traverse(visitor, strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null));
 					}
 			}
 		}, 20);

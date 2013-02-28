@@ -20,7 +20,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTPositionProvider;
@@ -125,7 +124,7 @@ import org.eclipse.jface.text.Region;
 public class DabbleInference extends ProblemReportingStrategy {
 
 	private static class Shared {
-		C4ScriptParser[] parsers;
+		ClonkBuilder builder;
 		IProgressMonitor monitor;
 		final Map<Script, ScriptProcessor> processors = new HashMap<>();
 	}
@@ -135,7 +134,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public void initialize(Markers markers, ClonkBuilder builder) {
 		super.initialize(markers, builder);
 		shared = new Shared();
-		shared.parsers = builder.parsers().toArray(new C4ScriptParser[builder.parsers().size()]);
+		shared.builder = builder;
 		shared.monitor = builder.monitor();
 	}
 
@@ -144,11 +143,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 		threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				for (C4ScriptParser p : shared.parsers)
-					if (p != null)
-						shared.processors.put(p.script(), new ScriptProcessor(p, shared));
-				for (final ScriptProcessor processor : shared.processors.values())
-					pool.execute(new Visitation(processor));
+				Visitation[] visitations = new Visitation[shared.builder.parsers().size()];
+				int i = 0;
+				for (C4ScriptParser p : shared.builder.parsers())
+					if (p != null) {
+						ScriptProcessor processor = new ScriptProcessor(p.script(), p.fragmentOffset(), shared);
+						shared.processors.put(p.script(), processor);
+						Visitation v = new Visitation(processor);
+						v.setMarkers(p.markers());
+						visitations[i++] = v;
+					}
+				for (Visitation v : visitations)
+					if (v != null)
+						pool.execute(v);
 			}
 		}, 20);
 		for (ScriptProcessor processor : shared.processors.values())
@@ -156,21 +163,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain) {
+	public ProblemReportingContext localTypingContext(Script script, int fragmentOffset, ProblemReportingContext chain) {
 		if (chain instanceof Visitation) {
 			ScriptProcessor p = ((Visitation) chain).base.shared.processors.get(script);
 			if (p != null)
 				return new Visitation(p);
 		}
-		return localTypingContext(new C4ScriptParser(script), chain);
-	}
-
-	@Override
-	public ProblemReportingContext localTypingContext(C4ScriptParser parser, ProblemReportingContext chain) {
-		markers = parser.markers();
 		Shared shared = chain instanceof Visitation ? ((Visitation)chain).base.shared : new Shared();
-		ScriptProcessor processor = new ScriptProcessor(parser, shared);
-		shared.processors.put(parser.script(), processor);
+		ScriptProcessor processor = new ScriptProcessor(script, fragmentOffset, shared);
+		shared.processors.put(script, processor);
 		return new Visitation(processor);
 	}
 
@@ -224,7 +225,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	protected final class ScriptProcessor {
-		final C4ScriptParser parser;
 		final Script script;
 		final Index index;
 		final Typing typing;
@@ -238,17 +238,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final IType thisType;
 		final Map<String, Declaration> variableMap = new HashMap<>();
 		final Map<String, Declaration> functionMap = new HashMap<>();
+		final SpecialEngineRules rules;
+		final int fragmentOffset;
 		boolean finished = false;
 		public Script script() { return script; }
-		public ScriptProcessor(C4ScriptParser parser, Shared shared) {
+		public ScriptProcessor(Script script, int sourceFragmentOffset, Shared shared) {
 			this.shared = shared;
-			this.parser = parser;
-			this.script = parser.script();
-			this.index = parser.script().index();
-			this.typing = parser.typing();
+			this.script = script;
+			this.index = script.index();
+			this.typing = script.index() != null && script.index().nature() != null
+				? script.index().nature().settings().typing
+				: Typing.ParametersOptionallyTyped;
+			this.rules = script.engine().specialRules();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
 			this.thisType = new ThisType(script);
+			this.fragmentOffset = sourceFragmentOffset;
 			boolean hasAppendTo = false;
 			for (Directive d : script.directives())
 				if (d.type() == DirectiveType.APPENDTO) {
@@ -258,7 +263,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.hasAppendTo = hasAppendTo;
 		}
 	}
-
+	
 	public class Visitation implements Runnable, ProblemReportingContext, IEvaluationContext {
 
 		static final int
@@ -289,14 +294,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private boolean assignDefaultParmTypesToFunction(Function function) {
-			if (base.parser.specialEngineRules() != null)
-				for (SpecialFuncRule funcRule : base.parser.specialEngineRules().defaultParmTypeAssignerRules())
+			if (base.rules != null)
+				for (SpecialFuncRule funcRule : base.rules.defaultParmTypeAssignerRules())
 					if (funcRule.assignDefaultParmTypes(this, function))
 						return true;
 			return false;
 		}
+		
+		@Override
+		public boolean triggersRevisit(Function function, Function called) { return called.typeFromCallsHint(); }
 
 		private void initialParameterTypesFromCalls(Function function, Function baseFunction, IType[] callTypes) {
+			//System.out.println(String.format("Typing '%s' from calls", function.qualifiedName()));
 			List<CallDeclaration> calls = base.index.callsTo(function.name());
 			if (calls != null)
 				for (CallDeclaration call : calls) {
@@ -322,6 +331,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									if (concretePar != null) {
 										IType concreteTy = visitation != null ? visitation.typeOf(concretePar) : concretePar.inferredType();
 										IType unified = TypeUnification.unifyNoChoice(callTypes[pa], concreteTy);
+										//System.out.println(String.format("%s: %s -> %s", function.parameter(pa).name(), concretePar.printed(), concreteTy.typeName(false)));
 										if (unified == null) {
 											if (visitation != null)
 												visitation.incompatibleTypes(concretePar, concretePar, callTypes[pa], concreteTy);
@@ -334,10 +344,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 		}
+		
+		final boolean allParametersStaticallyTyped(Function function) {
+			for (Variable p : function.parameters())
+				if (!p.staticallyTyped())
+					return false;
+			return true;
+		}
 
 		@Override
 		public ITypeVariable visitFunction(Function function) { return visitFunction(function, null); }
 		
+		private void assignExperts(ASTNode node) {
+			node.traverse(new IASTVisitor<Void>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Void parser) {
+					if (!roaming && node instanceof AccessDeclaration)
+						((AccessDeclaration)node).setDeclaration(null);
+					node.temporaryProblemReportingObject = findExpert(node);
+					return TraversalContinuation.Continue;
+				}
+			}, null);
+		}
+
 		public ITypeVariable visitFunction(Function function, Declaration hello) {
 			if (function == null || function.body() == null)
 				return null;
@@ -364,6 +393,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						System.out.println(String.format("'%s' gave up waiting for '%s'", hello.qualifiedName(), function.qualifiedName()));
 					return returnType;
 				}
+				assignExperts(function);
 				try {
 					ASTNode[] statements = function.body().statements();
 					TypeEnvironment env = newTypeEnvironment();
@@ -383,9 +413,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 							base.typing == Typing.ParametersOptionallyTyped &&
 							baseFunction.visibility() != FunctionScope.GLOBAL &&
 							base.script instanceof Definition &&
-							!(base.script instanceof Scenario);
+							!(base.script instanceof Scenario) &&
+							function.numParameters() > 0 &&
+							(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
+						function.setTypeFromCallsHint(typeFromCalls);
 						IType[] callTypes = new IType[parameters.size()];
-						if (typeFromCalls && parameters.size() > 0)
+						if (typeFromCalls)
 							initialParameterTypesFromCalls(function, baseFunction, callTypes);
 						for (int i = 0; i < callTypes.length; i++)
 							if (callTypes[i] == null)
@@ -437,13 +470,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			} catch (ParsingException e) {}
 		}
 
-		/**
-		 * Let an expression report errors. Calling {@link ASTNode#reportProblems(C4ScriptParser)} indirectly like that ensures
-		 * that error markers created will be decorated with information about the expression reporting the error.
-		 * @param expression The expression to report errors.
-		 * @throws ParsingException
-		 * @return The expression parameter is returned to allow for expression chaining.
-		 */
 		public final <T extends ASTNode> T visitNode(T expression, boolean recursive) throws ParsingException {
 			if (expression == null)
 				return null;
@@ -585,11 +611,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				roaming = false;
 			}
 		}
+		
 		private boolean roaming = false;
 
 		private void visit(Script script, boolean roaming) {
 			script.requireLoaded();
-			assignExperts(script);
 			if (roaming)
 				startRoaming();
 			for (Function f : script.functions()) {
@@ -672,12 +698,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		@Override
-		public Definition definition() { return base.parser.definition(); }
+		public Definition definition() { return as(base.script, Definition.class); }
 		@Override
 		public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 			Function f = expression.parentOfType(Function.class);
 			int bodyOffset = f != null ? f.bodyLocation().start() : 0;
-			return base.parser.absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
+			return new SourceLocation(
+				base.fragmentOffset+bodyOffset+expression.start(),
+				base.fragmentOffset+bodyOffset+expression.end()
+			);
 		}
 		@Override
 		public CachedEngineDeclarations cachedEngineDeclarations() { return base.cachedEngineDeclarations; }
@@ -688,13 +717,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public Declaration container() { return script(); }
 		@Override
-		public int fragmentOffset() { return base.parser.fragmentOffset(); }
+		public int fragmentOffset() { return base.fragmentOffset; }
 		@Override
 		public IType typeOf(ASTNode node) { return ty(node, this); }
 		@Override
 		public boolean isModifiable(ASTNode node) { return expert(node).isModifiable(node, this); }
-		@Override
-		public BufferedScanner scanner() { return base.parser; }
 
 		@Override
 		public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
@@ -733,6 +760,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public Markers markers() { return markers; }
+		@Override
+		public void setMarkers(Markers markers) { this.markers = markers;}
 		@Override
 		public Object valueForVariable(String varName) { return null; }
 		@Override
@@ -960,16 +989,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void parser) {
 				node.temporaryProblemReportingObject = null;
-				return TraversalContinuation.Continue;
-			}
-		}, null);
-	}
-
-	private void assignExperts(ASTNode node) {
-		node.traverse(new IASTVisitor<Void>() {
-			@Override
-			public TraversalContinuation visitNode(ASTNode node, Void parser) {
-				node.temporaryProblemReportingObject = findExpert(node);
 				return TraversalContinuation.Continue;
 			}
 		}, null);
@@ -2093,7 +2112,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (d == null) {
 							// implicitly create loop variable declaration if not found
 							SourceLocation varPos = visitation.absoluteSourceLocationFromExpr(accessVar);
-							loopVariable = visitation.base.parser.createVarInScope(node.parentOfType(Function.class), accessVar.name(), Scope.VAR, varPos.start(), varPos.end(), null);
+							loopVariable = visitation.base.script.createVarInScope(Variable.DEFAULT_VARIABLE_FACTORY, node.parentOfType(Function.class), accessVar.name(), Scope.VAR, varPos.start(), varPos.end(), null);
 						} else
 							loopVariable = as(d, Variable.class);
 					} else

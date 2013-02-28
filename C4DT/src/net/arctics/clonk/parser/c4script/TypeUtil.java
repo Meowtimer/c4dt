@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
@@ -47,13 +46,13 @@ public class TypeUtil {
 					? ((ITypeable)ad.declaration()).type() : PrimitiveType.UNKNOWN;
 			}
 			@Override
-			public BufferedScanner scanner() { return null; }
-			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as(typeOf(node), cls); }
 			@Override
 			public boolean validForType(ASTNode node, IType type) { return type.canBeAssignedFrom(typeOf(node)); }
 			@Override
 			public Markers markers() { return null; }
+			@Override
+			public void setMarkers(Markers markers) { /* ignore */ }
 			@Override
 			public void reportProblems() {}
 			@Override
@@ -66,6 +65,8 @@ public class TypeUtil {
 			public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
 			public boolean isModifiable(ASTNode node) { return false; }
+			@Override
+			public boolean triggersRevisit(Function function, Function called) { return true; }
 		};
 	}
 	public static Definition definition(IType type) {

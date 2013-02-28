@@ -23,8 +23,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	@Override
 	public void run() { throw new UnsupportedOperationException(); }
 	
-	public abstract ProblemReportingContext localTypingContext(Script script, ProblemReportingContext chain);
-	public abstract ProblemReportingContext localTypingContext(C4ScriptParser parser, ProblemReportingContext chain);
+	public abstract ProblemReportingContext localTypingContext(Script script, int fragmentOffset, ProblemReportingContext chain);
 	public void initialize(Markers markers, ClonkBuilder builder) { this.markers = markers; }
 	
 	public final int capabilities() {

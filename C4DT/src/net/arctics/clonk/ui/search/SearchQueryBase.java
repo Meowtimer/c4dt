@@ -6,6 +6,9 @@ import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.search.ui.ISearchQuery;
 import org.eclipse.search.ui.ISearchResult;
 import org.eclipse.search.ui.text.AbstractTextSearchResult;
@@ -18,19 +21,26 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter, IEditorMatchAdapter {
 	protected static final Match[] NO_MATCHES = new Match[0];
 	protected ClonkSearchResult result;
-
 	@Override
 	public boolean canRerun() { return true; }
 	@Override
 	public boolean canRunInBackground() { return true; }
-
 	@Override
 	public synchronized ISearchResult getSearchResult() {
 		if (result == null)
 			result = new ClonkSearchResult(this);
 		return result;
 	}
-	
+	protected abstract IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException;
+	@Override
+	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+		try {
+			return doRun(monitor);
+		} finally {
+			if (result != null)
+				result.clearScanners();
+		}
+	}
 	@Override
 	public IFile getFile(Object element) {
 		if (element instanceof Script)
@@ -41,7 +51,6 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 			return as(((IHasRelatedResource)element).resource(), IFile.class);
 		return null;
 	}
-	
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
 		Script script = Script.get(file, true);
@@ -49,7 +58,6 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 			return result.getMatches(script);
 		return NO_MATCHES;
 	}
-
 	@Override
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
@@ -59,7 +67,6 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 		}
 		return false;
 	}
-
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
@@ -69,5 +76,4 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 		}
 		return NO_MATCHES;
 	}
-
 }

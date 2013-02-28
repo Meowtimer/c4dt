@@ -39,6 +39,7 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
@@ -55,6 +56,7 @@ import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
+import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
@@ -1324,14 +1326,50 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 		}, true);
 	}
+	
+	public Variable createVarInScope(
+		IVariableFactory factory,
+		Function function, String varName, Scope scope,
+		int start, int end,
+		Comment description
+	) {
+		Variable result;
+		switch (scope) {
+		case VAR:
+			result = function != null ? function.findVariable(varName) : null;
+			break;
+		case CONST: case STATIC: case LOCAL:
+			result = script().findLocalVariable(varName, false);
+			break;
+		default:
+			result = null;
+			break;
+		}
+		if (result != null)
+			return result;
 
-	@Override
-	public PrimitiveType primitiveType() {
-		return PrimitiveType.OBJECT;
+		result = factory.newVariable(varName, scope);
+		switch (scope) {
+		case PARAMETER:
+			result.setParent(function);
+			function.parameters().add(result);
+			break;
+		case VAR:
+			result.setParent(function);
+			function.locals().add(result);
+			break;
+		case CONST: case STATIC: case LOCAL:
+			result.setParent(script());
+			script().addDeclaration(result);
+		}
+		result.setLocation(start, end);
+		result.setUserDescription(description != null ? description.text().trim() : null);
+		return result;
 	}
 
+	@Override
+	public PrimitiveType primitiveType() { return PrimitiveType.OBJECT; }
 	public void setScriptFile(IFile f) {}
-
 	@Override
 	public boolean isGlobal() { return true; }
 

@@ -34,7 +34,7 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 			Script context = pred == null
 				? configuration.editor().script()
 				: configuration.editor().textChangeListener().typingStrategy().localTypingContext
-					(configuration.editor().script(), null).typeOf(pred, Script.class);
+					(configuration.editor().script(), 0, null).typeOf(pred, Script.class);
 			messageBuilder.append(entityLocator.entity().infoText(context));
 		}
 		else {

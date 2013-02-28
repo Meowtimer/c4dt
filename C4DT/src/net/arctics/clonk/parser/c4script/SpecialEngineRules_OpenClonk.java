@@ -140,12 +140,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		};
 		@Override
 		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) {
-			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction && processor.scanner() instanceof C4ScriptParser) {
-				C4ScriptParser parser = (C4ScriptParser) processor.scanner();
+			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction) {
 				Object nameEv = arguments[0].evaluateStatic(node.parentOfType(Function.class));
 				if (nameEv instanceof String) {
 					SourceLocation loc = processor.absoluteSourceLocationFromExpr(arguments[0]);
-					Variable var = parser.createVarInScope(
+					Variable var = node.parentOfType(Script.class).createVarInScope(
+						Variable.DEFAULT_VARIABLE_FACTORY,
 						node.parentOfType(Function.class),
 						(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
 					);

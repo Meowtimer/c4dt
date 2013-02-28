@@ -10,9 +10,11 @@ import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +36,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
@@ -243,12 +246,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public static void removeMarkers(Function func, Script script) {
 			if (script != null && script.resource() != null)
 				try {
-					// delete all "while typing" errors
-					IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
-					for (IMarker m : markers)
-						m.delete();
 					// delete regular markers that are in the region of interest
-					markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
+					IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.bodyLocation() : null;
 					for (IMarker m : markers) {
 						// delete marks inside the body region
@@ -263,6 +262,27 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					e.printStackTrace();
 				}
 		}
+		
+		@SuppressWarnings("serial")
+		static class MarkerConfines extends HashSet<ASTNode> implements IMarkerListener {
+			public MarkerConfines(ASTNode... confines) {
+				this.addAll(Arrays.asList(confines));
+			}
+			@Override
+			public Decision markerEncountered(
+				Markers markers, IASTPositionProvider positionProvider,
+				Problem code, ASTNode node,
+				int markerStart, int markerEnd, int flags,
+				int severity, Object... args
+			) {
+				if (node == null)
+					return Decision.DropCharges;
+				for (ASTNode confine : this)
+					if (node.containedIn(confine))
+						return Decision.PassThrough;
+				return Decision.DropCharges;
+			}
+		}
 
 		private void scheduleReparsingOfFunction(final Function fn) {
 			functionReparseTask = cancelTimerTask(functionReparseTask);
@@ -272,23 +292,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					try {
 						if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 							return;
-						removeMarkers(fn, structure);
 						if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
+							removeMarkers(fn, structure);
 							final Function f = (Function) fn.latestVersion();
-							Markers markers = new Markers(new IMarkerListener() {
-								@Override
-								public Decision markerEncountered(Markers markers, IASTPositionProvider positionProvider,
-									Problem code, ASTNode node,
-									int markerStart, int markerEnd, int flags,
-									int severity, Object... args
-								) {
-									if (node == null || !node.containedIn(f))
-										return Decision.DropCharges;
-									return Decision.PassThrough;
-								}
-							});
-							markers.applyProjectSettings(structure.index());
-							reparseFunction(f, markers);
+							Markers markers = reparseFunction(f);
 							for (Variable localVar : f.locals()) {
 								SourceLocation l = localVar;
 								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
@@ -303,20 +310,43 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, 1000);
 		}
 
-		public void reparseFunction(final Function function, Markers markers) {
+		private void addCalls(Set<Function> to, Function from) {
+			for (Collection<CallDeclaration> cdc : from.script().callMap().values())
+				for (CallDeclaration cd : cdc)
+					if (cd.containedIn(from)) {
+						Function called = as(cd.declaration(), Function.class);
+						if (called != null)
+							to.add(called);
+					}
+		}
+		
+		public Markers reparseFunction(final Function function) {
+			Markers markers = new Markers(new MarkerConfines(function));
+			markers.applyProjectSettings(structure.index());
+			Set<Function> revisitFunctions = new HashSet<>();
+			addCalls(revisitFunctions, function); // add old calls so when the user removes a call the function called will still be revisited
 			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
 			structure.generateFindDeclarationCache();
 			for (ProblemReportingStrategy strategy : problemReportingStrategies) {
-				ProblemReportingContext mainTyping = strategy.localTypingContext(parser, null);
+				ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+				if (markers != null)
+					mainTyping.setMarkers(markers);
 				mainTyping.visitFunction(function);
-				for (Collection<CallDeclaration> cdc : parser.script().callMap().values())
-					for (CallDeclaration cd : cdc)
-						if (cd.containedIn(function)) {
-							Function called = as(cd.declaration(), Function.class);
-							if (called != null && called.body() != null)
-								strategy.localTypingContext(called.parentOfType(Script.class), mainTyping).visitFunction(called);
-						}
+				addCalls(revisitFunctions, function); // add new calls
+				// potentially revisit functions to adjust typing of parameters to the concrete parameter types supplied here
+				for (Function called : revisitFunctions)
+					if (called != null && mainTyping.triggersRevisit(function, called))
+						if (markers != null && markers.listener() instanceof MarkerConfines)
+							if (((MarkerConfines)markers.listener()).add(called)) {
+								removeMarkers(called, called.script());
+								for (Variable p : called.parameters())
+									p.forceType(PrimitiveType.UNKNOWN, false);
+								ProblemReportingContext calledTyping = strategy.localTypingContext(called.parentOfType(Script.class), 0, mainTyping);
+								calledTyping.setMarkers(markers);
+								calledTyping.visitFunction(called);
+							}
 			}
+			return markers;
 		}
 
 		@Override
@@ -367,7 +397,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		for (ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
 			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
-					r = strategy.localTypingContext(parserForDocument(getDocumentProvider().getDocument(getEditorInput()), script()), null)
+					r = strategy.localTypingContext(script(), 0, null)
 				);
 				break;
 			}
@@ -576,7 +606,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			public void run() {
 				Function f = functionAtCursor();
 				if (f != null)
-					textChangeListener().reparseFunction(f, null);
+					textChangeListener().reparseFunction(f).deploy();
 				showContentAssistance();
 			}
 		});
@@ -666,7 +696,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.script().generateFindDeclarationCache();
 		parser.validate();
 		if (!onlyDeclarations && listener != null && listener.typingStrategy() != null)
-			listener.typingStrategy().localTypingContext(parser, null).reportProblems();
+			listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null).reportProblems();
 		parser.markers().deploy();
 
 		// make sure it's executed on the ui thread

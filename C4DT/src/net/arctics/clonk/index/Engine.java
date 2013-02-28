@@ -465,7 +465,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							@Override
 							protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
 							@Override
-							protected Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
+							public Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
 						};
 						try {
 							parser.parse();

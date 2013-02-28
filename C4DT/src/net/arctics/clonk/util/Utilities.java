@@ -315,6 +315,8 @@ public abstract class Utilities {
 	}
 
 	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
+		if (container == null)
+			return null;
 		try {
 	        for (IResource child : container.members())
 				if (child.getName().equalsIgnoreCase(name))
