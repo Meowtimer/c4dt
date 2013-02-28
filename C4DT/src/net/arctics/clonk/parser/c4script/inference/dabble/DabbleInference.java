@@ -263,7 +263,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.hasAppendTo = hasAppendTo;
 		}
 	}
-	
+
 	public class Visitation implements Runnable, ProblemReportingContext, IEvaluationContext {
 
 		static final int
@@ -300,7 +300,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return true;
 			return false;
 		}
-		
+
 		@Override
 		public boolean triggersRevisit(Function function, Function called) { return called.typeFromCallsHint(); }
 
@@ -344,7 +344,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 		}
-		
+
 		final boolean allParametersStaticallyTyped(Function function) {
 			for (Variable p : function.parameters())
 				if (!p.staticallyTyped())
@@ -354,7 +354,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public ITypeVariable visitFunction(Function function) { return visitFunction(function, null); }
-		
+
 		private void assignExperts(ASTNode node) {
 			node.traverse(new IASTVisitor<Void>() {
 				@Override
@@ -382,6 +382,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 				if (!kickOff) synchronized (returnType) {
+//					if (hello != null)
+//						System.out.println(String.format("'%s' waiting for '%s'", hello.qualifiedName(), function.qualifiedName()));
 					int i;
 					for (i = 0; i < 3 && returnType.thread != null && returnType.thread != Thread.currentThread(); i++)
 						try {
@@ -611,7 +613,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				roaming = false;
 			}
 		}
-		
+
 		private boolean roaming = false;
 
 		private void visit(Script script, boolean roaming) {

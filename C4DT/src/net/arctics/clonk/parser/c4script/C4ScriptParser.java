@@ -262,7 +262,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	public void parse() throws ParsingException {
-		clean();
+		clear(true, true);
 		parseDeclarations();
 		validate();
 	}
@@ -288,7 +288,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	/**
-	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clean()}-ed to avoid duplicates.
+	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clear()}-ed to avoid duplicates.
 	 */
 	public void parseDeclarations() {
 		if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
@@ -2494,11 +2494,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Delete declarations inside the script container assigned to the parser and remove markers.
 	 */
-	public void clean() {
+	public void clear(boolean problemMarkers, boolean taskMarkers) {
 		try {
 			if (scriptFile != null) {
-				scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-				scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
+				if (problemMarkers)
+					scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+				if (taskMarkers)
+					scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
 			}
 		} catch (CoreException e1) {
 			e1.printStackTrace();

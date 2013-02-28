@@ -262,7 +262,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					e.printStackTrace();
 				}
 		}
-		
+
 		@SuppressWarnings("serial")
 		static class MarkerConfines extends HashSet<ASTNode> implements IMarkerListener {
 			public MarkerConfines(ASTNode... confines) {
@@ -319,7 +319,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							to.add(called);
 					}
 		}
-		
+
 		public Markers reparseFunction(final Function function) {
 			Markers markers = new Markers(new MarkerConfines(function));
 			markers.applyProjectSettings(structure.index());
@@ -691,14 +691,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Runnable uiRefreshRunnable
 	) throws ParsingException {
 		C4ScriptParser parser = parserForDocument(document, script);
-		parser.clean();
+		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();
 		parser.script().generateFindDeclarationCache();
 		parser.validate();
-		if (!onlyDeclarations && listener != null && listener.typingStrategy() != null)
-			listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null).reportProblems();
-		parser.markers().deploy();
-
+		if (!onlyDeclarations) {
+			if (listener != null && listener.typingStrategy() != null) {
+				ProblemReportingContext localTyping = listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null);
+				localTyping.setMarkers(parser.markers());
+				localTyping.reportProblems();
+			}
+			parser.markers().deploy();
+		}
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);

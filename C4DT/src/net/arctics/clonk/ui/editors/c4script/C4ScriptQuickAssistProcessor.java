@@ -570,7 +570,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
 								ASTNode repl = identifierReplacement(accessDec, dec.name());
-								replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, false);
+								replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, true);
 							}
 						}
 
@@ -666,7 +666,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					replacements.add(
 						String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 						identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
-						false, false
+						false, true
 					);
 				break;
 			case ReturnAsFunction:
