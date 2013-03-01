@@ -501,6 +501,11 @@
 			id="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
 			name="%RenameDeclaration_Name" />
 		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%Evaluate_Desc"
+			id="net.arctics.clonk.ui.editors.actions.EvaluateC4Script"
+			name="%Evaluate_Name" />
+		
 		<!-- FIXME: what was that supposed to do -->
 		<command categoryId="net.arctics.clonk.commands"
 			description="%DeclarationFilter_Desc"
@@ -819,6 +824,12 @@
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="net.arctics.clonk.context"
 			sequence="M1+M3+R">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.EvaluateC4Script"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M1+E">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.ToggleComment"

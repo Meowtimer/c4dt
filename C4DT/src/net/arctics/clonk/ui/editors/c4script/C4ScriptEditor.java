@@ -55,6 +55,7 @@ import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IHasEditorPart;
 import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
@@ -541,7 +542,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			RenameDeclarationAction.class,
 			FindDuplicatesAction.class,
 			ToggleCommentAction.class,
-			C4ScriptSearchAction.class
+			C4ScriptSearchAction.class,
+			EvaluateC4Script.class
 		);
 	}
 
