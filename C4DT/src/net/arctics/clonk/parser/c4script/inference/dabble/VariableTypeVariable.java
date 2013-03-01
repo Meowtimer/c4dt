@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;
@@ -16,7 +16,7 @@ public class VariableTypeVariable extends TypeVariable {
 		this.type = PrimitiveType.UNKNOWN;
 	}
 	@Override
-	public boolean binds(ASTNode expr, Visitation processor) {
+	public boolean binds(ASTNode expr, Visitor visitor) {
 		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
 	}
 	@Override
@@ -26,7 +26,7 @@ public class VariableTypeVariable extends TypeVariable {
 			((VariableTypeVariable)other).variable == this.variable;
 	}
 	@Override
-	public void apply(boolean soft, Visitation processor) {
+	public void apply(boolean soft, Visitor visitor) {
 		variable.expectedToBeOfType(type, TypingJudgementMode.Expect);
 	}
 	@Override
@@ -34,5 +34,5 @@ public class VariableTypeVariable extends TypeVariable {
 		return String.format("[%s: %s]", variable.name(), get().typeName(true));
 	}
 	@Override
-	public Declaration declaration(Visitation processor) { return variable; }
+	public Declaration declaration(Visitor visitor) { return variable; }
 }

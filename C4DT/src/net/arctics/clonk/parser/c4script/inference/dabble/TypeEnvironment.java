@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public class TypeEnvironment extends ArrayList<ITypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -43,9 +43,9 @@ public class TypeEnvironment extends ArrayList<ITypeVariable> {
 			this.addAll(merged);
 		return this;
 	}
-	public void apply(Visitation processor, boolean soft) {
+	public void apply(Visitor visitor, boolean soft) {
 		for (ITypeVariable info : this)
-			info.apply(soft, processor);
+			info.apply(soft, visitor);
 	}
 	public final void injectIntoUpper(boolean ignoreLocals) {
 		if (up != null)

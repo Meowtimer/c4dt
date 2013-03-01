@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 /**
  * Type information stored for some expression.
@@ -36,7 +36,7 @@ public interface ITypeVariable {
 	 * @param processor Processor serving as context
 	 * @return True, if relevant, false if not.
 	 */
-	boolean binds(ASTNode expr, Visitation processor);
+	boolean binds(ASTNode expr, Visitor visitor);
 	/**
 	 * Return whether another {@link ITypeVariable} refers to the same expression as this one.
 	 * @param other The other stored type information
@@ -48,7 +48,7 @@ public interface ITypeVariable {
 	 * @param soft Apply 'softly', meaning that permanent type changes won't be applied.
 	 * @param processor Processor serving as context
 	 */
-	void apply(boolean soft, Visitation processor);
+	void apply(boolean soft, Visitor visitor);
 	/**
 	 * Merge type information with another one which is refering to the same expression.
 	 * @param other The other type information
@@ -60,5 +60,5 @@ public interface ITypeVariable {
 	 * @throws CloneNotSupportedException
 	 */
 	Object clone() throws CloneNotSupportedException; // Cloneable does not declare the method :c
-	Declaration declaration(Visitation processor);
+	Declaration declaration(Visitor visitor);
 }

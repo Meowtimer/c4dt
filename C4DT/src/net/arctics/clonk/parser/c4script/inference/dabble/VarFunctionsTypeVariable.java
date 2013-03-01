@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 final class VarFunctionsTypeVariable extends TypeVariable {
 	private final Function scope;
@@ -20,7 +20,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public boolean binds(ASTNode node, Visitation processor) {
+	public boolean binds(ASTNode node, Visitor visitor) {
 		Function fn = node.parentOfType(Function.class);
 		if (scope != null && fn != scope)
 			return false;
@@ -35,7 +35,7 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 		} else if (node instanceof AccessVar) {
 			AccessVar accessVar = (AccessVar) node;
 			if (accessVar.declaration() instanceof Variable)
-				return fn != null && (varFunction == processor.cachedEngineDeclarations().Par
+				return fn != null && (varFunction == visitor.cachedEngineDeclarations().Par
 					? fn.parameters()
 					: fn.locals()).indexOf(accessVar) == varIndex;
 		}
@@ -58,5 +58,5 @@ final class VarFunctionsTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public Declaration declaration(Visitation processor) { return null; }
+	public Declaration declaration(Visitor visitor) { return null; }
 }

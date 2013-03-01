@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitation;
+import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 /**
  * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ASTNode} and setting its type.
@@ -21,10 +21,10 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visita
 public final class ExpressionTypeVariable extends TypeVariable {
 	private final ASTNode expression;
 
-	public ExpressionTypeVariable(ASTNode referenceElm, Visitation processor) {
+	public ExpressionTypeVariable(ASTNode referenceElm, Visitor visitor) {
 		super();
 		this.expression = referenceElm;
-		ITypeable typeable = typeableFromExpression(referenceElm, processor);
+		ITypeable typeable = typeableFromExpression(referenceElm, visitor);
 		if (typeable != null)
 			this.type = typeable.type();
 	}
@@ -42,9 +42,9 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	};
 
 	@Override
-	public boolean binds(ASTNode expr, Visitation processor) {
+	public boolean binds(ASTNode expr, Visitor visitor) {
 		if (expr instanceof AccessDeclaration && expression instanceof AccessDeclaration && ((AccessDeclaration)expr).declaration() == ((AccessDeclaration)expression).declaration())
-			return !isAnyOf(((AccessDeclaration)expr).declaration(), processor.cachedEngineDeclarations().VarAccessFunctions);
+			return !isAnyOf(((AccessDeclaration)expr).declaration(), visitor.cachedEngineDeclarations().VarAccessFunctions);
 		ASTNode chainA, chainB;
 		for (chainA = expr, chainB = expression; chainA != null && chainB != null; chainA = chainA.predecessorInSequence(), chainB = chainB.predecessorInSequence())
 			if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER))
@@ -60,8 +60,8 @@ public final class ExpressionTypeVariable extends TypeVariable {
 			return false;
 	}
 
-	public static ITypeable typeableFromExpression(ASTNode referenceElm, Visitation processor) {
-		EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, processor);
+	public static ITypeable typeableFromExpression(ASTNode referenceElm, Visitor visitor) {
+		EntityRegion decRegion = referenceElm.entityAt(referenceElm.getLength()-1, visitor);
 		if (decRegion != null && decRegion.entityAs(ITypeable.class) != null)
 			return decRegion.entityAs(ITypeable.class);
 		else
@@ -69,8 +69,8 @@ public final class ExpressionTypeVariable extends TypeVariable {
 	}
 
 	@Override
-	public void apply(boolean soft, Visitation processor) {
-		ITypeable typeable = typeableFromExpression(expression, processor);
+	public void apply(boolean soft, Visitor visitor) {
+		ITypeable typeable = typeableFromExpression(expression, visitor);
 		if (typeable != null) {
 			// don't apply typing to non-local things if only applying type information softly
 			// this prevents assigning types to instance variables when only hovering over some function or something like that
@@ -79,7 +79,7 @@ public final class ExpressionTypeVariable extends TypeVariable {
 			// only set types of declarations inside the current index so definition references of one project
 			// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
 			Index index = typeable.index();
-			if (index == null || index != processor.script().index())
+			if (index == null || index != visitor.script().index())
 				return;
 
 			typeable.expectedToBeOfType(type, TypingJudgementMode.Force);
@@ -91,16 +91,16 @@ public final class ExpressionTypeVariable extends TypeVariable {
 		return String.format("[%s: %s]", expression.toString(), type.typeName(true));
 	}
 
-	public static ITypeVariable makeTypeInfo(Declaration declaration, Visitation processor) {
+	public static ITypeVariable makeTypeInfo(Declaration declaration, Visitor visitor) {
 		if (declaration != null)
-			return new ExpressionTypeVariable(new AccessVar(declaration), processor);
+			return new ExpressionTypeVariable(new AccessVar(declaration), visitor);
 		else
 			return null;
 	}
 
 	@Override
-	public Declaration declaration(Visitation processor) {
-		return as(typeableFromExpression(expression, processor), Declaration.class);
+	public Declaration declaration(Visitor visitor) {
+		return as(typeableFromExpression(expression, visitor), Declaration.class);
 	}
 
 }
