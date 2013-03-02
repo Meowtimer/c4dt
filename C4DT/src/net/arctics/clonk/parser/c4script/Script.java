@@ -274,7 +274,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			dictionary.clear();
 		else
 			dictionary = new HashSet<String>();
-		for (Declaration d : accessibleDeclarations(ALL))
+		for (Declaration d : subDeclarations(index(), DeclMask.ALL))
 			dictionary.add(d.name());
 	}
 
@@ -500,13 +500,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
 		ArrayList<Declaration> decs = new ArrayList<Declaration>();
-		if ((mask & FUNCTIONS) != 0)
+		if ((mask & DeclMask.FUNCTIONS) != 0)
 			addAllSynchronized(definedFunctions, decs);
-		if ((mask & VARIABLES) != 0)
+		if ((mask & DeclMask.VARIABLES) != 0)
 			addAllSynchronized(definedVariables, decs);
-		if ((mask & DIRECTIVES) != 0)
+		if ((mask & DeclMask.DIRECTIVES) != 0)
 			addAllSynchronized(definedDirectives, decs);
-		if ((mask & OTHER) != 0 && definedEffects != null)
+		if ((mask & DeclMask.IMPLICIT) != 0 && definedEffects != null)
 			addAllSynchronized(definedEffects.values(), decs);
 		return decs;
 	}
@@ -515,9 +515,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
 		int mask =
-			from instanceof Variable ? VARIABLES :
-			from instanceof Function ? FUNCTIONS :
-			from instanceof Directive ? DIRECTIVES : 0;
+			from instanceof Variable ? DeclMask.VARIABLES :
+			from instanceof Function ? DeclMask.FUNCTIONS :
+			from instanceof Directive ? DeclMask.DIRECTIVES : 0;
 		T candidate = null;
 		boolean locationMatch = false;
 		for (Declaration d : subDeclarations(this.index(), mask)) {
@@ -982,7 +982,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
 		for (Script c : conglomerate())
-			for (Declaration sd : c.subDeclarations(index(), FUNCTIONS|VARIABLES|(c==this?DIRECTIVES:0))) {
+			for (Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c==this?DeclMask.DIRECTIVES:0))) {
 				if (sd instanceof InitializationFunction)
 					continue;
 				if (sd instanceof Function && !seesFunction(((Function)sd)))
@@ -1274,7 +1274,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				it.remove();
 		}
 	}
-	
+
 	public void detectMapNodesInFunction(Function function, boolean clearOld) {
 		synchronized (callMap) {
 			if (clearOld) {
@@ -1347,7 +1347,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 		}, true);
 	}
-	
+
 	public Variable createVarInScope(
 		IVariableFactory factory,
 		Function function, String varName, Scope scope,
@@ -1396,7 +1396,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ASTNode[] subElements() {
-		List<Declaration> decs = subDeclarations(index(), ALL);
+		List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 }

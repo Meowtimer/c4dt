@@ -15,6 +15,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
@@ -153,20 +154,20 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	 * @param wordOffset Word offset
 	 * @param prefix String already typed
 	 * @param proposals The list to add the proposals to
-	 * @param flags Flags indicating what kind of proposals should be included. {@link IHasSubDeclarations#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
+	 * @param flags Flags indicating what kind of proposals should be included. {@link DeclMask#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 * @param editorScript Script the proposals are invoked on.
 	 */
 	private void proposalsForIndex(Index index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags, Script editorScript) {
 		if (_activeFunc != null) {
 			Scenario s2 = _activeFunc.scenario();
-			if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
+			if ((flags & DeclMask.FUNCTIONS) != 0)
 				for (Function func : index.globalFunctions()) {
 					Scenario s1 = func.scenario();
 					if (s1 != null && s2 != null && s1 != s2)
 						continue;
 					proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
 				}
-			if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
+			if ((flags & DeclMask.STATIC_VARIABLES) != 0)
 				for (Variable var : index.staticVariables()) {
 					// ignore static variables from editor script since those are proposed already
 					if (var.parentDeclaration() == editorScript)
@@ -177,7 +178,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposalForVar(var,prefix,offset,proposals);
 				}
 		}
-		if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
+		if ((flags & DeclMask.STATIC_VARIABLES) != 0)
 			proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 	}
 
@@ -433,11 +434,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		int whatToDisplayFromScripts = 0;
 		if (contextSequence == null || MemberOperator.endsWithDot(contextSequence))
-			whatToDisplayFromScripts |= IHasSubDeclarations.VARIABLES;
+			whatToDisplayFromScripts |= DeclMask.VARIABLES;
 		if (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))
-			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
+			whatToDisplayFromScripts |= DeclMask.FUNCTIONS;
 		if (contextSequence == null)
-			whatToDisplayFromScripts |= IHasSubDeclarations.STATIC_VARIABLES;
+			whatToDisplayFromScripts |= DeclMask.STATIC_VARIABLES;
 
 		if (proposalCycle != ProposalCycle.OBJECT)
 			for (Index i : index.relevantIndexes())
@@ -643,7 +644,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (prefix == null)
 				prefix = ""; //$NON-NLS-1$
 			for (Index i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.STATIC_VARIABLES, editorScript);
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals, DeclMask.STATIC_VARIABLES, editorScript);
 		}
 		return true;
 	}

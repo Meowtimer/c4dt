@@ -233,19 +233,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return NO_SUB_DECLARATIONS;
 	}
 
-	/**
-	 * Return {@link #subDeclarations(Index, int)} with the contextIndex parameter set to {@link #index()}
-	 * @param mask The mask, passed on to {@link #subDeclarations(Index, int)}
-	 * @return Result of {@link #subDeclarations(Index, int)}
-	 */
-	public final Iterable<? extends Declaration> accessibleDeclarations(int mask) {
-		return subDeclarations(index(), mask);
-	}
-
-	@Override
 	public Function findFunction(String functionName) { return null; }
-
-	@Override
 	public Declaration findDeclaration(String name, FindDeclarationInfo info) { return null; }
 
 	/**
@@ -264,7 +252,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (name != null)
 			name = name.intern();
 		setParent(parent);
-		Iterable<? extends Declaration> subDecs = this.accessibleDeclarations(ALL);
+		Iterable<? extends Declaration> subDecs = this.subDeclarations(this.index(), DeclMask.ALL);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.postLoad(this, index);

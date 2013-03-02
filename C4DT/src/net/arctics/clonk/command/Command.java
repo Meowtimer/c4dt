@@ -8,12 +8,16 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Conf;
@@ -219,14 +223,29 @@ public class Command {
 				System.out.println(scen.toString());
 		}
 		@CommandFunction
-		public static void GC(Object context) {
-			System.gc();
-		}
+		public static void GC(Object context) { System.gc(); }
 		@CommandFunction
 		public static void ReloadIndex(Object context, String projectName) {
 			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			if (nature != null)
 				nature.reloadIndex();
+		}
+		@CommandFunction
+		public static void PrintHashCodes(Object context, String projectName) {
+			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+			final Map<Integer, Declaration> m = new HashMap<>();
+			if (nature != null)
+				nature.index().allScripts(new Sink<Script>() {
+					@Override
+					public void receivedObject(Script item) {
+						System.out.println(item.toString());
+						for (Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
+							if (m.containsKey(d.hashCode()))
+								System.out.println(String.format("\tconflict:%d", d.hashCode()));
+							m.put(d.hashCode(), d);
+						}
+					}
+				});
 		}
 	}
 

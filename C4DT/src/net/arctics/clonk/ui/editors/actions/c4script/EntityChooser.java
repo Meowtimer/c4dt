@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -165,7 +165,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 												Matcher matcher = ps.matcher(str);
 												if (matcher.lookingAt()) {
 													s.requireLoaded();
-													for (Declaration d : s.accessibleDeclarations(IHasSubDeclarations.ALL))
+													for (Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
 														if (!(d instanceof Directive) && d.matchedBy(matcher)) {
 															contentProvider.add(d, itemsFilter);
 															if (++declarationsBatchSize == 5) {
@@ -182,7 +182,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 					});
 				}
 				else if (d instanceof Engine)
-					for (Declaration engineDeclaration : ((Engine)d).subDeclarations(null, IHasSubDeclarations.ALL))
+					for (Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL))
 						contentProvider.add(engineDeclaration, itemsFilter);
 				else
 					contentProvider.add(d, itemsFilter);

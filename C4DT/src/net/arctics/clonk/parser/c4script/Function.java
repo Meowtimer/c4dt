@@ -690,11 +690,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
 		ArrayList<Declaration> decs = new ArrayList<Declaration>();
-		if ((mask & VARIABLES) != 0) {
+		if ((mask & DeclMask.VARIABLES) != 0) {
 			decs.addAll(localVars);
 			decs.addAll(parameters);
 		}
-		if ((mask & OTHER) != 0 && otherDeclarations != null)
+		if ((mask & DeclMask.IMPLICIT) != 0 && otherDeclarations != null)
 			decs.addAll(otherDeclarations);
 		return decs;
 	}

@@ -20,7 +20,7 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
@@ -210,7 +210,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function)
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
-			for (Declaration v : declaration.subDeclarations(declaration.index(), IHasSubDeclarations.ALL))
+			for (Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
 				adjustDec(v, offset, add);
 		}
 

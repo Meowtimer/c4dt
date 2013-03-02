@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
@@ -134,11 +134,11 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected void adjustDeclarationLocations(DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0)
 			// text was added
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
+			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
 				adjustDec(dec, event.getOffset(), event.getText().length());
 		else if (event.getLength() > 0 && event.getText().length() == 0)
 			// text was removed
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
+			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
 				adjustDec(dec, event.getOffset(), -event.getLength());
 		else {
 			String newText = event.getText();
@@ -146,7 +146,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int offset = event.getOffset();
 			int diff = newText.length() - replLength;
 			// mixed
-			for (Declaration dec : structure.accessibleDeclarations(IHasSubDeclarations.ALL))
+			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
 				if (dec.start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {

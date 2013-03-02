@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import net.arctics.clonk.index.IHasSubDeclarations;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
@@ -61,7 +61,7 @@ public abstract class CodeConverter {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			List<Declaration> decs = new ArrayList<Declaration>();
-			for (Declaration d : script.accessibleDeclarations(IHasSubDeclarations.ALL))
+			for (Declaration d : script.subDeclarations(script.index(), DeclMask.ALL & ~DeclMask.IMPLICIT))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
@@ -105,7 +105,7 @@ public abstract class CodeConverter {
 	}
 
 	private void replaceExpression(Declaration d, IDocument document, ASTNode e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
-		final IRegion region = e.absolute(); 
+		final IRegion region = e.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
 		if (d instanceof Function)
@@ -147,6 +147,8 @@ public abstract class CodeConverter {
 		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));
 		} catch (MalformedTreeException malformed) {
+			System.out.println(d.name());
+			malformed.printStackTrace();
 			throw malformed;
 		}
 	}

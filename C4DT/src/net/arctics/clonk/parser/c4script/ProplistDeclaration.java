@@ -136,7 +136,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if ((mask & VARIABLES) != 0) {
+		if ((mask & DeclMask.VARIABLES) != 0) {
 			ArrayList<Variable> items = new ArrayList<>(components.size()+(adhocComponents != null ? adhocComponents.size() : 0));
 			items.addAll(components);
 			if (adhocComponents != null)

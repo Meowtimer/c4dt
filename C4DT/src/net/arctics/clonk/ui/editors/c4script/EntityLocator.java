@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
@@ -197,7 +198,7 @@ public class EntityLocator extends ExpressionLocator {
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
-		for (Declaration d : script.subDeclarations(script.index(), Script.FUNCTIONS|Script.VARIABLES))
+		for (Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES))
 			if (d.isAt(region.getOffset())) {
 				entity = d;
 				return;

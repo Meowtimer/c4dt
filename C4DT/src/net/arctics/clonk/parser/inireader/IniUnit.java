@@ -456,7 +456,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if ((mask & OTHER) != 0)
+		if ((mask & DeclMask.IMPLICIT) != 0)
 			return this.sectionsList;
 		else
 			return NO_SUB_DECLARATIONS;
