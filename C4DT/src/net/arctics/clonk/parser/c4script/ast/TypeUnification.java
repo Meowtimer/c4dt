@@ -172,7 +172,7 @@ public class TypeUnification {
 		}
 
 		if (a instanceof ParameterType)
-			return b;
+			return TypeChoice.make(a, b);
 
 		if (a instanceof StructuralType && b instanceof StructuralType) {
 			StructuralType sa = (StructuralType) a;

@@ -17,11 +17,7 @@ public class TypeUtil {
 	public static ProblemReportingContext problemReportingContext(final Declaration context) {
 		return new ProblemReportingContext() {
 			@Override
-			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) { return null; }
-			@Override
 			public Definition definition() { return script() instanceof Definition ? (Definition)script() : null; }
-			@Override
-			public void storeType(ASTNode exprElm, IType type) { /* yeah right */ }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
 				int bodyOffset = context.absoluteExpressionsOffset();
@@ -48,8 +44,6 @@ public class TypeUtil {
 			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as(typeOf(node), cls); }
 			@Override
-			public boolean validForType(ASTNode node, IType type) { return type.canBeAssignedFrom(typeOf(node)); }
-			@Override
 			public Markers markers() { return null; }
 			@Override
 			public void setMarkers(Markers markers) { /* ignore */ }
@@ -60,9 +54,9 @@ public class TypeUtil {
 			@Override
 			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
 			@Override
-			public void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode) {}
+			public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {}
 			@Override
-			public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {}
+			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
 			public boolean isModifiable(ASTNode node) { return false; }
 			@Override

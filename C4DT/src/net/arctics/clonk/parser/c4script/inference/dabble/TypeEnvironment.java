@@ -6,9 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
-public class TypeEnvironment extends ArrayList<ITypeVariable> {
+public final class TypeEnvironment extends ArrayList<ITypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private static ITypeVariable merge(ITypeVariable left, ITypeVariable right) {
 		if (!(left instanceof LinkedTypeVariables) && right instanceof LinkedTypeVariables) {
@@ -50,5 +51,11 @@ public class TypeEnvironment extends ArrayList<ITypeVariable> {
 	public final void injectIntoUpper(boolean ignoreLocals) {
 		if (up != null)
 			inject(up, ignoreLocals);
+	}
+	public ITypeVariable find(ASTNode expression, Visitor visitor) {
+		for (ITypeVariable info : this)
+			if (info.binds(expression, visitor))
+				return info;
+		return null;
 	}
 }

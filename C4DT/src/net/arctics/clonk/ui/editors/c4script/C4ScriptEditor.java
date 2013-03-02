@@ -409,7 +409,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
-		//setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 
 	public void showContentAssistance() {
@@ -667,9 +666,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return null;
 	}
 
-	public Function functionAtCursor() {
-		return functionAt(cursorPos());
-	}
+	public Function functionAtCursor() { return functionAt(cursorPos()); }
 
 	public C4ScriptParser reparseWithDocumentContents(boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
@@ -728,9 +725,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	public Script topLevelDeclaration() {
-		return script();
-	}
+	public Script topLevelDeclaration() { return script(); }
 
 	public static class FuncCallInfo {
 		public IFunctionCall callFunc;

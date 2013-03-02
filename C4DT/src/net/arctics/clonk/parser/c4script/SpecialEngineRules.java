@@ -628,10 +628,11 @@ public abstract class SpecialEngineRules {
 						if (given == null)
 							continue;
 						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
-						if (!processor.validForType(given, parmType))
-							processor.incompatibleTypes(node, given, parmType, processor.typeOf(given));
+						IType givenType = processor.typeOf(given);
+						if (TypeUnification.unifyNoChoice(parmType, givenType) == null)
+							processor.incompatibleTypesMarker(node, given, parmType, processor.typeOf(given));
 						else
-							processor.typingJudgement(given, parmType, TypingJudgementMode.Unify);
+							processor.judgement(given, parmType, TypingJudgementMode.Unify);
 					}
 					return true;
 				}

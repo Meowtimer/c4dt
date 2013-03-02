@@ -1143,7 +1143,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			return null;
 		}
 
-		Operator result = Operator.getOperator(s);
+		Operator result = Operator.get(s);
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
 			if (result == Operator.ne || result == Operator.eq) {
@@ -1158,7 +1158,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 
 		s = s.substring(0, 1);
-		result = Operator.getOperator(s);
+		result = Operator.get(s);
 		if (result != null) {
 			unread();
 			return result;

@@ -34,5 +34,5 @@ public class BuiltInDefinitions {
 		Keywords.VarNamed
 	);
 	
-	public static final String[] SCRIPTOPERATORS = Operator.arrayOfOperatorNames(); 
+	public static final String[] SCRIPTOPERATORS = Operator.operatorNames(); 
 }

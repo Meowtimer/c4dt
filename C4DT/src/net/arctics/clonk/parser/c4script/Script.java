@@ -55,6 +55,8 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -106,6 +108,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Collection<Script> includes;
 	private transient Scenario scenario;
 	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
+	private transient Map<String, List<BinaryOp>> varAssignments = new HashMap<>();
 
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
@@ -130,6 +133,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) { this.typeAnnotations = typeAnnotations; }
 
 	public Map<String, List<CallDeclaration>> callMap() { return callMap; }
+	public Map<String, List<BinaryOp>> varAssignments() { return varAssignments; }
 
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
@@ -1222,15 +1226,25 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 	}
 
-	private static final IASTVisitor<Map<String, List<CallDeclaration>>> CALLMAP_POPULATOR = new IASTVisitor<Map<String, List<CallDeclaration>>>() {
+	private static final IASTVisitor<Script> NODEMAPS_POPULATOR = new IASTVisitor<Script>() {
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, Map<String, List<CallDeclaration>> map) {
+		public TraversalContinuation visitNode(ASTNode node, Script script) {
 			if (node instanceof CallDeclaration) {
 				CallDeclaration call = (CallDeclaration)node;
-				List<CallDeclaration> list = map.get(call.name());
+				List<CallDeclaration> list = script.callMap.get(call.name());
 				if (list == null)
-					map.put(call.name(), list = new ArrayList<>(3));
+					script.callMap.put(call.name(), list = new ArrayList<>(3));
 				list.add(call);
+			}
+			else if (node instanceof BinaryOp) {
+				BinaryOp bop = (BinaryOp) node;
+				if (bop.operator().isAssignment() && bop.leftSide() instanceof AccessVar) {
+					AccessVar var = (AccessVar)bop.leftSide();
+					List<BinaryOp> list = script.varAssignments.get(var.name());
+					if (list == null)
+						script.varAssignments.put(var.name(), list = new ArrayList<>(3));
+					list.add(bop);
+				}
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -1242,25 +1256,32 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
 		callMap = new HashMap<>();
+		varAssignments = new HashMap<>();
 		if (definedFunctions != null && index() != null)
 			for (Function f : definedFunctions) {
 				f.findInherited();
-				detectCallsInFunction(f, false);
+				detectMapNodesInFunction(f, false);
 			}
 	}
 
-	public void detectCallsInFunction(Function function, boolean clearOld) {
+	private static <T extends ASTNode> void clearNodes(ASTNode container, Map<String, List<T>> map) {
+		for (Iterator<List<T>> it = map.values().iterator(); it.hasNext();) {
+			List<T> list = it.next();
+			for (Iterator<T> it2 = list.iterator(); it2.hasNext();)
+				if (it2.next().containedIn(container))
+					it2.remove();
+			if (list.size() == 0)
+				it.remove();
+		}
+	}
+	
+	public void detectMapNodesInFunction(Function function, boolean clearOld) {
 		synchronized (callMap) {
-			if (clearOld)
-				for (Iterator<List<CallDeclaration>> it = callMap.values().iterator(); it.hasNext();) {
-					List<CallDeclaration> list = it.next();
-					for (Iterator<CallDeclaration> it2 = list.iterator(); it2.hasNext();)
-						if (it2.next().containedIn(function))
-							it2.remove();
-					if (list.size() == 0)
-						it.remove();
-				}
-			function.traverse(CALLMAP_POPULATOR, callMap);
+			if (clearOld) {
+				clearNodes(function, callMap);
+				clearNodes(function, varAssignments);
+			}
+			function.traverse(NODEMAPS_POPULATOR, this);
 		}
 	}
 

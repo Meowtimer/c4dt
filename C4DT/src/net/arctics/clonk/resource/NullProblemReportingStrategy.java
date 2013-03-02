@@ -30,21 +30,15 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 		return new ProblemReportingContext() {
 			final Markers markers = new Markers();
 			@Override
-			public boolean validForType(ASTNode node, IType type) { return true; }
-			@Override
-			public void typingJudgement(ASTNode node, IType type, TypingJudgementMode mode) {}
+			public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {}
 			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as((IType)PrimitiveType.ANY, cls); }
 			@Override
 			public IType typeOf(ASTNode node) { return PrimitiveType.ANY; }
 			@Override
-			public void storeType(ASTNode exprElm, IType type) {}
-			@Override
-			public IType queryTypeOfExpression(ASTNode exprElm, IType defaultType) { return PrimitiveType.ANY; }
-			@Override
 			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) { return null; }
 			@Override
-			public void incompatibleTypes(ASTNode node, IRegion region, IType left, IType right) {}
+			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
 			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
 			@Override

@@ -54,10 +54,10 @@ public enum Operator {
 	public static final int RIGHTASSOCIATIVE = 2;
 	public static final int ASSOCIATIVE_OP = 4;
 	
-	PrimitiveType firstArgType, secondArgType, resultType;
-	String operatorName, oldStyleFunctionEquivalent;
-	int priority;
-	int flags;
+	final PrimitiveType firstArgType, secondArgType, resultType;
+	final String operatorName, oldStyleFunctionEquivalent;
+	final int priority;
+	final int flags;
 	
 	public static final Map<String, Operator> stringToOperatorMap;
 	
@@ -68,9 +68,7 @@ public enum Operator {
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
 	
-	public static Operator getOperator(String opName) {
-		return stringToOperatorMap.get(opName);
-	}
+	public static Operator get(String opName) { return stringToOperatorMap.get(opName); }
 	
 	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
 			PrimitiveType resultType, String operatorName, int priority,
@@ -97,108 +95,60 @@ public enum Operator {
 			PrimitiveType resultType, String operatorName, int priority) {
 		this(firstArgType, secondArgType, resultType, operatorName, priority, null, 0);
 	}
-	
-//	private static String typeInCode(C4Type type) {
-//		if (type == null)
-//			return "C4Type.ANY";
-//		return "C4Type."+type.name();
-//	}
-//	
-//	private static void printConstructedFields() {
-//		boolean first = true;
-//		for (C4ScriptOperator op : C4ScriptOperator.values()) {
-//			if (first)
-//				first = false;
-//			else {
-//				System.out.print(",\n");
-//			}
-//			System.out.print(
-//					op.name() + "("+typeInCode(op.getFirstArgType())+
-//					", "+typeInCode(op.getSecondArgType())+", "+typeInCode(op.getResultType())+", \""+op.getOperatorName()+"\", "+op.priority()+
-//					(op.getOldStyleFunctionEquivalent()!=null?", \""+op.getOldStyleFunctionEquivalent()+"\"":"")+")"
-//			);
-//		}
-//		System.out.print(";");
-//	}
 
-	public String operatorName() {
-		return operatorName;
-	}
-	
-	public PrimitiveType firstArgType() {
-		return firstArgType;
-	}
-	
-	public PrimitiveType secondArgType() {
-		return secondArgType;
-	}
-	
-	public PrimitiveType resultType() {
-		return resultType;
-	}
-	
-	public int numArgs() {
-		return secondArgType != null ? 2 : 1;
-	}
-
+	public String operatorName() { return operatorName; }
+	public PrimitiveType firstArgType() { return firstArgType; }
+	public PrimitiveType secondArgType() { return secondArgType; }
+	public PrimitiveType resultType() { return resultType; }
+	public int numArgs() { return secondArgType != null ? 2 : 1; }
 	public boolean isUnary() {
-		return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
+		switch (this) {
+		case Not: case Increment: case Decrement: case Add: case Subtract:
+			return true;
+		default:
+			return false;
+		}
 	}
-
-	public boolean isBinary() {
-		return !isUnary() || this == Add || this == Subtract; // :D
-	}
-
-	public boolean isPostfix() {
-		return this == Increment || this == Decrement;
-	}
-	
+	public boolean isBinary() { return !isUnary() || this == Add || this == Subtract; }
+	public boolean isPostfix() { return this == Increment || this == Decrement; }
 	public boolean isPrefix() {
-		return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract || this == BitNot;
+		switch (this) {
+		case Increment: case Decrement: case Not: case Add: case Subtract: case BitNot:
+			return true;
+		default:
+			return false;
+		}
 	}
-	
-	public boolean modifiesArgument() {
-		return this == Increment || this == Decrement || this.name().startsWith("Assign"); //$NON-NLS-1$
+	public boolean modifiesArgument() { return this == Increment || this == Decrement || isAssignment(); }
+	public String oldStyleFunctionEquivalent() { return oldStyleFunctionEquivalent; }
+	public boolean isAssignment() {
+		switch (this) {
+		case Assign: case AssignAdd: case AssignSubtract: case AssignMultiply: case AssignDivide:
+		case AssignAnd: case AssignOr: case AssignModulo: case AssignXOr:
+			return true;
+		default:
+			return false;
+		}
 	}
-	
-	public String oldStyleFunctionEquivalent() {
-		return oldStyleFunctionEquivalent;
-	}
-	
 	public static Operator oldStyleFunctionReplacement(String funcName) {
 		for (Operator o : values())
 			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
 				return o;
 		return null;
 	}
-	
-	public int priority() {
-		return priority;
-	}
-
-	public boolean isRightAssociative() {
-		return (flags & RIGHTASSOCIATIVE) != 0;
-	}
-	
+	public int priority() { return priority; }
+	public boolean isRightAssociative() { return (flags & RIGHTASSOCIATIVE) != 0; }
 	public boolean spaceNeededBetweenMeAnd(Operator other) {
 		return
 			((this == Add || this == Increment) && (other == Add || other == Increment)) ||
 			((this == Subtract || this == Decrement) && (other == Subtract || other == Decrement));
 	}
-	
-	public boolean returnsRef() {
-		return (flags & RETURNS_REF) != 0;
-	}
-	
-	public boolean isAssociative() {
-		return (flags & ASSOCIATIVE_OP) != 0;
-	}
-	
-	public static String[] arrayOfOperatorNames() {
+	public boolean returnsRef() { return (flags & RETURNS_REF) != 0; }
+	public boolean isAssociative() { return (flags & ASSOCIATIVE_OP) != 0; }
+	public static String[] operatorNames() {
 		String[] result = new String[values().length];
 		for (Operator o : values())
 			result[o.ordinal()] = o.operatorName();
 		return result;
 	}
-
 }
