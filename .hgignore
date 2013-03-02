@@ -28,4 +28,5 @@ glob:*.settings/*
 C4DTBuild
 Instance
 CREditor
+workspaces
 
