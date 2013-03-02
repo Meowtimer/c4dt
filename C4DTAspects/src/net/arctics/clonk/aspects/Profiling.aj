@@ -24,7 +24,6 @@ public aspect Profiling {
 	private static final class Timer {
 		public final Signature signature;
 		public long time;
-		public Timer parent;
 		public Timer(Signature signature) { this.signature = signature; }
 	}
 	
@@ -37,8 +36,28 @@ public aspect Profiling {
 		public final Thread thread;
 		public final Map<Signature, SignatureProfile> times = new HashMap<Signature, SignatureProfile>();
 		public Timer timer;
-		public ProfilingFrame() {
-			thread = Thread.currentThread();
+		public ProfilingFrame() { thread = Thread.currentThread(); }
+		public void merge(ProfilingFrame other) {
+			synchronized (times) {
+				for (Map.Entry<Signature, SignatureProfile> t : other.times.entrySet()) {
+					addTime(t.getKey(), t.getValue().executionTime, t.getValue().timesCalled);
+				}
+			}
+		}
+		public void addTime(Signature sig, long time, long num) {
+			synchronized (times) {
+				SignatureProfile s = times.get(sig);
+				if (s == null) {
+					s = new SignatureProfile();
+					s.executionTime = time;
+					s.timesCalled = num;
+					times.put(sig, s);
+				}
+				else {
+					s.executionTime += time;
+					s.timesCalled += num;
+				}
+			}
 		}
 	}
 	
@@ -68,23 +87,32 @@ public aspect Profiling {
 		final Stack<ProfilingFrame> frames = frames();
 		if (frames.empty())
 			return;
-		profiledRunnables.put(runnable, frames.peek());
+		synchronized (profiledRunnables) {
+			profiledRunnables.put(runnable, frames.peek());
+		}
 	}
 	
 	void around(Runnable runnable): target(runnable) && execution(void Runnable+.run()) {
-		final ProfilingFrame frame = profiledRunnables.get(runnable);
-		final boolean profiled = frame != null && frame.thread != Thread.currentThread();
-		final Stack<ProfilingFrame> frames = frames();
-		if (profiled)
-			frames.push(frame);
-		try {
-			proceed(runnable);
-		} finally {
-			if (profiled) {
-				frames.pop();
-				profiledRunnables.remove(runnable);
-			}
+		ProfilingFrame mainFrame;
+		synchronized (profiledRunnables) {
+			mainFrame = profiledRunnables.get(runnable);
 		}
+		final boolean profiled = mainFrame != null && mainFrame.thread != Thread.currentThread();
+		if (profiled) {
+			final Stack<ProfilingFrame> frames = frames();
+			final ProfilingFrame runnableFrame = new ProfilingFrame();
+			frames.push(runnableFrame);
+			try {
+				proceed(runnable);
+			} finally {
+				frames.pop();
+				synchronized (profiledRunnables) {
+					profiledRunnables.remove(runnable);
+				}
+				mainFrame.merge(runnableFrame);
+			}
+		} else
+			proceed(runnable);
 	}
 	
 	public static void start(String name) {
@@ -99,30 +127,16 @@ public aspect Profiling {
 		else {
 			final ProfilingFrame frame = frames.peek();
 			final Timer timer = new Timer(thisJoinPoint.getSignature());
-			timer.parent = frame.timer;
+			final Timer parent = frame.timer;
 			frame.timer = timer;
 			final long start = System.currentTimeMillis();
 			Object r = proceed();
 			final long took = System.currentTimeMillis() - start;
-			for (Timer p = timer.parent; p != null; p = p.parent)
-				p.time -= took;
+			if (parent != null)
+				parent.time -= took; 
 			timer.time += took;
-			frame.timer = timer.parent;
-			final Map<Signature, SignatureProfile> times = frame.times;
-			synchronized (times) {
-				final Signature sig = thisJoinPoint.getSignature();
-				SignatureProfile s = times.get(sig);
-				if (s == null) {
-					s = new SignatureProfile();
-					s.executionTime = took;
-					s.timesCalled = 1;
-					times.put(sig, s);
-				}
-				else {
-					s.executionTime += took;
-					s.timesCalled++;
-				}
-			}
+			frame.timer = parent;
+			frame.addTime(thisJoinPoint.getSignature(), timer.time, 1);
 			return r;
 		}
 	}
@@ -165,9 +179,7 @@ public aspect Profiling {
 						s.getValue().executionTime,
 						s.getValue().timesCalled
 					));
-			} finally {
-				pw.close();
-			}
+			} finally { pw.close(); }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
