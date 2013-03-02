@@ -876,7 +876,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		Function func;
 		setCurrentFunction(func = newFunction(header.name));
 		header.apply(func);
-		func.setScript(script);
+		func.setParent(script);
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {

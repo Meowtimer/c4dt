@@ -84,26 +84,14 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns this object since it already is a location.
 	 * @return The region to select when using editor navigation commands
 	 */
-	public IRegion regionToSelect() {
-		return this;
-	}
+	public IRegion regionToSelect() { return this; }
 
 	/**
 	 * Returns an integer that is supposed to be different for different types of declarations (functions, variables)
 	 * so that sorting of declarations by type is possible based on this value.
 	 * @return the category value
 	 */
-	public int sortCategory() {
-		return 0;
-	}
-
-	/**
-	 * Set the script of this declaration.
-	 * @param script the object to set
-	 */
-	public void setScript(Script script) {
-		setParent(script);
-	}
+	public int sortCategory() { return 0; }
 
 	/**
 	 * Same as {@link #parentOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
@@ -123,46 +111,33 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Returns the top-level {@link Structure} this declaration is declared in.
 	 * @return the {@link Structure}
 	 */
-	public Structure topLevelStructure() {
-		return topLevelParentDeclarationOfType(Structure.class);
-	}
+	public Structure topLevelStructure() { return topLevelParentDeclarationOfType(Structure.class); }
 
 	/**
 	 * Returns the {@link Script} this declaration is declared in.
 	 * @return the {@link Script}
 	 */
-	public Script script() {
-		return topLevelParentDeclarationOfType(Script.class);
-	}
+	public Script script() { return topLevelParentDeclarationOfType(Script.class); }
 
 	/**
 	 * Return the {@link Scenario} this declaration is declared in.
 	 * @return The {@link Scenario}
 	 */
-	public Scenario scenario() {
-		return parent != null ? ((Declaration)parent).scenario() : null;
-	}
+	public Scenario scenario() { return parent != null ? ((Declaration)parent).scenario() : null; }
 
 	/**
 	 * Returns a brief info string describing the declaration. Meant for UI presentation.
 	 * @return The short info string.
 	 */
 	@Override
-	public String infoText(IIndexEntity context) {
-		return name();
-	}
-
-	public String displayString(IIndexEntity context) {
-		return infoText(this);
-	}
+	public String infoText(IIndexEntity context) { return name(); }
+	public String displayString(IIndexEntity context) { return infoText(this); }
 
 	/**
 	 * Returns an array of all sub declarations meant to be displayed in the outline.
 	 * @return
 	 */
-	public Object[] subDeclarationsForOutline() {
-		return null;
-	}
+	public Object[] subDeclarationsForOutline() { return null; }
 
 	/**
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
@@ -188,9 +163,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Returns the name of this declaration
 	 */
 	@Override
-	public String toString() {
-		return name != null ? name : getClass().getSimpleName();
-	}
+	public String toString() { return name != null ? name : getClass().getSimpleName(); }
 
 	/**
 	 * Returns the objects this declaration might be referenced in (includes {@link Function}s, {@link IResource}s and other {@link Script}s)
@@ -270,14 +243,10 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	}
 
 	@Override
-	public Function findFunction(String functionName) {
-		return null;
-	}
+	public Function findFunction(String functionName) { return null; }
 
 	@Override
-	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
-		return null;
-	}
+	public Declaration findDeclaration(String name, FindDeclarationInfo info) { return null; }
 
 	/**
 	 * Adds a sub-declaration
@@ -305,9 +274,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Returns whether this declaration is global (functions are global when declared as "global" while variables are global when declared as "static")
 	 * @return true if global, false if not
 	 */
-	public boolean isGlobal() {
-		return false;
-	}
+	public boolean isGlobal() { return false; }
 
 	/**
 	 * Used to filter declarations based on their name
@@ -350,10 +317,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return underscore || name.equals(name.toUpperCase());
 	}
 
-	public boolean isEngineDeclaration() {
-		return parentDeclaration() instanceof Engine;
-	}
-
+	public boolean isEngineDeclaration() { return parentDeclaration() instanceof Engine; }
 	public Engine engine() {
 		Declaration parent = parentDeclaration();
 		return parent != null ? parent.engine() : null;
@@ -433,27 +397,13 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			return name();
 	}
 
-	/**
-	 * Whether this Declaration is contained in the given one.
-	 * @param parent The declaration to check for parentedness
-	 * @return true or false
-	 */
-	public boolean containedIn(Declaration parent) {
-		for (Declaration d = this.parentDeclaration(); d != null; d = d.parentDeclaration())
-			if (d == parent)
-				return true;
-		return false;
-	}
-
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return adapter.isInstance(this) ? this : null;
 	}
 
 	@Override
-	public boolean equals(Object other) {
-		return this == other; // identity
-	}
+	public boolean equals(Object other) { return this == other; /* identity */ }
 
 	protected Typing typing() {
 		Typing typing = Typing.ParametersOptionallyTyped;
@@ -463,9 +413,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	}
 
 	@Override
-	public String patternMatchingText() {
-		return name();
-	}
+	public String patternMatchingText() { return name(); }
 
 	@Override
 	public boolean equalAttributes(ASTNode other) {

@@ -156,7 +156,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 			output.append(contents());
 		}
 	}
-	
+
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		Directive d = (Directive) other;
@@ -164,7 +164,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 			return true;
 		return false;
 	}
-	
+
 	@Override
 	public String patternMatchingText() { return type().toString(); }
 }

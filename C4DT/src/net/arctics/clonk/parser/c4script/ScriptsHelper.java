@@ -32,7 +32,7 @@ public class ScriptsHelper {
 		if (function == null) {
 			Script tempScript = new TempScript(source, engine);
 			function = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
-			function.setScript(tempScript);
+			function.setParent(tempScript);
 			function.setBodyLocation(new SourceLocation(0, source.length()));
 		}
 		C4ScriptParser tempParser = new C4ScriptParser(source, function.script(), null) {

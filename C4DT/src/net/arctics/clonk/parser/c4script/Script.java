@@ -665,7 +665,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public void addDeclaration(Declaration declaration) {
 		requireLoaded();
-		declaration.setScript(this);
+		declaration.setParent(this);
 		if (declaration instanceof Function)
 			synchronized (this) {
 				if (definedFunctions == null)
@@ -695,7 +695,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void removeDeclaration(Declaration declaration) {
 		requireLoaded();
 		if (declaration.script() != this)
-			declaration.setScript(this);
+			declaration.setParent(this);
 		if (declaration instanceof Function) {
 			if (definedFunctions != null) synchronized (definedFunctions) {
 				definedFunctions.remove(declaration);

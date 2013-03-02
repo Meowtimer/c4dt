@@ -68,7 +68,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private boolean typeFromCallsHint;
 	private SourceLocation bodyLocation, header;
 	private int nameStart;
-	
+
 	/**
 	 * Code block kept in memory for speed optimization
 	 */
@@ -108,7 +108,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		visibility = scope;
 		clearParameters();
 		localVars = new ArrayList<Variable>();
-		setScript(parent);
+		setParent(parent);
 	}
 
 	public Function(String name, Definition parent, String scope) {
@@ -128,7 +128,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return the parameter
 	 */
 	public List<Variable> parameters() { return parameters; }
-	
+
 	public boolean typeFromCallsHint() { return typeFromCallsHint; 	}
 	public void setTypeFromCallsHint(boolean typeFromCallsHint) { this.typeFromCallsHint = typeFromCallsHint; }
 
