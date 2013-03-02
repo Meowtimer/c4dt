@@ -18,9 +18,9 @@ import net.arctics.clonk.parser.c4script.Variable;
 public class Effect extends ProplistDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private final Map<String, EffectFunction> functions = new HashMap<String, EffectFunction>();
-	
+
 	public Effect(String name, Iterable<EffectFunction> functions) {
 		super(new ArrayList<Variable>(5));
 		setName(name);
@@ -28,7 +28,7 @@ public class Effect extends ProplistDeclaration {
 		for (EffectFunction f : functions)
 			addFunction(f);
 	}
-	
+
 	public Map<String, EffectFunction> functions() {
 		return functions;
 	}
@@ -40,12 +40,14 @@ public class Effect extends ProplistDeclaration {
 		else
 			return null;
 	}
-	
+
 	public void addFunction(EffectFunction function) {
+		setStart(Math.min(function.start(), this.start()));
+		setEnd(Math.max(function.end(), this.end()));
 		function.setEffect(this);
 		functions.put(function.callbackName(), function);
 	}
-	
+
 	public static IType[] parameterTypesForCallback(String callbackName, Script script, IType proplistType) {
 		boolean proplistParameters = script.engine().settings().supportsProplists;
 		if (isAnyOf(callbackName, "Start", "Timer", "Stop"))
@@ -56,7 +58,7 @@ public class Effect extends ProplistDeclaration {
 			return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT};
 		return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
 	}
-	
+
 	@Override
 	public String typeName(boolean special) {
 		return special ? name() : PrimitiveType.PROPLIST.typeName(false);

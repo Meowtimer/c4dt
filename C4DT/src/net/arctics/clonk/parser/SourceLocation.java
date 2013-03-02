@@ -13,11 +13,11 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final SourceLocation ZERO = new SourceLocation(0, 0);
-	
+
 	protected int start, end;
-	
+
 	public SourceLocation() {}
-	
+
 	public SourceLocation(int start,int end) {
 		this.start = start;
 		this.end = end;
@@ -39,7 +39,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		start = Integer.parseInt(stringRepresentation.substring(1, comma));
 		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
 	}
-	
+
 	/**
 	 * @param start the start to set
 	 */
@@ -72,7 +72,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public int getOffset() {
 		return start;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof SourceLocation) {
@@ -82,7 +82,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		else
 			return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "("+start+", "+end+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -91,13 +91,13 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-
 	@Override
 	public int hashCode() {
-		return (start ^ start >>> 32) * 37 + (end ^ end >>> 32) * 37;
+		return start * 37 + end * 37;
 	}
-	
+
 	public SourceLocation offset(int o) {
 		return new SourceLocation(o+start, o+end);
 	}
-	
+
 	@Override
 	public SourceLocation clone() {
 		try {
@@ -107,7 +107,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 			return null;
 		}
 	}
-	
+
 	public SourceLocation relativeTo(IRegion other) {
 		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
 	}
@@ -116,19 +116,19 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public int compareTo(SourceLocation o) {
 		return start - o.start;
 	}
-	
+
 	public SourceLocation add(IRegion other) {
 		return new SourceLocation(start+other.getOffset(), start+other.getOffset()+other.getLength());
 	}
-	
+
 	public boolean containsOffset(int offset) {
 		return offset >= start && offset <= end;
 	}
-	
+
 	public boolean sameLocation(SourceLocation other) {
 		return other != null && this.start == other.start && this.end == other.end;
 	}
-	
+
 	public boolean isAt(int offset) {
 		return offset >= start && offset <= end;
 	}
