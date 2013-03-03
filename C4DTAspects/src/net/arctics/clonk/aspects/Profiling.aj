@@ -21,11 +21,7 @@ public aspect Profiling {
 	private static pointcut profilingMethods(): within(Profiling);
 	private static pointcut allMethods(): !profiledMethods() && !profilingMethods() && execution(* *(..));
 	
-	private static final class Timer {
-		public final Signature signature;
-		public long time;
-		public Timer(Signature signature) { this.signature = signature; }
-	}
+	private static final class Timer { public long time; }
 	
 	private static final class SignatureProfile {
 		public long executionTime;
@@ -126,7 +122,7 @@ public aspect Profiling {
 			return proceed();
 		else {
 			final ProfilingFrame frame = frames.peek();
-			final Timer timer = new Timer(thisJoinPoint.getSignature());
+			final Timer timer = new Timer();
 			final Timer parent = frame.timer;
 			frame.timer = timer;
 			final long start = System.currentTimeMillis();

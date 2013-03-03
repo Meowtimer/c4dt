@@ -130,7 +130,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				return false;
 			}
 			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))
-				return true;
+				return fixableParserErrorCodes.contains(Markers.problem(ma.getMarker()));
 		}
 		return false;
 	}
