@@ -311,6 +311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (!function.parameter(pa).staticallyTyped()) {
 									ASTNode concretePar = call.params()[pa];
 									if (concretePar != null) {
+										script().addUsedScript(other);
 										IType concreteTy = visitor != null ? visitor.typeOf(concretePar) : concretePar.inferredType();
 										IType unified = TypeUnification.unifyNoChoice(callTypes[pa], concreteTy);
 										//System.out.println(String.format("%s: %s -> %s", function.parameter(pa).name(), concretePar.printed(), concreteTy.typeName(false)));
