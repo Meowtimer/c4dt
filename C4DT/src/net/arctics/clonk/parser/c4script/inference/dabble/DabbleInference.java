@@ -819,21 +819,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return tyvar != null ? tyvar.get() : PrimitiveType.UNKNOWN;
 		}
 
-		public IType callerType(T node, Visitor visitor) {
-			ASTNode pred = node.predecessorInSequence();
-			if (pred != null)
-				return ty(pred, visitor);
-			else
-				return visitor.script();
-		}
-
 		public final IType predecessorType(ASTNode node, Visitor visitor) {
 			ASTNode p = node.predecessorInSequence();
 			return p != null ? ty(p, visitor) : null;
-		}
-
-		public final <X extends IType> X predecessorTypeAs(ASTNode node, Class<X> cls, Visitor visitor) {
-			return as(predecessorType(node, visitor), cls);
 		}
 
 		/**
@@ -983,10 +971,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public IType type(ASTNode node, Visitor visitor) {
 			return PrimitiveType.UNKNOWN;
 		}
-		@Override
-		public IType callerType(ASTNode node, Visitor visitor) {
-			return PrimitiveType.ANY;
-		}
 	};
 
 	private final <T extends ASTNode> Expert<? super T> findExpert(T node) {
@@ -1131,17 +1115,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					else if (d instanceof ITypeable)
 						return ((ITypeable) d).type();
 					return PrimitiveType.UNKNOWN;
-				}
-				@Override
-				public IType callerType(AccessVar node, Visitor visitor) {
-					Variable v = as(node.declaration(), Variable.class);
-					if (v != null) switch (v.scope()) {
-					case CONST: case STATIC:
-						return null;
-					default:
-						break;
-					}
-					return super.callerType(node, visitor);
 				}
 				@Override
 				public boolean typingJudgement(AccessVar node, IType type, Visitor visitor, TypingJudgementMode mode) {
@@ -1858,7 +1831,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				@Override
 				public IType type(ArraySliceExpression node, Visitor visitor) {
-					ArrayType arrayType = predecessorTypeAs(node, ArrayType.class, visitor);
+					ArrayType arrayType = as(predecessorType(node, visitor), ArrayType.class);
 					if (arrayType != null)
 						return node.lo() == null && node.hi() == null ? arrayType : arrayType.typeForSlice(
 							ASTNode.evaluateStatic(node.lo(), visitor),
@@ -1869,7 +1842,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public void assignment(ArraySliceExpression leftSide, ASTNode rightSide, Visitor visitor) {
-					ArrayType arrayType = predecessorTypeAs(leftSide, ArrayType.class, visitor);
+					ArrayType arrayType = as(predecessorType(leftSide, visitor), ArrayType.class);
 					IType sliceType = ty(rightSide, visitor);
 					if (arrayType != null)
 						judgement(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
