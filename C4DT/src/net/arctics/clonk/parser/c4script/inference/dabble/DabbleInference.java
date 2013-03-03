@@ -406,7 +406,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						boolean ownedFunction = !roaming || funScript == script();
 						if (!ownedFunction)
 							for (Variable l : function.locals()) {
-								AccessVar av = new AccessVar(l);
+								AccessVar av = AccessVar.temp(l, function.body());
+								av.setParent(function.body());
 								TypeVariable ti = expert(av).requestTypeVariable(av, this);
 								if (ti != null)
 									ti.set(PrimitiveType.UNKNOWN);
@@ -432,7 +433,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							Variable p = function.parameter(i);
 							if (ownedFunction)
 								p.assignType(callTypes[i], false);
-							AccessVar av = new AccessVar(p);
+							AccessVar av = AccessVar.temp(p, function.body());
 							TypeVariable varTypeInfo = expert(av).requestTypeVariable(av, this);
 							if (varTypeInfo != null)
 								varTypeInfo.set(callTypes[i]);
@@ -1544,7 +1545,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else {
 							IType type = ty(returnExpr, visitor);
 							judgement(node, type, TypingJudgementMode.Unify, visitor);
-							//parser.linkTypesOf(dummy, returnExpr);
 						}
 				}
 				@Override
@@ -2040,7 +2040,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 										initialization.variable.type(), initializationType
 									);
 								else {
-									AccessVar av = new AccessVar(initialization.variable);
+									AccessVar av = AccessVar.temp(initialization.variable, initialization);
 									judgement(av, initializationType, TypingJudgementMode.Unify, visitor);
 								}
 							}
@@ -2061,7 +2061,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							visitor.script().engine().name());
 					for (Variable v : node.components())
 						if (v.initializationExpression() != null)
-							judgement(new AccessVar(v), ty(v.initializationExpression(), visitor), TypingJudgementMode.Unify, visitor);
+							judgement(AccessVar.temp(v, node), ty(v.initializationExpression(), visitor), TypingJudgementMode.Unify, visitor);
 				}
 				@Override
 				public boolean isModifiable(PropListExpression node, Visitor visitor) { return false; }
@@ -2146,7 +2146,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
-							judgement(new AccessVar(loopVariable), elmType, TypingJudgementMode.Unify, visitor);
+							judgement(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.Unify, visitor);
 						}
 						visitor.visitNode(node.body(), true);
 					}
