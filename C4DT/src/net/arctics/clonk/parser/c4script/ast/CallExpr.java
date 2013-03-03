@@ -17,33 +17,20 @@ import net.arctics.clonk.parser.c4script.Variable;
  *
  */
 public class CallExpr extends Tuple implements IFunctionCall {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-	public CallExpr(ASTNode[] params) {
-		super(params);
-	}
-
+	public CallExpr(ASTNode[] params) { super(params); }
 	@Override
-	public ASTNode[] params() {
-		return subElements();
-	}
-
+	public ASTNode[] params() { return subElements(); }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
-		return predecessor != null;
-	}
-
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
-		CallDeclaration.printParmString(output, subElements(), depth);
-	}
-
+	public void doPrint(ASTNodePrinter output, int depth) { CallDeclaration.printParmString(output, subElements(), depth); }
 	@Override
-	public boolean hasSideEffects() {
-		return true;
-	}
-
+	public boolean hasSideEffects() { return true; }
+	@Override
+	public int parmsStart() { return this.start()+1; }
+	@Override
+	public int parmsEnd() { return this.end()-1; }
 	@Override
 	public Function quasiCalledFunction(ProblemReportingContext context) {
 		for (IType type : defaulting(predecessorInSequence().inferredType(), PrimitiveType.UNKNOWN))
@@ -51,17 +38,6 @@ public class CallExpr extends Tuple implements IFunctionCall {
 				return ((FunctionType)type).prototype();
 		return null;
 	}
-
-	@Override
-	public int parmsStart() {
-		return this.start()+1;
-	}
-
-	@Override
-	public int parmsEnd() {
-		return this.end()-1;
-	}
-
 	@Override
 	public int indexOfParm(ASTNode parm) {
 		for (int i = 0; i < elements.length; i++)
@@ -69,7 +45,6 @@ public class CallExpr extends Tuple implements IFunctionCall {
 				return i;
 		return -1;
 	}
-
 	@Override
 	public IType concreteParameterType(Variable parameter, ProblemReportingContext context) {
 		Function f = quasiCalledFunction(context);
@@ -80,5 +55,4 @@ public class CallExpr extends Tuple implements IFunctionCall {
 		}
 		return PrimitiveType.UNKNOWN;
 	}
-
 }

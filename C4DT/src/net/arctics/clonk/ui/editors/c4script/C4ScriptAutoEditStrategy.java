@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.WeakListenerManager;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -87,9 +90,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	private final List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	private boolean disabled;
 
-	public C4ScriptSourceViewerConfiguration getConfiguration() {
-		return configuration;
-	}
+	public C4ScriptSourceViewerConfiguration configuration() { return configuration; }
 
 	public C4ScriptAutoEditStrategy(C4ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
@@ -127,6 +128,9 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		if (tabOverOverrideRegion(c))
 			return;
 
+		if (tabToNextParameter(c))
+			return;
+
 		// auto-block
 		if (!disabled)
 			tryAutoBlock(d, c);
@@ -140,6 +144,24 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			textAdded(d, c);
 
 		super.customizeDocumentCommand(d, c);
+	}
+
+	private boolean tabToNextParameter(DocumentCommand c) {
+		try {
+			if (c.text.equals("\t")) {
+				FuncCallInfo call = configuration().editor().innermostFunctionCallParmAtOffset(c.offset);
+				if (call != null && call.callFunc != null) {
+					ASTNode[] params = call.callFunc.params();
+					if (call.parmIndex+1 < params.length) {
+						c.shiftsCaret = false;
+						c.text = "";
+						c.caretOffset = params[call.parmIndex+1].absolute().getOffset();
+						return true;
+					}
+				}
+			}
+		} catch (BadLocationException | ParsingException e) {}
+		return false;
 	}
 
 	private boolean tabOverOverrideRegion(DocumentCommand c) {
@@ -161,7 +183,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	private void tryAutoBlock(IDocument d, DocumentCommand c) {
 		try {
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
-				Function f = getConfiguration().editor().functionAtCursor();
+				Function f = configuration().editor().functionAtCursor();
 				if (f != null && unbalanced(d, f.bodyLocation())) {
 					IRegion r = d.getLineInformationOfOffset(c.offset);
 					int start = r.getOffset();
