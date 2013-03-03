@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.isAnyOf;
 import static net.arctics.clonk.util.Utilities.threadPool;
 
 import java.util.Arrays;
@@ -1726,15 +1725,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public ITypeVariable createTypeVariable(CallDeclaration node, Visitor visitor) {
 					Declaration d = node.declaration();
-					CachedEngineDeclarations cache = visitor.cachedEngineDeclarations();
-					if (isAnyOf(d, cache.VarAccessFunctions)) {
-						Object ev;
-						if (node.params().length == 1 && (ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) != null)
-							if (ev instanceof Number)
-								// Var() with a sane constant number
-								return new VarFunctionsTypeVariable(cache.Local == d ? null : node.parentOfType(Function.class), (Function) d, ((Number)ev).intValue());
-					}
-					else if (d instanceof Function) {
+					if (d instanceof Function) {
 						Function f = (Function) d;
 						if (f.staticallyTyped() || f.isEngineDeclaration() || f != node.parentOfType(Function.class))
 							return null;
