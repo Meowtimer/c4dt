@@ -722,11 +722,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		cachedVariableMap = null;
 	}
 
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public abstract IStorage source();
 
 	public final IFile scriptFile() {

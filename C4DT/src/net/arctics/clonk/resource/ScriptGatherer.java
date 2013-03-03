@@ -63,7 +63,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					def = new Definition(builder.index(), defCoreWrapper.definitionID(), defCoreWrapper.name(), folder);
 				else {
 					def.setId(defCoreWrapper.definitionID());
-					def.setName(defCoreWrapper.name(), false);
+					def.setName(defCoreWrapper.name());
 				}
 			} else if (scenario != null)
 				def = new Scenario(builder.index(), folder.getName(), folder);

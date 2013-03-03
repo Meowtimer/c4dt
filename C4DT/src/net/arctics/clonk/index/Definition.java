@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -281,18 +280,6 @@ public class Definition extends Script implements IProplistDeclaration {
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
-	}
-
-	/**
-	 * Resets the name of this object
-	 * @param newName
-	 * @param persistent not implemented yet - set it to false always
-	 */
-	public void setName(String newName, boolean persistent) {
-		name = newName;
-		if (persistent)
-			// TODO edit DefCore.txt
-			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented"); //$NON-NLS-1$
 	}
 
 	/**

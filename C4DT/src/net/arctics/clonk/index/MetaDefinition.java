@@ -23,7 +23,7 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	public boolean canBeAssignedFrom(IType other) { return other == PrimitiveType.ID || other instanceof MetaDefinition; }
 	@Override
 	public String typeName(boolean special) {
-		return special ? String.format("Definition '%s'", definition.typeName(true))
+		return special ? String.format("id<%s>", definition.typeName(true))
 			: definition.typeName(false);
 	}
 	@Override

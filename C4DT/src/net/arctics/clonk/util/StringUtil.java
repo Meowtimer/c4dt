@@ -251,10 +251,10 @@ public class StringUtil {
 	}
 	public static String htmlerize(String text) {
 		return text.
+			replace("&", "&amp;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\t", " "). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("&", "&amp;");
+			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 }
