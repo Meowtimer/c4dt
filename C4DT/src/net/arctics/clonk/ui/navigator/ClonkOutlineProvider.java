@@ -109,7 +109,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			Declaration topDec = ((Declaration)element).topLevelStructure();
 			if (topDec != null) {
 				result.append(topDec instanceof Definition ? ((Definition)topDec).id().stringValue() : topDec.name(), StyledString.QUALIFIER_STYLER);
-				result.append(" - ");
+				result.append("::");
 			}
 		}
 		if (element instanceof Function) {
