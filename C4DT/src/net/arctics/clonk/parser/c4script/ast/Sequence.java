@@ -97,10 +97,8 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		super.postLoad(parent, context);
 		ASTNode prev = null;
 		for (ASTNode e : subElements()) {
-			if (e != null) {
+			if (e != null)
 				e.setPredecessorInSequence(prev);
-				e.postLoad(this, context);
-			}
 			prev = e;
 		}
 	}

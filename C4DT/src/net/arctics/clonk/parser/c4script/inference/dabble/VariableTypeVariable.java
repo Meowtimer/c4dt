@@ -20,7 +20,7 @@ public class VariableTypeVariable extends TypeVariable {
 		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
 	}
 	@Override
-	public boolean same(ITypeVariable other) {
+	public boolean same(TypeVariable other) {
 		return
 			other instanceof VariableTypeVariable &&
 			((VariableTypeVariable)other).variable == this.variable;
@@ -34,5 +34,7 @@ public class VariableTypeVariable extends TypeVariable {
 		return String.format("[%s: %s]", variable.name(), get().typeName(true));
 	}
 	@Override
-	public Declaration declaration(Visitor visitor) { return variable; }
+	public Declaration declaration() { return variable; }
+	@Override
+	public Declaration key() { return variable; }
 }

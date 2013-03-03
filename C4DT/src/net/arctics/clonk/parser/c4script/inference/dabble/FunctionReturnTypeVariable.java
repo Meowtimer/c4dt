@@ -24,7 +24,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 		return false;
 	}
 	@Override
-	public boolean same(ITypeVariable other) {
+	public boolean same(TypeVariable other) {
 		return other instanceof FunctionReturnTypeVariable && ((FunctionReturnTypeVariable)other).baseFunction == this.baseFunction;
 	}
 	@Override
@@ -39,6 +39,8 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 			function.assignType(get(), false);
 	}
 	@Override
-	public Declaration declaration(Visitor visitor) { return function; }
+	public Declaration declaration() { return function; }
+	@Override
+	public Declaration key() { return baseFunction; }
 
 }

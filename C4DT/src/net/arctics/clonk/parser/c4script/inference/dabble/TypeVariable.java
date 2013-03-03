@@ -1,26 +1,20 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
+import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
-public abstract class TypeVariable implements ITypeVariable, Cloneable {
+public abstract class TypeVariable implements Cloneable {
 
 	protected IType type = PrimitiveType.UNKNOWN;
 
-	@Override
-	public IType get() {
-		return type;
-	}
+	public IType get() { return type; }
+	public void set(IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
 
-	@Override
-	public void set(IType type) {
-		this.type = defaulting(type, PrimitiveType.UNKNOWN);
-	}
-
-	@Override
 	public boolean hint(IType hint) {
 		if (type == PrimitiveType.UNKNOWN)
 			set(hint);
@@ -29,27 +23,15 @@ public abstract class TypeVariable implements ITypeVariable, Cloneable {
 		return true;
 	}
 
-	@Override
 	public void apply(boolean soft, Visitor visitor) {}
-
+	public abstract boolean binds(ASTNode node, Visitor visitor);
+	public abstract boolean same(TypeVariable other);
+	public abstract Declaration declaration();
+	public abstract Declaration key();
+	
 	@Override
-	public void merge(ITypeVariable other) {
-		if (get() == PrimitiveType.UNKNOWN)
-			// unknown before so now it is assumed to be of this type
-			set(other.get());
-		else if (!get().equals(other.get()))
-			// assignments of multiple types - unify
-			set(TypeUnification.unify(get(), other.get()));
-	}
-
+	public Object clone() throws CloneNotSupportedException { return super.clone(); }
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
-	}
-
-	@Override
-	public String toString() {
-		return "<>: " + get(); //$NON-NLS-1$
-	}
+	public String toString() { return "<>: " + get(); } //$NON-NLS-1$
 
 }

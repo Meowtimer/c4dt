@@ -1,61 +1,38 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
-public final class TypeEnvironment extends ArrayList<ITypeVariable> {
+public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private static ITypeVariable merge(ITypeVariable left, ITypeVariable right) {
-		if (!(left instanceof LinkedTypeVariables) && right instanceof LinkedTypeVariables) {
-			ITypeVariable tmp = left;
-			left = right;
-			right = tmp;
-		}
-		left.merge(right);
-		return left;
-	}
 	public TypeEnvironment up;
 	public TypeEnvironment() { super(5); }
 	public TypeEnvironment(TypeEnvironment up) { this(); this.up = up; }
 	public TypeEnvironment inject(TypeEnvironment other, boolean ignoreLocals) {
-		List<ITypeVariable> merged = null;
-		OtherLoop: for (Iterator<ITypeVariable> otherIt = other.iterator(); otherIt.hasNext();) {
-			ITypeVariable otherInfo = otherIt.next();
-			for (Iterator<ITypeVariable> it = this.iterator(); it.hasNext();) {
-				ITypeVariable myInfo = it.next();
-				if (myInfo.same(otherInfo)) {
-					if (merged == null)
-						merged = new LinkedList<ITypeVariable>();
-					merged.add(merge(myInfo, otherInfo));
-					otherIt.remove();
-					it.remove();
-					continue OtherLoop;
-				}
-			}
+		for (Map.Entry<Declaration, TypeVariable> otherInfo : other.entrySet()) {
+			TypeVariable myVar = this.get(otherInfo.getKey());
+			if (myVar != null)
+				myVar.set(TypeUnification.unify(myVar.get(), otherInfo.getValue().get()));
+			else
+				this.put(otherInfo.getKey(), otherInfo.getValue());
 		}
-		this.addAll(other);
-		if (merged != null)
-			this.addAll(merged);
 		return this;
 	}
 	public void apply(Visitor visitor, boolean soft) {
-		for (ITypeVariable info : this)
+		for (TypeVariable info : this.values())
 			info.apply(soft, visitor);
 	}
 	public final void injectIntoUpper(boolean ignoreLocals) {
 		if (up != null)
 			inject(up, ignoreLocals);
 	}
-	public ITypeVariable find(ASTNode expression, Visitor visitor) {
-		for (ITypeVariable info : this)
-			if (info.binds(expression, visitor))
-				return info;
-		return null;
+	public TypeVariable find(Declaration declaration) {
+		return this.get(declaration);
 	}
+	public void add(TypeVariable var) { this.put(var.key(), var); }
 }

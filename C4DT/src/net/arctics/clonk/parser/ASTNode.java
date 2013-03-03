@@ -708,6 +708,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public void postLoad(ASTNode parent, ProblemReportingContext context) {
 		this.parent = parent;
+		for (ASTNode e : subElements())
+			if (e != null)
+				e.postLoad(this, context);
 	}
 
 	/**
