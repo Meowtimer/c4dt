@@ -1,9 +1,7 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public class FunctionReturnTypeVariable extends TypeVariable {
@@ -13,19 +11,6 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 		super();
 		this.function = function;
 		this.baseFunction = function.baseFunction();
-	}
-	@Override
-	public boolean binds(ASTNode node, Visitor visitor) {
-		if (node instanceof CallDeclaration) {
-			CallDeclaration callFunc = (CallDeclaration) node;
-			if (callFunc.declaration() instanceof Function && ((Function)callFunc.declaration()).baseFunction() == baseFunction)
-				return true;
-		}
-		return false;
-	}
-	@Override
-	public boolean same(TypeVariable other) {
-		return other instanceof FunctionReturnTypeVariable && ((FunctionReturnTypeVariable)other).baseFunction == this.baseFunction;
 	}
 	@Override
 	public String toString() {
@@ -41,6 +26,6 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 	@Override
 	public Declaration declaration() { return function; }
 	@Override
-	public Declaration key() { return baseFunction; }
+	public Declaration key() { return function; }
 
 }

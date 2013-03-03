@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -9,11 +8,9 @@ import net.arctics.clonk.parser.c4script.ast.TypeUnification;
 import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public abstract class TypeVariable implements Cloneable {
-
 	protected IType type = PrimitiveType.UNKNOWN;
-
-	public IType get() { return type; }
-	public void set(IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
+	public final IType get() { return type; }
+	public final void set(IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
 
 	public boolean hint(IType hint) {
 		if (type == PrimitiveType.UNKNOWN)
@@ -24,8 +21,6 @@ public abstract class TypeVariable implements Cloneable {
 	}
 
 	public void apply(boolean soft, Visitor visitor) {}
-	public abstract boolean binds(ASTNode node, Visitor visitor);
-	public abstract boolean same(TypeVariable other);
 	public abstract Declaration declaration();
 	public abstract Declaration key();
 	

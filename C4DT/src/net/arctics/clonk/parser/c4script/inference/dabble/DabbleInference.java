@@ -202,27 +202,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			thread = Thread.currentThread();
 		}
 		@Override
-		public boolean binds(ASTNode expr, Visitor visitor) {
-			return expr instanceof ReturnStatement && expr.parentOfType(Function.class) == function;
-		}
-		@Override
-		public boolean same(TypeVariable other) {
-			return other instanceof CurrentFunctionReturnTypeVariable && ((CurrentFunctionReturnTypeVariable)other).function == function;
-		}
-		@Override
 		public void apply(boolean soft, Visitor visitor) { /* done by Dabble */ }
-	}
-
-	public static class InheritedFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
-		public InheritedFunctionReturnTypeVariable(Function function) { super(function); }
-		@Override
-		public boolean binds(ASTNode expr, Visitor visitor) {
-			return expr instanceof CallInherited && expr.parentOfType(Function.class) == function;
-		}
-		@Override
-		public boolean same(TypeVariable other) {
-			return other instanceof InheritedFunctionReturnTypeVariable && ((InheritedFunctionReturnTypeVariable)other).function == function;
-		}
 	}
 
 	protected final class ScriptProcessor {
@@ -1781,8 +1761,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public Declaration typeEnvironmentKey(CallDeclaration node, Visitor visitor) {
-					Function f = as(node.declaration(), Function.class);
-					return f != null ? f.baseFunction() : null;
+					return internalObtainDeclaration(node, visitor);
 				}
 				@Override
 				public boolean isModifiable(CallDeclaration node, Visitor visitor) {
@@ -1821,11 +1800,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (node.declaration() == null && !node.failsafe())
 							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, node.parentOfType(Function.class).name());
 					}
-				}
-				@Override
-				public TypeVariable createTypeVariable(CallInherited node, Visitor visitor) {
-					Function inherited = node.parentOfType(Function.class).inheritedFunction();
-					return inherited != null ? new InheritedFunctionReturnTypeVariable(inherited) : null;
 				}
 				@Override
 				public Declaration typeEnvironmentKey(CallInherited node, Visitor visitor) {

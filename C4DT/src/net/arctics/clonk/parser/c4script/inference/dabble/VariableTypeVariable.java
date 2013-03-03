@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -14,16 +13,6 @@ public class VariableTypeVariable extends TypeVariable {
 	public VariableTypeVariable(AccessVar origin) {
 		this.variable = (Variable)origin.declaration();
 		this.type = PrimitiveType.UNKNOWN;
-	}
-	@Override
-	public boolean binds(ASTNode expr, Visitor visitor) {
-		return expr instanceof AccessVar && ((AccessVar)expr).declaration() == variable;
-	}
-	@Override
-	public boolean same(TypeVariable other) {
-		return
-			other instanceof VariableTypeVariable &&
-			((VariableTypeVariable)other).variable == this.variable;
 	}
 	@Override
 	public void apply(boolean soft, Visitor visitor) {
