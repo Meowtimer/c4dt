@@ -176,7 +176,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param output The output writer to print the prependix to
 	 * @param depth Print depth inherited from the underlying {@link #print(ASTNodePrinter, int)} call
 	 */
-	public void printPrependix(ASTNodePrinter output, int depth) {}
+	public void printPrefix(ASTNodePrinter output, int depth) {}
 
 	/**
 	 * Perform the actual intrinsic C4Script-printing for this kind of expression
@@ -200,19 +200,19 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
-	public void printAppendix(ASTNodePrinter output, int depth) {}
+	public void printSuffix(ASTNodePrinter output, int depth) {}
 
 	/**
-	 * Call all the printing methods in one bundle ({@link #printPrependix(ASTNodePrinter, int)}, {@link #doPrint(ASTNodePrinter, int)}, {@link #printAppendix(ASTNodePrinter, int)})
+	 * Call all the printing methods in one bundle ({@link #printPrefix(ASTNodePrinter, int)}, {@link #doPrint(ASTNodePrinter, int)}, {@link #printSuffix(ASTNodePrinter, int)})
 	 * The {@link ASTNodePrinter} is also given a chance to do its own custom printing using {@link ASTNodePrinter#doCustomPrinting(ASTNode, int)}
 	 * @param output Output writer
 	 * @param depth Depth determining the indentation level of the output
 	 */
 	public final void print(ASTNodePrinter output, int depth) {
 		if (!output.doCustomPrinting(this, depth)) {
-			this.printPrependix(output, depth);
+			this.printPrefix(output, depth);
 			this.doPrint(output, depth);
-			this.printAppendix(output, depth);
+			this.printSuffix(output, depth);
 		}
 	}
 
@@ -235,43 +235,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	@Override
-	public int getLength() {
-		return end()-start();
-	}
-
+	public int getLength() { return end()-start(); }
 	@Override
-	public int getOffset() {
-		return start();
-	}
-
-	public int identifierStart() {
-		return start();
-	}
-
-	public int identifierLength() {
-		return getLength();
-	}
-
-	public final IRegion identifierRegion() {
-		return new Region(identifierStart(), identifierLength());
-	}
-
-	public void setLocation(int start, int end) {
-		this.start = start;
-		this.end = end;
-	}
-
-	public void setLocation(IRegion r) {
-		this.setLocation(r.getOffset(), r.getOffset()+r.getLength());
-	}
-
-	public void setPredecessorInSequence(ASTNode p) {
-		predecessorInSequence = p;
-	}
-
-	public ASTNode predecessorInSequence() {
-		return predecessorInSequence;
-	}
+	public int getOffset() { return start(); }
+	public int identifierStart() { return start(); }
+	public int identifierLength() { return getLength(); }
+	public final IRegion identifierRegion() { return new Region(identifierStart(), identifierLength()); }
+	public void setLocation(int start, int end) { this.start = start; this.end = end; }
+	public void setLocation(IRegion r) { this.setLocation(r.getOffset(), r.getOffset()+r.getLength()); }
+	public void setPredecessorInSequence(ASTNode p) { predecessorInSequence = p; }
+	public ASTNode predecessorInSequence() { return predecessorInSequence; }
 
 	public ASTNode successorInSequence() {
 		if (parent() instanceof Sequence)
@@ -286,9 +259,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * A {@link ForStatement} does not require a condition, for example.
 	 * @return The array of sub elements
 	 */
-	public ASTNode[] subElements() {
-		return EMPTY_EXPR_ARRAY;
-	}
+	public ASTNode[] subElements() { return EMPTY_EXPR_ARRAY; }
 
 	/**
 	 * Set the sub elements. The passed arrays must contain elements in the same order as returned by {@link #subElements()}.
@@ -737,14 +708,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public void postLoad(ASTNode parent, ProblemReportingContext context) {
 		this.parent = parent;
-		ASTNode prev = null;
-		for (ASTNode e : subElements()) {
-			if (e != null) {
-				e.predecessorInSequence = prev;
-				e.postLoad(this, context);
-			}
-			prev = e;
-		}
 	}
 
 	/**

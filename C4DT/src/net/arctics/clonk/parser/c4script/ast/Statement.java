@@ -95,14 +95,14 @@ public class Statement extends ASTNode implements Cloneable {
 	}
 
 	@Override
-	public void printPrependix(ASTNodePrinter builder, int depth) {
+	public void printPrefix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
 			for (Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Pre, builder, depth);	
 	}
 	
 	@Override
-	public void printAppendix(ASTNodePrinter builder, int depth) {
+	public void printSuffix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
 			for (Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Post, builder, depth);

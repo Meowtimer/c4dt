@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 public class Sequence extends ASTNodeWithSubElementsArray {
 
@@ -90,5 +91,17 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		return lastElement().evaluate(context);
+	}
+	@Override
+	public void postLoad(ASTNode parent, ProblemReportingContext context) {
+		super.postLoad(parent, context);
+		ASTNode prev = null;
+		for (ASTNode e : subElements()) {
+			if (e != null) {
+				e.setPredecessorInSequence(prev);
+				e.postLoad(this, context);
+			}
+			prev = e;
+		}
 	}
 }

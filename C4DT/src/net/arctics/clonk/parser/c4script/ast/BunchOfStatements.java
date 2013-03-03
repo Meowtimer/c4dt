@@ -15,7 +15,7 @@ public class BunchOfStatements extends Block {
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		boolean first = true;
 		for (ASTNode statement : statements()) {
-			statement.printPrependix(builder, depth);
+			statement.printPrefix(builder, depth);
 			if (first)
 				first = false;
 			else {
@@ -23,7 +23,7 @@ public class BunchOfStatements extends Block {
 				Conf.printIndent(builder, depth-1);
 			}
 			statement.print(builder, depth);
-			statement.printAppendix(builder, depth);
+			statement.printSuffix(builder, depth);
 		}
 	}
 }
