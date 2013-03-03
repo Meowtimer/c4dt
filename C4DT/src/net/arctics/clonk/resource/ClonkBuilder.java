@@ -492,7 +492,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			IStorage storage = script.source();
 			if (storage != null) try {
 				result = new C4ScriptParser(script);
-				result.setBuilder(this);
+				result.setMarkers(markers);
 			} catch (Exception e) {
 				System.out.println(script.resource().getProjectRelativePath().toOSString());
 				e.printStackTrace();

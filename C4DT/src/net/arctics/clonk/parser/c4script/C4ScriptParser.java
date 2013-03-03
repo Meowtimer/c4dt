@@ -81,7 +81,6 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Whitespace;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
-import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 
@@ -132,12 +131,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
 	private SpecialEngineRules specialEngineRules;
-	private ClonkBuilder builder;
 	private Engine engine;
 
 	public final SpecialEngineRules specialEngineRules() {return specialEngineRules;}
-	public void setBuilder(ClonkBuilder builder) {this.builder = builder;}
-	public ClonkBuilder builder() {return builder;}
 	public final Typing typing() { return typing; }
 	public Script script() { return script; }
 
@@ -195,7 +191,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private List<TypeAnnotation> typeAnnotations;
 
-	public List<TypeAnnotation> typeAnnotations() {return typeAnnotations;}
+	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
 
 	/**
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
@@ -1188,11 +1184,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		this.markers = markers;
 	}
 
-	public Markers markers() {
+	protected Markers markers() {
 		if (markers != null)
 			return markers;
-		else if (builder != null)
-			return builder.markers();
 		else {
 			markers = new Markers();
 			markers.applyProjectSettings(script.index());

@@ -157,7 +157,7 @@ public class BufferedScanner implements ICharacterScanner {
 		offset += length;
 		return result;
 	}
-	
+
 	public final CharSequence bufferSequence(int start) {
 		return CharBuffer.wrap(buffer).subSequence(start, size);
 	}

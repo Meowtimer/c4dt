@@ -14,9 +14,7 @@ public class CStyleScanner extends BufferedScanner {
 
 	protected Comment lastComment;
 
-	public CStyleScanner(Object source) {
-		super(source);
-	}
+	public CStyleScanner(Object source) { super(source); }
 
 	protected Comment parseComment() {
 		int start = this.offset;

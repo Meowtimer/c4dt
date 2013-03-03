@@ -689,7 +689,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final Script script,
 		Runnable uiRefreshRunnable
 	) throws ParsingException {
+		final Markers markers = new Markers();
 		C4ScriptParser parser = parserForDocument(document, script);
+		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();
 		parser.script().generateFindDeclarationCache();
@@ -697,10 +699,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (!onlyDeclarations) {
 			if (listener != null && listener.typingStrategy() != null) {
 				ProblemReportingContext localTyping = listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null);
-				localTyping.setMarkers(parser.markers());
+				localTyping.setMarkers(markers);
 				localTyping.reportProblems();
 			}
-			parser.markers().deploy();
+			markers.deploy();
 		}
 		// make sure it's executed on the ui thread
 		if (uiRefreshRunnable != null)

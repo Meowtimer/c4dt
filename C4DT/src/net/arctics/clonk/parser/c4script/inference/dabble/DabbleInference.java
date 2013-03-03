@@ -152,7 +152,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ScriptProcessor processor = new ScriptProcessor(p.script(), p.fragmentOffset(), shared);
 						shared.processors.put(p.script(), processor);
 						Visitor v = new Visitor(processor);
-						v.setMarkers(p.markers());
+						v.setMarkers(shared.builder.markers());
 						visitors[i++] = v;
 					}
 				for (Visitor v : visitors)
@@ -551,7 +551,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			return null;
 		}
-		
+
 		public final ITypeVariable findTypeVariable(AccessVar node) {
 			ITypeVariable r = findTypeVariable((ASTNode)node);
 			if (r != null)
