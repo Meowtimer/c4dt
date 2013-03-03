@@ -27,12 +27,14 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
@@ -42,6 +44,7 @@ import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -649,6 +652,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		if (result != null)
+			result.traverse(new IASTVisitor<Script>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Script parser) {
+					AccessDeclaration ad = as(node, AccessDeclaration.class);
+					if (ad != null && ad.declaration() != null)
+						ad.setDeclaration(ad.declaration().latestVersion());
+					return TraversalContinuation.Continue;
+				}
+			}, result);
 		return result;
 	}
 
