@@ -235,6 +235,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return TraversalContinuation.Continue;
 		}
 	};
+	
+	private static final PrimitiveType[] callTypingSeeds = new PrimitiveType[] {
+		PrimitiveType.UNKNOWN,
+		PrimitiveType.INT,
+		PrimitiveType.ID,
+		PrimitiveType.OBJECT,
+		PrimitiveType.STRING,
+		PrimitiveType.PROPLIST
+	};
 
 	public class Visitor implements Runnable, ProblemReportingContext, IEvaluationContext {
 
@@ -279,8 +288,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		private void initialParameterTypesFromCalls(Function function, Function baseFunction, TypeVariable[] callTypes) {
 			final List<CallDeclaration> calls = processor.index.callsTo(function.name());
-			if (calls != null)
-				for (final CallDeclaration call : calls) {
+			if (calls != null) {
+				final IType[][] types = new IType[calls.size()][callTypes.length];
+				final Visitor[] visitors = new Visitor[calls.size()];
+				for (int ci = 0; ci < calls.size(); ci++) {
+					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
 					final ScriptProcessor processor = this.processor.shared.processors.get(other);
@@ -290,6 +302,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitFunction(f, function);
 					} else
 						visitor = null;
+					visitors[ci] = visitor;
 					Function ref = as(visitor != null ? visitor.obtainDeclaration(call) : call.declaration(), Function.class);
 					if (ref != null) {
 						ref = ref.baseFunction();
@@ -302,20 +315,82 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final ASTNode concretePar = call.params()[pa];
 									if (concretePar != null) {
 										script().addUsedScript(other);
-										final IType concreteTy = visitor != null ? visitor.typeOf(concretePar) : concretePar.inferredType();
-										final IType unified = TypeUnification.unifyNoChoice(callTypes[pa].get(), concreteTy);
-										//System.out.println(String.format("%s: %s -> %s", function.parameter(pa).name(), concretePar.printed(), concreteTy.typeName(false)));
-										if (unified == null) {
-											if (visitor != null)
-												visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
-										}
-										else
-											callTypes[pa].set(unified);
+										types[ci][pa] = visitor != null ? visitor.typeOf(concretePar) : concretePar.inferredType();
 									}
 								}
 						}
 					}
 				}
+				
+				for (int pa = 0; pa < callTypes.length; pa++) {
+					final Variable p = function.parameter(pa);
+					if (p.staticallyTyped())
+						continue;
+					IType result;
+					// if there are concrete parameter types not unifying seed the unification chain with some primitive type
+					// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
+					// not unifying with that consensus.
+					// Only seeds are considered which unify with parameter usage in the function body in the first place.
+					Seeding: {
+						
+						int leastDiscord = Integer.MAX_VALUE;
+						PrimitiveType bestSeed = null;
+						for (final PrimitiveType seed : callTypingSeeds) {
+							result = TypeUnification.unify(callTypes[pa].get(), seed);
+							if (result == null)
+								continue; // disagreement with usage inside body - ignore
+							int discord = 0;
+							for (int ci = 0; ci < calls.size(); ci++) {
+								final IType concreteTy = types[ci][pa];
+								if (concreteTy == null)
+									continue;
+								final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+								if (unified == null)
+									discord++;
+								else
+									result = unified;
+							}
+							if (discord == 0)
+								// no disagreement - type away
+								break Seeding;
+							else if (discord < leastDiscord) {
+								bestSeed = seed;
+								leastDiscord = discord;
+							}
+						}
+
+						if (bestSeed != null) {
+							result = TypeUnification.unify(callTypes[pa].get(), bestSeed);
+							for (int ci = 0; ci < calls.size(); ci++) {
+								final IType concreteTy = types[ci][pa];
+								if (concreteTy == null)
+									continue;
+								final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+								if (unified == null) {
+									final Visitor visitor = visitors[ci];
+									final ASTNode concretePar = calls.get(ci).params()[pa];
+									if (visitor != null)
+										visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
+								}
+								else
+									result = unified;
+							}
+						} else {
+							// no consensus at all - warnings at all call sides
+							result = callTypes[pa].get();
+							for (int ci = 0; ci < calls.size(); ci++) {
+								final IType concreteTy = types[ci][pa];
+								final Visitor visitor = visitors[ci];
+								final ASTNode concretePar = calls.get(ci).params()[pa];
+								if (visitor != null)
+									visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
+							}
+						}
+
+					}
+					callTypes[pa].set(result);
+				}
+			}
 		}
 
 		final boolean allParametersStaticallyTyped(Function function) {
@@ -402,8 +477,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final TypeVariable[] callTypes = new TypeVariable[parameters.size()];
 						for (int i = 0; i < callTypes.length; i++) {
 							final Variable p = function.parameter(i);
-							final AccessVar av = AccessVar.temp(p, function.body());
-							final TypeVariable tyvar = expert(av).requestTypeVariable(av, this);
+							final TypeVariable tyvar = new VariableTypeVariable(p);
+							typeEnvironment.add(tyvar);
 							callTypes[i] = tyvar;
 						}
 						

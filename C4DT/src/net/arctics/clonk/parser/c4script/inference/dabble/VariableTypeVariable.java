@@ -10,10 +10,11 @@ import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visito
 public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;
 	public Variable variable() { return variable; }
-	public VariableTypeVariable(AccessVar origin) {
-		this.variable = (Variable)origin.declaration();
+	public VariableTypeVariable(Variable variable) {
+		this.variable = variable;
 		this.type = PrimitiveType.UNKNOWN;
 	}
+	public VariableTypeVariable(AccessVar origin) { this((Variable) origin.declaration()); }
 	@Override
 	public void apply(boolean soft, Visitor visitor) {
 		variable.expectedToBeOfType(type, TypingJudgementMode.Expect);
