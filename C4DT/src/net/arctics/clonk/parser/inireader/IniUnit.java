@@ -73,11 +73,6 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
 
 	/**
-	 * Name of the configuration that is to be used when no name was explicitly defined in the file. (?)
-	 */
-	protected String defaultName;
-
-	/**
 	 * Parser parsing this IniUnit
 	 */
 	private IniUnitParser parser;
@@ -85,6 +80,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public IniUnitParser parser() {
 		return parser;
 	}
+	
+	public String defaultName() { return parser.file().getParent().getName(); }
 
 	/**
 	 * Creates an IniReader that reads ini information from a project file
@@ -94,9 +91,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (input instanceof IFile) {
 			final IFile file = (IFile) input;
 			try {
-				defaultName = file.getParent().getName();
 				parser = new IniUnitParser(this, file);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 			iniFile = file;
@@ -106,7 +102,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public void save(ASTNodePrinter writer, boolean discardEmptySections) {
 		boolean started = false;
-		for (IniSection section : sectionsList) {
+		for (final IniSection section : sectionsList) {
 			if (started)
 				writer.append('\n');
 			if (!discardEmptySections || section.hasPersistentItems()) {
@@ -121,7 +117,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			Core.instance().performActionsOnFileDocument(iniFile, new IDocumentAction<Void>() {
 				@Override
 				public Void run(IDocument document) {
-					StringWriter writer = new StringWriter();
+					final StringWriter writer = new StringWriter();
 					save(new AppendableBackedExprWriter(writer), discardEmptySections);
 					document.set(writer.toString());
 					return null;
@@ -149,7 +145,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (parentSection != null)
 			return parentSection.definition() == null || parentSection.definition().hasSection(name);
 		else {
-			IniConfiguration conf = configuration();
+			final IniConfiguration conf = configuration();
 			return conf == null || conf.hasSection(name);
 		}
 	}
@@ -163,25 +159,25 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @return validated entry
 	 */
 	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
-		IniConfiguration configuration = configuration();
+		final IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
-		IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).definition();
+		final IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).definition();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key()))
 			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.start(), entry.key().length() + entry.start());
-		IniDataBase dataItem = sectionConfig.entryForKey(entry.key());
+		final IniDataBase dataItem = sectionConfig.entryForKey(entry.key());
 		if (dataItem instanceof IniEntryDefinition) {
-			IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
+			final IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
 			try {
-				Object value = configuration.factory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
+				final Object value = configuration.factory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
 				return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 			}
-			catch (IniParserException e) { // add offsets and throw through
+			catch (final IniParserException e) { // add offsets and throw through
 				// FIXME: whitespace before and after '=' is not taken into account
 				if (e.offset() == 0 || e.endOffset() == 0) {
-					String key = entry.key();
+					final String key = entry.key();
 					String value = entry.stringValue();
 					if (value == null)
 						value = ""; //$NON-NLS-1$
@@ -215,7 +211,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
 		if (parentSection != null) {
 			if (parentSection.definition() != null) {
-				IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
+				final IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
 				return dataItem instanceof IniSectionDefinition ? (IniSectionDefinition)dataItem : null;
 			}
 			else
@@ -234,7 +230,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public IniConfiguration configuration() {
-		String confName = configurationName();
+		final String confName = configurationName();
 		if (confName != null && engine() != null && engine().iniConfigurations() != null)
 			return engine().iniConfigurations().configurationFor(confName);
 		else
@@ -261,12 +257,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public IniItem itemInSection(String section, String entry) {
-		IniSection s = sectionsMap.get(section);
+		final IniSection s = sectionsMap.get(section);
 		return s != null ? s.subItemByKey(entry) : null;
 	}
 
 	public IniEntry entryInSection(String section, String entry) {
-		IniItem item = itemInSection(section, entry);
+		final IniItem item = itemInSection(section, entry);
 		return item instanceof IniEntry ? (IniEntry)item : null;
 	}
 
@@ -325,8 +321,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
-			int start = sec.start();
+		for (final IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
+			final int start = sec.start();
 			if (start > offset)
 				break;
 			section = sec;
@@ -335,7 +331,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public IniSection sectionAtOffset(int offset) {
-		IniSection sec = sectionAtOffset(null, offset);
+		final IniSection sec = sectionAtOffset(null, offset);
 		return sec;
 	}
 
@@ -376,11 +372,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile)
 					try {
-						IniUnit unit = createAdequateIniUnit((IFile) resource);
+						final IniUnit unit = createAdequateIniUnit((IFile) resource);
 						if (unit != null)
 							unit.parser().parse(duringBuild);
 						return unit;
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				return null;
@@ -389,11 +385,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		Class<? extends IniUnit> cls = iniUnitClassForResource(file);
+		final Class<? extends IniUnit> cls = iniUnitClassForResource(file);
 		if (cls == null)
 			return null;
-		Constructor<? extends IniUnit> ctor = cls.getConstructor(Object.class);
-		IniUnit result = ctor.newInstance(file);
+		final Constructor<? extends IniUnit> ctor = cls.getConstructor(Object.class);
+		final IniUnit result = ctor.newInstance(file);
 		return result;
 	}
 
@@ -415,12 +411,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	public static Class<? extends IniUnit> iniUnitClassForResource(IResource resource) {
 		try {
-			IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
+			final IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
 			if (contentType == null)
 				return null;
-			Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
+			final Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
 			return cls != null ? cls : null;
-		} catch (CoreException ce) {
+		} catch (final CoreException ce) {
 			return null;
 		}
 	}
@@ -432,20 +428,20 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			return;
 		try {
 			iniFile.deleteMarkers(Core.MARKER_C4SCRIPT_ERROR, true, 0);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
-		for (IniSection sec : this.sectionsList)
+		for (final IniSection sec : this.sectionsList)
 			sec.validate(markers);
 	}
 
 	@Override
 	public Engine engine() {
-		ClonkProjectNature nature = ClonkProjectNature.get(resource());
+		final ClonkProjectNature nature = ClonkProjectNature.get(resource());
 		if (nature != null)
 			return nature.index().engine();
 		else {
-			CustomizationNature customizationNature = CustomizationNature.get(resource().getProject());
+			final CustomizationNature customizationNature = CustomizationNature.get(resource().getProject());
 			if (customizationNature != null)
 				for (IResource r = resource(); r != customizationNature.getProject(); r = r.getParent())
 					if (r.getParent() == customizationNature.getProject())
@@ -489,12 +485,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public String infoText(IIndexEntity context) {
 		return String.format(
 			INFO_FORMAT,
-			this.defaultName, this.file().getProjectRelativePath().toOSString()
+			this.defaultName(), this.file().getProjectRelativePath().toOSString()
 		);
 	}
 
 	public IniSection addSection(IniSection parentSection, int start, String name, int end) {
-		IniSection section = new IniSection(new SourceLocation(start, end), name);
+		final IniSection section = new IniSection(new SourceLocation(start, end), name);
 		section.setParent(parentSection != null ? parentSection : this);
 		return section;
 	}
@@ -505,51 +501,51 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public void commit(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		for (IniSection section : this.sections())
+		for (final IniSection section : this.sections())
 			section.commit(object, true);
 	}
 
 	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 		try {
 			parser().parse(false);
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
 		commit(obj);
 	}
 
 	public void readObjectFields(Object object, Object defaults) throws IllegalAccessException {
-		for (Field f : object.getClass().getFields()) {
+		for (final Field f : object.getClass().getFields()) {
 			IniField annot;
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
-				String category = IniUnitParser.category(annot, object.getClass());
+				final String category = IniUnitParser.category(annot, object.getClass());
 				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
 					continue;
-				IniSectionDefinition dataSection = configuration().sections().get(category);
+				final IniSectionDefinition dataSection = configuration().sections().get(category);
 				if (dataSection != null) {
-					IniDataBase dataItem = dataSection.entryForKey(f.getName());
+					final IniDataBase dataItem = dataSection.entryForKey(f.getName());
 					if (dataItem instanceof IniEntryDefinition) {
-						IniEntryDefinition entry = (IniEntryDefinition) dataItem;
+						final IniEntryDefinition entry = (IniEntryDefinition) dataItem;
 						Constructor<?> ctor;
 						Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
 						if (value == null) {
 							try {
 								ctor = entry.entryClass().getConstructor(f.getType());
-							} catch (SecurityException e) {
+							} catch (final SecurityException e) {
 								ctor = null;
-							} catch (NoSuchMethodException e) {
+							} catch (final NoSuchMethodException e) {
 								ctor = null;
 							}
 							if (ctor != null)
 								try {
 									value = ctor.newInstance(f.get(object));
-								} catch (Exception e) {
+								} catch (final Exception e) {
 									value = null;
 								}
 						}
 						if (value != null) {
-							IniSection section = this.requestSection(category, dataSection);
-							ComplexIniEntry complEntry = new ComplexIniEntry(0, 0, f.getName(), value);
+							final IniSection section = this.requestSection(category, dataSection);
+							final ComplexIniEntry complEntry = new ComplexIniEntry(0, 0, f.getName(), value);
 							complEntry.setDefinition(entry);
 							section.putEntry(complEntry);
 						}
@@ -560,7 +556,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public <T> T complexValue(String path, Class<T> cls) {
-		String[] p = path.split("\\.");
+		final String[] p = path.split("\\.");
 		if (p.length < 2)
 			return null;
 		IniSection section = null;
@@ -569,7 +565,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			if (section == null)
 				return null;
 		}
-		ComplexIniEntry entry = section != null ? as(section.subItemByKey(p[p.length-1]), ComplexIniEntry.class) : null;
+		final ComplexIniEntry entry = section != null ? as(section.subItemByKey(p[p.length-1]), ComplexIniEntry.class) : null;
 		return entry != null ? as(entry.value(), cls) : null;
 	}
 

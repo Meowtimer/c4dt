@@ -17,7 +17,7 @@ public class DefCoreUnit extends IniUnit {
 	public boolean requiresScriptReparse() { return true; /* i guess */ }
 
 	public ID definitionID() {
-		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
+		final IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (entry instanceof ComplexIniEntry)
 			return (ID)((ComplexIniEntry)entry).extendedValue();
 		else
@@ -26,8 +26,8 @@ public class DefCoreUnit extends IniUnit {
 
 	@Override
 	public String name() {
-		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
-		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).extendedValue() : defaultName;
+		final IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
+		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).extendedValue() : defaultName();
 	}
 
 	@Override
@@ -35,6 +35,12 @@ public class DefCoreUnit extends IniUnit {
 		super.commitTo(script, builder);
 		if (script instanceof Definition)
 			((Definition)script).setDefCoreFile(iniFile);
+	}
+	
+	@Override
+	public String defaultName() {
+		final ID id = definitionID();
+		return id != ID.NULL ? id.stringValue() : super.defaultName();
 	}
 
 }
