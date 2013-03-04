@@ -136,10 +136,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		@Override
 		public IStorage source() {
-			IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+			final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 			try {
 				return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
-			} catch (UnsupportedEncodingException e) {
+			} catch (final UnsupportedEncodingException e) {
 				return null;
 			}
 		}
@@ -170,12 +170,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			super.added();
 			try {
 				problemReportingStrategies = structure.index().nature().instantiateProblemReportingStrategies(0);
-				for (ProblemReportingStrategy strategy : problemReportingStrategies)
+				for (final ProblemReportingStrategy strategy : problemReportingStrategies)
 					if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 						typingStrategy = strategy;
 						break;
 					}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				problemReportingStrategies = Arrays.asList();
 			}
 		}
@@ -186,7 +186,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
 			try {
 				return addTo(listeners, TextChangeListener.class, document, script, client);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -213,7 +213,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function)
 				incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
-			for (Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
+			for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
 				adjustDec(v, offset, add);
 		}
 
@@ -231,7 +231,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							reparseWithDocumentContents(TextChangeListener.this, onlyDeclarations, document, structure, new Runnable() {
 								@Override
 								public void run() {
-									for (C4ScriptEditor ed : clients) {
+									for (final C4ScriptEditor ed : clients) {
 										ed.refreshOutline();
 										ed.handleCursorPositionChanged();
 									}
@@ -240,7 +240,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						} finally {
 							cancel();
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -251,18 +251,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (script != null && script.resource() != null)
 				try {
 					// delete regular markers that are in the region of interest
-					IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
-					SourceLocation body = func != null ? func.bodyLocation() : null;
-					for (IMarker m : markers) {
+					final IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
+					final SourceLocation body = func != null ? func.bodyLocation() : null;
+					for (final IMarker m : markers) {
 						// delete marks inside the body region
-						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
-						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
+						final int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
+						final int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
 						if (body == null || (markerStart >= body.start() && markerEnd < body.end())) {
 							m.delete();
 							continue;
 						}
 					}
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
 		}
@@ -281,7 +281,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			) {
 				if (node == null)
 					return Decision.DropCharges;
-				for (ASTNode confine : this)
+				for (final ASTNode confine : this)
 					if (node.containedIn(confine))
 						return Decision.PassThrough;
 				return Decision.DropCharges;
@@ -299,15 +299,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
 							removeMarkers(fn, structure);
 							final Function f = (Function) fn.latestVersion();
-							Markers markers = reparseFunction(f);
-							for (Variable localVar : f.locals()) {
-								SourceLocation l = localVar;
+							final Markers markers = reparseFunction(f);
+							for (final Variable localVar : f.locals()) {
+								final SourceLocation l = localVar;
 								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
 								l.setEnd(f.bodyLocation().getOffset()+l.end());
 							}
 							markers.deploy();
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -315,37 +315,37 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		private void addCalls(Set<Function> to, Function from) {
-			for (Collection<CallDeclaration> cdc : from.script().callMap().values())
-				for (CallDeclaration cd : cdc)
+			for (final Collection<CallDeclaration> cdc : from.script().callMap().values())
+				for (final CallDeclaration cd : cdc)
 					if (cd.containedIn(from)) {
-						Function called = as(cd.declaration(), Function.class);
+						final Function called = as(cd.declaration(), Function.class);
 						if (called != null)
 							to.add(called);
 					}
 		}
 
 		public Markers reparseFunction(final Function function) {
-			Markers markers = new Markers(new MarkerConfines(function));
+			final Markers markers = new Markers(new MarkerConfines(function));
 			markers.applyProjectSettings(structure.index());
-			Set<Function> revisitFunctions = new HashSet<>();
+			final Set<Function> revisitFunctions = new HashSet<>();
 			addCalls(revisitFunctions, function); // add old calls so when the user removes a call the function called will still be revisited
-			C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
+			final C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
 			structure.generateFindDeclarationCache();
-			for (ProblemReportingStrategy strategy : problemReportingStrategies) {
-				ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+			for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
+				final ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 				if (markers != null)
 					mainTyping.setMarkers(markers);
 				mainTyping.visitFunction(function);
 				addCalls(revisitFunctions, function); // add new calls
 				// potentially revisit functions to adjust typing of parameters to the concrete parameter types supplied here
-				for (Function called : revisitFunctions)
+				for (final Function called : revisitFunctions)
 					if (called != null && mainTyping.triggersRevisit(function, called))
 						if (markers != null && markers.listener() instanceof MarkerConfines)
 							if (((MarkerConfines)markers.listener()).add(called)) {
 								removeMarkers(called, called.script());
-								for (Variable p : called.parameters())
+								for (final Variable p : called.parameters())
 									p.forceType(PrimitiveType.UNKNOWN, false);
-								ProblemReportingContext calledTyping = strategy.localTypingContext(called.parentOfType(Script.class), 0, mainTyping);
+								final ProblemReportingContext calledTyping = strategy.localTypingContext(called.parentOfType(Script.class), 0, mainTyping);
 								calledTyping.setMarkers(markers);
 								calledTyping.visitFunction(called);
 							}
@@ -366,12 +366,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				reparseTimer.cancel();
 			try {
 				if (structure.source() instanceof IFile) {
-					IFile file = (IFile)structure.source();
+					final IFile file = (IFile)structure.source();
 					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 					if (file.exists())
 						reparseWithDocumentContents(this, false, file, structure, null);
 				}
-			} catch (ParsingException e) {
+			} catch (final ParsingException e) {
 				e.printStackTrace();
 			}
 			super.cleanupAfterRemoval();
@@ -393,12 +393,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public ProblemReportingContext declarationObtainmentContext() {
 		if (cachedDeclarationObtainmentContext != null) {
-			ProblemReportingContext ctx = cachedDeclarationObtainmentContext.get();
+			final ProblemReportingContext ctx = cachedDeclarationObtainmentContext.get();
 			if (ctx != null && ctx.script() == script())
 				return ctx;
 		}
 		ProblemReportingContext r = null;
-		for (ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
+		for (final ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
 			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
 					r = strategy.localTypingContext(script(), 0, null)
@@ -416,15 +416,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	public void showContentAssistance() {
 		// show parameter help
-		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
+		final ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
-				C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
+				final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
 				if (a != null && !a.isProposalPopupActive())
 					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
 						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 			}
-		} catch (NullPointerException nullP) {
+		} catch (final NullPointerException nullP) {
 			// might just be not that much of an issue
 		}
 	}
@@ -440,9 +440,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
-		IDocument document = getDocumentProvider().getDocument(input);
+		final IDocument document = getDocumentProvider().getDocument(input);
 		if (document.getDocumentPartitioner() == null) {
-			IDocumentPartitioner partitioner =
+			final IDocumentPartitioner partitioner =
 				new FastPartitioner(
 					new CStylePartitionScanner(),
 					CStylePartitionScanner.PARTITIONS
@@ -462,7 +462,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void refreshStructure() {
 		try {
 			reparseWithDocumentContents(false);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -470,7 +470,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion region) {
 		try {
-			EntityLocator info = new EntityLocator(
+			final EntityLocator info = new EntityLocator(
 				this,
 				this.getDocumentProvider().getDocument(this.getEditorInput()),
 				region
@@ -479,7 +479,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				return info.entity();
 			else if (fallbackToCurrentFunction)
 				return functionAt(region.getOffset());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -487,12 +487,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected void editorSaved() {
-		if (textChangeListener != null)
+		if (textChangeListener != null) {
 			textChangeListener.cancelReparsingTimer();
+			final Function cursorFunc = functionAtCursor();
+			if (cursorFunc != null)
+				textChangeListener.reparseFunction(cursorFunc);
+		}
 		if (script() instanceof ScratchScript)
 			try {
 				reparseWithDocumentContents(false);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		super.editorSaved();
@@ -515,7 +519,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		Script script = script();
+		final Script script = script();
 		if (script != null && script.isEditable())
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
@@ -575,7 +579,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.handleCursorPositionChanged();
 
 		// highlight active function
-		Function f = functionAtCursor();
+		final Function f = functionAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
 			this.setHighlightRange(f.start(), f.getLength(), false);
@@ -608,7 +612,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				Function f = functionAtCursor();
+				final Function f = functionAtCursor();
 				if (f != null)
 					textChangeListener().reparseFunction(f).deploy();
 				showContentAssistance();
@@ -632,9 +636,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
 
 		if (result == null) {
-			IFile f = Utilities.fileEditedBy(this);
+			final IFile f = Utilities.fileEditedBy(this);
 			if (f != null) {
-				Script script = Script.get(f, true);
+				final Script script = Script.get(f, true);
 				if (script != null)
 					result = script;
 			}
@@ -649,14 +653,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (needsReparsing)
 			try {
 				reparseWithDocumentContents(false);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		if (result != null)
 			result.traverse(new IASTVisitor<Script>() {
 				@Override
 				public TraversalContinuation visitNode(ASTNode node, Script parser) {
-					AccessDeclaration ad = as(node, AccessDeclaration.class);
+					final AccessDeclaration ad = as(node, AccessDeclaration.class);
 					if (ad != null && ad.declaration() != null)
 						ad.setDeclaration(ad.declaration().latestVersion());
 					return TraversalContinuation.Continue;
@@ -671,9 +675,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public ProblemReportingStrategy typingStrategy() { return textChangeListener().typingStrategy(); }
 
 	public Function functionAt(int offset) {
-		Script script = script();
+		final Script script = script();
 		if (script != null) {
-			Function f = script.funcAt(offset);
+			final Function f = script.funcAt(offset);
 			return f;
 		}
 		return null;
@@ -684,7 +688,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public C4ScriptParser reparseWithDocumentContents(boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
-		IDocument document = getDocumentProvider().getDocument(getEditorInput());
+		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		if (textChangeListener != null)
 			textChangeListener.cancelReparsingTimer();
 		return reparseWithDocumentContents(textChangeListener, onlyDeclarations, document, script(), new Runnable() {
@@ -703,7 +707,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Runnable uiRefreshRunnable
 	) throws ParsingException {
 		final Markers markers = new Markers();
-		C4ScriptParser parser = parserForDocument(document, script);
+		final C4ScriptParser parser = parserForDocument(document, script);
 		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();
@@ -711,7 +715,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.validate();
 		if (!onlyDeclarations) {
 			if (listener != null && listener.typingStrategy() != null) {
-				ProblemReportingContext localTyping = listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null);
+				final ProblemReportingContext localTyping = listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null);
 				localTyping.setMarkers(markers);
 				localTyping.reportProblems();
 			}
@@ -757,16 +761,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ParsingException {
-		Function f = this.functionAt(offset);
+		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
-		FunctionFragmentParser parser = new FunctionFragmentParser(getSourceViewer().getDocument(), script(), f, null);
+		final FunctionFragmentParser parser = new FunctionFragmentParser(getSourceViewer().getDocument(), script(), f, null);
 		parser.update();
-		EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
+		final EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
-		int bodyStart = f.bodyLocation().start();
+		final int bodyStart = f.bodyLocation().start();
 		for (
 			expr = locator.expressionAtRegion();
 			expr != null;
@@ -775,16 +779,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
 				 break;
 		if (expr != null) {
-			IFunctionCall callFunc = (IFunctionCall) expr;
+			final IFunctionCall callFunc = (IFunctionCall) expr;
 			ASTNode prev = null;
-			for (ASTNode parm : callFunc.params()) {
+			for (final ASTNode parm : callFunc.params()) {
 				if (bodyStart+parm.end() > offset) {
 					if (prev == null)
 						break;
-					String docText = getSourceViewer().getDocument().get(bodyStart+prev.end(), parm.start()-prev.end());
-					CStyleScanner scanner = new CStyleScanner(docText);
+					final String docText = getSourceViewer().getDocument().get(bodyStart+prev.end(), parm.start()-prev.end());
+					final CStyleScanner scanner = new CStyleScanner(docText);
 					scanner.eatWhitespace();
-					boolean comma = scanner.read() == ',' && offset+1 > bodyStart+prev.end() + scanner.tell();
+					final boolean comma = scanner.read() == ',' && offset+1 > bodyStart+prev.end() + scanner.tell();
 					return new FuncCallInfo(f, callFunc, comma ? parm : prev, locator);
 				}
 				prev = parm;
@@ -796,7 +800,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected void initializeEditor() {
-		IFile file = fileEditedBy(this);
+		final IFile file = fileEditedBy(this);
 		if (file != null)
 			ClonkProjectNature.get(file).index();
 		super.initializeEditor();
