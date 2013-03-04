@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.NillableType;
-import net.arctics.clonk.parser.c4script.ParameterType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ReferenceType;
@@ -63,22 +62,22 @@ public class TypeUnification {
 			}
 
 		if (a instanceof ThisType) {
-			Script sa = ((ThisType)a).script();
+			final Script sa = ((ThisType)a).script();
 			if (b instanceof Script)
 				return defaulting(unifyNoChoice(sa, b), PrimitiveType.OBJECT);
 			else if (b instanceof ThisType) {
-				Script sb = ((ThisType)b).script();
-				Script u = as(unifyNoChoice(sa, sb), Script.class);
+				final Script sb = ((ThisType)b).script();
+				final Script u = as(unifyNoChoice(sa, sb), Script.class);
 				if (u != null)
 					return new ThisType(u);
 			}
 		}
 		
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
-			TypeChoice tca = (TypeChoice)a;
-			TypeChoice tcb = (TypeChoice)b;
-			IType l = unifyNoChoice(tca.left(), tcb.left());
-			IType r = unifyNoChoice(tca.right(), tcb.right());
+			final TypeChoice tca = (TypeChoice)a;
+			final TypeChoice tcb = (TypeChoice)b;
+			final IType l = unifyNoChoice(tca.left(), tcb.left());
+			final IType r = unifyNoChoice(tca.right(), tcb.right());
 			if (l != null && r != null)
 				return TypeChoice.make(l, r);
 			else if (l == null && r != null)
@@ -90,11 +89,11 @@ public class TypeUnification {
 		}
 
 		if (a instanceof TypeChoice) {
-			TypeChoice tca = (TypeChoice)a;
-			IType l = tca.left();
-			IType r = tca.right();
-			IType l_ = unifyNoChoice(l, b);
-			IType r_ = unifyNoChoice(r, b);
+			final TypeChoice tca = (TypeChoice)a;
+			final IType l = tca.left();
+			final IType r = tca.right();
+			final IType l_ = unifyNoChoice(l, b);
+			final IType r_ = unifyNoChoice(r, b);
 			if (l_ == null && r_ == null)
 				return null;
 			else if (r_ == null)
@@ -110,14 +109,14 @@ public class TypeUnification {
 			return a;
 
 		if (a instanceof ArrayType && b instanceof ArrayType) {
-			ArrayType ata = (ArrayType)a;
-			ArrayType atb = (ArrayType)b;
+			final ArrayType ata = (ArrayType)a;
+			final ArrayType atb = (ArrayType)b;
 			ArrayType result = ata;
 			if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
 				result = new ArrayType(unify(ata.generalElementType(),
 					atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
-			for (Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
-				IType my = ata.elementTypeMapping().get(e.getKey());
+			for (final Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
+				final IType my = ata.elementTypeMapping().get(e.getKey());
 				if (!objectsEqual(my, e.getValue())) {
 					if (result == ata)
 						result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
@@ -151,10 +150,10 @@ public class TypeUnification {
 				}
 				@Override
 				public Collection<Variable> components(boolean includeAdhocComponents) {
-					Map<String, Variable> vars = new HashMap<String, Variable>();
-					for (Variable v : _a.components(includeAdhocComponents))
+					final Map<String, Variable> vars = new HashMap<String, Variable>();
+					for (final Variable v : _a.components(includeAdhocComponents))
 						vars.put(v.name(), v);
-					for (Variable v : _b.components(includeAdhocComponents))
+					for (final Variable v : _b.components(includeAdhocComponents))
 						if (!vars.containsKey(v.name()))
 							vars.put(v.name(), v);
 					return vars.values();
@@ -163,7 +162,7 @@ public class TypeUnification {
 		}
 
 		if (a instanceof WrappedType) {
-			IType u = unifyNoChoice(WrappedType.unwrap(a), b);
+			final IType u = unifyNoChoice(WrappedType.unwrap(a), b);
 			if (u != null)
 				if (a instanceof NillableType)
 					return NillableType.make(u);
@@ -171,12 +170,9 @@ public class TypeUnification {
 					return ReferenceType.make(u);
 		}
 
-		if (a instanceof ParameterType)
-			return TypeChoice.make(a, b);
-
 		if (a instanceof StructuralType && b instanceof StructuralType) {
-			StructuralType sa = (StructuralType) a;
-			StructuralType sb = (StructuralType) b;
+			final StructuralType sa = (StructuralType) a;
+			final StructuralType sb = (StructuralType) b;
 			return new StructuralType(sa, sb);
 		}
 
@@ -185,22 +181,22 @@ public class TypeUnification {
 				return b;
 		
 		if (a instanceof Definition && b instanceof Definition) {
-			Definition da = (Definition)a;
-			Definition db = (Definition)b;
+			final Definition da = (Definition)a;
+			final Definition db = (Definition)b;
 			if (db.doesInclude(db.index(), da))
 				return da;
 			else if (da.doesInclude(da.index(), db))
 				return db;
 			else {
-				List<Script> cda = da.conglomerate();
-				List<Script> cdb = db.conglomerate();
+				final List<Script> cda = da.conglomerate();
+				final List<Script> cdb = db.conglomerate();
 				cda.retainAll(cdb);
 				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT;
 			}
 		}
 		
 		else if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
-			IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
+			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
 			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID;
 		}
 
@@ -216,12 +212,12 @@ public class TypeUnification {
 		return null;
 	}
 	public static IType unify(IType a, IType b) {
-		IType u = unifyNoChoice(a, b);
+		final IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
 	public static IType unify(Iterable<IType> ingredients) {
 		IType unified = null;
-		for (IType t : ingredients)
+		for (final IType t : ingredients)
 			unified = unify(unified, t);
 		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}

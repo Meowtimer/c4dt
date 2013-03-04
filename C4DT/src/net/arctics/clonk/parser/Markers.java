@@ -35,7 +35,7 @@ public class Markers extends LinkedList<Marker> {
 	/**
 	 * Whether to not create any error markers at all - set if script is contained in linked group
 	 */
-	private boolean allErrorsDisabled;
+	private boolean enabled = true;
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
 
@@ -50,17 +50,17 @@ public class Markers extends LinkedList<Marker> {
 			markersToDeploy = new ArrayList<Marker>(this);
 			this.clear();
 		}
-		for (Marker m : markersToDeploy)
+		for (final Marker m : markersToDeploy)
 			deploy(m);
 	}
 
 	public IMarker deploy(Marker marker) {
-		IFile file = marker.scriptFile;
-		Declaration declarationAssociatedWithFile = marker.container;
+		final IFile file = marker.scriptFile;
+		final Declaration declarationAssociatedWithFile = marker.container;
 		if (file == null)
 			return null;
 		try {
-			IMarker deployed = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
+			final IMarker deployed = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
 			String[] attributes = new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_PROBLEM};
 			Object[] attributeValues = new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args), marker.start, marker.end,
 				declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()};
@@ -73,7 +73,7 @@ public class Markers extends LinkedList<Marker> {
 				attributeValues
 			);
 			return deployed;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -110,7 +110,7 @@ public class Markers extends LinkedList<Marker> {
 				markerEnd += positionProvider.fragmentOffset();
 			}
 			synchronized (listener) {
-				IMarkerListener saved = listener;
+				final IMarkerListener saved = listener;
 				listener = null;
 				try {
 					if (saved.markerEncountered(this, positionProvider, code, node, markerStart, markerEnd, flags, severity, args) == Decision.DropCharges)
@@ -122,14 +122,14 @@ public class Markers extends LinkedList<Marker> {
 		}
 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0 && node != null) {
-			Function f = node.parentOfType(Function.class);
+			final Function f = node.parentOfType(Function.class);
 			if (f != null) {
-				int offs = f.bodyLocation().start();
+				final int offs = f.bodyLocation().start();
 				markerStart += offs;
 				markerEnd += offs;
 			}
 		}
-		String problem = code.makeErrorString(args);
+		final String problem = code.makeErrorString(args);
 		add(new Marker(positionProvider, code, node, markerStart, markerEnd, severity, args));
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw new ParsingException(problem);
@@ -138,7 +138,7 @@ public class Markers extends LinkedList<Marker> {
 	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			marker(positionProvider, code, node, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			// won't happen
 		}
 	}
@@ -158,7 +158,7 @@ public class Markers extends LinkedList<Marker> {
 	 * @return Return whether the error is enabled.
 	 */
 	public boolean errorEnabled(Problem error) {
-		return !(allErrorsDisabled || disabledErrors.contains(error));
+		return enabled && !disabledErrors.contains(error);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class Markers extends LinkedList<Marker> {
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
 	public IRegion convertRelativeRegionToAbsolute(ASTNode node, int flags, IRegion region) {
-		int offset = node != null ? node.sectionOffset() : 0;
+		final int offset = node != null ? node.sectionOffset() : 0;
 		if (offset == 0 || (flags & ABSOLUTE_MARKER_LOCATION) == 0)
 			return region;
 		else
@@ -178,16 +178,16 @@ public class Markers extends LinkedList<Marker> {
 	public IMarker todo(IFile file, ASTNode node, String todoText, int markerStart, int markerEnd, int priority) {
 		if (file != null)
 			try {
-				Declaration declaration = node.parentOfType(Declaration.class);
-				Function f = as(declaration, Function.class);
-				int bodyOffset = f != null ? f.bodyLocation().start() : 0;
-				IMarker marker = file.createMarker(IMarker.TASK);
+				final Declaration declaration = node.parentOfType(Declaration.class);
+				final Function f = as(declaration, Function.class);
+				final int bodyOffset = f != null ? f.bodyLocation().start() : 0;
+				final IMarker marker = file.createMarker(IMarker.TASK);
 				marker.setAttributes(
 					new String[] {IMarker.CHAR_START, IMarker.CHAR_END, IMarker.MESSAGE, IMarker.LOCATION, IMarker.PRIORITY},
 					new Object[] {markerStart+bodyOffset, markerEnd+bodyOffset, todoText, declaration != null ? declaration.qualifiedName() : "", priority}
 				);
 				return marker;
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -201,11 +201,12 @@ public class Markers extends LinkedList<Marker> {
 		else
 			disabledErrors.addAll(set);
 	}
-	public void disableAllErrors(boolean _do) {
-		allErrorsDisabled = _do;
-	}
+	
+	public void enabled(boolean value) { enabled = value; }
+	public boolean enabled() { return enabled; }
+	
 	public boolean enableError(Problem error, boolean doEnable) {
-		boolean result = errorEnabled(error);
+		final boolean result = errorEnabled(error);
 		if (doEnable)
 			disabledErrors.remove(error);
 		else
@@ -215,8 +216,8 @@ public class Markers extends LinkedList<Marker> {
 	public void applyProjectSettings(Index index) {
 		disabledErrors.clear();
 		if (index instanceof ProjectIndex) {
-			ProjectIndex projIndex = (ProjectIndex) index;
-			ClonkProjectNature nature = projIndex.nature();
+			final ProjectIndex projIndex = (ProjectIndex) index;
+			final ClonkProjectNature nature = projIndex.nature();
 			if (nature != null)
 				enableErrors(nature.settings().disabledErrorsSet(), false);
 		}
@@ -225,13 +226,13 @@ public class Markers extends LinkedList<Marker> {
 	public static Problem problem(IMarker marker) {
 		try {
 			return Problem.values()[marker.getAttribute(MARKER_PROBLEM, -1)];
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (final ArrayIndexOutOfBoundsException e) {
 			return null;
 		}
 	}
 
 	public static PrimitiveType expectedType(IMarker marker) {
-		String attr = marker.getAttribute(MARKER_EXPECTEDTYPE, null);
+		final String attr = marker.getAttribute(MARKER_EXPECTEDTYPE, null);
 		return attr != null ? PrimitiveType.fromString(attr) : PrimitiveType.ANY;
 	}
 }

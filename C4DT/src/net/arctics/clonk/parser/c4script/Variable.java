@@ -14,11 +14,9 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
-import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -123,13 +121,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void forceType(IType type) {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
-		if (this.scope == Scope.PARAMETER)
-			type = TypeChoice.remove(type, new IPredicate<IType>() {
-				@Override
-				public boolean test(IType item) {
-					return item instanceof ParameterType && ((ParameterType)item).parameter() == Variable.this;
-				}
-			});
 		this.type = type;
 	}
 
@@ -240,18 +231,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public int sortCategory() {
-		return (scope != null ? scope : Scope.VAR).ordinal();
-	}
+	public int sortCategory() { return (scope != null ? scope : Scope.VAR).ordinal(); }
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		IType t = type(as(context, Script.class));
-		String format = Messages.C4Variable_InfoTextFormatOverall;
-		String valueFormat = scope == Scope.CONST
+		final IType t = type(as(context, Script.class));
+		final String format = Messages.C4Variable_InfoTextFormatOverall;
+		final String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
-		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
+		final String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
 			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(true)),
 				name(),
@@ -265,9 +254,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public String displayString(IIndexEntity context) {
-		return this.name();
-	}
+	public String displayString(IIndexEntity context) { return this.name(); }
 
 	@Override
 	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
@@ -288,7 +275,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	public Object evaluateInitializationExpression(IEvaluationContext context) {
-		ASTNode e = initializationExpression();
+		final ASTNode e = initializationExpression();
 		if (e != null)
 			return e.evaluateStatic(context);
 		else
@@ -300,9 +287,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public boolean isGlobal() {
-		return scope == Scope.STATIC || scope == Scope.CONST;
-	}
+	public boolean isGlobal() { return scope == Scope.STATIC || scope == Scope.CONST; }
 
 	private void ensureTypeLockedIfPredefined(ASTNode declaration) {
 		if (!staticallyTyped && declaration instanceof Engine)
@@ -329,9 +314,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * Returns whether this variable is an actual explicitly declared parameter and not some crazy hack thingie like '...'
 	 * @return look above and feel relieved that redundancy is lifted from you
 	 */
-	public boolean isActualParm() {
-		return !name().equals("..."); //$NON-NLS-1$
-	}
+	public boolean isActualParm() { return !name().equals("..."); } //$NON-NLS-1$
 
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
@@ -354,19 +337,25 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return The function or null if there is no function in the parent chain.
 	 */
 	@Override
-	public Function function() {
-		return topLevelParentDeclarationOfType(Function.class);
-	}
-
+	public Function function() { return topLevelParentDeclarationOfType(Function.class); }
 	@Override
-	public boolean staticallyTyped() {
-		return staticallyTyped || isEngineDeclaration();
-	}
-	
+	public boolean staticallyTyped() { return staticallyTyped || isEngineDeclaration(); }
 	@Override
-	public Object cookie() {
-		return null;
-	}
+	public Object cookie() { return null; }
+	@Override
+	public Object valueForVariable(String varName) { return script().findLocalVariable(varName, true); }
+	@Override
+	public Object[] arguments() { return new Object[0]; }
+	@Override
+	public int codeFragmentOffset() { return 0; }
+	@Override
+	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
+	@Override
+	public ASTNode code() { return initializationExpression(); }
+	@Override
+	public ASTNode[] subElements() { return super.subElements(); }
+	@Override
+	public boolean isLocal() { return scope.isLocal(); }
 
 	/**
 	 * Return the parameter index of this variable if it is a function parameter.
@@ -375,7 +364,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public int parameterIndex() {
 		if (parent instanceof Function) {
 			int i = 0;
-			for (Variable v : ((Function)parent).parameters())
+			for (final Variable v : ((Function)parent).parameters())
 				if (v == this)
 					return i;
 				else
@@ -385,29 +374,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object valueForVariable(String varName) {
-		return script().findLocalVariable(varName, true);
-	}
-
-	@Override
-	public Object[] arguments() {
-		return new Object[0];
-	}
-
-	@Override
-	public int codeFragmentOffset() {
-		// for some reason, initialization expression locations are stored absolutely
-		return 0; // return initializationExpression != null ? initializationExpression.getExprStart() : 0;
-	}
-
-	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
-		// wow
-	}
-
-	@Override
 	public Variable clone() {
-		Variable clone = new Variable();
+		final Variable clone = new Variable();
 		clone.description = this.description;
 		clone.initializationExpression = this.initializationExpression != null ? this.initializationExpression.clone() : null;
 		clone.setLocation(this);
@@ -418,9 +386,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public boolean isLocal() { return scope.isLocal(); }
-
-	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parent instanceof Function)
 			return new Object[] {parent};
@@ -428,18 +393,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return super.occurenceScope(project);
 	}
 
-	@Override
-	public ASTNode code() { return initializationExpression(); }
-
-	public IType parameterType() {
-		return scope == Scope.PARAMETER && type() == PrimitiveType.UNKNOWN
-			? new ParameterType(this)
-			: type();
-	}
-
-	@Override
-	public ASTNode[] subElements() { return super.subElements(); }
-	
 	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = new IVariableFactory() {
 		@Override
 		public Variable newVariable(String varName, Scope scope) {

@@ -61,10 +61,10 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			return comment;
 		else {
 			int cap = 0;
-			String lineBreak = "<br/>";
+			final String lineBreak = "<br/>";
 			for (Comment c = this; c != null; c = c.previousComment)
 				cap += c.comment.length() + (c != this ? lineBreak.length() : 0);
-			StringBuilder builder = new StringBuilder(cap);
+			final StringBuilder builder = new StringBuilder(cap);
 			for (Comment c = this; c != null; c = c.previousComment) {
 				if (c != this)
 					builder.insert(0, lineBreak);
@@ -84,7 +84,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
-		String c = comment;
+		final String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
 			if (javaDoc)
@@ -104,17 +104,13 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * Return whether this comment is multiline.
 	 * @return True if the source code representation of this node is \/* ... *\/
 	 */
-	public boolean isMultiLine() {
-		return multiLine;
-	}
+	public boolean isMultiLine() { return multiLine; }
 
 	/**
 	 * Set multiline-ness of this {@link Comment}.
 	 * @param multiLine Whether multiline
 	 */
-	public void setMultiLine(boolean multiLine) {
-		this.multiLine = multiLine;
-	}
+	public void setMultiLine(boolean multiLine) { this.multiLine = multiLine; }
 
 	/**
 	 * Whether comment is a javadoc comment
@@ -148,13 +144,13 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		// parse comment as expression and see what goes
-		ExpressionLocator locator = new ExpressionLocator(offset-2-this.sectionOffset()); // make up for '//' or /*'
+		final ExpressionLocator locator = new ExpressionLocator(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser commentParser = new C4ScriptParser(comment, context.script(), context.script().scriptFile()) {
+			final C4ScriptParser commentParser = new C4ScriptParser(comment, context.script(), context.script().scriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();
-					markers().disableAllErrors(true);
+					markers().enabled(false);
 				}
 				@Override
 				public int sectionOffset() {
@@ -162,9 +158,9 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 				}
 			};
 			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
-		} catch (ParsingException e) {}
+		} catch (final ParsingException e) {}
 		if (locator.expressionAtRegion() != null) {
-			EntityRegion reg = locator.expressionAtRegion().entityAt(offset, context);
+			final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, context);
 			if (reg != null)
 				return reg.incrementRegionBy(start()+2);
 			else
@@ -229,18 +225,18 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 */
 	public void applyDocumentation(Function function) {
 		if (isJavaDoc()) {
-			String text = this.text().trim();
-			StringReader reader = new StringReader(text);
-			Matcher parmDescMatcher = PARAMDESCPATTERN.matcher("");
-			Matcher returnDescMatcher = RETURNDESCPATTERN.matcher("");
-			Matcher lineStartMatcher = JAVADOCLINESTART.matcher("");
-			StringBuilder builder = new StringBuilder(text.length());
+			final String text = this.text().trim();
+			final StringReader reader = new StringReader(text);
+			final Matcher parmDescMatcher = PARAMDESCPATTERN.matcher("");
+			final Matcher returnDescMatcher = RETURNDESCPATTERN.matcher("");
+			final Matcher lineStartMatcher = JAVADOCLINESTART.matcher("");
+			final StringBuilder builder = new StringBuilder(text.length());
 			for (String line : StringUtil.lines(reader)) {
 				line = processTags(line, lineStartMatcher);
 				if (parmDescMatcher.reset(line).matches()) {
-					String parmName = parmDescMatcher.group(1);
-					String parmDesc = parmDescMatcher.group(2);
-					Variable parm = function.findParameter(parmName);
+					final String parmName = parmDescMatcher.group(1);
+					final String parmDesc = parmDescMatcher.group(2);
+					final Variable parm = function.findParameter(parmName);
 					if (parm != null)
 						parm.setUserDescription(parmDesc);
 				} else if (returnDescMatcher.reset(line).matches())
@@ -256,15 +252,15 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	private static String processTags(String line, Matcher lineStartMatcher) {
-		Matcher matcher = TAGPATTERN.matcher(line);
-		StringBuilder builder = new StringBuilder(line);
+		final Matcher matcher = TAGPATTERN.matcher(line);
+		final StringBuilder builder = new StringBuilder(line);
 		int shift = 0;
 		if (lineStartMatcher.reset(line).lookingAt()) {
 			builder.delete(0, lineStartMatcher.end());
 			shift -= lineStartMatcher.end();
 		}
 		while (matcher.find()) {
-			String replacement = "<b>"+matcher.group(2)+"</b>";
+			final String replacement = "<b>"+matcher.group(2)+"</b>";
 			builder.replace(matcher.start()+shift, matcher.end()+shift, replacement);
 			shift += replacement.length()-matcher.end()+matcher.start();
 		}

@@ -32,13 +32,11 @@ import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
-import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasUserDescription;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -89,7 +87,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this.name = name;
 		this.returnType = returnType;
 		parameters = new ArrayList<Variable>(pars.length);
-		for (Variable var : pars) {
+		for (final Variable var : pars) {
 			parameters.add(var);
 			var.setParent(this);
 		}
@@ -235,7 +233,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		@Override
 		public Object valueForVariable(String varName) {
 			int i = 0;
-			for (Variable v : parameters) {
+			for (final Variable v : parameters) {
 				if (v.name().equals(varName))
 					return args[i];
 				i++;
@@ -271,7 +269,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 		private static final Map<String, FunctionScope> scopeMap = new HashMap<String, FunctionScope>();
 		static {
-			for (FunctionScope s : values())
+			for (final FunctionScope s : values())
 				scopeMap.put(s.name().toLowerCase(), s);
 		}
 
@@ -310,7 +308,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return the function string
 	 */
 	public String longParameterString(EnumSet<ParameterStringOption> options) {
-		StringBuilder string = new StringBuilder();
+		final StringBuilder string = new StringBuilder();
 		if (options.contains(ParameterStringOption.FunctionName)) {
 			string.append(name());
 			string.append("("); //$NON-NLS-1$
@@ -332,16 +330,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				final boolean engineCompatible = options.contains(ParameterStringOption.EngineCompatible);
 				@Override
 				public String convert(Variable par) {
-					IType type = engineCompatible ? par.type().simpleType() : par.type();
-					type = TypeChoice.remove(type, new IPredicate<IType>() {
-						@Override
-						public boolean test(IType item) {
-							return item instanceof ParameterType;
-						}
-					});
+					final IType type = engineCompatible ? par.type().simpleType() : par.type();
 					if (engineCompatible && !par.isActualParm())
 						return null;
-					String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
+					final String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
 					if (type != PrimitiveType.UNKNOWN && type != null &&
 						(!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)))
 						return comment + type.typeName(false) + " " + par.name();
@@ -408,12 +400,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		String description = obtainUserDescription();
-		StringBuilder builder = new StringBuilder();
-		String scriptPath = script().resource() != null
+		final String description = obtainUserDescription();
+		final StringBuilder builder = new StringBuilder();
+		final String scriptPath = script().resource() != null
 			? script().resource().getProjectRelativePath().toOSString()
 			: script().name();
-		for (String line : new String[] {
+		for (final String line : new String[] {
 			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
 			MessageFormat.format("<b>{0}</b><br/>", longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
@@ -423,11 +415,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append(line);
 		if (numParameters() > 0) {
 			builder.append(MessageFormat.format("<br/><b>{0}</b><br/>", Messages.Parameters)); //$NON-NLS-1$ //$NON-NLS-3$
-			for (Variable p : parameters())
+			for (final Variable p : parameters())
 				builder.append(MessageFormat.format("<b>{0} {1}</b> {2}<br/>", StringUtil.htmlerize(p.type().typeName(true)), p.name(), p.userDescription())); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
-		IType retType = returnType(as(context, Script.class));
+		final IType retType = returnType(as(context, Script.class));
 
 		if (retType != PrimitiveType.UNKNOWN) {
 			builder.append(MessageFormat.format("<br/><b>{0} </b>{1}<br/>", //$NON-NLS-1$
@@ -449,10 +441,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (declarationClass.isAssignableFrom(Variable.class)) {
 			if (declarationName.equals(Variable.THIS.name()))
 				return Variable.THIS;
-			for (Variable v : localVars)
+			for (final Variable v : localVars)
 				if (v.name().equals(declarationName))
 					return v;
-			for (Variable p : parameters)
+			for (final Variable p : parameters)
 				if (p.name().equals(declarationName))
 					return p;
 		}
@@ -460,7 +452,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public Variable findParameter(String parameterName) {
-		for (Variable p : parameters())
+		for (final Variable p : parameters())
 			if (p.name().equals(parameterName))
 				return p;
 		return null;
@@ -496,21 +488,21 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private Function internalInherited() {
 		// search in #included scripts
-		Collection<Script> includesCollection = script().includes(0);
-		Script[] includes = includesCollection.toArray(new Script[includesCollection.size()]);
+		final Collection<Script> includesCollection = script().includes(0);
+		final Script[] includes = includesCollection.toArray(new Script[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
-			Function fun = includes[i].findFunction(name());
+			final Function fun = includes[i].findFunction(name());
 			if (fun != null && fun != this)
 				return fun;
 		}
 
 		// search global
-		Function global = index().findGlobal(Function.class, name());
+		final Function global = index().findGlobal(Function.class, name());
 		if (global != null && global != this)
 			return global;
 
 		// search in engine
-		Function f = index().engine().findFunction(name());
+		final Function f = index().engine().findFunction(name());
 		if (f != null)
 			return f;
 
@@ -523,7 +515,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public Function baseFunction() {
 		Function result = this;
-		Set<Function> alreadyVisited = new HashSet<Function>();
+		final Set<Function> alreadyVisited = new HashSet<Function>();
 		for (Function f = this; f != null; f = f.inheritedFunction()) {
 			if (!alreadyVisited.add(f))
 				break;
@@ -579,7 +571,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (!oldStyle) {
 			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
-			Typing typing = typing();
+			final Typing typing = typing();
 			switch (typing) {
 			case Dynamic:
 				break;
@@ -610,7 +602,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The header string
 	 */
 	public String headerString(boolean oldStyle) {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		printHeader(new AppendableBackedExprWriter(builder), oldStyle);
 		return builder.toString();
 	}
@@ -674,7 +666,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return true if both functions are related, false if not
 	 */
 	public boolean isRelatedFunction(Function otherFunc) {
-		Set<Function> recursionCatcher = new HashSet<Function>();
+		final Set<Function> recursionCatcher = new HashSet<Function>();
 		if (this.inheritsFrom(otherFunc, recursionCatcher))
 			return true;
 		Function f = this;
@@ -689,7 +681,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
-		ArrayList<Declaration> decs = new ArrayList<Declaration>();
+		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.VARIABLES) != 0) {
 			decs.addAll(localVars);
 			decs.addAll(parameters);
@@ -725,9 +717,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Object invoke(IEvaluationContext context) {
 		try {
 			return body != null ? body.evaluate(context) : null;
-		} catch (ReturnException result) {
+		} catch (final ReturnException result) {
 			return result.result();
-		} catch (ControlFlowException e) {
+		} catch (final ControlFlowException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -771,8 +763,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (otherDeclarations == null)
 			otherDeclarations = new ArrayList<Declaration>(3);
 		else
-			for (Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
-				Declaration existing = it.next();
+			for (final Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
+				final Declaration existing = it.next();
 				if (existing.sameLocation(d)) {
 					it.remove();
 					break;
@@ -801,7 +793,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public void resetLocalVarTypes() {
-		for (Variable v : locals())
+		for (final Variable v : locals())
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
 
@@ -843,7 +835,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else {
 			if (otherDeclarations == null)
 				return null;
-			for (Declaration other : otherDeclarations)
+			for (final Declaration other : otherDeclarations)
 				if (other.getClass() == from.getClass() && other.sameLocation(from))
 					return (T) other;
 		}
@@ -897,11 +889,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public ASTNode code() { return body(); }
 
 	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, Variable... parameters) {
-		StringBuilder builder = new StringBuilder();
-		Function f = new Function(functionName, scope);
-		for (Variable p : parameters)
+		final StringBuilder builder = new StringBuilder();
+		final Function f = new Function(functionName, scope);
+		for (final Variable p : parameters)
 			f.addParameter(p);
-		ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
+		final ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
 		f.printHeader(printer);
 		Conf.blockPrelude(printer, 0);
 		builder.append("{\n"); //$NON-NLS-1$
