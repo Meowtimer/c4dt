@@ -29,8 +29,6 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	@Override
 	public IType simpleType() { return PrimitiveType.ID; }
 	@Override
-	public void setTypeDescription(String description) {}
-	@Override
 	public String toString() { return typeName(true); }
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ID; }

@@ -36,11 +36,6 @@ public class SameTypeAsSomeTypeable implements IType {
 	public IType simpleType() {
 		return actualType().simpleType();
 	}
-
-	@Override
-	public void setTypeDescription(String description) {
-		actualType().setTypeDescription(description);
-	}
 	
 	@Override
 	public String toString() {

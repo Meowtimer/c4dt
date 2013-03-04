@@ -191,7 +191,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 		loadIncludes();
-		Declarations declarations = (Declarations)stream.readObject();
+		final Declarations declarations = (Declarations)stream.readObject();
 		definedEffects = declarations.effects;
 		definedFunctions = declarations.functions;
 		definedVariables = declarations.variables;
@@ -200,10 +200,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
 			if (usedScripts != null)
-				for (Script s : usedScripts)
+				for (final Script s : usedScripts)
 					if (s != null)
 						s.requireLoaded();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		variableTypes = declarations.variableTypes;
@@ -212,14 +212,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	private void loadIncludes() {
 		if (definedDirectives != null && index != null)
-			for (Directive d : definedDirectives)
+			for (final Directive d : definedDirectives)
 				switch (d.type()) {
 				case APPENDTO: case INCLUDE:
-					ID id = d.contentAsID();
+					final ID id = d.contentAsID();
 					if (id != null) {
-						List<? extends Definition> defs = index.definitionsWithID(id);
+						final List<? extends Definition> defs = index.definitionsWithID(id);
 						if (defs != null)
-							for (Definition def : defs)
+							for (final Definition def : defs)
 								def.requireLoaded();
 					}
 					break;
@@ -234,21 +234,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public void detectEffects() {
-		List<EffectFunction> allEffectFunctions = new ArrayList<EffectFunction>(10);
-		for (EffectFunction f : functions(EffectFunction.class))
+		final List<EffectFunction> allEffectFunctions = new ArrayList<EffectFunction>(10);
+		for (final EffectFunction f : functions(EffectFunction.class))
 			allEffectFunctions.add(f);
 		while (allEffectFunctions.size() > 0) {
-			String s = allEffectFunctions.get(0).name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length());
+			final String s = allEffectFunctions.get(0).name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length());
 			List<EffectFunction> effectCandidates = null;
 			String effectName = null;
 			for (int i = nextCamelBack(s, 0); i < s.length(); i = nextCamelBack(s, i)) {
 				final String sub = s.substring(0, i);
-				List<EffectFunction> matching = filter(allEffectFunctions, new IPredicate<EffectFunction>() {
+				final List<EffectFunction> matching = filter(allEffectFunctions, new IPredicate<EffectFunction>() {
 					@Override
 					public boolean test(EffectFunction item) {
 						try {
 							return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
-						} catch (StringIndexOutOfBoundsException e) {
+						} catch (final StringIndexOutOfBoundsException e) {
 							return false;
 						}
 					}
@@ -262,7 +262,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				allEffectFunctions.removeAll(effectCandidates);
 				if (definedEffects == null)
 					definedEffects = new HashMap<String, Effect>();
-				Effect effect = new Effect(effectName, effectCandidates);
+				final Effect effect = new Effect(effectName, effectCandidates);
 				effect.setParent(this);
 				definedEffects.put(effectName, effect);
 			}
@@ -274,7 +274,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			dictionary.clear();
 		else
 			dictionary = new HashSet<String>();
-		for (Declaration d : subDeclarations(index(), DeclMask.ALL))
+		for (final Declaration d : subDeclarations(index(), DeclMask.ALL))
 			dictionary.add(d.name());
 	}
 
@@ -288,13 +288,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Function[] calculateLineToFunctionMap() {
 		requireLoaded();
-		String scriptText = this.scriptText();
+		final String scriptText = this.scriptText();
 		int lineStart = 0;
 		int lineEnd = 0;
-		List<Function> mappingAsList = new LinkedList<Function>();
-		MutableRegion region = new MutableRegion(0, 0);
-		for (BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
-			int read = scanner.read();
+		final List<Function> mappingAsList = new LinkedList<Function>();
+		final MutableRegion region = new MutableRegion(0, 0);
+		for (final BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
+			final int read = scanner.read();
 			boolean newLine = false;
 			switch (read) {
 			case '\r':
@@ -329,12 +329,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public int strictLevel() {
 		requireLoaded();
 		long level = engine() != null ? engine().settings().strictDefaultLevel : -1;
-		for (Directive d : this.directives())
+		for (final Directive d : this.directives())
 			if (d.type() == DirectiveType.STRICT)
 				try {
 					level = Math.max(level, Integer.parseInt(d.contents()));
 				}
-				catch (NumberFormatException e) {
+				catch (final NumberFormatException e) {
 					if (level < 1)
 						level = 1;
 				}
@@ -347,8 +347,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Directive[] includeDirectives() {
 		requireLoaded();
-		List<Directive> result = new ArrayList<Directive>();
-		for (Directive d : directives())
+		final List<Directive> result = new ArrayList<Directive>();
+		for (final Directive d : directives())
 			if (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO)
 				result.add(d);
 		return result.toArray(new Directive[result.size()]);
@@ -370,15 +370,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			synchronized(definedDirectives) {
 				directivesCopy = new ArrayList<Directive>(definedDirectives);
 			}
-			for (Directive d : directivesCopy) {
+			for (final Directive d : directivesCopy) {
 				if (d == null)
 					continue;
 				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
-					ID id = d.contentAsID();
-					for (Index in : contextIndex.relevantIndexes()) {
-						Iterable<? extends Definition> defs = in.definitionsWithID(id);
+					final ID id = d.contentAsID();
+					for (final Index in : contextIndex.relevantIndexes()) {
+						final Iterable<? extends Definition> defs = in.definitionsWithID(id);
 						if (defs != null)
-							for (Definition def : defs)
+							for (final Definition def : defs)
 								if ((options & GatherIncludesOptions.Recursive) == 0)
 									set.add(def);
 								else {
@@ -418,8 +418,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Collection<Script> includes(Index index, Object origin, int options) {
 		synchronized (this) {
-			int indexHash = index != null ? index.hashCode() : 0;
-			int originHash = origin != null ? origin.hashCode() : 0;
+			final int indexHash = index != null ? index.hashCode() : 0;
+			final int originHash = origin != null ? origin.hashCode() : 0;
 			if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
 				return includes;
 			//System.out.println(this.name() + ": reget");
@@ -431,7 +431,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public boolean directlyIncludes(Definition other) {
-		for (Directive d : directives())
+		for (final Directive d : directives())
 			if (d.refersTo(other))
 				return true;
 		return false;
@@ -444,7 +444,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Directive directiveIncludingDefinition(Definition definition) {
 		requireLoaded();
-		for (Directive d : includeDirectives())
+		for (final Directive d : includeDirectives())
 			if ((d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == definition)
 				return d;
 		return null;
@@ -462,7 +462,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		FindDeclarationInfo info = new FindDeclarationInfo(index());
+		final FindDeclarationInfo info = new FindDeclarationInfo(index());
 		info.declarationClass = declarationClass;
 		return findDeclaration(declarationName, info);
 	}
@@ -471,15 +471,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		requireLoaded();
 		if (declarationClass.isAssignableFrom(Variable.class))
-			for (Variable v : variables())
+			for (final Variable v : variables())
 				if (v.name().equals(declarationName))
 					return v;
 		if (declarationClass.isAssignableFrom(Function.class))
-			for (Function f : functions())
+			for (final Function f : functions())
 				if (f.name().equals(declarationName))
 					return f;
 		if (declarationClass.isAssignableFrom(Effect.class)) {
-			Effect e = effects().get(declarationName);
+			final Effect e = effects().get(declarationName);
 			if (e != null)
 				return e;
 		}
@@ -499,7 +499,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
-		ArrayList<Declaration> decs = new ArrayList<Declaration>();
+		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.FUNCTIONS) != 0)
 			addAllSynchronized(definedFunctions, decs);
 		if ((mask & DeclMask.VARIABLES) != 0)
@@ -514,17 +514,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
-		int mask =
+		final int mask =
 			from instanceof Variable ? DeclMask.VARIABLES :
 			from instanceof Function ? DeclMask.FUNCTIONS :
 			from instanceof Directive ? DeclMask.DIRECTIVES : 0;
 		T candidate = null;
 		boolean locationMatch = false;
-		for (Declaration d : subDeclarations(this.index(), mask)) {
+		for (final Declaration d : subDeclarations(this.index(), mask)) {
 			if (d == from)
 				return (T)d;
 			if (d.name().equals(from.name())) {
-				boolean newLocationMatch = d.sameLocation(from);
+				final boolean newLocationMatch = d.sameLocation(from);
 				if (candidate == null || (newLocationMatch && !locationMatch)) {
 					candidate = (T)d;
 					locationMatch = newLocationMatch;
@@ -547,31 +547,31 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (!info.startSearchingIn(this))
 			return null;
 
-		Class<? extends Declaration> decClass = info.declarationClass;
+		final Class<? extends Declaration> decClass = info.declarationClass;
 
 		// local variable?
 		if (info.recursion == 0)
 			if (info.contextFunction != null && (decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
-				Declaration v = info.contextFunction.findVariable(name);
+				final Declaration v = info.contextFunction.findVariable(name);
 				if (v != null)
 					return v;
 			}
 
 
-		boolean knows = dictionary() == null || dictionary().contains(name);
+		final boolean knows = dictionary() == null || dictionary().contains(name);
 		boolean didUseCacheForLocalDeclarations = false;
 		if (knows) {
 			// prefer using the cache
 			requireLoaded();
 			if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index() && (info.searchOrigin == null || scenario() == info.searchOrigin.scenario())) {
 				if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
-					Declaration d = cachedVariableMap.get(name);
+					final Declaration d = cachedVariableMap.get(name);
 					if (d != null)
 						return d;
 					didUseCacheForLocalDeclarations = true;
 				}
 				if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
-					Declaration d = cachedFunctionMap.get(name);
+					final Declaration d = cachedFunctionMap.get(name);
 					if (d != null)
 						return d;
 					didUseCacheForLocalDeclarations = true;
@@ -580,7 +580,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 
 		// this object?
-		Declaration thisDec = representingDeclaration(name, info);
+		final Declaration thisDec = representingDeclaration(name, info);
 		if (thisDec != null)
 			return thisDec;
 
@@ -589,13 +589,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				requireLoaded();
 				// a function defined in this object
 				if (decClass == null || decClass == Function.class) {
-					Function f = definedDeclarationNamed(name, Function.class);
+					final Function f = definedDeclarationNamed(name, Function.class);
 					if (f != null)
 						return f;
 				}
 				// a variable
 				if (decClass == null || decClass == Variable.class) {
-					Variable v = definedDeclarationNamed(name, Variable.class);
+					final Variable v = definedDeclarationNamed(name, Variable.class);
 					if (v != null)
 						return v;
 				}
@@ -603,8 +603,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 			info.recursion++;
 			{
-				for (Script o : includes(info.index, info.searchOrigin, 0)) {
-					Declaration result = o.findDeclaration(name, info);
+				for (final Script o : includes(info.index, info.searchOrigin, 0)) {
+					final Declaration result = o.findDeclaration(name, info);
 					if (result != null)
 						return result;
 				}
@@ -615,7 +615,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		// finally look if it's something global
 		if (info.recursion == 0 && info.index != null) {
 			info.recursion++;
-			Declaration f = findGlobalDeclaration(name, info);
+			final Declaration f = findGlobalDeclaration(name, info);
 			info.recursion--;
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
@@ -628,14 +628,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		// prefer declarations from scripts that were previously determined to be the providers of global declarations
 		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
 		if (usedScripts != null)
-			for (Script s : usedScripts()) {
-				Declaration f = s.findDeclaration(name, info);
+			for (final Script s : usedScripts()) {
+				final Declaration f = s.findDeclaration(name, info);
 				if (f != null && f.isGlobal())
 					return f;
 			}
 
 		if (info.findGlobalVariables && engine().acceptsId(name)) {
-			Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
+			final Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
 			if (d != null)
 				if (info.declarationClass == Variable.class)
 					return d.proxyVar();
@@ -653,8 +653,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 
 		// global stuff defined in relevant projects
-		for (Index index : info.index.relevantIndexes()) {
-			Declaration f = index.findGlobalDeclaration(name, resource());
+		for (final Index index : info.index.relevantIndexes()) {
+			final Declaration f = index.findGlobalDeclaration(name, resource());
 			if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
 				return f;
 		}
@@ -725,7 +725,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public abstract IStorage source();
 
 	public final IFile scriptFile() {
-		IStorage storage = source();
+		final IStorage storage = source();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}
 
@@ -744,12 +744,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Function findFunction(String functionName) {
-		FindDeclarationInfo info = new FindDeclarationInfo(index());
+		final FindDeclarationInfo info = new FindDeclarationInfo(index());
 		return findFunction(functionName, info);
 	}
 
 	public Variable findVariable(String varName) {
-		FindDeclarationInfo info = new FindDeclarationInfo(index());
+		final FindDeclarationInfo info = new FindDeclarationInfo(index());
 		return findVariable(varName, info);
 	}
 
@@ -765,11 +765,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Function funcAt(IRegion region) {
 		requireLoaded();
-		for (Function f : functions()) {
-			int fStart = f.bodyLocation().getOffset();
-			int fEnd   = f.bodyLocation().getOffset()+f.bodyLocation().getLength();
-			int rStart = region.getOffset();
-			int rEnd   = region.getOffset()+region.getLength();
+		for (final Function f : functions()) {
+			final int fStart = f.bodyLocation().getOffset();
+			final int fEnd   = f.bodyLocation().getOffset()+f.bodyLocation().getLength();
+			final int rStart = region.getOffset();
+			final int rEnd   = region.getOffset()+region.getLength();
 			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd)
 				return f;
 		}
@@ -778,11 +778,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Variable variableWithInitializationAt(IRegion region) {
 		requireLoaded();
-		for (Variable v : variables()) {
-			ASTNode initialization = v.initializationExpression();
+		for (final Variable v : variables()) {
+			final ASTNode initialization = v.initializationExpression();
 			if (initialization != null) {
-				Function owningFunc = as(initialization.owningDeclaration(), Function.class);
-				SourceLocation loc = owningFunc != null ? owningFunc.bodyLocation().add(initialization) : initialization;
+				final Function owningFunc = as(initialization.owningDeclaration(), Function.class);
+				final SourceLocation loc = owningFunc != null ? owningFunc.bodyLocation().add(initialization) : initialization;
 				if (loc.containsOffset(region.getOffset()))
 					return v;
 			}
@@ -793,7 +793,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	// OMG, IRegion <-> ITextSelection
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
-		for (Function f : functions())
+		for (final Function f : functions())
 			if (f.start() <= region.getOffset() && region.getOffset()+region.getLength() <= f.bodyLocation().end())
 				return f;
 		return null;
@@ -809,8 +809,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		if (other == this)
 			return true;
-		Iterable<Script> incs = this.includes(0);
-		for (Script o : incs)
+		final Iterable<Script> incs = this.includes(0);
+		for (final Script o : incs)
 			if (o == other)
 				return true;
 		return false;
@@ -828,12 +828,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		if (alreadySearched != null && !alreadySearched.add(this))
 			return null;
-		for (Function func: functions())
+		for (final Function func: functions())
 			if (func.name().equals(name))
 				return func;
 		if (alreadySearched != null)
-			for (Script script : filteredIterable(includes(0), Script.class)) {
-				Function func = script.findLocalFunction(name, alreadySearched);
+			for (final Script script : filteredIterable(includes(0), Script.class)) {
+				final Function func = script.findLocalFunction(name, alreadySearched);
 				if (func != null)
 					return func;
 			}
@@ -847,12 +847,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				return null;
 			alreadySearched.add(this);
 		}
-		for (Variable var : variables())
+		for (final Variable var : variables())
 			if (var.name().equals(name))
 				return var;
 		if (alreadySearched != null)
-			for (Script script : filteredIterable(includes(0), Script.class)) {
-				Variable var = script.findLocalVariable(name, alreadySearched);
+			for (final Script script : filteredIterable(includes(0), Script.class)) {
+				final Variable var = script.findLocalVariable(name, alreadySearched);
 				if (var != null)
 					return var;
 			}
@@ -861,16 +861,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public boolean removeDuplicateVariables() {
 		requireLoaded();
-		Map<String, Variable> variableMap = new HashMap<String, Variable>();
-		Collection<Variable> toBeRemoved = new LinkedList<Variable>();
-		for (Variable v : variables()) {
-			Variable inHash = variableMap.get(v.name());
+		final Map<String, Variable> variableMap = new HashMap<String, Variable>();
+		final Collection<Variable> toBeRemoved = new LinkedList<Variable>();
+		for (final Variable v : variables()) {
+			final Variable inHash = variableMap.get(v.name());
 			if (inHash != null)
 				toBeRemoved.add(v);
 			else
 				variableMap.put(v.name(), v);
 		}
-		for (Variable v : toBeRemoved)
+		for (final Variable v : toBeRemoved)
 			definedVariables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
@@ -903,7 +903,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return null;
 		synchronized (this) {
 			if (list != null)
-				for (T f : list)
+				for (final T f : list)
 					if (f.name().equals(name))
 						return f;
 			return null;
@@ -946,7 +946,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
-		Index index = index();
+		final Index index = index();
 		if (index != null)
 			return index.definitionNearestTo(resource(), id);
 		return null;
@@ -959,6 +959,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<Script> conglomerate() {
 		requireLoaded();
 		@SuppressWarnings("serial")
+		final
 		List<Script> s = new ArrayList<Script>(10) {
 			@Override
 			public boolean add(Script e) {
@@ -975,9 +976,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public INode[] subDeclarationsForOutline() {
 		requireLoaded();
-		List<Object> all = new LinkedList<Object>();
-		for (Script c : conglomerate())
-			for (Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c==this?DeclMask.DIRECTIVES:0))) {
+		final List<Object> all = new LinkedList<Object>();
+		for (final Script c : conglomerate())
+			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c==this?DeclMask.DIRECTIVES:0))) {
 				if (sd instanceof InitializationFunction)
 					continue;
 				if (sd instanceof Function && !seesFunction(((Function)sd)))
@@ -991,10 +992,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
-		for (Function f : functions()) {
+		for (final Function f : functions()) {
 			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.returnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
-			for (Variable p : f.parameters())
+			for (final Variable p : f.parameters())
 				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.type().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
 			if (f.obtainUserDescription() != null) {
@@ -1006,7 +1007,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
-		for (Variable v : variables()) {
+		for (final Variable v : variables()) {
 			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.type().typeName(true), Boolean.valueOf(v.scope() == Scope.CONST))); //$NON-NLS-1$
 			if (v.obtainUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
@@ -1021,33 +1022,33 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public void importFromXML(InputStream stream, IProgressMonitor monitor) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 
-		XPathFactory xpathF = XPathFactory.newInstance();
-		XPath xPath = xpathF.newXPath();
+		final XPathFactory xpathF = XPathFactory.newInstance();
+		final XPath xPath = xpathF.newXPath();
 
-		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document doc = builder.parse(stream);
+		final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		final Document doc = builder.parse(stream);
 
-		NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
-		NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
+		final NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
+		final NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
 		monitor.beginTask(Messages.ImportingEngineFromXML, functions.getLength()+variables.getLength());
 		for (int i = 0; i < functions.getLength(); i++) {
-			Node function = functions.item(i);
-			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
-			Variable[] p = new Variable[parms.getLength()];
+			final Node function = functions.item(i);
+			final NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
+			final Variable[] p = new Variable[parms.getLength()];
 			for (int j = 0; j < p.length; j++)
 				p[j] = new Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			Function f = new Function(function.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
-			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE); //$NON-NLS-1$
+			final Function f = new Function(function.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
+			final Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
 			this.addDeclaration(f);
 			monitor.worked(1);
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
-			Node variable = variables.item(i);
-			Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
+			final Node variable = variables.item(i);
+			final Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
 			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? Scope.CONST : Scope.STATIC); //$NON-NLS-1$
-			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
+			final Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
 			this.addDeclaration(v);
@@ -1065,13 +1066,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		//requireLoaded();
 		if (sourceComment != null)
 			return sourceComment;
-		Object f = source();
+		final Object f = source();
 		if (f instanceof IFile) {
-			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			final IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile)
 				try {
 					return StreamUtil.stringFromFileDocument((IFile) infoFile);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 					return super.infoText(context);
 				}
@@ -1134,7 +1135,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Engine engine() {
-		Index index = index();
+		final Index index = index();
 		return index != null ? index.engine() : null;
 	}
 
@@ -1186,8 +1187,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public int codeFragmentOffset() { return 0; }
 	@Override
-	public void setTypeDescription(String description) {}
-	@Override
 	public Object cookie() { return null; }
 
 	/**
@@ -1201,22 +1200,22 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	private void _generateFindDeclarationCache() {
-		List<Script> conglo = this.conglomerate();
+		final List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);
-		for (Script i : conglo)
+		for (final Script i : conglo)
 			if (i instanceof Script) {
-				Script s = i;
+				final Script s = i;
 				if (s.definedFunctions != null)
-					for (Function f : s.definedFunctions) {
+					for (final Function f : s.definedFunctions) {
 						// prefer putting non-global functions into the map so when in doubt the object function is picked
 						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
-						Function existing = cachedFunctionMap.get(f.name());
+						final Function existing = cachedFunctionMap.get(f.name());
 						if (existing != null && existing.script() == i && f.isGlobal() && !existing.isGlobal())
 							continue;
 						cachedFunctionMap.put(f.name(), f);
 					}
 				if (s.definedVariables != null)
-					for (Variable v : s.definedVariables)
+					for (final Variable v : s.definedVariables)
 						cachedVariableMap.put(v.name(), v);
 			}
 	}
@@ -1225,16 +1224,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Script script) {
 			if (node instanceof CallDeclaration) {
-				CallDeclaration call = (CallDeclaration)node;
+				final CallDeclaration call = (CallDeclaration)node;
 				List<CallDeclaration> list = script.callMap.get(call.name());
 				if (list == null)
 					script.callMap.put(call.name(), list = new ArrayList<>(3));
 				list.add(call);
 			}
 			else if (node instanceof BinaryOp) {
-				BinaryOp bop = (BinaryOp) node;
+				final BinaryOp bop = (BinaryOp) node;
 				if (bop.operator().isAssignment() && bop.leftSide() instanceof AccessVar) {
-					AccessVar var = (AccessVar)bop.leftSide();
+					final AccessVar var = (AccessVar)bop.leftSide();
 					List<BinaryOp> list = script.varAssignments.get(var.name());
 					if (list == null)
 						script.varAssignments.put(var.name(), list = new ArrayList<>(3));
@@ -1253,16 +1252,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		callMap = new HashMap<>();
 		varAssignments = new HashMap<>();
 		if (definedFunctions != null && index() != null)
-			for (Function f : definedFunctions) {
+			for (final Function f : definedFunctions) {
 				f.findInherited();
 				detectMapNodesInFunction(f, false);
 			}
 	}
 
 	private static <T extends ASTNode> void clearNodes(ASTNode container, Map<String, List<T>> map) {
-		for (Iterator<List<T>> it = map.values().iterator(); it.hasNext();) {
-			List<T> list = it.next();
-			for (Iterator<T> it2 = list.iterator(); it2.hasNext();)
+		for (final Iterator<List<T>> it = map.values().iterator(); it.hasNext();) {
+			final List<T> list = it.next();
+			for (final Iterator<T> it2 = list.iterator(); it2.hasNext();)
 				if (it2.next().containedIn(container))
 					it2.remove();
 			if (list.size() == 0)
@@ -1299,7 +1298,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public void indexRefresh() {
 		if (loaded) {
-			IResource res = resource();
+			final IResource res = resource();
 			scenario = res != null ? Scenario.containingScenario(res) : null;
 			detectEffects();
 		}
@@ -1318,24 +1317,24 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			@Override
 			public Boolean run(IDocument document) {
 				try {
-					List<ASTNode> l = new ArrayList<ASTNode>(expressions);
+					final List<ASTNode> l = new ArrayList<ASTNode>(expressions);
 					Collections.sort(l, new Comparator<ASTNode>() {
 						@Override
 						public int compare(ASTNode o1, ASTNode o2) {
-							IRegion r1 = absoluteLocations ? o1.absolute() : o1;
-							IRegion r2 = absoluteLocations ? o2.absolute() : o2;
+							final IRegion r1 = absoluteLocations ? o1.absolute() : o1;
+							final IRegion r2 = absoluteLocations ? o2.absolute() : o2;
 							return r2.getOffset() - r1.getOffset();
 						}
 					});
-					for (ASTNode e : l) {
-						IRegion region = absoluteLocations ? e.absolute() : e;
+					for (final ASTNode e : l) {
+						final IRegion region = absoluteLocations ? e.absolute() : e;
 						int depth;
 						ASTNode n;
 						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
 						document.replace(region.getOffset(), region.getLength(), e.printed(depth));
 					}
 					return true;
-				} catch (BadLocationException e) {
+				} catch (final BadLocationException e) {
 					e.printStackTrace();
 					return false;
 				}
@@ -1391,7 +1390,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ASTNode[] subElements() {
-		List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
+		final List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 }

@@ -41,7 +41,7 @@ public class TypeChoice implements IType {
 			return left;
 		else if (left.equals(right))
 			return left;
-		for (TypeChoice hc : HARD_CHOICES)
+		for (final TypeChoice hc : HARD_CHOICES)
 			if (
 				(hc.left == left && hc.right == right) ||
 				(hc.left == right && hc.right == left)
@@ -55,7 +55,7 @@ public class TypeChoice implements IType {
 			private final boolean[] mask = new boolean[flattened.size()];
 			@Override
 			public boolean test(IType item) {
-				int ndx = flattened.indexOf(item);
+				final int ndx = flattened.indexOf(item);
 				if (ndx < 0)
 					return false;
 				if (mask[ndx])
@@ -97,10 +97,10 @@ public class TypeChoice implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		List<IType> types = new ArrayList<>(10);
+		final List<IType> types = new ArrayList<>(10);
 		collect(types);
-		Set<String> typeNames = new HashSet<>(types.size());
-		for (IType t : types)
+		final Set<String> typeNames = new HashSet<>(types.size());
+		for (final IType t : types)
 			if (t != null)
 				typeNames.add(t.typeName(special));
 		return StringUtil.blockString("", "", " | ", typeNames);
@@ -108,13 +108,10 @@ public class TypeChoice implements IType {
 
 	@Override
 	public IType simpleType() {
-		IType stLeft = left.simpleType();
-		IType stRight = right.simpleType();
+		final IType stLeft = left.simpleType();
+		final IType stRight = right.simpleType();
 		return stLeft == stRight ? stLeft : PrimitiveType.ANY;
 	}
-
-	@Override
-	public void setTypeDescription(String description) {}
 
 	private void collect(Collection<IType> types) {
 		if (left instanceof TypeChoice)
@@ -131,9 +128,9 @@ public class TypeChoice implements IType {
 		if (predicate.test(type))
 			return null;
 		else if (type instanceof TypeChoice) {
-			TypeChoice c = (TypeChoice)type;
-			IType left = remove(c.left(), predicate);
-			IType right = remove(c.right(), predicate);
+			final TypeChoice c = (TypeChoice)type;
+			final IType left = remove(c.left(), predicate);
+			final IType right = remove(c.right(), predicate);
 			if (left == c.left() && right == c.right())
 				return c;
 			else if (left == null && right == null)
@@ -150,7 +147,7 @@ public class TypeChoice implements IType {
 	}
 
 	public List<IType> flatten() {
-		LinkedList<IType> types = new LinkedList<IType>();
+		final LinkedList<IType> types = new LinkedList<IType>();
 		collect(types);
 		return types;
 	}
@@ -160,7 +157,7 @@ public class TypeChoice implements IType {
 		if (containedType.isInstance(type))
 			return (T) type;
 		if (type instanceof TypeChoice) {
-			TypeChoice choice = (TypeChoice)type;
+			final TypeChoice choice = (TypeChoice)type;
 			T r = contained(choice.left(), containedType);
 			if (r != null)
 				return r;
@@ -179,7 +176,7 @@ public class TypeChoice implements IType {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof TypeChoice) {
-			TypeChoice other = (TypeChoice)obj;
+			final TypeChoice other = (TypeChoice)obj;
 			return
 				(other.left.equals(left) && other.right.equals(right)) ||
 				(other.right.equals(left) && other.right.equals(left));

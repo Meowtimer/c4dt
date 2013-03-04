@@ -49,10 +49,10 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 	public boolean canBeAssignedFrom(IType other) {
 		boolean anyDefinitions = false;
 		boolean primitives = false;
-		for (IType t : other)
+		for (final IType t : other)
 			if (t instanceof Definition) {
 				anyDefinitions = true;
-				Definition d = (Definition)t;
+				final Definition d = (Definition)t;
 				if (satisfiedBy(d))
 					return true;
 			}
@@ -68,8 +68,8 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 
 	public boolean satisfiedBy(Definition d) {
 		boolean satisfies = true;
-		for (String f : functions) {
-			Function fun = d.findFunction(f);
+		for (final String f : functions) {
+			final Function fun = d.findFunction(f);
 			if (fun == null) {
 				satisfies = false;
 				break;
@@ -82,7 +82,7 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 	public String typeName(boolean special) {
 		if (!special)
 			return PrimitiveType.OBJECT.typeName(false);
-		List<String> x = new ArrayList<String>(functions.size()+1);
+		final List<String> x = new ArrayList<String>(functions.size()+1);
 		x.addAll(functions);
 		x.add("...");
 		return StringUtil.blockString("{", "}", ", ", x);
@@ -103,9 +103,6 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 	public PrimitiveType primitiveType() {
 		return PrimitiveType.OBJECT;
 	}
-
-	@Override
-	public void setTypeDescription(String description) {}
 
 	/*
 	@Override

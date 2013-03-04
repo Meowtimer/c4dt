@@ -30,11 +30,6 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @return The static type equivalent
 	 */
 	IType simpleType();
-	/**
-	 * Description of the type. Will be incorporated into {@link #typeName(boolean)} if set. There is no guarantee that calling this method will actually result in some description being set.
-	 * @param description The description explaining how this type was constructed
-	 */
-	void setTypeDescription(String description);
 	
 	public static final String COMPLEX_TYPE_START = "<";
 	public static final String COMPLEX_TYPE_END = ">";

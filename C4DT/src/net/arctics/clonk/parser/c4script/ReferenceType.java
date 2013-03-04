@@ -55,9 +55,6 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 	
 	@Override
-	public void setTypeDescription(String description) {}
-
-	@Override
 	public PrimitiveType primitiveType() {
 		return PrimitiveType.REFERENCE;
 	}

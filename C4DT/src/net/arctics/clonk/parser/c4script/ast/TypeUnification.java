@@ -107,6 +107,10 @@ public class TypeUnification {
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
 			((IRefinedPrimitiveType)a).primitiveType() == b)
 			return a;
+		
+		if (a instanceof PrimitiveType.Unified)
+			if (unifyNoChoice(((PrimitiveType.Unified)a).base(), b) != null)
+				return a; // refuse specialization
 
 		if (a instanceof ArrayType && b instanceof ArrayType) {
 			final ArrayType ata = (ArrayType)a;
@@ -191,13 +195,13 @@ public class TypeUnification {
 				final List<Script> cda = da.conglomerate();
 				final List<Script> cdb = db.conglomerate();
 				cda.retainAll(cdb);
-				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT;
+				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT.unified();
 			}
 		}
 		
 		else if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
 			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
-			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID;
+			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID.unified();
 		}
 
 		return null;

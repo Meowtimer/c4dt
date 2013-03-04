@@ -18,17 +18,13 @@ public abstract class WrappedType implements IType {
 		return wrappedType.simpleType();
 	}
 	@Override
-	public void setTypeDescription(String description) {
-		wrappedType.setTypeDescription(description);
-	}
-	@Override
 	public String toString() {
 		return typeName(false);
 	}
 	@Override
 	public boolean equals(Object obj) {
 		if (obj.getClass() == this.getClass()) {
-			WrappedType other = (WrappedType)obj;
+			final WrappedType other = (WrappedType)obj;
 			return Utilities.objectsEqual(other.wrappedType, this.wrappedType);
 		} else
 			return false;

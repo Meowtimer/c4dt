@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.index.ISerializationResolvable;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -79,7 +82,7 @@ public enum PrimitiveType implements IType {
 	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = ArrayUtil.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
 	
 	static {
-		for (PrimitiveType t : values()) {
+		for (final PrimitiveType t : values()) {
 			switch (t) {
 			case REFERENCE:
 				t.scriptName = "&";
@@ -118,7 +121,7 @@ public enum PrimitiveType implements IType {
 		if ((m = NILLABLE_PATTERN.matcher(type)).matches())
 			return fromCPPString(m.group(1));
 		else if ((m = POINTERTYPE_PATTERN.matcher(type)).matches()) {
-			String t = m.group(1);
+			final String t = m.group(1);
 			ty = fromCPPString(t);
 			if (ty != null)
 				return ty;
@@ -127,7 +130,7 @@ public enum PrimitiveType implements IType {
 	}
 	
 	public static String CPPTypeFromType(IType type) {
-		PrimitiveType t = fromString(type.toString());
+		final PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
 	
@@ -186,7 +189,7 @@ public enum PrimitiveType implements IType {
 	 * @return The {@link PrimitiveType} parsed from the argument or null if not successful.
 	 */
 	public static PrimitiveType fromString(String typeString, boolean allowSpecial) {
-		PrimitiveType t = REGULAR_MAP.get(typeString);
+		final PrimitiveType t = REGULAR_MAP.get(typeString);
 		if (t != null)
 			return t;
 		if (allowSpecial)
@@ -221,7 +224,7 @@ public enum PrimitiveType implements IType {
 	 * @return the converted value or null if conversion failed
 	 */
 	public Object convert(Object value) {
-		PrimitiveType valueType = correspondingToInstance(value);
+		final PrimitiveType valueType = correspondingToInstance(value);
 		if (valueType == this)
 			return value;
 		switch (this) {
@@ -273,6 +276,27 @@ public enum PrimitiveType implements IType {
 		return this;
 	}
 	
-	@Override
-	public void setTypeDescription(String description) {}
+	public class Unified implements IType, ISerializationResolvable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		@Override
+		public Iterator<IType> iterator() { return PrimitiveType.this.iterator(); }
+		@Override
+		public boolean canBeAssignedFrom(IType other) { return PrimitiveType.this.canBeAssignedFrom(other); }
+		@Override
+		public String typeName(boolean special) { return PrimitiveType.this.typeName(special); }
+		@Override
+		public IType simpleType() { return PrimitiveType.this; }
+		@Override
+		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
+		public PrimitiveType base() { return PrimitiveType.this; }
+	}
+	
+	final Unified unified = new Unified();
+	
+	/**
+	 * Return a type signifying the result of unification which ended with this primitive type.
+	 * Further unification involving this type will not result in the unification result getting more specialized again.
+	 * @return The unified version of this primitive type
+	 */
+	public final Unified unified() { return unified; }
 }

@@ -39,7 +39,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 		this(elmType, knownTypesForSpecificElements != null ? knownTypesForSpecificElements.length : 0);
 		int i = 0;
 		if (knownTypesForSpecificElements != null)
-			for (IType t : knownTypesForSpecificElements)
+			for (final IType t : knownTypesForSpecificElements)
 				elementTypeMapping.put(i++, t);
 	}
 	
@@ -87,9 +87,9 @@ public class ArrayType implements IRefinedPrimitiveType {
 		if (other == PrimitiveType.ARRAY || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
 			return true;
 		else if (other instanceof ArrayType) {
-			ArrayType otherArrayType = (ArrayType) other;
-			for (Map.Entry<Integer, IType> elmType : elementTypeMapping.entrySet()) {
-				IType otherElmType = otherArrayType.elementTypeMapping().get(elmType.getKey());
+			final ArrayType otherArrayType = (ArrayType) other;
+			for (final Map.Entry<Integer, IType> elmType : elementTypeMapping.entrySet()) {
+				final IType otherElmType = otherArrayType.elementTypeMapping().get(elmType.getKey());
 				if (otherElmType != null && !elmType.getValue().canBeAssignedFrom(otherElmType))
 					return false;
 			}
@@ -106,16 +106,16 @@ public class ArrayType implements IRefinedPrimitiveType {
 		if (!special)
 			return String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(generalElementType(), PrimitiveType.ANY).typeName(false));
 		if (elementTypeMapping.size() > 0) {
-			StringBuilder builder = new StringBuilder();
+			final StringBuilder builder = new StringBuilder();
 			builder.append('[');
 			
-			List<Integer> sorted = ArrayUtil.asSortedList(elementTypeMapping.keySet());
+			final List<Integer> sorted = ArrayUtil.asSortedList(elementTypeMapping.keySet());
 			sorted.add(sorted.get(sorted.size()-1)+2);
 			int old = -1, min = -1;
 			IType t = null;
 			boolean hadCluster = false;
-			for (Integer i : sorted) {
-				IType it = elementTypeMapping.get(i);
+			for (final Integer i : sorted) {
+				final IType it = elementTypeMapping.get(i);
 				if (old == -1) {
 					old = min = i;
 					t = it;
@@ -161,7 +161,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ArrayType) {
-			ArrayType otherArrType = (ArrayType) obj;
+			final ArrayType otherArrType = (ArrayType) obj;
 			if (!Utilities.objectsEqual(this.generalElementType, otherArrType.generalElementType))
 				return false;
 			return otherArrType.elementTypeMapping.equals(elementTypeMapping);
@@ -187,7 +187,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	}
 	
 	protected void elementTypeHint(int elementIndex, IType type, TypingJudgementMode mode) {
-		IType known = elementTypeMapping.get(elementIndex);
+		final IType known = elementTypeMapping.get(elementIndex);
 		if (known != null)
 			elementTypeMapping.put(elementIndex, TypeUnification.unify(known, type));
 		else
@@ -217,9 +217,9 @@ public class ArrayType implements IRefinedPrimitiveType {
 			return PrimitiveType.ARRAY;
 		
 		if (elementTypeMapping.size() > 0) {
-			ArrayType sliceType = new ArrayType(generalElementType, presumedLength);
+			final ArrayType sliceType = new ArrayType(generalElementType, presumedLength);
 			for (int i = lo; i < hi; i++) {
-				IType t = this.elementTypeMapping.get(i);
+				final IType t = this.elementTypeMapping.get(i);
 				if (t != null)
 					sliceType.elementTypeMapping.put(i-lo, t);
 			}
@@ -237,7 +237,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	 */
 	public IType modifiedBySliceAssignment(Object loEv, Object hiEv, IType sliceType) {
 		
-		ArrayType sat = as(sliceType, ArrayType.class);
+		final ArrayType sat = as(sliceType, ArrayType.class);
 		if (sat == null)
 			return PrimitiveType.ARRAY;
 		
@@ -259,14 +259,14 @@ public class ArrayType implements IRefinedPrimitiveType {
 			return PrimitiveType.ARRAY;
 		
 		if (elementTypeMapping.size() > 0 || sat.elementTypeMapping().size() > 0) {
-			ArrayType result = new ArrayType(generalElementType, presumedLength);
-			for (Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet())
+			final ArrayType result = new ArrayType(generalElementType, presumedLength);
+			for (final Map.Entry<Integer, IType> t : this.elementTypeMapping.entrySet())
 				if (t.getKey() < lo)
 					result.elementTypeMapping.put(t.getKey(), t.getValue());
 				else if (t.getKey() >= hi)
 					result.elementTypeMapping.put(t.getKey()-(hi-lo)+sat.presumedLength(), t.getValue());
 			if (sat.elementTypeMapping().size() > 0)
-				for (Map.Entry<Integer, IType> t : sat.elementTypeMapping().entrySet())
+				for (final Map.Entry<Integer, IType> t : sat.elementTypeMapping().entrySet())
 					result.elementTypeMapping.put(t.getKey()+lo, t.getValue());
 			else
 				for (int i = lo; i < hi; i++)
@@ -276,9 +276,6 @@ public class ArrayType implements IRefinedPrimitiveType {
 			return new ArrayType(generalElementType,
 				this.presumedLength == NO_PRESUMED_LENGTH ? NO_PRESUMED_LENGTH : this.presumedLength-(hi-lo)+sat.presumedLength());
 	}
-	
-	@Override
-	public void setTypeDescription(String description) {}
 
 	/**
 	 * Return a type equivalent to this one, except {@link #presumedLength()} is set to {@link #NO_PRESUMED_LENGTH}
@@ -292,8 +289,8 @@ public class ArrayType implements IRefinedPrimitiveType {
 	
 	public static IType elementTypeSet(IType arrayTypes) {
 		List<IType> elementTypes = null;
-		for (IType t : arrayTypes) {
-			ArrayType at = as(t, ArrayType.class);
+		for (final IType t : arrayTypes) {
+			final ArrayType at = as(t, ArrayType.class);
 			if (at != null) {
 				if (elementTypes == null)
 					elementTypes = new ArrayList<IType>();
