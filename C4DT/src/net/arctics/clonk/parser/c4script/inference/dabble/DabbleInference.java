@@ -478,6 +478,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (int i = 0; i < callTypes.length; i++) {
 							final Variable p = function.parameter(i);
 							final TypeVariable tyvar = new VariableTypeVariable(p);
+							tyvar.set(p.type());
 							typeEnvironment.add(tyvar);
 							callTypes[i] = tyvar;
 						}
