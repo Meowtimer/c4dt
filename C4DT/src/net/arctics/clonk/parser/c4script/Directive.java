@@ -16,6 +16,8 @@ import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
+import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
@@ -39,7 +41,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		private final String lowerCase = name().toLowerCase();
 
 		public static DirectiveType makeType(String arg) {
-			for (DirectiveType d : values())
+			for (final DirectiveType d : values())
 				if (d.toString().equals(arg))
 					return d;
 			return null;
@@ -55,7 +57,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	private final DirectiveType type;
-	private final String content;
+	private String content;
 	private transient ID cachedID;
 
 	public Directive(DirectiveType type, String content) {
@@ -85,7 +87,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	public String toString() {
 		if (content != "" && content != null) { //$NON-NLS-1$
 			if (type == DirectiveType.APPENDTO || type == DirectiveType.INCLUDE) {
-				Definition d = this.index().anyDefinitionWithID(this.contentAsID());
+				final Definition d = this.index().anyDefinitionWithID(this.contentAsID());
 				if (d != null)
 					return String.format("#%s %s (%s)", type.toString(), content, d.name());
 			}
@@ -106,8 +108,8 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	public static String[] arrayOfDirectiveStrings() {
-		String[] result = new String[DirectiveType.values().length];
-		for (DirectiveType d : DirectiveType.values())
+		final String[] result = new String[DirectiveType.values().length];
+		for (final DirectiveType d : DirectiveType.values())
 			result[d.ordinal()] = d.toString();
 		return result;
 	}
@@ -120,8 +122,8 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 			if (contents() == null)
 				parser.markers().error(parser, Problem.MissingDirectiveArgs, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, this.toString());
 			else {
-				ID id = contentAsID();
-				Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
+				final ID id = contentAsID();
+				final Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
 				if (obj == null)
 					parser.markers().error(parser, Problem.UndeclaredIdentifier, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, contents());
 			}
@@ -141,7 +143,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	public boolean refersTo(Definition definition) {
 		switch (type) {
 		case APPENDTO: case INCLUDE:
-			ID id = contentAsID();
+			final ID id = contentAsID();
 			return Utilities.objectsEqual(id, definition.id());
 		default:
 			return false;
@@ -159,7 +161,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 	@Override
 	public boolean equalAttributes(ASTNode other) {
-		Directive d = (Directive) other;
+		final Directive d = (Directive) other;
 		if (objectsEqual(d.content, this.content))
 			return true;
 		return false;
@@ -167,4 +169,22 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 	@Override
 	public String patternMatchingText() { return type().toString(); }
+	
+	@Override
+	public ASTNode[] subElements() {
+		switch (type()) {
+		case APPENDTO: case INCLUDE:
+			return new ASTNode[] { new IDLiteral(contentAsID()) };
+		case STRICT:
+			return new ASTNode[] { new IntegerLiteral(Long.parseLong(contents())) };
+		default:
+			return null;
+		}
+	}
+	
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		content = elms[0].printed();
+		cachedID = null;
+	}
 }
