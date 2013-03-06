@@ -105,6 +105,7 @@ import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ClonkBuilder;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
@@ -122,6 +123,7 @@ import org.eclipse.jface.text.Region;
 public class DabbleInference extends ProblemReportingStrategy {
 
 	private static class Shared {
+		Engine engine;
 		ClonkBuilder builder;
 		IProgressMonitor monitor;
 		final Map<Script, ScriptProcessor> processors = new HashMap<>();
@@ -134,6 +136,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		shared = new Shared();
 		shared.builder = builder;
 		shared.monitor = builder.monitor();
+		shared.engine = ClonkProjectNature.get(builder.getProject()).index().engine();
+		assembleCommittee();
 	}
 
 	@Override
@@ -170,7 +174,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (p != null)
 				return new Visitor(p);
 		}
-		final Shared shared = chain instanceof Visitor ? ((Visitor)chain).processor.shared : new Shared();
+		if (!(chain instanceof Visitor)) {
+			shared = new Shared();
+			shared.engine = script.engine();
+			assembleCommittee();
+		}
 		final ScriptProcessor processor = new ScriptProcessor(script, fragmentOffset, shared);
 		shared.processors.put(script, processor);
 		return new Visitor(processor);
@@ -1336,7 +1344,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
-	{
+	
+	private void assembleCommittee() {
 		final Expert<?>[] classes = new Expert[] {
 
 			new AccessDeclarationExpert<AccessDeclaration>(AccessDeclaration.class),
@@ -1531,6 +1540,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case AssignMultiply: case AssignModulo: case AssignDivide:
 						expert(left).assignment(left, right, visitor);
 						break;
+					case Equal:
+						if (runtimeTypeCheck(visitor, left, right, true))
+							return;
+						break;
 					default:
 						break;
 					}
@@ -1539,6 +1552,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 						judgement(left, expectedLeft, TypingJudgementMode.Unify, visitor);
 					if (expectedRight != null)
 						judgement(right, expectedRight, TypingJudgementMode.Unify, visitor);
+				}
+				private boolean runtimeTypeCheck(Visitor visitor, ASTNode left, ASTNode right, boolean checkReverse) {
+					if (
+						left instanceof CallDeclaration &&
+						((CallDeclaration)left).params().length >= 1 &&
+						((CallDeclaration)left).name().equals("GetType") &&
+						right instanceof AccessVar &&
+						((AccessVar)right).name().startsWith("C4V_")
+					) {
+						final IType type = PrimitiveType.fromString(((AccessVar)right).name().substring(4).toLowerCase());
+						if (type != null) {
+							judgement(
+								((CallDeclaration)left).params()[0],
+								TypeChoice.make(PrimitiveType.ANY, type),
+								TypingJudgementMode.Unify, visitor
+							);
+							return true;
+						}
+					}
+					return checkReverse && runtimeTypeCheck(visitor, right, left, false);
 				}
 				@Override
 				public TypeVariable createTypeVariable(BinaryOp node, Visitor visitor) {
