@@ -10,13 +10,6 @@ import net.arctics.clonk.index.Definition;
 public interface IType extends Iterable<IType>, Serializable {
 	
 	static final String ERRONEOUS_TYPE = Messages.IType_ErroneousType;
-
-	/**
-	 * Return whether some variable of this type can be assigned a value of the other type.
-	 * @param other The type of the value to be assigned to the variable
-	 * @return True if possible, false if not.
-	 */
-	boolean canBeAssignedFrom(IType other);
 	
 	/**
 	 * Return a human-readable name of this type.

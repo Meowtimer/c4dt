@@ -99,7 +99,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public void setId(ID newId) {
 		if (id.equals(newId))
 			return;
-		Index index = this.index();
+		final Index index = this.index();
 		index.removeDefinition(this);
 		id = newId;
 		index.addDefinition(this);
@@ -107,14 +107,14 @@ public class Definition extends Script implements IProplistDeclaration {
 		if (definitionFolder != null)
 			try {
 				definitionFolder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 	}
 
 	@Override
 	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
-		Class<?> cls = info.declarationClass;
+		final Class<?> cls = info.declarationClass;
 		boolean variableRequired = false;
 		if (
 			cls == null ||
@@ -129,7 +129,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
 
 	public void readNames(String namesText) throws IOException {
-		Matcher matcher = langNamePairPattern.matcher(namesText);
+		final Matcher matcher = langNamePairPattern.matcher(namesText);
 		if (localizedNames == null)
 			localizedNames = new HashMap<String, String>();
 		else
@@ -141,7 +141,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
-			String preferredName = localizedNames.get(ClonkPreferences.languagePref());
+			final String preferredName = localizedNames.get(ClonkPreferences.languagePref());
 			if (preferredName != null)
 				setName(preferredName);
 		}
@@ -158,8 +158,8 @@ public class Definition extends Script implements IProplistDeclaration {
 		if (id() != null && matcher.reset(id().stringValue()).lookingAt())
 			return true;
 		if (localizedNames != null)
-			for (String key : localizedNames.keySet()) {
-				String value = localizedNames.get(key);
+			for (final String key : localizedNames.keySet()) {
+				final String value = localizedNames.get(key);
 				if (matcher.reset(value).lookingAt())
 					return true;
 			}
@@ -175,17 +175,17 @@ public class Definition extends Script implements IProplistDeclaration {
 	public  boolean gatherIncludes(Index contextIndex, Object origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
-		Scenario originScenario = origin instanceof Script
+		final Scenario originScenario = origin instanceof Script
 			? ((Script)origin).scenario()
 				: origin instanceof IHasRelatedResource
 			? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
 				: null;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0)
-			for (Index i : contextIndex.relevantIndexes()) {
-				List<Script> appendages = i.appendagesOf(Definition.this);
+			for (final Index i : contextIndex.relevantIndexes()) {
+				final List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)
-					for (Script s : appendages) {
-						Scenario scriptScenario = s.scenario();
+					for (final Script s : appendages) {
+						final Scenario scriptScenario = s.scenario();
 						if (scriptScenario != null && originScenario != scriptScenario)
 							continue;// scenario boundary; ignore
 						if ((options & GatherIncludesOptions.Recursive) == 0)
@@ -277,7 +277,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		this(index, id, name);
 		try {
 			setDefinitionFolder(container);
-		} catch (CoreException e1) {
+		} catch (final CoreException e1) {
 			e1.printStackTrace();
 		}
 	}
@@ -297,7 +297,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public String scriptText() {
 		try {
 			return StreamUtil.stringFromFileDocument(source());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -354,8 +354,8 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return The Definition object
 	 */
 	public static Definition definitionCorrespondingToFolder(IContainer folder) {
-		ProjectIndex index = ProjectIndex.fromResource(folder);
-		Definition obj = index != null ? index.definitionAt(folder) : null;
+		final ProjectIndex index = ProjectIndex.fromResource(folder);
+		final Definition obj = index != null ? index.definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
 			obj.definitionFolder = folder;
@@ -368,12 +368,12 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return Whether refreshing the folder reference was successful
 	 */
 	public boolean refreshDefinitionFolderReference(IProject project) {
-		IPath projectPath = new Path(this.relativePath);
-		IResource res = project.findMember(projectPath);
+		final IPath projectPath = new Path(this.relativePath);
+		final IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
 			try {
 				this.setDefinitionFolder((IContainer)res);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return false;
 			}
@@ -422,7 +422,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public Variable addComponent(Variable variable, boolean adhoc) {
-		Variable v = this.findVariable(variable.name());
+		final Variable v = this.findVariable(variable.name());
 		if (v != null)
 			return v;
 		addDeclaration(variable);
@@ -449,34 +449,14 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return
 	 */
 	public CategoriesValue category() {
-		DefCoreUnit defCore = defCore();
-		ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+		final DefCoreUnit defCore = defCore();
+		final ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
 		return category != null ? as(category.value(), CategoriesValue.class) : null;
 	}
 
 	public boolean categorySet(String category) {
-		CategoriesValue cat = category();
+		final CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
-	}
-
-	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		boolean anyDefinitions = false;
-		boolean primitives = false;
-		for (IType t : other)
-			if (t instanceof Definition) {
-				anyDefinitions = true;
-				Definition d = (Definition)t;
-				if (d.doesInclude(index, this))
-					return true;
-			} else if (t instanceof PrimitiveType) switch ((PrimitiveType)t) {
-			case ANY: case UNKNOWN: case OBJECT:
-				primitives = true;
-				break;
-			default:
-				continue;
-			}
-		return anyDefinitions ? false : primitives;
 	}
 
 	static {
@@ -484,13 +464,13 @@ public class Definition extends Script implements IProplistDeclaration {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
-					Sink<Definition> sink = new Sink<Definition>() {
+					final Sink<Definition> sink = new Sink<Definition>() {
 						@Override
 						public void receivedObject(Definition item) {
 							item.chooseLocalizedName();
 						}
 					};
-					for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 						ClonkProjectNature.get(proj).index().allDefinitions(sink);
 				}
 			}

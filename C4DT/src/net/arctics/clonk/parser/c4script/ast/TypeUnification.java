@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.objectsEqual;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -115,19 +114,7 @@ public class TypeUnification {
 		if (a instanceof ArrayType && b instanceof ArrayType) {
 			final ArrayType ata = (ArrayType)a;
 			final ArrayType atb = (ArrayType)b;
-			ArrayType result = ata;
-			if (atb.generalElementType() != null && !objectsEqual(ata.generalElementType(), atb.generalElementType()))
-				result = new ArrayType(unify(ata.generalElementType(),
-					atb.generalElementType()), ata.presumedLength(), ata.elementTypeMapping());
-			for (final Map.Entry<Integer, IType> e : atb.elementTypeMapping().entrySet()) {
-				final IType my = ata.elementTypeMapping().get(e.getKey());
-				if (!objectsEqual(my, e.getValue())) {
-					if (result == ata)
-						result = new ArrayType(ata.generalElementType(), ata.presumedLength(), ata.elementTypeMapping());
-					result.elementTypeMapping().put(e.getKey(), unify(my, e.getValue()));
-				}
-			}
-			return result;
+			return new ArrayType(TypeUnification.unify(ata.elementType(), atb.elementType()));
 		}
 
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
@@ -225,4 +212,5 @@ public class TypeUnification {
 			unified = unify(unified, t);
 		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}
+	public static boolean compatible(IType a, IType b) { return TypeUnification.unifyNoChoice(a, b) != null; }
 }

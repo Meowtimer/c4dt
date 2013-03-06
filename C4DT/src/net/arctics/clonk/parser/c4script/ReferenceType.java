@@ -23,11 +23,6 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return wrappedType.canBeAssignedFrom(other);
-	}
-
-	@Override
 	public String typeName(boolean special) {
 		return String.format("%s %s", wrappedType.toString(), PrimitiveType.REFERENCE.toString());
 	}

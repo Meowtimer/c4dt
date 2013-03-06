@@ -203,8 +203,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			typing = Typing.ParametersOptionallyTyped;
 			migrationTyping = null;
 			if (script.index() instanceof ProjectIndex) {
-				ProjectIndex projIndex = (ProjectIndex) script.index();
-				ClonkProjectNature nature = projIndex.nature();
+				final ProjectIndex projIndex = (ProjectIndex) script.index();
+				final ClonkProjectNature nature = projIndex.nature();
 				if (nature != null) {
 					typing = nature.settings().typing;
 					migrationTyping = nature.settings().migrationTyping;
@@ -298,11 +298,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					readUnexpectedBlock();
 				eatWhitespace();
 			}
-			for (Variable v : script.variables())
+			for (final Variable v : script.variables())
 				if (v.initializationExpression() != null && v.initializationExpression().parent() == null)
 					v.initializationExpression().setParent(v);
 		}
-		catch (ParsingException e) { return; }
+		catch (final ParsingException e) { return; }
 		finally {
 			if (markers != null)
 				markers.deploy();
@@ -311,7 +311,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private void readUnexpectedBlock() throws ParsingException {
 		eatWhitespace();
 		if (!reachedEOF()) {
-			int start = this.offset;
+			final int start = this.offset;
 			if (peek() == '{') {
 				read();
 				for (int depth = 1; depth > 0 && !reachedEOF();) {
@@ -327,7 +327,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				}
 				error(Problem.UnexpectedBlock, start, this.offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 			} else {
-				String tokenText = parseTokenAndReturnAsString();
+				final String tokenText = parseTokenAndReturnAsString();
 				error(Problem.CommaOrSemicolonExpected, this.offset, this.offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, tokenText);
 			}
 		}
@@ -350,7 +350,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	public void validate() throws ParsingException {
 		setCurrentDeclaration(null);
-		for (Directive directive : script.directives())
+		for (final Directive directive : script.directives())
 			directive.validate(this);
 		distillAdditionalInformation();
 		if (markers != null)
@@ -365,9 +365,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			final Definition obj = (Definition) script;
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
 			// local Name = "Exploder";
-			Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
+			final Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
-				ASTNode expr = nameLocal.initializationExpression();
+				final ASTNode expr = nameLocal.initializationExpression();
 				if (expr != null)
 					obj.setName(expr.evaluateStatic(nameLocal.initializationExpression().parentOfType(Function.class)).toString());
 			}
@@ -380,18 +380,18 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	private void parseFunctionBody(Function function) throws ParsingException {
-		int bodyStart = this.offset;
+		final int bodyStart = this.offset;
 		if (!function.staticallyTyped())
 			function.assignType(PrimitiveType.UNKNOWN, false);
 
 		// reset local vars
 		function.resetLocalVarTypes();
 		// parse code block
-		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-		List<ASTNode> statements = new LinkedList<ASTNode>();
+		final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+		final List<ASTNode> statements = new LinkedList<ASTNode>();
 		function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
 		parseStatementBlock(offset, statements, options, function.isOldStyle());
-		FunctionBody bunch = new FunctionBody(function, statements);
+		final FunctionBody bunch = new FunctionBody(function, statements);
 		if (function.isOldStyle() && statements.size() > 0)
 			function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
 		else
@@ -400,7 +400,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private Variable addVarParmsParm(Function func) {
-		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
+		final Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParent(func);
 		v.setScope(Variable.Scope.PARAMETER);
 		func.addParameter(v);
@@ -409,8 +409,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	@Override
 	protected Comment parseComment() {
-		int offset = this.offset;
-		Comment c = super.parseComment();
+		final int offset = this.offset;
+		final Comment c = super.parseComment();
 		if (c != null) {
 			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
 				c.previousComment = lastComment;
@@ -423,7 +423,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	public final void setRelativeLocation(ASTNode expr, int start, int end) {
-		int bodyOffset = sectionOffset();
+		final int bodyOffset = sectionOffset();
 		expr.setLocation(start-bodyOffset, end-bodyOffset);
 	}
 
@@ -439,8 +439,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (peek() == '#') {
 			read();
 			// directive
-			String directiveName = parseIdentifier();
-			DirectiveType type = DirectiveType.makeType(directiveName);
+			final String directiveName = parseIdentifier();
+			final DirectiveType type = DirectiveType.makeType(directiveName);
 			if (type == null) {
 				warning(Problem.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
@@ -448,8 +448,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				result.setLocation(startOfDeclaration, this.offset);
 			}
 			else {
-				String content = parseDirectiveParms();
-				Directive directive = new Directive(type, content);
+				final String content = parseDirectiveParms();
+				final Directive directive = new Directive(type, content);
 				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
 				script.addDeclaration(directive);
 				result = directive;
@@ -457,21 +457,21 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 
 		if (result == null) {
-			FunctionHeader functionHeader = FunctionHeader.parse(this, true);
+			final FunctionHeader functionHeader = FunctionHeader.parse(this, true);
 			if (functionHeader != null) {
-				Function f = parseFunctionDeclaration(functionHeader);
+				final Function f = parseFunctionDeclaration(functionHeader);
 				if (f != null)
 					result = f;
 			}
 		}
 
 		if (result == null) {
-			String word = readIdent();
-			Scope scope = word != null ? Scope.makeScope(word) : null;
+			final String word = readIdent();
+			final Scope scope = word != null ? Scope.makeScope(word) : null;
 			if (scope != null) {
-				List<VarInitialization> vars = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
+				final List<VarInitialization> vars = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
 				if (vars != null) {
-					for (VarInitialization vi : vars)
+					for (final VarInitialization vi : vars)
 						if (vi.expression != null)
 							synthesizeInitializationFunction(vi);
 					result = new Variables(vars);
@@ -485,14 +485,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	protected InitializationFunction synthesizeInitializationFunction(VarInitialization vi) {
-		InitializationFunction synth = new InitializationFunction(vi.variable);
+		final InitializationFunction synth = new InitializationFunction(vi.variable);
 		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
 		final int es = expressionLocation.start();
 		vi.expression.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void parser) {
 				node.setLocation(node.start()-es, node.end()-es);
-				CallDeclaration cd = as(node, CallDeclaration.class);
+				final CallDeclaration cd = as(node, CallDeclaration.class);
 				if (cd != null)
 					cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
 				return TraversalContinuation.Continue;
@@ -508,7 +508,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private String parseDirectiveParms() {
-		StringBuffer buffer = new StringBuffer(80);
+		final StringBuffer buffer = new StringBuffer(80);
 		while (!reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)peek()) && parseComment() == null)
 			buffer.append((char)read());
 		// do let the comment be eaten
@@ -538,8 +538,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			this.desc = desc;
 		}
 		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ParsingException {
-			Comment desc = parser.collectPrecedingComment(parser.offset);
-			int initialOffset = parser.offset;
+			final Comment desc = parser.collectPrecedingComment(parser.offset);
+			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;
 			boolean isOldStyle = false;
 			String name = null;
@@ -557,7 +557,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (s != null)
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
-						int bt = parser.offset;
+						final int bt = parser.offset;
 						if (parser.typing != Typing.Dynamic) {
 							returnType = parser.parseTypeAnnotation(true, true);
 							typeAnnotation = parser.parsedTypeAnnotation;
@@ -597,9 +597,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					}
 				if (name != null && (allowOldStyle || !isOldStyle))
 					if (isOldStyle) {
-						int backtrack = parser.offset;
+						final int backtrack = parser.offset;
 						parser.eatWhitespace();
-						boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
+						final boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
 						parser.seek(backtrack);
 						if (isProperLabel)
 							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType, typeAnnotation, desc);
@@ -627,12 +627,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		final int backtrack = this.offset;
 
 		List<VarInitialization> createdVariables = null;
-		Function currentFunc = currentFunction;
+		final Function currentFunc = currentFunction;
 
 		eatWhitespace();
 		switch (scope) {
 		case STATIC:
-			int pos = this.offset;
+			final int pos = this.offset;
 			if (readIdent().equals(Keywords.Const))
 				scope = Scope.CONST;
 			else
@@ -655,7 +655,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				parsedTypeAnnotation = null;
 				IType staticType;
 				TypeAnnotation typeAnnotation;
-				int bt = this.offset;
+				final int bt = this.offset;
 				int typeExpectedAt = -1;
 				// when parsing an engine script from (res/engines/...), allow specifying the type directly
 				if (script == engine || typing.allowsNonParameterAnnotations()) {
@@ -694,9 +694,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				} else if (typeExpectedAt != -1)
 					typeRequiredAt(typeExpectedAt);
 
-				Declaration outerDec = currentDeclaration();
+				final Declaration outerDec = currentDeclaration();
 				try {
-					Variable var = script.createVarInScope(this, currentFunction, varName, scope, bt, this.offset, comment);
+					final Variable var = script.createVarInScope(this, currentFunction, varName, scope, bt, this.offset, comment);
 					if (typeAnnotation != null)
 						typeAnnotation.setTarget(var);
 					if (staticType != null)
@@ -735,7 +735,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 
 		if (checkForFinalSemicolon) {
-			int rewind = this.offset;
+			final int rewind = this.offset;
 			eatWhitespace();
 			if (read() != ';') {
 				seek(rewind);
@@ -747,7 +747,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		String inlineComment = textOfInlineComment();
 		if (inlineComment != null) {
 			inlineComment = inlineComment.trim();
-			for (VarInitialization v : createdVariables)
+			for (final VarInitialization v : createdVariables)
 				v.variable.setUserDescription(inlineComment);
 		}
 
@@ -778,7 +778,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (topLevel)
 			parsedTypeAnnotation = null;
 		final int backtrack = this.offset;
-		int start = this.offset;
+		final int start = this.offset;
 		String str;
 		IType t = null;
 		ID id;
@@ -798,7 +798,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
 			if (t != null) {
-				int p = offset;
+				final int p = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
@@ -808,10 +808,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					if (typing == Typing.Static || migrationTyping == Typing.Static)
 						if (t == PrimitiveType.ARRAY) {
 							eatWhitespace();
-							IType elementType = parseTypeAnnotation(false, true);
+							final IType elementType = parseTypeAnnotation(false, true);
 							expect(']');
 							if (elementType != null)
-								t = new ArrayType(elementType, ArrayType.NO_PRESUMED_LENGTH);
+								t = new ArrayType(elementType);
 							break RefinementIndicator;
 						}
 					break;
@@ -820,14 +820,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					seek(p);
 				}
 				while (true) {
-					int s = this.offset;
+					final int s = this.offset;
 					eatWhitespace();
 					if (read() != '|') {
 						seek(s);
 						break;
 					} else
 						eatWhitespace();
-					IType option = parseTypeAnnotation(false, true);
+					final IType option = parseTypeAnnotation(false, true);
 					if (option != null)
 						t = TypeUnification.unify(t, option);
 					else
@@ -874,7 +874,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		header.apply(func);
 		func.setParent(script);
 		eatWhitespace();
-		int shouldBeBracket = read();
+		final int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
 			if (header.isOldStyle && shouldBeBracket == ':')
 				{} // old style funcs have no named parameters
@@ -885,14 +885,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			boolean parmExpected = false;
 			do {
 				eat(WHITESPACE_CHARS);
-				Comment parameterCommentPre = parseComment();
+				final Comment parameterCommentPre = parseComment();
 				eat(WHITESPACE_CHARS);
-				Variable parm = parseParameter(func);
+				final Variable parm = parseParameter(func);
 				eat(WHITESPACE_CHARS);
-				Comment parameterCommentPost = parseComment();
+				final Comment parameterCommentPost = parseComment();
 				eat(WHITESPACE_CHARS);
 				if (parm != null) {
-					StringBuilder commentBuilder = new StringBuilder(30);
+					final StringBuilder commentBuilder = new StringBuilder(30);
 					if (parameterCommentPre != null)
 						commentBuilder.append(parameterCommentPre.text());
 					if (parameterCommentPost != null) {
@@ -904,7 +904,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				} else if (parmExpected)
 					error(Problem.NameExpected, this.offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 				parmExpected = false;
-				int readByte = read();
+				final int readByte = read();
 				if (readByte == ')')
 					break; // all parameters parsed
 				else if (readByte == ',')
@@ -920,7 +920,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			func.setUserDescription(lastComment.text());
 
 		// check initial opening bracket which is mandatory for NET2 funcs
-		int token = read();
+		final int token = read();
 		boolean parseBody = true;
 		if (token != '{')
 			if (script == engine) {
@@ -945,7 +945,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		else {
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
-			Comment c = commentImmediatelyFollowing();
+			final Comment c = commentImmediatelyFollowing();
 			if (c != null) {
 				func.setUserDescription(c.text());
 				funEnd = this.offset;
@@ -955,7 +955,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		// finish up
 		func.setLocation(absoluteSourceLocation(header.start, funEnd));
 		func.setHeader(absoluteSourceLocation(header.start, endOfHeader));
-		Function existingFunction = script.findLocalFunction(func.name(), false);
+		final Function existingFunction = script.findLocalFunction(func.name(), false);
 		if (existingFunction != null && existingFunction.isGlobal() == func.isGlobal())
 			warning(Problem.DuplicateDeclaration, func, Markers.ABSOLUTE_MARKER_LOCATION, func.name());
 		script.addDeclaration(func);
@@ -970,8 +970,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	protected Function newFunction(String nameWillBe) {
 		if (specialEngineRules != null)
-			for (SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
-				Function f = funcRule.newFunction(nameWillBe);
+			for (final SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
+				final Function f = funcRule.newFunction(nameWillBe);
 				if (f != null)
 					return f;
 			}
@@ -979,16 +979,16 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private Comment collectPrecedingComment(int absoluteOffset) {
-		Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer)) ? lastComment : null;
+		final Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer)) ? lastComment : null;
 		lastComment = null;
 		return c;
 	}
 
 	private String textOfInlineComment() {
-		int pos = this.offset;
+		final int pos = this.offset;
 		this.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (this.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
-			Comment c = parseComment();
+			final Comment c = parseComment();
 			if (c != null)
 				return c.text();
 		}
@@ -998,7 +998,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private Number parseHexNumber() throws ParsingException {
 		int offset = this.offset;
-		boolean isHex = read() == '0' && read() == 'x';
+		final boolean isHex = read() == '0' && read() == 'x';
 		if (!isHex) {
 			this.seek(offset);
 			return null;
@@ -1009,7 +1009,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			int count = 0;
 			if (isHex)
 				do {
-					int readByte = read();
+					final int readByte = read();
 					if (
 						('0' <= readByte && readByte <= '9') ||
 						('A' <= readByte && readByte <= 'F') ||
@@ -1039,7 +1039,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		int count = 0;
 		boolean floatingPoint = false;
 		do {
-			int readByte = read();
+			final int readByte = read();
 			if ('0' <= readByte && readByte <= '9') {
 				count++;
 				continue;
@@ -1058,18 +1058,18 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			}
 		} while(!reachedEOF());
 		this.seek(offset);
-		String numberString = this.readString(count);
+		final String numberString = this.readString(count);
 		if (floatingPoint)
 			try {
 				number = Double.parseDouble(numberString);
-			} catch (NumberFormatException e) {
+			} catch (final NumberFormatException e) {
 				number = Double.MAX_VALUE;
 				error(Problem.NotANumber, offset, offset+count, Markers.NO_THROW, numberString);
 			}
 		else
 			try {
 				number = Long.parseLong(numberString);
-			} catch (NumberFormatException e) {
+			} catch (final NumberFormatException e) {
 				number = Integer.MAX_VALUE;
 				error(Problem.NotANumber, offset, offset+count, Markers.NO_THROW, numberString);
 			}
@@ -1078,8 +1078,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private boolean parseEllipsis() {
-		int offset = this.offset;
-		String e = this.readString(3);
+		final int offset = this.offset;
+		final String e = this.readString(3);
 		if (e != null && e.equals("...")) //$NON-NLS-1$
 			return true;
 		this.seek(offset);
@@ -1088,7 +1088,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private String parseMemberOperator() throws ParsingException {
 		int savedOffset = this.offset;
-		int firstChar = read();
+		final int firstChar = read();
 		if (firstChar == '.')
 			return "."; //$NON-NLS-1$
 		else if (firstChar == '-')
@@ -1143,7 +1143,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
 			if (result == Operator.ne || result == Operator.eq) {
-				int followingChar = read();
+				final int followingChar = read();
 				if (BufferedScanner.isWordPart(followingChar)) {
 					this.seek(offset);
 					return null;
@@ -1167,7 +1167,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private void warning(Problem code, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			marker(code, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			// won't happen
 		}
 	}
@@ -1235,17 +1235,17 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private ASTNode parseSequence(boolean reportErrors) throws ParsingException {
 		ASTNode[] _elements;
-		boolean useReusable = !_elementsInUse;
+		final boolean useReusable = !_elementsInUse;
 		if (useReusable) {
 			_elements = _elementsReusable;
 			_elementsInUse = true;
 		} else
 			_elements = new ASTNode[4];
 
-		int sequenceParseStart = this.offset;
+		final int sequenceParseStart = this.offset;
 		eatWhitespace();
-		int sequenceStart = this.offset;
-		Operator preop = parseOperator();
+		final int sequenceStart = this.offset;
+		final Operator preop = parseOperator();
 		ASTNode result = null;
 		if (preop != null && preop.isPrefix()) {
 			ASTNode followingExpr = parseSequence(reportErrors);
@@ -1271,7 +1271,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 			noWhitespaceEating = this.offset;
 			eatWhitespace();
-			int elmStart = this.offset;
+			final int elmStart = this.offset;
 
 			// operator always ends a sequence without operators
 			if (parseOperator() != null) {// || fReader.readWord().equals(Keywords.In)) {
@@ -1301,18 +1301,18 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 			// variable or function
 			if (elm == null) {
-				String word = readIdent();
+				final String word = readIdent();
 				if (word != null && word.length() > 0)
 					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
-						ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
+						final ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
 						boolean treatNewAsVarName = false;
 						if (prototype == null)
 							treatNewAsVarName = true;
 						else {
 							eatWhitespace();
-							ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+							final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 							if (proplDec != null)
 								elm = new NewProplist(proplDec, prototype);
 							else
@@ -1327,15 +1327,15 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						}
 					}
 					else {
-						int beforeWhitespace = this.offset;
+						final int beforeWhitespace = this.offset;
 						this.eatWhitespace();
 						if (read() == '(') {
-							int s = this.offset;
+							final int s = this.offset;
 							// function call
-							List<ASTNode> args = new LinkedList<ASTNode>();
+							final List<ASTNode> args = new LinkedList<ASTNode>();
 							parseRestOfTuple(args, reportErrors);
 							CallDeclaration callFunc;
-							ASTNode[] a = args.toArray(new ASTNode[args.size()]);
+							final ASTNode[] a = args.toArray(new ASTNode[args.size()]);
 							if (word.equals(Keywords.Inherited))
 								callFunc = new CallInherited(false, a);
 							else if (word.equals(Keywords.SafeInherited))
@@ -1374,10 +1374,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 			// ->
 			if (elm == null) {
-				int fieldOperatorStart = this.offset;
-				String memberOperator = parseMemberOperator();
+				final int fieldOperatorStart = this.offset;
+				final String memberOperator = parseMemberOperator();
 				if (memberOperator != null) {
-					int idStart = this.offset;
+					final int idStart = this.offset;
 					int idOffset;
 					eatWhitespace();
 					idOffset = offset;
@@ -1398,7 +1398,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (c == '(') {
 					if (prevElm != null) {
 						// CallExpr
-						List<ASTNode> tupleElms = new LinkedList<ASTNode>();
+						final List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 						parseRestOfTuple(tupleElms, reportErrors);
 						elm = new CallExpr(tupleElms.toArray(new ASTNode[tupleElms.size()]));
 					} else {
@@ -1412,7 +1412,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 							elm = new Parenthesized(firstExpr);
 						else if (c == ',') {
 							// tuple (just for multiple parameters for return)
-							List<ASTNode> tupleElms = new LinkedList<ASTNode>();
+							final List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 							tupleElms.add(firstExpr);
 							parseRestOfTuple(tupleElms, reportErrors);
 							elm = new Tuple(tupleElms.toArray(new ASTNode[0]));
@@ -1436,7 +1436,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					// add to sequence even if not valid so the quickfixer can separate them
 					setRelativeLocation(elm, elmStart, this.offset);
 					if (num == _elements.length) {
-						ASTNode[] n = new ASTNode[_elements.length+10];
+						final ASTNode[] n = new ASTNode[_elements.length+10];
 						System.arraycopy(_elements, 0, n, 0, _elements.length);
 						_elements = n;
 					}
@@ -1464,11 +1464,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			proper &= lastElm == null || lastElm.isValidAtEndOfSequence();
 			setRelativeLocation(result, sequenceStart, this.offset);
 			if (proper) {
-				int saved = this.offset;
+				final int saved = this.offset;
 				eatWhitespace();
-				Operator postop = parseOperator();
+				final Operator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
-					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
+					final UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
 					setRelativeLocation(op, result.start()+sectionOffset(), this.offset);
 					return op;
 				} else
@@ -1488,9 +1488,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private ASTNode parsePropListExpression(boolean reportErrors, ASTNode prevElm) throws ParsingException {
-		ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+		final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
-			ASTNode elm = new PropListExpression(proplDec);
+			final ASTNode elm = new PropListExpression(proplDec);
 			if (currentFunction != null)
 				currentFunction.addOtherDeclaration(proplDec);
 			//proplDec.setName(elm.toString());
@@ -1500,12 +1500,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ParsingException {
-		int propListStart = offset;
+		final int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
+			final ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
 			proplistDeclaration.setParent(currentDeclaration() != null ? currentDeclaration() : script);
-			Declaration oldDec = currentDeclaration();
+			final Declaration oldDec = currentDeclaration();
 			setCurrentDeclaration(proplistDeclaration);
 			try {
 				boolean properlyClosed = false;
@@ -1522,20 +1522,20 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						break;
 					} else {
 						unread();
-						int nameStart = this.offset;
+						final int nameStart = this.offset;
 						String name;
 						if ((name = parseString()) != null || (name = parseIdentifier()) != null) {
-							int nameEnd = this.offset;
+							final int nameEnd = this.offset;
 							eatWhitespace();
-							int c_ = read();
+							final int c_ = read();
 							if (c_ != ':' && c_ != '=') {
 								unread();
 								error(Problem.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION, (char)read());
 							}
 							eatWhitespace();
-							Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
+							final Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
-							Declaration outerDec = currentDeclaration();
+							final Declaration outerDec = currentDeclaration();
 							setCurrentDeclaration(v);
 							ASTNode value = null;
 							try {
@@ -1577,7 +1577,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
-		int bodyOffset = sectionOffset();
+		final int bodyOffset = sectionOffset();
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
@@ -1587,12 +1587,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (c == '[') {
 			if (prevElm != null) {
 				// array access
-				ASTNode arg = parseExpression(reportErrors);
+				final ASTNode arg = parseExpression(reportErrors);
 				eatWhitespace();
 				int t;
 				switch (t = read()) {
 				case ':':
-					ASTNode arg2 = parseExpression(reportErrors);
+					final ASTNode arg2 = parseExpression(reportErrors);
 					eatWhitespace();
 					expect(']');
 					elm = new ArraySliceExpression(arg, arg2);
@@ -1605,7 +1605,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				}
 			} else {
 				// array creation
-				Vector<ASTNode> arrayElms = new Vector<ASTNode>(10);
+				final Vector<ASTNode> arrayElms = new Vector<ASTNode>(10);
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
 				Loop: while (!reachedEOF()) {
@@ -1626,10 +1626,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						break Loop;
 					default:
 						unread();
-						ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
+						final ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
 						if (arrayElement != null) {
 							if (expectingComma) {
-								ASTNode last = arrayElms.get(arrayElms.size()-1);
+								final ASTNode last = arrayElms.get(arrayElms.size()-1);
 								if (last != null)
 									arrayElms.set(arrayElms.size()-1, new Unfinished(last));
 								expectingComma = false;
@@ -1727,10 +1727,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						state = DONE;
 					break;
 				case OPERATOR:
-					int operatorStartPos = this.offset;
+					final int operatorStartPos = this.offset;
 					eatWhitespace();
 					// end of expression?
-					int c = read();
+					final int c = read();
 					for (int i = 0; i < delimiters.length; i++)
 						if (delimiters[i] == c) {
 							state = DONE;
@@ -1740,13 +1740,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 					if (state != DONE) {
 						unread(); // unread c
-						Operator op = parseOperator();
+						final Operator op = parseOperator();
 						if (op != null && op.isBinary()) {
-							int priorOfNewOp = op.priority();
+							final int priorOfNewOp = op.priority();
 							ASTNode newLeftSide = null;
 							BinaryOp theOp = null;
 							for (ASTNode opFromBottom = current.parent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.parent()) {
-								BinaryOp oneOp = (BinaryOp) opFromBottom;
+								final BinaryOp oneOp = (BinaryOp) opFromBottom;
 								if (priorOfNewOp > oneOp.operator().priority() || (priorOfNewOp == oneOp.operator().priority() && op.isRightAssociative())) {
 									theOp = oneOp;
 									break;
@@ -1790,7 +1790,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	}
 
 	private ASTNode placeholderExpression(final int offset) {
-		ASTNode result = new ASTNode();
+		final ASTNode result = new ASTNode();
 		setRelativeLocation(result, offset, offset+1);
 		return result;
 	}
@@ -1802,7 +1802,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
 	public IRegion convertRelativeRegionToAbsolute(int flags, IRegion region) {
-		int offset = sectionOffset();
+		final int offset = sectionOffset();
 		if (offset == 0 || (flags & Markers.ABSOLUTE_MARKER_LOCATION) == 0)
 			return region;
 		else
@@ -1823,16 +1823,16 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	private String parseString() throws ParsingException {
-		int quotes = read();
+		final int quotes = read();
 		if (quotes != '"') {
 			unread();
 			return null;
 		}
-		int start = offset;
+		final int start = offset;
 		boolean escaped = false;
 		boolean properEnd = false;
 		Loop: do {
-			int c = read();
+			final int c = read();
 			switch (c) {
 			case -1:
 				error(Problem.StringNotClosed, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION);
@@ -1861,7 +1861,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	private String parseIdentifier() throws ParsingException {
-		String word = readIdent();
+		final String word = readIdent();
 		if (word != null && word.length() > 0)
 			return word;
 		else
@@ -1878,7 +1878,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			unread();
 			return null;
 		}
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(this.readString(1));
 			builder.append(this.readStringUntil('$'));
@@ -1919,8 +1919,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	private Statement parseStatementWithPrependedComments() throws ParsingException {
 		// parse comments and attach them to the statement so the comments won't be removed by code reformatting
-		List<Comment> prependedComments = collectComments();
-		Statement s = parseStatement();
+		final List<Comment> prependedComments = collectComments();
+		final Statement s = parseStatement();
 		if (s != null && prependedComments != null)
 			s.addAttachments(prependedComments);
 		return s;
@@ -1936,13 +1936,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		int emptyLines = -1;
 		int delim;
 		for (; (delim = peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); read()) {
-			char c = (char) delim;
+			final char c = (char) delim;
 			if (c == '\n')
 				emptyLines++;
 		}
 
 		//eatWhitespace();
-		int start = this.offset;
+		final int start = this.offset;
 		Statement result;
 		Scope scope;
 
@@ -1958,22 +1958,22 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				return null;
 			}
 			else if ((readWord = readIdent()) == null || readWord.length() == 0) {
-				int read = read();
+				final int read = read();
 				if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
-					List<ASTNode> subStatements = new LinkedList<>();
+					final List<ASTNode> subStatements = new LinkedList<>();
 					parseStatementBlock(start, subStatements, ParseStatementOption.NoOptions, false);
 					result = new Block(subStatements);
 				}
 				else if (read == ';')
 					result = new EmptyStatement();
 				else if (read == '[' && options.contains(ParseStatementOption.ExpectFuncDesc)) {
-					String funcDesc = this.readStringUntil(']');
+					final String funcDesc = this.readStringUntil(']');
 					read();
 					result = new FunctionDescription(funcDesc);
 				}
 				else {
 					unread();
-					ASTNode expression = parseExpression();
+					final ASTNode expression = parseExpression();
 					if (expression != null) {
 						result = new SimpleStatement(expression);
 						if (!options.contains(ParseStatementOption.InitializationStatement))
@@ -1984,7 +1984,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				}
 			}
 			else if ((scope = Scope.makeScope(readWord)) != null) {
-				List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
+				final List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
 				if (initializations != null) {
 					result = new VarDeclarationStatement(initializations, initializations.get(0).variable.scope());
 					if (!options.contains(ParseStatementOption.InitializationStatement)) {
@@ -2006,12 +2006,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		// just an expression that needs to be wrapped as a statement
 		if (result == null) {
 			this.seek(start);
-			ASTNode expression = parseExpression();
-			int afterExpression = this.offset;
+			final ASTNode expression = parseExpression();
+			final int afterExpression = this.offset;
 			if (expression != null) {
 				result = new SimpleStatement(expression);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
-					int beforeWhitespace = this.offset;
+					final int beforeWhitespace = this.offset;
 					eatWhitespace();
 					if (read() != ';') {
 						result = new Unfinished(result);
@@ -2026,7 +2026,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 		if (result != null) {
 			// inline comment attached to expression so code reformatting does not mess up the user's code too much
-			Comment c = commentImmediatelyFollowing();
+			final Comment c = commentImmediatelyFollowing();
 			if (c != null)
 				result.setInlineComment(c);
 			if (emptyLines > 0)
@@ -2050,9 +2050,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		boolean done = false;
 		int garbageStart = -1;
 		while (!reachedEOF()) {
-			int potentialGarbageEnd = offset;
+			final int potentialGarbageEnd = offset;
 			//eatWhitespace();
-			Statement statement = parseStatement(options);
+			final Statement statement = parseStatement(options);
 			if (statement == null) {
 				done = oldStyle || peek() == '}';
 				if (done)
@@ -2065,7 +2065,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (garbageStart != -1)
 					garbageStart = maybeAddGarbageStatement(statements, garbageStart, potentialGarbageEnd);
 			statements.add(statement);
-			boolean statementIsComment = statement instanceof Comment;
+			final boolean statementIsComment = statement instanceof Comment;
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment)
 				options.remove(ParseStatementOption.ExpectFuncDesc);
@@ -2084,7 +2084,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null && garbageString.length() > 0) {
-			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-sectionOffset());
+			final GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-sectionOffset());
 			garbageStart = -1;
 			statements.add(garbage);
 		}
@@ -2096,7 +2096,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @return The parsed comment.
 	 */
 	private Comment commentImmediatelyFollowing() {
-		int daring = this.offset;
+		final int daring = this.offset;
 		Comment c = null;
 		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read())
 			if (r == '/') {
@@ -2130,13 +2130,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	private void expect(String expected) throws ParsingException {
-		String r = readIdent();
+		final String r = readIdent();
 		if (r == null || !r.equals(expected))
 			tokenExpectedError(expected);
 	}
 
 	private boolean parseSemicolonOrReturnFalse() {
-		int old = offset;
+		final int old = offset;
 		eatWhitespace();
 		if (read() == ';')
 			return true;
@@ -2209,13 +2209,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @throws ParsingException
 	 */
 	private DoWhileStatement parseDoWhile() throws ParsingException {
-		Statement block = parseStatement();
+		final Statement block = parseStatement();
 		eatWhitespace();
 		expect(Keywords.While);
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ASTNode cond = parseExpression();
+		final ASTNode cond = parseExpression();
 		eatWhitespace();
 		expect(')');
 		//expect(';');
@@ -2246,14 +2246,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		} else {
 			unread();
 			// special treatment for case for (e in a) -> implicit declaration of e
-			int pos = this.offset;
-			String varName = readIdent();
+			final int pos = this.offset;
+			final String varName = readIdent();
 			if (!(varName.equals("") || varName.equals(Keywords.VarNamed))) { //$NON-NLS-1$
 				eatWhitespace();
 				w = readIdent();
 				if (w.equals(Keywords.In)) {
 					// too much manual setting of stuff
-					AccessVar accessVar = new AccessVar(varName);
+					final AccessVar accessVar = new AccessVar(varName);
 					setRelativeLocation(accessVar, pos, pos+varName.length());
 					initialization = new SimpleStatement(accessVar);
 					setRelativeLocation(initialization, pos, pos+varName.length());
@@ -2361,7 +2361,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		expect(')');
 		eatWhitespace();
 		offset = this.offset;
-		Statement body = parseStatement();
+		final Statement body = parseStatement();
 		if (body == null)
 			error(Problem.StatementExpected, offset, offset+4, Markers.NO_THROW);
 		result = new WhileStatement(condition, body);
@@ -2383,12 +2383,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			condition = whitespace(this.offset, 0); // if () is valid
 		eatWhitespace();
 		expect(')');
-		int offsetBeforeWhitespace = this.offset;
-		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithPrependedComments());
-		int beforeElse = this.offset;
+		final int offsetBeforeWhitespace = this.offset;
+		final Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithPrependedComments());
+		final int beforeElse = this.offset;
 		eatWhitespace();
-		int o = this.offset;
-		String nextWord = readIdent();
+		final int o = this.offset;
+		final String nextWord = readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			elseStatement = parseStatementWithPrependedComments();
@@ -2430,7 +2430,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 */
 	private Variable parseParameter(Function function) throws ParsingException {
 
-		int backtrack = this.offset;
+		final int backtrack = this.offset;
 		eatWhitespace();
 		if (script == engine && parseEllipsis())
 			return addVarParmsParm(function);
@@ -2439,9 +2439,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			return null;
 		}
 
-		int typeStart = this.offset;
+		final int typeStart = this.offset;
 		IType type = parseTypeAnnotation(true, false);
-		int typeEnd = this.offset;
+		final int typeEnd = this.offset;
 		eatWhitespace();
 		int nameStart = this.offset;
 		String parmName = readIdent();
@@ -2449,7 +2449,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			type = null;
 			seek(nameStart = backtrack);
 			eatWhitespace();
-			int ta = this.offset;
+			final int ta = this.offset;
 			parmName = readIdent();
 			if (parmName.length() == 0)
 				return null;
@@ -2467,7 +2467,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		default:
 			break;
 		}
-		Variable var = new Variable(null, Scope.PARAMETER);
+		final Variable var = new Variable(null, Scope.PARAMETER);
 		if (parsedTypeAnnotation != null)
 			parsedTypeAnnotation.setTarget(var);
 		if (type != null) {
@@ -2496,7 +2496,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (taskMarkers)
 					scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
 			}
-		} catch (CoreException e1) {
+		} catch (final CoreException e1) {
 			e1.printStackTrace();
 		}
 		script.clearDeclarations();
@@ -2513,7 +2513,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
 	 */
 	public int sectionOffset() {
-		Function f = currentFunction;
+		final Function f = currentFunction;
 		if (f != null && f.bodyLocation() != null)
 			return f.bodyLocation().start();
 		else
@@ -2548,7 +2548,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @return The constructed whitespace expression
 	 */
 	public final ASTNode whitespace(int start, int length) {
-		ASTNode result = new Whitespace();
+		final ASTNode result = new Whitespace();
 		setRelativeLocation(result, start, start+length);
 		return result;
 	}
@@ -2560,7 +2560,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
 			return ASTNodeMatcher.matchingExpr(parse(statementText, engine));
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -2580,7 +2580,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		setCurrentFunction(function);
 		markers().enableError(Problem.NotFinished, false);
 
-		List<ASTNode> statements = new LinkedList<ASTNode>();
+		final List<ASTNode> statements = new LinkedList<ASTNode>();
 		Statement statement;
 		do {
 			statement = parseStatement();

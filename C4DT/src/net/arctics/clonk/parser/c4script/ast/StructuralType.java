@@ -45,27 +45,6 @@ public class StructuralType implements IType, IRefinedPrimitiveType {
 		return iterable(PrimitiveType.PROPLIST, PrimitiveType.OBJECT, PrimitiveType.ID, this).iterator();
 	}
 
-	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		boolean anyDefinitions = false;
-		boolean primitives = false;
-		for (final IType t : other)
-			if (t instanceof Definition) {
-				anyDefinitions = true;
-				final Definition d = (Definition)t;
-				if (satisfiedBy(d))
-					return true;
-			}
-			else if (t instanceof PrimitiveType) switch ((PrimitiveType)t) {
-			case ANY: case UNKNOWN: case OBJECT:
-				primitives = true;
-				break;
-			default:
-				continue;
-			}
-		return anyDefinitions ? false : primitives;
-	}
-
 	public boolean satisfiedBy(Definition d) {
 		boolean satisfies = true;
 		for (final String f : functions) {

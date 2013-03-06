@@ -162,11 +162,6 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return PrimitiveType.PROPLIST.canBeAssignedFrom(other);
-	}
-
-	@Override
 	public String typeName(boolean special) {
 		if (special) {
 			final String s = StringUtil.blockString("{", "}", ", ", components(true));

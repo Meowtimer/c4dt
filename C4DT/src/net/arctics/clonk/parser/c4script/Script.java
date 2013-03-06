@@ -1160,11 +1160,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public static Script scriptFrom(IType type) { return as(type, Script.class); }
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
-	}
-
-	@Override
 	public String typeName(boolean special) {
 		return special ? name() : PrimitiveType.OBJECT.typeName(false);
 	}

@@ -91,11 +91,6 @@ public class TypeChoice implements IType {
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return left.canBeAssignedFrom(other) || right.canBeAssignedFrom(other);
-	}
-
-	@Override
 	public String typeName(boolean special) {
 		final List<IType> types = new ArrayList<>(10);
 		collect(types);

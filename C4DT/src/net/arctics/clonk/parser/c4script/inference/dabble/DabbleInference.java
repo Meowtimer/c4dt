@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.threadPool;
 
 import java.util.Arrays;
@@ -107,8 +108,6 @@ import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
-import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
@@ -429,7 +428,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (function == hello)
 				return null;
 			final Script funScript = function.script();
-			if (roaming || (conglomerate != null && conglomerate.contains(funScript)) || script() == funScript) {
+			if ((conglomerate != null && conglomerate.contains(funScript)) || script() == funScript) {
 				CurrentFunctionReturnTypeVariable returnType;
 				boolean kickOff = false;
 				synchronized (processor.finishedFunctions) {
@@ -969,7 +968,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			case Static:
 				final IType leftTy = ty(leftSide, this, visitor);
 				final IType rightTy = ty(rightSide, visitor);
-				if (!leftTy.canBeAssignedFrom(rightTy))
+				if (!TypeUnification.compatible(leftTy, rightTy))
 					visitor.incompatibleTypesMarker(rightSide, rightSide, leftTy, rightTy);
 				break;
 			case ParametersOptionallyTyped:
@@ -1025,6 +1024,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	
 		private Declaration findUsingType(Visitor visitor, AccessVar node, ASTNode predecessor, IType type) {
+			if (type == null)
+				return null;
 			for (final IType t : type) {
 				Script scriptToLookIn;
 				if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
@@ -1185,7 +1186,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return;
 			if (declaration == null) {
 				final IType predType = predecessorType(leftSide, visitor);
-				if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST))
+				if (predType != null && !TypeUnification.compatible(predType, PrimitiveType.PROPLIST))
 					if (predType instanceof IProplistDeclaration) {
 						final IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
 						if (proplDecl.isAdHoc()) {
@@ -1368,15 +1369,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArrayExpression>(ArrayExpression.class) {
 				@Override
 				public IType type(ArrayExpression node, final Visitor visitor) {
-					return new ArrayType(
-						null,
-						ArrayUtil.map(node.subElements(), IType.class, new IConverter<ASTNode, IType>() {
-							@Override
-							public IType convert(ASTNode from) {
-								return from != null ? ty(from, visitor) : PrimitiveType.UNKNOWN;
-							}
-						})
-					);
+					IType elmType = PrimitiveType.UNKNOWN;
+					for (final ASTNode e : node.subElements())
+						if (e != null)
+							elmType = TypeUnification.unify(elmType, ty(e, visitor));
+					return new ArrayType(elmType);
 				}
 				@Override
 				public boolean isModifiable(ArrayExpression node, Visitor visitor) { return false; }
@@ -1391,11 +1388,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode pred = node.predecessorInSequence();
 					if (pred != null) {
 						final IType predTy = ty(pred, visitor);
-						for (final IType ty : predTy) {
-							final ArrayType at = as(ty, ArrayType.class);
-							if (at != null)
-								return at.typeForElementWithIndex(ASTNode.evaluateStatic(node.argument(), visitor));
-						}
+						if (predTy != null)
+							for (final IType ty : predTy) {
+								final ArrayType at = as(ty, ArrayType.class);
+								if (at != null)
+									return at.elementType();
+							}
 					}
 					return PrimitiveType.ANY;
 				}
@@ -1409,25 +1407,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType rightSideType = ty(rightSide, visitor);
 						final ASTNode pred = leftSide.predecessorInSequence();
 						if (arrayType != null) {
-							final Object argEv = ASTNode.evaluateStatic(leftSide.argument(), visitor);
-							IType mutation;
-							if (argEv instanceof Number)
-								mutation = arrayType.modifiedBySliceAssignment(
-									argEv,
-									((Number)argEv).intValue()+1,
-									new ArrayType(rightSideType, rightSideType)
-								);
-							else
-								mutation = new ArrayType(
-									TypeUnification.unify(rightSideType, arrayType.generalElementType()),
-									ArrayType.NO_PRESUMED_LENGTH
-								);
+							final IType mutation = new ArrayType(
+								TypeUnification.unify(rightSideType, arrayType.elementType())
+							);
 							judgement(pred, mutation, TypingJudgementMode.Expect, visitor);
 							break;
 						} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
 							judgement(
 								pred,
-								new ArrayType(rightSideType, ArrayType.NO_PRESUMED_LENGTH),
+								new ArrayType(rightSideType),
 								TypingJudgementMode.Force,
 								visitor
 							);
@@ -1861,7 +1849,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType type = declarationType(node, visitor);
 						// no warning when in #strict mode
 						if (visitor.processor.strictLevel >= 2)
-							if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+							if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !TypeUnification.compatible(PrimitiveType.FUNCTION, type))
 								visitor.markers().warning(visitor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 					} else if (declaration instanceof Function) {
 						final Function f = (Function)declaration;
@@ -1913,7 +1901,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public boolean isModifiable(CallDeclaration node, Visitor visitor) {
 					final Declaration declaration = node.declaration();
 					final IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
-					return t.canBeAssignedFrom(PrimitiveType.REFERENCE) || t.canBeAssignedFrom(PrimitiveType.UNKNOWN);
+					return
+						TypeUnification.compatible(t, PrimitiveType.REFERENCE) ||
+						TypeUnification.compatible(t, PrimitiveType.UNKNOWN);
 				}
 			},
 
@@ -1996,24 +1986,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public IType type(ArraySliceExpression node, Visitor visitor) {
 					final ArrayType arrayType = as(predecessorType(node, visitor), ArrayType.class);
-					if (arrayType != null)
-						return node.lo() == null && node.hi() == null ? arrayType : arrayType.typeForSlice(
-							ASTNode.evaluateStatic(node.lo(), visitor),
-							ASTNode.evaluateStatic(node.hi(), visitor)
-						);
-					else
-						return PrimitiveType.ARRAY;
-				}
-				@Override
-				public void assignment(ArraySliceExpression leftSide, ASTNode rightSide, Visitor visitor) {
-					final ArrayType arrayType = as(predecessorType(leftSide, visitor), ArrayType.class);
-					final IType sliceType = ty(rightSide, visitor);
-					if (arrayType != null)
-						judgement(leftSide.predecessorInSequence(), arrayType.modifiedBySliceAssignment(
-							ASTNode.evaluateStatic(leftSide.lo(), visitor),
-							ASTNode.evaluateStatic(leftSide.hi(), visitor),
-							sliceType
-						), TypingJudgementMode.Expect, visitor);
+					return defaulting(arrayType, PrimitiveType.ARRAY); 
 				}
 			},
 
@@ -2112,7 +2085,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
 					else {
 						final IType type = expert(node.predecessorInSequence()).type(node.predecessorInSequence(), visitor);
-						if (!PrimitiveType.FUNCTION.canBeAssignedFrom(type))
+						if (!TypeUnification.compatible(PrimitiveType.FUNCTION, type))
 							visitor.markers().error(visitor, Problem.CallingExpression, node, node, Markers.NO_THROW);
 					}
 				}
@@ -2152,7 +2125,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final IType initializationType = ty(initialization.expression, visitor);
 								if (
 									initialization.variable.staticallyTyped() &&
-									!initialization.variable.type().canBeAssignedFrom(initializationType)
+									!TypeUnification.compatible(
+										initialization.variable.type(),
+										initializationType
+									)
 								)
 									visitor.incompatibleTypesMarker(
 										node,
@@ -2259,7 +2235,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitor.visitNode(arrayExpr, true);
 
 					final IType type = ty(arrayExpr, visitor);
-					if (!type.canBeAssignedFrom(PrimitiveType.ARRAY))
+					if (!TypeUnification.compatible(type, PrimitiveType.ARRAY))
 						visitor.incompatibleTypesMarker(node, arrayExpr, type, PrimitiveType.ARRAY);
 					final IType elmType = ArrayType.elementTypeSet(type);
 					final TypeEnvironment env = visitor.newTypeEnvironment();

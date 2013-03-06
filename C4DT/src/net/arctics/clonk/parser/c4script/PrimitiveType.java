@@ -133,44 +133,6 @@ public enum PrimitiveType implements IType {
 		final PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
-	
-	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		if (other != null) for (IType t : other) {
-			t = t.simpleType();
-			if (t == this || t == UNKNOWN || t == REFERENCE || t == ANY)
-				return true;
-			if (t instanceof PrimitiveType)
-				switch (this) {
-				case UNKNOWN: case ANY: case REFERENCE:
-					return true;
-				default:
-					switch (this) {
-					case BOOL:
-						return true;
-					case INT:
-						if (t == BOOL)
-							return true;
-						break;
-					case NUM:
-						if (t == INT || t == FLOAT)
-							return true;
-						break;
-					case PROPLIST:
-						if (t == ID || t == OBJECT)
-							return true;
-						break;
-					case OBJECT:
-						if (t == PROPLIST)
-							return true; // nya nya
-						break;
-					default:
-						break;
-					}
-				}
-		}
-		return false;
-	}
 
 	/**
 	 * Return a {@link PrimitiveType} parsed from a C4Script type string. If the string does not specify a type, {@link UNKNOWN} is returned.
@@ -280,8 +242,6 @@ public enum PrimitiveType implements IType {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Iterator<IType> iterator() { return PrimitiveType.this.iterator(); }
-		@Override
-		public boolean canBeAssignedFrom(IType other) { return PrimitiveType.this.canBeAssignedFrom(other); }
 		@Override
 		public String typeName(boolean special) { return PrimitiveType.this.typeName(special); }
 		@Override

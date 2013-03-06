@@ -35,13 +35,8 @@ public class NillableType extends WrappedType {
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return PrimitiveType.ANY.canBeAssignedFrom(other);
-	}
-
-	@Override
 	public String typeName(boolean special) {
-		String tn = wrappedType.typeName(special);
+		final String tn = wrappedType.typeName(special);
 		return tn.contains(" ") && !(tn.startsWith("{") || tn.startsWith("[")) ? "("+tn+")?" : tn + "?";
 	}
 

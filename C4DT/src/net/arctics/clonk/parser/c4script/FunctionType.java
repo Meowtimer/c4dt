@@ -29,11 +29,6 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return other == PrimitiveType.FUNCTION || other instanceof FunctionType;
-	}
-
-	@Override
 	public String typeName(boolean special) {
 		if (!special)
 			return PrimitiveType.FUNCTION.typeName(false);
