@@ -13,19 +13,13 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Definition definition;
 	public Definition definition() { return definition; }
-	public MetaDefinition(Definition definition) {
-		super();
-		this.definition = definition;
-	}
+	public MetaDefinition(Definition definition) { super(); this.definition = definition; }
 	@Override
 	public Iterator<IType> iterator() { return iterable(PrimitiveType.ID, this).iterator(); }
 	@Override
 	public boolean canBeAssignedFrom(IType other) { return other == PrimitiveType.ID || other instanceof MetaDefinition; }
 	@Override
-	public String typeName(boolean special) {
-		return special ? String.format("id<%s>", definition.typeName(true))
-			: definition.typeName(false);
-	}
+	public String typeName(boolean special) { return String.format("id<%s>", definition.typeName(true)); }
 	@Override
 	public IType simpleType() { return PrimitiveType.ID; }
 	@Override

@@ -6,7 +6,9 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ASTNode.ITransformer;
+import net.arctics.clonk.parser.c4script.ScriptsHelper;
 import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
@@ -35,14 +37,14 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	}
 	@Override
 	public boolean consume(ASTNode consumer, ASTNode extra) {
-		MatchingPlaceholder mp = as(consumer, MatchingPlaceholder.class);
+		final MatchingPlaceholder mp = as(consumer, MatchingPlaceholder.class);
 		if (mp != null && mp.multiplicity() != Multiplicity.One)
 			if (mp.satisfiedBy(extra)) {
-				ASTNode[] mpSubElements = mp.subElements();
+				final ASTNode[] mpSubElements = mp.subElements();
 				if (mpSubElements.length > 0) {
-					ASTNode oldLeft = left; left = mp;
-					ASTNode oldRight = right; right = extra;
-					boolean result = compareSubElements(mpSubElements, extra.subElements()) != null;
+					final ASTNode oldLeft = left; left = mp;
+					final ASTNode oldRight = right; right = extra;
+					final boolean result = compareSubElements(mpSubElements, extra.subElements()) != null;
 					left = oldLeft; right = oldRight;
 					return result;
 				} else
@@ -53,7 +55,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	@Override
 	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {
 		for (int i = 0; i < leftSubElements.length; i++) {
-			ASTNode left = leftSubElements[i];
+			final ASTNode left = leftSubElements[i];
 			if (left instanceof MatchingPlaceholder)
 				if (leftToRightMapping[i] != null)
 					addToResult(leftToRightMapping[i], (MatchingPlaceholder)left);
@@ -77,7 +79,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	}
 	@Override
 	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
-		MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
+		final MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
 		return mp != null && mp.multiplicity() == Multiplicity.One && mp.subElements().length == 0 && mp.satisfiedBy(right);
 	}
 	/**
@@ -96,20 +98,20 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 					if (expression.getClass() == Placeholder.class)
 						try {
 							return new MatchingPlaceholder(((Placeholder)expression).entryName());
-						} catch (ParsingException e) {
+						} catch (final ParsingException e) {
 							e.printStackTrace();
 							return null;
 						}
 					else if (expression instanceof BinaryOp) {
-						BinaryOp bop = (BinaryOp) expression;
+						final BinaryOp bop = (BinaryOp) expression;
 						switch (bop.operator()) {
 						case And: case Or: case BitAnd: case BitOr:
-							MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
-							MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
+							final MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
+							final MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
 							if (mpl != null && mpr != null)
 								try {
 									return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
-								} catch (ParsingException e) {
+								} catch (final ParsingException e) {
 									e.printStackTrace();
 									return null;
 								}
@@ -123,7 +125,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			}
 			@Override
 			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
-				ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
+				final ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
 				if (matchingPlaceholder != null)
 					return matchingPlaceholder;
 				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
@@ -137,5 +139,14 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 				return expression;
 			}
 		});
+		
+	}
+	public static ASTNode matchingExpr(final String statementText, Engine engine) {
+		try {
+			return matchingExpr(ScriptsHelper.parse(statementText, engine));
+		} catch (final ParsingException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

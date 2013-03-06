@@ -9,12 +9,12 @@ import java.util.concurrent.ExecutorService;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ScriptsHelper;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.util.Sink;
@@ -73,8 +73,8 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
 		Engine engine = commonEngine(scope);
-		this.template = ScriptsHelper.matchingExpr(templateExpressionText, engine);
-		this.replacement = replacementExpressionText != null ? ScriptsHelper.matchingExpr(replacementExpressionText, engine) : null;
+		this.template = ASTNodeMatcher.matchingExpr(templateExpressionText, engine);
+		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.matchingExpr(replacementExpressionText, engine) : null;
 		this.scope = scope;
 	}
 

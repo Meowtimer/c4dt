@@ -23,31 +23,28 @@ import org.eclipse.jface.text.IDocument;
 
 public class StreamUtil {
 	public static String stringFromReader(Reader reader) {
-		char[] buffer = new char[1024];
+		final char[] buffer = new char[1024];
 		int read;
-		StringBuilder builder = new StringBuilder(1024);
+		final StringBuilder builder = new StringBuilder(1024);
 		try {
 			while ((read = reader.read(buffer)) > 0)
 				builder.append(buffer, 0, read);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			return "";
 		}
 		return builder.toString();
 	}
 
 	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding);
-		try {
+		try (InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding)) {
 			return stringFromReader(inputStreamReader);
-		} finally {
-			inputStreamReader.close();
 		}
 	}
 
 	public static String stringFromInputStream(InputStream stream) {
 		try {
 			return stringFromInputStream(stream, "UTF8"); //$NON-NLS-1$
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return "";
 		}
@@ -57,7 +54,7 @@ public class StreamUtil {
 		InputStream stream;
 		try {
 			stream = url.openStream();
-		} catch (IOException e1) {
+		} catch (final IOException e1) {
 			e1.printStackTrace();
 			return null;
 		}
@@ -66,7 +63,7 @@ public class StreamUtil {
 		} finally {
 			try {
 				stream.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -76,7 +73,7 @@ public class StreamUtil {
 		InputStream stream;
 		try {
 			stream = file.getContents();
-		} catch (CoreException e1) {
+		} catch (final CoreException e1) {
 			e1.printStackTrace();
 			return null;
 		}
@@ -85,7 +82,7 @@ public class StreamUtil {
 		} finally {
 			try {
 				stream.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -95,7 +92,7 @@ public class StreamUtil {
 		InputStream stream;
 		try {
 			stream = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			return "";
 		}
 		try {
@@ -103,7 +100,7 @@ public class StreamUtil {
 		} finally {
 			try {
 				stream.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -121,9 +118,9 @@ public class StreamUtil {
 		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
 	}
 	public static void writeToFile(File file, StreamWriteRunnable runnable) throws IOException {
-		FileOutputStream s = new FileOutputStream(file);
+		final FileOutputStream s = new FileOutputStream(file);
 		try {
-			OutputStreamWriter writer = new OutputStreamWriter(s);
+			final OutputStreamWriter writer = new OutputStreamWriter(s);
 			try {
 				runnable.run(file, s, writer);
 			} finally {
@@ -134,7 +131,7 @@ public class StreamUtil {
 		}
 	}
 	public static void transfer(InputStream source, OutputStream dest) throws IOException {
-		byte[] buffer = new byte[1024];
+		final byte[] buffer = new byte[1024];
 		int read;
 		while ((read = source.read(buffer)) != -1)
 			dest.write(buffer, 0, read);

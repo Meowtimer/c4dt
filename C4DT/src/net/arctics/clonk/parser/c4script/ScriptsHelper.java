@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.ParsingException;
@@ -58,13 +57,5 @@ public class ScriptsHelper {
 	}
 	public static ASTNode parse(final String source, Engine engine) throws ParsingException {
 		return ScriptsHelper.parseStandaloneNode(source, null, null, null, engine, null);
-	}
-	public static ASTNode matchingExpr(final String statementText, Engine engine) {
-		try {
-			return ASTNodeMatcher.matchingExpr(parse(statementText, engine));
-		} catch (ParsingException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 }

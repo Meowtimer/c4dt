@@ -19,6 +19,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.ID;
@@ -370,7 +371,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 
-	private static final ASTNode PLACE_CALL = ScriptsHelper.matchingExpr
+	private static final ASTNode PLACE_CALL = ASTNodeMatcher.matchingExpr
 		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
 
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {

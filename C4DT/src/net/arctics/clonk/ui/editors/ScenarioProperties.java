@@ -94,9 +94,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private Image mapPreviewImage;
 	private int mapPreviewNumPlayers = 1;
 
-	private Image imageForSlider(String entryName) {
-		return scenarioConfiguration.engine().image(entryName);
-	}
+	private Image imageForSlider(String entryName) { return scenarioConfiguration.engine().image(entryName); }
 
 	private Image imageFor(Definition def) {
 		if (def != null) {
@@ -104,11 +102,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			if (img == null && !images.containsKey(def.id())) {
 				if (def.definitionFolder() != null)
 					try {
-						Image original = UI.imageForContainer(def.definitionFolder());
+						final Image original = UI.imageForContainer(def.definitionFolder());
 						final int s = 16;
 						if (original != null) try {
-							Image scaled = new Image(Display.getCurrent(), s, s);
-							GC gc = new GC(scaled);
+							final Image scaled = new Image(Display.getCurrent(), s, s);
+							final GC gc = new GC(scaled);
 							try {
 								gc.setAntialias(SWT.ON);
 								gc.setInterpolation(SWT.HIGH);
@@ -120,7 +118,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						} finally {
 							original.dispose();
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						// ...
 					}
 				images.put(def.id(), img);
@@ -140,37 +138,39 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		private final IPredicate<Definition> definitionFilter;
 
 		private void createControl(Composite parent, String label) {
-			Label l = new Label(parent, SWT.NULL);
+			final Label l = new Label(parent, SWT.NULL);
 			l.setText(label);
 			l.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 
-			Composite tableComposite = new Composite(parent, SWT.NO_SCROLL);
-			GridData tableLayoutData = new GridData(GridData.FILL_BOTH);
+			final Composite tableComposite = new Composite(parent, SWT.NO_SCROLL);
+			final GridData tableLayoutData = new GridData(GridData.FILL_BOTH);
 			tableLayoutData.heightHint = 0;
 			tableComposite.setLayoutData(tableLayoutData);
-			TableColumnLayout tableLayout = new TableColumnLayout();
+			final TableColumnLayout tableLayout = new TableColumnLayout();
 			tableComposite.setLayout(tableLayout);
 			table = new Table(tableComposite, SWT.FULL_SELECTION|SWT.MULTI|SWT.BORDER);
 			this.viewer = createViewer();
 			table.setHeaderVisible(true);
 			table.setLinesVisible(true);
-			TableViewerColumn imageColumn = new TableViewerColumn(viewer, SWT.LEFT);
+			final TableViewerColumn imageColumn = new TableViewerColumn(viewer, SWT.LEFT);
 			imageColumn.setLabelProvider(new StyledCellLabelProvider() {
 				@Override
 				public void update(ViewerCell cell) {
 					@SuppressWarnings("unchecked")
+					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
-					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					final Definition def = scenario.nearestDefinitionWithId(kv.key());
 					cell.setImage(def != null ? imageFor(def) : null);
 				}
 			});
-			TableViewerColumn defColumn = new TableViewerColumn(viewer, SWT.LEFT);
+			final TableViewerColumn defColumn = new TableViewerColumn(viewer, SWT.LEFT);
 			defColumn.setLabelProvider(new StyledCellLabelProvider() {
 				@Override
 				public void update(ViewerCell cell) {
 					@SuppressWarnings("unchecked")
+					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
-					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					final Definition def = scenario.nearestDefinitionWithId(kv.key());
 					cell.setText(def != null ? def.name() : kv.key().toString());
 				}
 			});
@@ -191,12 +191,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 							}
 						}
 					}
-					DefFinder finder = new DefFinder();
+					final DefFinder finder = new DefFinder();
 					scenario.index().allDefinitions(finder);
 					if (finder.found != null && array.find(finder.found.id()) == null) {
 						@SuppressWarnings("unchecked")
+						final
 						KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>)element;
-						int index = array.components().indexOf(kv);
+						final int index = array.components().indexOf(kv);
 						array.components().remove(index);
 						array.components().add(index, new KeyValuePair<ID, Integer>(finder.found.id(), kv.value()));
 						viewer.refresh();
@@ -205,8 +206,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@SuppressWarnings("unchecked")
 				@Override
 				protected Object getValue(Object element) {
-					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
-					Definition def = scenario.nearestDefinitionWithId(kv.key());
+					final KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
+					final Definition def = scenario.nearestDefinitionWithId(kv.key());
 					return def != null ? def.name() : kv.key().toString();
 				}
 				@Override
@@ -226,7 +227,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 			});
 			defColumn.getColumn().setText(Messages.ScenarioProperties_Definition);
-			TableViewerColumn countColumn = new TableViewerColumn(viewer, SWT.RIGHT);
+			final TableViewerColumn countColumn = new TableViewerColumn(viewer, SWT.RIGHT);
 			countColumn.getColumn().setText(Messages.ScenarioProperties_CountColumn);
 			countColumn.setEditingSupport(new EditingSupport(viewer) {
 				@SuppressWarnings("unchecked")
@@ -253,6 +254,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@Override
 				public void update(ViewerCell cell) {
 					@SuppressWarnings("unchecked")
+					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
 					cell.setText(kv.value().toString());
 				}
@@ -261,14 +263,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			tableLayout.setColumnData(defColumn.getColumn(), new ColumnWeightData(80));
 			tableLayout.setColumnData(countColumn.getColumn(), new ColumnWeightData(10));
 
-			Composite buttons = new Composite(parent, SWT.NO_SCROLL);
+			final Composite buttons = new Composite(parent, SWT.NO_SCROLL);
 			buttons.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-			GridLayout buttonsLayout = noMargin(new GridLayout(1, true));
+			final GridLayout buttonsLayout = noMargin(new GridLayout(1, true));
 			buttonsLayout.makeColumnsEqualWidth = true;
 			buttons.setLayout(buttonsLayout);
-			GridData buttonData = new GridData(SWT.BEGINNING);
+			final GridData buttonData = new GridData(SWT.BEGINNING);
 			buttonData.grabExcessHorizontalSpace = true;
-			Button add = new Button(buttons, SWT.PUSH);
+			final Button add = new Button(buttons, SWT.PUSH);
 			add.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -277,12 +279,12 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			});
 			add.setLayoutData(buttonData);
 			add.setText(Messages.ScenarioProperties_AddDefinitions);
-			Button remove = new Button(buttons, SWT.PUSH);
+			final Button remove = new Button(buttons, SWT.PUSH);
 			remove.setText(Messages.ScenarioProperties_RemoveDefinitions);
 			remove.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					int[] indices = table.getSelectionIndices();
+					final int[] indices = table.getSelectionIndices();
 					for (int i = indices.length-1; i >= 0; i--)
 						array.childCollection().remove(indices[i]);
 					viewer.refresh();
@@ -295,7 +297,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			final Button dec = new Button(buttons, SWT.PUSH);
 			dec.setText(Messages.ScenarioProperties_Dec);
 			dec.setLayoutData(buttonData);
-			SelectionAdapter changeAmountListener = new SelectionAdapter() {
+			final SelectionAdapter changeAmountListener = new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					int change = 0;
@@ -303,9 +305,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						change = 1;
 					else if (e.getSource() == dec)
 						change = -1;
-					int[] indices = table.getSelectionIndices();
+					final int[] indices = table.getSelectionIndices();
 					for (int i = indices.length-1; i >= 0; i--) {
-						KeyValuePair<ID, Integer> kv = array.childCollection().get(indices[i]);
+						final KeyValuePair<ID, Integer> kv = array.childCollection().get(indices[i]);
 						kv.setValue(Math.max(1, kv.value()+change));
 					}
 					viewer.refresh();
@@ -323,17 +325,17 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 
 		private TableViewer createViewer() {
-			TableViewer viewer = new TableViewer(table) {
+			final TableViewer viewer = new TableViewer(table) {
 				@Override
 				public void refresh() {
 					super.refresh();
 				}
 			};
-			Transfer[] transferTypes = new Transfer[] { PluginTransfer.getInstance() };
+			final Transfer[] transferTypes = new Transfer[] { PluginTransfer.getInstance() };
 			viewer.addDragSupport(DND.DROP_MOVE, transferTypes, new DragSourceAdapter() {
 				@Override
 				public void dragSetData(DragSourceEvent event) {
-					ByteBuffer buffer = ByteBuffer.allocate(4*table.getSelectionCount());
+					final ByteBuffer buffer = ByteBuffer.allocate(4*table.getSelectionCount());
 					for (int i = 0; i < table.getSelectionCount(); i++)
 						buffer.putInt(i*4, table.getSelectionIndices()[i]);
 					event.data = new PluginTransferData(Core.PLUGIN_ID, buffer.array());
@@ -347,35 +349,36 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					try {
 						this.target = as(target, KeyValuePair.class);
 						return true;
-					} catch (Exception e) {}
+					} catch (final Exception e) {}
 					return false;
 				}
 				@Override
 				public boolean performDrop(Object data) {
 					try {
-						List<KeyValuePair<ID, Integer>> items = DefinitionListEditor.this.array.childCollection();
+						final List<KeyValuePair<ID, Integer>> items = DefinitionListEditor.this.array.childCollection();
 						int c = items.indexOf(this.target);
 						if (c == -1)
 							c = items.size();
 
-						PluginTransferData d = (PluginTransferData) data;
-						ByteBuffer b = ByteBuffer.wrap(d.getData());
-						int[] selection = new int[d.getData().length/4];
+						final PluginTransferData d = (PluginTransferData) data;
+						final ByteBuffer b = ByteBuffer.wrap(d.getData());
+						final int[] selection = new int[d.getData().length/4];
 						for (int i = 0; i < selection.length; i++)
 							selection[i] = b.getInt(i*4);
 						@SuppressWarnings("unchecked")
+						final
 						KeyValuePair<ID, Integer>[] draggedItems = new KeyValuePair[selection.length];
 						for (int i = selection.length-1; i >= 0; i--) {
 							draggedItems[i] = items.get(selection[i]);
 							if (selection[i] < c)
 								c--;
 						}
-						List<KeyValuePair<ID, Integer>> draggedItemsList = Arrays.asList(draggedItems);
+						final List<KeyValuePair<ID, Integer>> draggedItemsList = Arrays.asList(draggedItems);
 						items.removeAll(draggedItemsList);
 						items.addAll(c, draggedItemsList);
 						DefinitionListEditor.this.viewer.refresh();
 						return true;
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 					return false;
@@ -403,10 +406,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@Override
 				public Image getColumnImage(Object element, int columnIndex) {
 					@SuppressWarnings("unchecked")
+					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
 					switch (columnIndex) {
 					case 0:
-						Definition def = scenario.nearestDefinitionWithId(kv.key());
+						final Definition def = scenario.nearestDefinitionWithId(kv.key());
 						return imageFor(def);
 					default:
 						return null;
@@ -415,10 +419,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@Override
 				public String getColumnText(Object element, int columnIndex) {
 					@SuppressWarnings("unchecked")
+					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
 					switch (columnIndex) {
 					case 1:
-						Definition def = scenario.nearestDefinitionWithId(kv.key());
+						final Definition def = scenario.nearestDefinitionWithId(kv.key());
 						return def != null ? def.name() : kv.key().toString();
 					case 2:
 						return kv.value().toString();
@@ -433,7 +438,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 
 		protected void addDefinitions() {
 			final List<Definition> defs = new LinkedList<Definition>();
-			for (Index i : scenario.index().relevantIndexes())
+			for (final Index i : scenario.index().relevantIndexes())
 				i.allDefinitions(new Sink<Definition>() {
 					@Override
 					public void receivedObject(Definition item) {
@@ -441,13 +446,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 					@Override
 					public boolean filter(Definition item) {
-						for (KeyValuePair<ID, Integer> kv : array.components())
+						for (final KeyValuePair<ID, Integer> kv : array.components())
 							if (kv.key().equals(item.id()))
 								return false;
 						return definitionFilter.test(item);
 					}
 				});
-			OpenDefinitionDialog chooser = new OpenDefinitionDialog(defs);
+			final OpenDefinitionDialog chooser = new OpenDefinitionDialog(defs);
 			chooser.setImageStore(new IConverter<Definition, Image>() {
 				@Override
 				public Image convert(Definition from) {
@@ -458,8 +463,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			chooser.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
 			switch (chooser.open()) {
 			case Window.OK:
-				for (Definition d : chooser.selectedDefinitions()) {
-					KeyValuePair<ID, Integer> kv = array.find(d.id());
+				for (final Definition d : chooser.selectedDefinitions()) {
+					final KeyValuePair<ID, Integer> kv = array.find(d.id());
 					if (kv != null)
 						kv.setValue(kv.value()+1);
 					else
@@ -475,7 +480,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			for (int i = 0; i < other.array.components().size(); i++)
 				try {
 					array.add((KeyValuePair<ID, Integer>) other.array.components().get(i).clone());
-				} catch (CloneNotSupportedException e) {
+				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
 			viewer.refresh();
@@ -500,18 +505,18 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			this.updateRunnable = updateRunnable;
 		}
 		private Spinner spinner(final Composite parent, final String label, int index, boolean labelPostfix, String toolTipText) {
-			Runnable r = new Runnable()
+			final Runnable r = new Runnable()
 				{ @Override public void run()
 					{new Label(parent, SWT.NULL).setText(label);}};
 			if (!labelPostfix)
 				r.run();
-			Spinner spinner = new Spinner(parent, SWT.BORDER);
+			final Spinner spinner = new Spinner(parent, SWT.BORDER);
 			spinner.addSelectionListener(this);
 			spinner.setMinimum(-100);
 			spinner.setMaximum(+100);
 			spinner.setSelection(value(index));
 			spinner.setData(index);
-			GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			final GridData scaleLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			scaleLayoutData.grabExcessHorizontalSpace = true;
 			spinner.setLayoutData(scaleLayoutData);
 			spinner.setToolTipText(toolTipText);
@@ -522,19 +527,19 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		public EntrySlider(Composite parent, int style, String section, String entry, String label) {
 			this.section = section;
 			this.entry = entry;
-			Image img = imageForSlider(entry);
-			Composite group = new Composite(parent, SWT.NO_SCROLL);
+			final Image img = imageForSlider(entry);
+			final Composite group = new Composite(parent, SWT.NO_SCROLL);
 			group.setLayout(noMargin(new GridLayout(img != null ? 2 : 1, false)));
-			GridData groupData = new GridData(GridData.FILL_BOTH);
+			final GridData groupData = new GridData(GridData.FILL_BOTH);
 			groupData.grabExcessHorizontalSpace = true;
 			group.setLayoutData(groupData);
 			if (img != null) {
-				Label icon = new Label(group, SWT.BORDER);
+				final Label icon = new Label(group, SWT.BORDER);
 				icon.setImage(img);
 			}
-			Composite spinners = new Composite(group, SWT.NO_SCROLL);
+			final Composite spinners = new Composite(group, SWT.NO_SCROLL);
 			spinners.setLayoutData(groupData);
-			Label lbl = new Label(spinners, SWT.NULL);
+			final Label lbl = new Label(spinners, SWT.NULL);
 			lbl.setText(label);
 			lbl.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 8, 1));
 			spinners.setLayout(noMargin(new GridLayout(8, false)));
@@ -545,7 +550,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			Integer ndx = (Integer) e.widget.getData();
+			final Integer ndx = (Integer) e.widget.getData();
 			setValue(ndx, ((Spinner)e.widget).getSelection());
 			if (updateRunnable != null)
 				updateRunnable.run();
@@ -554,37 +559,37 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		public void modifyText(ModifyEvent e) {
 			try {
 				setValue((Integer)e.widget.getData(), Integer.parseInt(((Text)e.widget).getText()));
-			} catch (NumberFormatException x) {}
+			} catch (final NumberFormatException x) {}
 		}
 		@Override
 		public void verifyText(VerifyEvent e) {
 			try {
 				Integer.parseInt(((Text)e.widget).getText());
-			} catch (Exception x) {
+			} catch (final Exception x) {
 				e.doit = false;
 			}
 			e.doit = true;
 		}
 		private void setValue(int index, int value) {
-			IniSection s = scenarioConfiguration.sectionWithName(section, true);
+			final IniSection s = scenarioConfiguration.sectionWithName(section, true);
 			IniItem i = s.subItemByKey(entry);
 			if (i == null) {
-				int[] values = new int[4];
+				final int[] values = new int[4];
 				values[index] = value;
 				s.addItem(i = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values)));
 			} else {
-				IntegerArray ints = (IntegerArray)((ComplexIniEntry)i).value();
+				final IntegerArray ints = (IntegerArray)((ComplexIniEntry)i).value();
 				if (ints.values().length <= index)
 					ints.grow(index+1);
 				ints.values()[index].setSummedValue(value);
 			}
 		}
 		private int value(int index) {
-			IniEntry e = scenarioConfiguration.entryInSection(section, entry);
+			final IniEntry e = scenarioConfiguration.entryInSection(section, entry);
 			try {
 				return e instanceof ComplexIniEntry && ((ComplexIniEntry)e).value() instanceof IntegerArray
 					? ((IntegerArray)((ComplexIniEntry)e).value()).values()[index].summedValue() : 0;
-			} catch (IndexOutOfBoundsException bounds) {
+			} catch (final IndexOutOfBoundsException bounds) {
 				return 0;
 			}
 		}
@@ -595,9 +600,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	public Slider makeValueSlider(Composite parent, String label, String section, String entry) {
-		Label l = new Label(parent, SWT.NULL);
+		final Label l = new Label(parent, SWT.NULL);
 		l.setText(label);
-		Slider s = new Slider(parent, SWT.NULL);
+		final Slider s = new Slider(parent, SWT.NULL);
 		return s;
 	}
 
@@ -611,9 +616,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private Button layersCheckbox;
 
 	private Composite tab(String title) {
-		TabItem tab = new TabItem(tabs, SWT.NULL);
+		final TabItem tab = new TabItem(tabs, SWT.NULL);
 		tab.setText(title);
-		Composite composite = new Composite(tabs, SWT.NO_SCROLL);
+		final Composite composite = new Composite(tabs, SWT.NO_SCROLL);
 		tab.setControl(composite);
 		return composite;
 	}
@@ -631,14 +636,14 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).subItemByKey(entryName), ComplexIniEntry.class);
 			if (entry == null)
 				throw new NullPointerException();
-		} catch (NullPointerException itemCreation) {
+		} catch (final NullPointerException itemCreation) {
 			try {
-				IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
+				final IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
 				IniItem item = section.subItemByKey(entryName);
 				if (item == null)
 					item = section.addItem(new ComplexIniEntry(-1, -1, entryName, new IDArray()));
 				entry = (ComplexIniEntry)item;
-			} catch (Exception fail) {
+			} catch (final Exception fail) {
 				return null;
 			}
 		}
@@ -653,10 +658,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private Composite[] makeLanes(Composite parent) {
-		Composite leftLane = new Composite(parent, SWT.NO_SCROLL);
+		final Composite leftLane = new Composite(parent, SWT.NO_SCROLL);
 		leftLane.setLayoutData(new GridData(GridData.FILL_BOTH));
 		leftLane.setLayout(new GridLayout(2, false));
-		Composite rightLane = new Composite(parent, SWT.NO_SCROLL);
+		final Composite rightLane = new Composite(parent, SWT.NO_SCROLL);
 		rightLane.setLayoutData(new GridData(GridData.FILL_BOTH));
 		rightLane.setLayout(new GridLayout(2, false));
 		return new Composite[] {leftLane, rightLane};
@@ -682,8 +687,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private void makeWeatherTab() {
-		Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
-		GridLayout weatherLayout = new GridLayout(2, false);
+		final Composite weather = tab(Messages.ScenarioProperties_WeatherTab);
+		final GridLayout weatherLayout = new GridLayout(2, false);
 		//weather.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		weather.setLayout(weatherLayout);
 		{
@@ -701,10 +706,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private void makeEnvironmentTab() {
-		Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
+		final Composite environment = tab(Messages.ScenarioProperties_EnvironmentTab);
 		environment.setLayout(new GridLayout(2, false));
 		{
-			Composite[] lanes = makeLanes(environment);
+			final Composite[] lanes = makeLanes(environment);
 			listEditorFor(lanes[0], "Animals", "Animal", Messages.ScenarioProperties_Animals); //$NON-NLS-1$ //$NON-NLS-2$
 			listEditorFor(lanes[1], "Animals", "Nest", Messages.ScenarioProperties_Nests); //$NON-NLS-1$ //$NON-NLS-2$
 			listEditorFor(lanes[0], "Landscape", "Vegetation", Messages.ScenarioProperties_Vegetation); //$NON-NLS-1$ //$NON-NLS-2$
@@ -713,13 +718,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private void makeLandscapeTab() {
-		Composite landscape = tab(Messages.ScenarioProperties_LandscapeTab);
+		final Composite landscape = tab(Messages.ScenarioProperties_LandscapeTab);
 		{
 			landscape.setLayout(new GridLayout(3, false));
-			Composite options = new Composite(landscape, SWT.NULL);
+			final Composite options = new Composite(landscape, SWT.NULL);
 			{
 				options.setLayout(new GridLayout(1, false));
-				EntrySlider[] sliders = new EntrySlider[] {
+				final EntrySlider[] sliders = new EntrySlider[] {
 					slider(options, "Landscape", "MapWidth", Messages.ScenarioProperties_MapWidth), //$NON-NLS-1$ //$NON-NLS-2$
 					slider(options, "Landscape", "MapHeight", Messages.ScenarioProperties_MapHeight), //$NON-NLS-1$ //$NON-NLS-2$
 					slider(options, "Landscape", "MapZoom", Messages.ScenarioProperties_MapZoom), //$NON-NLS-1$ //$NON-NLS-2$
@@ -729,24 +734,24 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					slider(options, "Landscape", "Random", Messages.ScenarioProperties_Random), //$NON-NLS-1$ //$NON-NLS-2$
 					slider(options, "Landscape", "LiquidLevel", Messages.ScenarioProperties_LiquidLevel) //$NON-NLS-1$ //$NON-NLS-2$
 				};
-				Runnable r = new Runnable() {
+				final Runnable r = new Runnable() {
 					@Override
 					public void run() { drawMapPreviewFailsafe(); }
 				};
-				for (EntrySlider s : sliders)
+				for (final EntrySlider s : sliders)
 					s.setUpdateRunnable(r);
 			}
-			Composite preview = new Composite(landscape, SWT.NO_SCROLL);
+			final Composite preview = new Composite(landscape, SWT.NO_SCROLL);
 			{
 				preview.setLayout(new GridLayout(1, false));
 				new Label(preview, SWT.NULL).setText(Messages.ScenarioProperties_DynamicMap);
 				mapPreviewLabel = new Label(preview, SWT.BORDER);
 			}
-			Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
+			final Composite displayOptions = new Composite(landscape, SWT.NO_SCROLL);
 			{
 				displayOptions.setLayout(new GridLayout(1, false));
 				displayOptions.setLayoutData(new GridData(GridData.BEGINNING));
-				SelectionAdapter redrawPreview = new SelectionAdapter() {
+				final SelectionAdapter redrawPreview = new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						drawMapPreviewFailsafe();
@@ -760,7 +765,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				layersCheckbox.setText(Messages.ScenarioProperties_Layers);
 				layersCheckbox.addSelectionListener(redrawPreview);
 				new Label(displayOptions, SWT.NULL).setText(Messages.ScenarioProperties_PreviewFor);
-				SelectionAdapter playerPreviewNumListener = new SelectionAdapter() {
+				final SelectionAdapter playerPreviewNumListener = new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						mapPreviewNumPlayers = (Integer)e.widget.getData();
@@ -768,7 +773,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 				};
 				for (int i = 1; i <= 4; i++) {
-					Button b = new Button(displayOptions, SWT.RADIO);
+					final Button b = new Button(displayOptions, SWT.RADIO);
 					b.setText(String.format(Messages.ScenarioProperties_PlayerMapPreviewFormat, i));
 					b.setData(i);
 					b.addSelectionListener(playerPreviewNumListener);
@@ -779,19 +784,19 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private void makeEquipmentTab() {
-		Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
-		TabFolder players = new TabFolder(equipment, SWT.NULL);
+		final Composite equipment = tab(Messages.ScenarioProperties_EquipmentTab);
+		final TabFolder players = new TabFolder(equipment, SWT.NULL);
 		players.setLayoutData(new GridData(GridData.FILL_BOTH));
 		final Map<Integer, List<DefinitionListEditor>> playerEditors = new HashMap<Integer, List<DefinitionListEditor>>();
 		for (int i = 1; i <= 4; i++) {
 			final int playerIndex = i;
-			TabItem tab = new TabItem(players, SWT.NULL);
+			final TabItem tab = new TabItem(players, SWT.NULL);
 			tab.setText(String.format(Messages.ScenarioProperties_PlayerTabFormat, i));
 			final Composite composite = new Composite(players, SWT.NULL);
 			tab.setControl(composite);
 			composite.setLayout(new GridLayout(2, false));
 			composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-			String section = String.format("Player%d", i); //$NON-NLS-1$
+			final String section = String.format("Player%d", i); //$NON-NLS-1$
 			final List<DefinitionListEditor> thisPlayerEditors = new ArrayList<ScenarioProperties.DefinitionListEditor>(8);
 			playerEditors.put(playerIndex, thisPlayerEditors);
 			final Composite[] simpleLanes = makeLanes(composite);
@@ -808,15 +813,15 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				listEditorFor(extendedLanes[0], section, "HomeBaseMaterial", Messages.ScenarioProperties_HomeBaseMaterial), //$NON-NLS-1$
 				listEditorFor(extendedLanes[1], section, "HomeBaseProduction", Messages.ScenarioProperties_HomeBaseProduction) //$NON-NLS-1$
 			));
-			Composite buttons = new Composite(composite, SWT.NO_SCROLL);
+			final Composite buttons = new Composite(composite, SWT.NO_SCROLL);
 			buttons.setLayout(noMargin(new GridLayout(2, false)));
 			buttons.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
-			Button copyToOthers = new Button(buttons, SWT.PUSH);
+			final Button copyToOthers = new Button(buttons, SWT.PUSH);
 			copyToOthers.setText(Messages.ScenarioProperties_CopyToOtherPlayers);
 			copyToOthers.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					for (Map.Entry<Integer, List<DefinitionListEditor>> editors : playerEditors.entrySet())
+					for (final Map.Entry<Integer, List<DefinitionListEditor>> editors : playerEditors.entrySet())
 						if (editors.getKey() != playerIndex)
 							for (int i = 0; i < thisPlayerEditors.size(); i++)
 								editors.getValue().get(i).copyFrom(thisPlayerEditors.get(i));
@@ -827,7 +832,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				final String[] extendedText = new String[] {Messages.ScenarioProperties_PlayerExtended, Messages.ScenarioProperties_PlayerSimple};
 				boolean extendedOn = false;
 				void setLanesVisible(Composite[] lanes, boolean visible) {
-					for (Composite l : lanes) {
+					for (final Composite l : lanes) {
 						l.setVisible(visible);
 						((GridData)l.getLayoutData()).exclude = !visible;
 					}
@@ -852,10 +857,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	private void makeGameTab() {
-		Composite game = tab(Messages.ScenarioProperties_GameTab);
+		final Composite game = tab(Messages.ScenarioProperties_GameTab);
 		game.setLayout(new GridLayout(2, false));
 		{
-			Composite[] lanes = makeLanes(game);
+			final Composite[] lanes = makeLanes(game);
 			listEditorFor(lanes[0], "Game", "Goals", Messages.ScenarioProperties_Goals); //$NON-NLS-1$ //$NON-NLS-2$
 			listEditorFor(lanes[1], "Game", "Rules", Messages.ScenarioProperties_Rules); //$NON-NLS-1$ //$NON-NLS-2$
 		}
@@ -864,7 +869,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	private void drawMapPreviewFailsafe() {
 		try {
 			drawMapPreview();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace(); // oh well
 		}
 	}
@@ -874,18 +879,18 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			mapPreviewImage.dispose();
 			mapPreviewImage = null;
 		}
-		MapCreator mapCreator = new ClassicMapCreator();
+		final MapCreator mapCreator = new ClassicMapCreator();
 		ImageData data;
 		try {
 			data = mapCreator.create(scenarioConfiguration, layersCheckbox.getSelection(), mapPreviewNumPlayers);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return;
 		}
-		Image small = new Image(Display.getCurrent(), data);
+		final Image small = new Image(Display.getCurrent(), data);
 		try {
-			Image scaled = new Image(Display.getCurrent(), 300, 300);
-			GC gc = new GC(scaled);
+			final Image scaled = new Image(Display.getCurrent(), 300, 300);
+			final GC gc = new GC(scaled);
 			try {
 				gc.setAntialias(SWT.ON);
 				gc.setInterpolation(SWT.HIGH);
@@ -913,7 +918,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	public boolean performCancel() {
 		try {
 			scenarioConfiguration.parser().parse(false, true);
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
 		return super.performCancel();
@@ -926,10 +931,10 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			mapPreviewImage = null;
 		}
 		try {
-			for (Image i : images.values())
+			for (final Image i : images.values())
 				if (i != null)
 					i.dispose();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		super.dispose();
