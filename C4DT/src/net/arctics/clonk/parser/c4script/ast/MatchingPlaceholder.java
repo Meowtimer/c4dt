@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script.ast;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,11 +43,7 @@ public class MatchingPlaceholder extends Placeholder {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IStorage source() {
-			try {
-				return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-			} catch (UnsupportedEncodingException e) {
-				return null;
-			}
+			return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		@Override
 		public String name() {
@@ -60,7 +55,7 @@ public class MatchingPlaceholder extends Placeholder {
 		};
 		@CommandFunction
 		public static List<ASTNode> reverse(Object context, List<ASTNode> input) {
-			ArrayList<ASTNode> list = new ArrayList<ASTNode>(input);
+			final ArrayList<ASTNode> list = new ArrayList<ASTNode>(input);
 			Collections.reverse(list);
 			return list;
 		}
@@ -79,7 +74,7 @@ public class MatchingPlaceholder extends Placeholder {
 		public static Object eval(IEvaluationContext context, ASTNode node) {
 			try {
 				return node.evaluate(context);
-			} catch (ControlFlowException e) {
+			} catch (final ControlFlowException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -147,8 +142,8 @@ public class MatchingPlaceholder extends Placeholder {
 
 	@SuppressWarnings("unchecked")
 	private void parse(String matchText) throws ParsingException {
-		BufferedScanner scanner = new BufferedScanner(matchText);
-		String entry = scanner.readIdent();
+		final BufferedScanner scanner = new BufferedScanner(matchText);
+		final String entry = scanner.readIdent();
 		if (scanner.peek() == ':')
 			scanner.read();
 		while (!scanner.reachedEOF()) {
@@ -214,10 +209,10 @@ public class MatchingPlaceholder extends Placeholder {
 					end++;
 				}
 				if (end > start) {
-					String[] attribs = scanner.readStringAt(start, end).split(",");
+					final String[] attribs = scanner.readStringAt(start, end).split(",");
 					this.flags = EnumSet.noneOf(Flag.class);
 					for (int i = 0; i < attribs.length; i++) {
-						String a = attribs[i].trim();
+						final String a = attribs[i].trim();
 						flags.add(Flag.valueOf(Character.toUpperCase(a.charAt(0))+a.substring(1)));
 					}
 				}
@@ -229,12 +224,12 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 					end++;
 				}
-				String className = scanner.readStringAt(start, end);
+				final String className = scanner.readStringAt(start, end);
 				if (className.length() == 0) {
 					scanner.read();
 					continue;
 				}
-				String[] packageFormats = new String[] {
+				final String[] packageFormats = new String[] {
 					"%s.parser.c4script.ast.%s",
 					"%s.parser.%s",
 					"%s.parser.c4script.%s",
@@ -243,12 +238,12 @@ public class MatchingPlaceholder extends Placeholder {
 					"%s.parser.c4script.ast.%sDeclaration",
 					"%s.parser.c4script.ast.Access%s"
 				};
-				for (String pkgFormat : packageFormats)
+				for (final String pkgFormat : packageFormats)
 					try {
 						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
 						if (ASTNode.class.isAssignableFrom(requiredClass))
 							break;
-					} catch (ClassNotFoundException e) {
+					} catch (final ClassNotFoundException e) {
 						continue;
 					}
 				if (requiredClass == null)
@@ -261,28 +256,28 @@ public class MatchingPlaceholder extends Placeholder {
 	public Object transformSubstitution(Object substitution, Object context) {
 		if (!(substitution instanceof Object[]))
 			return null;
-		Object[] s = (Object[]) substitution;
-		Object[] n = new Object[s.length];
+		final Object[] s = (Object[]) substitution;
+		final Object[] n = new Object[s.length];
 		System.arraycopy(s, 0, n, 0, s.length);
 
 		if (property() != null)
 			try {
 				for (int i = 0; i < s.length; i++)
 					n[i] = n[i].getClass().getMethod(property()).invoke(s[i]);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
 		if (code != null)
 			for (int i = 0; i < n.length; i++) try {
 				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i]}, null, context));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
-		ASTNode[] r = new ASTNode[n.length];
+		final ASTNode[] r = new ASTNode[n.length];
 		for (int i = 0; i < s.length; i++) {
-			Object item = n[i];
+			final Object item = n[i];
 			ASTNode node;
 			if (item instanceof ASTNode)
 				node = (ASTNode)item;
@@ -309,7 +304,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private boolean internalSatisfied(ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
-			AccessVar av = as(element, AccessVar.class);
+			final AccessVar av = as(element, AccessVar.class);
 			if (requiredClass == IDLiteral.class) {
 				if (av != null && av.declaration() instanceof ProxyVar)
 					break RequiredClass;
@@ -320,13 +315,13 @@ public class MatchingPlaceholder extends Placeholder {
 				return false;
 		}
 		if (stringRepresentationPattern != null) {
-			IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
-			String patternMatchingText = target != null ? target.patternMatchingText() : element != null ? element.toString() : null;
+			final IPlaceholderPatternMatchTarget target = as(element, IPlaceholderPatternMatchTarget.class);
+			final String patternMatchingText = target != null ? target.patternMatchingText() : element != null ? element.toString() : null;
 			if (patternMatchingText == null || !stringRepresentationPattern.matcher(patternMatchingText).matches())
 				return false;
 		}
 		if (associatedDeclarationNamePattern != null) {
-			Declaration decl = associatedDeclaration(element);
+			final Declaration decl = associatedDeclaration(element);
 			if (decl != null && associatedDeclarationNamePattern.matcher(decl.name()).matches())
 				return true;
 			return false;
@@ -335,11 +330,11 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	protected Declaration associatedDeclaration(ASTNode element) {
-		CallDeclaration call = as(element.parent(), CallDeclaration.class);
+		final CallDeclaration call = as(element.parent(), CallDeclaration.class);
 		if (call != null)
 			return call.parmDefinitionForParmExpression(element);
 
-		FunctionBody body = as(element, FunctionBody.class);
+		final FunctionBody body = as(element, FunctionBody.class);
 		if (body != null)
 			return body.owningDeclaration();
 
@@ -350,7 +345,7 @@ public class MatchingPlaceholder extends Placeholder {
 	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append("$");
 		output.append(entryName);
-		List<String> attribs = new ArrayList<String>(4);
+		final List<String> attribs = new ArrayList<String>(4);
 		if (requiredClass != null)
 			attribs.add(requiredClass.getSimpleName());
 		if (stringRepresentationPattern != null)

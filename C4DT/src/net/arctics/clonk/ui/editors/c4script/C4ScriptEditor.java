@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.Arrays;
@@ -137,11 +136,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		public IStorage source() {
 			final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			try {
-				return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
-			} catch (final UnsupportedEncodingException e) {
-				return null;
-			}
+			return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
 		}
 
 		@Override

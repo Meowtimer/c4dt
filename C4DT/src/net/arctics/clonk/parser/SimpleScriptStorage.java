@@ -3,7 +3,6 @@ package net.arctics.clonk.parser;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
 import net.arctics.clonk.Core;
 
@@ -16,10 +15,10 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	private String name;
-	private String contents;
+	private final String name;
+	private final String contents;
 	
-	public SimpleScriptStorage(String name, String contents) throws UnsupportedEncodingException {
+	public SimpleScriptStorage(String name, String contents) {
 		this.name = name;
 		this.contents = contents;
 	}

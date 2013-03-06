@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.UnsupportedEncodingException;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -25,11 +23,5 @@ public final class TempScript extends Script {
 	}
 
 	@Override
-	public IStorage source() {
-		try {
-			return new SimpleScriptStorage(expression, expression);
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
-	}
+	public IStorage source() { return new SimpleScriptStorage(expression, expression); }
 }

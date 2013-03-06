@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -48,11 +47,7 @@ public class Command {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public IStorage source() {
-				try {
-					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-				} catch (UnsupportedEncodingException e) {
-					return null;
-				}
+				return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			@Override
 			public String name() {
@@ -64,7 +59,7 @@ public class Command {
 			};
 		};
 
-		for (Class<?> c : Command.class.getDeclaredClasses())
+		for (final Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(COMMAND_BASESCRIPT, c);
 		registerCommandsFromClass(COMMAND_BASESCRIPT, StaticTypingUtil.class);
 	}
@@ -74,7 +69,7 @@ public class Command {
 	}
 
 	public static void registerCommandsFromClass(Script script, Class<?> classs) {
-		for (Method m : classs.getMethods())
+		for (final Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
 				addCommand(script, m);
 	}
@@ -88,11 +83,11 @@ public class Command {
 		@Override
 		public Object invoke(IEvaluationContext context) {
 			try {
-				Object[] args = new Object[method.getParameterTypes().length];
+				final Object[] args = new Object[method.getParameterTypes().length];
 				args[0] = context;
 				System.arraycopy(context.arguments(), 0, args, 1, context.arguments().length);
 				return method.invoke(context, args);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -115,15 +110,15 @@ public class Command {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void setFieldValue(Object obj, String name, Object value) {
-		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
+		final Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
-			Field f = c.getField(name);
+			final Field f = c.getField(name);
 			if (value instanceof Long && f.getType() == Integer.TYPE)
 				value = ((Long)value).intValue();
 			else if (value instanceof String && f.getType().isEnum())
 				value = Enum.valueOf((Class<Enum>)f.getType(), (String)value);
 			f.set(obj, value);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -143,7 +138,7 @@ public class Command {
 		public static void OpenDoc(Object context, String funcName) {
 			try {
 				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -159,23 +154,23 @@ public class Command {
 			Core.instance().loadEngine(engineName).writeEngineScript();
 		}
 		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
-			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
+			final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
-			for (Function f : engine.functions()) {
-				String escaped = f.obtainUserDescription() != null ? f.obtainUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			for (final Function f : engine.functions()) {
+				final String escaped = f.obtainUserDescription() != null ? f.obtainUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				writer.append(String.format("%s=%s\n", f.name(), escaped)); //$NON-NLS-1$
 			}
 			writer.close();
 		}
 		@CommandFunction
 		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
-			Engine engine = Core.instance().loadEngine(engineName);
+			final Engine engine = Core.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 		@CommandFunction
 		public static void convertProject(Object context, String source, String dest) {
-			ProjectConverter converter = new ProjectConverter(
+			final ProjectConverter converter = new ProjectConverter(
 				ResourcesPlugin.getWorkspace().getRoot().getProject(source),
 				ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
 			);
@@ -190,7 +185,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
-			Engine engine = Core.instance().activeEngine();
+			final Engine engine = Core.instance().activeEngine();
 			setFieldValue(
 				engine.intrinsicSettings(), name,
 				engine.settings().getClass().getField(name).get(engine.settings())
@@ -201,10 +196,10 @@ public class Command {
 	public static class Diagnostics {
 		@CommandFunction
 		public static void ReadIndex(Object context, String path, String engine) {
-			Index index = Index.loadShallow(Index.class, new File(path), null, Core.instance().loadEngine(engine));
+			final Index index = Index.loadShallow(Index.class, new File(path), null, Core.instance().loadEngine(engine));
 			try {
 				index.postLoad();
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return;
 			}
@@ -216,17 +211,17 @@ public class Command {
 				}
 			});
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (Script script : index.indexedScripts())
+			for (final Script script : index.indexedScripts())
 				System.out.println(script.toString());
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (Scenario scen : index.indexedScenarios())
+			for (final Scenario scen : index.indexedScenarios())
 				System.out.println(scen.toString());
 		}
 		@CommandFunction
 		public static void GC(Object context) { System.gc(); }
 		@CommandFunction
 		public static void ReloadIndex(Object context, String projectName) {
-			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			if (nature != null)
 				nature.reloadIndex();
 		}
@@ -239,7 +234,7 @@ public class Command {
 					@Override
 					public void receivedObject(Script item) {
 						System.out.println(item.toString());
-						for (Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
+						for (final Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
 							if (m.containsKey(d.hashCode()))
 								System.out.println(String.format("\tconflict:%d", d.hashCode()));
 							m.put(d.hashCode(), d);

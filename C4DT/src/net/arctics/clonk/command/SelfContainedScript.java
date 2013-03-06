@@ -1,7 +1,5 @@
 package net.arctics.clonk.command;
 
-import java.io.UnsupportedEncodingException;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
@@ -21,12 +19,12 @@ public class SelfContainedScript extends Script {
 		super(index);
 		setName(name);
 		this.script = script;
-		C4ScriptParser parser = new C4ScriptParser(script, this, null);
+		final C4ScriptParser parser = new C4ScriptParser(script, this, null);
 		try {
 			parser.parse();
 			generateFindDeclarationCache();
 			new DabbleInference().localTypingContext(parser.script(), parser.fragmentOffset(), null).reportProblems();
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
 	}
@@ -36,12 +34,7 @@ public class SelfContainedScript extends Script {
 
 	@Override
 	public IStorage source() {
-		try {
-			return new SimpleScriptStorage(name(), script);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return new SimpleScriptStorage(name(), script);
 	}
 
 }
