@@ -68,21 +68,21 @@ public class ReferencesQuery extends SearchQueryBase {
 	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReportingContext> {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
-				CallDeclaration callFunc = (CallDeclaration) expression;
-				return callFunc.name().equals(declaration.name());
+				final CallDeclaration callFunc = (CallDeclaration) expression;
+				return callFunc.declaration() == null && callFunc.name().equals(declaration.name());
 			}
 			return false;
 		}
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, ProblemReportingContext context) {
 			if (node instanceof AccessDeclaration) {
-				AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
-				Declaration dec = accessDeclExpr.declaration();
+				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
+				final Declaration dec = accessDeclExpr.declaration();
 				if (dec != null && dec.latestVersion() == declaration)
 					result.addMatch(node, context, false, accessDeclExpr.indirectAccess());
 				else if (potentiallyReferencedByObjectCall(node)) {
-					Function otherFunc = (Function) accessDeclExpr.declaration();
-					boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
+					final Function otherFunc = (Function) accessDeclExpr.declaration();
+					final boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
 					result.addMatch(node, context, potential, accessDeclExpr.indirectAccess());
 				}
 			}
@@ -91,7 +91,7 @@ public class ReferencesQuery extends SearchQueryBase {
 					result.addMatch(node, context, false, false);
 			}
 			else if (node instanceof StringLiteral) {
-				EntityRegion decRegion = node.entityAt(0, context);
+				final EntityRegion decRegion = node.entityAt(0, context);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
 					result.addMatch(node, context, true, true);
 			}
@@ -100,7 +100,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
-				Script script = Script.get(resource, true);
+				final Script script = Script.get(resource, true);
 				if (script != null)
 					searchScript(resource, script);
 			}
@@ -108,27 +108,27 @@ public class ReferencesQuery extends SearchQueryBase {
 		}
 		
 		public void searchScript(IResource resource, Script script) {
-			C4ScriptParser parser = new C4ScriptParser(script);
-			ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+			final C4ScriptParser parser = new C4ScriptParser(script);
+			final ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 			searchScript(resource, ctx);
 		}
 		
 		public void searchScript(IResource resource, ProblemReportingContext context) {
-			Script script = context.script();
+			final Script script = context.script();
 			if (script.scriptFile() != null) {
 				if (declaration instanceof Definition) {
-					Directive include = script.directiveIncludingDefinition((Definition) declaration);
+					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
 					if (include != null)
 						result.addMatch(include, context, false, false);
 				}
-				for (Function f : script.functions())
+				for (final Function f : script.functions())
 					f.traverse(this, context);
 			}
 
 			// also search related files (actmap, defcore etc)
 			try {
 				searchScriptRelatedFiles(script);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		}
@@ -147,10 +147,10 @@ public class ReferencesQuery extends SearchQueryBase {
 		Utilities.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				for (Object scope : ReferencesQuery.this.scope)
+				for (final Object scope : ReferencesQuery.this.scope)
 					if (scope instanceof IContainer) try {
 						((IContainer)scope).accept(visitor);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 					else if (scope instanceof Script) {
@@ -159,16 +159,16 @@ public class ReferencesQuery extends SearchQueryBase {
 							@Override
 							public void run() {
 								try {
-									C4ScriptParser parser = new C4ScriptParser(script);
-									ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+									final C4ScriptParser parser = new C4ScriptParser(script);
+									final ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 									visitor.searchScript((IResource) script.source(), ctx);
-								} catch (Exception e) {}
+								} catch (final Exception e) {}
 							}
 						});
 					}
 					else if (scope instanceof Function) {
-						Function func = (Function)scope;
-						C4ScriptParser parser = new C4ScriptParser(func.script());
+						final Function func = (Function)scope;
+						final C4ScriptParser parser = new C4ScriptParser(func.script());
 						func.traverse(visitor, strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null));
 					}
 			}
@@ -178,23 +178,23 @@ public class ReferencesQuery extends SearchQueryBase {
 
 	private void searchScriptRelatedFiles(Script script) throws CoreException {
 		if (script instanceof Definition) {
-			IContainer objectFolder = ((Definition)script).definitionFolder();
-			for (IResource res : objectFolder.members())
+			final IContainer objectFolder = ((Definition)script).definitionFolder();
+			for (final IResource res : objectFolder.members())
 				if (res instanceof IFile) {
-					IFile file = (IFile)res;
-					Structure pinned = Structure.pinned(file, true, false);
+					final IFile file = (IFile)res;
+					final Structure pinned = Structure.pinned(file, true, false);
 					if (pinned instanceof IniUnit) {
-						IniUnit iniUnit = (IniUnit) pinned;
-						for (IniSection sec : iniUnit)
-							for (IniItem entry : sec)
+						final IniUnit iniUnit = (IniUnit) pinned;
+						for (final IniSection sec : iniUnit)
+							for (final IniItem entry : sec)
 								if (entry instanceof ComplexIniEntry) {
-									ComplexIniEntry complex = (ComplexIniEntry) entry;
+									final ComplexIniEntry complex = (ComplexIniEntry) entry;
 									if (complex.definition() != null) {
-										Class<?> entryClass = complex.definition().entryClass();
+										final Class<?> entryClass = complex.definition().entryClass();
 										if (entryClass == FunctionEntry.class) {
-											Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
+											final Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {
-												Declaration declaration = obj.findFunction(complex.stringValue());
+												final Declaration declaration = obj.findFunction(complex.stringValue());
 												if (declaration == this.declaration)
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
@@ -205,8 +205,8 @@ public class ReferencesQuery extends SearchQueryBase {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
 											else if (entryClass == IDArray.class)
-												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
-													Definition obj = script.index().anyDefinitionWithID(pair.key());
+												for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
+													final Definition obj = script.index().anyDefinitionWithID(pair.key());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
@@ -220,7 +220,7 @@ public class ReferencesQuery extends SearchQueryBase {
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.scriptForEditor(editor);
+			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null)
 				return result.getMatches(script);
 		}
@@ -230,7 +230,7 @@ public class ReferencesQuery extends SearchQueryBase {
 	@Override
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.scriptForEditor(editor);
+			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null && match.getElement().equals(script.source()))
 				return true;
 		}
@@ -239,7 +239,7 @@ public class ReferencesQuery extends SearchQueryBase {
 
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
-		Script script = Script.get(file, true);
+		final Script script = Script.get(file, true);
 		if (script != null)
 			return result.getMatches(script);
 		return NO_MATCHES;
