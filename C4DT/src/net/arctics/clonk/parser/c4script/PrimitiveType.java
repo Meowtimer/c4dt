@@ -49,7 +49,7 @@ public enum PrimitiveType implements IType {
 	public String scriptName() {return scriptName;}
 
 	@Override
-	public String toString() { return typeName(false); }
+	public String toString() { return typeName(true); }
 	
 	private static final Map<String, PrimitiveType> REGULAR_MAP = new HashMap<String, PrimitiveType>();
 	private static final Map<String, PrimitiveType> SPECIAL_MAPPING = map(false,

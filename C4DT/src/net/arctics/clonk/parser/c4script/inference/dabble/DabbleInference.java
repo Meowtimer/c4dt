@@ -337,9 +337,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (p.staticallyTyped())
 						continue;
 					IType result;
-					//if (callTypes[pa].get() == PrimitiveType.UNKNOWN)
-					//	// be lenient about parameters for which no knowledge can be gathered when only looking at the function body
-					//	callTypes[pa].set(PrimitiveType.ANY);
+					final boolean lenient = callTypes[pa].get() == PrimitiveType.UNKNOWN;
 					// if there are concrete parameter types not unifying seed the unification chain with some primitive type
 					// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
 					// not unifying with that consensus.
@@ -349,7 +347,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						int leastDiscord = Integer.MAX_VALUE;
 						PrimitiveType bestSeed = null;
 						for (final PrimitiveType seed : callTypingSeeds) {
-							result = TypeUnification.unify(callTypes[pa].get(), seed);
+							result = TypeUnification.unifyNoChoice(callTypes[pa].get(), seed);
 							if (result == null)
 								continue; // disagreement with usage inside body - ignore
 							int discord = 0;
@@ -382,13 +380,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (unified == null) {
 									final Visitor visitor = visitors[ci];
 									final ASTNode concretePar = calls.get(ci).params()[pa];
-									if (visitor != null)
+									if (visitor != null && !lenient)
 										visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
 								}
 								else
 									result = unified;
 							}
-						} else {
+						} else if (!lenient) {
 							// no consensus at all - warnings at all call sides
 							result = callTypes[pa].get();
 							for (int ci = 0; ci < calls.size(); ci++) {
@@ -398,9 +396,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (visitor != null)
 									visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
 							}
-						}
+						} else
+							result = PrimitiveType.ANY;
 
 					}
+					if (lenient)
+						result = TypeUnification.unify(result, PrimitiveType.ANY);
 					callTypes[pa].set(result);
 				}
 			}
@@ -479,7 +480,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final boolean typeFromCalls =
 							ownedFunction && !assignDefaultParmTypesToFunction(function) &&
 							processor.typing == Typing.ParametersOptionallyTyped &&
-							baseFunction.visibility() != FunctionScope.GLOBAL &&
+						//	baseFunction.visibility() != FunctionScope.GLOBAL &&
 							processor.script instanceof Definition &&
 							!(processor.script instanceof Scenario) &&
 							function.numParameters() > 0 &&
@@ -1167,9 +1168,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	
 		@Override
 		public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-			if (node.declaration() == Variable.THIS)
+			Declaration declaration = internalObtainDeclaration(node, visitor);
+			if (declaration == Variable.THIS)
 				return true;
-			Declaration declaration = node.declaration();
 			if (declaration == null && origin != null) {
 				final IType predType = predecessorType(node, visitor);
 				if (predType != null && TypeUnification.compatible(predType, PrimitiveType.PROPLIST))
@@ -1188,6 +1189,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
 							initializeFromAssignment(node, type, origin, visitor, var);
 							visitor.script().addDeclaration(var);
+							visitor.script().generateFindDeclarationCache();
 							node.setDeclaration(declaration = var);
 							break;
 						}
