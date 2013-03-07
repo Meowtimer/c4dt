@@ -20,7 +20,7 @@ public class TypeUtil {
 			public Definition definition() { return script() instanceof Definition ? (Definition)script() : null; }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
-				int bodyOffset = context.absoluteExpressionsOffset();
+				final int bodyOffset = context.absoluteExpressionsOffset();
 				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 			}
 			@Override
@@ -37,7 +37,7 @@ public class TypeUtil {
 			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) { return access.declaration(); }
 			@Override
 			public IType typeOf(ASTNode node) {
-				AccessDeclaration ad = as(node, AccessDeclaration.class);
+				final AccessDeclaration ad = as(node, AccessDeclaration.class);
 				return ad != null && ad.declaration() instanceof ITypeable
 					? ((ITypeable)ad.declaration()).type() : PrimitiveType.UNKNOWN;
 			}
@@ -52,8 +52,6 @@ public class TypeUtil {
 			@Override
 			public Object visitFunction(Function function) { return null; }
 			@Override
-			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
-			@Override
 			public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {}
 			@Override
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
@@ -64,7 +62,7 @@ public class TypeUtil {
 		};
 	}
 	public static Definition definition(IType type) {
-		for (IType t : type)
+		for (final IType t : type)
 			if (t instanceof Definition)
 				return (Definition) t; // return the first one found
 		return null;

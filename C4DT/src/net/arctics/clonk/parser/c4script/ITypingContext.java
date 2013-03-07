@@ -11,7 +11,6 @@ public interface ITypingContext {
 	IType typeOf(ASTNode node);
 	<T extends IType> T typeOf(ASTNode node, Class<T> cls);
 	<T extends AccessDeclaration> Declaration obtainDeclaration(T access);
-	void assignment(ASTNode leftSide, ASTNode rightSide);
 	void judgement(ASTNode node, IType type, TypingJudgementMode mode);
 	void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right);
 	boolean isModifiable(ASTNode node);

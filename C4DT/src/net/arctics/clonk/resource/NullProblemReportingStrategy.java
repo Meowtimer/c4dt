@@ -40,8 +40,6 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
-			public void assignment(ASTNode leftSide, ASTNode rightSide) {}
-			@Override
 			public int fragmentOffset() { return 0; }
 			@Override
 			public IFile file() { return script.scriptFile(); }

@@ -11,7 +11,7 @@ import java.util.Map;
  * an operator
  */
 public enum Operator {
-	Not(PrimitiveType.ANY, null, PrimitiveType.BOOL, "!", 15, "Not"), //$NON-NLS-1$ //$NON-NLS-2$
+	Not(PrimitiveType.UNKNOWN, null, PrimitiveType.BOOL, "!", 15, "Not"), //$NON-NLS-1$ //$NON-NLS-2$
 	BitNot(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "~", 15), //$NON-NLS-1$
 	Power(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "**", 14), //$NON-NLS-1$
 	Divide(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "/", 13, "Div"), //$NON-NLS-1$ //$NON-NLS-2$
@@ -23,13 +23,13 @@ public enum Operator {
 	SmallerEqual(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.BOOL, "<=", 10), //$NON-NLS-1$
 	Larger(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.BOOL, ">", 10, "GreaterThan"), //$NON-NLS-1$ //$NON-NLS-2$
 	LargerEqual(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.BOOL, ">=", 10), //$NON-NLS-1$
-	Equal(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "==", 9, "Equal", 4), //$NON-NLS-1$ //$NON-NLS-2$
-	NotEqual(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "!=", 9), //$NON-NLS-1$
+	Equal(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.BOOL, "==", 9, "Equal", 4), //$NON-NLS-1$ //$NON-NLS-2$
+	NotEqual(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.BOOL, "!=", 9), //$NON-NLS-1$
 	StringEqual(PrimitiveType.STRING, PrimitiveType.STRING, PrimitiveType.BOOL, "S=", 9, "SEqual"), //$NON-NLS-1$ //$NON-NLS-2$
 	eq(PrimitiveType.STRING, PrimitiveType.STRING, PrimitiveType.BOOL, "eq", 9), //$NON-NLS-1$
 	ne(PrimitiveType.STRING, PrimitiveType.STRING, PrimitiveType.BOOL, "ne", 9), //$NON-NLS-1$
-	And(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "&&", 5, "And"), //$NON-NLS-1$ //$NON-NLS-2$
-	Or(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "||", 4, "Or"), //$NON-NLS-1$ //$NON-NLS-2$
+	And(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.BOOL, "&&", 5, "And"), //$NON-NLS-1$ //$NON-NLS-2$
+	Or(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.BOOL, "||", 4, "Or"), //$NON-NLS-1$ //$NON-NLS-2$
 	BitAnd(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "&", 8, "BitAnd"), //$NON-NLS-1$ //$NON-NLS-2$
 	BitXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^", 6), //$NON-NLS-1$
 	BitOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "|", 6), //$NON-NLS-1$
@@ -38,8 +38,8 @@ public enum Operator {
 	Increment(PrimitiveType.INT, null, PrimitiveType.INT, "++", 15, "Inc", 1/*RETURNS_REF*/), //$NON-NLS-1$ //$NON-NLS-2$
 	ShiftLeft(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "<<", 11), //$NON-NLS-1$
 	ShiftRight(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, ">>", 11), //$NON-NLS-1$
-	JumpNotNil(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "??", 3, null),
-	Assign(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
+	JumpNotNil(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "??", 3, null),
+	Assign(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignAdd(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "+=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignSubtract(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "-=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignMultiply(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "*=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
@@ -48,7 +48,7 @@ public enum Operator {
 	AssignOr(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "|=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignAnd(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "&=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
-	Transform(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.ANY, "=>", 2, null);
+	Transform(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "=>", 2, null);
 	
 	public static final int RETURNS_REF = 1;
 	public static final int RIGHTASSOCIATIVE = 2;
@@ -62,8 +62,8 @@ public enum Operator {
 	public static final Map<String, Operator> stringToOperatorMap;
 	
 	static {
-		HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
-		for (Operator op : values())
+		final HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
+		for (final Operator op : values())
 			workInProgress.put(op.operatorName(), op);
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
@@ -131,7 +131,7 @@ public enum Operator {
 		}
 	}
 	public static Operator oldStyleFunctionReplacement(String funcName) {
-		for (Operator o : values())
+		for (final Operator o : values())
 			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
 				return o;
 		return null;
@@ -146,8 +146,8 @@ public enum Operator {
 	public boolean returnsRef() { return (flags & RETURNS_REF) != 0; }
 	public boolean isAssociative() { return (flags & ASSOCIATIVE_OP) != 0; }
 	public static String[] operatorNames() {
-		String[] result = new String[values().length];
-		for (Operator o : values())
+		final String[] result = new String[values().length];
+		for (final Operator o : values())
 			result[o.ordinal()] = o.operatorName();
 		return result;
 	}

@@ -40,6 +40,7 @@ import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.parser.c4script.specialenginerules.Messages;
@@ -160,7 +161,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					var.setInitializationExpression(initializationClone);
 					var.forceType(processor.typeOf(arguments[1]));
 					final AccessVar av = new AccessVar(var);
-					processor.assignment(av, arguments[1]);
+					processor.judgement(av, processor.typeOf(arguments[1]), TypingJudgementMode.Force);
 					var.setParent(node.parentOfType(Function.class));
 					//parser.getContainer().addDeclaration(var);
 				}
