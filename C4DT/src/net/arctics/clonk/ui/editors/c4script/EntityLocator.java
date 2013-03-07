@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.InitializationFunction;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
@@ -76,7 +77,7 @@ public class EntityLocator extends ExpressionLocator {
 	public boolean initializeRegionDescription(RegionDescription d, Script script, IRegion region) {
 		d.func = script.funcAt(region);
 		if (d.func == null) {
-			Variable var = script.variableWithInitializationAt(region);
+			final Variable var = script.variableWithInitializationAt(region);
 			if (var == null)
 				return false;
 			else
@@ -98,7 +99,7 @@ public class EntityLocator extends ExpressionLocator {
 		final Script script = Utilities.scriptForEditor(editor);
 		if (script == null)
 			return;
-		RegionDescription d = new RegionDescription();
+		final RegionDescription d = new RegionDescription();
 		if (!initializeRegionDescription(d, script, region)) {
 			simpleFindDeclaration(doc, region, script, null);
 			return;
@@ -108,7 +109,7 @@ public class EntityLocator extends ExpressionLocator {
 			if (d.func != null)
 				d.func.traverse(this, null);
 			if (exprAtRegion != null) {
-				EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), TypeUtil.problemReportingContext(script));
+				final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), TypeUtil.problemReportingContext(script));
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 			}
 		}
@@ -135,15 +136,15 @@ public class EntityLocator extends ExpressionLocator {
 
 			// gather declarations with that name from involved project indexes
 			List<IIndexEntity> projectDeclarations = new LinkedList<IIndexEntity>();
-			String declarationName = access.name();
+			final String declarationName = access.name();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().inferredType() : null, PrimitiveType.UNKNOWN);
-			for (IType t : ty)
+			final IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().inferredType() : null, PrimitiveType.UNKNOWN);
+			for (final IType t : ty)
 				if (t instanceof StructuralType || t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN || t == PrimitiveType.ID) {
-					for (Index i : script.index().relevantIndexes())
+					for (final Index i : script.index().relevantIndexes())
 						i.loadScriptsContainingDeclarationsNamed(declarationName);
-					for (Index i : script.index().relevantIndexes()) {
-						List<Declaration> decs = i.declarationMap().get(declarationName);
+					for (final Index i : script.index().relevantIndexes()) {
+						final List<Declaration> decs = i.declarationMap().get(declarationName);
 						if (decs != null)
 							projectDeclarations.addAll(decs);
 					}
@@ -158,7 +159,7 @@ public class EntityLocator extends ExpressionLocator {
 					}
 				});
 
-			Function engineFunc = regionDescription.engine.findFunction(declarationName);
+			final Function engineFunc = regionDescription.engine.findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
 				potentialEntities = new HashSet<IIndexEntity>();
 				if (projectDeclarations != null)
@@ -169,7 +170,7 @@ public class EntityLocator extends ExpressionLocator {
 				if (potentialEntities.size() == 0)
 					potentialEntities = null;
 				else if (potentialEntities.size() == 1)
-					for (IIndexEntity e : potentialEntities) {
+					for (final IIndexEntity e : potentialEntities) {
 						this.entity = e;
 						break;
 					}
@@ -190,19 +191,22 @@ public class EntityLocator extends ExpressionLocator {
 		try {
 			lineInfo = doc.getLineInformationOfOffset(region.getOffset());
 			line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			return;
 		}
-		int localOffset = region.getOffset() - lineInfo.getOffset();
+		final int localOffset = region.getOffset() - lineInfo.getOffset();
 		int start,end;
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
-		for (Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES))
+		for (final Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES)) {
+			if (d instanceof InitializationFunction)
+				continue;
 			if (d.isAt(region.getOffset())) {
 				entity = d;
 				return;
 			}
+		}
 		entity = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.index(), func));
 	}
 
