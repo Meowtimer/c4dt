@@ -169,19 +169,24 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 	@Override
 	public String patternMatchingText() { return type().toString(); }
-	
+
 	@Override
 	public ASTNode[] subElements() {
-		switch (type()) {
-		case APPENDTO: case INCLUDE:
-			return new ASTNode[] { new IDLiteral(contentAsID()) };
-		case STRICT:
-			return new ASTNode[] { new IntegerLiteral(Long.parseLong(contents())) };
-		default:
-			return null;
+		try {
+			switch (type()) {
+			case APPENDTO: case INCLUDE:
+				return new ASTNode[] { new IDLiteral(contentAsID()) };
+			case STRICT:
+				return new ASTNode[] { new IntegerLiteral(contents() != null ? Long.parseLong(contents()) : engine().settings().strictDefaultLevel) };
+			default:
+				return null;
+			}
+		} catch (Exception e) {
+			// ignore those feeble attempts
+			return super.subElements();
 		}
 	}
-	
+
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		content = elms[0].printed();
