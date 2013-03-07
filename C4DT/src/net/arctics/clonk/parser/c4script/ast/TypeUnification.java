@@ -46,7 +46,7 @@ public class TypeUnification {
 			case PROPLIST:
 				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
 					return a;
-				else if (b instanceof Definition)
+				else if (b instanceof Definition || b instanceof MetaDefinition)
 					return b;
 				else
 					break;
@@ -71,7 +71,7 @@ public class TypeUnification {
 					return new ThisType(u);
 			}
 		}
-		
+
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;
 			final TypeChoice tcb = (TypeChoice)b;
@@ -106,7 +106,7 @@ public class TypeUnification {
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
 			((IRefinedPrimitiveType)a).primitiveType() == b)
 			return a;
-		
+
 		if (a instanceof PrimitiveType.Unified)
 			if (unifyNoChoice(((PrimitiveType.Unified)a).base(), b) != null)
 				return a; // refuse specialization
@@ -170,7 +170,7 @@ public class TypeUnification {
 		if (a instanceof StructuralType && b instanceof Definition)
 			if (((StructuralType)a).satisfiedBy((Definition)b))
 				return b;
-		
+
 		if (a instanceof Definition && b instanceof Definition) {
 			final Definition da = (Definition)a;
 			final Definition db = (Definition)b;
@@ -185,7 +185,7 @@ public class TypeUnification {
 				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT.unified();
 			}
 		}
-		
+
 		else if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
 			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
 			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID.unified();

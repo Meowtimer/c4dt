@@ -14,7 +14,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
-import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
@@ -256,16 +255,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public String displayString(IIndexEntity context) { return this.name(); }
 
-	@Override
-	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
-		// engine objects should not be altered
-		if (!staticallyTyped && !(script() instanceof Engine))
-			ITypeable.Default.expectedToBeOfType(this, t);
-	}
-
-	public ASTNode initializationExpression() {
-		return initializationExpression;
-	}
+	public ASTNode initializationExpression() { return initializationExpression; }
 
 	public IRegion initializationExpressionLocation() {
 		if (initializationExpression instanceof ASTNode)

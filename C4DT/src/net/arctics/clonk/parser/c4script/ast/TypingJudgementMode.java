@@ -9,19 +9,11 @@ import net.arctics.clonk.parser.c4script.ITypeable;
  */
 public enum TypingJudgementMode {
 	/**
-	 * Expected but not required.
-	 */
-	Expect,
-	/**
-	 * Might be of that type, but not too sure.
-	 */
-	Hint,
-	/**
 	 * Force the type of the entity.
 	 */
-	Force,
+	OVERWRITE,
 	/**
 	 * Unify with existing typing judgement.
 	 */
-	Unify
+	UNIFY
 }

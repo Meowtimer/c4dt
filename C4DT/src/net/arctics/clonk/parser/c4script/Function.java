@@ -32,7 +32,6 @@ import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
-import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
@@ -612,12 +611,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public String headerString() {
 		return headerString(isOldStyle());
-	}
-
-	@Override
-	public void expectedToBeOfType(IType t, TypingJudgementMode mode) {
-		if (mode == TypingJudgementMode.Force)
-			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 
 	@Override
