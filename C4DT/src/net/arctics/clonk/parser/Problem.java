@@ -82,7 +82,9 @@ public enum Problem {
 	NonConstGlobalVarAssignment(Messages.NonConstGlobalVarAssignment),
 	TypeExpected(Messages.TypeExpected),
 	InvalidType(Messages.InvalidType),
-	UnexpectedBlock(Messages.UnexpectedBlock);
+	UnexpectedBlock(Messages.UnexpectedBlock),
+	ConcreteArgumentMismatch(Messages.ConcreteArgumentMismatch,
+		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got);
 
 	private String message;
 	private String[] formatArgumentDescriptions;
@@ -113,7 +115,7 @@ public enum Problem {
 		if (formatArgumentDescriptions != null)
 			try {
 				msg = String.format(msg, (Object[])formatArgumentDescriptions);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				// ignore
 			}
 		return msg;

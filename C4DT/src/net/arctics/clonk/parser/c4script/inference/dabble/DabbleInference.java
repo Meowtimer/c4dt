@@ -377,7 +377,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final Visitor visitor = visitors[ci];
 									final ASTNode concretePar = calls.get(ci).params()[pa];
 									if (visitor != null && !lenient)
-										visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
+										visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
 								}
 								else
 									result = unified;
@@ -387,10 +387,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 							result = callTypes[pa].get();
 							for (int ci = 0; ci < calls.size(); ci++) {
 								final IType concreteTy = types[ci][pa];
+								if (concreteTy == null)
+									continue;
 								final Visitor visitor = visitors[ci];
 								final ASTNode concretePar = calls.get(ci).params()[pa];
 								if (visitor != null)
-									visitor.incompatibleTypesMarker(concretePar, concretePar, callTypes[pa].get(), concreteTy);
+									visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
 							}
 						} else
 							result = PrimitiveType.ANY;
@@ -540,6 +542,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return returnType;
 			}
 			return null;
+		}
+
+		public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
+			try {
+				this.markers().marker(this,
+					Problem.ConcreteArgumentMismatch,
+					argument, argument.start(), argument.end(),
+					Markers.NO_THROW, IMarker.SEVERITY_WARNING,
+					argument, parameter.name(), callee.qualifiedName(), expected.typeName(true), got.typeName(true)
+				);
+			} catch (final ParsingException e) {}
 		}
 
 		@Override
@@ -875,13 +888,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return TypeUnification.unifyNoChoice(type, myType);
 		}
 
+		public TypeVariable findTypeVariable(T node, Visitor visitor) {
+			final Declaration key = typeEnvironmentKey(node, visitor);
+			return findTypeVariable(key, visitor);
+		}
+
 		/**
 		 * Query the type variable of an arbitrary expression. With some luck the inference engine will be able to give an answer.
 		 * @param node the expression to query the type of
 		 * @return The {@link TypeVariable} or null if nothing was found
 		 */
-		public TypeVariable findTypeVariable(T node, Visitor visitor) {
-			final Declaration key = typeEnvironmentKey(node, visitor);
+		public TypeVariable findTypeVariable(Declaration key, Visitor visitor) {
 			if (key == null)
 				return null;
 			for (TypeEnvironment e = visitor.typeEnvironment; e != null; e = e.up) {
@@ -1861,9 +1878,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final ASTNode given = params[givenParam++];
 								if (given == null)
 									continue;
-								final IType unified = unifyDeclaredAndGiven(given, parm.type(), visitor);
+								final TypeVariable parmTyVar = findTypeVariable(parm, visitor);
+								final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
+								final IType unified = unifyDeclaredAndGiven(given, parmTy, visitor);
 								if (unified == null)
-									visitor.incompatibleTypesMarker(node, given, parm.type(), ty(given, visitor));
+									visitor.incompatibleTypesMarker(node, given, parmTy, ty(given, visitor));
 								else
 									judgement(given, unified, TypingJudgementMode.UNIFY, visitor);
 							}
@@ -2127,7 +2146,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									);
 								else {
 									final AccessVar av = AccessVar.temp(initialization.variable, initialization);
-									judgement(av, initializationType, TypingJudgementMode.UNIFY, visitor);
+									judgement(av, initializationType, TypingJudgementMode.OVERWRITE, visitor);
 								}
 							}
 				}
@@ -2187,11 +2206,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred != null) {
 						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : OBJECTISH;
 						final Expert<? super ASTNode> stmReporter = expert(pred);
-						if (!TypeUnification.compatible(requiredType, ty(pred, visitor))) {
-							TypeUnification.compatible(requiredType, ty(pred, visitor));
+						if (!TypeUnification.compatible(requiredType, ty(pred, visitor)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
 								ty(pred, stmReporter, visitor).typeName(false));
-						}
+						else
+							judgement(pred, OBJECTISH, TypingJudgementMode.UNIFY, visitor);
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
 						visitor.markers().error(visitor, Problem.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);

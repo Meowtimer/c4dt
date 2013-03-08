@@ -29,6 +29,12 @@ public class Messages extends NLS {
 	public static String MissingStatement;
 	public static String CallingExpression;
 	public static String CallingMethodOnNonObject;
+	public static String CAM_Arg;
+	public static String CAM_Callee;
+	public static String CAM_Expected;
+	public static String CAM_Got;
+	public static String CAM_Par;
+	public static String ConcreteArgumentMismatch;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
 	public static String IdentShadowed;

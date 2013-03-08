@@ -37,6 +37,9 @@ public class TypeUnification {
 			switch ((PrimitiveType)a) {
 			case ARRAY:
 			case ID:
+				if (b instanceof Definition)
+					return b;
+				break;
 			case OBJECT:
 			case INT:
 			case STRING:
@@ -45,7 +48,7 @@ public class TypeUnification {
 				return b;
 			case PROPLIST:
 				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
-					return a;
+					return b;
 				else if (b instanceof Definition || b instanceof MetaDefinition)
 					return b;
 				else
