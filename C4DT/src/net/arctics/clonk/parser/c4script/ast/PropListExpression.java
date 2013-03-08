@@ -24,13 +24,12 @@ public class PropListExpression extends ASTNode {
 
 	private ProplistDeclaration definedDeclaration;
 
-	public ProplistDeclaration definedDeclaration() {
-		return definedDeclaration;
-	}
-
-	public Collection<Variable> components() {
-		return definedDeclaration.components(false);
-	}
+	public ProplistDeclaration definedDeclaration() { return definedDeclaration; }
+	public Collection<Variable> components() { return definedDeclaration.components(false); }
+	@Override
+	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	@Override
+	public void setParent(ASTNode parent) { super.setParent(parent); }
 
 	public PropListExpression(ProplistDeclaration declaration) {
 		this.definedDeclaration = declaration;
@@ -76,10 +75,7 @@ public class PropListExpression extends ASTNode {
 		}
 		output_.append(s);
 	}
-	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
-		return predecessor == null;
-	}
+
 	@Override
 	public ASTNode[] subElements() {
 		if (definedDeclaration == null)
@@ -151,11 +147,6 @@ public class PropListExpression extends ASTNode {
 			// restore state of original expression which is not supposed to be altered by calling clone()
 			this.definedDeclaration = saved;
 		}
-	}
-
-	@Override
-	public void setParent(ASTNode parent) {
-		super.setParent(parent);
 	}
 
 	@Override

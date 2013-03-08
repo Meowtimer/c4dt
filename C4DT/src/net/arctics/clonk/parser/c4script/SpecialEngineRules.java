@@ -506,12 +506,13 @@ public abstract class SpecialEngineRules {
 					for (final Declaration f : functions)
 						if (f.script() instanceof Definition)
 							types.add(f.script());
-						else for (final Directive directive : f.script().directives())
-							if (directive.type() == DirectiveType.APPENDTO) {
-								final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
-								if (def != null)
-									types.add(def);
-							}
+						else if (f.script() != null)
+							for (final Directive directive : f.script().directives())
+								if (directive.type() == DirectiveType.APPENDTO) {
+									final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
+									if (def != null)
+										types.add(def);
+								}
 					for (final Index index : processor.script().index().relevantIndexes())
 						for (final Function f : index.declarationsWithName((String)ev, Function.class))
 							if (f.script() instanceof Definition)

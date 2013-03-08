@@ -934,6 +934,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The directives list
 	 */
 	public List<? extends Directive> directives() {
+		requireLoaded();
 		return definedDirectives != null ? definedDirectives : NO_DIRECTIVES;
 	}
 
@@ -942,6 +943,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The map
 	 */
 	public Map<String, Effect> effects() {
+		requireLoaded();
 		return definedEffects != null ? definedEffects : NO_EFFECTS;
 	}
 

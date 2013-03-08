@@ -105,6 +105,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private Script _currentEditorScript;
 	private String untamperedPrefix;
 	private ProblemReportingStrategy typingStrategy;
+	private ProblemReportingContext typingContext;
 
 	private void setTypingStrategyFromScript(Script script) {
 		if (script.index().nature() != null)
@@ -301,6 +302,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			return null;
 	}
 
+	private FunctionFragmentParser updateFunctionFragment(IDocument doc, Script editorScript, Function activeFunc) {
+		final FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
+		if (fparser.update())
+			(typingContext = typingStrategy.localTypingContext(fparser.script(), fparser.fragmentOffset(), null)).visitFunction(activeFunc);
+		return fparser;
+	}
+
 	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
 		IDocument doc, String prefix, List<ICompletionProposal> proposals,
 		Index index, final Function activeFunc,
@@ -315,13 +323,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
-			ProblemReportingContext typingContext = null;
-			if (!specifiedParser) {
-				final FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
-				parser = fparser;
-				fparser.update();
-				(typingContext = typingStrategy.localTypingContext(parser.script(), parser.fragmentOffset(), null)).visitFunction(activeFunc);
-			}
+			typingContext = null;
+			if (!specifiedParser)
+				parser = updateFunctionFragment(doc, editorScript, activeFunc);
 			if (contextExpression == null) {
 				final ExpressionLocator locator = new ExpressionLocator(preservedOffset);
 				activeFunc.traverse(locator, this);
@@ -695,6 +699,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
+			Function cursorFunc = editor().functionAtCursor();
+			if (cursorFunc != null)
+				updateFunctionFragment(viewer.getDocument(), editor().script(), cursorFunc);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(TypeUtil.problemReportingContext(editor.functionAtCursor()));
@@ -742,15 +749,18 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		try {
 			// HACK: if changed, hide the old one -.-
-			if (!Utilities.objectsEqual(prevInformation, info)) {
-				final C4ScriptContentAssistant assistant = as(this.editor().contentAssistant(), C4ScriptContentAssistant.class);
-				if (assistant != null)
-					assistant.hide();
-			}
+			if (!Utilities.objectsEqual(prevInformation, info))
+				hideProposals();
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {
 			prevInformation = info;
 		}
+	}
+
+	public void hideProposals() {
+		final C4ScriptContentAssistant assistant = as(this.editor().contentAssistant(), C4ScriptContentAssistant.class);
+		if (assistant != null)
+			assistant.hide();
 	}
 
 	protected Function functionFromEntity(IIndexEntity entity) {
@@ -788,30 +798,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	@Override
-	public char[] getCompletionProposalAutoActivationCharacters() {
-		return proposalAutoActivationCharacters[editor().functionAtCursor() != null ? 1 : 0];
-	}
-
+	public char[] getCompletionProposalAutoActivationCharacters() { return proposalAutoActivationCharacters[editor().functionAtCursor() != null ? 1 : 0]; }
 	@Override
-	public char[] getContextInformationAutoActivationCharacters() {
-		return contextInformationAutoActivationCharacters;
-	}
-
+	public char[] getContextInformationAutoActivationCharacters() { return contextInformationAutoActivationCharacters; }
 	@Override
-	public IContextInformationValidator getContextInformationValidator() {
-		return contextInformationValidator;
-	}
+	public IContextInformationValidator getContextInformationValidator() { return contextInformationValidator; }
+	@Override
+	public String getErrorMessage() { return null; }
 
 	private KeySequence iterationBinding() {
 		final IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
 		final TriggerSequence binding = bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 		if (binding instanceof KeySequence)
 			return (KeySequence) binding;
-		return null;
-	}
-
-	@Override
-	public String getErrorMessage() {
 		return null;
 	}
 

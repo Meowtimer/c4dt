@@ -20,7 +20,7 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 	private IContextInformation fInformation;
 	private ITextViewer fTextViewer;
 	private int fOffset;
-	
+
 	@Override
 	public void install(IContextInformation info, ITextViewer viewer, int offset) {
 		fInformation = info;
@@ -64,5 +64,5 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 			return false;
 		}
 	}
-	
+
 }

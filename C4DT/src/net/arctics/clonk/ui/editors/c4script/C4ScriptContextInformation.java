@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationExtension;
@@ -22,8 +23,21 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	private int parmsStart, parmsEnd;
 	private SourceLocation[] parameterDisplayStringRanges;
 	private Function function;
-	
+
 	public Function function() { return function; }
+	public boolean valid(int offset) { return parmIndex != -1 && offset >= parmsStart(); }
+	public C4ScriptContextInformation() { this.parmIndex = -1; }
+	@Override
+    public String getContextDisplayString() { return contextDisplayString; }
+	@Override
+    public Image getImage() { return image; }
+	@Override
+    public String getInformationDisplayString() { return informationDisplayString; }
+	@Override
+	public int getContextInformationPosition() { return parmsStart(); }
+	public boolean hasVarParms() {
+		return function.numParameters() > 0 && !function.parameter(function.numParameters()-1).isActualParm();
+	}
 
 	@Override
 	public String toString() {
@@ -38,8 +52,9 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof C4ScriptContextInformation) {
-			C4ScriptContextInformation info = (C4ScriptContextInformation) obj;
-			return parmsStart() == info.parmsStart(); // similar enough :o
+			C4ScriptContextInformation other = (C4ScriptContextInformation) obj;
+			return
+				Utilities.objectsEqual(getInformationDisplayString(), other.getInformationDisplayString());
 		}
 		return false;
 	}
@@ -108,39 +123,6 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 			}
 		}
 		informationDisplayString = builder.toString();
-	}
-
-	public boolean valid(int offset) {
-		return parmIndex != -1 && offset >= parmsStart();
-	}
-
-	public C4ScriptContextInformation() {
-		this.parmIndex = -1;
-	}
-
-	@Override
-    public String getContextDisplayString() {
-	    return contextDisplayString;
-    }
-
-	@Override
-    public Image getImage() {
-	    return image;
-    }
-
-	@Override
-    public String getInformationDisplayString() {
-	    return informationDisplayString;
-    }
-	
-
-	@Override
-	public int getContextInformationPosition() {
-		return parmsStart();
-	}
-
-	public boolean hasVarParms() {
-		return function.numParameters() > 0 && !function.parameter(function.numParameters()-1).isActualParm();
 	}
 
 }

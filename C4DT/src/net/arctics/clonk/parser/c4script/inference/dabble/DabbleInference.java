@@ -478,7 +478,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 							processor.typing == Typing.ParametersOptionallyTyped &&
 						//	baseFunction.visibility() != FunctionScope.GLOBAL &&
 							processor.script instanceof Definition &&
-							!(processor.script instanceof Scenario) &&
 							function.numParameters() > 0 &&
 							(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
 						function.setTypeFromCallsHint(typeFromCalls);

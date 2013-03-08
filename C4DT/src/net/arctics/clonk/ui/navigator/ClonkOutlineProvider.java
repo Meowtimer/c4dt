@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package net.arctics.clonk.ui.navigator;
 
@@ -29,11 +29,11 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	private final ClonkContentOutlinePage page;
 	protected static final Object[] NO_CHILDREN = new Object[0];
 	private WeakReference<Declaration> root;
-	
+
 	public ClonkOutlineProvider(ClonkContentOutlinePage page) {
 		this.page = page;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
@@ -102,37 +102,43 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			page != null && page.editor() != null ? page.editor().declarationObtainmentContext() : null
 		);
 	}
-	
+
 	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReportingContext context) {
-		StyledString result = new StyledString();
-		if (foreign && element instanceof Declaration) {
-			Declaration topDec = ((Declaration)element).topLevelStructure();
-			if (topDec != null) {
-				result.append(topDec instanceof Definition ? ((Definition)topDec).id().stringValue() : topDec.name(), StyledString.QUALIFIER_STYLER);
-				result.append("::");
+		try {
+			StyledString result = new StyledString();
+			if (foreign && element instanceof Declaration) {
+				Declaration topDec = ((Declaration)element).topLevelStructure();
+				if (topDec != null) {
+					result.append(topDec instanceof Definition ? ((Definition)topDec).id().stringValue() : topDec.name(), StyledString.QUALIFIER_STYLER);
+					result.append("::");
+				}
 			}
-		}
-		if (element instanceof Function) {
-			Function func = ((Function)element);
-			result.append(func.longParameterString(EnumSet.of(ParameterStringOption.FunctionName)));
-			IType retType = func.returnType(context != null ? context.script() : null);
-			if (retType != null && retType != PrimitiveType.UNKNOWN) {
-				result.append(" : "); //$NON-NLS-1$
-				result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
+			if (element instanceof Function) {
+				Function func = ((Function)element);
+				result.append(func.longParameterString(EnumSet.of(ParameterStringOption.FunctionName)));
+				IType retType = func.returnType(context != null ? context.script() : null);
+				if (retType != null && retType != PrimitiveType.UNKNOWN) {
+					result.append(" : "); //$NON-NLS-1$
+					result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
+				}
 			}
-		}
-		else if (element instanceof Variable) {
-			Variable var = (Variable)element;
-			result.append(var.name());
-			IType type = var.type(context != null ? context.script() : null);
-			if (type != null && type != PrimitiveType.UNKNOWN) {
-				result.append(" : ");
-				result.append(type.typeName(true));
+			else if (element instanceof Variable) {
+				Variable var = (Variable)element;
+				result.append(var.name());
+				IType type = var.type(context != null ? context.script() : null);
+				if (type != null && type != PrimitiveType.UNKNOWN) {
+					result.append(" : ");
+					result.append(type.typeName(true));
+				}
 			}
+			else if (element != null)
+				result.append(element.toString());
+			return result;
+		} catch (Exception e) {
+			System.out.println(String.format("Computing styled text for '%s' failed", element.toString()));
+			e.printStackTrace();
+			return new StyledString("<failed>");
 		}
-		else if (element != null)
-			result.append(element.toString());
-		return result;
 	}
 
 }
