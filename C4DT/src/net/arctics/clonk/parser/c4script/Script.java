@@ -1351,7 +1351,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			result = function != null ? function.findVariable(varName) : null;
 			break;
 		case CONST: case STATIC: case LOCAL:
-			result = script().findLocalVariable(varName, false);
+			result = script().findLocalVariable(varName, true);
 			break;
 		default:
 			result = null;
