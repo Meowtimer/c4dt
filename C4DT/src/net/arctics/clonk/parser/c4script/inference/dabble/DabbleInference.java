@@ -120,6 +120,8 @@ import org.eclipse.jface.text.Region;
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
 public class DabbleInference extends ProblemReportingStrategy {
 
+	static final boolean UNUSEDPARMWARNING = false;
+
 	private static class Shared {
 		ClonkBuilder builder;
 		IProgressMonitor monitor;
@@ -249,13 +251,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 	};
 
 	public class Visitor implements Runnable, ProblemReportingContext, IEvaluationContext {
-
-		static final int
-			MAX_PAR = 10,
-			MAX_NUMVAR = 20,
-			UNKNOWN_PARAMETERNUM = MAX_PAR+1;
-		static final boolean
-			UNUSEDPARMWARNING = false;
 
 		final ScriptInfo info;
 
@@ -790,8 +785,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
 			@SuppressWarnings("unchecked")
-			final
-			AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)expert(access);
+			final AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)expert(access);
 			return expert.obtainDeclaration(access, this);
 		}
 
@@ -948,25 +942,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-			TypeVariable tyvar;
-			switch (mode) {
-			case OVERWRITE:
-				tyvar = requestTypeVariable(node, visitor);
-				if (tyvar != null) {
+			final TypeVariable tyvar = requestTypeVariable(node, visitor);
+			if (tyvar != null) {
+				switch (mode) {
+				case OVERWRITE:
 					tyvar.set(type);
-					return true;
-				} else
-					return false;
-			case UNIFY:
-				tyvar = requestTypeVariable(node, visitor);
-				if (tyvar != null) {
+					break;
+				case UNIFY:
 					tyvar.set(TypeUnification.unify(tyvar.get(), type));
-					return true;
-				} else
-					return false;
-			default:
+					break;
+				}
+				return true;
+			} else
 				return false;
-			}
 		}
 
 		public final void assignment(T leftSide, ASTNode rightSide, Visitor visitor) {
@@ -982,313 +970,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				break;
 			case Dynamic:
 				break;
-			}
-		}
-	}
-
-	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
-		public AccessDeclarationExpert(Class<T> cls) { super(cls); }
-		protected Declaration obtainDeclaration(T node, Visitor visitor) { return null; }
-		@Override
-		public void visit(T node, Visitor visitor) throws ParsingException {
-			super.visit(node, visitor);
-			internalObtainDeclaration(node, visitor);
-		}
-		protected final Declaration internalObtainDeclaration(T node, Visitor visitor) {
-			if (!visitor.roaming || visitor.script() == node.parentOfType(Script.class)) {
-				if (node.declaration() == null)
-					node.setDeclaration(obtainDeclaration(node, visitor));
-				if (node.declaration() == null) {
-					visitor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
-					node.setDeclaration(obtainDeclaration(node, visitor));
-				}
-				return node.declaration();
-			} else
-				return obtainDeclaration(node, visitor);
-		}
-		@Override
-		public TypeVariable createTypeVariable(T node, Visitor visitor) {
-			if (node.declaration() instanceof ITypeable && ((ITypeable)node.declaration()).staticallyTyped())
-				return null;
-			else
-				return super.createTypeVariable(node, visitor);
-		}
-		@Override
-		public IType type(T node, Visitor visitor) {
-			final TypeVariable tyvar = findTypeVariable(node, visitor);
-			return tyvar != null ? tyvar.get() : PrimitiveType.UNKNOWN;
-		}
-		@Override
-		public Declaration typeEnvironmentKey(T node, Visitor visitor) {
-			return internalObtainDeclaration(node, visitor);
-		}
-	}
-
-	class AccessVarExpert<T extends AccessVar> extends AccessDeclarationExpert<T> {
-		private AccessVarExpert(Class<T> cls) {
-			super(cls);
-		}
-
-		private Declaration findUsingType(Visitor visitor, AccessVar node, ASTNode predecessor, IType type) {
-			if (type == null)
-				return null;
-			for (final IType t : type) {
-				Script scriptToLookIn;
-				if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
-					// find pseudo-variable from proplist expression
-					if (t instanceof IProplistDeclaration) {
-						final Variable proplistComponent = ((IProplistDeclaration)t).findComponent(node.name());
-						if (proplistComponent != null)
-							return proplistComponent;
-					}
-				} else {
-					final FindDeclarationInfo info = new FindDeclarationInfo(visitor.script().index());
-					info.searchOrigin = scriptToLookIn;
-					info.findGlobalVariables = predecessor == null;
-					Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
-					if (v instanceof Definition)
-						v = ((Definition)v).proxyVar();
-					if (v != null) {
-						final Variable var = as(v, Variable.class);
-						if (var != null && var.initializationExpression() != null) {
-							final Function p = var.initializationExpression().parentOfType(Function.class);
-							if (p != null)
-								visitor.visitFunction(p, node.parentOfType(Function.class));
-						}
-						return v;
-					}
-				}
-			}
-			return null;
-		}
-
-		@Override
-		protected Declaration obtainDeclaration(AccessVar node, Visitor visitor) {
-			final ASTNode p = node.predecessorInSequence();
-			if (p == null && node.name().equals(Variable.THIS.name()))
-				return Variable.THIS;
-			IType type = visitor.script();
-			if (p != null)
-				type = ty(p, visitor);
-			if (p == null) {
-				final Function f = node.parentOfType(Function.class);
-				if (f != null) {
-					final Variable v = f.findVariable(node.name());
-					if (v != null)
-						return v;
-				}
-				Declaration v = visitor.info.variableMap.get(node.name());
-				if (v == null && !visitor.info.variableMap.containsKey(node.name())) {
-					v = findUsingType(visitor, node, null, type);
-					visitor.info.variableMap.put(node.name(), v);
-				}
-				return v;
-			}
-			else
-				return findUsingType(visitor, node, p, type);
-		}
-
-		@Override
-		public IType type(T node, Visitor visitor) {
-			final Declaration d = internalObtainDeclaration(node, visitor);
-			// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
-			if (d == Variable.THIS)
-				return visitor.info.thisType;
-			final TypeVariable stored = findTypeVariable(node, visitor);
-			if (stored != null)
-				return stored.get();
-			if (d instanceof Function)
-				return new FunctionType((Function)d);
-			else if (d instanceof Variable) {
-				final Variable v = (Variable)d;
-				Map<Variable, IType> typesMap= null;
-				if (v.scope() == Scope.LOCAL) {
-					if (node.predecessorInSequence() == null)
-						typesMap = visitor.info.variableTypes;
-					else {
-						final IType targetType = ty(node.predecessorInSequence(), visitor);
-						if (targetType instanceof Script) {
-							final ScriptInfo other = visitor.info.shared.infos.get(targetType);
-							if (other != null) {
-								new Visitor(other).reportProblems();
-								typesMap = other.variableTypes;
-							} else
-								typesMap = ((Script)targetType).variableTypes();
-						}
-					}
-					final IType type = typesMap != null ? typesMap.get(v) : v.type();
-					if (type != null)
-						return type;
-				}
-				return v.type();
-			}
-			else if (d instanceof ITypeable)
-				return ((ITypeable) d).type();
-			return PrimitiveType.UNKNOWN;
-		}
-
-		@Override
-		public void visit(T node, Visitor visitor) throws ParsingException {
-			super.visit(node, visitor);
-			final ASTNode pred = node.predecessorInSequence();
-			final Declaration declaration = node.declaration();
-			if (declaration == null && pred == null)
-				visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
-			// local variable used in global function
-			else if (declaration instanceof Variable) {
-				final Variable var = (Variable) declaration;
-				var.setUsed(true);
-				switch (var.scope()) {
-				case LOCAL:
-					final Declaration d = node.parentOfType(Declaration.class);
-					if (d != null && pred == null) {
-						final Function f = d.topLevelParentDeclarationOfType(Function.class);
-						final Variable v = d.topLevelParentDeclarationOfType(Variable.class);
-						if (
-							(f != null && f.visibility() == FunctionScope.GLOBAL) ||
-							(f == null && v != null && v.scope() != Scope.LOCAL)
-						)
-							visitor.markers().error(visitor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
-					}
-					break;
-				case STATIC: case CONST:
-					visitor.script().addUsedScript(var.script());
-					break;
-				case VAR:
-					final Function currentFunction = node.parentOfType(Function.class);
-					if (currentFunction != null && var.parentDeclaration() == currentFunction) {
-						final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
-						if (locationUsed < var.start())
-							visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
-					}
-					break;
-				case PARAMETER:
-					break;
-				}
-			} else if (declaration instanceof Function)
-				if (!visitor.script().engine().settings().supportsFunctionRefs)
-					visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
-		}
-
-		@Override
-		public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-			Declaration declaration = internalObtainDeclaration(node, visitor);
-			if (declaration == Variable.THIS)
-				return true;
-			if (declaration == null && origin != null) {
-				final IType predType = predecessorType(node, visitor);
-				if (predType != null && TypeUnification.compatible(predType, PrimitiveType.PROPLIST))
-					if (predType instanceof IProplistDeclaration) {
-						final IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
-						if (proplDecl.isAdHoc()) {
-							final Variable var = proplDecl.addComponent(
-								new Variable(node.name(), Variable.Scope.VAR),
-								true
-							);
-							initializeFromAssignment(node, type, origin, visitor, var);
-							node.setDeclaration(declaration = var);
-						}
-					} else for (final IType t : predType)
-						if (t == visitor.script()) {
-							final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
-							initializeFromAssignment(node, type, origin, visitor, var);
-							visitor.script().addDeclaration(var);
-							visitor.script().generateFindDeclarationCache();
-							node.setDeclaration(declaration = var);
-							break;
-						}
-			}
-			return super.typingJudgement(node, type, origin, visitor, mode);
-		}
-
-		private void initializeFromAssignment(T node, IType type, ASTNode origin, Visitor visitor, final Variable var) {
-			var.assignType(type);
-			var.setLocation(visitor.absoluteSourceLocationFromExpr(node));
-			var.forceType(type);
-			var.setInitializationExpression(origin);
-		}
-
-		@Override
-		public TypeVariable findTypeVariable(T node, Visitor visitor) {
-			final TypeVariable r = super.findTypeVariable(node, visitor);
-			if (r != null)
-				return r;
-			final Declaration d = node.declaration();
-			if (
-				d != null && d.parent() == visitor.script() &&
-				!(node.parent() instanceof BinaryOp && ((BinaryOp)node.parent()).operator().isAssignment())
-			) {
-				final List<BinaryOp> assignments = visitor.script().varAssignments().get(node.name());
-				if (assignments != null)
-					for (final BinaryOp a : assignments)
-						visitor.visitFunction(a.parentOfType(Function.class), node.parentOfType(Function.class));
-			}
-			return super.findTypeVariable(node, visitor);
-		}
-
-		@Override
-		public TypeVariable createTypeVariable(T node, Visitor visitor) {
-			if (node.declaration() instanceof Variable)
-				return new VariableTypeVariable(node);
-			else
-				return null;
-		}
-
-		@Override
-		public boolean isModifiable(AccessVar node, Visitor visitor) {
-			final Declaration declaration = node.declaration();
-			final ASTNode pred = node.predecessorInSequence();
-			if (pred == null)
-				return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
-			else
-				return true; // you can never be so sure
-		}
-	}
-
-	class LiteralExpert<T extends Literal<?>> extends Expert<T> {
-		public LiteralExpert(Class<T> cls) { super(cls); }
-		@Override
-		public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-			// constantly steadfast do i resist the pressure of expectancy lied upon me
-			return true;
-		}
-		@Override
-		public boolean isModifiable(T node, Visitor visitor) { return false; }
-	}
-
-	class ConditionalStatementExpert<T extends ConditionalStatement> extends Expert<T> {
-		public ConditionalStatementExpert(Class<T> cls) { super(cls); }
-		@Override
-		public boolean skipReportingProblemsForSubElements() {return true;}
-		@Override
-		public void visit(ConditionalStatement node, Visitor visitor) throws ParsingException {
-			final ControlFlow t = visitor.controlFlow;
-			visitor.controlFlow = ControlFlow.Continue;
-			TypeEnvironment env = visitor.newTypeEnvironment();
-			visitor.visitNode(node.condition(), true);
-			visitor.endTypeEnvironment(env, true, false);
-			env = visitor.newTypeEnvironment();
-			visitor.visitNode(node.body(), true);
-			visitor.endTypeEnvironment(env, true, false);
-			loopConditionWarnings(node, visitor);
-			visitor.controlFlow = t;
-		}
-		/**
-		 * Emit warnings about loop conditions that could result in loops never executing or never ending.
-		 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
-		 * @param condition The loop condition to check
-		 */
-		protected void loopConditionWarnings(ConditionalStatement node, Visitor visitor) {
-			final ASTNode condition = node.condition();
-			if (node.body() == null || condition == null || !(node instanceof ILoop))
-				return;
-			final Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateStatic(node.parentOfType(Function.class)));
-			if (Boolean.FALSE.equals(condEv))
-				visitor.markers().warning(visitor, Problem.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
-			else if (Boolean.TRUE.equals(condEv)) {
-				final EnumSet<ControlFlow> flows = node.body().possibleControlFlows();
-				if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-					visitor.markers().warning(visitor, Problem.InfiniteLoop, node, node, Markers.NO_THROW);
 			}
 		}
 	}
@@ -1347,7 +1028,315 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
 
+	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
+		public AccessDeclarationExpert(Class<T> cls) { super(cls); }
+		protected Declaration obtainDeclaration(T node, Visitor visitor) { return null; }
+		@Override
+		public void visit(T node, Visitor visitor) throws ParsingException {
+			super.visit(node, visitor);
+			internalObtainDeclaration(node, visitor);
+		}
+		protected final Declaration internalObtainDeclaration(T node, Visitor visitor) {
+			if (!visitor.roaming || visitor.script() == node.parentOfType(Script.class)) {
+				if (node.declaration() == null)
+					node.setDeclaration(obtainDeclaration(node, visitor));
+				if (node.declaration() == null) {
+					visitor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
+					node.setDeclaration(obtainDeclaration(node, visitor));
+				}
+				return node.declaration();
+			} else
+				return obtainDeclaration(node, visitor);
+		}
+		@Override
+		public TypeVariable createTypeVariable(T node, Visitor visitor) {
+			if (node.declaration() instanceof ITypeable && ((ITypeable)node.declaration()).staticallyTyped())
+				return null;
+			else
+				return super.createTypeVariable(node, visitor);
+		}
+		@Override
+		public IType type(T node, Visitor visitor) {
+			final TypeVariable tyvar = findTypeVariable(node, visitor);
+			return tyvar != null ? tyvar.get() : PrimitiveType.UNKNOWN;
+		}
+		@Override
+		public Declaration typeEnvironmentKey(T node, Visitor visitor) {
+			return internalObtainDeclaration(node, visitor);
+		}
+	}
+
 	private void assembleCommittee() {
+
+		class AccessVarExpert<T extends AccessVar> extends AccessDeclarationExpert<T> {
+			private AccessVarExpert(Class<T> cls) {
+				super(cls);
+			}
+
+			private Declaration findUsingType(Visitor visitor, AccessVar node, ASTNode predecessor, IType type) {
+				if (type == null)
+					return null;
+				for (final IType t : type) {
+					Script scriptToLookIn;
+					if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
+						// find pseudo-variable from proplist expression
+						if (t instanceof IProplistDeclaration) {
+							final Variable proplistComponent = ((IProplistDeclaration)t).findComponent(node.name());
+							if (proplistComponent != null)
+								return proplistComponent;
+						}
+					} else {
+						final FindDeclarationInfo info = new FindDeclarationInfo(visitor.script().index());
+						info.searchOrigin = scriptToLookIn;
+						info.findGlobalVariables = predecessor == null;
+						Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
+						if (v instanceof Definition)
+							v = ((Definition)v).proxyVar();
+						if (v != null) {
+							final Variable var = as(v, Variable.class);
+							if (var != null && var.initializationExpression() != null) {
+								final Function p = var.initializationExpression().parentOfType(Function.class);
+								if (p != null)
+									visitor.visitFunction(p, node.parentOfType(Function.class));
+							}
+							return v;
+						}
+					}
+				}
+				return null;
+			}
+
+			@Override
+			protected Declaration obtainDeclaration(AccessVar node, Visitor visitor) {
+				final ASTNode p = node.predecessorInSequence();
+				if (p == null && node.name().equals(Variable.THIS.name()))
+					return Variable.THIS;
+				IType type = visitor.script();
+				if (p != null)
+					type = ty(p, visitor);
+				if (p == null) {
+					final Function f = node.parentOfType(Function.class);
+					if (f != null) {
+						final Variable v = f.findVariable(node.name());
+						if (v != null)
+							return v;
+					}
+					Declaration v = visitor.info.variableMap.get(node.name());
+					if (v == null && !visitor.info.variableMap.containsKey(node.name())) {
+						v = findUsingType(visitor, node, null, type);
+						visitor.info.variableMap.put(node.name(), v);
+					}
+					return v;
+				}
+				else
+					return findUsingType(visitor, node, p, type);
+			}
+
+			@Override
+			public IType type(T node, Visitor visitor) {
+				final Declaration d = internalObtainDeclaration(node, visitor);
+				// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
+				if (d == Variable.THIS)
+					return visitor.info.thisType;
+				final TypeVariable stored = findTypeVariable(node, visitor);
+				if (stored != null)
+					return stored.get();
+				if (d instanceof Function)
+					return new FunctionType((Function)d);
+				else if (d instanceof Variable) {
+					final Variable v = (Variable)d;
+					Map<Variable, IType> typesMap= null;
+					if (v.scope() == Scope.LOCAL) {
+						if (node.predecessorInSequence() == null)
+							typesMap = visitor.info.variableTypes;
+						else {
+							final IType targetType = ty(node.predecessorInSequence(), visitor);
+							if (targetType instanceof Script) {
+								final ScriptInfo other = visitor.info.shared.infos.get(targetType);
+								if (other != null) {
+									new Visitor(other).reportProblems();
+									typesMap = other.variableTypes;
+								} else
+									typesMap = ((Script)targetType).variableTypes();
+							}
+						}
+						final IType type = typesMap != null ? typesMap.get(v) : v.type();
+						if (type != null)
+							return type;
+					}
+					return v.type();
+				}
+				else if (d instanceof ITypeable)
+					return ((ITypeable) d).type();
+				return PrimitiveType.UNKNOWN;
+			}
+
+			@Override
+			public void visit(T node, Visitor visitor) throws ParsingException {
+				super.visit(node, visitor);
+				final ASTNode pred = node.predecessorInSequence();
+				final Declaration declaration = node.declaration();
+				if (declaration == null && pred == null)
+					visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
+				// local variable used in global function
+				else if (declaration instanceof Variable) {
+					final Variable var = (Variable) declaration;
+					var.setUsed(true);
+					switch (var.scope()) {
+					case LOCAL:
+						final Declaration d = node.parentOfType(Declaration.class);
+						if (d != null && pred == null) {
+							final Function f = d.topLevelParentDeclarationOfType(Function.class);
+							final Variable v = d.topLevelParentDeclarationOfType(Variable.class);
+							if (
+								(f != null && f.visibility() == FunctionScope.GLOBAL) ||
+								(f == null && v != null && v.scope() != Scope.LOCAL)
+							)
+								visitor.markers().error(visitor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
+						}
+						break;
+					case STATIC: case CONST:
+						visitor.script().addUsedScript(var.script());
+						break;
+					case VAR:
+						final Function currentFunction = node.parentOfType(Function.class);
+						if (currentFunction != null && var.parentDeclaration() == currentFunction) {
+							final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
+							if (locationUsed < var.start())
+								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
+						}
+						break;
+					case PARAMETER:
+						break;
+					}
+				} else if (declaration instanceof Function)
+					if (!visitor.script().engine().settings().supportsFunctionRefs)
+						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
+			}
+
+			@Override
+			public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+				Declaration declaration = internalObtainDeclaration(node, visitor);
+				if (declaration == Variable.THIS)
+					return true;
+				if (declaration == null && origin != null) {
+					final IType predType = predecessorType(node, visitor);
+					if (predType != null && TypeUnification.compatible(predType, PrimitiveType.PROPLIST))
+						if (predType instanceof IProplistDeclaration) {
+							final IProplistDeclaration proplDecl = (IProplistDeclaration) predType;
+							if (proplDecl.isAdHoc()) {
+								final Variable var = proplDecl.addComponent(
+									new Variable(node.name(), Variable.Scope.VAR),
+									true
+								);
+								initializeFromAssignment(node, type, origin, visitor, var);
+								node.setDeclaration(declaration = var);
+							}
+						} else for (final IType t : predType)
+							if (t == visitor.script()) {
+								final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
+								initializeFromAssignment(node, type, origin, visitor, var);
+								visitor.script().addDeclaration(var);
+								visitor.script().generateFindDeclarationCache();
+								node.setDeclaration(declaration = var);
+								break;
+							}
+				}
+				return super.typingJudgement(node, type, origin, visitor, mode);
+			}
+
+			private void initializeFromAssignment(T node, IType type, ASTNode origin, Visitor visitor, final Variable var) {
+				var.assignType(type);
+				var.setLocation(visitor.absoluteSourceLocationFromExpr(node));
+				var.forceType(type);
+				var.setInitializationExpression(origin);
+			}
+
+			@Override
+			public TypeVariable findTypeVariable(T node, Visitor visitor) {
+				final TypeVariable r = super.findTypeVariable(node, visitor);
+				if (r != null)
+					return r;
+				final Declaration d = node.declaration();
+				if (
+					d != null && d.parent() == visitor.script() &&
+					!(node.parent() instanceof BinaryOp && ((BinaryOp)node.parent()).operator().isAssignment())
+				) {
+					final List<BinaryOp> assignments = visitor.script().varAssignments().get(node.name());
+					if (assignments != null)
+						for (final BinaryOp a : assignments)
+							visitor.visitFunction(a.parentOfType(Function.class), node.parentOfType(Function.class));
+				}
+				return super.findTypeVariable(node, visitor);
+			}
+
+			@Override
+			public TypeVariable createTypeVariable(T node, Visitor visitor) {
+				if (node.declaration() instanceof Variable)
+					return new VariableTypeVariable(node);
+				else
+					return null;
+			}
+
+			@Override
+			public boolean isModifiable(AccessVar node, Visitor visitor) {
+				final Declaration declaration = node.declaration();
+				final ASTNode pred = node.predecessorInSequence();
+				if (pred == null)
+					return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
+				else
+					return true; // you can never be so sure
+			}
+		}
+
+		class LiteralExpert<T extends Literal<?>> extends Expert<T> {
+			public LiteralExpert(Class<T> cls) { super(cls); }
+			@Override
+			public boolean typingJudgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+				// constantly steadfast do i resist the pressure of expectancy lied upon me
+				return true;
+			}
+			@Override
+			public boolean isModifiable(T node, Visitor visitor) { return false; }
+		}
+
+		class ConditionalStatementExpert<T extends ConditionalStatement> extends Expert<T> {
+			public ConditionalStatementExpert(Class<T> cls) { super(cls); }
+			@Override
+			public boolean skipReportingProblemsForSubElements() {return true;}
+			@Override
+			public void visit(ConditionalStatement node, Visitor visitor) throws ParsingException {
+				final ControlFlow t = visitor.controlFlow;
+				visitor.controlFlow = ControlFlow.Continue;
+				TypeEnvironment env = visitor.newTypeEnvironment();
+				visitor.visitNode(node.condition(), true);
+				visitor.endTypeEnvironment(env, true, false);
+				env = visitor.newTypeEnvironment();
+				visitor.visitNode(node.body(), true);
+				visitor.endTypeEnvironment(env, true, false);
+				loopConditionWarnings(node, visitor);
+				visitor.controlFlow = t;
+			}
+			/**
+			 * Emit warnings about loop conditions that could result in loops never executing or never ending.
+			 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
+			 * @param condition The loop condition to check
+			 */
+			protected void loopConditionWarnings(ConditionalStatement node, Visitor visitor) {
+				final ASTNode condition = node.condition();
+				if (node.body() == null || condition == null || !(node instanceof ILoop))
+					return;
+				final Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateStatic(node.parentOfType(Function.class)));
+				if (Boolean.FALSE.equals(condEv))
+					visitor.markers().warning(visitor, Problem.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
+				else if (Boolean.TRUE.equals(condEv)) {
+					final EnumSet<ControlFlow> flows = node.body().possibleControlFlows();
+					if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
+						visitor.markers().warning(visitor, Problem.InfiniteLoop, node, node, Markers.NO_THROW);
+				}
+			}
+		}
+
 		final Expert<?>[] classes = new Expert[] {
 
 			new AccessDeclarationExpert<AccessDeclaration>(AccessDeclaration.class),
