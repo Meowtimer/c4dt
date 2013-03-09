@@ -588,7 +588,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
-			printParameterString(output, EnumSet.of(ParameterStringOption.FunctionName));
+			printParameterString(output, EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else
