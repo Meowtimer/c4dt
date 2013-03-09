@@ -25,24 +25,31 @@ import org.omg.CORBA.UNKNOWN;
  */
 public enum PrimitiveType implements IType {
 	UNKNOWN,
-	
+
 	ANY,
 	BOOL,
 	INT,
 	ID,
 	STRING,
 	ARRAY,
-	OBJECT, 
+	OBJECT,
 	REFERENCE,
 	PROPLIST,
 	FUNCTION,
 	FLOAT,
 	NUM,
 	ERRONEOUS;
-	
-	public static final PrimitiveType[] NILLABLES = {PrimitiveType.OBJECT, PrimitiveType.STRING, PrimitiveType.ARRAY, PrimitiveType.PROPLIST};
+
+	public static final PrimitiveType[] NILLABLES = {
+		OBJECT,
+		STRING,
+		ARRAY,
+		PROPLIST,
+		ID,
+		FUNCTION
+	};
 	private final ReferenceType referenceType = new ReferenceType(this);
-	
+
 	public IType referenceType() { return referenceType; }
 
 	private String scriptName;
@@ -50,14 +57,14 @@ public enum PrimitiveType implements IType {
 
 	@Override
 	public String toString() { return typeName(true); }
-	
+
 	private static final Map<String, PrimitiveType> REGULAR_MAP = new HashMap<String, PrimitiveType>();
 	private static final Map<String, PrimitiveType> SPECIAL_MAPPING = map(false,
 		"dword", INT,
 		"any", ANY,
 		"reference", REFERENCE,
 		"void", UNKNOWN
-	); 
+	);
 	/**
 	 * Map to map type names from Clonk engine source to primitive types.
 	 */
@@ -80,7 +87,7 @@ public enum PrimitiveType implements IType {
 	 * Map to map primitive types to type names from Clonk engine source.
 	 */
 	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = ArrayUtil.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
-	
+
 	static {
 		for (final PrimitiveType t : values()) {
 			switch (t) {
@@ -96,7 +103,7 @@ public enum PrimitiveType implements IType {
 			REGULAR_MAP.put(t.scriptName, t);
 		}
 	}
-	
+
 	@Override
 	public String typeName(boolean special) {
 		if (!special && this == UNKNOWN)
@@ -107,11 +114,11 @@ public enum PrimitiveType implements IType {
 
 	private static final Pattern NILLABLE_PATTERN = Pattern.compile("Nillable\\<(.*?)\\>");
 	private static final Pattern POINTERTYPE_PATTERN = Pattern.compile("(.*?)\\s*?\\*");
-	
+
 	/**
 	 * Return a primitive type from a C++ type string
 	 * @param type The C++ type string to interpret
-	 * @return The primitive type or {@link #UNKNOWN} if no 
+	 * @return The primitive type or {@link #UNKNOWN} if no
 	 */
 	public static PrimitiveType fromCPPString(String type) {
 		Matcher m;
@@ -126,9 +133,9 @@ public enum PrimitiveType implements IType {
 			if (ty != null)
 				return ty;
 		}
-		return PrimitiveType.UNKNOWN; 
+		return PrimitiveType.UNKNOWN;
 	}
-	
+
 	public static String CPPTypeFromType(IType type) {
 		final PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
@@ -142,10 +149,10 @@ public enum PrimitiveType implements IType {
 	public static PrimitiveType fromString(String arg) {
 		return defaulting(fromString(arg, false), UNKNOWN);
 	}
-	
+
 	/**
 	 * Return {@link PrimitiveType} parsed from a type string that can be a regular C4Script type string or
-	 * if allowSpecial is passed true some 'special' type string which would not be allowed by the engine when parsing a script. 
+	 * if allowSpecial is passed true some 'special' type string which would not be allowed by the engine when parsing a script.
 	 * @param typeString The type string
 	 * @param allowSpecial Whether to allow special syntax
 	 * @return The {@link PrimitiveType} parsed from the argument or null if not successful.
@@ -179,9 +186,9 @@ public enum PrimitiveType implements IType {
 			return PROPLIST;
 		return ANY;
 	}
-	
+
 	/**
-	 * Converts a given value to one of the calling type 
+	 * Converts a given value to one of the calling type
 	 * @param value value to convert
 	 * @return the converted value or null if conversion failed
 	 */
@@ -198,7 +205,7 @@ public enum PrimitiveType implements IType {
 				break;
 			}
 			break;
-			
+
 		case ANY:
 			return value;
 		default:
@@ -214,7 +221,7 @@ public enum PrimitiveType implements IType {
 	public Iterator<IType> iterator() {
 		return new Iterator<IType>() {
 			private boolean done = false;
-			
+
 			@Override
 			public boolean hasNext() {
 				return !done;
@@ -237,7 +244,7 @@ public enum PrimitiveType implements IType {
 	public IType simpleType() {
 		return this;
 	}
-	
+
 	public class Unified implements IType, ISerializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
@@ -250,9 +257,9 @@ public enum PrimitiveType implements IType {
 		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
 		public PrimitiveType base() { return PrimitiveType.this; }
 	}
-	
+
 	final Unified unified = new Unified();
-	
+
 	/**
 	 * Return a type signifying the result of unification which ended with this primitive type.
 	 * Further unification involving this type will not result in the unification result getting more specialized again.

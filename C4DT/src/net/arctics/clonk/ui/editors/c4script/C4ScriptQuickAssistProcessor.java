@@ -749,7 +749,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					offset += replacement.replacementExpression().start();
 					length = replacement.replacementExpression().getLength();
 				} else {
-					offset += expressionRegion.getOffset();
+					offset = expressionRegion.getOffset();
 					if (replacement.replacementExpression() instanceof Statement)
 						// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
 						length = topLevel.getLength();

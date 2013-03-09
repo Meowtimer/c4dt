@@ -36,10 +36,10 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		private C4ScriptCompletionProcessor processor;
 		public C4ScriptContentAssistant(ISourceViewer sourceViewer) {
 			processor = new C4ScriptCompletionProcessor(editor(), this);
-			for (String s : CStylePartitionScanner.PARTITIONS)
+			for (final String s : CStylePartitionScanner.PARTITIONS)
 				setContentAssistProcessor(processor, s);
 			install(sourceViewer);
-			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_BELOW);
+			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 			setRepeatedInvocationMode(true);
 			setStatusLineVisible(true);
 			setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_StandardProposals);
@@ -51,7 +51,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			setInformationControlCreator(new IInformationControlCreator() {
 				@Override
 				public IInformationControl createInformationControl(Shell parent) {
-					DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
+					final DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
 					return def;
 				}
 			});
@@ -68,7 +68,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
-				EntityLocator locator = new EntityLocator(editor(), viewer.getDocument(),region);
+				final EntityLocator locator = new EntityLocator(editor(), viewer.getDocument(),region);
 				if (locator.entity() != null)
 					return new IHyperlink[] {
 						new ClonkHyperlink(locator.expressionRegion(), locator.entity())
@@ -78,7 +78,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 						new ClonkHyperlink(locator.expressionRegion(), locator.potentialEntities())
 					};
 				return null;
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -116,18 +116,18 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
-		IQuickAssistAssistant assistant = new QuickAssistAssistant();
+		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new C4ScriptQuickAssistProcessor());
 		return assistant;
 	}
 
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-		PresentationReconciler reconciler = new PresentationReconciler();
+		final PresentationReconciler reconciler = new PresentationReconciler();
 
-		ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
+		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
 
-		C4ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
+		final C4ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
 
 		DefaultDamagerRepairer dr =
 			new DefaultDamagerRepairer(scanner);
