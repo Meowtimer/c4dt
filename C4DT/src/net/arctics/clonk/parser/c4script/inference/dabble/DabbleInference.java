@@ -1400,20 +1400,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final IType e : elmTy)
 							if (e == PrimitiveType.STRING)
 								return judgement(pred, PrimitiveType.PROPLIST, mode, visitor);
-						for (final IType predType : predType_) {
-							final ArrayType arrayType = as(predType, ArrayType.class);
-							if (arrayType != null) {
-								if (judgement(pred, new ArrayType(TypeUnification.unify(rightSideType, arrayType.elementType())), mode, visitor))
-									return true;
-							} else if (predType == PrimitiveType.UNKNOWN || predType == PrimitiveType.ARRAY)
-								if (judgement(
-									pred,
-									new ArrayType(rightSideType),
-									mode,
-									visitor
-								))
-									return true;
-						}
+						return judgement(pred, new ArrayType(rightSideType), TypingJudgementMode.UNIFY, visitor);
 					}
 					return true;
 				}
