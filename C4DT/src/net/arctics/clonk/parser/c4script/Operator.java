@@ -99,7 +99,7 @@ public enum Operator {
 	public String operatorName() { return operatorName; }
 	public PrimitiveType firstArgType() { return firstArgType; }
 	public PrimitiveType secondArgType() { return secondArgType; }
-	public PrimitiveType resultType() { return resultType; }
+	public PrimitiveType returnType() { return resultType; }
 	public int numArgs() { return secondArgType != null ? 2 : 1; }
 	public boolean isUnary() {
 		switch (this) {

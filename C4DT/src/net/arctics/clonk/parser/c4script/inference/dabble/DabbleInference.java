@@ -864,9 +864,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public IType type(T node, Visitor visitor) { return PrimitiveType.UNKNOWN; }
 		public Declaration typeEnvironmentKey(T node, Visitor visitor) { return null; }
 		public TypeVariable createTypeVariable(T node, Visitor visitor) { return null; }
+		public boolean isModifiable(T node, Visitor visitor) { return true; }
+
 		@Override
 		public String toString() { return String.format("Expert<%s>", cls.getSimpleName()); }
-		public boolean isModifiable(T node, Visitor visitor) { return true; }
 
 		public final IType predecessorType(ASTNode node, Visitor visitor) {
 			final ASTNode p = node.predecessorInSequence();
@@ -1453,7 +1454,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<OperatorExpression>(OperatorExpression.class) {
 				@Override
 				public IType type(OperatorExpression node, Visitor visitor) {
-					return node.operator().resultType();
+					return node.operator().returnType();
 				}
 				@Override
 				public boolean isModifiable(OperatorExpression node, Visitor visitor) { return node.operator().returnsRef(); }
@@ -1559,9 +1560,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					else
 						return null;
 				}
+				@Override
+				public boolean isModifiable(BinaryOp node, Visitor visitor) { return node.operator().returnsRef(); }
 			},
 
 			new Expert<UnaryOp>(UnaryOp.class) {
+				@Override
+				public IType type(UnaryOp node, Visitor visitor) { return node.operator().returnType(); }
 				@Override
 				public void visit(UnaryOp node, Visitor visitor) throws ParsingException {
 					supr.visit(node, visitor);
