@@ -189,7 +189,7 @@ public class TypeUnification {
 			}
 		}
 
-		else if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
+		if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
 			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
 			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID.unified();
 		}

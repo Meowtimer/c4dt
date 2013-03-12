@@ -98,7 +98,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public synchronized Variable global() {
 		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
-			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
+			final ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
 			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, type);
@@ -161,7 +161,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			saveSynchronizer = new Object();
 		if (loadSynchronizer == null)
 			loadSynchronizer = new Object();
-		for (IndexEntity e : entities()) {
+		for (final IndexEntity e : entities()) {
 			e.index = this;
 			e.loaded = false;
 		}
@@ -181,28 +181,28 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 			// create session cache
 			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			Iterable<? extends Definition> objects = definitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
+			final Iterable<? extends Definition> objects = definitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null)
-				for (Definition obj : objects)
+				for (final Definition obj : objects)
 					if ((obj instanceof Definition)) {
-						Definition projDef = obj;
+						final Definition projDef = obj;
 						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
 							projDef.setDefinitionFolder(folder);
 							return projDef;
 						}
 					}
 			return null;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (List<Definition> list : indexedDefinitions.values())
-				for (Definition obj : list)
+			for (final List<Definition> list : indexedDefinitions.values())
+				for (final Definition obj : list)
 					if (obj instanceof Definition) {
-						Definition def = obj;
+						final Definition def = obj;
 						if (def.definitionFolder() != null && def.definitionFolder().equals(folder))
 							return def;
 					}
 			// also try scenarios
-			for (Scenario s : indexedScenarios)
+			for (final Scenario s : indexedScenarios)
 				if (s.definitionFolder() != null && s.definitionFolder().equals(folder))
 					return s;
 			//e.printStackTrace();
@@ -216,9 +216,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return the {@link Script} or null if the file does not represent one.
 	 */
 	public Script scriptAt(IFile file) {
-		Script result = Script.get(file, true);
+		final Script result = Script.get(file, true);
 		if (result == null)
-			for (Script s : this.indexedScripts)
+			for (final Script s : this.indexedScripts)
 				if (s.resource() != null && s.resource().equals(file))
 					return s;
 		return result;
@@ -237,13 +237,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
 		indexedProplistDeclarations.add(proplistDeclaration);
-		for (Variable v : proplistDeclaration.components(true))
+		for (final Variable v : proplistDeclaration.components(true))
 			addToDeclarationMap(v);
 	}
 
 	private void detectAppendages(Script script, Map<ID, List<Script>> detectedAppendages) {
 		if (detectedAppendages != null)
-			for (Directive d : script.directives())
+			for (final Directive d : script.directives())
 				if (d.type() == DirectiveType.APPENDTO) {
 					List<Script> appendtoList = detectedAppendages.get(d.contentAsID());
 					if (appendtoList == null) {
@@ -255,15 +255,15 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	protected <T extends Script> void addGlobalsFromScript(T script, Map<ID, List<Script>> detectedAppendages) {
-		for (Function func : script.functions()) {
+		for (final Function func : script.functions()) {
 			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
-			for (Declaration otherDec : func.otherDeclarations())
+			for (final Declaration otherDec : func.otherDeclarations())
 				if (otherDec instanceof IProplistDeclaration)
 					addToProplistDeclarations((ProplistDeclaration) otherDec);
 			addToDeclarationMap(func);
 		}
-		for (Variable var : script.variables()) {
+		for (final Variable var : script.variables()) {
 			if (var.scope() == Scope.STATIC || var.scope() == Scope.CONST)
 				staticVariables.add(var);
 			addToDeclarationMap(var);
@@ -273,7 +273,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public void addStaticVariables(Collection<? extends Variable> variables) {
 		staticVariables.addAll(variables);
-		for (Variable v : variables)
+		for (final Variable v : variables)
 			addToDeclarationMap(v);
 	}
 
@@ -302,7 +302,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			appendages = new HashMap<ID, List<Script>>();
 		globalFunctions.clear();
 		staticVariables.clear();
-		Variable g = global(); if (g != null) staticVariables.add(global());
+		final Variable g = global(); if (g != null) staticVariables.add(global());
 		declarationMap.clear();
 
 		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
@@ -414,10 +414,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@SuppressWarnings("unchecked")
 	private <T> Sink.Decision allDefinitionsInternal(Sink<T> sink) {
-		Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
+		final Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
 		while (defsIt.hasNext()) {
-			List<Definition> list = defsIt.next();
-			Iterator<Definition> defIt = list.iterator();
+			final List<Definition> list = defsIt.next();
+			final Iterator<Definition> defIt = list.iterator();
 			while (defIt.hasNext())
 				switch (sink.elutriate((T)defIt.next())) {
 				case PurgeItem:
@@ -473,7 +473,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+		final List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
 		if (alreadyDefinedObjects != null)
 			if (alreadyDefinedObjects.remove(definition)) {
 				if (alreadyDefinedObjects.size() == 0)
@@ -531,10 +531,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The 'last' {@link Definition} with that id
 	 */
 	public Definition lastDefinitionWithId(ID id) {
-		Iterable<? extends Definition> objs = definitionsWithID(id);
+		final Iterable<? extends Definition> objs = definitionsWithID(id);
 		if (objs != null) {
 			Definition result = null;
-			for (Definition def : objs)
+			for (final Definition def : objs)
 				result = def;
 			return result;
 		}
@@ -543,18 +543,18 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public static void addIndexesFromReferencedProjects(List<Index> result, Index index) {
 		if (index instanceof ProjectIndex) {
-			ProjectIndex projIndex = (ProjectIndex) index;
+			final ProjectIndex projIndex = (ProjectIndex) index;
 			try {
-				List<Index> newOnes = new LinkedList<Index>();
-				for (IProject p : projIndex.nature().getProject().getReferencedProjects()) {
-					ClonkProjectNature n = ClonkProjectNature.get(p);
+				final List<Index> newOnes = new LinkedList<Index>();
+				for (final IProject p : projIndex.nature().getProject().getReferencedProjects()) {
+					final ClonkProjectNature n = ClonkProjectNature.get(p);
 					if (n != null && n.index() != null && !result.contains(n.index()))
 						newOnes.add(n.index());
 				}
 				result.addAll(newOnes);
-				for (Index i : newOnes)
+				for (final Index i : newOnes)
 					addIndexesFromReferencedProjects(result, i);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		}
@@ -582,9 +582,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Definition definitionNearestTo(IResource resource, ID id) {
 		Definition best = null;
-		for (Index index : relevantIndexes()) {
+		for (final Index index : relevantIndexes()) {
 			if (resource != null) {
-				List<? extends Definition> objs = index.definitionsWithID(id);
+				final List<? extends Definition> objs = index.definitionsWithID(id);
 				best = objs == null ? null : objs.size() == 1 ? objs.get(0) : Utilities.pickNearest(objs, resource, null);
 			}
 			else
@@ -632,10 +632,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T findGlobal(Class<T> whatYouWant, String name) {
 		synchronized (declarationMap) {
-			List<Declaration> decs = declarationMap.get(name);
+			final List<Declaration> decs = declarationMap.get(name);
 			if (decs == null)
 				return null;
-			for (Declaration d : decs)
+			for (final Declaration d : decs)
 				if (d.isGlobal() && whatYouWant.isInstance(d))
 					return (T)d;
 			return null;
@@ -650,7 +650,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Declaration findGlobalDeclaration(String declName, IResource pivot) {
 		synchronized (declarationMap) {
-			List<Declaration> declarations = declarationMap.get(declName);
+			final List<Declaration> declarations = declarationMap.get(declName);
 			if (declarations != null)
 				return pivot != null
 				? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
@@ -680,7 +680,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	private void clearEntityFiles() {
-		for (IndexEntity e : entities())
+		for (final IndexEntity e : entities())
 			entityFile(e).delete();
 	}
 
@@ -706,7 +706,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public List<Script> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		List<Script> a = appendages.get(definition.id());
+		final List<Script> a = appendages.get(definition.id());
 		if (a != null)
 			return new ArrayList<Script>(a);
 		else
@@ -735,17 +735,17 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
-			InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
+			final InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
 			T index;
 			try {
-				ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
+				final ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public Engine engine() { return engine; }
 				}, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
-					for (IndexEntity e : index.entities())
+					for (final IndexEntity e : index.entities())
 						e.index = index;
 				} finally {
 					objStream.close();
@@ -755,7 +755,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			}
 			index.folder = indexFolder;
 			return index;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore
 			return null;
@@ -798,7 +798,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param The {@link Sink}
 	 */
 	public void forAllRelevantIndexes(Sink<Index> sink) {
-		for (Index index : relevantIndexes())
+		for (final Index index : relevantIndexes())
 			sink.elutriate(index);
 	}
 
@@ -810,7 +810,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				return (T) Utilities.scriptForResource(from.resource());
 			else if (from instanceof Structure && from.resource() instanceof IFile)
 				return (T) Structure.pinned(from.resource(), false, false);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -819,7 +819,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		//System.out.println("Load entity " + entity.toString());
 		try {
-			ObjectInputStream inputStream = newEntityInputStream(entity);
+			final ObjectInputStream inputStream = newEntityInputStream(entity);
 			if (inputStream != null) try {
 				entity.load(inputStream);
 			} finally {
@@ -828,16 +828,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			entity.postLoad(this, this);
 			if (entity instanceof Script)
 				addGlobalsFromScript((Script)entity, appendages);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	};
 
 	public void saveEntity(IndexEntity entity) throws IOException {
-		ObjectOutputStream s = newEntityOutputStream(entity);
+		final ObjectOutputStream s = newEntityOutputStream(entity);
 		try {
 			entity.save(s);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		} finally {
 			s.close();
@@ -853,7 +853,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	protected long addEntityReturningId(IndexEntity entity) {
 		synchronized (this) {
-			long id = entityIdCounter++;
+			final long id = entityIdCounter++;
 			this.entities.put(id, entity);
 			if (newEntities != null)
 				newEntities.add(entity);
@@ -872,7 +872,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public ObjectInputStream newEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
 		try {
 			return new IndexEntityInputStream(this, new GZIPInputStream(new FileInputStream(entityFile(entity))));
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			// might not be necessary to have an entity file
 			return null;
 		}
@@ -896,13 +896,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		@Override
 		public IndexEntity resolve(Index index) {
 			IndexEntity result = null;
-			Index externalIndex = index(index);
+			final Index externalIndex = index(index);
 			if (externalIndex != null) {
 				result = externalIndex.entityWithId(referencedEntityId);
 				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken))
 					if (referencedEntityToken != null)
-						for (IndexEntity e : externalIndex.entities()) {
-							Object token = e.additionalEntityIdentificationToken();
+						for (final IndexEntity e : externalIndex.entities()) {
+							final Object token = e.additionalEntityIdentificationToken();
 							if (e != null && referencedEntityToken.equals(token)) {
 								result = e;
 								break;
@@ -926,7 +926,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		@Override
 		protected Index index(Index context) {
 			if (referencedProjectName != null) {
-				ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
+				final ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
 				return nat != null ? nat.index() : null;
 			} else
 				return null;
@@ -992,19 +992,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Save the file storing what entities exist in this index but don't write entity-specific files.
 	 */
 	public void saveShallow() {
-		File indexFile = new File(folder, "index");
+		final File indexFile = new File(folder, "index");
 		folder.mkdirs();
 		try {
 			indexFile.createNewFile();
-		} catch (IOException e1) {
+		} catch (final IOException e1) {
 			e1.printStackTrace();
 			return;
 		}
 		try {
-			OutputStream out = new GZIPOutputStream(new FileOutputStream(indexFile));
+			final OutputStream out = new GZIPOutputStream(new FileOutputStream(indexFile));
 			removeNullsInScriptLists();
 			try {
-				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
+				final IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
 					@Override
 					protected Object replaceObject(Object obj) throws IOException {
 						// directives are also directly saved
@@ -1022,7 +1022,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				out.close();
 			}
 			purgeUnusedIndexFiles(indexFile);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -1036,13 +1036,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected void purgeUnusedIndexFiles(File indexFile) {
 		synchronized (this) {
-			File[] files = folder.listFiles();
-			List<File> filesToBePurged = new ArrayList<File>(files.length);
+			final File[] files = folder.listFiles();
+			final List<File> filesToBePurged = new ArrayList<File>(files.length);
 			filesToBePurged.addAll(Arrays.asList(files));
 			filesToBePurged.remove(indexFile);
-			for (IndexEntity e : entities())
+			for (final IndexEntity e : entities())
 				filesToBePurged.remove(entityFile(e));
-			for (File f : filesToBePurged)
+			for (final File f : filesToBePurged)
 				if (!f.getName().startsWith("."))
 					f.delete();
 		}
@@ -1053,11 +1053,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public void endModification() {
 		synchronized (this) {
-			for (IndexEntity e : newEntities)
+			for (final IndexEntity e : newEntities)
 				if (e.loaded && e.saveCalledByIndex())
 					try {
 						e.save();
-					} catch (IOException e1) {
+					} catch (final IOException e1) {
 						e1.printStackTrace();
 					}
 			newEntities = null;
@@ -1072,8 +1072,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	public Object saveReplacementForEntityDeclaration(Declaration obj, IndexEntity entity) {
-		Index objIndex = obj.index();
-		IndexEntity owningEntity = obj.parentOfType(IndexEntity.class);
+		final Index objIndex = obj.index();
+		final IndexEntity owningEntity = obj.parentOfType(IndexEntity.class);
 		if (objIndex == null || (objIndex == this && entity == owningEntity))
 			return obj;
 		else
@@ -1101,10 +1101,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The copy or null if no declarations with that name are currently loaded.
 	 */
 	public List<Declaration> snapshotOfDeclarationsNamed(String name) {
-		List<Declaration> decs = declarationMap().get(name);
+		final List<Declaration> decs = declarationMap().get(name);
 		if (decs == null)
 			return null;
-		ArrayList<Declaration> result = new ArrayList<Declaration>(decs.size());
+		final ArrayList<Declaration> result = new ArrayList<Declaration>(decs.size());
 		result.addAll(decs);
 		return result;
 	}
@@ -1114,9 +1114,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				Map<String, List<CallDeclaration>> calls = item.callMap();
+				final Map<String, List<CallDeclaration>> calls = item.callMap();
 				if (calls != null) synchronized (calls) {
-					List<CallDeclaration> list = calls.get(functionName);
+					final List<CallDeclaration> list = calls.get(functionName);
 					if (list != null)
 						result.addAll(list);
 				}

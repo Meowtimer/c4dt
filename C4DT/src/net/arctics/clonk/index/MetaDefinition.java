@@ -17,7 +17,7 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	@Override
 	public Iterator<IType> iterator() { return iterable(PrimitiveType.ID, this).iterator(); }
 	@Override
-	public String typeName(boolean special) { return String.format("id<%s>", definition.typeName(true)); }
+	public String typeName(boolean special) { return String.format("id[%s]", definition.typeName(special)); }
 	@Override
 	public IType simpleType() { return PrimitiveType.ID; }
 	@Override

@@ -690,6 +690,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					definedDirectives = new ArrayList<Directive>(5);
 				definedDirectives.add((Directive)declaration);
 			}
+		if (dictionary != null)
+			synchronized (dictionary) { dictionary.add(declaration.name()); }
 	}
 
 	public void removeDeclaration(Declaration declaration) {
