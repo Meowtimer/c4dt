@@ -56,7 +56,6 @@ import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -108,7 +107,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Collection<Script> includes;
 	private transient Scenario scenario;
 	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
-	private transient Map<String, List<BinaryOp>> varAssignments = new HashMap<>();
+	private transient Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
 
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
@@ -133,7 +132,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) { this.typeAnnotations = typeAnnotations; }
 
 	public Map<String, List<CallDeclaration>> callMap() { return callMap; }
-	public Map<String, List<BinaryOp>> varAssignments() { return varAssignments; }
+	public Map<String, List<AccessVar>> varReferences() { return varReferencesMap; }
 
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
@@ -1229,15 +1228,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					script.callMap.put(call.name(), list = new ArrayList<>(3));
 				list.add(call);
 			}
-			else if (node instanceof BinaryOp) {
-				final BinaryOp bop = (BinaryOp) node;
-				if (bop.operator().isAssignment() && bop.leftSide() instanceof AccessVar) {
-					final AccessVar var = (AccessVar)bop.leftSide();
-					List<BinaryOp> list = script.varAssignments.get(var.name());
-					if (list == null)
-						script.varAssignments.put(var.name(), list = new ArrayList<>(3));
-					list.add(bop);
-				}
+			else if (node instanceof AccessVar) {
+				final AccessVar var = (AccessVar)node;
+				List<AccessVar> list = script.varReferencesMap.get(var.name());
+				if (list == null)
+					script.varReferencesMap.put(var.name(), list = new ArrayList<>(3));
+				list.add(var);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -1249,7 +1245,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		cachedVariableMap = new HashMap<>();
 		_generateFindDeclarationCache();
 		callMap = new HashMap<>();
-		varAssignments = new HashMap<>();
+		varReferencesMap = new HashMap<>();
 		if (definedFunctions != null && index() != null)
 			for (final Function f : definedFunctions) {
 				f.findInherited();
@@ -1272,7 +1268,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		synchronized (callMap) {
 			if (clearOld) {
 				clearNodes(function, callMap);
-				clearNodes(function, varAssignments);
+				clearNodes(function, varReferencesMap);
 			}
 			function.traverse(NODEMAPS_POPULATOR, this);
 		}

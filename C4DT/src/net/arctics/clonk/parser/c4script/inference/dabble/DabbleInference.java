@@ -1270,10 +1270,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					d != null && d.parent() == visitor.script() &&
 					!(node.parent() instanceof BinaryOp && ((BinaryOp)node.parent()).operator().isAssignment())
 				) {
-					final List<BinaryOp> assignments = visitor.script().varAssignments().get(node.name());
-					if (assignments != null)
-						for (final BinaryOp a : assignments)
-							visitor.visitFunction(a.parentOfType(Function.class), visitor, node.parentOfType(Function.class));
+					final List<AccessVar> references = visitor.script().varReferences().get(node.name());
+					if (references != null)
+						for (final AccessVar ref : references)
+							if (ref.parent() instanceof BinaryOp && ((BinaryOp)ref.parent()).leftSide() == ref)
+								visitor.visitFunction(ref.parentOfType(Function.class), visitor, node.parentOfType(Function.class));
 				}
 				return super.findTypeVariable(node, visitor);
 			}
