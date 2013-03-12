@@ -77,9 +77,16 @@ public class ReferencesQuery extends SearchQueryBase {
 		public TraversalContinuation visitNode(ASTNode node, ProblemReportingContext context) {
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
-				final Declaration dec = accessDeclExpr.declaration();
-				if (dec != null && dec.latestVersion() == declaration)
+				Declaration dec = accessDeclExpr.declaration();
+				if (dec != null)
+					dec = dec.latestVersion();
+				if (dec == declaration)
 					result.addMatch(node, context, false, accessDeclExpr.indirectAccess());
+				else if (
+					dec instanceof Function && declaration instanceof Function &&
+					((Function)dec).baseFunction() == ((Function)declaration).baseFunction()
+				)
+					result.addMatch(node, context, false, true);
 				else if (potentiallyReferencedByObjectCall(node)) {
 					final Function otherFunc = (Function) accessDeclExpr.declaration();
 					final boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
