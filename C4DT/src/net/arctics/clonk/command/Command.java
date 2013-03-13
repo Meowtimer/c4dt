@@ -16,6 +16,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -241,6 +242,22 @@ public class Command {
 						}
 					}
 				});
+		}
+		
+		@CommandFunction
+		public static void CountNodes(Object context, String projectName) {
+			class Counter {
+				int result;
+				public int count(ASTNode node) { 
+					if (node != null) {
+						result++;
+						for (final ASTNode sn : node.subElements())
+							count(sn);
+					}
+					return result;
+				}
+			}
+			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
 		}
 	}
 
