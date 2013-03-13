@@ -45,7 +45,9 @@ public class TypeUnification {
 			case STRING:
 				break;
 			case BOOL:
-				return b;
+				if (b == PrimitiveType.INT)
+					return b;
+				break;
 			case PROPLIST:
 				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
 					return b;
