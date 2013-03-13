@@ -548,7 +548,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
-					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, parameters); //$NON-NLS-1$
+					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, editor().script().index().nature().settings().typing, parameters); //$NON-NLS-1$
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}
@@ -699,7 +699,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
-			Function cursorFunc = editor().functionAtCursor();
+			final Function cursorFunc = editor().functionAtCursor();
 			if (cursorFunc != null)
 				updateFunctionFragment(viewer.getDocument(), editor().script(), cursorFunc);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);

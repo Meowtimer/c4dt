@@ -107,7 +107,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public IType returnType(ProblemReportingContext processor, CallDeclaration node) {
 			Object parmEv;
-			if (node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
+			if (!node.name().equals("RemoveEffect") && node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
 				final String effectName = (String) parmEv;
 				return processor.script().effects().get(effectName);
 			}
@@ -554,7 +554,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (!endsWithEmptyLine)
 					builder.append('\n');
 				builder.append('\n');
-				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC));
+				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script.index().nature().settings().typing));
 				if (endsWithEmptyLine)
 					builder.append('\n');
 				document.set(builder.toString());

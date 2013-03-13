@@ -881,9 +881,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ASTNode code() { return body(); }
 
-	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, Variable... parameters) {
+	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Typing typing, Variable... parameters) {
 		final StringBuilder builder = new StringBuilder();
-		final Function f = new Function(functionName, scope);
+		@SuppressWarnings("serial")
+		final Function f = new Function(functionName, scope) {
+			@Override
+			protected Typing typing() { return typing; }
+		};
+		f.assignType(PrimitiveType.ANY, true);
 		for (final Variable p : parameters)
 			f.addParameter(p);
 		final ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
