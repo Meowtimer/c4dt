@@ -1236,19 +1236,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return true;
 				if (declaration == null && origin != null) {
 					final IType predType = predecessorType(node, visitor);
-					for (final IType t : predType)
-						if (t == visitor.script()) {
-							final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
-							initializeFromAssignment(node, type, origin, visitor, var);
-							visitor.script().addDeclaration(var);
-							node.setDeclaration(declaration = var);
-						}
-						else if (t instanceof IProplistDeclaration && ((IProplistDeclaration)t).isAdHoc()) {
-							final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
-							final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
-							initializeFromAssignment(node, type, origin, visitor, var);
-							node.setDeclaration(declaration = var);
-						}
+					if (predType != null)
+						for (final IType t : predType)
+							if (t == visitor.script()) {
+								final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
+								initializeFromAssignment(node, type, origin, visitor, var);
+								visitor.script().addDeclaration(var);
+								node.setDeclaration(declaration = var);
+							}
+							else if (t instanceof IProplistDeclaration && ((IProplistDeclaration)t).isAdHoc()) {
+								final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
+								final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
+								initializeFromAssignment(node, type, origin, visitor, var);
+								node.setDeclaration(declaration = var);
+							}
 				}
 				return super.typingJudgement(node, type, origin, visitor, mode);
 			}
