@@ -54,9 +54,9 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	public synchronized void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 			
 		// Get scenario and engine
-		IFolder scenario = verifyScenario(configuration);
-		File engine = verifyClonkInstall(configuration, scenario);
-		String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
+		final IFolder scenario = verifyScenario(configuration);
+		final File engine = verifyClonkInstall(configuration, scenario);
+		final String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 		
 		// Don't launch engine multiple times
 		if (Target.existingDebugTargetForScenario(scenario) != null)
@@ -70,7 +70,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		try {
 			
 			// Working directory (work around a bug in early Linux engines)
-			File workDirectory = engine.getParentFile();
+			final File workDirectory = engine.getParentFile();
 			
 			// Progress
 			if(monitor.isCanceled())
@@ -81,23 +81,23 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			// Run the engine
 			try {
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-					Scenario scenarioObj = Scenario.get(scenario);
+					final Scenario scenarioObj = Scenario.get(scenario);
 					if (scenarioObj != null && !scenarioObj.engine().settings().supportsDebugging)
 						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.engine().name()));
 				}
-				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
-				Map<String, Object> processAttributes = new HashMap<String, Object>();
-				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine");
+				final Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
+				final Map<String, Object> processAttributes = new HashMap<String, Object>();
+				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
 				processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenario.getProjectRelativePath().toOSString());
-				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
+				final IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
 				if (mode.equals(ILaunchManager.DEBUG_MODE))
 					try {
-						IDebugTarget target = new Target(launch, p, DEFAULT_DEBUG_PORT, scenario);
+						final IDebugTarget target = new Target(launch, p, DEFAULT_DEBUG_PORT, scenario);
 						launch.addDebugTarget(target);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
-			} catch(IOException e) {
+			} catch(final IOException e) {
 				abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
 				
@@ -121,17 +121,17 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	public IFolder verifyScenario(ILaunchConfiguration configuration) throws CoreException {
 		
 		// Get project and scenario name from configuration
-		String projectName = configuration.getAttribute(ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
-		String scenarioName = configuration.getAttribute(ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
+		final String projectName = configuration.getAttribute(ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
+		final String scenarioName = configuration.getAttribute(ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
 		
 		// Get project
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject project = root.getProject(projectName);
+		final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		final IProject project = root.getProject(projectName);
 		if(project == null || !project.isOpen())
 			abort(IStatus.ERROR, String.format(Messages.ProjectNotOpen, projectName));
 		
 		// Get scenario
-		IFolder scenario = project.getFolder(scenarioName);
+		final IFolder scenario = project.getFolder(scenarioName);
 		if(scenario == null || !scenario.exists())
 			abort(IStatus.ERROR, String.format(Messages.ScenarioNotFound, projectName));
 		
@@ -146,10 +146,10 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		Index index = ProjectIndex.fromResource(scenario);
-		String gamePath = index != null ? index.engine().settings().gamePath : null;
+		final Index index = ProjectIndex.fromResource(scenario);
+		final String gamePath = index != null ? index.engine().settings().gamePath : null;
 
-		File enginePath = new File("Unspecified");
+		File enginePath = new File("Unspecified"); //$NON-NLS-1$
 		String enginePref = index != null ? index.engine().settings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
@@ -158,8 +158,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
 			final String[] engineNames = Engine.possibleEngineNamesAccordingToOS(); 
-			for(String name : engineNames) {
-				File path = new File(gamePath, name);
+			for(final String name : engineNames) {
+				final File path = new File(gamePath, name);
 				if(path.exists()) {
 					enginePath = path;
 					break;
@@ -197,15 +197,16 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 */
 	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IFolder scenario, File engine, String mode) throws CoreException {
 		
-		Scenario scenarioObj;
-		Engine engineObj;
-		ClonkProjectNature nature;
+		Scenario scenarioObj = null;
+		Engine engineObj = null;
+		ClonkProjectNature nature = null;
 		try {
 			scenarioObj = Scenario.get(scenario);
 			engineObj = scenarioObj.engine();
 			nature = ClonkProjectNature.get(scenario);
-		} catch (Exception e) {
-			return null;
+		} catch (final Exception e) {
+			final String s = scenarioObj == null ? Messages.ClonkLaunchConfigurationDelegate_NoScenario : Messages.ClonkLaunchConfigurationDelegate_SomethingWentWrong;
+			throw new CoreException(new Status(IStatus.ERROR, Core.PLUGIN_ID, s));
 		}
 		if (engineObj == null)
 			return null;
@@ -213,15 +214,15 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		File tempFolder = null;
 		try {
 			if (nature.settings().typing.allowsNonParameterAnnotations()) {
-				tempFolder = Files.createTempDirectory("c4dt").toFile();
+				tempFolder = Files.createTempDirectory("c4dt").toFile(); //$NON-NLS-1$
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tempFolder, true);
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 		
-		Collection<String> args = new LinkedList<String>();  
+		final Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
 		args.add(engine.getAbsolutePath());
@@ -230,13 +231,13 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		addWorkspaceDependency(scenario, nature, args, tempFolder);
 		
 		// add stuff from the project so Clonk does not fail to find them
-		for (Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
+		for (final Index index : ClonkProjectNature.get(scenario).index().relevantIndexes())
 			if (index instanceof ProjectIndex) {
-				IContainer projectLevel = ((ProjectIndex)index).nature().getProject();
+				final IContainer projectLevel = ((ProjectIndex)index).nature().getProject();
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent())
-					for (IResource res : c.members())
+					for (final IResource res : c.members())
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							GroupType gType = engineObj.groupTypeForFileName(res.getName());
+							final GroupType gType = engineObj.groupTypeForFileName(res.getName());
 							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
 									addWorkspaceDependency((IContainer)res, ((ProjectIndex)index).nature(), args, tempFolder);
@@ -257,15 +258,15 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	
 		// Debug
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			args.add(String.format(cmdLineOptionString(engineObj, "debug", "%d"), DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
+			args.add(String.format(cmdLineOptionString(engineObj, "debug", "%d"), DEFAULT_DEBUG_PORT)); //$NON-NLS-1$ //$NON-NLS-2$
 			args.add(cmdLineOptionString(engineObj, "debugwait")); //$NON-NLS-1$
 		}
 		
-		String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);
+		final String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);
 		if (custom != null) {
 			// FIXME: doesn't take into account '\ ' and such..
-			String[] split = custom.split(" "); //$NON-NLS-1$
-			for (String s : split)
+			final String[] split = custom.split(" "); //$NON-NLS-1$
+			for (final String s : split)
 				args.add(s);
 		}
 		

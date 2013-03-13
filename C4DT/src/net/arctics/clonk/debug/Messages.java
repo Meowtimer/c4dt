@@ -9,6 +9,8 @@ public class Messages extends NLS {
 	public static String MainThread;
 	public static String ClonkDebugLineBreakpoint_BreakpointMessage;
 	public static String ClonkDebugStackFrame_StackFrameMessage;
+	public static String ClonkLaunchConfigurationDelegate_NoScenario;
+	public static String ClonkLaunchConfigurationDelegate_SomethingWentWrong;
 	public static String CouldNotFindEngine;
 	public static String LaunchConf;
 	public static String StartingClonkEngine;
