@@ -1241,9 +1241,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	};
 
 	public void generateCaches() {
-		System.out.println(String.format("Generating find declaration cache for '%s'", name()));
-		if (name().equals("Metallfass"))
-			System.out.println("here");
 		final List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);
 		populateDictionary(conglo);
