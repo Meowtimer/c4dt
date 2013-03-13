@@ -25,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
@@ -1123,6 +1124,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			}
 		});
 		return result.size() > 0 ? result : null;
+	}
+	
+	@Override
+	public ASTNode[] subElements() {
+		final List<ASTNode> nodes = new ArrayList<>(100);
+		nodes.addAll(indexedScenarios);
+		nodes.addAll(indexedScripts);
+		for (final List<Definition> defs : indexedDefinitions.values())
+			nodes.addAll(defs);
+		return nodes.toArray(new ASTNode[nodes.size()]);
 	}
 
 }
