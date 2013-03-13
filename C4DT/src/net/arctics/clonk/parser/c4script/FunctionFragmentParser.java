@@ -56,7 +56,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 				}
 				if (function != null) {
 					function.storeBody(body, functionSource);
-					script().generateFindDeclarationCache();
+					script().generateCaches();
 				}
 			} catch (ParsingException pe) {}
 			return true;

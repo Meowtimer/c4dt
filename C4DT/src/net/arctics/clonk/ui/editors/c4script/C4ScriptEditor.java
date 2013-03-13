@@ -325,7 +325,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			final Set<Function> revisitFunctions = new HashSet<>();
 			addCalls(revisitFunctions, function); // add old calls so when the user removes a call the function called will still be revisited
 			final C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
-			structure.generateFindDeclarationCache();
+			structure.generateCaches();
 			for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
 				final ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 				if (markers != null)
@@ -709,7 +709,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();
-		parser.script().generateFindDeclarationCache();
+		parser.script().generateCaches();
 		parser.validate();
 		if (!onlyDeclarations) {
 			if (listener != null && listener.typingStrategy() != null) {

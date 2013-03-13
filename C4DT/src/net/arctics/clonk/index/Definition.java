@@ -167,11 +167,6 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public void generateFindDeclarationCache() {
-		super.generateFindDeclarationCache();
-	}
-
-	@Override
 	public  boolean gatherIncludes(Index contextIndex, Object origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;

@@ -22,7 +22,7 @@ public class SelfContainedScript extends Script {
 		final C4ScriptParser parser = new C4ScriptParser(script, this, null);
 		try {
 			parser.parse();
-			generateFindDeclarationCache();
+			generateCaches();
 			new DabbleInference().localTypingContext(parser.script(), parser.fragmentOffset(), null).reportProblems();
 		} catch (final ParsingException e) {
 			e.printStackTrace();

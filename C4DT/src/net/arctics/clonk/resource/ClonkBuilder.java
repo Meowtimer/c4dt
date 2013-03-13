@@ -103,10 +103,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// clean up this project
 		if (monitor != null)
 			monitor.beginTask(buildTask(Messages.CleaningUp), 1);
-		IProject proj = this.getProject();
+		final IProject proj = this.getProject();
 		if (proj != null) {
 			proj.deleteMarkers(null, true, IResource.DEPTH_INFINITE);
-			ProjectIndex projIndex = ClonkProjectNature.get(proj).forceIndexRecreation();
+			final ProjectIndex projIndex = ClonkProjectNature.get(proj).forceIndexRecreation();
 			proj.accept(new ResourceCounterAndCleaner(0));
 			projIndex.clear();
 		}
@@ -119,7 +119,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@Override
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
-		IProject proj = getProject();
+		final IProject proj = getProject();
 		this.index = ClonkProjectNature.get(getProject()).index();
 		markers.applyProjectSettings(this.index);
 
@@ -132,14 +132,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
-		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
+		final List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 
 		//clearUIOfReferencesBeforeBuild();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
 
-				Script[] scripts = performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
+				final Script[] scripts = performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
 
 				if (monitor.isCanceled()) {
 					monitor.done();
@@ -147,11 +147,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 
 				// validate files related to the scripts that have been parsed
-				for (Script script : scripts)
+				for (final Script script : scripts)
 					validateRelatedFiles(script);
 
 				return new IProject[] { proj };
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -185,7 +185,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				for (final Script s : scriptsToSave)
 					try {
 						s.save();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 					}
 				//Index index = ClonkProjectNature.get(project).index();
@@ -205,14 +205,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	) throws CoreException {
 
 		nature = ClonkProjectNature.get(proj);
-		Index index = nature.index();
+		final Index index = nature.index();
 
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.OPEN));
 		try {
 
 			// count num of resources to build
-			ResourceCounter resourceCounter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+			final ResourceCounter resourceCounter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
 			visitDeltaOrWholeProject(delta, proj, resourceCounter);
 
 			// initialize progress monitor
@@ -221,12 +221,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
 			monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
-			ScriptGatherer gatherer = new ScriptGatherer(this);
+			final ScriptGatherer gatherer = new ScriptGatherer(this);
 			visitDeltaOrWholeProject(delta, proj, gatherer);
 			gatherer.removeObsoleteScripts();
 
 			// delete old declarations
-			for (Script script : parserMap.keySet())
+			for (final Script script : parserMap.keySet())
 				script.clearDeclarations();
 			index.refreshIndex(false);
 
@@ -235,12 +235,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
 
-			Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
+			final Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
 
 			reportProblems(parsers, scripts);
 
-			for (C4ScriptParser parser : parsers)
+			for (final C4ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)
 					parser.script().setTypeAnnotations(parser.typeAnnotations());
 
@@ -289,7 +289,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			protected IStatus run(final IProgressMonitor monitor) {
 				monitor.beginTask("Static Typing Migration", parsers.length);
 				runWithoutAutoBuild(new Runnable() { @Override public void run() {
-					for (C4ScriptParser parser : parsers) {
+					for (final C4ScriptParser parser : parsers) {
 						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
 							insertTypeAnnotations(parser);
 						monitor.worked(1);
@@ -303,11 +303,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
-						StringBuilder builder = new StringBuilder(document.get());
-						List<TypeAnnotation> annotations = parser.typeAnnotations();
+						final StringBuilder builder = new StringBuilder(document.get());
+						final List<TypeAnnotation> annotations = parser.typeAnnotations();
 						Collections.sort(annotations);
 						for (int i = annotations.size()-1; i >= 0; i--) {
-							TypeAnnotation annot = annotations.get(i);
+							final TypeAnnotation annot = annotations.get(i);
 							if (annot.type() == null && annot.target() != null) {
 								/*System.out.println(String.format(
 									"typeable: %s type: %s enviro: %s",
@@ -337,7 +337,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			protected IStatus run(final IProgressMonitor monitor) {
 				monitor.beginTask("Dynamic Typing Migration", parsers.length);
 				runWithoutAutoBuild(new Runnable() { @Override public void run() {
-					for (C4ScriptParser parser : parsers) {
+					for (final C4ScriptParser parser : parsers) {
 						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
 							removeTypeAnnotations(parser);
 						monitor.worked(1);
@@ -353,11 +353,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
 					@Override
 					public Object run(IDocument document) {
-						StringBuilder builder = new StringBuilder(document.get());
-						List<TypeAnnotation> annotations = parser.typeAnnotations();
+						final StringBuilder builder = new StringBuilder(document.get());
+						final List<TypeAnnotation> annotations = parser.typeAnnotations();
 						Collections.sort(annotations);
 						for (int i = annotations.size()-1; i >= 0; i--) {
-							TypeAnnotation annot = annotations.get(i);
+							final TypeAnnotation annot = annotations.get(i);
 							int end = annot.end();
 							if (end < builder.length() && Character.isWhitespace(builder.charAt(end)))
 								end++;
@@ -381,7 +381,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		newEnqueued.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
-			for (Script s : newEnqueued.keySet())
+			for (final Script s : newEnqueued.keySet())
 				nature.index().addScript(s);
 			if (newEnqueued.size() < 8)
 				for (final Script script : newEnqueued.keySet()) {
@@ -420,15 +420,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index
 		index.refreshIndex(false);
-		for (Script script : parserMap.keySet())
-			script.generateFindDeclarationCache();
+		for (final Script script : parserMap.keySet())
+			script.generateCaches();
 		markers.deploy();
 	}
 
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
+		System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		for (ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
+		for (final ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
 			strategy.initialize(markers, this);
 			strategy.run();
 		}
@@ -457,14 +458,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					}
 				});
 		}
-		for (Structure s : gatheredStructures) {
+		for (final Structure s : gatheredStructures) {
 			try {
 				s.validate(markers);
-			} catch (ParsingException e) {}
+			} catch (final ParsingException e) {}
 			if (s.requiresScriptReparse()) {
-				Script script = Script.get(s.resource(), false);
+				final Script script = Script.get(s.resource(), false);
 				if (script != null) {
-					C4ScriptParser p = queueScript(script);
+					final C4ScriptParser p = queueScript(script);
 					newlyAddedParsers.put(script, p);
 				}
 			}
@@ -474,14 +475,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void validateRelatedFiles(Script script) throws CoreException {
 		if (script instanceof Definition) {
-			Definition def = (Definition) script;
-			for (IResource r : def.definitionFolder().members())
+			final Definition def = (Definition) script;
+			for (final IResource r : def.definitionFolder().members())
 				if (r instanceof IFile) {
-					Structure pinned = Structure.pinned(r, false, true);
+					final Structure pinned = Structure.pinned(r, false, true);
 					if (pinned != null)
 						try {
 							pinned.validate(markers);
-						} catch (ParsingException e) {}
+						} catch (final ParsingException e) {}
 				}
 		}
 	}
@@ -489,11 +490,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public C4ScriptParser queueScript(Script script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
-			IStorage storage = script.source();
+			final IStorage storage = script.source();
 			if (storage != null) try {
 				result = new C4ScriptParser(script);
 				result.setMarkers(markers);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				System.out.println(script.resource().getProjectRelativePath().toOSString());
 				e.printStackTrace();
 				result = null;
@@ -514,7 +515,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parser != null)
 			try {
 				parser.parse();
-			} catch (ParsingException e) {
+			} catch (final ParsingException e) {
 				e.printStackTrace();
 			}
 	}

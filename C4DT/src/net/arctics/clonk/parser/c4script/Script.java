@@ -268,18 +268,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 	}
 
-	protected void populateDictionary() {
+	protected void populateDictionary(List<Script> conglomerate) {
 		if (dictionary != null)
 			dictionary.clear();
 		else
 			dictionary = new HashSet<String>();
-		for (final Declaration d : subDeclarations(index(), DeclMask.ALL))
-			dictionary.add(d.name());
+		for (final Script s : conglomerate)
+			for (final Declaration d : s.subDeclarations(index(), DeclMask.ALL))
+				dictionary.add(d.name());
 	}
+	
+	protected final void populateDictionary() { populateDictionary(conglomerate()); }
 
-	public String scriptText() {
-		return ""; //$NON-NLS-1$
-	}
+	public String scriptText() { return ""; } //$NON-NLS-1$
 
 	/**
 	 * Return an array that acts as a map line number -> function at that line. Used for fast function lookups when only the line number is known.
@@ -1239,17 +1240,41 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 	};
 
-	public void generateFindDeclarationCache() {
-		populateDictionary();
-		cachedFunctionMap = new HashMap<>();
-		cachedVariableMap = new HashMap<>();
-		_generateFindDeclarationCache();
+	public void generateCaches() {
+		System.out.println(String.format("Generating find declaration cache for '%s'", name()));
+		if (name().equals("Metallfass"))
+			System.out.println("here");
+		final List<Script> conglo = this.conglomerate();
+		Collections.reverse(conglo);
+		populateDictionary(conglo);
+		generateFindDeclarationCache(conglo);
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();
 		if (definedFunctions != null && index() != null)
 			for (final Function f : definedFunctions) {
 				f.findInherited();
 				detectMapNodesInFunction(f, false);
+			}
+	}
+	
+	private void generateFindDeclarationCache(final List<Script> conglo) {
+		cachedFunctionMap = new HashMap<>();
+		cachedVariableMap = new HashMap<>();
+		for (final Script i : conglo)
+			if (i instanceof Script) {
+				final Script s = i;
+				if (s.definedFunctions != null)
+					for (final Function f1 : s.definedFunctions) {
+						// prefer putting non-global functions into the map so when in doubt the object function is picked
+						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
+						final Function existing = cachedFunctionMap.get(f1.name());
+						if (existing != null && existing.script() == i && f1.isGlobal() && !existing.isGlobal())
+							continue;
+						cachedFunctionMap.put(f1.name(), f1);
+					}
+				if (s.definedVariables != null)
+					for (final Variable v : s.definedVariables)
+						cachedVariableMap.put(v.name(), v);
 			}
 	}
 
@@ -1277,7 +1302,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
-		generateFindDeclarationCache();
+		generateCaches();
 		indexRefresh();
 	}
 
