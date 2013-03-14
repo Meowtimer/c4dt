@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Script;
@@ -13,7 +12,7 @@ import net.arctics.clonk.parser.c4script.Script;
  * Some type that has includes. Most likely some kind of {@link Script}.
  * @author madeen
  */
-public interface IHasIncludes<T extends IHasIncludes<?>> extends IHasSubDeclarations, IType {
+public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 
 	public static class GatherIncludesOptions {
 		public static final int Recursive = 1;
@@ -51,7 +50,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IHasSubDeclarat
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */
 		public static <T extends IHasIncludes<?>> Collection<T> includes(Index contextIndex, IHasIncludes<T> instance, Object origin, int options) {
-			Set<T> result = new HashSet<T>(10);
+			final Set<T> result = new HashSet<T>(10);
 			instance.gatherIncludes(contextIndex, origin, result, options);
 			result.remove(instance);
 			return result;

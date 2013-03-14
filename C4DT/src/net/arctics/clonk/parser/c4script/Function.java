@@ -23,6 +23,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SourceLocation;
@@ -136,9 +137,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 	}
 
-	public void clearParameters() {
-		parameters = new ArrayList<Variable>();
-	}
+	public void clearParameters() { parameters = new ArrayList<Variable>(); }
 
 	public Variable parameter(int index) {
 		synchronized (parameters) {
@@ -180,45 +179,25 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the visibility
 	 */
-	public FunctionScope visibility() {
-		return visibility;
-	}
-
+	public FunctionScope visibility() { return visibility; }
+	/**
+	 * @param visibility the visibility to set
+	 */
+	public void setVisibility(FunctionScope visibility) { this.visibility = visibility; }
 	/**
 	 * @return the description
 	 */
 	@Override
-	public String obtainUserDescription() {
-		return description;
-	}
-
+	public String obtainUserDescription() { return description; }
 	@Override
-	public String userDescription() {
-		return description;
-	}
-
+	public String userDescription() { return description; }
 	/**
 	 * @param description the description to set
 	 */
 	@Override
-	public void setUserDescription(String description) {
-		this.description = description;
-	}
-
-	public void setReturnDescription(String returnDescription) {
-		this.returnDescription = returnDescription;
-	}
-
-	public String returnDescription() {
-		return returnDescription;
-	}
-
-	/**
-	 * @param visibility the visibility to set
-	 */
-	public void setVisibility(FunctionScope visibility) {
-		this.visibility = visibility;
-	}
+	public void setUserDescription(String description) { this.description = description; }
+	public String returnDescription() { return returnDescription; }
+	public void setReturnDescription(String returnDescription) { this.returnDescription = returnDescription; }
 
 	public final class FunctionInvocation implements IEvaluationContext {
 		private final Object[] args;
@@ -566,9 +545,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param oldStyle Whether to print in old 'label-style'
 	 */
 	public void printHeader(ASTNodePrinter output, boolean oldStyle) {
-		output.append(visibility().toString());
-		if (!oldStyle) {
+		if (engine().settings().supportsFunctionVisibility) {
+			output.append(visibility().toString());
 			output.append(" "); //$NON-NLS-1$
+		}
+		if (!oldStyle) {
 			output.append(Keywords.Func);
 			final Typing typing = typing();
 			switch (typing) {
@@ -583,8 +564,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				output.append(returnType.typeName(false));
 				break;
 			}
+			output.append(" "); //$NON-NLS-1$
 		}
-		output.append(" "); //$NON-NLS-1$
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
@@ -881,12 +862,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ASTNode code() { return body(); }
 
-	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Typing typing, Variable... parameters) {
+	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Index context, Variable... parameters) {
 		final StringBuilder builder = new StringBuilder();
 		@SuppressWarnings("serial")
 		final Function f = new Function(functionName, scope) {
 			@Override
-			protected Typing typing() { return typing; }
+			protected Typing typing() { return context.nature().settings().typing; }
+			@Override
+			public Engine engine() { return context.engine(); }
 		};
 		f.assignType(PrimitiveType.ANY, true);
 		for (final Variable p : parameters)

@@ -14,14 +14,13 @@ import java.util.regex.Matcher;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
-import net.arctics.clonk.index.IHasSubDeclarations;
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
@@ -315,7 +314,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		Script editorScript,
 		C4ScriptParser parser
 	) {
-		final List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
+		final List<Declaration> contextStructures = new LinkedList<Declaration>();
 		_currentEditorScript = editorScript;
 		final boolean specifiedParser = parser != null;
 		Sequence contextSequence = null;
@@ -392,9 +391,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			if (contextSequence != null)
 				for (final IType t : defaulting(typingContext.typeOf(contextSequence), PrimitiveType.UNKNOWN)) {
-					IHasSubDeclarations structure;
-					if (t instanceof IHasSubDeclarations)
-						structure = (IHasSubDeclarations) t;
+					Declaration structure;
+					if (t instanceof Declaration)
+						structure = (Declaration) t;
 					else
 						structure = Script.scriptFrom(t);
 					if (structure != null)
@@ -457,14 +456,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (final Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts, editorScript);
 
-		for (final IHasSubDeclarations s : contextStructures) {
-			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
+		for (final Declaration s : contextStructures) {
+			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
 			if (s instanceof IHasIncludes) {
 				@SuppressWarnings("unchecked")
-				final
-				Iterable<? extends IHasIncludes<?>> includes = ((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
+				final Iterable<? extends IHasIncludes<?>> includes =
+					((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
 				for (final IHasIncludes<?> inc : includes)
-					proposalsForStructure(inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts);
+					proposalsForStructure((Declaration) inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
 			}
 		}
 
@@ -557,7 +556,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
-					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, editor().script().index().nature().settings().typing, parameters); //$NON-NLS-1$
+					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, editor().script().index(), parameters); //$NON-NLS-1$
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}
@@ -680,12 +679,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
-	private void proposalsForStructure(IHasSubDeclarations structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, Index index, int mask) {
+	private void proposalsForStructure(Declaration structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, Index index, int mask, Declaration target) {
 		for (final Declaration dec : structure.subDeclarations(index, mask)) {
 			final Function func = as(dec, Function.class);
 			final Variable var = as(dec, Variable.class);
 			if (func != null) {
 				if (func.visibility() != FunctionScope.GLOBAL) {
+					if (func.name().equals("InstanceType"))
+						System.out.println("here");
+					if (target instanceof Script && !((Script)target).seesFunction(func))
+						continue;
 					final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
 					if (prop != null)
 						prop.setCategory(cats.LocalFunction);

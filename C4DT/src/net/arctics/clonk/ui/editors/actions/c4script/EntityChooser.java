@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Script;
@@ -52,7 +52,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public boolean equalsFilter(ItemsFilter filter) {
 			if (filter instanceof Filter) {
-				Filter f = (Filter)filter;
+				final Filter f = (Filter)filter;
 				if (f.patterns.length != this.patterns.length)
 					return false;
 				for (int i = 0; i < patterns.length; i++)
@@ -67,13 +67,13 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		public boolean isConsistentItem(Object item) { return false; }
 		@Override
 		public boolean matchItem(Object item) {
-			IIndexEntity entity = (IIndexEntity)item;
-			for (Pattern p : getPatterns()) {
-				Matcher matcher = p.matcher("");
+			final IIndexEntity entity = (IIndexEntity)item;
+			for (final Pattern p : getPatterns()) {
+				final Matcher matcher = p.matcher("");
 				if (!entity.matchedBy(matcher))
 					return false;
 			}
-			for (Pattern p : getPatterns())
+			for (final Pattern p : getPatterns())
 				entity.matchedBy(p.matcher(""));
 			return true;
 		}
@@ -83,13 +83,13 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
-				StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null, null);
+				final StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null, null);
 				if (element instanceof Declaration && ((Declaration)element).parentDeclaration() instanceof Engine) {
 					result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 					result.append(((Declaration)element).parentDeclaration().name());
 				}
 				if (element instanceof IHasRelatedResource) {
-					IResource resource = ((IHasRelatedResource)element).resource();
+					final IResource resource = ((IHasRelatedResource)element).resource();
 					if (resource != null) {
 						result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 						result.append(resource.getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
@@ -147,9 +147,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			}
 		};
 		if (entities != null)
-			for (IIndexEntity d : entities)
+			for (final IIndexEntity d : entities)
 				if (d instanceof Index) {
-					Index index = (Index)d;
+					final Index index = (Index)d;
 					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
 						public void receivedObject(Index index) {
@@ -160,12 +160,12 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 									if (progressMonitor.isCanceled())
 										return;
 									if (s.dictionary() != null)
-										for (String str : s.dictionary())
-											for (Pattern ps : patternStrings) {
-												Matcher matcher = ps.matcher(str);
+										for (final String str : s.dictionary())
+											for (final Pattern ps : patternStrings) {
+												final Matcher matcher = ps.matcher(str);
 												if (matcher.lookingAt()) {
 													s.requireLoaded();
-													for (Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
+													for (final Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
 														if (!(d instanceof Directive) && d.matchedBy(matcher)) {
 															contentProvider.add(d, itemsFilter);
 															if (++declarationsBatchSize == 5) {
@@ -182,7 +182,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 					});
 				}
 				else if (d instanceof Engine)
-					for (Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL))
+					for (final Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL))
 						contentProvider.add(engineDeclaration, itemsFilter);
 				else
 					contentProvider.add(d, itemsFilter);
@@ -223,7 +223,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	
 	public boolean openSelection() {
 		boolean b = true;
-		for (IIndexEntity e : selectedEntities()) {
+		for (final IIndexEntity e : selectedEntities()) {
 			ClonkHyperlink.openTarget(e, b);
 			b = false;
 		}

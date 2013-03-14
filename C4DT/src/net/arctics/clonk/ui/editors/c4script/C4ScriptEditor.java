@@ -19,11 +19,11 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;

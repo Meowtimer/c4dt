@@ -554,7 +554,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (!endsWithEmptyLine)
 					builder.append('\n');
 				builder.append('\n');
-				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script.index().nature().settings().typing));
+				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script.index()));
 				if (endsWithEmptyLine)
 					builder.append('\n');
 				document.set(builder.toString());

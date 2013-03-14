@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
@@ -17,6 +16,7 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -39,7 +39,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IHasSubDeclarations, IIndexEntity, IAdaptable, IPlaceholderPatternMatchTarget {
+public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IIndexEntity, IAdaptable, IPlaceholderPatternMatchTarget, IHasName {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -148,7 +148,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (parent != null)
 			parent = parent.latestVersion();
 		if (parent instanceof ILatestDeclarationVersionProvider) {
-			Declaration latest = ((ILatestDeclarationVersionProvider)parent).latestVersionOf(this);
+			final Declaration latest = ((ILatestDeclarationVersionProvider)parent).latestVersionOf(this);
 			if (latest != null)
 				return latest;
 			else
@@ -195,7 +195,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			});
 		}
 		// then add all the scripts, because everything might potentially be accessed from everything
-		for (Index index : project.index().relevantIndexes())
+		for (final Index index : project.index().relevantIndexes())
 			index.allScripts(new Sink<Script>() {
 				@Override
 				public void receivedObject(Script item) {
@@ -224,14 +224,13 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.iterable();
 
 	/**
-	 * Returns an Iterable for iterating over all sub declaration of this declaration.
-	 * Might return null if there are none.
-	 * @return The Iterable for iterating over sub declarations or null.
+	 * Return an {@link Iterable} to iterate over declarations accessible from this object that match the supplied bit mask
+	 * @param contextIndex {@link Index} Context index. Required for correctly returning appended scripts if a project a completion proposal is invoked in contains scripts appending themselves to scripts from another project.
+	 * @param mask a bit mask specifying what to include in the returned {@link Iterable}, formed by the static variables in this interface
+	 * @return An iterable to iterate over sub declarations satifying the passed mask
 	 */
-	@Override
-	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		return NO_SUB_DECLARATIONS;
-	}
+	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) { return NO_SUB_DECLARATIONS; }
+	public boolean seesSubDeclaration(Declaration subDeclaration) { return true; }
 
 	public Function findFunction(String functionName) { return null; }
 	public Declaration findDeclaration(String name, FindDeclarationInfo info) { return null; }
@@ -252,9 +251,9 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (name != null)
 			name = name.intern();
 		setParent(parent);
-		Iterable<? extends Declaration> subDecs = this.subDeclarations(this.index(), DeclMask.ALL);
+		final Iterable<? extends Declaration> subDecs = this.subDeclarations(this.index(), DeclMask.ALL);
 		if (subDecs != null)
-			for (Declaration d : subDecs)
+			for (final Declaration d : subDecs)
 				d.postLoad(this, index);
 	}
 
@@ -273,7 +272,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean matchedBy(Matcher matcher) {
 		if (name() != null && matcher.reset(name()).lookingAt())
 			return true;
-		Structure tls = topLevelStructure();
+		final Structure tls = topLevelStructure();
 		if (tls != null && tls != this && tls.matchedBy(matcher))
 			return true;
 		return false;
@@ -292,7 +291,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public static boolean looksLikeConstName(String name) {
 		boolean underscore = false;
 		for (int i = 0; i < name.length(); i++) {
-			char c = name.charAt(i);
+			final char c = name.charAt(i);
 			if (i > 0 && c == '_')
 				if (!underscore)
 					underscore = true;
@@ -307,7 +306,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 
 	public boolean isEngineDeclaration() { return parentDeclaration() instanceof Engine; }
 	public Engine engine() {
-		Declaration parent = parentDeclaration();
+		final Declaration parent = parentDeclaration();
 		return parent != null ? parent.engine() : null;
 	}
 
@@ -316,9 +315,9 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (parentDeclaration() != null)
 			return parentDeclaration().index();
 		else {
-			IResource res = resource();
+			final IResource res = resource();
 			if (res != null) {
-				ClonkProjectNature nat = ClonkProjectNature.get(res);
+				final ClonkProjectNature nat = ClonkProjectNature.get(res);
 				return nat != null ? nat.index() : null;
 			}
 			else
@@ -331,12 +330,12 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	}
 
 	public StringTbl localStringTblMatchingLanguagePref() {
-		IResource res = resource();
+		final IResource res = resource();
 		if (res == null)
 			return null;
-		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-		String pref = ClonkPreferences.languagePref();
-		IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+		final IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
+		final String pref = ClonkPreferences.languagePref();
+		final IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (tblFile instanceof IFile)
 			return (StringTbl) Structure.pinned(tblFile, true, false);
 		return null;
@@ -362,7 +361,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * @return The path
 	 */
 	public String pathRelativeToIndexEntity() {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		for (Declaration d = this; d != null; d = d.parentDeclaration())
 			if (d instanceof IndexEntity)
 				break;
@@ -407,7 +406,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
-		Declaration d = (Declaration)other;
+		final Declaration d = (Declaration)other;
 		if (!d.name().equals(name()))
 			return false;
 		return true;

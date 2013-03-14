@@ -8,9 +8,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Conf;
@@ -58,41 +58,41 @@ public abstract class CodeConverter {
 		final IDocument document
 	) {
 		synchronized (document) {
-			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
+			final TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
-			List<Declaration> decs = new ArrayList<Declaration>();
-			for (Declaration d : script.subDeclarations(script.index(), DeclMask.ALL & ~DeclMask.IMPLICIT))
+			final List<Declaration> decs = new ArrayList<Declaration>();
+			for (final Declaration d : script.subDeclarations(script.index(), DeclMask.ALL & ~DeclMask.IMPLICIT))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
 				public int compare(Declaration a, Declaration b) {
-					ASTNode codeA = codeFor(a);
-					ASTNode codeB = codeFor(b);
+					final ASTNode codeA = codeFor(a);
+					final ASTNode codeB = codeFor(b);
 					return codeB.absolute().getOffset()-codeA.absolute().getOffset();
 				}
 			});
-			for (Declaration d : decs)
+			for (final Declaration d : decs)
 				try {
 					if (d instanceof InitializationFunction)
 						continue;
-					ASTNode elms = codeFor(d);
+					final ASTNode elms = codeFor(d);
 					if (d instanceof Function) {
-						Function f = (Function)d;
-						StringBuilder header = new StringBuilder(f.header().getLength()+10);
+						final Function f = (Function)d;
+						final StringBuilder header = new StringBuilder(f.header().getLength()+10);
 						f.printHeader(new AppendableBackedExprWriter(header), false);
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
 						f.setOldStyle(false);
 					}
 					replaceExpression(d, document, elms, parser, textChange);
-				} catch (CloneNotSupportedException e1) {
+				} catch (final CloneNotSupportedException e1) {
 					e1.printStackTrace();
-				} catch (BadLocationException e) {
+				} catch (final BadLocationException e) {
 					e.printStackTrace();
 				}
 			try {
 				textChange.perform(new NullProgressMonitor());
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		}
@@ -114,9 +114,9 @@ public abstract class CodeConverter {
 				oldLength++;
 			}
 		oldLength = Math.min(oldLength, document.getLength()-oldStart);
-		String oldString = document.get(oldStart, oldLength);
-		StringBuilder builder = new StringBuilder();
-		ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
+		final String oldString = document.get(oldStart, oldLength);
+		final StringBuilder builder = new StringBuilder();
+		final ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
 		final Function function = as(d, Function.class);
 		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);
@@ -125,7 +125,7 @@ public abstract class CodeConverter {
 			@Override
 			public String var(String name) {
 				if (function != null && function.findVariable(name) == null) {
-					Variable var = new Variable(name, PrimitiveType.ANY);
+					final Variable var = new Variable(name, PrimitiveType.ANY);
 					function.locals().add(var);
 					addedVars.add(new VarInitialization(name, null, 0, 0, var));
 				}
@@ -139,14 +139,14 @@ public abstract class CodeConverter {
 				return converted;
 			}
 		}
-		CodeConverterContext cookie = new CodeConverterContext();
+		final CodeConverterContext cookie = new CodeConverterContext();
 		ASTNode conv = performConversion(parser, e, d, cookie);
 		conv = cookie.postProcess(conv);
 		conv.print(newStringWriter, 0);
-		String newString = newStringWriter.toString();
+		final String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));
-		} catch (MalformedTreeException malformed) {
+		} catch (final MalformedTreeException malformed) {
 			System.out.println(d.name());
 			malformed.printStackTrace();
 			throw malformed;

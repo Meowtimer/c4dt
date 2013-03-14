@@ -19,6 +19,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;

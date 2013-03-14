@@ -45,6 +45,7 @@ import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ID;
@@ -1196,27 +1197,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public final boolean seesFunction(Function function) {
 		return cachedFunctionMap == null || cachedFunctionMap.get(function.name()) == function;
-	}
-
-	private void _generateFindDeclarationCache() {
-		final List<Script> conglo = this.conglomerate();
-		Collections.reverse(conglo);
-		for (final Script i : conglo)
-			if (i instanceof Script) {
-				final Script s = i;
-				if (s.definedFunctions != null)
-					for (final Function f : s.definedFunctions) {
-						// prefer putting non-global functions into the map so when in doubt the object function is picked
-						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
-						final Function existing = cachedFunctionMap.get(f.name());
-						if (existing != null && existing.script() == i && f.isGlobal() && !existing.isGlobal())
-							continue;
-						cachedFunctionMap.put(f.name(), f);
-					}
-				if (s.definedVariables != null)
-					for (final Variable v : s.definedVariables)
-						cachedVariableMap.put(v.name(), v);
-			}
 	}
 
 	private static final IASTVisitor<Script> NODEMAPS_POPULATOR = new IASTVisitor<Script>() {

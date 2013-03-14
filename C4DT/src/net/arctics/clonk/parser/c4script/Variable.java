@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IHasSubDeclarations;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
@@ -316,8 +315,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
-		if (initializationExpression instanceof IHasSubDeclarations)
-			return ((IHasSubDeclarations)initializationExpression).subDeclarations(contextIndex, mask);
+		if (initializationExpression instanceof Declaration)
+			return ((Declaration)initializationExpression).subDeclarations(contextIndex, mask);
 		else
 			return super.subDeclarations(contextIndex, mask);
 	}

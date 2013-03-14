@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTVisitor;

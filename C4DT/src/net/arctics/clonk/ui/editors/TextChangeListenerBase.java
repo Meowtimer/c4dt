@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import net.arctics.clonk.index.IHasSubDeclarations.DeclMask;
+import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
@@ -54,7 +54,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 		Map<IDocument, TextChangeListenerBase<E, S>> listeners,
 		Class<T> listenerClass, IDocument document, S structure, E client)
 	throws InstantiationException, IllegalAccessException {
-		TextChangeListenerBase<?, ?> result = listeners.get(document);
+		final TextChangeListenerBase<?, ?> result = listeners.get(document);
 		T r;
 		if (result == null) {
 			r = listenerClass.newInstance();
@@ -134,24 +134,24 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected void adjustDeclarationLocations(DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0)
 			// text was added
-			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
 				adjustDec(dec, event.getOffset(), event.getText().length());
 		else if (event.getLength() > 0 && event.getText().length() == 0)
 			// text was removed
-			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
 				adjustDec(dec, event.getOffset(), -event.getLength());
 		else {
-			String newText = event.getText();
-			int replLength = event.getLength();
-			int offset = event.getOffset();
-			int diff = newText.length() - replLength;
+			final String newText = event.getText();
+			final int replLength = event.getLength();
+			final int offset = event.getOffset();
+			final int diff = newText.length() - replLength;
 			// mixed
-			for (Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.parser.DeclMask.ALL))
 				if (dec.start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {
 					// inside function: expand end location
-					Function func = (Function) dec;
+					final Function func = (Function) dec;
 					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end())
 						func.bodyLocation().setEnd(func.bodyLocation().end()+diff);
 				}
@@ -167,7 +167,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 		if (whichTask != null)
 			try {
 				whichTask.cancel();
-			} catch (IllegalStateException e) {
+			} catch (final IllegalStateException e) {
 				System.out.println("happens all the time, bitches");
 			}
 		return null;

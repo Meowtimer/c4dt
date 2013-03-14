@@ -93,6 +93,8 @@ public class EngineSettings extends SettingsBase {
 	public boolean zeroIsAny;
 	@IniField(category=INTRINSIC)
 	public boolean integersConvertibleToIDs;
+	@IniField(category=INTRINSIC)
+	public boolean supportsFunctionVisibility;
 	
 	// Settings that are actually intended to be user-configurable
 	
@@ -155,10 +157,10 @@ public class EngineSettings extends SettingsBase {
 	public Map<String, C4Group.GroupType> fileExtensionToGroupTypeMapping() {
 		if (fetgtm == null) {
 			fetgtm = new HashMap<String, C4Group.GroupType>(C4Group.GroupType.values().length);
-			for (String mapping : fileExtensionToGroupTypeMapping.split(",")) {
-				String[] elms = mapping.split("->");
+			for (final String mapping : fileExtensionToGroupTypeMapping.split(",")) {
+				final String[] elms = mapping.split("->");
 				if (elms.length >= 2) {
-					C4Group.GroupType gt = C4Group.GroupType.valueOf(elms[1]);
+					final C4Group.GroupType gt = C4Group.GroupType.valueOf(elms[1]);
 					fetgtm.put(elms[0], gt);
 				}
 			}
@@ -183,8 +185,8 @@ public class EngineSettings extends SettingsBase {
 	 */
 	public String fileDialogFilterForGroupFiles() {
 		if (fileDialogFilterString == null) {
-			StringBuilder builder = new StringBuilder(6*fileExtensionToGroupTypeMapping().size());
-			for (String ext : fileExtensionToGroupTypeMapping().keySet()) {
+			final StringBuilder builder = new StringBuilder(6*fileExtensionToGroupTypeMapping().size());
+			for (final String ext : fileExtensionToGroupTypeMapping().keySet()) {
 				builder.append("*.");
 				builder.append(ext);
 				builder.append(";");
@@ -201,7 +203,7 @@ public class EngineSettings extends SettingsBase {
 	 * @return The URL string
 	 */
 	public String documentationURLForFunction(String functionName) {
-		String urlFormatString = useDocsFromRepository
+		final String urlFormatString = useDocsFromRepository
 			? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
 			: docURLTemplate;
 		return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
