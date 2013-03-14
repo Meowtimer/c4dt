@@ -16,6 +16,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
@@ -394,6 +395,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					Declaration structure;
 					if (t instanceof Declaration)
 						structure = (Declaration) t;
+					else if (t instanceof MetaDefinition)
+						structure = ((MetaDefinition)t).definition();
 					else
 						structure = Script.scriptFrom(t);
 					if (structure != null)
