@@ -684,6 +684,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void proposalsForStructure(Declaration structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, Index index, int mask, Declaration target) {
 		for (final Declaration dec : structure.subDeclarations(index, mask)) {
+			if (!target.seesSubDeclaration(dec))
+				continue;
 			final Function func = as(dec, Function.class);
 			final Variable var = as(dec, Variable.class);
 			if (func != null) {

@@ -1198,6 +1198,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public final boolean seesFunction(Function function) {
 		return cachedFunctionMap == null || cachedFunctionMap.get(function.name()) == function;
 	}
+	
+	@Override
+	public boolean seesSubDeclaration(Declaration subDeclaration) {
+		if (subDeclaration instanceof Function)
+			return seesFunction((Function)subDeclaration);
+		else
+			return false;
+	}
 
 	private static final IASTVisitor<Script> NODEMAPS_POPULATOR = new IASTVisitor<Script>() {
 		@Override
