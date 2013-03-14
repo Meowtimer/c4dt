@@ -482,18 +482,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	protected void editorSaved() {
-		if (textChangeListener != null) {
-			textChangeListener.cancelReparsingTimer();
-			final Function cursorFunc = functionAtCursor();
-			if (cursorFunc != null)
-				textChangeListener.reparseFunction(cursorFunc);
-		}
 		if (script() instanceof ScratchScript)
 			try {
 				reparseWithDocumentContents(false);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
+		if (textChangeListener != null) {
+			textChangeListener.cancelReparsingTimer();
+			final Function cursorFunc = functionAtCursor();
+			if (cursorFunc != null)
+				textChangeListener.reparseFunction(cursorFunc).deploy();
+		}
 		final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
 		if (a != null)
 			a.hide();
