@@ -384,9 +384,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public IResource resource() {
-		return definitionFolder();
-	}
+	public IResource resource() { return definitionFolder(); }
 
 	@Override
 	public String infoText(IIndexEntity context) {

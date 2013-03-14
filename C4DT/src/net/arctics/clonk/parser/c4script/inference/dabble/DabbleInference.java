@@ -152,7 +152,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (p != null) {
 						final ScriptInfo info = new ScriptInfo(p.script(), p.fragmentOffset(), shared);
 						shared.infos.put(p.script(), info);
-						final Visitor v = new Visitor(info);
+						final Visitor v = new Visitor(null, info);
 						v.setMarkers(shared.builder.markers());
 						visitors[i++] = v;
 					}
@@ -170,7 +170,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		if (chain instanceof Visitor) {
 			final ScriptInfo p = ((Visitor) chain).info.shared.infos.get(script);
 			if (p != null)
-				return new Visitor(p);
+				return new Visitor(null, p);
 		}
 		if (!(chain instanceof Visitor)) {
 			shared = new Shared();
@@ -178,7 +178,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		final ScriptInfo info = new ScriptInfo(script, fragmentOffset, shared);
 		shared.infos.put(script, info);
-		return new Visitor(info);
+		return new Visitor(null, info);
 	}
 
 	public static class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
@@ -253,20 +253,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public class Visitor implements Runnable, ProblemReportingContext, IEvaluationContext {
 
 		final ScriptInfo info;
+		final Visitor originator;
 
 		private ControlFlow controlFlow;
 		private Markers markers;
 		private List<Script> conglomerate;
 		private TypeEnvironment typeEnvironment;
 		private Function preliminary;
+		private Function currentFunction;
 
-		public Visitor(ScriptInfo data, Script... scope) {
+		public Visitor(ScriptInfo data, Visitor originator, Script... scope) {
+			this.originator = originator;
 			this.markers = DabbleInference.this.markers();
 			this.info = data;
 			this.conglomerate = Arrays.asList(scope);
 		}
 
-		public Visitor(ScriptInfo data) { this(data, data.script); }
+		public Visitor(Visitor originator, ScriptInfo data) { this(data, originator, data.script); }
 
 		public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
 			final Engine engine = script().engine();
@@ -287,7 +290,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public boolean triggersRevisit(Function function, Function called) { return called.typeFromCallsHint(); }
 
-		private void initialParameterTypesFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes, Visitor originator) {
+		private void initialParameterTypesFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes) {
 			final List<CallDeclaration> calls = info.index.callsTo(function.name());
 			if (calls != null) {
 				final IType[][] types = new IType[calls.size()][parameterTypes.length];
@@ -296,13 +299,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final ScriptInfo info = this.info.shared.infos.get(other);
-					Visitor visitor;
-					if (info != null) {
-						visitor = info == this.info ? this : new Visitor(info);
-						visitFunction(f, this, function);
-					} else
-						visitor = null;
+					final Visitor visitor = delegateFunctionVisit(f, function);
 					visitors[ci] = visitor;
 					Function ref = as(visitor != null ? visitor.obtainDeclaration(call) : call.declaration(), Function.class);
 					if (ref != null) {
@@ -316,7 +313,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final ASTNode concretePar = call.params()[pa];
 									if (concretePar != null) {
 										script().addUsedScript(other);
-										types[ci][pa] = visitor != null ? visitor.typeOf(concretePar) : concretePar.inferredType();
+										IType ty = null;
+										if (visitor != null)
+											ty = visitor.typeOf(concretePar);
+										if (ty == null)
+											ty = concretePar.inferredType();
+										types[ci][pa] = ty;
 									}
 								}
 						}
@@ -427,8 +429,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			if (function == originatingDeclaration)
 				return null;
+			
 			final Script funScript = function.script();
 			if (conglomerate != null && conglomerate.contains(funScript)) {
+				
 				CurrentFunctionReturnTypeVariable returnType;
 				boolean kickOff = false;
 				synchronized (info.finishedFunctions) {
@@ -438,6 +442,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						kickOff = true;
 					}
 				}
+				
 				if (!kickOff) synchronized (returnType) {
 					if (returnType.thread != Thread.currentThread()) {
 						//if (hello != null)
@@ -454,6 +459,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return returnType;
 				}
+				
+				final Function oldFunction = currentFunction;
+				currentFunction = function;
 				assignExperts(function);
 				try {
 					final ASTNode[] statements = function.body().statements();
@@ -509,7 +517,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							endRoaming();
 							preliminary = oldp;
 							function.traverse(ACCESSDECLARATIONCLEAR, function);
-							initialParameterTypesFromCalls(function, baseFunction, callTypes, originator);
+							initialParameterTypesFromCalls(function, baseFunction, callTypes);
 						}
 						if (ownedFunction)
 							for (int i = 0; i < callTypes.length; i++)
@@ -533,20 +541,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 						returnType.thread = null;
 						returnType.notifyAll();
 					}
+					currentFunction = oldFunction;
 				}
 				return returnType;
 			}
 			return null;
 		}
-		
+
 		public final Visitor delegateFunctionVisit(Function function, Declaration originatingDeclaration) {
+			for (Visitor v = this; v != null; v = v.originator)
+				if (v.currentFunction == function)
+					return v;
 			final TypeVariable tv = visitFunction(function, this, originatingDeclaration);
 			if (tv == null) {
 				// if that does not apply use another visitor
-				final ScriptInfo other = info.shared.infos.get(function.parentOfType(Script.class));
-				if (other != null) {
-					final Visitor delegate = new Visitor(other);
-					return (delegate.visitFunction(function, this, originatingDeclaration) != null) ? delegate : null;
+				final ScriptInfo script = info.shared.infos.get(function.parentOfType(Script.class));
+				if (script != null) {
+					final Visitor other = new Visitor(this, script);
+					return other.visitFunction(function, this, originatingDeclaration) != null ? other : null;
 				} else
 					return null;
 			} else
@@ -911,7 +923,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @param node the expression to query the type of
 		 * @return The {@link TypeVariable} or null if nothing was found
 		 */
-		public TypeVariable findTypeVariable(Declaration key, Visitor visitor) {
+		public final TypeVariable findTypeVariable(Declaration key, Visitor visitor) {
 			if (key == null)
 				return null;
 			for (TypeEnvironment e = visitor.typeEnvironment; e != null; e = e.up) {
@@ -919,6 +931,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (info != null)
 					return info;
 			}
+			return null;
+		}
+		
+		public TypeVariable findParameterTypeVariable(Variable parameter, Visitor visitor) {
+			final Function function = parameter.parentOfType(Function.class);
+			for (Visitor v = visitor; v != null; v = v.originator)
+				if (v.currentFunction == function)
+					return findTypeVariable(parameter, v);
 			return null;
 		}
 
@@ -1169,7 +1189,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (targetType instanceof Script) {
 								final ScriptInfo other = visitor.info.shared.infos.get(targetType);
 								if (other != null) {
-									new Visitor(other).reportProblems();
+									new Visitor(visitor, other).reportProblems();
 									typesMap = other.variableTypes;
 								} else
 									typesMap = ((Script)targetType).variableTypes();
@@ -1698,9 +1718,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						info.contextFunction = node.parentOfType(Function.class);
 						info.findGlobalVariables = type == null;
 						final Declaration dec = script.findDeclaration(functionName, info);
-						if (dec instanceof Function)
-							// try to visit with this visitor first in case of roaming in included scripts
-							visitor.delegateFunctionVisit((Function)dec, info.contextFunction);
 						if (dec != null)
 							return dec;
 					}
@@ -1751,6 +1768,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
 					final Declaration d = internalObtainDeclaration(node, visitor);
 
+					if (d instanceof Function)
+						// try to visit with this visitor first in case of roaming in included scripts
+						visitor.delegateFunctionVisit((Function)d, node.parentOfType(Function.class));
+
 					// look for gathered type information
 					final TypeVariable tyvar = findTypeVariable(node, visitor);
 					if (tyvar != null)
@@ -1778,7 +1799,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (targetType instanceof Script) {
 									final ScriptInfo other = visitor.info.shared.infos.get(targetType);
 									if (other != null) {
-										new Visitor(other).reportProblems();
+										new Visitor(visitor, other).reportProblems();
 										typesMap = other.functionReturnTypes;
 									} else
 										typesMap = ((Script)targetType).functionReturnTypes();
@@ -1871,7 +1892,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final ASTNode given = params[givenParam++];
 								if (given == null)
 									continue;
-								final TypeVariable parmTyVar = findTypeVariable(parm, visitor);
+								final TypeVariable parmTyVar = findParameterTypeVariable(parm, visitor);
 								final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
 								final IType unified = unifyDeclaredAndGiven(given, parmTy, visitor);
 								if (unified == null)
@@ -1918,7 +1939,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return tyVar.get();
 					final Function inherited = node.parentOfType(Function.class).inheritedFunction();
 					if (inherited != null) {
-						final Visitor inheritedVisitor = new Visitor(visitor.info, inherited.script());
+						final Visitor inheritedVisitor = new Visitor(visitor.info, visitor, inherited.script());
 						inheritedVisitor.startRoaming();
 						final TypeVariable ty = inheritedVisitor.visitFunction(inherited);
 						if (ty != null) {
