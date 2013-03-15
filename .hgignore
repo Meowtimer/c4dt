@@ -6,6 +6,7 @@ pullfromc4dt
 @dot/*
 help
 products
+TypingTestProject
 C4DTUpdateSite/features/*
 C4DTUpdateSite/plugins/*
 C4DTUpdateSite/artifacts.jar
