@@ -45,9 +45,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	}
 
 	@Override
-	public final Index index() {
-		return index;
-	}
+	public final Index index() { return index; }
 
 	/**
 	 * Require this entity to be loaded. If {@link #loaded} is false it is set to true and {@link Index#loadEntity(IndexEntity)} is called.

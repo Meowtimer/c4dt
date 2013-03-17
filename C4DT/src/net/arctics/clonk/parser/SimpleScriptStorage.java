@@ -12,45 +12,24 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 public class SimpleScriptStorage implements IStorage, Serializable {
-	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
 	private final String name;
 	private final String contents;
-	
 	public SimpleScriptStorage(String name, String contents) {
 		this.name = name;
 		this.contents = contents;
 	}
-
 	@Override
-	public InputStream getContents() throws CoreException {
-		return new ByteArrayInputStream(contents.getBytes());
-	}
-	
-	public String getContentsAsString() {
-		return contents;
-	}
-
+	public InputStream getContents() throws CoreException { return new ByteArrayInputStream(contents.getBytes()); }
+	public String getContentsAsString() { return contents; }
 	@Override
-	public IPath getFullPath() {
-		return new Path(name);
-	}
-
+	public IPath getFullPath() { return new Path(name); }
 	@Override
-	public String getName() {
-		return name;
-	}
-
+	public String getName() { return name; }
 	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
-
+	public boolean isReadOnly() { return true; }
 	@Override
 	@SuppressWarnings("rawtypes")
-	public Object getAdapter(Class cls) {
-		return null;
-	}
+	public Object getAdapter(Class cls) { return null; }
 
 }

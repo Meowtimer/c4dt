@@ -112,8 +112,6 @@ public class MatchingPlaceholder extends Placeholder {
 		Multiple
 	}
 
-	public static final Script TRANSFORMATIONS = new Transformations(new Index());
-
 	private Class<? extends ASTNode> requiredClass;
 	private Pattern stringRepresentationPattern;
 	private Multiplicity multiplicity = Multiplicity.One;
@@ -141,7 +139,8 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void parse(String matchText) throws ParsingException {
+	private void parse(Placeholder original) throws ParsingException {
+		final String matchText = original.entryName();
 		final BufferedScanner scanner = new BufferedScanner(matchText);
 		final String entry = scanner.readIdent();
 		if (scanner.peek() == ':')
@@ -175,13 +174,20 @@ public class MatchingPlaceholder extends Placeholder {
 				String tra = scanner.readString(scanner.bufferSize()-scanner.tell());
 				if (!tra.startsWith("{"))
 					tra = String.format("return %s;", tra);
+				final Index index = original.parentOfType(Declaration.class).index();
+				final Script transformations = new Transformations(index);
 				code = new SelfContainedScript(
 					entry, String.format("func Transform(value) { %s }", tra),
-					new Index()
+					index
 				) {
 					private static final long serialVersionUID = 1L;
 					@Override
-					public Collection<Script> includes(Index index, Object origin, int options) { return Arrays.asList(TRANSFORMATIONS); };
+					public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+						if (!super.gatherIncludes(contextIndex, origin, set, options))
+							return false;
+						set.add(transformations);
+						return true;
+					};
 				}.findFunction("Transform");
 				break;
 			case '^':
@@ -374,9 +380,11 @@ public class MatchingPlaceholder extends Placeholder {
 			CallDeclaration.printParmString(output, subElements, depth);
 	}
 
-	public MatchingPlaceholder(String text) throws ParsingException {
-		super(text);
-		parse(text);
+	protected MatchingPlaceholder() { super(""); }
+	
+	public MatchingPlaceholder(Placeholder original) throws ParsingException {
+		super(original.entryName());
+		parse(original);
 	}
 
 	@Override

@@ -97,7 +97,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 				if (expression != null)
 					if (expression.getClass() == Placeholder.class)
 						try {
-							return new MatchingPlaceholder(((Placeholder)expression).entryName());
+							return new MatchingPlaceholder(((Placeholder)expression));
 						} catch (final ParsingException e) {
 							e.printStackTrace();
 							return null;

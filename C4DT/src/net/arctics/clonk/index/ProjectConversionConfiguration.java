@@ -122,25 +122,21 @@ public class ProjectConversionConfiguration {
 			String text = StreamUtil.stringFromURL(transformationsFile);
 			if (text == null)
 				return;
+			StringBuilder builder = new StringBuilder();
+			builder.append("func Transformations() {\n");
+			builder.append(text);
+			builder.append("\n}");
+			text = builder.toString();
 			Script script = new TempScript(text, sourceEngine);
-			C4ScriptParser parser = new C4ScriptParser(text, script, null) {
-				@Override
-				protected Placeholder makePlaceholder(String placeholder) throws ParsingException {
-					return new MatchingPlaceholder(placeholder);
-				}
-			};
-			Function context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
-			context.setParent(script);
-			context.setBodyLocation(new SourceLocation(0, text.length()));
-			ASTNode s = parser.parseStandaloneStatement(text, context);
-			if (s instanceof BunchOfStatements)
-				for (ASTNode stmt : ((BunchOfStatements)s).statements()) {
+			C4ScriptParser parser = new C4ScriptParser(text, script, null);
+			parser.parse();
+			Function transformations = parser.script().findLocalFunction("Transformations", false);
+			if (transformations != null && transformations.body() != null)
+				for (ASTNode stmt : transformations.body().statements()) {
 					if (stmt instanceof Comment)
 						continue;
 					addTransformationFromStatement(stmt);
 				}
-			else
-				addTransformationFromStatement(s);
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		}

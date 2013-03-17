@@ -453,20 +453,22 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	static {
-		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
-					final Sink<Definition> sink = new Sink<Definition>() {
-						@Override
-						public void receivedObject(Definition item) {
-							item.chooseLocalizedName();
-						}
-					};
-					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
-						ClonkProjectNature.get(proj).index().allDefinitions(sink);
+		if (!Core.instance().runsHeadless()) {
+			Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent event) {
+					if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+						final Sink<Definition> sink = new Sink<Definition>() {
+							@Override
+							public void receivedObject(Definition item) {
+								item.chooseLocalizedName();
+							}
+						};
+						for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+							ClonkProjectNature.get(proj).index().allDefinitions(sink);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 }

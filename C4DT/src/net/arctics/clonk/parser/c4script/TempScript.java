@@ -15,9 +15,7 @@ public final class TempScript extends Script {
 		super(new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public Engine engine() {
-				return engine;
-			};
+			public Engine engine() { return engine; };
 		});
 		this.expression = expression;
 	}

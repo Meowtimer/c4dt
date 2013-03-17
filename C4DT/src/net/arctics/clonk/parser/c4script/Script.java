@@ -964,8 +964,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<Script> conglomerate() {
 		requireLoaded();
 		@SuppressWarnings("serial")
-		final
-		List<Script> s = new ArrayList<Script>(10) {
+		final List<Script> s = new ArrayList<Script>(10) {
 			@Override
 			public boolean add(Script e) {
 				if (contains(e))

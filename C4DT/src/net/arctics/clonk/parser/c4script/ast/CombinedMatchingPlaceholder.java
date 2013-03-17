@@ -11,7 +11,7 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	private final Operator operator;
 
 	public CombinedMatchingPlaceholder(MatchingPlaceholder left, MatchingPlaceholder right, Operator operator) throws ParsingException {
-		super("");
+		super();
 		this.left = left;
 		this.right = right;
 		this.operator = operator;

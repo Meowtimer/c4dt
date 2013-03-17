@@ -3,6 +3,7 @@
 	<name>C4DTTests</name>
 	<comment></comment>
 	<projects>
+		<project>C4DT</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -35,5 +36,6 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.pde.api.tools.apiAnalysisNature</nature>
+		<nature>org.eclipse.jdt.groovy.core.groovyNature</nature>
 	</natures>
 </projectDescription>

@@ -1,4 +1,4 @@
-package net.arctics.clonk.testing;
+package net.arctics.clonk;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -6,18 +6,18 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin {
+public class TestsActivator extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "C4DTTests"; //$NON-NLS-1$
 
 	// The shared instance
-	private static Activator plugin;
+	private static TestsActivator plugin;
 	
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public TestsActivator() {
 	}
 
 	/*
@@ -43,7 +43,7 @@ public class Activator extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static TestsActivator getDefault() {
 		return plugin;
 	}
 
