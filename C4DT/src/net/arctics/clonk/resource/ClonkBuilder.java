@@ -1,5 +1,6 @@
 package net.arctics.clonk.resource;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
@@ -31,6 +32,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -430,7 +432,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		for (final ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
-			strategy.initialize(markers, this);
+			strategy.initialize(markers, this.monitor(), map(parsers, Script.class, new IConverter<C4ScriptParser, Script>() {
+				@Override
+				public Script convert(C4ScriptParser parser) {return parser.script();}
+			}));
 			strategy.run();
 		}
 		markers.deploy();

@@ -123,18 +123,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 	static final boolean UNUSEDPARMWARNING = false;
 
 	private static class Shared {
-		ClonkBuilder builder;
-		IProgressMonitor monitor;
 		final Map<Script, ScriptInfo> infos = new HashMap<>();
+		Script[] scripts;
 	}
 	private Shared shared;
 
 	@Override
-	public void initialize(Markers markers, ClonkBuilder builder) {
-		super.initialize(markers, builder);
+	public void initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
+		super.initialize(markers, progressMonitor, scripts);
 		shared = new Shared();
-		shared.builder = builder;
-		shared.monitor = builder.monitor();
+		shared.scripts = scripts;
 		assembleCommittee();
 	}
 
@@ -146,14 +144,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 		threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				final Visitor[] visitors = new Visitor[shared.builder.parsers().size()];
+				final Visitor[] visitors = new Visitor[shared.scripts.length];
 				int i = 0;
-				for (final C4ScriptParser p : shared.builder.parsers())
+				for (final Script p : shared.scripts)
 					if (p != null) {
-						final ScriptInfo info = new ScriptInfo(p.script(), p.fragmentOffset(), shared);
+						final ScriptInfo info = new ScriptInfo(p, 0, shared);
 						shared.infos.put(p.script(), info);
 						final Visitor v = new Visitor(null, info);
-						v.setMarkers(shared.builder.markers());
+						v.setMarkers(markers);
 						visitors[i++] = v;
 					}
 				for (final Visitor v : visitors)
@@ -775,11 +773,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void run() {
 			if (info.finished)
 				return;
-			if (info.shared.monitor.isCanceled())
+			if (progressMonitor.isCanceled())
 				return;
-			info.shared.monitor.subTask(String.format("Reporting problems for '%s'", script().name()));
+			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name()));
 			reportProblems();
-			info.shared.monitor.worked(1);
+			progressMonitor.worked(1);
 		}
 
 		@Override
