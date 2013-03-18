@@ -73,6 +73,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -281,15 +282,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	
 	protected final void populateDictionary() { populateDictionary(conglomerate()); }
 
-	public String scriptText() { return ""; } //$NON-NLS-1$
-
 	/**
 	 * Return an array that acts as a map line number -> function at that line. Used for fast function lookups when only the line number is known.
 	 * @return The pseudo-map for getting the function at some line.
 	 */
 	public Function[] calculateLineToFunctionMap() {
 		requireLoaded();
-		final String scriptText = this.scriptText();
+		String scriptText;
+		try {
+			scriptText = StreamUtil.stringFromInputStream(this.source().getContents());
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
 		int lineStart = 0;
 		int lineEnd = 0;
 		final List<Function> mappingAsList = new LinkedList<Function>();
@@ -1292,10 +1297,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public String qualifiedName() {
-		if (resource() == null) {
-			System.out.println("No qualified name: " + this.toString());
+		if (resource() == null)
 			return this.toString();
-		}
 		else
 			return resource().getProjectRelativePath().toOSString();
 	}

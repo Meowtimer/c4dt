@@ -14,7 +14,6 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -42,15 +41,6 @@ public class SystemScript extends Script implements Serializable {
 	@Override
 	public IFile source() {
 		return scriptFile;
-	}
-	
-	@Override
-	public String scriptText() {
-		try {
-			return scriptFile instanceof IFile ? StreamUtil.stringFromFileDocument(scriptFile) : null;
-		} catch (Exception e) {
-			return null;
-		}
 	}
 	
 	@Override

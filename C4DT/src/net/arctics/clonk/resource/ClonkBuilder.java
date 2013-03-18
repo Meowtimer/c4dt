@@ -230,7 +230,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// delete old declarations
 			for (final Script script : parserMap.keySet())
 				script.clearDeclarations();
-			index.refreshIndex(false);
+			index.refresh(false);
 
 			parseDeclarations(index);
 
@@ -421,7 +421,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index
-		index.refreshIndex(false);
+		index.refresh(false);
 		for (final Script script : parserMap.keySet())
 			script.generateCaches();
 		markers.deploy();

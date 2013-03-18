@@ -30,9 +30,6 @@ public class SelfContainedScript extends Script {
 	}
 
 	@Override
-	public String scriptText() { return script; }
-
-	@Override
 	public IStorage source() {
 		return new SimpleScriptStorage(name(), script);
 	}

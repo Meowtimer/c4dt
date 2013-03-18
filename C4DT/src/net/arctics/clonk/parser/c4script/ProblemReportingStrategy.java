@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.resource.ClonkBuilder;
 
 public abstract class ProblemReportingStrategy implements Runnable {
 	

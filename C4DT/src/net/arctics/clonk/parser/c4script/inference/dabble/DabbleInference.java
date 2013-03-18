@@ -5,10 +5,13 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.threadPool;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
@@ -31,7 +34,6 @@ import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ArrayType;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -105,7 +107,6 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
@@ -159,8 +160,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 						pool.execute(v);
 			}
 		}, 20);
-		for (final ScriptInfo info : shared.infos.values())
+		for (final ScriptInfo info : shared.infos.values()) {
+			for (TypeVariable tyVar : info.typeEnvironment.values())
+				if (tyVar.declaration().containedIn(info.script))
+					tyVar.apply(false);
 			dismissExperts(info.script());
+		}
 	}
 
 	@Override
@@ -186,7 +191,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			thread = Thread.currentThread();
 		}
 		@Override
-		public void apply(boolean soft, Visitor visitor) { /* done by Dabble */ }
+		public void apply(boolean soft) { /* done by Dabble */ }
 	}
 
 	protected final class ScriptInfo {
@@ -197,7 +202,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final Shared shared;
 		final int strictLevel;
 		final boolean hasAppendTo;
-		final Map<Function, CurrentFunctionReturnTypeVariable> finishedFunctions = new HashMap<>();
+		final Set<Function> plan;
+		final Map<Function, CurrentFunctionReturnTypeVariable> finishedFunctions = Collections.synchronizedMap(new HashMap<Function, CurrentFunctionReturnTypeVariable>());
 		final Map<String, IType> functionReturnTypes = new HashMap<>();
 		final Map<Variable, IType> variableTypes = new HashMap<>();
 		final IType thisType;
@@ -208,6 +214,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final TypeEnvironment typeEnvironment = new TypeEnvironment();
 		boolean finished = false;
 		public Script script() { return script; }
+		private HashSet<Function> makePlan() {
+			final HashSet<Function> result = new HashSet<>();
+			final List<Script> conglomerate = script.conglomerate();
+			for (Script s : conglomerate)
+				if (s != script) {
+					for (Function f : s.functions())
+						if (script.seesFunction(f))
+							result.add(f);
+				}
+			result.addAll(script.functions());
+			return result;
+		}
 		public ScriptInfo(Script script, int sourceFragmentOffset, Shared shared) {
 			this.shared = shared;
 			this.script = script;
@@ -227,6 +245,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					break;
 				}
 			this.hasAppendTo = hasAppendTo;
+			this.plan = Collections.synchronizedSet(makePlan());
 		}
 	}
 
@@ -255,7 +274,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		private ControlFlow controlFlow;
 		private Markers markers;
-		private List<Script> conglomerate;
 		private TypeEnvironment typeEnvironment;
 		private Function preliminary;
 		private Function currentFunction;
@@ -264,7 +282,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.originator = originator;
 			this.markers = DabbleInference.this.markers();
 			this.info = data;
-			this.conglomerate = Arrays.asList(scope);
 		}
 
 		public Visitor(Visitor originator, ScriptInfo data) { this(data, originator, data.script); }
@@ -297,7 +314,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visitor visitor = delegateFunctionVisit(f, function);
+					final Visitor visitor = delegateFunctionVisit(f, function, false);
 					visitors[ci] = visitor;
 					Function ref = as(visitor != null ? visitor.obtainDeclaration(call) : call.declaration(), Function.class);
 					if (ref != null) {
@@ -413,7 +430,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private void assignExperts(ASTNode node) {
 			node.traverse(new IASTVisitor<Void>() {
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void parser) {
+				public TraversalContinuation visitNode(ASTNode node, Void nothing) {
 					if (!roaming && node instanceof AccessDeclaration)
 						((AccessDeclaration)node).setDeclaration(null);
 					node.temporaryProblemReportingObject = findExpert(node);
@@ -429,8 +446,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			
 			final Script funScript = function.script();
-			if (conglomerate != null && conglomerate.contains(funScript)) {
-				
+			if (info.plan.remove(function)) {
 				CurrentFunctionReturnTypeVariable returnType;
 				boolean kickOff = false;
 				synchronized (info.finishedFunctions) {
@@ -458,7 +474,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return returnType;
 				}
 				
+				System.out.println(String.format("%s: Visiting function '%s'", info.script.name(), function.qualifiedName()));
 				final Function oldFunction = currentFunction;
+				final boolean oldRoaming = roaming;
+				roaming = function.parent() != info.script;
 				currentFunction = function;
 				assignExperts(function);
 				try {
@@ -519,7 +538,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						if (ownedFunction)
 							for (int i = 0; i < callTypes.length; i++)
-								callTypes[i].apply(false, this);
+								callTypes[i].apply(false);
 						final ControlFlow old = controlFlow;
 						controlFlow = ControlFlow.Continue;
 						for (final ASTNode s : statements)
@@ -527,7 +546,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						controlFlow = old;
 					}
 					if (!roaming)
-						env.apply(this, false);
+						env.apply(false);
 					endTypeEnvironment(env, true, true);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
 					dismissExperts(function);
@@ -540,17 +559,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 						returnType.notifyAll();
 					}
 					currentFunction = oldFunction;
+					roaming = oldRoaming;
 				}
 				return returnType;
 			}
 			return null;
 		}
 
-		public final Visitor delegateFunctionVisit(Function function, Declaration originatingDeclaration) {
+		public final Visitor delegateFunctionVisit(Function function, Declaration originatingDeclaration, boolean allowThis) {
+			if (function.body() == null)
+				return null;
 			for (Visitor v = this; v != null; v = v.originator)
 				if (v.currentFunction == function)
 					return v;
-			final TypeVariable tv = visitFunction(function, this, originatingDeclaration);
+			final TypeVariable tv = allowThis ? visitFunction(function, this, originatingDeclaration) : null;
 			if (tv == null) {
 				// if that does not apply use another visitor
 				final ScriptInfo script = info.shared.infos.get(function.parentOfType(Script.class));
@@ -696,20 +718,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		private boolean roaming = false;
 
-		private void visit(Script script, boolean roaming) {
-			script.requireLoaded();
-			if (roaming)
-				startRoaming();
-			for (final Function f : script.functions()) {
-				// skip function that have been overridden
-				if (roaming && !script().seesFunction(f))
-					continue;
-				visitFunction(f);
-			}
-			if (roaming)
-				endRoaming();
-		}
-
 		@Override
 		public void reportProblems() {
 			synchronized (info) {
@@ -722,51 +730,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void work() {
-			// revisit all inherited scripts since that is the only way to
-			// accurately type inherited functions with respect to added things from this script
-			final TypeEnvironment env1 = newTypeEnvironment();
-			{
-				conglomerate = info.script.conglomerate();
-				for (final Script include : conglomerate)
-					if (include != info.script)
-						visit(include, true);
-				conglomerate = Arrays.asList(script());
-				storeTypings(env1);
-			}
-			endTypeEnvironment(env1, false, false);
-
 			final TypeEnvironment env2 = newTypeEnvironment();
-			{
-				visit(script(), false);
-				storeTypings(env2);
-				script().setTypings(info.variableTypes, info.functionReturnTypes);
-				env2.apply(this, false);
-			}
+			Function[] plan;
+			synchronized (info.plan) { plan = info.plan.toArray(new Function[info.plan.size()]); }
+			for (Function f : plan)
+				visitFunction(f);
 			endTypeEnvironment(env2, true, false);
-
-			info.typeEnvironment.apply(this, false);
-		}
-
-		private void storeTypings(TypeEnvironment typeEnvironment) {
-			for (final TypeVariable tyvar : typeEnvironment.values()) {
-				final VariableTypeVariable vti = as(tyvar, VariableTypeVariable.class);
-				if (vti != null && vti.variable().scope() == Scope.LOCAL)
-					for (final Script s : conglomerate)
-						if (vti.variable().containedIn(s)) {
-							synchronized (info.variableTypes) {
-								info.variableTypes.put(vti.variable(), vti.get());
-							}
-							break;
-						}
-				final FunctionReturnTypeVariable ftri = as(tyvar, FunctionReturnTypeVariable.class);
-				if (ftri != null && ftri.function().visibility() != FunctionScope.GLOBAL && info.script.seesFunction(ftri.function()))
-					synchronized (info.functionReturnTypes) {
-						info.functionReturnTypes.put(ftri.function().name(), ftri.get());
-					}
-				final Declaration d = tyvar.declaration();
-				if (d != null && d.containedIn(script()))
-					tyvar.apply(false, this);
-			}
 		}
 
 		@Override
@@ -1130,7 +1099,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (var != null && var.initializationExpression() != null) {
 								final Function p = var.initializationExpression().parentOfType(Function.class);
 								if (p != null)
-									visitor.delegateFunctionVisit(p, node.parentOfType(Function.class));
+									visitor.delegateFunctionVisit(p, node.parentOfType(Function.class), scriptToLookIn == visitor.info.script);
 							}
 							return v;
 						}
@@ -1768,7 +1737,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					if (d instanceof Function)
 						// try to visit with this visitor first in case of roaming in included scripts
-						visitor.delegateFunctionVisit((Function)d, node.parentOfType(Function.class));
+						visitor.delegateFunctionVisit((Function)d, node.parentOfType(Function.class), node.predecessorInSequence() == null);
 
 					// look for gathered type information
 					final TypeVariable tyvar = findTypeVariable(node, visitor);
@@ -1853,7 +1822,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					final CachedEngineDeclarations cachedEngineDeclarations = visitor.cachedEngineDeclarations();
 					final String declarationName = node.name();
-					final Declaration declaration = node.declaration();
+					final Declaration declaration = internalObtainDeclaration(node, visitor);
 					final ASTNode[] params = node.params();
 					final ASTNode predecessor = node.predecessorInSequence();
 

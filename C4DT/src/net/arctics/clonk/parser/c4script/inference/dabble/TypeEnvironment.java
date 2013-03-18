@@ -6,7 +6,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.TypeUnification;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -23,9 +22,9 @@ public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 		}
 		return this;
 	}
-	public void apply(Visitor visitor, boolean soft) {
+	public void apply(boolean soft) {
 		for (TypeVariable info : this.values())
-			info.apply(soft, visitor);
+			info.apply(soft);
 	}
 	public final void injectIntoUpper(boolean ignoreLocals) {
 		if (up != null)

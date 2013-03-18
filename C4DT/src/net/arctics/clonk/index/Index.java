@@ -166,7 +166,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			e.index = this;
 			e.loaded = false;
 		}
-		refreshIndex(true);
+		refresh(true);
 	}
 
 	/**
@@ -279,10 +279,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Call {@link #refreshIndex(boolean)} when not post-loading the index.
+	 * Call {@link #refresh(boolean)} when not post-loading the index.
 	 */
-	public void refreshIndex() {
-		refreshIndex(false);
+	public void refresh() {
+		refresh(false);
 		built(false);
 	}
 
@@ -290,7 +290,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
-	public synchronized void refreshIndex(final boolean postLoad) {
+	public synchronized void refresh(final boolean postLoad) {
 		relevantIndexes = null;
 		// delete old cache
 		if (globalFunctions == null)
@@ -367,7 +367,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	/**
 	 * Add an {@link Definition} to the index.<br>
-	 * {@link #refreshIndex(boolean)} will need to be called manually after this.
+	 * {@link #refresh(boolean)} will need to be called manually after this.
 	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
 	public void addDefinition(Definition definition) {
@@ -463,7 +463,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	/**
 	 * Remove a {@link Definition} from this index.<br>
-	 * {@link #refreshIndex()} will need to be called manually after this.
+	 * {@link #refresh()} will need to be called manually after this.
 	 * No attempts are made to remove session properties from affected resources (see {@link Core#FOLDER_DEFINITION_REFERENCE_ID})
 	 * @param definition The {@link Definition} to remove from the index
 	 */
@@ -676,7 +676,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		entities.clear();
 		entityIdCounter = 0;
 		globalProplist = null;
-		refreshIndex(false);
+		refresh(false);
 		built(false);
 	}
 

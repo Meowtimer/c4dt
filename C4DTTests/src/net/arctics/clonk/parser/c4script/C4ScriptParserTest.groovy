@@ -6,10 +6,12 @@ import org.junit.Assert
 import org.junit.Before
 
 import net.arctics.clonk.Core
-import net.arctics.clonk.TestBase;
+import net.arctics.clonk.DefinitionInfo
+import net.arctics.clonk.TestBase
 import net.arctics.clonk.index.Engine
 import net.arctics.clonk.index.EngineSettings
 import net.arctics.clonk.index.Index
+import net.arctics.clonk.index.Definition
 import net.arctics.clonk.parser.ASTNode
 import net.arctics.clonk.parser.BufferedScanner
 import net.arctics.clonk.parser.ID
@@ -42,22 +44,34 @@ import org.junit.Test
 public class C4ScriptParserTest extends TestBase {
 
 	static class Setup {
+		Index index
 		Script[] scripts
 		C4ScriptParser[] parsers
 		Script script
 		C4ScriptParser parser
 		final Markers parserMarkers = new Markers()
-		Setup(final String... sources) {
-			this.scripts = sources.collect { source ->
-				new Script(new Index() {
-					private static final long serialVersionUID = Core.SERIAL_VERSION_UID
-					@Override
-					public Engine engine() { Core.instance().loadEngine(TestBase.ENGINE) }
-				}) {
-					@Override
-					IStorage source() { new SimpleScriptStorage(name(), source) }
-				}
+		Setup(final... sources) {
+			this.index = new Index() {
+				private static final long serialVersionUID = Core.SERIAL_VERSION_UID
+				@Override
+				public Engine engine() { Core.instance().loadEngine(TestBase.ENGINE) }
 			}
+			this.scripts = sources.collect { source ->
+				if (source instanceof String)
+					new Script(index) {
+						@Override
+						IStorage source() { new SimpleScriptStorage(name(), source) }
+					}
+				else if (source instanceof DefinitionInfo) {
+					final info = source as DefinitionInfo
+					new Definition(index, ID.get(info.name), info.name) {
+						@Override
+						IStorage source() { new SimpleScriptStorage(name(), info.source) }
+					}
+				} else
+					throw new IllegalArgumentException(source.toString())
+			}
+			this.scripts.each { it -> this.index.addScript(it) }
 			this.parsers = this.scripts.collect { script -> new C4ScriptParser(
 				(script.source() as SimpleScriptStorage).contentsAsString(), script, null
 			) }

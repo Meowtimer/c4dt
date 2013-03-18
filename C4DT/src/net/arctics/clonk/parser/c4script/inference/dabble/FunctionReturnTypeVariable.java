@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public class FunctionReturnTypeVariable extends TypeVariable {
 	protected final Function baseFunction, function;
@@ -17,7 +16,7 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 		return String.format("[function %s.%s: %s]", function.script().name(), function.name(), get().typeName(true));
 	}
 	@Override
-	public void apply(boolean soft, Visitor visitor) {
+	public void apply(boolean soft) {
 		if (function == null)
 			return;
 		if (!soft && !function.isEngineDeclaration())

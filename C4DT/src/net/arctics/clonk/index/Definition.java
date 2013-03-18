@@ -38,6 +38,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -282,28 +283,15 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
 	@Override
-	public IFile source() { return scriptFile; }
-
+	public IStorage source() { return scriptFile; }
 	@Override
 	public void setScriptFile(IFile f) { scriptFile = f; }
 	public void setDefCoreFile(IFile defCoreFile) { this.defCoreFile = defCoreFile; }
-
-	@Override
-	public String scriptText() {
-		try {
-			return StreamUtil.stringFromFileDocument(source());
-		} catch (final Exception e) {
-			return null;
-		}
-	}
-
 	/**
 	 * Return DefCore.txt file of this Definition
 	 * @return The DefCore.txt file or null if it does not exist for mysterious reasons
 	 */
-	public IFile defCoreFile() {
-		return defCoreFile;
-	}
+	public IFile defCoreFile() { return defCoreFile; }
 
 	public DefCoreUnit defCore() {
 		return as(Structure.pinned(defCoreFile, true, false), DefCoreUnit.class);

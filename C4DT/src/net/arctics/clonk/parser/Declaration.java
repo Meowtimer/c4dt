@@ -52,25 +52,15 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	protected String name;
 
 	/**
-	 * result to be returned of occurenceScope if there is no scope
-	 */
-	//private static final Object[] EMPTY_SCOPE = new IResource[0];
-
-	/**
 	 * @return the name
 	 */
 	@Override
-	public String name() {
-		return name;
-	}
-
+	public String name() { return name; }
 	/**
 	 * Sets the name.
 	 * @param name the new name
 	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+	public void setName(String name) { this.name = name; }
 
 	/**
 	 * @param Set the location of the declaration in its declaring file.

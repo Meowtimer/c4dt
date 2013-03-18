@@ -133,8 +133,8 @@ public class ProjectIndex extends Index {
 	}
 
 	@Override
-	public void refreshIndex(boolean postLoad) {
-		super.refreshIndex(postLoad);
+	public void refresh(boolean postLoad) {
+		super.refresh(postLoad);
 		engine().specialRules().refreshIndex(this);
 	}
 

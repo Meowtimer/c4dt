@@ -4,13 +4,12 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference.Visitor;
 
 public abstract class TypeVariable implements Cloneable {
 	protected IType type = PrimitiveType.UNKNOWN;
 	public final IType get() { return type; }
 	public final void set(IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
-	public void apply(boolean soft, Visitor visitor) {}
+	public void apply(boolean soft) {}
 	public abstract Declaration declaration();
 	public abstract Declaration key();
 	@Override
