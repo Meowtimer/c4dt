@@ -21,7 +21,7 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 	}
 	@Override
 	public InputStream getContents() throws CoreException { return new ByteArrayInputStream(contents.getBytes()); }
-	public String getContentsAsString() { return contents; }
+	public String contentsAsString() { return contents; }
 	@Override
 	public IPath getFullPath() { return new Path(name); }
 	@Override

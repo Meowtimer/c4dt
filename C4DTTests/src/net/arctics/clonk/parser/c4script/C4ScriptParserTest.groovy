@@ -42,44 +42,28 @@ import org.junit.Test
 public class C4ScriptParserTest extends TestBase {
 
 	static class Setup {
+		Script[] scripts
+		C4ScriptParser[] parsers
 		Script script
 		C4ScriptParser parser
 		final Markers parserMarkers = new Markers()
-		Setup(final String script) {
-			this.script = new Script(new Index() {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID
-				@Override
-				public Engine engine() { Core.instance().loadEngine(TestBase.ENGINE) }
-			}) {
-				@Override
-				IStorage source() { new SimpleScriptStorage(script) }
+		Setup(final String... sources) {
+			this.scripts = sources.collect { source ->
+				new Script(new Index() {
+					private static final long serialVersionUID = Core.SERIAL_VERSION_UID
+					@Override
+					public Engine engine() { Core.instance().loadEngine(TestBase.ENGINE) }
+				}) {
+					@Override
+					IStorage source() { new SimpleScriptStorage(name(), source) }
+				}
 			}
-			this.parser = new C4ScriptParser(script, this.script, null)
-			this.parser.setMarkers(parserMarkers)
+			this.parsers = this.scripts.collect { script -> new C4ScriptParser(
+				(script.source() as SimpleScriptStorage).contentsAsString(), script, null
+			) }
+			this.script = this.scripts[0]
+			this.parser = this.parsers[0]
 		}
-	}
-
-	@Test
-	public void testASTPrinting() {
-		final Block b = new Block(new SimpleStatement(new BinaryOp(Operator.Assign,
-				new AccessVar("i"), new IntegerLiteral(50))),
-				new SimpleStatement(new UnaryOp(Operator.Increment,
-						Placement.Prefix, new AccessVar("i"))),
-				new WhileStatement(new True(), new Block(
-						new SimpleStatement(new CallDeclaration("Log",
-								new StringLiteral("Test"))),
-						new BreakStatement())))
-		def ref =
-"""{
-	i = 50;
-	++i;
-	while (true)
-	{
-		Log("Test");
-		break;
-	}
-}"""
-		Assert.assertTrue(b.printed().equals(ref))
 	}
 
 	@Test
@@ -102,23 +86,6 @@ public class C4ScriptParserTest extends TestBase {
 		Assert.assertTrue(setup.script.findFunction("Test") != null)
 		Assert.assertTrue(setup.script.findFunction("Test").body().statements().length == 1)
 		Assert.assertTrue(setup.script.findFunction("Test").body().statements()[0].compare(body, new ASTComparisonDelegate(body)))
-	}
-
-	public String file(String name) {
-		try {
-			final InputStream stream = getClass().getResourceAsStream(name+".txt")
-			try {
-				final InputStreamReader reader = new InputStreamReader(stream)
-				final StringBuilder builder = new StringBuilder()
-				int read = 0
-				final char[] buf = new char[1024]
-				while ((read = reader.read(buf)) > 0)
-					builder.append(buf, 0, read)
-				return builder.toString()
-			} finally {
-				stream.close()
-			}
-		} catch (final IOException e) { return "" }
 	}
 
 }
