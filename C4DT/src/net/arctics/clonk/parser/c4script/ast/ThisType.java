@@ -14,8 +14,6 @@ public class ThisType extends TypeChoice {
 		);
 	}
 	@Override
-	public String typeName(boolean special) {
-		return left().typeName(special);
-	}
+	public String typeName(boolean special) { return left().typeName(special); }
 	public Script script() { return (Script)left(); }
 }
