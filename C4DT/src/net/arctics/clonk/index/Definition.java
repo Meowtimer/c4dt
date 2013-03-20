@@ -439,6 +439,9 @@ public class Definition extends Script implements IProplistDeclaration {
 		final CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
+	
+	@Override
+	public String qualifiedName() { return id().stringValue(); }
 
 	static {
 		if (!Core.instance().runsHeadless()) {
