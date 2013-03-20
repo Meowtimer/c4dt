@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Iterator;
 
@@ -8,6 +9,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.util.Utilities;
 
 public class MetaDefinition implements IRefinedPrimitiveType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -24,4 +26,9 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	public String toString() { return typeName(true); }
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ID; }
+	@Override
+	public boolean equals(Object obj) {
+		final MetaDefinition other = as(obj, MetaDefinition.class);
+		return other != null && Utilities.objectsEqual(other.definition(), definition());
+	}
 }
