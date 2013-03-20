@@ -179,7 +179,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		final ScriptInfo info = new ScriptInfo(script, fragmentOffset, shared);
 		shared.infos.put(script, info);
-		return new Visitor(null, info);
+		return new Visitor((Visitor) chain, info);
 	}
 
 	public static class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {

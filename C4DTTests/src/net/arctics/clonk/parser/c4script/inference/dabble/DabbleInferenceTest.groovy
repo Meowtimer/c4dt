@@ -38,7 +38,7 @@ public class DabbleInferenceTest extends TestBase {
 	}
 
 	@Test
-	public void testTypeChoiceForIf() {
+	public void testTypeChoiceIfElse() {
 		def setup = new Setup(
 			"""func IfElse()
 		{
@@ -59,7 +59,7 @@ public class DabbleInferenceTest extends TestBase {
 	}
 
 	@Test
-	public void testConcreteParameterTypesChained() {
+	public void testCallTypesChained() {
 		def baseSource =
 		"""
 func Func3(s)
@@ -71,29 +71,45 @@ func Func1()
 {
 	CreateObject(Derived)->Func2(123);
 }"""
-		def derivedSource =
-		"""#include Base
-
-func Func2(x)
-{
-	CreateObject(Base)->Func3(x);
-}"""
-		def setup = new Setup(
-			new DefinitionInfo(source:baseSource, name:'Base'),
-			new DefinitionInfo(source:derivedSource, name:'Derived')
-		)
-		def (base, derived) = setup.scripts
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
-		setup.inference.run()
-		Assert.assertEquals(PrimitiveType.STRING, base.findLocalFunction("Func3", false).parameters()[0].type())
-		Assert.assertEquals(PrimitiveType.STRING, derived.findLocalFunction("Func2", false).parameters()[0].type)
-		Assert.assertEquals(2, setup.inferenceMarkers.size())
-		setup.inferenceMarkers.each { it -> Assert.assertTrue(
-			it.code == Problem.IncompatibleTypes ||
-			it.code == Problem.ConcreteArgumentMismatch
-		)}
+		def order = { baseThenDerived ->
+			def derivedSource =
+				"""
+				#include Base
+				
+				func Func2(x)
+				{
+					CreateObject(Base)->Func3(x);
+				}
+				"""
+			Setup setup
+			Definition base, derived
+			if (baseThenDerived) {
+				setup = new Setup(
+					new DefinitionInfo(source:baseSource, name:'Base'),
+					new DefinitionInfo(source:derivedSource, name:'Derived')
+				)
+				(base, derived) = setup.scripts
+			} else {
+				setup = new Setup(
+					new DefinitionInfo(source:derivedSource, name:'Derived'),
+					new DefinitionInfo(source:baseSource, name:'Base'),
+				)
+				(derived, base) = setup.scripts
+			}
+			setup.parsers.each { it.run() }
+			setup.index.refresh()
+			setup.scripts.each { it.generateCaches() }
+			setup.inference.run()
+			Assert.assertEquals(PrimitiveType.STRING, base.findLocalFunction("Func3", false).parameters()[0].type())
+			Assert.assertEquals(PrimitiveType.STRING, derived.findLocalFunction("Func2", false).parameters()[0].type)
+			Assert.assertTrue(setup.inferenceMarkers.size() >= 1)
+			setup.inferenceMarkers.each { it -> Assert.assertTrue(
+				it.code == Problem.IncompatibleTypes ||
+				it.code == Problem.ConcreteArgumentMismatch
+			)}
+		}
+		order(true)
+		order(false)
 	}
 
 	@Test
@@ -150,6 +166,41 @@ func Test()
 		def (scr, clonk) = setup.scripts
 		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("a").type())
 		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("b").type())
+	}
+	
+	@Test
+	public void testCallTypeConsensus() {
+		def setup = new Setup(
+			new DefinitionInfo(source:
+				"""
+				public func Action()
+				{
+					var test = CreateObject(B);
+					test->CallSomeMethod(CreateObject(Clonk));
+					test->CallSomeMethod(123);
+					test->CallSomeMethod(321);
+				    test->CallSomeMethod(CreateObject(Clonk));
+				}
+				""", name: 'A'
+			),
+			new DefinitionInfo(source:'', name:'Clonk'),
+			new DefinitionInfo(source:
+				"""
+				public func CallSomeMethod(obj)
+				{
+					obj->RequireThisMethod();
+				}
+				""", name: 'B'
+			)
+		)
+		
+		setup.parsers.each { it.run() }
+		setup.index.refresh()
+		setup.scripts.each { it.generateCaches() }
+		setup.inference.run()
+		
+		def (a, clonk, b) = setup.scripts
+		Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
 	}
 
 }
