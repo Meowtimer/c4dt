@@ -89,8 +89,9 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	 */
 	public static ASTNode matchingExpr(ASTNode node) {
 		if (node instanceof Unfinished) {
+			final ASTNode orig = node;
 			node = Unfinished.unwrap(node);
-			node.setParent(null);
+			node.setParent(orig.parent());
 		}
 		return node.transformRecursively(new ITransformer() {
 			private ASTNode toMatchingPlaceholder(ASTNode expression) {
@@ -139,7 +140,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 				return expression;
 			}
 		});
-		
+
 	}
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {

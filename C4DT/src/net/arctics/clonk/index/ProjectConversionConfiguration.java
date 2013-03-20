@@ -45,7 +45,7 @@ public class ProjectConversionConfiguration {
 		public CodeTransformation(ASTNode stmt, CodeTransformation chain) {
 			this.chain = chain;
 			if (stmt instanceof BinaryOp && ((BinaryOp)stmt).operator() == Operator.Transform) {
-				BinaryOp op = (BinaryOp)stmt;
+				final BinaryOp op = (BinaryOp)stmt;
 				this.template = ASTNodeMatcher.matchingExpr(op.leftSide());
 				this.transformation = ASTNodeMatcher.matchingExpr(op.rightSide());
 			} else
@@ -75,7 +75,7 @@ public class ProjectConversionConfiguration {
 		try {
 			stmt = SimpleStatement.unwrap(stmt);
 			if (stmt instanceof CallDeclaration) {
-				CallDeclaration call = (CallDeclaration) stmt;
+				final CallDeclaration call = (CallDeclaration) stmt;
 				if (call.name().equals("Chain"))
 					transformations.add(new CodeTransformation(call.params(), 0));
 				else
@@ -83,7 +83,7 @@ public class ProjectConversionConfiguration {
 			}
 			else
 				transformations.add(new CodeTransformation(stmt, null));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -91,7 +91,7 @@ public class ProjectConversionConfiguration {
 	public void load(List<URL> files) {
 		URL codeTransformations = null;
 		URL idMap = null;
-		for (URL f : files)
+		for (final URL f : files)
 			if (f.getFile().endsWith("codeTransformations.c"))
 				codeTransformations = f;
 			else if (f.getFile().endsWith("idMap.txt"))
@@ -103,10 +103,10 @@ public class ProjectConversionConfiguration {
 	}
 	
 	private void loadIDMap(URL idMap) {
-		String text = StreamUtil.stringFromURL(idMap);
+		final String text = StreamUtil.stringFromURL(idMap);
 		if (text != null)
-			for (String line : StringUtil.lines(new StringReader(text))) {
-				String[] mapping = line.split("=");
+			for (final String line : StringUtil.lines(new StringReader(text))) {
+				final String[] mapping = line.split("=");
 				if (mapping.length == 2)
 					this.idMap.put(mapping[0], mapping[1]);
 			}
@@ -117,22 +117,22 @@ public class ProjectConversionConfiguration {
 			String text = StreamUtil.stringFromURL(transformationsFile);
 			if (text == null)
 				return;
-			StringBuilder builder = new StringBuilder();
+			final StringBuilder builder = new StringBuilder();
 			builder.append("func Transformations() {\n");
 			builder.append(text);
 			builder.append("\n}");
 			text = builder.toString();
-			Script script = new TempScript(text, sourceEngine);
-			C4ScriptParser parser = new C4ScriptParser(text, script, null);
+			final Script script = new TempScript(text, sourceEngine);
+			final C4ScriptParser parser = new C4ScriptParser(text, script, null);
 			parser.parse();
-			Function transformations = parser.script().findLocalFunction("Transformations", false);
+			final Function transformations = parser.script().findLocalFunction("Transformations", false);
 			if (transformations != null && transformations.body() != null)
-				for (ASTNode stmt : transformations.body().statements()) {
+				for (final ASTNode stmt : transformations.body().statements()) {
 					if (stmt instanceof Comment)
 						continue;
 					addTransformationFromStatement(stmt);
 				}
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
 	}

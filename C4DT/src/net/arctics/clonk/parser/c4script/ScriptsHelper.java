@@ -29,17 +29,17 @@ public class ScriptsHelper {
 		T context
 	) throws ParsingException {
 		if (function == null) {
-			Script tempScript = new TempScript(source, engine);
+			final Script tempScript = new TempScript(source, engine);
 			function = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			function.setParent(tempScript);
 			function.setBodyLocation(new SourceLocation(0, source.length()));
 		}
-		C4ScriptParser tempParser = new C4ScriptParser(source, function.script(), null) {
+		final C4ScriptParser tempParser = new C4ScriptParser(source, function.script(), null) {
 			@Override
 			public int sectionOffset() { return 0; }
 			@Override
 			protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
-				Statement s = parseStatement();
+				final Statement s = parseStatement();
 				if (s instanceof SimpleStatement)
 					return ((SimpleStatement)s).expression();
 				else
@@ -48,11 +48,10 @@ public class ScriptsHelper {
 		};
 		tempParser.markers().setListener(markerListener);
 		ASTNode result = tempParser.parseDeclaration();
-		if (result == null) {
+		if (result == null)
 			result = tempParser.parseStandaloneStatement(source, function);
-			if (visitor != null)
-				result.traverse(visitor, context);
-		}
+		if (visitor != null && result != null)
+			result.traverse(visitor, context);
 		return result;
 	}
 	public static ASTNode parse(final String source, Engine engine) throws ParsingException {

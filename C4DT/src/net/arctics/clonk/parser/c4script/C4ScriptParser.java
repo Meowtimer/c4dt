@@ -262,12 +262,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		parseDeclarations();
 		validate();
 	}
-	
+
 	@Override
 	public void run() {
 		try {
 			parse();
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
 	}
@@ -2593,8 +2593,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		Statement statement;
 		do {
 			statement = parseStatement();
-			if (statement != null)
+			if (statement != null) {
+				statement.setParent(function);
 				statements.add(statement);
+			}
 			else
 				break;
 		} while (true);

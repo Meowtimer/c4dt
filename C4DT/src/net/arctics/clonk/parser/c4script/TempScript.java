@@ -8,18 +8,18 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import org.eclipse.core.resources.IStorage;
 
 public final class TempScript extends Script {
-	private final String expression;
+	private final String text;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public TempScript(String expression, final Engine engine) {
+	public TempScript(String text, final Engine engine) {
 		super(new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() { return engine; };
 		});
-		this.expression = expression;
+		this.text = text;
 	}
 
 	@Override
-	public IStorage source() { return new SimpleScriptStorage(expression, expression); }
+	public IStorage source() { return new SimpleScriptStorage(text, text); }
 }
