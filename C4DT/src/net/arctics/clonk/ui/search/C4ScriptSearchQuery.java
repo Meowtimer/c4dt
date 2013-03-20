@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.search;
 
-import static net.arctics.clonk.util.Utilities.threadPool;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -18,6 +16,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -41,14 +40,14 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 	}
 
 	private void addMatch(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
-		Match m = match(match, parser, s, l, subst);
+		final Match m = match(match, parser, s, l, subst);
 		result.addMatch(m);
 	}
 
 	protected static Match match(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
-		IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
-		String line = parser.bufferSubstringAtRegion(lineRegion);
-		Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
+		final IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
+		final String line = parser.bufferSubstringAtRegion(lineRegion);
+		final Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
 		return m;
 	}
 
@@ -62,7 +61,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	private Engine commonEngine(Iterable<Script> scripts) {
 		Engine e = null;
-		for (Script s : scripts)
+		for (final Script s : scripts)
 			if (e == null)
 				e = s.engine();
 			else if (e != s.engine())
@@ -72,7 +71,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	public C4ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
-		Engine engine = commonEngine(scope);
+		final Engine engine = commonEngine(scope);
 		this.template = ASTNodeMatcher.matchingExpr(templateExpressionText, engine);
 		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.matchingExpr(replacementExpressionText, engine) : null;
 		this.scope = scope;
@@ -80,7 +79,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 
 	@Override
 	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
-		threadPool(new Sink<ExecutorService>() {
+		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService item) {
 				class ScriptSearcher implements Runnable, IASTVisitor<C4ScriptParser> {
@@ -90,7 +89,7 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 						C4ScriptParser p = null;
 						try {
 							p = new C4ScriptParser(script);
-						} catch (Exception e) {
+						} catch (final Exception e) {
 							System.out.println(String.format("Creating parser failed for '%s'", script));
 						}
 						parser = p;
@@ -103,22 +102,22 @@ public class C4ScriptSearchQuery extends SearchQueryBase {
 						commitMatches();
 					}
 					private void commitMatches() {
-						for (Match m : matches.values())
+						for (final Match m : matches.values())
 							result.addMatch(m);
 						matches.clear();
 					}
 					@Override
 					public TraversalContinuation visitNode(ASTNode expression, C4ScriptParser parser) {
-						Map<String, Object> subst = template.match(expression);
+						final Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
-							IRegion r = expression.absolute();
+							final IRegion r = expression.absolute();
 							addMatch(expression, parser, r.getOffset(), r.getLength(), subst);
 							return TraversalContinuation.SkipSubElements;
 						} else {
 							if (expression instanceof Statement) {
-								Statement stmt = (Statement) expression;
+								final Statement stmt = (Statement) expression;
 								if (stmt.attachments() != null)
-									for (Attachment a : stmt.attachments())
+									for (final Attachment a : stmt.attachments())
 										if (a instanceof ASTNode)
 											visitNode((ASTNode)a, parser);	
 							}

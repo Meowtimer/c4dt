@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.c4script.inference.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.threadPool;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -111,6 +110,7 @@ import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -142,7 +142,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Profiled
 	final void work() {
-		threadPool(new Sink<ExecutorService>() {
+		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
 				final Visitor[] visitors = new Visitor[shared.scripts.length];

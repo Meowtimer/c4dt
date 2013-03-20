@@ -4,9 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
@@ -54,14 +51,14 @@ public abstract class Utilities {
 	}
 
 	public static MessageConsole consoleWithName(String name) {
-		ConsolePlugin plugin = ConsolePlugin.getDefault();
-		IConsoleManager conMan = plugin.getConsoleManager();
-		IConsole[] existing = conMan.getConsoles();
+		final ConsolePlugin plugin = ConsolePlugin.getDefault();
+		final IConsoleManager conMan = plugin.getConsoleManager();
+		final IConsole[] existing = conMan.getConsoles();
 		for (int i = 0; i < existing.length; i++)
 			if (name.equals(existing[i].getName()))
 				return (MessageConsole) existing[i];
 		//no console found, so create a new one
-		MessageConsole console = new MessageConsole(name, null);
+		final MessageConsole console = new MessageConsole(name, null);
 		conMan.addConsoles(new IConsole[]{console});
 		return console;
 	}
@@ -76,14 +73,14 @@ public abstract class Utilities {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				String id = IConsoleConstants.ID_CONSOLE_VIEW;
+				final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				final String id = IConsoleConstants.ID_CONSOLE_VIEW;
 
 				// show console
 				try {
-					IConsoleView view = (IConsoleView) page.showView(id);
+					final IConsoleView view = (IConsoleView) page.showView(id);
 					view.display(clonkConsole());
-				} catch (PartInitException e) {
+				} catch (final PartInitException e) {
 					e.printStackTrace();
 				}
 			}
@@ -173,15 +170,15 @@ public abstract class Utilities {
 		T best = null;
 		if (fromList != null) {
 			if (fromList.size() == 1) {
-				T soleItem = fromList.get(0);
+				final T soleItem = fromList.get(0);
 				return filter == null || filter.test(soleItem) ? soleItem : null;
 			}
-			Scenario scen = Scenario.containingScenario(resource);
-			for (T o : fromList) {
+			final Scenario scen = Scenario.containingScenario(resource);
+			for (final T o : fromList) {
 				if (filter != null && !filter.test(o))
 					continue;
-				IResource res = o.resource();
-				int newDist = res != null
+				final IResource res = o.resource();
+				final int newDist = res != null
 					? distanceToCommonContainer(resource, res, scen, null)
 					: Integer.MAX_VALUE;
 				if (best == null || newDist < bestDist) {
@@ -194,7 +191,7 @@ public abstract class Utilities {
 	}
 
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
-		for (Object item : objects)
+		for (final Object item : objects)
 			if (!(cls.isAssignableFrom(item.getClass())))
 				return false;
 		return true;
@@ -236,7 +233,7 @@ public abstract class Utilities {
 	}
 
 	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
-		for (T item : sectionsList)
+		for (final T item : sectionsList)
 			if (predicate.test(item))
 				return item;
 		return null;
@@ -260,11 +257,11 @@ public abstract class Utilities {
 
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
 		try {
-			T result = cls.newInstance();
-			for (E e : array)
+			final T result = cls.newInstance();
+			for (final E e : array)
 				result.add(e);
 			return result;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -272,22 +269,22 @@ public abstract class Utilities {
 
 	public static <S, T extends S> boolean isAnyOf(S something, @SuppressWarnings("unchecked") T... things) {
 		if (something != null)
-			for (Object o : things)
+			for (final Object o : things)
 				if (something.equals(o))
 					return true;
 		return false;
 	}
 
 	public static <T> boolean collectionContains(Collection<T> list, T elm) {
-		for (T e : list)
+		for (final T e : list)
 			if (e.equals(elm))
 				return true;
 		return false;
 	}
 
 	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
-		List<T> result = new LinkedList<T>();
-		for (T elm : iterable)
+		final List<T> result = new LinkedList<T>();
+		for (final T elm : iterable)
 			if (filter.test(elm))
 				result.add(elm);
 		return result;
@@ -304,7 +301,7 @@ public abstract class Utilities {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+				final MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 					title == null ? Messages.Utilities_InternalError : title, null,
 					message, MessageDialog.ERROR,
 					new String[] { Messages.Utilities_InternalErrorButton }, 1
@@ -318,10 +315,10 @@ public abstract class Utilities {
 		if (container == null)
 			return null;
 		try {
-	        for (IResource child : container.members())
+	        for (final IResource child : container.members())
 				if (child.getName().equalsIgnoreCase(name))
 	        		return child;
-        } catch (CoreException e) {
+        } catch (final CoreException e) {
 	        //e.printStackTrace(); just return null, will just be some case of having a referenced container that does not exist anymore
         }
 		return null;
@@ -335,7 +332,7 @@ public abstract class Utilities {
 	 * @return see above
 	 */
 	public static <T> boolean any(Iterable<? extends T> items, IPredicate<T> predicate) {
-		for (T item : items)
+		for (final T item : items)
 			if (predicate.test(item))
 				return true;
 		return false;
@@ -365,27 +362,10 @@ public abstract class Utilities {
 	}
 
 	public static String multiply(String s, int times) {
-		StringBuilder builder = new StringBuilder(s.length()*times);
+		final StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
 			builder.append(s);
 		return s.toString();
-	}
-
-	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
-		final boolean threadPoolEnabled = false;
-		final ExecutorService pool = threadPoolEnabled
-			? Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
-			: Executors.newSingleThreadExecutor();
-		try {
-			action.receivedObject(pool);
-		} finally {
-			pool.shutdown();
-			try {
-				pool.awaitTermination(timeoutMinutes, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	public static Object token(final String token) {
@@ -401,13 +381,13 @@ public abstract class Utilities {
 
 	public static void runWithoutAutoBuild(Runnable runnable) {
 		synchronized (autoBuildDisablingLock) {
-			IWorkspace workspace = ResourcesPlugin.getWorkspace();
-			IWorkspaceDescription workspaceDescription = workspace.getDescription();
-			boolean autoBuilding = workspaceDescription.isAutoBuilding();
+			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			final IWorkspaceDescription workspaceDescription = workspace.getDescription();
+			final boolean autoBuilding = workspaceDescription.isAutoBuilding();
 			workspaceDescription.setAutoBuilding(false);
 			try {
 				workspace.setDescription(workspaceDescription);
-			} catch (CoreException e2) {
+			} catch (final CoreException e2) {
 				e2.printStackTrace();
 			}
 			try {
@@ -416,7 +396,7 @@ public abstract class Utilities {
 				workspaceDescription.setAutoBuilding(autoBuilding);
 				try {
 					workspace.setDescription(workspaceDescription);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
 			}
@@ -431,7 +411,7 @@ public abstract class Utilities {
 		Y interim = null;
 		T first = null;
 		int i = 0;
-		for (T item : iterable) {
+		for (final T item : iterable) {
 			if (interim == null) {
 				if (first != null)
 					interim = folder.fold(first, item, i);
@@ -455,10 +435,10 @@ public abstract class Utilities {
 	}
 
 	public static Object apiCall(Object target, String method, Object... arguments) throws ReflectiveOperationException, IllegalArgumentException, SecurityException {
-		Class<?>[] classes = new Class<?>[arguments.length];
+		final Class<?>[] classes = new Class<?>[arguments.length];
 		for (int i = 0; i < arguments.length; i++)
 			if (arguments[i] instanceof ApiTyped<?,	?>) {
-				ApiTyped<?, ?> apiTyped = (ApiTyped<?, ?>)arguments[i];
+				final ApiTyped<?, ?> apiTyped = (ApiTyped<?, ?>)arguments[i];
 				arguments[i] = apiTyped.object;
 				classes[i] = apiTyped.apiType;
 			} else

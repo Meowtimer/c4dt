@@ -32,8 +32,8 @@ import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -391,7 +391,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					monitor.worked(1);
 				}
 			else
-				Utilities.threadPool(new Sink<ExecutorService>() {
+				TaskExecution.threadPool(new Sink<ExecutorService>() {
 					@Override
 					public void receivedObject(ExecutorService pool) {
 						for (final Script script : newEnqueued.keySet())

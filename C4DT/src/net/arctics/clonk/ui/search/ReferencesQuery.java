@@ -32,6 +32,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -151,7 +152,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
 			return Status.CANCEL_STATUS;
 		}
-		Utilities.threadPool(new Sink<ExecutorService>() {
+		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
 				for (final Object scope : ReferencesQuery.this.scope)
