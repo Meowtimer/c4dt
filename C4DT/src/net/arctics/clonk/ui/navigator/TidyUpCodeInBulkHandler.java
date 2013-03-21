@@ -116,7 +116,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 															@Override
 															public Void run(IDocument document) {
 																if (document != null)
-																	TidyUpCodeAction.converter().runOnDocument(script, null, parser, document);
+																	TidyUpCodeAction.converter().runOnDocument(script, parser, document);
 																return null;
 															}
 														}, true);

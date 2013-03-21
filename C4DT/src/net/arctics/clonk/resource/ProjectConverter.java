@@ -182,7 +182,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					}
 					for (Directive d : script.directives())
 						if (d.type() == DirectiveType.STRICT)
-					codeConverter.runOnDocument(script, null, parser, document);
+					codeConverter.runOnDocument(script, parser, document);
 					if (script instanceof Definition) {
 						Definition def = (Definition) script;
 						ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);

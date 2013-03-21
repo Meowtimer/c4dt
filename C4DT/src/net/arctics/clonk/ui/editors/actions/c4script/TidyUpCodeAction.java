@@ -37,7 +37,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 			e.printStackTrace();
 			return;
 		}
-		converter().runOnDocument(editor.script(), selection, parser, document);
+		converter().runOnDocument(editor.script(), parser, document);
 	}
 
 	public static CodeConverter converter() {

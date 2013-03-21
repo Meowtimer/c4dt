@@ -31,7 +31,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.text.edits.MalformedTreeException;
@@ -53,7 +52,6 @@ public abstract class CodeConverter {
 
 	public void runOnDocument(
 		Script script,
-		ITextSelection selection,
 		C4ScriptParser parser,
 		final IDocument document
 	) {
