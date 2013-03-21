@@ -797,7 +797,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		@Override
 		public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {
-			System.out.println(String.format("Judgement: %s : %s", node.printed(), type.typeName(false)));
 			expert(node).typingJudgement(node, type, null, this, mode);
 		}
 
