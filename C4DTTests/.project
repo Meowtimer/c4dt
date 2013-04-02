@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>C4DTTests</name>
+	<name>c4dt.tests</name>
 	<comment></comment>
 	<projects>
 		<project>C4DT</project>
