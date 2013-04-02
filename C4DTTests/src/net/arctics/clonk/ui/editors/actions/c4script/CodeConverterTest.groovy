@@ -26,17 +26,22 @@ Initialize:
 		setup.index.refresh()
 		setup.scripts.each { it.generateCaches() }
 		
-		def converter = new CodeConverter() {
-			@Override
-			protected ASTNode performConversion(C4ScriptParser parser, ASTNode node, Declaration owner, ICodeConverterContext context) {
-				node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()))
+		try {
+			def converter = new CodeConverter() {
+				@Override
+				protected ASTNode performConversion(C4ScriptParser parser, ASTNode node, Declaration owner, ICodeConverterContext context) {
+					node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()))
+				}
 			}
+			
+			converter.runOnDocument(setup.script, setup.parser, [
+				get: { offset, len ->
+					(offset != null && len != null) ? source.substring(offset, offset+len-1) : source },
+				getChar: { ndx -> source[ndx] as char },
+				getLength: { source.length() }
+			] as IDocument)
+		} catch (e) {
+			e.printStackTrace()
 		}
-		converter.runOnDocument(setup.script, setup.parser, [
-			get: { source },
-			getChar: { ndx -> source[ndx] as char },
-			get: { offset, len -> source.substring(offset, offset+len-1) },
-			getLength: { source.length() }
-		] as IDocument)
 	}
 }

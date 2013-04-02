@@ -92,6 +92,8 @@ public abstract class CodeConverter {
 				textChange.perform(new NullProgressMonitor());
 			} catch (final CoreException e) {
 				e.printStackTrace();
+			} catch (final Exception x) {
+				x.printStackTrace();
 			}
 		}
 	}

@@ -40,14 +40,17 @@ public class DabbleInferenceTest extends TestBase {
 	@Test
 	public void testTypeChoiceIfElse() {
 		def setup = new Setup(
-			"""func IfElse()
-		{
-			var x = 123;
-			if (Random(2))
-				x = "ugh";
-			else if (Random(3))
-				x = true;
-		}""")
+			"""
+			func IfElse()
+			{
+				var x = 123;
+				if (Random(2))
+					x = "ugh";
+				else if (Random(3))
+					x = true;
+			}
+			"""
+		)
 		setup.parser.run()
 		setup.inference.run()
 		def ty = setup.script.findLocalFunction("IfElse", false).locals()[0].type()
@@ -61,26 +64,27 @@ public class DabbleInferenceTest extends TestBase {
 	@Test
 	public void testCallTypesChained() {
 		def baseSource =
-		"""
-func Func3(s)
-{
-	Log(s);
-}
-
-func Func1()
-{
-	CreateObject(Derived)->Func2(123);
-}"""
+			"""
+			func Func3(s)
+			{
+				Log(s);
+			}
+			
+			func Func1()
+			{
+				CreateObject(Derived)->Func2(123);
+			}
+			"""
+		def derivedSource =
+			"""
+			#include Base
+			
+			func Func2(x)
+			{
+				CreateObject(Base)->Func3(x);
+			}
+			"""
 		def order = { baseThenDerived ->
-			def derivedSource =
-				"""
-				#include Base
-				
-				func Func2(x)
-				{
-					CreateObject(Base)->Func3(x);
-				}
-				"""
 			Setup setup
 			Definition base, derived
 			if (baseThenDerived) {
