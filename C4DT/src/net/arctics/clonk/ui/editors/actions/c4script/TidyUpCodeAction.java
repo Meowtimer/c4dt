@@ -12,7 +12,6 @@ import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.TidyUpCode")
@@ -28,12 +27,12 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	@Override
 	public void run() {
 		final C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
-		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
+		//final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		C4ScriptParser parser;
 		try {
 			parser = editor.reparseWithDocumentContents(false);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return;
 		}
@@ -46,7 +45,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 			protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression, Declaration declaration, ICodeConverterContext context) {
 				try {
 					return expression.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()));
-				} catch (CloneNotSupportedException e) {
+				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 					return expression;
 				}

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.inference.dabble;
+package net.arctics.clonk.parser.c4script.typing.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;

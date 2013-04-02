@@ -13,7 +13,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
+import net.arctics.clonk.parser.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;

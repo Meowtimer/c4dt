@@ -3,7 +3,7 @@
 	<name>c4dt.tests</name>
 	<comment></comment>
 	<projects>
-		<project>C4DT</project>
+		<project>c4dt</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

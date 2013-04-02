@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.statictyping;
+package net.arctics.clonk.parser.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.as;
 

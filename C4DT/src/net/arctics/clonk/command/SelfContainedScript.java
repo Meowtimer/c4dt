@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInference;
+import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference;
 
 import org.eclipse.core.resources.IStorage;
 

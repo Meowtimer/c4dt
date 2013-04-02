@@ -80,7 +80,7 @@ import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Whitespace;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
-import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
+import net.arctics.clonk.parser.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 

@@ -8,7 +8,6 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
@@ -16,7 +15,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNode.ITransformer;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
@@ -24,7 +22,6 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
-import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.StringUtil;
@@ -75,7 +72,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
-			GroupType groupType = sourceEngine().groupTypeForFileName(segment);
+			final GroupType groupType = sourceEngine().groupTypeForFileName(segment);
 			if (groupType != GroupType.OtherGroup)
 				segment = destinationEngine().groupName(StringUtil.rawFileName(segment), groupType);
 			result = result.append(segment);
@@ -86,7 +83,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void run() {
 		try {
 			sourceProject.getProject().accept(this);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -105,21 +102,21 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IProject || skipResource(resource))
 			return true;
-		IPath path = convertPath(resource.getProjectRelativePath());
+		final IPath path = convertPath(resource.getProjectRelativePath());
 		if (resource instanceof IFile) {
-			IFile sourceFile = (IFile) resource;
-			IFile file = destinationProject.getProject().getFile(path);
+			final IFile sourceFile = (IFile) resource;
+			final IFile file = destinationProject.getProject().getFile(path);
 			try (InputStream contents = sourceFile.getContents()) {
 				if (file.exists())
 					file.setContents(contents, true, true, monitor);
 				else
 					file.create(contents, true, monitor);
 				convertFileContents(sourceFile, file);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		} else if (resource instanceof IFolder) {
-			IFolder container = destinationProject.getProject().getFolder(path);
+			final IFolder container = destinationProject.getProject().getFolder(path);
 			if (!container.exists())
 				container.create(true, true, monitor);
 		}
@@ -136,15 +133,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					if (expression == null)
 						return null;
 					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
-						String mapped = configuration.idMap().get(expression.toString());
+						final String mapped = configuration.idMap().get(expression.toString());
 						if (mapped != null)
 							return new AccessVar(mapped);
 					}
 					expression = expression.transformSubElements(this);
-					for (ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
+					for (final ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
 						boolean success = false;
 						for (CodeTransformation c = ct; c != null; c = c.chain()) {
-							Map<String, Object> matched = c.template().match(expression);
+							final Map<String, Object> matched = c.template().match(expression);
 							if (matched != null) {
 								expression = c.transformation().transform(matched, context);
 								success = true;
@@ -159,7 +156,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			if (node != null)
 				try {
 					node = node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()));
-				} catch (CloneNotSupportedException e) {
+				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
 			return node;
@@ -174,19 +171,19 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(IDocument document) {
-					C4ScriptParser parser = new C4ScriptParser(script);
+					final C4ScriptParser parser = new C4ScriptParser(script);
 					try {
 						parser.parse();
-					} catch (ParsingException e) {
+					} catch (final ParsingException e) {
 						e.printStackTrace();
 					}
-					for (Directive d : script.directives())
+					for (final Directive d : script.directives())
 						if (d.type() == DirectiveType.STRICT)
 					codeConverter.runOnDocument(script, parser, document);
-					if (script instanceof Definition) {
+					/*if (script instanceof Definition) {
 						Definition def = (Definition) script;
-						ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
-					}
+						//ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
+					}*/
 					return null;
 				}
 			}, true);

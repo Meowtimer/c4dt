@@ -62,7 +62,7 @@ import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
-import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
+import net.arctics.clonk.parser.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.IPredicate;

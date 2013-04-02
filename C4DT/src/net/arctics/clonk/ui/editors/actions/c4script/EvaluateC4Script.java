@@ -30,20 +30,20 @@ public class EvaluateC4Script extends ClonkTextEditorAction {
 	@Override
 	public void run() {
 		try {
-			Thread thread = new Thread() {
+			final Thread thread = new Thread() {
 				@Override
 				public void run() {
 					final C4ScriptEditor editor = (C4ScriptEditor)getTextEditor();
-					String code = ((ITextSelection)getTextEditor().getSelectionProvider().getSelection()).getText();
-					Script script = new ExecutableScript("Eval", String.format("func Main() { %s; }", code), editor.script().index()) {
+					final String code = ((ITextSelection)getTextEditor().getSelectionProvider().getSelection()).getText();
+					final Script script = new ExecutableScript("Eval", String.format("func Main() { %s; }", code), editor.script().index()) {
 						private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 						@Override
 						public Collection<Script> includes(Index index, Object origin, int options) {
 							return Arrays.asList(Command.COMMAND_BASESCRIPT, editor.script());
 						}
 					};
-					Function main = script.findFunction("Main");
-					Object r = main.invoke(main.new FunctionInvocation(new Object[0], null, this));
+					final Function main = script.findFunction("Main");
+					final Object r = main.invoke(main.new FunctionInvocation(new Object[0], null, this));
 					final String evaluated = defaulting(r, "<No result>").toString();
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
@@ -56,8 +56,7 @@ public class EvaluateC4Script extends ClonkTextEditorAction {
 			};
 			thread.run();
 			thread.join(3000);
-			thread.stop();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Oops", "Something went wrong");
 		}

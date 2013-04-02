@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.c4script.C4ScriptParserTest
 import net.arctics.clonk.parser.c4script.PrimitiveType
 import net.arctics.clonk.parser.c4script.ast.TypeChoice
+import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference;
 
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.junit.Assert

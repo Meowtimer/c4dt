@@ -23,7 +23,7 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Conf;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.statictyping.StaticTypingUtil;
+import net.arctics.clonk.parser.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectConverter;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;

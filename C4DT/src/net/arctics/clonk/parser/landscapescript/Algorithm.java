@@ -61,9 +61,9 @@ public enum Algorithm {
 			return (((iX/(100*10))%2)^((iY/(100*10))%2)) == 0 ? true : false;
 		case bozo:
 			// do some bozo stuff - keep it regular here, since it may be modified by turbulence
-			int iXC=(iX/10+s+(iY/80))%(z*2)-z;
-			int iYC=(iY/10+s+(iX/80))%(z*2)-z;
-			int id=Math.abs(iXC*iYC); // ((iSeed^iX^iY)%z)
+			final int iXC=(iX/10+s+(iY/80))%(z*2)-z;
+			final int iYC=(iY/10+s+(iX/80))%(z*2)-z;
+			final int id=Math.abs(iXC*iYC); // ((iSeed^iX^iY)%z)
 			return id > z2*(a.evaluate(100)+10)/50;
 		case sin:
 			return iY > (Math.sin(iX/z*10)+1)*z*10;
@@ -86,11 +86,11 @@ public enum Algorithm {
 			// return whether inside line
 			return Math.abs(iX+(s%4738))%(pxb*z+1)<pxa*z+1;
 		case border:
-			Overlay pTopOvrl;
+			//Overlay pTopOvrl;
 			// get params before, since pOvrl will be changed by PreparePeek
-			int la=a.evaluate(overlay.Wdt); int lb=b.evaluate(overlay.Hgt);
+			final int la=a.evaluate(overlay.Wdt); final int lb=b.evaluate(overlay.Hgt);
 			// prepare a pixel peek from owner
-			Peek peek = new Peek(overlay, iX, iY, null);
+			final Peek peek = new Peek(overlay, iX, iY, null);
 			if (!peek.prepare()) return false;
 			// query a/b pixels in x/y-directions
 			for (int x=iX-la; x<=iX+la; x++) if (peek.topOverlay.inBounds(x, iY)) if (!peek.topOverlay.peekPix(x, iY)) return true;
@@ -102,8 +102,8 @@ public enum Algorithm {
 			int iMandelIter = a.evaluate(100) != 0 ? a.evaluate(100) : 1000;
 			if (iMandelIter < 10) iMandelIter = 10;
 			// calc c & ci values
-			double c =  ((double) iX / z / overlay.Wdt - .5 * ((double) overlay.zoomX.evaluated() / z)) * 4;
-			double ci = ((double) iY / z / overlay.Hgt - .5 * ((double) overlay.zoomY.evaluated() / z)) * 4;
+			final double c =  ((double) iX / z / overlay.Wdt - .5 * ((double) overlay.zoomX.evaluated() / z)) * 4;
+			final double ci = ((double) iY / z / overlay.Hgt - .5 * ((double) overlay.zoomY.evaluated() / z)) * 4;
 			// create _z & _zi
 			double _z = c, _zi = ci;
 			double xz;

@@ -38,6 +38,7 @@ Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
  net.arctics.clonk.parser.c4script,
  net.arctics.clonk.parser.c4script.ast,
+ net.arctics.clonk.parser.c4script.typing.dabble,
  net.arctics.clonk.parser.landscapescript,
  net.arctics.clonk.preferences,
  net.arctics.clonk.resource,
@@ -47,7 +48,6 @@ Export-Package: net.arctics.clonk,
  net.arctics.clonk.ui.editors.c4script,
  net.arctics.clonk.ui.navigator,
  net.arctics.clonk.ui.wizards,
- net.arctics.clonk.util,
- net.arctics.clonk.parser.c4script.inference.dabble
+ net.arctics.clonk.util
 Bundle-ClassPath: lib/antlr-runtime-3.4.jar,
  .

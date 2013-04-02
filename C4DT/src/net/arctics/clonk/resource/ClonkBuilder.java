@@ -28,7 +28,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.statictyping.TypeAnnotation;
+import net.arctics.clonk.parser.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.util.Sink;
