@@ -129,6 +129,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private static class Shared {
 		final Map<Script, ScriptInfo> infos = new HashMap<>();
+		boolean local = false;
 		Script[] scripts;
 	}
 	private Shared shared;
@@ -179,6 +180,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 		if (!(chain instanceof Visitor)) {
 			shared = new Shared();
+			shared.local = true;
 			assembleCommittee();
 		}
 		final ScriptInfo info = new ScriptInfo(script, fragmentOffset, shared);
@@ -582,7 +584,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			catch (final ParsingException e) { return null; }
 			finally {
 				synchronized (returnType) {
-					function.assignType(returnType.get(), false);
+					if (funScript == info.script)
+						function.assignType(returnType.get(), false);
 					returnType.state(State.FINISHED);
 					returnType.notifyAll();
 				}
@@ -746,6 +749,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return;
 				else
 					info.finished = true;
+				script().setTypings(new HashMap<Variable, IType>(), new HashMap<String, IType>());
 			}
 			work();
 		}
@@ -1165,8 +1169,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return stored.get();
 				if (d instanceof Function)
 					return new FunctionType((Function)d);
-				else if (d instanceof Variable)
-					return ((Variable)d).type();
+				else if (d instanceof Variable) {
+					final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
+					return t != null ? t : ((Variable)d).type();
+				}
 				else if (d instanceof ITypeable)
 					return ((ITypeable) d).type();
 				return PrimitiveType.UNKNOWN;
@@ -1775,10 +1781,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (type != null)
 								return type;
 						}
-						return ((Function)d).returnType();
+						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().functionReturnTypes().get(d.name()) : null;
+						return t != null ? t : ((Function)d).returnType();
 					}
-					if (d instanceof Variable)
-						return ((Variable)d).type();
+					if (d instanceof Variable) {
+						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
+						return t != null ? t : ((Variable)d).type();
+					}
 
 					return supr != null ? supr.type(node, visitor) : PrimitiveType.UNKNOWN;
 				}
@@ -1801,11 +1810,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final AccessDeclaration ad = as(pred, AccessDeclaration.class);
 					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == visitor.cachedEngineDeclarations().This))
 						return false;
-					boolean anyDefinitions = false;
+					boolean anyScripts = false;
 					for (final IType t : predType)
-						if (t instanceof Definition)
-							anyDefinitions = true;
-					return anyDefinitions;
+						if (t instanceof Script)
+							anyScripts = true;
+					return anyScripts;
 				}
 				@Override
 				public IType type(CallDeclaration node, Visitor visitor) {
