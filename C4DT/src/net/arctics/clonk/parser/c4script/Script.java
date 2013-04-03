@@ -291,7 +291,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		String scriptText;
 		try {
 			scriptText = StreamUtil.stringFromInputStream(this.source().getContents());
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -1208,7 +1208,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (subDeclaration instanceof Function)
 			return seesFunction((Function)subDeclaration);
 		else
-			return false;
+			return true;
 	}
 
 	private static final IASTVisitor<Script> NODEMAPS_POPULATOR = new IASTVisitor<Script>() {
