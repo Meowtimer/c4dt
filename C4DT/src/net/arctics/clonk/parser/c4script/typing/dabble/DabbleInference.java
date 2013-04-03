@@ -1274,8 +1274,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final List<AccessVar> references = visitor.script().varReferences().get(node.name());
 					if (references != null)
 						for (final AccessVar ref : references)
-							if (ref.parent() instanceof BinaryOp && ((BinaryOp)ref.parent()).leftSide() == ref)
-								visitor.visitFunction(ref.parentOfType(Function.class), visitor, node.parentOfType(Function.class));
+							for (ASTNode p = ref.parent(); p != null; p = p.parent())
+								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
+									visitor.visitFunction(ref.parentOfType(Function.class), visitor, node.parentOfType(Function.class));
+									break;
+								}
 				}
 				return super.findTypeVariable(node, visitor);
 			}
@@ -2184,8 +2187,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (!TypeUnification.compatible(requiredType, ty(pred, visitor)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
 								ty(pred, stmReporter, visitor).typeName(false));
-						else
-							judgement(pred, requiredType, TypingJudgementMode.UNIFY, visitor);
+						else {
+							final IType predTy = ty(pred, visitor);
+							if (predTy == PrimitiveType.UNKNOWN || predTy == PrimitiveType.ANY)
+								judgement(pred, requiredType, TypingJudgementMode.UNIFY, visitor);
+						}
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
 						visitor.markers().error(visitor, Problem.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
