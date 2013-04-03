@@ -12,6 +12,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
@@ -332,7 +333,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public Object cookie() { return null; }
 	@Override
-	public Object valueForVariable(String varName) { return script().findLocalVariable(varName, true); }
+	public Object valueForVariable(AccessVar access) { return script().valueForVariable(access); }
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override

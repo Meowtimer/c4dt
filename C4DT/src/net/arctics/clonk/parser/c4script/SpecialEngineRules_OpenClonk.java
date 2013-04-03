@@ -191,7 +191,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public int codeFragmentOffset() { return function != null ? function.codeFragmentOffset() : 0; }
 		@Override
-		public Object valueForVariable(String varName) { return function != null ? function.valueForVariable(varName) : null; }
+		public Object valueForVariable(AccessVar access) { return function != null ? function.valueForVariable(access) : null; }
 		@Override
 		public Function function() { return function; }
 		@Override

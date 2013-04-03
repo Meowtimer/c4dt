@@ -32,7 +32,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	public static AccessVar temp(Declaration declaration, ASTNode parent) {
-		AccessVar r = new AccessVar(declaration);
+		final AccessVar r = new AccessVar(declaration);
 		r.setParent(parent);
 		return r;
 	}
@@ -97,7 +97,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		if (context != null)
-			return context.valueForVariable(name());
+			return context.valueForVariable(this);
 		else
 			return super.evaluate(context);
 	}
@@ -105,7 +105,7 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public boolean isConstant() {
 		if (declaration() instanceof Variable) {
-			Variable var = (Variable) declaration();
+			final Variable var = (Variable) declaration();
 			// naturally, consts are constant
 			return var.scope() == Scope.CONST || definitionProxiedBy(var) != null;
 		}

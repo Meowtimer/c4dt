@@ -830,7 +830,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public void setMarkers(Markers markers) { this.markers = markers;}
 		@Override
-		public Object valueForVariable(String varName) { return null; }
+		public Object valueForVariable(AccessVar access) { return null; }
 		@Override
 		public Object[] arguments() { return null; }
 		@Override
@@ -1749,8 +1749,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					else
 						f = findUsingType(visitor, node, declarationName, ty(p, visitor));
-					if (f instanceof Function)
-						visitor.delegateFunctionVisit((Function)f, node.parentOfType(Function.class), node.predecessorInSequence() == null);
+					if (f instanceof Function) {
+						final Function fn = (Function)f;
+						visitor.delegateFunctionVisit(fn, node.parentOfType(Function.class), node.predecessorInSequence() == null);
+					}
 					return f;
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {

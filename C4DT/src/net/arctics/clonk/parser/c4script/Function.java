@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
@@ -209,14 +210,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.context = context;
 		}
 		@Override
-		public Object valueForVariable(String varName) {
+		public Object valueForVariable(AccessVar access) {
 			int i = 0;
-			for (final Variable v : parameters) {
-				if (v.name().equals(varName))
-					return args[i];
-				i++;
-			}
-			return up != null ? up.valueForVariable(varName) : null;
+			if (access.predecessorInSequence() == null)
+				for (final Variable v : parameters) {
+					if (v.name().equals(access.name()))
+						return args[i];
+					i++;
+				}
+			return up != null ? up.valueForVariable(access) : null;
 		}
 		@Override
 		public Script script() { return Function.this.script(); }
@@ -838,8 +840,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object valueForVariable(String varName) {
-		return findVariable(varName); // return meta object instead of concrete value
+	public Object valueForVariable(AccessVar access) {
+		if (access.predecessorInSequence() == null)
+			return findVariable(access.name()); // return meta object instead of concrete value
+		else
+			return null;
 	}
 
 	@Override
