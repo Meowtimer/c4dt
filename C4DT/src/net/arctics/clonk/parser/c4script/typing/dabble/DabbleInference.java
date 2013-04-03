@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.typing.dabble;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -1221,20 +1222,34 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return true;
 				if (declaration == null && origin != null) {
 					final IType predType = predecessorType(node, visitor);
-					if (predType != null)
+					if (predType != null) {
+						boolean foundSomeVar = false;
 						for (final IType t : predType)
 							if (t == visitor.script()) {
 								final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
 								initializeFromAssignment(node, type, origin, visitor, var);
 								visitor.script().addDeclaration(var);
 								node.setDeclaration(declaration = var);
+								foundSomeVar = true;
 							}
 							else if (t instanceof IProplistDeclaration && ((IProplistDeclaration)t).isAdHoc()) {
 								final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
 								final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
-								initializeFromAssignment(node, type, origin, visitor, var);
+								var.setLocation(node.absolute());
 								node.setDeclaration(declaration = var);
+								initializeFromAssignment(node, type, origin, visitor, var);
+								foundSomeVar = true;
 							}
+						if (!foundSomeVar) {
+							final ProplistDeclaration proplDecl = new ProplistDeclaration(new ArrayList<Variable>());
+							final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
+							proplDecl.setParent(visitor.script());
+							var.setLocation(node.absolute());
+							node.setDeclaration(declaration = var);
+							initializeFromAssignment(node, type, origin, visitor, var);
+							judgement(node.predecessorInSequence(), proplDecl, TypingJudgementMode.UNIFY, visitor);
+						}
+					}
 				}
 				return super.typingJudgement(node, type, origin, visitor, mode);
 			}
