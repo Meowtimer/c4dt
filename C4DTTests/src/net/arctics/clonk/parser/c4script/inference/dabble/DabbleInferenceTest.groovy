@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.c4script.C4ScriptParserTest
 import net.arctics.clonk.parser.c4script.PrimitiveType
+import net.arctics.clonk.parser.c4script.ast.ThisType;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice
 import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference;
 
@@ -206,6 +207,54 @@ func Test()
 		
 		def (a, clonk, b) = setup.scripts
 		Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
+	}
+	
+	@Test
+	public void testRevisitIncluded() {
+		def baseSource =
+		"""
+		local count;
+		public func SetStackCount(int amount)
+		{
+			count = amount;
+		}
+		public func TakeObject()
+		{
+			if (count == 1)
+			{
+				Exit();
+				return this;
+			}
+			else if (count > 1)
+			{
+				var take = CreateObject(GetID(), 0, 0, GetOwner());
+				take->SetStackCount(1);
+				return take;
+			}
+		}
+		"""
+		def derivedSource =
+		"""
+		#include Base
+		func Test()
+		{
+			return TakeObject();
+		}
+		"""
+		def setup = new Setup(
+			new DefinitionInfo(name: "Base", source: baseSource),
+			new DefinitionInfo(name: "Derived", source: derivedSource)
+		)
+		
+		setup.parsers.each { it.run() }
+		setup.index.refresh()
+		setup.scripts.each { it.generateCaches() }
+		setup.inference.run()
+		
+		def (base, derived) = setup.scripts
+		
+		def t = derived.functionReturnTypes()['TakeObject']
+		Assert.assertEquals(derived, t)
 	}
 
 }
