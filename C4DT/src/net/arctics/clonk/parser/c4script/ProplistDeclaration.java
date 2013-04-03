@@ -91,10 +91,8 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#findComponent(java.lang.String, java.util.Set)
 	 */
 	public Variable findComponent(String declarationName, Set<ProplistDeclaration> recursionPrevention) {
-		if (recursionPrevention.contains(this))
+		if (!recursionPrevention.add(this))
 			return null;
-		else
-			recursionPrevention.add(this);
 		synchronized (components) {
 			for (final Variable v : components)
 				if (v.name().equals(declarationName))
