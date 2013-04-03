@@ -63,7 +63,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-		this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
+		if (editor != null)
+			this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
 		return null;
 	}
 
@@ -81,14 +82,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
-			String displayString = def.name();
-			int replacementLength = prefix != null ? prefix.length() : 0;
+			final String displayString = def.name();
+			final int replacementLength = prefix != null ? prefix.length() : 0;
 
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
-		} catch (Exception e) {}
+		} catch (final Exception e) {}
 	}
 
 	protected IFile pivotFile() {
@@ -96,7 +97,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 
 	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
+		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 	}
 
@@ -110,10 +111,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (prefix != null)
 			if (!stringMatchesPrefix(func.name(), prefix))
 				return null;
-		int replacementLength = prefix != null ? prefix.length() : 0;
+		final int replacementLength = prefix != null ? prefix.length() : 0;
 
-		String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			func, replacement, offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
 		);
@@ -125,11 +126,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		if (prefix != null && !stringMatchesPrefix(var.name(), prefix))
 			return null;
-		String displayString = var.name();
+		final String displayString = var.name();
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
@@ -145,14 +146,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 	@Override
 	public int compare(ICompletionProposal a, ICompletionProposal b) {
-		ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
-		ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
+		final ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
+		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
 			if (prefix != null) {
 				class Match {
 					boolean startsWith, match, local;
 					Match(ClonkCompletionProposal proposal) {
-						for (String s : proposal.identifiers())
+						for (final String s : proposal.identifiers())
 							if (s.toLowerCase().startsWith(prefix)) {
 								startsWith = true;
 								if (s.length() == prefix.length()) {
@@ -163,7 +164,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 						local = proposal.declaration() != null && !proposal.declaration().isGlobal();
 					}
 				}
-				Match ma = new Match(ca), mb = new Match(cb);
+				final Match ma = new Match(ca), mb = new Match(cb);
 				if (ma.match != mb.match)
 					return ma.match ? -1 : +1;
 				else if (ma.startsWith != mb.startsWith)
@@ -172,13 +173,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					return ma.local ? -1 : +1;
 			}
 			if (cb.category() != ca.category()) {
-				int diff = Math.abs(cb.category()-ca.category()) * 1000;
+				final int diff = Math.abs(cb.category()-ca.category()) * 1000;
 				return cb.category() > ca.category() ? -diff : +diff;
 			}
-			String idA = ca.primaryComparisonIdentifier();
-			String idB = cb.primaryComparisonIdentifier();
-			boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
-			boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
+			final String idA = ca.primaryComparisonIdentifier();
+			final String idB = cb.primaryComparisonIdentifier();
+			final boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
+			final boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
 			if (bracketStartA != bracketStartB)
 				return bracketStartA ? +1 : -1;
 			else

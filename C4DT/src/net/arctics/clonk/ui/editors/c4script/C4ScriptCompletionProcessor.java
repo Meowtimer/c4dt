@@ -72,6 +72,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.bindings.TriggerSequence;
 import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -792,10 +793,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return function;
 	}
 
-	private final char[][] proposalAutoActivationCharacters = new char[2][];
-	private char[] contextInformationAutoActivationCharacters;
+	private final static char[][] proposalAutoActivationCharacters = new char[2][];
+	private static char[] contextInformationAutoActivationCharacters;
 
-	private void configureActivation() {
+	private static void configureActivation() {
 		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
 			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
 			: new char[0];
@@ -803,14 +804,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		contextInformationAutoActivationCharacters = new char[] {'('};
 	}
 
-	{
-		Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
-					configureActivation();
-			}
-		});
+	static {
+		final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
+		if (prefStore != null)
+			prefStore.addPropertyChangeListener(new IPropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent event) {
+					if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
+						configureActivation();
+				}
+			});
 		configureActivation();
 	}
 

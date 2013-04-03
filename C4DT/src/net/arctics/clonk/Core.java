@@ -50,6 +50,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IDocument;
@@ -148,7 +149,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		super.start(context);
 		try {
 			versionFromLastRun = new Version(StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE)));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			versionFromLastRun = new Version(0, 5, 0); // oold
 		}
 
@@ -171,7 +172,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 					setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
-					for (Engine e : loadedEngines())
+					for (final Engine e : loadedEngines())
 						e.reinitializeDocImporter();
 			}
 		});
@@ -208,28 +209,28 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	private String engineNameFromPath(String path) {
-		String folderName = path.endsWith("/") //$NON-NLS-1$
+		final String folderName = path.endsWith("/") //$NON-NLS-1$
 			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
 			: path.substring(path.lastIndexOf('/')+1);
 		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
 
 	public List<String> namesOfAvailableEngines() {
-		List<String> result = new LinkedList<String>();
+		final List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
-		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
-			String engineName = engineNameFromPath(paths.nextElement());
+		for (final Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
+			final String engineName = engineNameFromPath(paths.nextElement());
 			if (engineName != null)
 				result.add(engineName);
 		}
 		// get engine definitions from workspace
-		File[] workspaceEngines = workspaceStorageLocationForEngines().toFile().listFiles();
+		final File[] workspaceEngines = workspaceStorageLocationForEngines().toFile().listFiles();
 		if (workspaceEngines != null)
-			for (File wEngine : workspaceEngines) {
+			for (final File wEngine : workspaceEngines) {
 				// only accepting folders should be sufficient
 				if (!wEngine.isDirectory())
 					continue;
-				String engineName = engineNameFromPath(new Path(wEngine.getAbsolutePath()).toString());
+				final String engineName = engineNameFromPath(new Path(wEngine.getAbsolutePath()).toString());
 				if (engineName != null && !result.contains(engineName))
 					result.add(engineName);
 			}
@@ -294,11 +295,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				}
 				@Override
 				public void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-					Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
+					final Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
 					if (urls != null)
 						while (urls.hasMoreElements()) {
-							URL url = urls.nextElement();
+							final URL url = urls.nextElement();
 							PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
 						}
 				};
@@ -337,7 +338,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public IPath workspaceStorageLocationForEngine(String engineName) {
 		IPath path = workspaceStorageLocationForEngines();
 		path = path.append(String.format("%s", engineName));
-		File dir = path.toFile();
+		final File dir = path.toFile();
 		if (!dir.exists())
 			dir.mkdir();
 		return path;
@@ -354,48 +355,48 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @return Reference to the folder
 	 */
 	public File requestFolderInStateLocation(String name) {
-		File result = new File(new File(getStateLocation().toOSString()), name);
+		final File result = new File(new File(getStateLocation().toOSString()), name);
 		return result.mkdirs() ? result : null;
 	}
 
 	public void exportEngineToXMLInWorkspace(String engineName) {
 		try {
-			IPath engineXML = workspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
+			final IPath engineXML = workspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
 
-			File engineXMLFile = engineXML.toFile();
+			final File engineXMLFile = engineXML.toFile();
 			if (engineXMLFile.exists())
 				engineXMLFile.delete();
 
-			FileWriter writer = new FileWriter(engineXMLFile);
+			final FileWriter writer = new FileWriter(engineXMLFile);
 			try {
 				this.activeEngine().exportAsXML(writer);
 			} finally {
 				writer.close();
 			}
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void saveEngineInWorkspace(String engineName) {
 		try {
-			IPath engine = workspaceStorageLocationForEngine(engineName);
+			final IPath engine = workspaceStorageLocationForEngine(engineName);
 
-			File engineFile = engine.toFile();
+			final File engineFile = engine.toFile();
 			if (engineFile.exists())
 				engineFile.delete();
 
-			FileOutputStream outputStream = new FileOutputStream(engineFile);
+			final FileOutputStream outputStream = new FileOutputStream(engineFile);
 			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
-			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
+			final ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
 			encoder.writeObject(activeEngine());
 			encoder.close();
 			loadedEngines.remove(engineName);
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -424,9 +425,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 *
 	 * @return the shared instance
 	 */
-	public static Core instance() {
-		return instance;
-	}
+	public static Core instance() { return instance; }
+	/** Whether the plugin runs in headless mode. */
+	public boolean runsHeadless() { return runsHeadless; }
 
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (instance == null) {
@@ -456,13 +457,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public Image iconImageFor(String iconName) {
 
 		// Already exists?
-		ImageRegistry reg = getImageRegistry();
+		final ImageRegistry reg = getImageRegistry();
 		Image img = reg.get(iconName);
 		if (img != null)
 			return img;
 
 		// Create
-		ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
+		final ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
 		reg.put(iconName, img = descriptor.createImage(true));
 		return img;
 	}
@@ -495,16 +496,16 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
 			rememberCurrentVersion();
-			for (Engine engine : loadedEngines.values())
+			for (final Engine engine : loadedEngines.values())
 				engine.saveSettings();
-			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects())
+			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects())
 				try {
 					if (!project.isOpen())
 						continue;
 					clonkProj = ClonkProjectNature.get(project);
 					if (clonkProj != null)
 						clonkProj.saveIndex();
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
 			removeOldIndexes();
@@ -513,7 +514,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	private void rememberCurrentVersion() {
-		File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
+		final File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
 		try {
 			StreamUtil.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
 				@Override
@@ -521,21 +522,21 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					writer.append(getBundle().getVersion().toString());
 				}
 			});
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private static void removeRecursively(File f) {
 		if (f.isDirectory())
-			for (File fi : f.listFiles())
+			for (final File fi : f.listFiles())
 				removeRecursively(fi);
 		f.delete();
 	}
 
 	private void removeOldIndexes() {
-		File stateDir = getStateLocation().toFile();
-		for (String file : stateDir.list())
+		final File stateDir = getStateLocation().toFile();
+		for (final String file : stateDir.list())
 			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null)
 				removeRecursively(new File(stateDir, file));
 	}
@@ -557,7 +558,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	public void setActiveEngineByName(String engineName) {
-		Engine e = loadEngine(engineName);
+		final Engine e = loadEngine(engineName);
 		// make sure names are correct
 		if (e != null) {
 			e.setName(engineName);
@@ -580,18 +581,18 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		synchronized (textFileDocumentProvider) {
 			try {
 				textFileDocumentProvider.connect(file);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
 			try {
-				IDocument document = textFileDocumentProvider.getDocument(file);
-				T result = action.run(document);
+				final IDocument document = textFileDocumentProvider.getDocument(file);
+				final T result = action.run(document);
 				if (save)
 					try {
 						textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
 						textFileDocumentProvider.saveDocument(null, file, document, true);
-					} catch (CoreException e) {
+					} catch (final CoreException e) {
 						e.printStackTrace();
 					}
 				return result;
@@ -608,11 +609,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			case IResourceChangeEvent.PRE_DELETE:
 				// delete old index - could be renamed i guess but renaming a project is not exactly a common activity
 				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(NATURE_ID)) {
-					ClonkProjectNature proj = ClonkProjectNature.get(event.getResource());
+					final ClonkProjectNature proj = ClonkProjectNature.get(event.getResource());
 					Core.instance().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
 				}
 			}
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -620,9 +621,14 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public boolean updateTookPlace() {
 		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
-
-	public boolean runsHeadless() {
-		return runsHeadless;
+	
+	@Override
+	public IPreferenceStore getPreferenceStore() {
+		try {
+			return super.getPreferenceStore();
+		} catch (final NullPointerException npe) {
+			return null;
+		}
 	}
 
 }

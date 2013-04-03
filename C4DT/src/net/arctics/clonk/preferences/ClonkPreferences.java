@@ -8,6 +8,7 @@ import net.arctics.clonk.Core;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -47,16 +48,16 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		try {
 			Field prefField = valueFieldMapping.get(prefName);
 			if (prefField == null)
-				for (Field f : ClonkPreferences.class.getFields())
+				for (final Field f : ClonkPreferences.class.getFields())
 					if (!f.getName().endsWith("_DEFAULT"))
 						if (f.get(null).equals(prefName)) {
 							prefField = f;
 							valueFieldMapping.put(prefName, f);
 							break;
 						}
-			Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null; //$NON-NLS-1$
+			final Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null; //$NON-NLS-1$
 			return f != null ? (T)f.get(null) : null;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -64,13 +65,14 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 	public static String value(String prefName, String def, IScopeContext[] contexts) {
 		try {
 			return Platform.getPreferencesService().getString(Core.PLUGIN_ID, prefName, def, contexts);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return def;
 		}
 	}
 	
 	public static boolean toggle(String toggleName, boolean defaultValue) {
-		return Platform.getPreferencesService().getBoolean(Core.PLUGIN_ID, toggleName, defaultValue, null);
+		final IPreferencesService prefService = Platform.getPreferencesService();
+		return prefService != null ? prefService.getBoolean(Core.PLUGIN_ID, toggleName, defaultValue, null) : defaultValue;
 	}
 	
 	public static String languagePref() {
@@ -78,13 +80,13 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	public static String getLanguagePrefForDocumentation() {
-		String pref = languagePref();
+		final String pref = languagePref();
 		return pref.equals("DE") ? "de" : "en";
 	}
 	
 	@Override
 	public void initializeDefaultPreferences() {
-		IPreferenceStore store = Core.instance().getPreferenceStore();
+		final IPreferenceStore store = Core.instance().getPreferenceStore();
 		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
 		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
