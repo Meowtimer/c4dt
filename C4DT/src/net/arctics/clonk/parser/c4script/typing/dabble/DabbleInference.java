@@ -133,6 +133,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 		Script[] scripts;
 	}
 	private Shared shared;
+	private boolean typeThisAsObject;
+	
+	@Override
+	public void setArgs(String args) {
+		typeThisAsObject = false;
+		for (final String a : args.split(","))
+			if (a.equals("typeThisAsObject"))
+				typeThisAsObject = true;
+	}
 
 	@Override
 	public void initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
@@ -244,7 +253,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.rules = script.engine().specialRules();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
-			this.thisType = new ThisType(script);
+			this.thisType = typeThisAsObject ? script : new ThisType(script);
 			this.fragmentOffset = sourceFragmentOffset;
 			boolean hasAppendTo = false;
 			for (final Directive d : script.directives())
@@ -2192,7 +2201,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode pred = node.predecessorInSequence();
 					final EngineSettings settings = visitor.script().engine().settings();
 					if (pred != null) {
-						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : OBJECTISH;
+						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : typeThisAsObject ? PrimitiveType.OBJECT : OBJECTISH;
 						final Expert<? super ASTNode> stmReporter = expert(pred);
 						if (!TypeUnification.compatible(requiredType, ty(pred, visitor)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,

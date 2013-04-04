@@ -32,7 +32,9 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	}
 	
 	public final int capabilities() {
-		Capabilities caps = getClass().getAnnotation(Capabilities.class);
+		final Capabilities caps = getClass().getAnnotation(Capabilities.class);
 		return caps != null ? caps.capabilities() : 0;
 	}
+
+	public void setArgs(String args) {}
 }

@@ -23,6 +23,7 @@ import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ProjectSettings.ProblemReportingStrategyInfo;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.StreamUtil;
 
@@ -102,7 +103,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProjectIndex forceIndexRecreation() {
 		index = null;
 		loadSettings();
-		File indexFolder = indexFolder();
+		final File indexFolder = indexFolder();
 		// legacy index file - delete
 		if (indexFolder.isFile())
 			indexFolder.delete();
@@ -140,12 +141,12 @@ public class ClonkProjectNature implements IProjectNature {
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
 					try {
 						CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}
 			});
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -154,7 +155,7 @@ public class ClonkProjectNature implements IProjectNature {
 		try {
 			settings = new ProjectSettings();
 			CustomIniUnit.load(StreamUtil.stringFromFile(getSettingsFileLocation().toFile()), settings);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -175,7 +176,7 @@ public class ClonkProjectNature implements IProjectNature {
 				loadedIndex.setProject(getProject());
 				try {
 					loadedIndex.postLoad();
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 					loadedIndex = null;
 				}
@@ -188,10 +189,10 @@ public class ClonkProjectNature implements IProjectNature {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				IProgressMonitor monitor = new NullProgressMonitor();
+				final IProgressMonitor monitor = new NullProgressMonitor();
 				try {
 					project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
 				if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0)
@@ -222,17 +223,17 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	public static ClonkProjectNature get(IResource res) {
 		if (res == null) return null;
-		IProject project = res.getProject();
+		final IProject project = res.getProject();
 		try {
 			if (project == null || !project.isOpen() || !project.hasNature(Core.NATURE_ID))
 				return null;
-		} catch (CoreException e1) {
+		} catch (final CoreException e1) {
 			return null;
 		}
 		try {
-			IProjectNature clonkProj = project.getNature(Core.NATURE_ID);
+			final IProjectNature clonkProj = project.getNature(Core.NATURE_ID);
 			return (ClonkProjectNature) clonkProj;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -255,11 +256,11 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	public static ClonkProjectNature get(String projectName) {
-		for (IProject proj : clonkProjectsInWorkspace())
+		for (final IProject proj : clonkProjectsInWorkspace())
 			if (proj.getName().equals(projectName))
 				try {
 					return (ClonkProjectNature) proj.getNature(Core.NATURE_ID);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 					return null;
 				}
@@ -267,7 +268,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	public static ClonkProjectNature get(IWorkbenchPart part) {
-		ISelection selection = part.getSite().getSelectionProvider().getSelection();
+		final ISelection selection = part.getSite().getSelectionProvider().getSelection();
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
 			return get((IResource)((IStructuredSelection)selection).getFirstElement());
 		else if (part instanceof ClonkTextEditor)
@@ -286,12 +287,12 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return array containing the Clonk projects
 	 */
 	public static IProject[] clonkProjectsInWorkspace() {
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject[] projects = root.getProjects();
+		final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		final IProject[] projects = root.getProjects();
 		
 		// Filter out all projects with Clonk nature
-		Collection<IProject> c = new LinkedList<IProject>();
-		for(IProject proj : projects)
+		final Collection<IProject> c = new LinkedList<IProject>();
+		for(final IProject proj : projects)
 			if (ClonkProjectNature.get(proj) != null)
 				c.add(proj);
 			
@@ -300,22 +301,22 @@ public class ClonkProjectNature implements IProjectNature {
 
 	private static void addProjectsFromReferencedProjects(List<IProject> result, IProject proj) {
 		try {
-			List<IProject> newOnes = new LinkedList<IProject>();
-			for (IProject p : proj.getReferencedProjects()) {
-				ClonkProjectNature n = ClonkProjectNature.get(p);
+			final List<IProject> newOnes = new LinkedList<IProject>();
+			for (final IProject p : proj.getReferencedProjects()) {
+				final ClonkProjectNature n = ClonkProjectNature.get(p);
 				if (n != null && !newOnes.contains(p))
 					newOnes.add(p);
 			}
 			result.addAll(newOnes);
-			for (IProject i : newOnes)
+			for (final IProject i : newOnes)
 				addProjectsFromReferencedProjects(result, i);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public List<IProject> referencingClonkProjects() {
-		List<IProject> result = new ArrayList<IProject>(10);
+		final List<IProject> result = new ArrayList<IProject>(10);
 		result.add(getProject());
 		addProjectsFromReferencedProjects(result, getProject());
 		return result;
@@ -327,7 +328,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public static Engine engineFromResource(IResource res) {
-		ClonkProjectNature nat = get(res);
+		final ClonkProjectNature nat = get(res);
 		return nat != null ? nat.settings().engine() : null;
 	}
 	
@@ -341,14 +342,16 @@ public class ClonkProjectNature implements IProjectNature {
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
 		if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 			return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
-		Collection<Class<? extends ProblemReportingStrategy>> classes = settings().problemReportingStrategies();
-		List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
-		for (Class<? extends ProblemReportingStrategy> c : classes) {
-			Capabilities caps = c.getAnnotation(Capabilities.class);
+		final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
+		final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
+		for (final ProblemReportingStrategyInfo c : classes) {
+			final Capabilities caps = c.cls.getAnnotation(Capabilities.class);
 			if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
 				continue;
 			try {
-				instances.add(c.newInstance());
+				final ProblemReportingStrategy instance = c.cls.newInstance();
+				instance.setArgs(c.args);
+				instances.add(instance);
 			} catch (InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
 				continue;

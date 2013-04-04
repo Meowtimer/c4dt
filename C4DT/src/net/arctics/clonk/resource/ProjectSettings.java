@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
@@ -58,7 +60,6 @@ public class ProjectSettings extends SettingsBase {
 	
 	private Engine cachedEngine;
 	private HashSet<Problem> disabledErrorsSet;
-	private Collection<Class<? extends ProblemReportingStrategy>> _problemReportingStrategies;
 	
 	public ProjectSettings() {}
 	
@@ -76,11 +77,11 @@ public class ProjectSettings extends SettingsBase {
 		if (disabledErrorsSet == null) {
 			disabledErrorsSet = new HashSet<Problem>();
 			if (!disabledErrors.equals("")) {
-				String ds[] = disabledErrors.split(",");
-				for (String d : ds)
+				final String ds[] = disabledErrors.split(",");
+				for (final String d : ds)
 					try {
 						disabledErrorsSet.add(Problem.valueOf(d));
-					} catch (IllegalArgumentException e) {
+					} catch (final IllegalArgumentException e) {
 						System.out.println("Unknown parser error: " + d);
 					}
 			}
@@ -88,25 +89,43 @@ public class ProjectSettings extends SettingsBase {
 		return disabledErrorsSet;
 	}
 	
-	public synchronized Collection<Class<? extends ProblemReportingStrategy>> problemReportingStrategies() {
+	public static final class ProblemReportingStrategyInfo {
+		public ProblemReportingStrategyInfo(Class<? extends ProblemReportingStrategy> cls, String args) {
+			super();
+			this.cls = cls;
+			this.args = args;
+		}
+		public Class<? extends ProblemReportingStrategy> cls;
+		public String args;
+	}
+	
+	private Collection<ProblemReportingStrategyInfo> _problemReportingStrategies;
+	
+	public synchronized Collection<ProblemReportingStrategyInfo> problemReportingStrategies() {
 		if (_problemReportingStrategies == null)
 			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
-				String[] classNames = problemReportingStrategies.split(",");
-				_problemReportingStrategies = new ArrayList<Class<? extends ProblemReportingStrategy>>(classNames.length);
-				for (int i = 0; i < classNames.length; i++)
-					try {
-						@SuppressWarnings("unchecked")
-						Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass
-						(Core.id(classNames[i]));
-						if (ProblemReportingStrategy.class.isAssignableFrom(cls))
-							_problemReportingStrategies.add(cls);
-					} catch (ClassNotFoundException e) {
-						e.printStackTrace();
-						continue;
+				final Matcher strategyRefMatcher = Pattern.compile("(.*?)(\\[(.*?)\\])?").matcher("");
+				final String[] classNames = problemReportingStrategies.split(",");
+				_problemReportingStrategies = new ArrayList<ProblemReportingStrategyInfo>();
+				for (int i = 0; i < classNames.length; i++) {
+					final String strategyRef = classNames[i];
+					if (strategyRefMatcher.reset(strategyRef).matches()) {
+						final String className = strategyRefMatcher.group(1);
+						final String args = strategyRefMatcher.group(3);
+						try {
+							@SuppressWarnings("unchecked")
+							final Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass(Core.id(className));
+							if (ProblemReportingStrategy.class.isAssignableFrom(cls))
+								_problemReportingStrategies.add(new ProblemReportingStrategyInfo(cls, args));
+						} catch (final ClassNotFoundException e) {
+							e.printStackTrace();
+							continue;
+						}
 					}
+				}
 			} else {
-				_problemReportingStrategies = new ArrayList<Class<? extends ProblemReportingStrategy>>(1);
-				_problemReportingStrategies.add(DabbleInference.class);
+				_problemReportingStrategies = new ArrayList<ProblemReportingStrategyInfo>();
+				_problemReportingStrategies.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
 			}
 		return _problemReportingStrategies;
 	}
@@ -135,12 +154,12 @@ public class ProjectSettings extends SettingsBase {
 	}
 
 	private void guessEngine(ClonkProjectNature nature) {
-		List<IProject> referencingProjects = nature.referencingClonkProjects();
-		Map<String, Integer> score = new HashMap<String, Integer>();
-		for (String engine : Core.instance().namesOfAvailableEngines())
+		final List<IProject> referencingProjects = nature.referencingClonkProjects();
+		final Map<String, Integer> score = new HashMap<String, Integer>();
+		for (final String engine : Core.instance().namesOfAvailableEngines())
 			score.put(engine, 0);
-		for (IProject proj : referencingProjects) {
-			String projName = proj.getName();
+		for (final IProject proj : referencingProjects) {
+			final String projName = proj.getName();
 			String engine;
 			if (projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC"))
 				engine = "OpenClonk";
@@ -151,7 +170,7 @@ public class ProjectSettings extends SettingsBase {
 			score.put(engine, score.get(engine)+1);
 		}
 		Entry<String, Integer> best = null;
-		for (Entry<String, Integer> entry : score.entrySet())
+		for (final Entry<String, Integer> entry : score.entrySet())
 			if (best == null || entry.getValue() > best.getValue())
 				best = entry;
 		setEngineName(best.getKey());
