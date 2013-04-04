@@ -16,6 +16,9 @@ import org.eclipse.core.runtime.NullProgressMonitor
 import org.junit.Assert
 import org.junit.Test
 
+import org.paukov.combinatorics.Factory
+import org.paukov.combinatorics.ICombinatoricsVector;
+
 public class DabbleInferenceTest extends TestBase {
 
 	static class Setup extends C4ScriptParserTest.Setup {
@@ -176,7 +179,8 @@ func Test()
 	
 	@Test
 	public void testCallTypeConsensus() {
-		def setup = new Setup(
+		
+		def infos = [
 			new DefinitionInfo(source:
 				"""
 				public func Action()
@@ -198,15 +202,26 @@ func Test()
 				}
 				""", name: 'B'
 			)
-		)
+		]
 		
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
-		setup.inference.run()
-		
-		def (a, clonk, b) = setup.scripts
-		Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
+		def vector = Factory.createVector(infos)
+		def gen = Factory.createPermutationGenerator(vector)
+
+		for (ICombinatoricsVector<DefinitionInfo> perm : gen) {
+			def permArray = perm.vector.toArray()
+			System.out.println(String.format('Testing permutation %s', permArray.collect({it -> it.name}).join(', ')))
+			def setup = new Setup(permArray)
+
+			setup.parsers.each { it.run() }
+			setup.index.refresh()
+			setup.scripts.each { it.generateCaches() }
+			setup.inference.run()
+
+			Definition a = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('A') }
+			Definition b = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('B') }
+			Definition clonk = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('Clonk') }
+			Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
+		}
 	}
 	
 	@Test

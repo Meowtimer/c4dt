@@ -8,7 +8,7 @@ public abstract class TestBase {
 	@Before
 	public void headlessSetup() {
 		Core.headlessInitialize(System.getenv("HOME")+"/Projects/Clonk/C4DT/C4DT/res/engines", ENGINE);
-		Flags.DEBUG = false;
+		Flags.DEBUG = true;
 	}
 	protected IDocument documentMock(String source) {
 		[
