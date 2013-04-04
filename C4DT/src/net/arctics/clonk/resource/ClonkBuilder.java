@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Flags;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -426,7 +427,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
-		System.out.println(String.format("%s: Reporting problems", getProject().getName()));
+		if (Flags.DEBUG)
+			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		for (final ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
