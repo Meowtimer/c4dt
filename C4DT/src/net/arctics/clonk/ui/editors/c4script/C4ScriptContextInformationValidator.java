@@ -13,7 +13,6 @@ import org.eclipse.jface.text.contentassist.IContextInformationPresenter;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.widgets.Display;
 
 public class C4ScriptContextInformationValidator implements IContextInformationPresenter, IContextInformationValidator {
 
@@ -31,21 +30,19 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 	@Override
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
 		offset = fTextViewer.getSelectedRange().x;
-		C4ScriptContextInformation info = as(fInformation, C4ScriptContextInformation.class);
+		final C4ScriptContextInformation info = as(fInformation, C4ScriptContextInformation.class);
 		if (info == null)
 			return false;
 		if (!info.valid(offset))
 			return false;
-		SourceLocation par = info.currentParameterDisplayStringRange();
+		final SourceLocation par = info.currentParameterDisplayStringRange();
 		if (par == null)
 			return false;
-		int fnNameLen = info.function().name().length();
-		StyleRange fn = new StyleRange(0, fnNameLen,
-			Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY), null, SWT.ITALIC);
-		StyleRange highlightedParameter = new StyleRange(par.start(), par.end()-par.start(),
-			Display.getCurrent().getSystemColor(SWT.COLOR_BLUE), null, SWT.BOLD);
+		final int fnNameLen = info.function().name().length();
+		final StyleRange fn = new StyleRange(0, fnNameLen, null, null, SWT.ITALIC);
+		final StyleRange highlightedParameter = new StyleRange(par.start(), par.end()-par.start(), null, null, SWT.BOLD);
 		presentation.clear();
-		for (StyleRange r : new StyleRange[] {fn, highlightedParameter})
+		for (final StyleRange r : new StyleRange[] {fn, highlightedParameter})
 			presentation.addStyleRange(r);
 		return true;
 	}
@@ -55,12 +52,12 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 		try {
 			if (fInformation instanceof C4ScriptContextInformation && !((C4ScriptContextInformation) fInformation).valid(offset))
 				return false;
-			IDocument document = fTextViewer.getDocument();
-			IRegion line = document.getLineInformationOfOffset(fOffset);
+			final IDocument document = fTextViewer.getDocument();
+			final IRegion line = document.getLineInformationOfOffset(fOffset);
 			if (offset < line.getOffset() || offset >= document.getLength())
 				return false;
 			return true;
-		} catch (BadLocationException x) {
+		} catch (final BadLocationException x) {
 			return false;
 		}
 	}
