@@ -35,7 +35,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 	
 	protected Text containerText;
-	protected Text fileText;
+	protected Text folderText;
 	private String folderExtension;
 	protected ISelection selection;
 	protected IProject project;
@@ -53,9 +53,9 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		setTitle(Messages.NewClonkFolderWizardPage_Title);
 		setDescription(Messages.NewClonkFolderWizardPage_Description);
 		this.selection = selection;
-		GroupType groupType = this.groupType();
+		final GroupType groupType = this.groupType();
 		if (groupType != null) {
-			Engine engine = ClonkProjectNature.engineFromSelection(selection);
+			final Engine engine = ClonkProjectNature.engineFromSelection(selection);
 			if (engine != null)
 				setImageDescriptor(engine.imageDescriptor(groupType.name()+"Big"));
 		}
@@ -70,54 +70,41 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 	
 	public Text addTextField(String label, final Object context, final String property, IAdditionToTextField addition) {
-		Composite container = (Composite) getControl();
-		Label labelObj = new Label(container, SWT.NULL);
+		final Composite container = (Composite) getControl();
+		final Label labelObj = new Label(container, SWT.NULL);
 		labelObj.setText(label);
-		Text result = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		final Text result = new Text(container, SWT.BORDER | SWT.SINGLE);
+		final GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		result.setLayoutData(gd);
 		result.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
-				if (context != null && property != null) {
+				if (context != null && property != null)
 					try {
-						Field field = context.getClass().getField(property);
+						final Field field = context.getClass().getField(property);
 						field.set(context, ((Text)event.widget).getText());
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
-				}
 				dialogChanged();
 			}
 		});
 		if (addition != null)
 			addition.fill(container, result);
-		else {
+		else
 			// fill last cell with dummy
 			new Label(container, SWT.NULL);
-		}
 		return result;
 	}
 	
 	@Override
 	public void createControl(Composite parent) {
-		actuallyCreateControl(parent);
-		initialize();
-		dialogChanged();
-	}
-
-	protected void actuallyCreateControl(Composite parent) {
-		Composite container = new Composite(parent, SWT.NULL);
-		setControl(container);
-		GridLayout layout = new GridLayout();
-		container.setLayout(layout);
-		layout.numColumns = 3;
-		layout.verticalSpacing = 9;
-		
+		layout(parent);
+		fields();
 		containerText = addTextField(Messages.NewClonkFolderWizardPage_ContainerText, new IAdditionToTextField() {
 			@Override
 			public void fill(Composite container, Text textField) {
-				Button button = new Button(container, SWT.PUSH);
+				final Button button = new Button(container, SWT.PUSH);
 				button.setText(Messages.NewClonkFolderWizardPage_BrowseContainer);
 				button.addSelectionListener(new SelectionAdapter() {
 					@Override
@@ -127,15 +114,31 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				});
 			}
 		});
-		fileText = addTextField(Messages.NewClonkFolderWizardPage_FolderText);
+		initialize();
+		dialogChanged();
+	}
+
+	protected void layout(Composite parent) {
+		final Composite container = new Composite(parent, SWT.NULL);
+		setControl(container);
+		final GridLayout layout = new GridLayout();
+		container.setLayout(layout);
+		layout.numColumns = 3;
+		layout.verticalSpacing = 9;
+	}
+
+	protected void fields() {
+		folderText = addTextField(Messages.NewClonkFolderWizardPage_FolderText);
 	}
 	
 	/**
 	 * Ensures that both text fields are set.
 	 */
 	protected void dialogChanged() {
-		IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(getContainerName()));
-		String fileName = getFileName();
+		if (containerText == null)
+			return;
+		final IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(getContainerName()));
+		final String fileName = getFileName();
 
 		if (getContainerName().length() == 0) {
 			updateStatus(Messages.NewClonkFolderWizardPage_NoContainer);
@@ -171,14 +174,13 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	 */
 
 	protected void handleBrowse() {
-		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
+		final ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
 				Messages.NewClonkFolderWizardPage_SelectContainerTitle);
 		if (dialog.open() == Window.OK) {
-			Object[] result = dialog.getResult();
-			if (result.length == 1) {
+			final Object[] result = dialog.getResult();
+			if (result.length == 1)
 				containerText.setText(((Path) result[0]).toString());
-			}
 		}
 	}
 	
@@ -187,10 +189,10 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	 */
 	protected void initialize() {
 		if (selection != null && selection.isEmpty() == false && selection instanceof IStructuredSelection) {
-			IStructuredSelection ssel = (IStructuredSelection) selection;
+			final IStructuredSelection ssel = (IStructuredSelection) selection;
 			if (ssel.size() > 1)
 				return;
-			Object obj = ssel.getFirstElement();
+			final Object obj = ssel.getFirstElement();
 			if (obj instanceof IResource) {
 				IContainer container;
 				if (obj instanceof IContainer)
@@ -201,7 +203,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				project = ((IResource)obj).getProject();
 			}
 		}
-		fileText.setText(Messages.NewClonkFolderWizard_FolderFileName);
+		folderText.setText(Messages.NewClonkFolderWizard_FolderFileName);
 	}
 	
 	public String getContainerName() {
@@ -209,10 +211,10 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 	
 	public String getFileName() {
-		if (fileText.getText().equals("") || folderExtension == null)
+		if (folderText.getText().equals("") || folderExtension == null)
 			return "";
-		StringBuilder builder = new StringBuilder(fileText.getText().length()+1+folderExtension.length());
-		builder.append(fileText.getText());
+		final StringBuilder builder = new StringBuilder(folderText.getText().length()+1+folderExtension.length());
+		builder.append(folderText.getText());
 		if (!folderExtension.startsWith("."))
 			builder.append(".");
 		builder.append(folderExtension);
@@ -232,7 +234,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 
 	public Text getFileText() {
-		return fileText;
+		return folderText;
 	}
 
 }

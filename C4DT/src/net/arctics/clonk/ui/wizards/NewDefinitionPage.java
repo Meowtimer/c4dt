@@ -4,7 +4,8 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Text;
 
 public class NewDefinitionPage extends NewClonkFolderWizardPage {
@@ -25,15 +26,20 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 	}
 	
 	@Override
-	protected GroupType groupType() {
-		return GroupType.DefinitionGroup;
-	}
+	protected GroupType groupType() { return GroupType.DefinitionGroup; }
 	
 	@Override
-	protected void actuallyCreateControl(Composite parent) {
-		super.actuallyCreateControl(parent);
+	protected void fields() {
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);
+		c4idText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if (folderText != null)
+					folderText.setText(c4idText.getText());
+			}
+		});
 		descriptionText = addTextField(Messages.NewC4ObjectPage_DescriptionLabel);
+		super.fields();
 	}
 
 	/**
@@ -50,8 +56,8 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 	@Override
 	protected void dialogChanged() {
 		super.dialogChanged();
-		ClonkProjectNature nature = ClonkProjectNature.get(project);
-		if (nature != null) {
+		final ClonkProjectNature nature = ClonkProjectNature.get(project);
+		if (nature != null)
 			if (!nature.index().engine().acceptsId(c4idText.getText())) {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
@@ -61,14 +67,14 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 				updateStatus(Messages.NewC4ObjectPage_IDAlreadyInUse);
 				return;
 			}*/
-		}
 		updateStatus(null);
 	}
 	
 	@Override
 	protected void initialize() {
 		super.initialize();
-		fileText.setText(Messages.NewC4ObjectPage_File);
+		c4idText.setText(Messages.NewC4ObjectPage_File);
+		folderText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
 		setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}

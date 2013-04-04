@@ -35,12 +35,12 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	@Override
 	protected void initialize() {
 		super.initialize();
-		fileText.setText(Messages.NewScenarioPage_FolderName);
+		folderText.setText(Messages.NewScenarioPage_FolderName);
 	}
 	
 	@Override
-	protected void actuallyCreateControl(Composite parent) {
-		super.actuallyCreateControl(parent);
+	protected void layout(Composite parent) {
+		super.layout(parent);
 		titleText = addTextField(Messages.NewScenarioPage_TitleText, null);
 	}
 
