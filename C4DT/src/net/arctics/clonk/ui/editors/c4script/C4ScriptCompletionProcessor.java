@@ -600,8 +600,21 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 
 		if (!directiveExpectingDefinition) {
+			
+			// propose overriding inherited functions
+			final Script script = editor().script();
+			final List<Script> cong = script.conglomerate();
+			for (final Script c : cong)
+				if (c != script)
+					for (final Declaration dec : c.subDeclarations(index, DeclMask.FUNCTIONS)) {
+						if (!script.seesSubDeclaration(dec))
+							continue;
+						final Function func = as(dec, Function.class);
+						callbackProposal(prefix, func.name(), "%s", null, funcSupplied, proposals, offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
+					}
+
 			// propose creating functions for standard callbacks
-			for(final String callback : editor().script().engine().settings().callbackFunctions()) {
+			for(final String callback : script.engine().settings().callbackFunctions()) {
 				if (prefix != null)
 					if (!stringMatchesPrefix(callback, prefix))
 						continue;
