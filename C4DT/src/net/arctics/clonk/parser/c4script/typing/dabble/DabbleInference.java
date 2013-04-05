@@ -174,10 +174,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						pool.execute(v);
 			}
 		}, 20);
-		for (final ScriptInput info : shared.infos.values()) {
-			info.apply();
+		for (final ScriptInput info : shared.infos.values())
 			dismissExperts(info.script());
-		}
 	}
 
 	@Override
@@ -263,6 +261,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			this.hasAppendTo = hasAppendTo;
 			this.plan = Collections.synchronizedMap(makePlan());
+			this.script.setTypings(new HashMap<Variable, IType>(), new HashMap<String, IType>());
 		}
 		public void apply() {
 			final Map<Variable, IType> variableTypes = new HashMap<>();
@@ -277,6 +276,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					functionReturnTypes.put(d.name(), tyVar.get());
 			}
 			script.setTypings(variableTypes, functionReturnTypes);
+		}
+		public void mainVisit(Visitor visitor) {
+			final TypeEnvironment env2 = visitor.newTypeEnvironment();
+			final Function[] plan_;
+			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
+			for (final Function f : plan_)
+				visitor.visitFunction(f, null, false);
+			visitor.endTypeEnvironment(env2, true, false);
+			apply();
 		}
 	}
 
@@ -757,18 +765,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return;
 				else
 					info.finished = true;
-				script().setTypings(new HashMap<Variable, IType>(), new HashMap<String, IType>());
 			}
-			work();
-		}
-
-		private void work() {
-			final TypeEnvironment env2 = newTypeEnvironment();
-			final Function[] plan;
-			synchronized (info.plan) { plan = info.plan.keySet().toArray(new Function[info.plan.size()]); }
-			for (final Function f : plan)
-				visitFunction(f, null, false);
-			endTypeEnvironment(env2, true, false);
+			info.mainVisit(this);
 		}
 
 		@Override
@@ -1178,8 +1176,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (d instanceof Function)
 					return new FunctionType((Function)d);
 				else if (d instanceof Variable) {
-					final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
-					return t != null ? t : ((Variable)d).type();
+					IType t = PrimitiveType.UNKNOWN;
+					if (node.predecessorInSequence() != null) {
+						final IType predTy = ty(node.predecessorInSequence(), visitor);
+						if (predTy != null)
+							for (final IType _t : predTy)
+								if (_t instanceof Script) {
+									final ScriptInput nput = shared.infos.get(_t);
+									if (nput != null)
+										new Visitor(visitor, nput).reportProblems();
+									final IType frt = ((Script)_t).variableTypes().get(d);
+									t = TypeUnification.unify(t, frt);
+								}
+					}
+					return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
 				}
 				else if (d instanceof ITypeable)
 					return ((ITypeable) d).type();
@@ -1789,8 +1799,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (type != null)
 								return type;
 						}
-						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().functionReturnTypes().get(d.name()) : null;
-						return t != null ? t : ((Function)d).returnType();
+						IType t = PrimitiveType.UNKNOWN;
+						if (node.predecessorInSequence() != null) {
+							final IType predTy = ty(node.predecessorInSequence(), visitor);
+							if (predTy != null)
+								for (final IType _t : predTy)
+									if (_t instanceof Script) {
+										final ScriptInput nput = shared.infos.get(_t);
+										if (nput != null)
+											new Visitor(visitor, nput).reportProblems();
+										final IType frt = ((Script)_t).functionReturnTypes().get(d.name());
+										t = TypeUnification.unify(t, frt);
+									}
+						}
+						return t != PrimitiveType.UNKNOWN ? t : ((Function)d).returnType();
 					}
 					if (d instanceof Variable) {
 						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
@@ -1820,7 +1842,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return false;
 					boolean anyScripts = false;
 					for (final IType t : predType)
-						if (t instanceof Script)
+						if (t instanceof Definition)
 							anyScripts = true;
 					return anyScripts;
 				}
