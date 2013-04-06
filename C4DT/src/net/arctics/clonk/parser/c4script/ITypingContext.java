@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.ast.TypingJudgementMode;
+import net.arctics.clonk.parser.c4script.typing.TypingJudgementMode;
 
 import org.eclipse.jface.text.IRegion;
 

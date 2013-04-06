@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.c4script
 
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase;
-import net.arctics.clonk.parser.c4script.inference.dabble.DabbleInferenceTest.Setup
+import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInferenceTest.Setup
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -24,6 +24,9 @@ import net.arctics.clonk.parser.c4script.ReferenceType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.WrappedType;
+import net.arctics.clonk.parser.c4script.ast.StructuralType;
+import net.arctics.clonk.parser.c4script.ast.ThisType;
+import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 
 public class TypeUnification {
 	private static IType unifyLeft(IType a, IType b) {

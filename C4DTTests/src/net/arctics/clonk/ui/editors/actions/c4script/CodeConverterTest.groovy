@@ -9,8 +9,8 @@ import net.arctics.clonk.TestBase;
 import net.arctics.clonk.parser.ASTNode
 import net.arctics.clonk.parser.Declaration
 import net.arctics.clonk.parser.c4script.C4ScriptParser
-import net.arctics.clonk.parser.c4script.TypeUtil;
 import net.arctics.clonk.parser.c4script.C4ScriptParserTest.Setup
+import net.arctics.clonk.parser.c4script.typing.TypeUtil;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter.ICodeConverterContext;
 
 public class CodeConverterTest extends TestBase {

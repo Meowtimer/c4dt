@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.inference.dabble
+package net.arctics.clonk.parser.c4script.typing.dabble
 
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase

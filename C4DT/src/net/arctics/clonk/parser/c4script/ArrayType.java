@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.ast.TypeUnification;
+import net.arctics.clonk.parser.c4script.typing.TypeUnification;
 import net.arctics.clonk.util.Utilities;
 
 /**
