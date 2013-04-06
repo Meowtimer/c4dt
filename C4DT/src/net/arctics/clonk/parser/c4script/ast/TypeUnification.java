@@ -14,6 +14,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.parser.c4script.ArrayType;
+import net.arctics.clonk.parser.c4script.CallTargetType;
 import net.arctics.clonk.parser.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.NillableType;
@@ -207,6 +208,11 @@ public class TypeUnification {
 			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
 			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID.unified();
 		}
+		
+		if (a instanceof CallTargetType)
+			if (b instanceof Definition || b instanceof MetaDefinition || b instanceof ProplistDeclaration ||
+				b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.PROPLIST)
+				return b;
 
 		return null;
 	}

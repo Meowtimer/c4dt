@@ -4,7 +4,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -39,6 +38,7 @@ import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
+import net.arctics.clonk.parser.c4script.CallTargetType;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
@@ -1806,19 +1806,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 								return type;
 						}
 						IType t = PrimitiveType.UNKNOWN;
+						final Function fn = (Function) d;
 						if (node.predecessorInSequence() != null) {
 							final IType predTy = ty(node.predecessorInSequence(), visitor);
 							if (predTy != null)
 								for (final IType _t : predTy)
 									if (_t instanceof Script) {
 										final ScriptInput nput = shared.input.get(_t);
-										if (nput != null)
-											new Visitor(visitor, nput).reportProblems();
-										final IType frt = ((Script)_t).functionReturnTypes().get(d.name());
-										t = TypeUnification.unify(t, frt);
+										final TypeVariable rtv = nput != null ? new Visitor(visitor, nput).visitFunction(fn) : null;
+										if (rtv != null)
+											t = TypeUnification.unify(t, rtv.get());
 									}
 						}
-						return t != PrimitiveType.UNKNOWN ? t : ((Function)d).returnType();
+						return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
 					}
 					if (d instanceof Variable) {
 						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
@@ -2209,7 +2209,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<MemberOperator>(MemberOperator.class) {
-				final IType OBJECTISH = TypeChoice.make(Arrays.asList(PrimitiveType.OBJECT, PrimitiveType.ID, PrimitiveType.PROPLIST));
+				final IType OBJECTISH = new CallTargetType();
 				@Override
 				public IType type(MemberOperator node, Visitor visitor) {
 					if (node.id() != null)
