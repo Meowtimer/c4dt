@@ -261,7 +261,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			this.hasAppendTo = hasAppendTo;
 			this.plan = Collections.synchronizedMap(makePlan());
-			this.script.setTypings(new HashMap<Variable, IType>(), new HashMap<String, IType>());
 		}
 		public void apply() {
 			final Map<Variable, IType> variableTypes = new HashMap<>();

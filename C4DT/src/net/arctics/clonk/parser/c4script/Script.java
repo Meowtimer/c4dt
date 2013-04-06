@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.filter;
 
 import java.io.IOException;
@@ -119,11 +120,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Map<Variable, IType> variableTypes() {
 		requireLoaded();
-		return variableTypes;
+		return defaulting(variableTypes, Collections.<Variable, IType>emptyMap());
 	}
 	public Map<String, IType> functionReturnTypes() {
 		requireLoaded();
-		return functionReturnTypes;
+		return defaulting(functionReturnTypes, Collections.<String, IType>emptyMap());
 	}
 
 	public void setTypings(Map<Variable, IType> variableTypes, Map<String, IType> functionReturnTypes) {
