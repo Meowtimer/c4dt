@@ -19,6 +19,7 @@ public class SimpleStatement extends Statement {
 		super();
 		this.expression = expression;
 		assignParentToSubElements();
+		setLocation(expression);
 	}
 
 	public ASTNode expression() {
@@ -47,7 +48,7 @@ public class SimpleStatement extends Statement {
 
 	@Override
 	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
-		ASTNode exprReplacement = expression.optimize(context);
+		final ASTNode exprReplacement = expression.optimize(context);
 		if (exprReplacement instanceof Statement)
 			return exprReplacement;
 		if (exprReplacement == expression)
@@ -86,7 +87,7 @@ public class SimpleStatement extends Statement {
 	}
 	
 	public static Statement[] wrapExpressions(ASTNode... expressions) {
-		Statement[] result = new Statement[expressions.length];
+		final Statement[] result = new Statement[expressions.length];
 		for (int i = 0; i < expressions.length; i++)
 			result[i] = wrapExpression(expressions[i]);
 		return result;

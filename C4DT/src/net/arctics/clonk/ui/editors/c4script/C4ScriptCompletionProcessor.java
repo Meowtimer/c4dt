@@ -345,9 +345,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			System.out.println(String.format("%s: %s %s %s",
 				prefix,
 				contextExpression != null ? contextExpression.printed() : "null",
-					contextSequence != null ? contextSequence.printed() : "null",
-						sequenceType != null ? sequenceType.typeName(true) : "null"
-				));
+				contextSequence != null ? contextSequence.printed() : "null",
+				sequenceType != null ? sequenceType.typeName(true) : "null"
+			));
 		final int whatToDisplayFromScripts = declarationMask(contextSequence);
 		if (computeStringProposals(offset, doc, prefix, proposals, editorScript, contextExpression))
 			return;
