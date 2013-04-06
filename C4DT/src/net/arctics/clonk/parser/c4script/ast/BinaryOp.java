@@ -30,7 +30,7 @@ public class BinaryOp extends OperatorExpression {
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
 		if ((operator() == Operator.And || operator() == Operator.Or) && (parent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
-			ASTNode block = convertOperatorHackToBlock(context);
+			final ASTNode block = convertOperatorHackToBlock(context);
 			if (block != null)
 				return block;
 		}
@@ -39,13 +39,13 @@ public class BinaryOp extends OperatorExpression {
 	}
 
 	private ASTNode convertOperatorHackToBlock(ProblemReportingContext context) throws CloneNotSupportedException {
-		LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
+		final LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
 		ASTNode r;
 		boolean works = true;
-		Operator hackOp = this.operator();
+		final Operator hackOp = this.operator();
 		// gather left sides (must not be operators)
 		for (r = leftSide(); r instanceof BinaryOp; r = ((BinaryOp)r).leftSide()) {
-			BinaryOp op = (BinaryOp)r;
+			final BinaryOp op = (BinaryOp)r;
 			if (op.operator() != hackOp) {
 				works = false;
 				break;
@@ -59,9 +59,9 @@ public class BinaryOp extends OperatorExpression {
 		// return at the right end signals this should rather be a block
 		if (works) {
 			leftSideArguments.addFirst(r);
-			List<ASTNode> statements = new LinkedList<ASTNode>();
+			final List<ASTNode> statements = new LinkedList<ASTNode>();
 			// wrap expressions in statements
-			for (ASTNode ex : leftSideArguments)
+			for (final ASTNode ex : leftSideArguments)
 				statements.add(new SimpleStatement(ex.optimize(context)));
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
@@ -83,7 +83,9 @@ public class BinaryOp extends OperatorExpression {
 	@Override
 	public void setSubElements(ASTNode[] elements) {
 		leftSide  = elements[0];
-		rightSide = elements[1];
+		rightSide = elements.length > 1 ? elements[1] : null;
+		if (rightSide == null)
+			System.out.println("woat?");
 	}
 
 	public BinaryOp(Operator operator, ASTNode leftSide, ASTNode rightSide) {
@@ -142,8 +144,8 @@ public class BinaryOp extends OperatorExpression {
 	@Override
 	public Object evaluateStatic(IEvaluationContext context) {
 		try {
-			Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateStatic(context));
-			Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateStatic(context));
+			final Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateStatic(context));
+			final Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateStatic(context));
 			if (leftSide != null && leftSide != ASTNode.EVALUATION_COMPLEX) {
 				switch (operator()) {
 				case And:
@@ -163,8 +165,8 @@ public class BinaryOp extends OperatorExpression {
 					return evaluateOn(leftSide, rightSide);
 			}
 		}
-		catch (ClassCastException e) {}
-		catch (NullPointerException e) {}
+		catch (final ClassCastException e) {}
+		catch (final NullPointerException e) {}
 		return super.evaluateStatic(context);
 	}
 
@@ -201,8 +203,8 @@ public class BinaryOp extends OperatorExpression {
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-	    Object left = leftSide().evaluate(context);
-	    Object right = rightSide().evaluate(context);
+	    final Object left = leftSide().evaluate(context);
+	    final Object right = rightSide().evaluate(context);
 	    if (left != null && right != null)
 	    	return evaluateOn(left, right);
 	    else

@@ -316,6 +316,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private TypeEnvironment typeEnvironment;
 		private Function preliminaryVisitee;
 		private Function visitee;
+		private IASTVisitor<ProblemReportingContext> observer;
+		
+		@Override
+		public void setObserver(IASTVisitor<ProblemReportingContext> observer) { this.observer = observer; }
 		
 		public Function visitee() { return visitee; }
 
@@ -667,6 +671,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitNode(e, true);
 			controlFlow = old;
 			expert.visit(expression, this);
+			if (observer != null)
+				observer.visitNode(expression, this);
 			if (controlFlow == ControlFlow.Continue)
 				controlFlow = expression.controlFlow();
 			return expression;

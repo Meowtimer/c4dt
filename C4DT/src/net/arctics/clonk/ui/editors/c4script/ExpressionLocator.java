@@ -12,7 +12,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class ExpressionLocator implements IASTVisitor<Object> {
+public class ExpressionLocator<T> implements IASTVisitor<T> {
 	
 	protected ASTNode exprAtRegion;
 	protected ASTNode topLevelInRegion;

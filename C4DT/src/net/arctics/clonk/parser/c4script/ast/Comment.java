@@ -144,7 +144,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
 		// parse comment as expression and see what goes
-		final ExpressionLocator locator = new ExpressionLocator(offset-2-this.sectionOffset()); // make up for '//' or /*'
+		final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
 			final C4ScriptParser commentParser = new C4ScriptParser(comment, context.script(), context.script().scriptFile()) {
 				@Override

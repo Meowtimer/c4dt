@@ -456,7 +456,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return;
 		final Function func = script.funcAt(position.getOffset());
 		final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
-		final ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.bodyLocation().start());
+		final ExpressionLocator<C4ScriptQuickAssistProcessor> locator = new ExpressionLocator<C4ScriptQuickAssistProcessor>(position.getOffset()-func.bodyLocation().start());
 		func.traverse(locator, this);
 		final FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 		final ASTNode offendingExpression = locator.expressionAtRegion();

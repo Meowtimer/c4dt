@@ -578,7 +578,7 @@ public abstract class SpecialEngineRules {
 		public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral) parmExpression;
-				final ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
+				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
 				try {
 					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, processor.script().engine(), null);
 				} catch (final ParsingException e) {}
@@ -778,7 +778,8 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, ProblemReportingContext processor) {
-			return ArrayUtil.set((IIndexEntity)pi.findPinnedStructure(ParticleUnit.class, name, processor.script().resource(), true, "Particle.txt"));
+			final IIndexEntity unit = pi.findPinnedStructure(ParticleUnit.class, name, processor.script().resource(), true, "Particle.txt");
+			return ArrayUtil.set(unit);
 		}
 	};
 

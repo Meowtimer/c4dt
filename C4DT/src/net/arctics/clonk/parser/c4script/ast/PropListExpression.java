@@ -40,12 +40,12 @@ public class PropListExpression extends ASTNode {
 		final char FIRSTBREAK = (char)255;
 		final char BREAK = (char)254;
 		final char LASTBREAK = (char)253;
-		StringBuilder builder = new StringBuilder();
-		ASTNodePrinter output = new AppendableBackedExprWriter(builder);
+		final StringBuilder builder = new StringBuilder();
+		final ASTNodePrinter output = new AppendableBackedExprWriter(builder);
 		output.append('{');
-		Collection<Variable> components = components();
+		final Collection<Variable> components = components();
 		int i = 0;
-		for (Variable component : components) {
+		for (final Variable component : components) {
 			output.append(i > 0 ? BREAK : FIRSTBREAK);
 			output.append(component.name());
 			output.append(':'); //$NON-NLS-1$
@@ -80,10 +80,10 @@ public class PropListExpression extends ASTNode {
 	public ASTNode[] subElements() {
 		if (definedDeclaration == null)
 			return EMPTY_EXPR_ARRAY;
-		Collection<Variable> components = components();
-		ASTNode[] result = new ASTNode[components.size()];
+		final Collection<Variable> components = components();
+		final ASTNode[] result = new ASTNode[components.size()];
 		int i = 0;
-		for (Variable c : components)
+		for (final Variable c : components)
 			result[i++] = c.initializationExpression();
 		return result;
 	}
@@ -91,15 +91,15 @@ public class PropListExpression extends ASTNode {
 	public void setSubElements(ASTNode[] elms) {
 		if (definedDeclaration == null)
 			return;
-		Collection<Variable> components = components();
+		final Collection<Variable> components = components();
 		int i = 0;
-		for (Variable c : components)
+		for (final Variable c : components)
 			c.setInitializationExpression(elms[i++]);
 	}
 	@Override
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
-		for (Variable component : components())
+		for (final Variable component : components())
 			if (!component.initializationExpression().isConstant())
 				return false;
 		return true;
@@ -107,23 +107,23 @@ public class PropListExpression extends ASTNode {
 
 	@Override
 	public Object evaluateStatic(IEvaluationContext context) {
-		Collection<Variable> components = components();
-		Map<String, Object> map = new HashMap<String, Object>(components.size());
-		for (Variable component : components)
+		final Collection<Variable> components = components();
+		final Map<String, Object> map = new HashMap<String, Object>(components.size());
+		for (final Variable component : components)
 			map.put(component.name(), component.initializationExpression().evaluateStatic(context));
 		return map;
 	}
 
 	public ASTNode value(String key) {
-		Variable keyVar = definedDeclaration.findComponent(key);
+		final Variable keyVar = definedDeclaration.findComponent(key);
 		return keyVar != null ? keyVar.initializationExpression() : null;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T valueEvaluated(String key, Class<T> cls) {
-		ASTNode e = value(key);
+		final ASTNode e = value(key);
 		if (e != null) {
-			Object eval = e.evaluateStatic(definedDeclaration.parentOfType(IEvaluationContext.class));
+			final Object eval = e.evaluateStatic(definedDeclaration.parentOfType(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
 		} else
 			return null;
@@ -134,11 +134,11 @@ public class PropListExpression extends ASTNode {
 		// when calling super.clone(), the sub elements obtained from definedDeclaration will be cloned
 		// and then reassigned to the original ProplistDeclaration which is not desired so temporarily
 		// set definedDeclaration to null to avoid this.
-		ProplistDeclaration saved = this.definedDeclaration;
+		final ProplistDeclaration saved = this.definedDeclaration;
 		this.definedDeclaration = null;
 		try {
 			// regular copying of attributes with no sub element cloning taking place
-			PropListExpression e = (PropListExpression) super.clone();
+			final PropListExpression e = (PropListExpression) super.clone();
 			// clone the ProplistDeclaration, also cloning sub variables. This will automatically
 			// lead to getSubElements also returning cloned initialization expressions.
 			e.definedDeclaration = saved.clone();
@@ -151,9 +151,9 @@ public class PropListExpression extends ASTNode {
 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
-		int secOff = sectionOffset();
-		int absolute = secOff+start()+offset;
-		for (Variable v : this.components())
+		final int secOff = sectionOffset();
+		final int absolute = secOff+start()+offset;
+		for (final Variable v : this.components())
 			if (v.isAt(absolute))
 				return new EntityRegion(v, v.relativeTo(new Region(secOff, 0)));
 		return super.entityAt(offset, context);

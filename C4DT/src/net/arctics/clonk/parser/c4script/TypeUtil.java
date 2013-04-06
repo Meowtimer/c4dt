@@ -5,6 +5,7 @@ import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -59,6 +60,8 @@ public class TypeUtil {
 			public boolean isModifiable(ASTNode node) { return false; }
 			@Override
 			public boolean triggersRevisit(Function function, Function called) { return true; }
+			@Override
+			public void setObserver(IASTVisitor<ProblemReportingContext> observer) {}
 		};
 	}
 	public static Definition definition(IType type) {

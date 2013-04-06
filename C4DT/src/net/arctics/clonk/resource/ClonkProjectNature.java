@@ -222,7 +222,8 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the nature
 	 */
 	public static ClonkProjectNature get(IResource res) {
-		if (res == null) return null;
+		if (res == null)
+			return null;
 		final IProject project = res.getProject();
 		try {
 			if (project == null || !project.isOpen() || !project.hasNature(Core.NATURE_ID))
@@ -272,7 +273,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
 			return get((IResource)((IStructuredSelection)selection).getFirstElement());
 		else if (part instanceof ClonkTextEditor)
-			return ClonkProjectNature.get(((ClonkTextEditor)part).topLevelDeclaration().index().nature().getProject());
+			return ClonkProjectNature.get(((ClonkTextEditor)part).structure().index().nature().getProject());
 		return null;
 	}
 

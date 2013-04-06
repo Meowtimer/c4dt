@@ -42,7 +42,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * Little helper thingie to find {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
  *
  */
-public class EntityLocator extends ExpressionLocator {
+public class EntityLocator extends ExpressionLocator<Object> {
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
 	private C4ScriptParser parser;

@@ -100,7 +100,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		synchronized (editors) {
 			if (editors.remove(client) && editors.isEmpty()) {
 				cancelReparsingTimer();
-				list.remove(document);
+				list.remove(this);
 				document.removeDocumentListener(this);
 				cleanupAfterRemoval();
 			}
