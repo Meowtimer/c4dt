@@ -13,4 +13,6 @@ public class CallTargetType implements IType {
 	public String typeName(boolean special) { return PrimitiveType.OBJECT.typeName(special); }
 	@Override
 	public IType simpleType() { return PrimitiveType.OBJECT; }
+	@Override
+	public boolean equals(Object obj) { return obj instanceof CallTargetType; }
 }
