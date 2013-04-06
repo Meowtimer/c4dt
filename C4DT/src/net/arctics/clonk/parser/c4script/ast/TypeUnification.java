@@ -37,7 +37,7 @@ public class TypeUnification {
 			switch ((PrimitiveType)a) {
 			case ARRAY:
 			case ID:
-				if (b instanceof Definition)
+				if (b instanceof MetaDefinition)
 					return b;
 				break;
 			case OBJECT:
