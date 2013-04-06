@@ -32,7 +32,7 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 				IIndexEntity entity = clonkHyperlink.target();
 				// hyperlink = null; // what was that about
 				if (entity != null)
-					return entity.infoText(configuration.editor().topLevelDeclaration());
+					return entity.infoText(configuration.editor().structure());
 			}
 			return null;
 		}

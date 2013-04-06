@@ -64,7 +64,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		if (editor != null)
-			this.defIcon = editor.topLevelDeclaration().engine().image(GroupType.DefinitionGroup);
+			this.defIcon = editor.structure().engine().image(GroupType.DefinitionGroup);
 		return null;
 	}
 

@@ -22,6 +22,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -88,8 +89,13 @@ public abstract class Utilities {
 	}
 
 	public static IFile fileEditedBy(IEditorPart editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput)
-			return ((FileEditorInput)editor.getEditorInput()).getFile();
+		IEditorInput editorInput = editor.getEditorInput();
+		return fileFromEditorInput(editorInput);
+	}
+
+	public static IFile fileFromEditorInput(IEditorInput editorInput) {
+		if (editorInput instanceof FileEditorInput)
+			return ((FileEditorInput)editorInput).getFile();
 		else
 			return null;
 	}

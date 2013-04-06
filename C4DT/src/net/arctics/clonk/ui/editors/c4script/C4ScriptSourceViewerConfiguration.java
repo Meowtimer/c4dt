@@ -124,13 +124,10 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
-
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
-
 		final C4ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
 
-		DefaultDamagerRepairer dr =
-			new DefaultDamagerRepairer(scanner);
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
 		reconciler.setRepairer(dr, CStylePartitionScanner.CODEBODY);
 
@@ -165,9 +162,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		};
 	}
 
-	public C4ScriptAutoEditStrategy autoEditStrategy() {
-		return autoEditStrategy;
-	}
+	public C4ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
 
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {

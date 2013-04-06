@@ -95,10 +95,10 @@ public class ClonkTextEditor extends TextEditor {
 	}
 
 	/**
-	 * Refresh the outline so the new contents of the {@link #topLevelDeclaration()} will be shown.
+	 * Refresh the outline so the new contents of the {@link #structure()} will be shown.
 	 */
 	public void refreshOutline() {
-		if (topLevelDeclaration() == null)
+		if (structure() == null)
 			return;
 		if (outlinePage != null) // don't start lazy loading of outlinePage
 			outlinePage.refresh();
@@ -246,8 +246,9 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the declaration that represents the file being edited
 	 * @return the declaration
 	 */
-	public Declaration topLevelDeclaration() {
-		return null;
+	public Declaration structure() {
+		final StructureEditingState<?, ?> listener = editingState();
+		return listener != null ? listener.structure() : null;
 	}
 
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
@@ -284,7 +285,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (topLevelDeclaration() != null) {
+		if (structure() != null) {
 			menu.add(new Separator(Core.MENU_GROUP_CLONK));
 			addAction(menu, ClonkTextEditorAction.idString(OpenDeclarationAction.class));
 		}
@@ -323,7 +324,8 @@ public class ClonkTextEditor extends TextEditor {
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		updatePartName();
-		invalidateListener();
+		if (editingState() != null)
+			editingState().invalidate();
 	}
 
 	private void updatePartName() {
@@ -331,12 +333,6 @@ public class ClonkTextEditor extends TextEditor {
 		final IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null && res.getParent() != null)
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
-	}
-
-	protected void invalidateListener() {
-		final TextChangeListenerBase<?, ?> listener = textChangeListener();
-		if (listener != null && topLevelDeclaration() instanceof Structure)
-			listener.updateStructure((Structure) topLevelDeclaration());
 	}
 
 	@Override
@@ -403,18 +399,11 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getSourceViewer();
 	}
 
-	@Override
-	protected void handleCursorPositionChanged() {
-		super.handleCursorPositionChanged();
-		if (textChangeListener() != null && topLevelDeclaration() instanceof Structure)
-			textChangeListener().updateStructure((Structure) topLevelDeclaration());
-	}
-
 	/**
-	 * Return the {@link TextChangeListenerBase} object being shared for all editors having opened the same file.
-	 * @return
+	 * Return the {@link StructureEditingState} object being shared for all editors on the same file.
+	 * @return The {@link StructureEditingState}
 	 */
-	protected TextChangeListenerBase<?, ?> textChangeListener() { return null; }
+	protected StructureEditingState<?, ?> editingState() { return null; }
 
 	@Override
 	protected void initializeKeyBindingScopes() {

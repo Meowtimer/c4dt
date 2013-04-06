@@ -4,26 +4,19 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
@@ -31,7 +24,6 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
-import net.arctics.clonk.ui.editors.IHasEditorPart;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
@@ -39,13 +31,12 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
+import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.ReparseFunctionMode;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptChangeListener.ReparseFunctionMode;
 import net.arctics.clonk.ui.search.C4ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -68,7 +59,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 /**
@@ -91,59 +81,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public void mouseUp(MouseEvent e) { showContentAssistance(); }
 	}
 
-	/**
-	 * Temporary script that is created when no other script can be found for this editor
-	 * @author madeen
-	 *
-	 */
-	private static final class ScratchScript extends Script implements IHasEditorPart {
-		private transient final C4ScriptEditor editor;
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
-		private ScratchScript(C4ScriptEditor editor) {
-			super(new Index() {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-			});
-			this.editor = editor;
-		}
-
-		@Override
-		public IStorage source() {
-			final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
-		}
-
-		@Override
-		public ITextEditor editorPart() {
-			return editor;
-		}
-	}
-
 	private final ColorManager colorManager;
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
 	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
 
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
-	private C4ScriptChangeListener textChangeListener;
-	private WeakReference<ProblemReportingContext> cachedDeclarationObtainmentContext;
-
-	@Override
-	public ProblemReportingContext declarationObtainmentContext() {
-		if (cachedDeclarationObtainmentContext != null) {
-			final ProblemReportingContext ctx = cachedDeclarationObtainmentContext.get();
-			if (ctx != null && ctx.script() == script())
-				return ctx;
-		}
-		ProblemReportingContext r = null;
-		for (final ProblemReportingStrategy strategy : textChangeListener.problemReportingStrategies())
-			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
-				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
-					r = strategy.localTypingContext(script(), 0, null)
-				);
-				break;
-			}
-		return r;
-	}
+	private ScriptEditingState editingState;
 
 	public C4ScriptEditor() {
 		super();
@@ -191,7 +134,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void refreshOutline() {
-		cachedScript = new WeakReference<Script>(null);
+		editingState().invalidate();
 		super.refreshOutline();
 	}
 
@@ -230,11 +173,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (textChangeListener != null) {
-			textChangeListener.cancelReparsingTimer();
+		if (editingState != null) {
+			editingState.cancelReparsingTimer();
 			final Function cursorFunc = functionAtCursor();
 			if (cursorFunc != null)
-				textChangeListener.reparseFunction(cursorFunc, ReparseFunctionMode.FULL).deploy();
+				editingState.reparseFunction(cursorFunc, ReparseFunctionMode.FULL).deploy();
 		}
 		final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
 		if (a != null)
@@ -258,19 +201,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		super.createPartControl(parent);
-		final Script script = script();
+		final Script script = Script.get(Utilities.fileEditedBy(this), true);
 		if (script != null && script.isEditable())
-			textChangeListener = C4ScriptChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
+			editingState = ScriptEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
+		super.createPartControl(parent);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
 	}
 
 	@Override
 	public void dispose() {
-		if (textChangeListener != null) {
-			textChangeListener.removeEditor(this);
-			textChangeListener = null;
+		if (editingState != null) {
+			editingState.removeEditor(this);
+			editingState = null;
 		}
 		colorManager.dispose();
 		super.dispose();
@@ -344,7 +287,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		try {
 			if (proposal.requiresDocumentReparse()) {
 				reparse(true);
-				textChangeListener().scheduleReparsing(false);
+				editingState().scheduleReparsing(false);
 			}
 		} catch (IOException | ParsingException e) {
 			e.printStackTrace();
@@ -354,65 +297,17 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			public void run() {
 				final Function f = functionAtCursor();
 				if (f != null)
-					textChangeListener().reparseFunction(f, ReparseFunctionMode.LIGHT).deploy();
+					editingState().reparseFunction(f, ReparseFunctionMode.LIGHT).deploy();
 				showContentAssistance();
 			}
 		});
 		super.completionProposalApplied(proposal);
 	}
 
-	/**
-	 *  Created if there is no suitable script to get from somewhere else
-	 *  can be considered a hack to make viewing (svn) revisions of a file work
-	 */
-	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
-
-	public Script script() {
-		Script result = cachedScript.get();
-		if (result != null)
-			return result;
-
-		if (getEditorInput() instanceof ScriptWithStorageEditorInput)
-			result = ((ScriptWithStorageEditorInput)getEditorInput()).script();
-
-		if (result == null) {
-			final IFile f = Utilities.fileEditedBy(this);
-			if (f != null) {
-				final Script script = Script.get(f, true);
-				if (script != null)
-					result = script;
-			}
-		}
-
-		boolean needsReparsing = false;
-		if (result == null && cachedScript.get() == null) {
-			result = new ScratchScript(this);
-			needsReparsing = true;
-		}
-		cachedScript = new WeakReference<Script>(result);
-		if (needsReparsing)
-			try {
-				reparse(false);
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
-		if (result != null)
-			result.traverse(new IASTVisitor<Script>() {
-				@Override
-				public TraversalContinuation visitNode(ASTNode node, Script parser) {
-					final AccessDeclaration ad = as(node, AccessDeclaration.class);
-					if (ad != null && ad.declaration() != null)
-						ad.setDeclaration(ad.declaration().latestVersion());
-					return TraversalContinuation.Continue;
-				}
-			}, result);
-		return result;
-	}
-
 	@Override
-	protected C4ScriptChangeListener textChangeListener() { return textChangeListener; }
+	protected ScriptEditingState editingState() { return editingState; }
 
-	public ProblemReportingStrategy typingStrategy() { return textChangeListener().typingStrategy(); }
+	public ProblemReportingStrategy typingStrategy() { return editingState().typingStrategy(); }
 
 	public Function functionAt(int offset) {
 		final Script script = script();
@@ -425,13 +320,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	public Function functionAtCursor() { return functionAt(cursorPos()); }
 
+	public Script script() {
+		final ScriptEditingState listener = editingState();
+		return listener != null ? listener.structure() : null;
+	}
+	
 	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		if (textChangeListener != null)
-			textChangeListener.cancelReparsingTimer();
-		return textChangeListener.reparseWithDocumentContents(onlyDeclarations, document, script(), new Runnable() {
+		if (editingState != null)
+			editingState.cancelReparsingTimer();
+		return editingState.reparseWithDocumentContents(onlyDeclarations, document, script(), new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
@@ -439,9 +339,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		});
 	}
-
-	@Override
-	public Script topLevelDeclaration() { return script(); }
 
 	public static class FuncCallInfo {
 		public IFunctionCall callFunc;
@@ -504,10 +401,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	protected void invalidateListener() {
-		cachedScript = new WeakReference<Script>(null);
-		cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(null);
-		super.invalidateListener();
+	public ProblemReportingContext declarationObtainmentContext() {
+		return editingState().declarationObtainmentContext();
 	}
 
 }

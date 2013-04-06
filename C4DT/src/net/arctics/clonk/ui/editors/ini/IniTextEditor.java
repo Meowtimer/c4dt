@@ -3,24 +3,18 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.TextChangeListenerBase;
+import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -28,74 +22,8 @@ import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 public class IniTextEditor extends ClonkTextEditor {
-
-	public static final class TextChangeListener extends TextChangeListenerBase<IniTextEditor, IniUnit> {
-
-		private static final Map<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>> listeners = new HashMap<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>>();
-
-		private boolean unitParsed;
-		public int unitLocked;
-
-		private final Timer reparseTimer = new Timer("Reparse Timer");
-		private TimerTask reparseTask;
-
-		public TextChangeListener() {
-			super();
-		}
-
-		@Override
-		public void documentChanged(DocumentEvent event) {
-			super.documentChanged(event);
-			forgetUnitParsed();
-			reparseTask = cancelTimerTask(reparseTask);
-			reparseTimer.schedule(reparseTask = new TimerTask() {
-				@Override
-				public void run() {
-					boolean foundClient = false;
-					for (final IniTextEditor ed : editors) {
-						if (!foundClient) {
-							foundClient = true;
-							ensureIniUnitUpToDate(ed);
-						}
-						Display.getDefault().asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								ed.updateFoldingStructure();
-							}
-						});
-					}
-				}
-			}, 700);
-		}
-		public static TextChangeListener addTo(IDocument document, IniUnit unit, IniTextEditor client)  {
-			try {
-				return addTo(listeners, TextChangeListener.class, document, unit, client);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		public void forgetUnitParsed() {
-			if (unitLocked == 0)
-				unitParsed = false;
-		}
-		public boolean ensureIniUnitUpToDate(IniTextEditor editor) {
-			if (!unitParsed) {
-				unitParsed = true;
-				String newDocumentString = editor != null ? editor.getSourceViewer().getDocument().get() : document.get();
-				structure.parser().reset(newDocumentString);
-				try {
-					structure.parser().parse(false, false);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
-			}
-			return true;
-		}
-	}
 
 	public IniTextEditor() {
 		super();
@@ -110,7 +38,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	public Declaration topLevelDeclaration() {
+	public Declaration structure() {
 		return unit();
 	}
 
@@ -118,7 +46,7 @@ public class IniTextEditor extends ClonkTextEditor {
 		IniUnit unit = null;
 		unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
 		if (textChangeListener == null && unit != null && unit.isEditable())
-			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
+			textChangeListener = IniUnitEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
 		else if (textChangeListener != null)
 			textChangeListener.ensureIniUnitUpToDate(this);
 		return unit;
@@ -132,14 +60,14 @@ public class IniTextEditor extends ClonkTextEditor {
 		textChangeListener.unitLocked--;
 	}
 
-	private TextChangeListener textChangeListener;
+	private IniUnitEditingState textChangeListener;
 
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
 		if (item.childCollection() != null)
-			for (INode i : item.childCollection())
+			for (final INode i : item.childCollection())
 				if (i instanceof IniItem) {
 					if (i instanceof IniSection) {
-						IniSection sec = (IniSection) i;
+						final IniSection sec = (IniSection) i;
 						positions.add(new Position(sec.start(), sec.sectionEnd()-sec.start()));
 					}
 					collectAnnotationPositions((IniItem) i, positions);
@@ -147,15 +75,15 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public void updateFoldingStructure() {
-		List<Position> positions = new ArrayList<Position>(20);
+		final List<Position> positions = new ArrayList<Position>(20);
 		collectAnnotationPositions(unit(), positions);
-		Annotation[] annotations = new Annotation[positions.size()];
+		final Annotation[] annotations = new Annotation[positions.size()];
 
 		// this will hold the new annotations along with their corresponding positions
-		HashMap<Annotation, Position> newAnnotations = new HashMap<Annotation, Position>();
+		final HashMap<Annotation, Position> newAnnotations = new HashMap<Annotation, Position>();
 
 		for(int i =0;i<positions.size();i++) {
-			ProjectionAnnotation annotation = new ProjectionAnnotation();
+			final ProjectionAnnotation annotation = new ProjectionAnnotation();
 			newAnnotations.put(annotation,positions.get(i));
 			annotations[i] = annotation;
 		}
@@ -180,13 +108,13 @@ public class IniTextEditor extends ClonkTextEditor {
 
 	@Override
 	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		final ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;
 	}
 
 	@Override
-	protected TextChangeListenerBase<?, ?> textChangeListener() {
+	protected StructureEditingState<?, ?> editingState() {
 		return textChangeListener;
 	}
 

@@ -25,7 +25,7 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 		try {
 			Declaration declaration = declarationAtSelection(false);
 			if (declaration == null)
-				declaration = ((ClonkTextEditor)getTextEditor()).topLevelDeclaration();
+				declaration = ((ClonkTextEditor)getTextEditor()).structure();
 			if (declaration != null) {
 				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());				
 				if (nature == null)

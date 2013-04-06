@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.TimerTask;
 
 import net.arctics.clonk.parser.DeclMask;
@@ -10,38 +9,38 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 
 /**
- * Helper listener that is shared between several editors having opened the same file. Will take care of adjusting {@link Declaration} locations and such according to document changes.
- * Keeps track of its 'clients' (the editors).
+ * Editing state on a specific {@link Structure}. Shared among all editors editing the file the {@link Structure} was read from.
  * @author madeen
  *
- * @param <EditorType> The type of {@link ClonkTextEditor} the text change listener is attached to.
- * @param <StructureType> Type of {@link Structure} the file being edited is represented as.
+ * @param <EditorType> The type of {@link ClonkTextEditor} the state is shared among.
+ * @param <StructureType> Type of {@link Structure}.
  */
-public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor, StructureType extends Structure> implements IDocumentListener {
+public abstract class StructureEditingState<EditorType extends ClonkTextEditor, StructureType extends Structure> implements IDocumentListener {
 	protected List<EditorType> editors = new LinkedList<EditorType>();
 	protected StructureType structure;
 	protected IDocument document;
-	protected Map<IDocument, TextChangeListenerBase<EditorType, StructureType>> listeners;
+	protected List<? extends StructureEditingState<EditorType, StructureType>> list;
 
 	/**
-	 * Called after the text change listener was added to a {@link IDocument} -> {@link TextChangeListenerBase} map.
+	 * Called after the text change listener was added to a {@link IDocument} -> {@link StructureEditingState} map.
 	 */
 	protected void initialize() {}
 
 	/**
-	 * Add a text change listener of some supplied listener class to a {@link IDocument} -> {@link TextChangeListenerBase} map.
+	 * Add a text change listener of some supplied listener class to a {@link IDocument} -> {@link StructureEditingState} map.
 	 * If there is already a listener in the map matching the document, this listener will be returned instead.
 	 * @param <E> The type of {@link ClonkTextEditor} the listener needs to apply for.
 	 * @param <S> The type of {@link Structure} the listener needs to apply for.
-	 * @param <T> The type of {@link TextChangeListenerBase} to add.
-	 * @param listeners The listeners map
-	 * @param listenerClass The listener class
+	 * @param <T> The type of {@link StructureEditingState} to add.
+	 * @param list The listeners map
+	 * @param type The listener class
 	 * @param document The document
 	 * @param structure The {@link Structure} corresponding to the document
 	 * @param client One editor editing the document.
@@ -50,24 +49,37 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @throws IllegalAccessException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends ClonkTextEditor, S extends Structure, T extends TextChangeListenerBase<E, S>> T addTo(
-		Map<IDocument, TextChangeListenerBase<E, S>> listeners,
-		Class<T> listenerClass, IDocument document, S structure, E client)
-	throws InstantiationException, IllegalAccessException {
-		final TextChangeListenerBase<?, ?> result = listeners.get(document);
+	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T addTo(
+		List<T> list,
+		Class<T> type,
+		IDocument document,
+		S structure,
+		E client
+	) throws InstantiationException, IllegalAccessException {
+		final StructureEditingState<? super E, ? super S> result = stateFromList(list, structure);
 		T r;
 		if (result == null) {
-			r = listenerClass.newInstance();
-			r.listeners = listeners;
+			r = type.newInstance();
+			r.list = list;
 			r.structure = structure;
 			r.document = document;
 			r.initialize();
 			document.addDocumentListener(r);
-			listeners.put(document, r);
+			list.add(r);
 		} else
 			r = (T)result;
 		r.editors.add(client);
 		return r;
+	}
+
+	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
+		T result = null;
+		for (final T s : list)
+			if (Utilities.objectsEqual(s.structure(), structure)) {
+				result = s;
+				break;
+			}
+		return result;
 	}
 
 	/*+
@@ -88,7 +100,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 		synchronized (editors) {
 			if (editors.remove(client) && editors.isEmpty()) {
 				cancelReparsingTimer();
-				listeners.remove(document);
+				list.remove(document);
 				document.removeDocumentListener(this);
 				cleanupAfterRemoval();
 			}
@@ -177,13 +189,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * @return The {@link Structure}
 	 */
 	public StructureType structure() { return structure; }
-
+	
 	/**
-	 * To be called when the old {@link Structure} has become stale and a new one has been created.
-	 * @param structure The new {@link Structure} that represents the same file as the old one.
+	 * Invalidate the {@link #structure()} reference and recompute.
 	 */
-	@SuppressWarnings("unchecked")
-	public void updateStructure(Structure structure) {
-		this.structure = (StructureType) structure;
+	public void invalidate() {
+		document.removeDocumentListener(this);
+		document = editors.get(0).getDocumentProvider().getDocument(editors.get(0).getEditorInput());
+		document.addDocumentListener(this);
 	}
 }

@@ -67,7 +67,7 @@ public class LandscapeScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public LandscapeScript topLevelDeclaration() {
+	public LandscapeScript structure() {
 		LandscapeScript result = script();
 		reparse();
 		return result;
@@ -87,7 +87,7 @@ public class LandscapeScriptEditor extends ClonkTextEditor {
 	@Override
 	public void refreshOutline() {
 		if (outlinePage != null) {
-			outlinePage.setInput(topLevelDeclaration());
+			outlinePage.setInput(structure());
 			super.refreshOutline();
 		}
 	}

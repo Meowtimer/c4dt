@@ -66,7 +66,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 				List<? extends IIndexEntity> entities;
 				if (entity instanceof Directive) {
 					Directive d = (Directive)entity;
-					Iterable<? extends Definition> defs = editor.topLevelDeclaration().index().definitionsWithID(d.contentAsID());
+					Iterable<? extends Definition> defs = editor.structure().index().definitionsWithID(d.contentAsID());
 					if (defs != null)
 						entities = ArrayUtil.list(defs);
 					else
@@ -130,7 +130,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			public void mouseDoubleClick(MouseEvent e) {openForeignDeclarations();}
 		});
 		if (editor != null) {
-			Declaration topLevelDeclaration = editor().topLevelDeclaration();
+			Declaration topLevelDeclaration = editor().structure();
 			if (topLevelDeclaration != null)
 				setTreeViewerInput(topLevelDeclaration);
 		}
@@ -143,7 +143,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			int multiplier = 1;
 			if (element instanceof Declaration) {
 				Declaration d = (Declaration)element;
-				if (!d.containedIn(editor.topLevelDeclaration()))
+				if (!d.containedIn(editor.structure()))
 					multiplier = 1000;
 				return d.sortCategory() * multiplier;
 			}
@@ -171,7 +171,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			Declaration dec = (Declaration) ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
 			dec = dec.latestVersion();
 			if (dec != null)
-				if (dec.containedIn(editor.topLevelDeclaration()))
+				if (dec.containedIn(editor.structure()))
 					editor.selectAndReveal(dec);
 		}
 	}
@@ -184,7 +184,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		Declaration newInput = editor().topLevelDeclaration();
+		Declaration newInput = editor().structure();
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else

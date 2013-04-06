@@ -2,14 +2,14 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,24 +20,29 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTPositionProvider;
+import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.ui.editors.TextChangeListenerBase;
+import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -45,16 +50,16 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
 
 /**
- * C4Script-specific specialization of {@link TextChangeListenerBase} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
+ * C4Script-specific specialization of {@link StructureEditingState} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
  * @author madeen
  *
  */
-public final class C4ScriptChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
+public final class ScriptEditingState extends StructureEditingState<C4ScriptEditor, Script> {
 
-	private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners =
-		new HashMap<>();
+	private static final List<ScriptEditingState> list = new ArrayList<>();
 
 	private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, functionReparseTask;
@@ -79,9 +84,9 @@ public final class C4ScriptChangeListener extends TextChangeListenerBase<C4Scrip
 	public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
 	public ProblemReportingStrategy typingStrategy() { return typingStrategy; }
 
-	public static C4ScriptChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
+	public static ScriptEditingState addTo(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
-			return addTo(listeners, C4ScriptChangeListener.class, document, script, client);
+			return addTo(list, ScriptEditingState.class, document, script, client);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
@@ -127,6 +132,19 @@ public final class C4ScriptChangeListener extends TextChangeListenerBase<C4Scrip
 		if (parser == null)
 			throw new InvalidParameterException("document");
 		return parser;
+	}
+	
+	private C4ScriptParser reparse(boolean onlyDeclarations) throws ParsingException {
+		cancelReparsingTimer();
+		return reparseWithDocumentContents(onlyDeclarations, document, structure(), new Runnable() {
+			@Override
+			public void run() {
+				for (final C4ScriptEditor ed : editors) {
+					ed.refreshOutline();
+					ed.handleCursorPositionChanged();
+				}
+			}
+		});
 	}
 	
 	C4ScriptParser reparseWithDocumentContents(
@@ -267,11 +285,11 @@ public final class C4ScriptChangeListener extends TextChangeListenerBase<C4Scrip
 		 *  adjusted according to arguments passed here */
 		REVISIT_CALLED_FUNCTIONS;
 		
-		public static final EnumSet<C4ScriptChangeListener.ReparseFunctionMode> FULL = EnumSet.allOf(C4ScriptChangeListener.ReparseFunctionMode.class);
-		public static final EnumSet<C4ScriptChangeListener.ReparseFunctionMode> LIGHT = EnumSet.noneOf(C4ScriptChangeListener.ReparseFunctionMode.class);
+		public static final EnumSet<ScriptEditingState.ReparseFunctionMode> FULL = EnumSet.allOf(ScriptEditingState.ReparseFunctionMode.class);
+		public static final EnumSet<ScriptEditingState.ReparseFunctionMode> LIGHT = EnumSet.noneOf(ScriptEditingState.ReparseFunctionMode.class);
 	}
 
-	public Markers reparseFunction(final Function function, EnumSet<C4ScriptChangeListener.ReparseFunctionMode> mode) {
+	public Markers reparseFunction(final Function function, EnumSet<ScriptEditingState.ReparseFunctionMode> mode) {
 		if (errorsWhileTypingDisabled())
 			return new Markers();
 		final Markers markers = new Markers(new MarkerConfines(function));
@@ -291,8 +309,8 @@ public final class C4ScriptChangeListener extends TextChangeListenerBase<C4Scrip
 				// potentially revisit functions to adjust typing of parameters to the concrete parameter types supplied here
 				for (final Function called : revisitFunctions)
 					if (called != null && mainTyping.triggersRevisit(function, called))
-						if (markers != null && markers.listener() instanceof C4ScriptChangeListener.MarkerConfines)
-							if (((C4ScriptChangeListener.MarkerConfines)markers.listener()).add(called)) {
+						if (markers != null && markers.listener() instanceof ScriptEditingState.MarkerConfines)
+							if (((ScriptEditingState.MarkerConfines)markers.listener()).add(called)) {
 								removeMarkers(called, called.script());
 								for (final Variable p : called.parameters())
 									p.forceType(PrimitiveType.UNKNOWN, false);
@@ -333,7 +351,87 @@ public final class C4ScriptChangeListener extends TextChangeListenerBase<C4Scrip
 		super.cleanupAfterRemoval();
 	}
 
-	public static C4ScriptChangeListener listenerFor(IDocument document) {
-		return (C4ScriptChangeListener) listeners.get(document);
+	public static ScriptEditingState state(Script script) {
+		return stateFromList(list, script);
 	}
+	
+	/**
+	 *  Created if there is no suitable script to get from somewhere else
+	 *  can be considered a hack to make viewing (svn) revisions of a file work
+	 */
+	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
+	
+	private WeakReference<ProblemReportingContext> cachedDeclarationObtainmentContext;
+	
+	@Override
+	public Script structure() {
+		Script result = cachedScript.get();
+		if (result != null)
+			return result;
+
+		if (editors.isEmpty())
+			return super.structure();
+		
+		final IEditorInput input = editors.get(0).getEditorInput();
+		if (input instanceof ScriptWithStorageEditorInput)
+			result = ((ScriptWithStorageEditorInput)input).script();
+
+		if (result == null) {
+			final IFile f = Utilities.fileFromEditorInput(input);
+			if (f != null) {
+				final Script script = Script.get(f, true);
+				if (script != null)
+					result = script;
+			}
+		}
+
+		boolean needsReparsing = false;
+		if (result == null && cachedScript.get() == null) {
+			result = new ScratchScript(editors.get(0));
+			needsReparsing = true;
+		}
+		cachedScript = new WeakReference<Script>(result);
+		if (needsReparsing)
+			try {
+				reparse(false);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		if (result != null)
+			result.traverse(new IASTVisitor<Script>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Script parser) {
+					final AccessDeclaration ad = as(node, AccessDeclaration.class);
+					if (ad != null && ad.declaration() != null)
+						ad.setDeclaration(ad.declaration().latestVersion());
+					return TraversalContinuation.Continue;
+				}
+			}, result);
+		return result;
+	}
+	
+	@Override
+	public void invalidate() {
+		cachedScript = new WeakReference<Script>(null);
+		cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(null);
+		super.invalidate();
+	}
+	
+	public ProblemReportingContext declarationObtainmentContext() {
+		if (cachedDeclarationObtainmentContext != null) {
+			final ProblemReportingContext ctx = cachedDeclarationObtainmentContext.get();
+			if (ctx != null && ctx.script() == structure())
+				return ctx;
+		}
+		ProblemReportingContext r = null;
+		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
+				cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(
+					r = strategy.localTypingContext(structure(), 0, null)
+				);
+				break;
+			}
+		return r;
+	}
+	
 }

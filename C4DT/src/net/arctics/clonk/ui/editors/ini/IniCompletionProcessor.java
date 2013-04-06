@@ -162,7 +162,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.topLevelDeclaration().resource().getProject());
+		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.structure().resource().getProject());
 		List<Index> indexes = nature.index().relevantIndexes();
 		for (Index index : indexes)
 			if (index instanceof ProjectIndex)
