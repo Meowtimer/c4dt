@@ -64,6 +64,7 @@ import net.arctics.clonk.parser.c4script.effect.Effect;
 import net.arctics.clonk.parser.c4script.effect.EffectFunction;
 import net.arctics.clonk.parser.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
@@ -1149,6 +1150,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public static Script get(IResource resource, boolean onlyForScriptFile) {
+		final ClonkProjectNature nat = ClonkProjectNature.get(resource);
+		if (nat != null)
+			nat.index();
 		Script script;
 		if (resource == null)
 			return null;
