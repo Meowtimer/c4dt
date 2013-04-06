@@ -5,57 +5,33 @@ import static net.arctics.clonk.util.Utilities.fileEditedBy;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.security.InvalidParameterException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.IASTVisitor;
-import net.arctics.clonk.parser.IMarkerListener;
-import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IFunctionCall;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IHasEditorPart;
-import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
@@ -64,18 +40,16 @@ import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptChangeListener.ReparseFunctionMode;
 import net.arctics.clonk.ui.search.C4ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IRegion;
@@ -145,244 +119,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	/**
-	 * C4Script-specific specialization of {@link TextChangeListenerBase} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
-	 * @author madeen
-	 *
-	 */
-	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, Script> {
-
-		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, Script>> listeners =
-			new HashMap<>();
-
-		private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
-		private TimerTask reparseTask, functionReparseTask;
-		private List<ProblemReportingStrategy> problemReportingStrategies;
-		private ProblemReportingStrategy typingStrategy;
-
-		@Override
-		protected void added() {
-			super.added();
-			try {
-				problemReportingStrategies = structure.index().nature().instantiateProblemReportingStrategies(0);
-				for (final ProblemReportingStrategy strategy : problemReportingStrategies)
-					if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
-						typingStrategy = strategy;
-						break;
-					}
-			} catch (final Exception e) {
-				problemReportingStrategies = Arrays.asList();
-			}
-		}
-
-		public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
-		public ProblemReportingStrategy typingStrategy() { return typingStrategy; }
-
-		public static TextChangeListener addTo(IDocument document, Script script, C4ScriptEditor client)  {
-			try {
-				return addTo(listeners, TextChangeListener.class, document, script, client);
-			} catch (final Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-
-		@Override
-		public void documentAboutToBeChanged(DocumentEvent event) {}
-
-		@Override
-		public void documentChanged(DocumentEvent event) {
-			super.documentChanged(event);
-			final Function f = structure.funcAt(event.getOffset());
-			if (f != null && !f.isOldStyle())
-				// editing inside new-style function: adjust locations of declarations without complete reparse
-				// only recheck the function and display problems after delay
-				scheduleReparsingOfFunction(f);
-			else
-				// only schedule reparsing when editing outside of existing function
-				scheduleReparsing(false);
-		}
-
-		@Override
-		protected void adjustDec(Declaration declaration, int offset, int add) {
-			super.adjustDec(declaration, offset, add);
-			if (declaration instanceof Function)
-				incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
-			for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
-				adjustDec(v, offset, add);
-		}
-
-		public void scheduleReparsing(final boolean onlyDeclarations) {
-			reparseTask = cancelTimerTask(reparseTask);
-			if (structure == null)
-				return;
-			reparseTimer.schedule(reparseTask = new TimerTask() {
-				@Override
-				public void run() {
-					if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
-						return;
-					try {
-						try {
-							reparseWithDocumentContents(TextChangeListener.this, onlyDeclarations, document, structure, new Runnable() {
-								@Override
-								public void run() {
-									for (final C4ScriptEditor ed : clients) {
-										ed.refreshOutline();
-										ed.handleCursorPositionChanged();
-									}
-								}
-							});
-						} finally {
-							cancel();
-						}
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}, 1000);
-		}
-
-		public static void removeMarkers(Function func, Script script) {
-			if (script != null && script.resource() != null)
-				try {
-					// delete regular markers that are in the region of interest
-					final IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
-					final SourceLocation body = func != null ? func.bodyLocation() : null;
-					for (final IMarker m : markers) {
-						// delete marks inside the body region
-						final int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
-						final int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
-						if (body == null || (markerStart >= body.start() && markerEnd < body.end())) {
-							m.delete();
-							continue;
-						}
-					}
-				} catch (final CoreException e) {
-					e.printStackTrace();
-				}
-		}
-
-		@SuppressWarnings("serial")
-		static class MarkerConfines extends HashSet<ASTNode> implements IMarkerListener {
-			public MarkerConfines(ASTNode... confines) {
-				this.addAll(Arrays.asList(confines));
-			}
-			@Override
-			public Decision markerEncountered(
-				Markers markers, IASTPositionProvider positionProvider,
-				Problem code, ASTNode node,
-				int markerStart, int markerEnd, int flags,
-				int severity, Object... args
-			) {
-				if (node == null)
-					return Decision.DropCharges;
-				for (final ASTNode confine : this)
-					if (node.containedIn(confine))
-						return Decision.PassThrough;
-				return Decision.DropCharges;
-			}
-		}
-
-		private void scheduleReparsingOfFunction(final Function fn) {
-			functionReparseTask = cancelTimerTask(functionReparseTask);
-			reparseTimer.schedule(functionReparseTask = new TimerTask() {
-				@Override
-				public void run() {
-					try {
-						if (!ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
-							return;
-						if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
-							removeMarkers(fn, structure);
-							final Function f = (Function) fn.latestVersion();
-							final Markers markers = reparseFunction(f);
-							for (final Variable localVar : f.locals()) {
-								final SourceLocation l = localVar;
-								l.setStart(f.bodyLocation().getOffset()+l.getOffset());
-								l.setEnd(f.bodyLocation().getOffset()+l.end());
-							}
-							markers.deploy();
-						}
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}, 1000);
-		}
-
-		private void addCalls(Set<Function> to, Function from) {
-			for (final Collection<CallDeclaration> cdc : from.script().callMap().values())
-				for (final CallDeclaration cd : cdc)
-					if (cd.containedIn(from)) {
-						final Function called = as(cd.declaration(), Function.class);
-						if (called != null)
-							to.add(called);
-					}
-		}
-
-		public Markers reparseFunction(final Function function) {
-			final Markers markers = new Markers(new MarkerConfines(function));
-			markers.applyProjectSettings(structure.index());
-			final Set<Function> revisitFunctions = new HashSet<>();
-			addCalls(revisitFunctions, function); // add old calls so when the user removes a call the function called will still be revisited
-			final C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
-			structure.generateCaches();
-			for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
-				final ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
-				if (markers != null)
-					mainTyping.setMarkers(markers);
-				mainTyping.visitFunction(function);
-				addCalls(revisitFunctions, function); // add new calls
-				// potentially revisit functions to adjust typing of parameters to the concrete parameter types supplied here
-				for (final Function called : revisitFunctions)
-					if (called != null && mainTyping.triggersRevisit(function, called))
-						if (markers != null && markers.listener() instanceof MarkerConfines)
-							if (((MarkerConfines)markers.listener()).add(called)) {
-								removeMarkers(called, called.script());
-								for (final Variable p : called.parameters())
-									p.forceType(PrimitiveType.UNKNOWN, false);
-								final ProblemReportingContext calledTyping = strategy.localTypingContext(called.parentOfType(Script.class), 0, mainTyping);
-								calledTyping.setMarkers(markers);
-								calledTyping.visitFunction(called);
-							}
-			}
-			return markers;
-		}
-
-		@Override
-		public void cancelReparsingTimer() {
-			reparseTask = cancelTimerTask(reparseTask);
-			functionReparseTask = cancelTimerTask(functionReparseTask);
-			super.cancelReparsingTimer();
-		}
-
-		@Override
-		public void cleanupAfterRemoval() {
-			if (reparseTimer != null)
-				reparseTimer.cancel();
-			try {
-				if (structure.source() instanceof IFile) {
-					final IFile file = (IFile)structure.source();
-					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
-					if (file.exists())
-						reparseWithDocumentContents(this, false, file, structure, null);
-				}
-			} catch (final ParsingException e) {
-				e.printStackTrace();
-			}
-			super.cleanupAfterRemoval();
-		}
-
-		public static TextChangeListener listenerFor(IDocument document) {
-			return (TextChangeListener) listeners.get(document);
-		}
-	}
-
 	private final ColorManager colorManager;
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
 	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
 
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
-	private TextChangeListener textChangeListener;
+	private C4ScriptChangeListener textChangeListener;
 	private WeakReference<ProblemReportingContext> cachedDeclarationObtainmentContext;
 
 	@Override
@@ -456,7 +198,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void refreshStructure() {
 		try {
-			reparseWithDocumentContents(false);
+			reparse(false);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -484,7 +226,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void editorSaved() {
 		if (script() instanceof ScratchScript)
 			try {
-				reparseWithDocumentContents(false);
+				reparse(false);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -492,7 +234,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			textChangeListener.cancelReparsingTimer();
 			final Function cursorFunc = functionAtCursor();
 			if (cursorFunc != null)
-				textChangeListener.reparseFunction(cursorFunc).deploy();
+				textChangeListener.reparseFunction(cursorFunc, ReparseFunctionMode.FULL).deploy();
 		}
 		final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
 		if (a != null)
@@ -519,7 +261,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.createPartControl(parent);
 		final Script script = script();
 		if (script != null && script.isEditable())
-			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
+			textChangeListener = C4ScriptChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
 	}
@@ -527,7 +269,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void dispose() {
 		if (textChangeListener != null) {
-			textChangeListener.removeClient(this);
+			textChangeListener.removeEditor(this);
 			textChangeListener = null;
 		}
 		colorManager.dispose();
@@ -601,7 +343,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
 		try {
 			if (proposal.requiresDocumentReparse()) {
-				reparseWithDocumentContents(true);
+				reparse(true);
 				textChangeListener().scheduleReparsing(false);
 			}
 		} catch (IOException | ParsingException e) {
@@ -612,7 +354,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			public void run() {
 				final Function f = functionAtCursor();
 				if (f != null)
-					textChangeListener().reparseFunction(f).deploy();
+					textChangeListener().reparseFunction(f, ReparseFunctionMode.LIGHT).deploy();
 				showContentAssistance();
 			}
 		});
@@ -650,7 +392,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		cachedScript = new WeakReference<Script>(result);
 		if (needsReparsing)
 			try {
-				reparseWithDocumentContents(false);
+				reparse(false);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -668,7 +410,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	protected TextChangeListener textChangeListener() { return textChangeListener; }
+	protected C4ScriptChangeListener textChangeListener() { return textChangeListener; }
 
 	public ProblemReportingStrategy typingStrategy() { return textChangeListener().typingStrategy(); }
 
@@ -683,62 +425,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	public Function functionAtCursor() { return functionAt(cursorPos()); }
 
-	public C4ScriptParser reparseWithDocumentContents(boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ParsingException {
 		if (script() == null)
 			return null;
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		if (textChangeListener != null)
 			textChangeListener.cancelReparsingTimer();
-		return reparseWithDocumentContents(textChangeListener, onlyDeclarations, document, script(), new Runnable() {
+		return textChangeListener.reparseWithDocumentContents(onlyDeclarations, document, script(), new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
 				handleCursorPositionChanged();
 			}
 		});
-	}
-
-	private static C4ScriptParser reparseWithDocumentContents(
-		TextChangeListener listener,
-		boolean onlyDeclarations, Object document,
-		final Script script,
-		Runnable uiRefreshRunnable
-	) throws ParsingException {
-		final Markers markers = new Markers();
-		final C4ScriptParser parser = parserForDocument(document, script);
-		parser.setMarkers(markers);
-		parser.clear(!onlyDeclarations, !onlyDeclarations);
-		parser.parseDeclarations();
-		parser.script().generateCaches();
-		parser.validate();
-		if (!onlyDeclarations) {
-			if (listener != null && listener.typingStrategy() != null) {
-				final ProblemReportingContext localTyping = listener.typingStrategy().localTypingContext(parser.script(), parser.fragmentOffset(), null);
-				localTyping.setMarkers(markers);
-				localTyping.reportProblems();
-			}
-			markers.deploy();
-		}
-		// make sure it's executed on the ui thread
-		if (uiRefreshRunnable != null)
-			Display.getDefault().asyncExec(uiRefreshRunnable);
-		return parser;
-	}
-
-	private static C4ScriptParser parserForDocument(Object document, final Script script) {
-		C4ScriptParser parser = null;
-		if (document instanceof IDocument)
-			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
-		else if (document instanceof IFile)
-			parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<C4ScriptParser>() {
-				@Override
-				public C4ScriptParser run(IDocument document) {
-					return new C4ScriptParser(document.get(), script, script.scriptFile());
-				}
-			}, false);
-		if (parser == null)
-			throw new InvalidParameterException("document");
-		return parser;
 	}
 
 	@Override
@@ -802,6 +501,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (file != null)
 			ClonkProjectNature.get(file).index();
 		super.initializeEditor();
+	}
+	
+	@Override
+	protected void invalidateListener() {
+		cachedScript = new WeakReference<Script>(null);
+		cachedDeclarationObtainmentContext = new WeakReference<ProblemReportingContext>(null);
+		super.invalidateListener();
 	}
 
 }

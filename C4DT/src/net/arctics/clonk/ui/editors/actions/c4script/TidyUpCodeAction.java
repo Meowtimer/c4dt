@@ -31,7 +31,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		C4ScriptParser parser;
 		try {
-			parser = editor.reparseWithDocumentContents(false);
+			parser = editor.reparse(false);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return;

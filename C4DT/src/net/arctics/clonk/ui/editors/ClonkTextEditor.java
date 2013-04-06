@@ -77,11 +77,11 @@ public class ClonkTextEditor extends TextEditor {
 	}
 
 	public void selectAndRevealLine(int line) {
-		IDocument d = getSourceViewer().getDocument();
+		final IDocument d = getSourceViewer().getDocument();
 		try {
-			IRegion r = new Region(d.getLineOffset(line), 0);
+			final IRegion r = new Region(d.getLineOffset(line), 0);
 			this.selectAndReveal(r);
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			e.printStackTrace();
 		}
 	}
@@ -139,35 +139,35 @@ public class ClonkTextEditor extends TextEditor {
 	 * @return The {@link IEditorPart}. Will most likely refer to a ClonkTextEditor object or be null due to some failure.
 	 */
 	public static IEditorPart openDeclaration(Declaration target, boolean activate) {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		Structure structure = target.topLevelStructure();
+		final IWorkbench workbench = PlatformUI.getWorkbench();
+		final IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
+		final Structure structure = target.topLevelStructure();
 		if (structure instanceof IHasEditorPart) {
-			IEditorPart ed = ((IHasEditorPart) structure).editorPart();
+			final IEditorPart ed = ((IHasEditorPart) structure).editorPart();
 			revealInEditor(target, structure, ed);
 			return ed;
 		}
 		if (structure != null) {
-			IEditorInput input = structure.makeEditorInput();
+			final IEditorInput input = structure.makeEditorInput();
 			if (input != null)
 				try {
-					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
+					final IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
 					if (descriptor != null) {
-						IEditorPart editor = IDE.openEditor(workbenchPage, input, descriptor.getId(), activate);
+						final IEditorPart editor = IDE.openEditor(workbenchPage, input, descriptor.getId(), activate);
 						revealInEditor(target, structure, editor);
 						return editor;
 					} else
 						return null;
-				} catch (PartInitException e) {
+				} catch (final PartInitException e) {
 					e.printStackTrace();
 				}
 			else if (structure instanceof Definition) {
-				Definition obj = (Definition) structure;
-				IFile defCore = obj.defCoreFile();
+				final Definition obj = (Definition) structure;
+				final IFile defCore = obj.defCoreFile();
 				if (defCore != null)
 					try {
 						IDE.openEditor(workbenchPage, defCore);
-					} catch (PartInitException e) {
+					} catch (final PartInitException e) {
 						e.printStackTrace();
 					}
 			}
@@ -194,18 +194,18 @@ public class ClonkTextEditor extends TextEditor {
 		try {
 			IEditorPart ed = null;
 			if (location.resource() instanceof IFile) {
-				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.resource());
+				final IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.resource());
 				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.resource(), descriptor.getId());
 			}
 			else if (location.resource() instanceof IContainer) {
-				Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.resource());
+				final Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.resource());
 				if (def != null)
 					ed = openDeclaration(def);
 			}
 			if (ed instanceof ClonkTextEditor)
 				((ClonkTextEditor) ed).selectAndReveal(location.location());
 			return ed;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -227,9 +227,9 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
-			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
+			final ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure) {
-				Declaration old = target;
+				final Declaration old = target;
 				target = target.latestVersion();
 				if (target == null)
 					target = old;
@@ -237,7 +237,7 @@ public class ClonkTextEditor extends TextEditor {
 					clonkTextEditor.selectAndReveal(target.regionToSelect());
 			}
 		} else if (editor instanceof AbstractTextEditor) {
-			AbstractTextEditor ed = (AbstractTextEditor) editor;
+			final AbstractTextEditor ed = (AbstractTextEditor) editor;
 			ed.selectAndReveal(target.start(), target.getLength());
 		}
 	}
@@ -254,15 +254,15 @@ public class ClonkTextEditor extends TextEditor {
 
 	@SuppressWarnings("unchecked")
 	protected void addActions(ResourceBundle messagesBundle, Class<? extends ClonkTextEditorAction>... classes) {
-		for (Class<? extends ClonkTextEditorAction> c : classes) {
-			CommandId id = ClonkTextEditorAction.id(c);
+		for (final Class<? extends ClonkTextEditorAction> c : classes) {
+			final CommandId id = ClonkTextEditorAction.id(c);
 			if (c != null) {
-				String actionName = id.id().substring(id.id().lastIndexOf('.')+1);
+				final String actionName = id.id().substring(id.id().lastIndexOf('.')+1);
 				try {
-					ClonkTextEditorAction action = c.getConstructor(ResourceBundle.class, String.class, ITextEditor.class).
+					final ClonkTextEditorAction action = c.getConstructor(ResourceBundle.class, String.class, ITextEditor.class).
 						newInstance(messagesBundle, actionName+".", this);
 					setAction(action.getActionDefinitionId(), action);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -275,7 +275,7 @@ public class ClonkTextEditor extends TextEditor {
 		super.createActions();
 		addActions(MESSAGES_BUNDLE, OpenDeclarationAction.class);
 		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
-			IAction action = new ContentAssistAction(MESSAGES_BUNDLE, "ContentAssist.", this); //$NON-NLS-1$
+			final IAction action = new ContentAssistAction(MESSAGES_BUNDLE, "ContentAssist.", this); //$NON-NLS-1$
 			action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 			setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 		}
@@ -297,12 +297,12 @@ public class ClonkTextEditor extends TextEditor {
 	 * @return
 	 */
 	public IHyperlink hyperlinkAtOffset(int offset) {
-		IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
+		final IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
 		// emulate
 		getSourceViewerConfiguration().getHyperlinkPresenter(getSourceViewer()).hideHyperlinks();
-		IRegion r = new Region(offset, 0);
-		for (IHyperlinkDetector d : detectors) {
-			IHyperlink[] hyperlinks = d.detectHyperlinks(getSourceViewer(), r, false);
+		final IRegion r = new Region(offset, 0);
+		for (final IHyperlinkDetector d : detectors) {
+			final IHyperlink[] hyperlinks = d.detectHyperlinks(getSourceViewer(), r, false);
 			if (hyperlinks != null && hyperlinks.length > 0)
 				return hyperlinks[0];
 		}
@@ -314,18 +314,29 @@ public class ClonkTextEditor extends TextEditor {
 	 * @return The hyperlink returned by {@link #hyperlinkAtOffset(int)}
 	 */
 	public IHyperlink hyperlinkAtCurrentSelection() {
-	    ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
-		IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
+	    final ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
+		final IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
 		return hyperlink;
 	}
 
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
+		updatePartName();
+		invalidateListener();
+	}
+
+	private void updatePartName() {
 		// set part name to reflect the folder the file is in
-		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
+		final IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null && res.getParent() != null)
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
+	}
+
+	protected void invalidateListener() {
+		final TextChangeListenerBase<?, ?> listener = textChangeListener();
+		if (listener != null && topLevelDeclaration() instanceof Structure)
+			listener.updateStructure((Structure) topLevelDeclaration());
 	}
 
 	@Override
@@ -353,10 +364,10 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
-			for (IWorkbenchPage page : window.getPages())
-				for (IEditorReference reference : page.getEditorReferences()) {
-					IEditorPart editor = reference.getEditor(false);
+		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (final IWorkbenchPage page : window.getPages())
+				for (final IEditorReference reference : page.getEditorReferences()) {
+					final IEditorPart editor = reference.getEditor(false);
 					if (editor != null && cls.isAssignableFrom(editor.getClass()))
 						if (((ClonkTextEditor) editor).getSourceViewer().equals(sourceViewer))
 							return (T) editor;
@@ -373,10 +384,10 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
-			for (IWorkbenchPage page : window.getPages())
-				for (IEditorReference reference : page.getEditorReferences()) {
-					IEditorPart editor = reference.getEditor(false);
+		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (final IWorkbenchPage page : window.getPages())
+				for (final IEditorReference reference : page.getEditorReferences()) {
+					final IEditorPart editor = reference.getEditor(false);
 					if (editor != null && cls.isAssignableFrom(editor.getClass()))
 						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource))
 							return (T) editor;
@@ -403,9 +414,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the {@link TextChangeListenerBase} object being shared for all editors having opened the same file.
 	 * @return
 	 */
-	protected TextChangeListenerBase<?, ?> textChangeListener() {
-		return null;
-	}
+	protected TextChangeListenerBase<?, ?> textChangeListener() { return null; }
 
 	@Override
 	protected void initializeKeyBindingScopes() {
@@ -414,7 +423,7 @@ public class ClonkTextEditor extends TextEditor {
 	}
 
 	public void reconfigureSourceViewer() {
-		ISourceViewer viewer= getSourceViewer();
+		final ISourceViewer viewer= getSourceViewer();
 
 		if (!(viewer instanceof ISourceViewerExtension2))
 			return; // cannot unconfigure - do nothing
@@ -429,7 +438,7 @@ public class ClonkTextEditor extends TextEditor {
 	protected Annotation[] oldAnnotations;
 
 	protected void initializeProjectionSupport() {
-		ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
+		final ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
 		projectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(), getSharedColors());
 		projectionSupport.install();
 		projectionViewer.doOperation(ProjectionViewer.TOGGLE);
@@ -438,7 +447,7 @@ public class ClonkTextEditor extends TextEditor {
 
 	@Override
 	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		final ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;
 	}
@@ -449,8 +458,6 @@ public class ClonkTextEditor extends TextEditor {
 		initializeProjectionSupport();
 	}
 
-	public ProblemReportingContext declarationObtainmentContext() {
-		return null;
-	}
+	public ProblemReportingContext declarationObtainmentContext() { return null; }
 
 }

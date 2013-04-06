@@ -24,7 +24,7 @@ import org.eclipse.jface.text.IDocumentListener;
  * @param <StructureType> Type of {@link Structure} the file being edited is represented as.
  */
 public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor, StructureType extends Structure> implements IDocumentListener {
-	protected List<EditorType> clients = new LinkedList<EditorType>();
+	protected List<EditorType> editors = new LinkedList<EditorType>();
 	protected StructureType structure;
 	protected IDocument document;
 	protected Map<IDocument, TextChangeListenerBase<EditorType, StructureType>> listeners;
@@ -32,7 +32,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	/**
 	 * Called after the text change listener was added to a {@link IDocument} -> {@link TextChangeListenerBase} map.
 	 */
-	protected void added() {}
+	protected void initialize() {}
 
 	/**
 	 * Add a text change listener of some supplied listener class to a {@link IDocument} -> {@link TextChangeListenerBase} map.
@@ -61,12 +61,12 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			r.listeners = listeners;
 			r.structure = structure;
 			r.document = document;
-			r.added();
+			r.initialize();
 			document.addDocumentListener(r);
 			listeners.put(document, r);
 		} else
 			r = (T)result;
-		r.clients.add(client);
+		r.editors.add(client);
 		return r;
 	}
 
@@ -84,13 +84,14 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	 * Remove an editor
 	 * @param client
 	 */
-	public void removeClient(EditorType client) {
-		clients.remove(client);
-		if (clients.size() == 0) {
-			cancelReparsingTimer();
-			listeners.remove(document);
-			document.removeDocumentListener(this);
-			cleanupAfterRemoval();
+	public void removeEditor(EditorType client) {
+		synchronized (editors) {
+			if (editors.remove(client) && editors.isEmpty()) {
+				cancelReparsingTimer();
+				listeners.remove(document);
+				document.removeDocumentListener(this);
+				cleanupAfterRemoval();
+			}
 		}
 	}
 
@@ -98,9 +99,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	public void documentAboutToBeChanged(DocumentEvent event) {}
 
 	@Override
-	public void documentChanged(DocumentEvent event) {
-		adjustDeclarationLocations(event);
-	}
+	public void documentChanged(DocumentEvent event) { adjustDeclarationLocations(event); }
 
 	/**
 	 * Increment the components of some {@link SourceLocation} in-place that exceed a certain threshold.

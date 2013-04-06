@@ -293,7 +293,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				}
 			}
 
-			final C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.listenerFor(document);
+			final C4ScriptChangeListener listener = C4ScriptChangeListener.listenerFor(document);
 			if (listener != null)
 				listener.scheduleReparsing(false);
 		}

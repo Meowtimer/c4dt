@@ -55,7 +55,7 @@ public class IniTextEditor extends ClonkTextEditor {
 				@Override
 				public void run() {
 					boolean foundClient = false;
-					for (final IniTextEditor ed : clients) {
+					for (final IniTextEditor ed : editors) {
 						if (!foundClient) {
 							foundClient = true;
 							ensureIniUnitUpToDate(ed);
