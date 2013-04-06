@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
@@ -340,6 +341,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private void innerProposalsInFunction(int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Index index, final Function activeFunc, Script editorScript, C4ScriptParser parser, final Sequence contextSequence, final ASTNode contextExpression, final IType sequenceType) {
+		if (DEBUG)
+			System.out.println(String.format("%s: %s %s %s",
+				prefix,
+				contextExpression != null ? contextExpression.printed() : "null",
+					contextSequence != null ? contextSequence.printed() : "null",
+						sequenceType != null ? sequenceType.typeName(true) : "null"
+				));
 		final int whatToDisplayFromScripts = declarationMask(contextSequence);
 		if (computeStringProposals(offset, doc, prefix, proposals, editorScript, contextExpression))
 			return;
@@ -467,6 +475,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private void ruleBasedProposals(int offset, String prefix, List<ICompletionProposal> proposals, C4ScriptParser parser, ASTNode contextExpression) {
+		if (contextExpression == null)
+			return;
 		final CallDeclaration innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
 		if (innermostCallFunc != null) {
 			final SpecialEngineRules rules = parser.specialEngineRules();
@@ -484,14 +494,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		cats.defaultOrdering();
 		if (contextExpression == null)
 			return;
-		final CallDeclaration innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
-		if (innermostCallFunc != null && innermostCallFunc == contextExpression.parent()) {
-			// elevate definition proposals for parameters of id type
-			final Variable parm = innermostCallFunc.parmDefinitionForParmExpression(contextExpression);
-			if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN)
-				if (TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null)
-					cats.Definitions = -1;
-		}
+		CallDeclaration innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
+		// elevate definition proposals for parameters of id type
+		Variable parm;
+		if (innermostCallFunc != null && contextExpression.parent() == innermostCallFunc)
+			parm = innermostCallFunc.parmDefinitionForParmExpression(contextExpression);
+		else if ((innermostCallFunc = as(contextExpression, CallDeclaration.class)) != null && innermostCallFunc.params().length == 0 &&
+			innermostCallFunc.declaration() instanceof Function && ((Function)innermostCallFunc.declaration()).numParameters() > 0)
+			parm = ((Function)innermostCallFunc.declaration()).parameter(0);
+		else
+			parm = null;
+		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN)
+			if (TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null) {
+				if (DEBUG)
+					System.out.println("Elevate definitions");
+				cats.Definitions = -1;
+			}
 	}
 
 	private boolean computeStringProposals(int offset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Script editorScript, ASTNode contextExpression) {
