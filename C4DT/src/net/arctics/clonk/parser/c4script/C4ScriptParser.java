@@ -1610,7 +1610,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					elm = new ArrayElementExpression(arg);
 					break;
 				default:
-					error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)t);
+					error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, (char)t);
 				}
 			} else {
 				// array creation
