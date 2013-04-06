@@ -187,6 +187,18 @@ public class TypeUnification {
 				final List<Script> cda = da.conglomerate();
 				final List<Script> cdb = db.conglomerate();
 				cda.retainAll(cdb);
+				final List<Script> commonBases = new ArrayList<>(cda.size());
+				for (final Script x : cda) {
+					boolean includedByAll = true;
+					for (final Script y : cda)
+						if (x != y && !y.doesInclude(y.index(), x)) {
+							includedByAll = false;
+							break;
+						}
+					if (includedByAll)
+						commonBases.add(x);
+				}
+				cda.removeAll(commonBases);
 				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT.unified();
 			}
 		}
