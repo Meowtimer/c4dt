@@ -19,7 +19,6 @@ import net.arctics.clonk.parser.c4script.ReferenceType;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.WrappedType;
-import net.arctics.clonk.parser.c4script.ast.StructuralType;
 import net.arctics.clonk.parser.c4script.ast.ThisType;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
 
@@ -139,16 +138,6 @@ public class TypeUnification {
 				else if (a instanceof ReferenceType)
 					return ReferenceType.make(u);
 		}
-
-		if (a instanceof StructuralType && b instanceof StructuralType) {
-			final StructuralType sa = (StructuralType) a;
-			final StructuralType sb = (StructuralType) b;
-			return new StructuralType(sa, sb);
-		}
-
-		if (a instanceof StructuralType && b instanceof Definition)
-			if (((StructuralType)a).satisfiedBy((Definition)b))
-				return b;
 
 		if (a instanceof Definition && b instanceof Definition) {
 			final Definition da = (Definition)a;
