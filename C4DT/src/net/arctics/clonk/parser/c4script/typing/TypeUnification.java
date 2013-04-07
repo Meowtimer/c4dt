@@ -4,14 +4,9 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.CallTargetType;
@@ -133,32 +128,7 @@ public class TypeUnification {
 				return _b;
 			else if (_b.numComponents(true) == 0)
 				return _a;
-			return new ProplistDeclaration(new ArrayList<Variable>()) {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				@Override
-				public boolean gatherIncludes(Index contextIndex, Object origin, Collection<ProplistDeclaration> set, int options) {
-					if (!set.add(this))
-						return false;
-					if ((options & GatherIncludesOptions.Recursive) != 0) {
-						_a.gatherIncludes(contextIndex, origin, set, options);
-						_b.gatherIncludes(contextIndex, origin, set, options);
-					} else {
-						set.add(_a);
-						set.add(_b);
-					}
-					return true;
-				}
-				@Override
-				public Collection<Variable> components(boolean includeAdhocComponents) {
-					final Map<String, Variable> vars = new HashMap<String, Variable>();
-					for (final Variable v : _a.components(includeAdhocComponents))
-						vars.put(v.name(), v);
-					for (final Variable v : _b.components(includeAdhocComponents))
-						if (!vars.containsKey(v.name()))
-							vars.put(v.name(), v);
-					return vars.values();
-				}
-			};
+			return new UnifiedProplistDeclarations(new ArrayList<Variable>(), _a, _b);
 		}
 
 		if (a instanceof WrappedType) {
