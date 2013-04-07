@@ -272,23 +272,25 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 	}
 
+	/**
+	 * Options for {@link Function#parameterString(EnumSet)}
+	 * @author madeen
+	 */
 	public enum ParameterStringOption {
+		/** Include function name in printed string */
 		FunctionName,
+		/** Print string that the engine will be able to parse (no special typing constructs or 'any') */
 		EngineCompatible,
+		/** Include comments of parameters */
 		ParameterComments
 	}
 
 	/**
-	 * Generates a function string in the form of
-	 * function(type1 parName1, type2 parName2)
-	 * if <code>withFuncName</code> is true, else
-	 * type1 parName1, type1 parName2
-	 *
-	 * @param withFuncName include function name
-	 * @param engineCompatible print parameters in an engine-parseable manner
-	 * @return the function string
+	 * Print parameter string using options.
+	 * @param options Options
+	 * @return The printed string.
 	 */
-	public String longParameterString(EnumSet<ParameterStringOption> options) {
+	public String parameterString(EnumSet<ParameterStringOption> options) {
 		final StringBuilder string = new StringBuilder();
 		if (options.contains(ParameterStringOption.FunctionName)) {
 			string.append(name());
@@ -302,7 +304,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public String displayString(IIndexEntity context) {
-		return longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
+		return parameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
 	}
 
 	private void printParameterString(ASTNodePrinter output, final EnumSet<ParameterStringOption> options) {
@@ -315,11 +317,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					if (engineCompatible && !par.isActualParm())
 						return null;
 					final String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
-					if (type != PrimitiveType.UNKNOWN && type != null &&
-						(!engineCompatible || (type instanceof PrimitiveType && type != PrimitiveType.ANY)))
-						return comment + type.typeName(false) + " " + par.name();
+					boolean includeType;
+					if (engineCompatible && (type == PrimitiveType.ANY || type == PrimitiveType.UNKNOWN))
+						includeType = false;
 					else
-						return comment + par.name();
+						includeType = true;
+					return comment + (includeType ? (type.typeName(false) + " ") : "") + par.name();
 				}
 			}));
 	}
@@ -388,7 +391,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (final String line : new String[] {
 			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
-			MessageFormat.format("<b>{0}</b><br/>", longParameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))), //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<b>{0}</b><br/>", parameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -708,7 +711,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
-		builder.append(longParameterString(EnumSet.of(ParameterStringOption.FunctionName)));
+		builder.append(parameterString(EnumSet.of(ParameterStringOption.FunctionName)));
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n{\n"); //$NON-NLS-1$
