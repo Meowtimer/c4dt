@@ -94,6 +94,10 @@ public class TypeChoice implements IType {
 	public String typeName(boolean special) {
 		final List<IType> types = new ArrayList<>(10);
 		collect(types);
+		if (special && types.size() == 2 && types.contains(PrimitiveType.ANY)) {
+			types.remove(PrimitiveType.ANY);
+			return types.get(0).typeName(true) + "?";
+		}
 		final Set<String> typeNames = new HashSet<>(types.size());
 		for (final IType t : types)
 			if (t != null)
