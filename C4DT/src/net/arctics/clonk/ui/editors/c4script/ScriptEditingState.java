@@ -290,37 +290,55 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	public Markers reparseFunction(final Function function, EnumSet<ScriptEditingState.ReparseFunctionMode> mode) {
+		// ignore this request when errors while typing disabled
 		if (errorsWhileTypingDisabled())
 			return new Markers();
+
 		final Markers markers = new Markers(new MarkerConfines(function));
 		markers.applyProjectSettings(structure.index());
-		final Set<Function> revisitFunctions = mode.contains(ReparseFunctionMode.REVISIT_CALLED_FUNCTIONS) ? new HashSet<Function>() : null;
-		if (revisitFunctions != null)
-			addCalls(revisitFunctions, function); // add old calls so when the user removes a call the function called will still be revisited
+		
+		// compute set of functions that were called by the old non-reparsed version of the function
+		// those will be revisited after performing the main visit
+		final Set<Function> oldCalledFunctions = mode.contains(ReparseFunctionMode.REVISIT_CALLED_FUNCTIONS) ? new HashSet<Function>() : null;
+		if (oldCalledFunctions != null)
+			addCalls(oldCalledFunctions, function);
+		
+		// actual reparsing
 		final C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
+		
+		// see above continued
+		if (oldCalledFunctions != null) {
+			final Set<Function> newCalledFunctions = new HashSet<Function>(oldCalledFunctions.size());
+			addCalls(newCalledFunctions, function);
+			oldCalledFunctions.removeAll(newCalledFunctions);
+		}
+		
+		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
+		// concrete parameters passed from here
 		structure.generateCaches();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
 			final ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 			if (markers != null)
 				mainTyping.setMarkers(markers);
 			mainTyping.visitFunction(function);
-			if (revisitFunctions != null) {
-				addCalls(revisitFunctions, function); // add new calls
-				// potentially revisit functions to adjust typing of parameters to the concrete parameter types supplied here
-				for (final Function called : revisitFunctions)
-					if (called != null && mainTyping.triggersRevisit(function, called))
-						if (markers != null && markers.listener() instanceof ScriptEditingState.MarkerConfines)
-							if (((ScriptEditingState.MarkerConfines)markers.listener()).add(called)) {
-								removeMarkers(called, called.script());
-								for (final Variable p : called.parameters())
-									p.forceType(PrimitiveType.UNKNOWN, false);
-								final ProblemReportingContext calledTyping = strategy.localTypingContext(called.parentOfType(Script.class), 0, mainTyping);
-								calledTyping.setMarkers(markers);
-								calledTyping.visitFunction(called);
-							}
-			}
+			if (oldCalledFunctions != null)
+				revisit(function, markers, oldCalledFunctions, strategy, mainTyping);
 		}
 		return markers;
+	}
+
+	private void revisit(final Function function, final Markers markers, final Set<Function> functions, final ProblemReportingStrategy strategy, final ProblemReportingContext mainTyping) {
+		for (final Function fn : functions)
+			if (fn != null && mainTyping.triggersRevisit(function, fn))
+				if (markers != null && markers.listener() instanceof ScriptEditingState.MarkerConfines)
+					if (((ScriptEditingState.MarkerConfines)markers.listener()).add(fn)) {
+						removeMarkers(fn, fn.script());
+						for (final Variable p : fn.parameters())
+							p.forceType(PrimitiveType.UNKNOWN, false);
+						final ProblemReportingContext calledTyping = strategy.localTypingContext(fn.parentOfType(Script.class), 0, mainTyping);
+						calledTyping.setMarkers(markers);
+						calledTyping.visitFunction(fn);
+					}
 	}
 
 	private boolean errorsWhileTypingDisabled() {

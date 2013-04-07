@@ -106,7 +106,7 @@ import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.typing.TypeUnification;
 import net.arctics.clonk.parser.c4script.typing.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference.CurrentFunctionReturnTypeVariable.State;
+import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference.FunctionVisitReturnTypeVariable.State;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.PerClass;
@@ -131,10 +131,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final Map<Script, ScriptInput> input = new HashMap<>();
 		boolean local = false;
 		Script[] scripts;
+		public synchronized ScriptInput getInput(Script script) { return input.get(script); }
 	}
 	private Shared shared;
 	private boolean typeThisAsObject;
-	
+
 	@Override
 	public void setArgs(String args) {
 		typeThisAsObject = false;
@@ -177,6 +178,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 		for (final ScriptInput info : shared.input.values())
 			dismissExperts(info.script());
 	}
+	
+	private Visitor requestVisitor(Function function, Visitor originator) {
+		final Script script = function.parentOfType(Script.class);
+		synchronized (shared) {
+			final ScriptInput input = shared.input.get(script);
+			if (input != null)
+				return new Visitor(originator, input);
+			// add new input when run locally but only if this is the first hop from an existing visitor
+			// and if the function to be visited previously required parameter typing from calls
+			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint())
+				return (Visitor)localTypingContext(script, 0, originator);
+			else
+				return null;
+		}
+	}
 
 	@Override
 	public ProblemReportingContext localTypingContext(Script script, int fragmentOffset, ProblemReportingContext chain) {
@@ -195,7 +211,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return new Visitor((Visitor) chain, info);
 	}
 
-	static final class CurrentFunctionReturnTypeVariable extends FunctionReturnTypeVariable {
+	/**
+	 * Type variable for the return type of a function that was visited.
+	 * {@link FunctionReturnTypeVariable}s are pre-created ({@link ScriptInput#makePlan()}) and determined (set to state {@link State#FINISHED}) in a not quite deterministic order.
+	 * Synchronization of multiple visitor threads will be performed by locking on objects of this type. 
+	 * @author madeen
+	 */
+	static final class FunctionVisitReturnTypeVariable extends FunctionReturnTypeVariable {
 		public enum State {
 			UNDETERMINED,
 			INPROGRESS,
@@ -207,7 +229,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.state = state;
 			this.thread = state == State.INPROGRESS ? Thread.currentThread() : null;
 		}
-		public CurrentFunctionReturnTypeVariable(Function function) { super(function); state = State.UNDETERMINED; }
+		public FunctionVisitReturnTypeVariable(Function function) { super(function); state = State.UNDETERMINED; }
 		@Override
 		public void apply(boolean soft) { /* done by Dabble */ }
 	}
@@ -220,7 +242,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final Shared shared;
 		final int strictLevel;
 		final boolean hasAppendTo;
-		final Map<Function, CurrentFunctionReturnTypeVariable> plan;
+		final Map<Function, FunctionVisitReturnTypeVariable> plan;
 		final IType thisType;
 		final Map<String, Declaration> variableMap = new HashMap<>();
 		final Map<String, Declaration> functionMap = new HashMap<>();
@@ -229,16 +251,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final TypeEnvironment typeEnvironment = new TypeEnvironment();
 		boolean finished = false;
 		public Script script() { return script; }
-		private HashMap<Function, CurrentFunctionReturnTypeVariable> makePlan() {
-			final HashMap<Function, CurrentFunctionReturnTypeVariable> result = new LinkedHashMap<>();
+		private HashMap<Function, FunctionVisitReturnTypeVariable> makePlan() {
+			final HashMap<Function, FunctionVisitReturnTypeVariable> result = new LinkedHashMap<>();
 			final List<Script> conglomerate = script.conglomerate();
 			for (final Script s : conglomerate)
 				if (s != script)
 					for (final Function f : s.functions())
 						if (script.seesFunction(f))
-							result.put(f, new CurrentFunctionReturnTypeVariable(f));
+							result.put(f, new FunctionVisitReturnTypeVariable(f));
 			for (final Function f : script.functions())
-				result.put(f, new CurrentFunctionReturnTypeVariable(f));
+				result.put(f, new FunctionVisitReturnTypeVariable(f));
 			return result;
 		}
 		public ScriptInput(Script script, int sourceFragmentOffset, Shared shared) {
@@ -489,7 +511,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			
 
 			final Script funScript = function.script();
-			CurrentFunctionReturnTypeVariable returnType;
+			FunctionVisitReturnTypeVariable returnType;
 			returnType = input.plan.get(function);
 			if (returnType != null)
 				synchronized (returnType) {
@@ -522,7 +544,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return uncheckedVisit(function, funScript, returnType);
 		}
 
-		public TypeVariable uncheckedVisit(Function function, final Script funScript, CurrentFunctionReturnTypeVariable returnType) {
+		public TypeVariable uncheckedVisit(Function function, final Script funScript, FunctionVisitReturnTypeVariable returnType) {
 			if (DEBUG)
 				System.out.println(String.format("%s: Visiting %s", this.script().name(), function.qualifiedName()));
 			final Function oldFunction = visitee;
@@ -624,10 +646,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final TypeVariable tv = allowThis ? visitFunction(function, this, allowWait) : null;
 			if (tv == null) {
 				// if that does not apply use another visitor
-				final ScriptInput script = input.shared.input.get(function.parentOfType(Script.class));
-				if (script != null) {
-					final Visitor other = new Visitor(this, script);
-					return other.visitFunction(function, this, allowWait) != null ? other : null;
+				final Visitor other = requestVisitor(function, this);
+				if (other != null) {
+					other.visitFunction(function, this, allowWait);
+					return other;
 				} else
 					return null;
 			} else
@@ -1187,7 +1209,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (predTy != null)
 							for (final IType _t : predTy)
 								if (_t instanceof Script) {
-									final ScriptInput nput = shared.input.get(_t);
+									final ScriptInput nput = shared.getInput((Script) _t);
 									if (nput != null)
 										new Visitor(visitor, nput).reportProblems();
 									final IType frt = ((Script)_t).variableTypes().get(d);
@@ -1698,7 +1720,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public TypeVariable createTypeVariable(ReturnStatement node, Visitor visitor) {
-					return new CurrentFunctionReturnTypeVariable(node.parentOfType(Function.class));
+					throw new InternalError(String.format("Should not be necessary to create new %s", FunctionVisitReturnTypeVariable.class.getSimpleName()));
 				}
 				@Override
 				public Declaration typeEnvironmentKey(ReturnStatement node, Visitor visitor) {
@@ -1811,8 +1833,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (predTy != null)
 								for (final IType _t : predTy)
 									if (_t instanceof Script) {
-										final ScriptInput nput = shared.input.get(_t);
-										final TypeVariable rtv = nput != null ? new Visitor(visitor, nput).visitFunction(fn) : null;
+										final Visitor other = requestVisitor(fn, visitor);
+										final TypeVariable rtv = other != null ? other.visitFunction(fn) : null;
 										if (rtv != null)
 											t = TypeUnification.unify(t, rtv.get());
 									}
@@ -1951,7 +1973,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Function inherited = fn.inheritedFunction();
 					if (inherited != null)
 						if (inherited.body() != null) {
-							final CurrentFunctionReturnTypeVariable ty = new CurrentFunctionReturnTypeVariable(inherited);
+							final FunctionVisitReturnTypeVariable ty = new FunctionVisitReturnTypeVariable(inherited);
 							new Visitor(visitor.input, visitor, inherited.script()).uncheckedVisit(inherited, inherited.script(), ty);
 							judgement(node, ty.get(), TypingJudgementMode.OVERWRITE, visitor);
 							return ty.get();
