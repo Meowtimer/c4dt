@@ -258,7 +258,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		class ProblemReportingObserver extends ExpressionLocator<ProblemReportingContext> {
 			public ASTNode contextExpression;
 			public Sequence contextSequence;
-			public IType sequenceType;
+			public IType precedingType;
 			public ProblemReportingObserver(int pos) { super(pos); }
 			@Override
 			public TraversalContinuation visitNode(ASTNode expression, ProblemReportingContext context) {
@@ -271,15 +271,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
 					) {
 						// we only care about sequences
-						contextSequence = Utilities.as(contextExpression.parent(), Sequence.class);
+						final ASTNode pred = contextExpression.predecessorInSequence();
+						contextSequence = pred != null ? Utilities.as(contextExpression.parent(), Sequence.class) : null;
 						if (contextSequence != null)
 							contextSequence = contextSequence.subSequenceIncluding(contextExpression);
-						sequenceType = contextExpression.predecessorInSequence() != null ? context.typeOf(contextExpression.predecessorInSequence()) : null;
+						precedingType = pred != null ? context.typeOf(pred) : null;
 					}
 				}
 				return c;
 			}
-			public IType sequenceType() { return defaulting(sequenceType, PrimitiveType.UNKNOWN); }
+			public IType sequenceType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
 		}
 		
 		final ProblemReportingObserver problemReportingObserver = new ProblemReportingObserver(preservedOffset);
