@@ -384,8 +384,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public Script structure() {
 		Script result = cachedScript.get();
-		if (result != null)
+		if (result != null) {
+			this.structure = result;
 			return result;
+		}
 
 		if (editors.isEmpty())
 			return super.structure();
@@ -425,6 +427,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return TraversalContinuation.Continue;
 				}
 			}, result);
+		this.structure = result;
 		return result;
 	}
 	
