@@ -153,6 +153,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		Runnable uiRefreshRunnable
 	) throws ParsingException {
 		final Markers markers = new Markers();
+		markers.applyProjectSettings(script.index());
 		final C4ScriptParser parser = parserForDocument(document, script);
 		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
