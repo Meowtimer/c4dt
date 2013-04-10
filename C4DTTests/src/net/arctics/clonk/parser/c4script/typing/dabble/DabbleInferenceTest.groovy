@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType
 import net.arctics.clonk.parser.c4script.ast.ThisType;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice
 import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference;
+import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.junit.Assert
@@ -109,16 +110,31 @@ public class DabbleInferenceTest extends TestBase {
 			setup.index.refresh()
 			setup.scripts.each { it.generateCaches() }
 			setup.inference.run()
-			Assert.assertEquals(PrimitiveType.STRING, base.findLocalFunction("Func3", false).parameters()[0].type())
-			Assert.assertEquals(PrimitiveType.STRING, derived.findLocalFunction("Func2", false).parameters()[0].type)
+			Assert.assertEquals(PrimitiveType.STRING.unified(), base.findLocalFunction("Func3", false).parameters()[0].type())
+			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type)
 			Assert.assertTrue(setup.inferenceMarkers.size() >= 1)
 			setup.inferenceMarkers.each { it -> Assert.assertTrue(
 				it.code == Problem.IncompatibleTypes ||
 				it.code == Problem.ConcreteArgumentMismatch
 			)}
 		}
-		order(true)
-		order(false)
+		boolean success = true
+		for (int cores = 1; cores <= Runtime.getRuntime().availableProcessors(); cores++) {
+			TaskExecution.threadPoolSize = cores
+			System.out.println("Using $cores cores")
+			for (int i = 1; i <= 100; i++) {
+				System.out.println("PASS $i")
+				try {
+					order(true)
+					order(false)
+				} catch (AssertionError ae) {
+					System.out.println("(cores=$cores, pass=$i, ${ae.getMessage()})")
+					success = false
+				}
+			}
+		}
+		if (!success)
+			Assert.fail("Not all passes successful")
 	}
 
 	@Test
