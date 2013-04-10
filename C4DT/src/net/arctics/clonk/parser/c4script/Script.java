@@ -199,6 +199,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		definedFunctions = declarations.functions;
 		definedVariables = declarations.variables;
 		usedScripts = declarations.used;
+		variableTypes = declarations.variableTypes;
+		functionReturnTypes = declarations.functionReturnTypes;
 		purgeNullEntries(definedFunctions, definedVariables, usedScripts);
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
@@ -209,8 +211,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
-		variableTypes = declarations.variableTypes;
-		functionReturnTypes = declarations.functionReturnTypes;
 	}
 
 	private void loadIncludes() {
@@ -1210,7 +1210,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return
 	 */
 	public final boolean seesFunction(Function function) {
-		return cachedFunctionMap == null || cachedFunctionMap.get(function.name()) == function;
+		if (cachedFunctionMap != null) {
+			final Function mine = cachedFunctionMap.get(function.name());
+			return mine == null || mine == function;
+		} else
+			return true;
 	}
 	
 	@Override
