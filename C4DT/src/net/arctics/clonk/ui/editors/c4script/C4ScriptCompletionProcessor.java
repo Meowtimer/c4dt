@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -47,6 +48,7 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
@@ -403,16 +405,30 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void structureProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, Script editorScript, final Sequence contextSequence, final IType sequenceType, int whatToDisplayFromScripts) {
 		final List<Declaration> proposalTypes = determineProposalTypes(editorScript, contextSequence, sequenceType);
-		for (final Declaration s : proposalTypes) {
-			proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
-			if (s instanceof IHasIncludes) {
-				@SuppressWarnings("unchecked")
-				final Iterable<? extends IHasIncludes<?>> includes =
+		if (proposalTypes.size() > 0)
+			for (final Declaration s : proposalTypes) {
+				proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
+				if (s instanceof IHasIncludes) {
+					@SuppressWarnings("unchecked")
+					final Iterable<? extends IHasIncludes<?>> includes =
 					((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
-				for (final IHasIncludes<?> inc : includes)
-					proposalsForStructure((Declaration) inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
+					for (final IHasIncludes<?> inc : includes)
+						proposalsForStructure((Declaration) inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
+				}
 			}
-		}
+		else
+			proposeAllTheThings(offset, prefix, proposals, index);
+	}
+
+	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
+		for (final Index x : index.relevantIndexes())
+			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
+				final Declaration d = decs.getValue().get(0);
+				if (d instanceof Function)
+					proposalForFunc((Function) d, prefix, offset, proposals, d.script().name(), true);
+				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
+					proposalForVar((Variable)d, prefix, offset, proposals);
+			}
 	}
 
 	private List<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {
