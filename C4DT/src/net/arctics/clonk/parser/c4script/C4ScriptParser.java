@@ -803,9 +803,16 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			t = pt = PrimitiveType.fromString(str, script == engine||typing==Typing.Static);
 			if (pt != null && !script.engine().supportsPrimitiveType(pt))
 				t = null;
-			else if (t == null && typing.allowsNonParameterAnnotations())
+			else if (t == null && typing.allowsNonParameterAnnotations()) {
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
+			}
+			else if (pt != null)
+				/* give explicit parameter types authority boost -
+				 * they won't unify with Definitions so that expressions
+				 * which might be any object are restricted to that Definition
+				 */
+				t = pt.unified();
 			if (t != null) {
 				final int p = offset;
 				eatWhitespace();
