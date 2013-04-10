@@ -256,6 +256,8 @@ public enum PrimitiveType implements IType {
 		@Override
 		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
 		public PrimitiveType base() { return PrimitiveType.this; }
+		@Override
+		public boolean equals(Object obj) { return obj instanceof Unified && ((Unified)obj).simpleType() == this.simpleType(); }
 	}
 
 	final Unified unified = new Unified();
