@@ -310,6 +310,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			visitor.endTypeEnvironment(env2, true, false);
 			apply();
 		}
+		@Override
+		public String toString() { return script.name(); }
 	}
 
 	private static final IASTVisitor<Void> CLEAR_DECLARATION_REFERENCES_VISITOR = new IASTVisitor<Void>() {
@@ -343,6 +345,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		
 		public FunctionVisitReturnTypeVariable visitee;
 		
+		@Override
+		public String toString() { return String.format("Visitor (%s)", input.toString()); }
 		@Override
 		public void setObserver(IASTVisitor<ProblemReportingContext> observer) { this.observer = observer; }
 		
