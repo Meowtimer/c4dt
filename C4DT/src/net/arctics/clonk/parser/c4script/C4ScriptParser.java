@@ -808,7 +808,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (script.index() != null && engine.acceptsId(str))
 					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
 			}
-			else if (pt != null)
+			else if (pt != null && script != engine)
 				/* give explicit parameter types authority boost -
 				 * they won't unify with Definitions so that expressions
 				 * which might be any object are restricted to that Definition

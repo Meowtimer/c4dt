@@ -251,6 +251,8 @@ public enum PrimitiveType implements IType {
 		@Override
 		public String typeName(boolean special) { return PrimitiveType.this.typeName(special); }
 		@Override
+		public String toString() { return typeName(true); }
+		@Override
 		public IType simpleType() { return PrimitiveType.this; }
 		@Override
 		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
