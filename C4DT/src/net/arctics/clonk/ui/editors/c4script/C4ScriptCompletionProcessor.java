@@ -535,9 +535,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (contextExpression instanceof Placeholder || contextExpression instanceof StringLiteral) {
 			try {
 				if (doc.getChar(offset-1) != '$')
-					return false;
+					return true;
 			} catch (final BadLocationException e1) {
-				return false;
+				return true;
 			}
 			final Set<String> availableLocalizationStrings = new HashSet<>();
 			try {
