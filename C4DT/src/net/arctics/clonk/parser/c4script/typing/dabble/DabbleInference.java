@@ -106,7 +106,6 @@ import net.arctics.clonk.parser.c4script.ast.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.typing.TypeUnification;
 import net.arctics.clonk.parser.c4script.typing.TypingJudgementMode;
-import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference.FunctionVisitReturnTypeVariable.State;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.PerClass;
@@ -134,6 +133,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public synchronized ScriptInput getInput(Script script) { return input.get(script); }
 	}
 	private Shared shared;
+	
+	// flags
 	private boolean typeThisAsObject;
 
 	@Override
@@ -179,8 +180,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			dismissExperts(info.script());
 	}
 	
-	private Visitor requestVisitor(Function function, Visitor originator) {
-		final Script script = function.parentOfType(Script.class);
+	private Visitor requestVisitor(Script script, Function function, Visitor originator) {
 		synchronized (shared) {
 			final ScriptInput input = shared.input.get(script);
 			if (input != null)
@@ -218,13 +218,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * @author madeen
 	 */
 	static final class FunctionVisitReturnTypeVariable extends FunctionReturnTypeVariable {
-		public enum State {
-			UNDETERMINED,
-			INPROGRESS,
-			FINISHED
-		}
 		public State state;
 		public Thread thread;
+		public Visitor visitor;
 		public void state(State state) {
 			this.state = state;
 			this.thread = state == State.INPROGRESS ? Thread.currentThread() : null;
@@ -232,6 +228,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public FunctionVisitReturnTypeVariable(Function function) { super(function); state = State.UNDETERMINED; }
 		@Override
 		public void apply(boolean soft) { /* done by Dabble */ }
+	}
+	
+	public enum State {
+		UNDETERMINED,
+		INPROGRESS,
+		FINISHED
 	}
 
 	protected final class ScriptInput {
@@ -249,7 +251,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
 		final TypeEnvironment typeEnvironment = new TypeEnvironment();
-		boolean finished = false;
+		State mainVisitState = State.UNDETERMINED;
 		public Script script() { return script; }
 		private HashMap<Function, FunctionVisitReturnTypeVariable> makePlan() {
 			final HashMap<Function, FunctionVisitReturnTypeVariable> result = new LinkedHashMap<>();
@@ -336,14 +338,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private Markers markers;
 		private TypeEnvironment typeEnvironment;
 		private Function preliminaryVisitee;
-		private Function visitee;
 		private IASTVisitor<ProblemReportingContext> observer;
+		
+		public FunctionVisitReturnTypeVariable visitee;
 		
 		@Override
 		public void setObserver(IASTVisitor<ProblemReportingContext> observer) { this.observer = observer; }
 		
-		public Function visitee() { return visitee; }
-
 		public Visitor(ScriptInput data, Visitor originator, Script... scope) {
 			this.originator = originator;
 			this.markers = DabbleInference.this.markers();
@@ -380,7 +381,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visitor visitor = delegateFunctionVisit(f, false, true);
+					final FunctionVisitReturnTypeVariable calledTy = delegateFunctionVisit(f, f.parentOfType(Script.class), false, true);
+					final Visitor visitor = calledTy != null ? calledTy.visitor : null;
 					visitors[ci] = visitor;
 					Function ref = as(visitor != null ? visitor.obtainDeclaration(call) : call.declaration(), Function.class);
 					if (ref != null) {
@@ -505,7 +507,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}, null);
 		}
 
-		public TypeVariable visitFunction(Function function, Visitor originator, boolean wait) {
+		public FunctionVisitReturnTypeVariable visitFunction(Function function, Visitor originator, boolean wait) {
 			if (function == null || function.body() == null)
 				return null;
 			
@@ -521,14 +523,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case INPROGRESS:
 						if (wait && returnType.thread != Thread.currentThread()) {
 							if (DEBUG && originator != null && originator.visitee != null)
-								System.out.println(String.format("'%s' waiting for '%s'", originator.visitee.qualifiedName(), function.qualifiedName()));
+								System.out.println(String.format("'%s' waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName()));
 							int i;
 							for (i = 0; i < 3 && returnType.state != State.FINISHED; i++)
 								try {
 									returnType.wait(40);
 								} catch (final InterruptedException e) {}
 							if (i == 3 && originator != null && originator.visitee != null)
-								System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visitee.qualifiedName(), function.qualifiedName()));
+								System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName()));
 							else
 								return returnType;
 						}
@@ -544,15 +546,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return uncheckedVisit(function, funScript, returnType);
 		}
 
-		public TypeVariable uncheckedVisit(Function function, final Script funScript, FunctionVisitReturnTypeVariable returnType) {
+		public FunctionVisitReturnTypeVariable uncheckedVisit(Function function, final Script funScript, FunctionVisitReturnTypeVariable returnType) {
 			if (DEBUG)
 				System.out.println(String.format("%s: Visiting %s", this.script().name(), function.qualifiedName()));
-			final Function oldFunction = visitee;
+			final FunctionVisitReturnTypeVariable oldVisitee = visitee;
 			final boolean ownedFunction = funScript == script();
 			final ASTNode[] statements = function.body().statements();
 			if (funScript != input.script)
 				startRoaming();
-			visitee = function;
+			visitee = returnType;
+			returnType.visitor = this;
 			assignExperts(function);
 			try {
 				final TypeEnvironment env = newTypeEnvironment();
@@ -630,30 +633,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 					returnType.state(State.FINISHED);
 					returnType.notifyAll();
 				}
-				visitee = oldFunction;
+				visitee = oldVisitee;
 				if (funScript != input.script)
 					endRoaming();
 			}
 			return returnType;
 		}
 
-		public final Visitor delegateFunctionVisit(Function function, boolean allowThis, boolean allowWait) {
+		public final FunctionVisitReturnTypeVariable delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
 			if (function.body() == null)
 				return null;
 			for (Visitor v = this; v != null; v = v.originator)
-				if (v.visitee == function)
-					return v;
-			final TypeVariable tv = allowThis ? visitFunction(function, this, allowWait) : null;
+				if (v.visitee != null && v.visitee.function() == function)
+					return v.visitee;
+			final FunctionVisitReturnTypeVariable tv = allowThis ? visitFunction(function, this, allowWait) : null;
 			if (tv == null) {
 				// if that does not apply use another visitor
-				final Visitor other = requestVisitor(function, this);
-				if (other != null) {
-					other.visitFunction(function, this, allowWait);
-					return other;
-				} else
+				final Visitor other = requestVisitor(script, function, this);
+				if (other != null)
+					return other.visitFunction(function, this, allowWait);
+				else
 					return null;
 			} else
-				return this;
+				return tv;
 		}
 
 		public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
@@ -788,18 +790,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 		@Override
 		public void reportProblems() {
 			synchronized (input) {
-				if (input.finished)
+				switch (input.mainVisitState) {
+				case UNDETERMINED:
+					input.mainVisitState = State.INPROGRESS;
+					break;
+				case FINISHED:
 					return;
-				else
-					input.finished = true;
+				case INPROGRESS:
+					return; // meh
+				}
 			}
 			input.mainVisit(this);
+			synchronized (input) {
+				input.mainVisitState = State.FINISHED;
+				input.notifyAll();
+			}
 		}
 
 		@Override
 		public void run() {
-			if (input.finished)
-				return;
 			if (progressMonitor.isCanceled())
 				return;
 			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name()));
@@ -962,7 +971,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public TypeVariable findParameterTypeVariable(Variable parameter, Visitor visitor) {
 			final Function function = parameter.parentOfType(Function.class);
 			for (Visitor v = visitor; v != null; v = v.originator)
-				if (v.visitee == function)
+				if (v.visitee != null && v.visitee.function() == function)
 					return findTypeVariable(parameter, v);
 			return null;
 		}
@@ -1151,15 +1160,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
 						if (v instanceof Definition)
 							v = ((Definition)v).proxyVar();
-						if (v != null) {
-							final Variable var = as(v, Variable.class);
-							if (var != null && var.initializationExpression() != null) {
-								final Function p = var.initializationExpression().parentOfType(Function.class);
-								if (p != null)
-									visitor.delegateFunctionVisit(p, scriptToLookIn == visitor.input.script, true);
-							}
-							return v;
-						}
+						return v;
 					}
 				}
 				return null;
@@ -1194,9 +1195,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public IType type(T node, Visitor visitor) {
 				final Declaration d = internalObtainDeclaration(node, visitor);
-				// declarationFromContext(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 				if (d == Variable.THIS)
-					return visitor.input.thisType;
+					return node.parentOfType(Function.class).isGlobal()
+						? CallTargetType.INSTANCE // global func - don't assume this to be typed as this script
+						: visitor.input.thisType;
 				final TypeVariable stored = findTypeVariable(node, visitor);
 				if (stored != null)
 					return stored.get();
@@ -1720,7 +1722,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public TypeVariable createTypeVariable(ReturnStatement node, Visitor visitor) {
-					throw new InternalError(String.format("Should not be necessary to create new %s", FunctionVisitReturnTypeVariable.class.getSimpleName()));
+					return new FunctionReturnTypeVariable(node.parentOfType(Function.class));
 				}
 				@Override
 				public Declaration typeEnvironmentKey(ReturnStatement node, Visitor visitor) {
@@ -1797,13 +1799,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							f = findUsingType(visitor, node, declarationName, visitor.script());
 							visitor.input.functionMap.put(declarationName, f);
 						}
-					}
-					else
+					} else
 						f = findUsingType(visitor, node, declarationName, ty(p, visitor));
-					if (f instanceof Function) {
-						final Function fn = (Function)f;
-						visitor.delegateFunctionVisit(fn, node.predecessorInSequence() == null, false);
-					}
 					return f;
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
@@ -1816,9 +1813,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// calling this() as function -> return object type belonging to script
 					if (node.params().length == 0 && d != null && (d == visitor.cachedEngineDeclarations().This || d == Variable.THIS))
-						return visitor.input.thisType;
+						return node.parentOfType(Function.class).isGlobal() ? CallTargetType.INSTANCE : visitor.input.thisType;
 
 					if (d instanceof Function) {
+						final Function fn = (Function) d;
 						// Some special rule applies and the return type is set accordingly
 						final SpecialFuncRule rule = node.specialRuleFromContext(visitor, SpecialEngineRules.RETURNTYPE_MODIFIER);
 						if (rule != null) {
@@ -1827,25 +1825,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 								return type;
 						}
 						IType t = PrimitiveType.UNKNOWN;
-						final Function fn = (Function) d;
 						if (node.predecessorInSequence() != null) {
 							final IType predTy = ty(node.predecessorInSequence(), visitor);
 							if (predTy != null)
 								for (final IType _t : predTy)
 									if (_t instanceof Script) {
-										final Visitor other = requestVisitor(fn, visitor);
-										final TypeVariable rtv = other != null ? other.visitFunction(fn) : null;
-										if (rtv != null)
-											t = TypeUnification.unify(t, rtv.get());
+										final Script _s = (Script)_t;
+										final Visitor other = requestVisitor(_s, fn, visitor);
+										final TypeVariable rtv = other != null ? other.visitFunction(_s.override(fn)) : null;
+										t = TypeUnification.unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 									}
-						}
+						} else
+							visitor.delegateFunctionVisit(fn, visitor.script(), true, false);
 						return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
 					}
 					if (d instanceof Variable) {
 						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
 						return t != null ? t : ((Variable)d).type();
 					}
-
 					return supr != null ? supr.type(node, visitor) : PrimitiveType.UNKNOWN;
 				}
 				private boolean unknownFunctionShouldBeError(CallDeclaration node, Visitor visitor) {
@@ -2230,7 +2227,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<MemberOperator>(MemberOperator.class) {
-				final IType OBJECTISH = new CallTargetType();
+				final IType OBJECTISH = CallTargetType.INSTANCE;
 				@Override
 				public IType type(MemberOperator node, Visitor visitor) {
 					if (node.id() != null)

@@ -275,29 +275,34 @@ func Test()
 	@Test
 	public void testReturnTypeOfInheritedFunctionRevisitedIndirect() {
 		def definitions = [
-			new DefinitionInfo(source:"""// Base
-func Type() { return Clonk; }
-func MakeObject() {
-  return CreateObject(Type());
-}""", name:'Base'),
-			new DefinitionInfo(source:"""// Derived
-#include Base
-
-func Type() { return Wipf; }
-
-func Usage() {
-  // MakeObject() typed
-  //as instance of type Wipf
-  MakeObject()->WipfMethod();
-}""", name:'Derived'),
-			new DefinitionInfo(source:'', name:'Clonk'),
-			new DefinitionInfo(source:'', name:'Wipf'),
-			new DefinitionInfo(source:
+			new DefinitionInfo(name:'Base', source:
+				"""// Base
+				func Type() { return Clonk; }
+				func MakeObject() {
+					return CreateObject(Type());
+				}"""
+			),
+			new DefinitionInfo(name:'Derived', source:
+				"""
+				#include Base
+				
+				func Type() { return Wipf; }
+				
+				func Usage() {
+					// MakeObject() typed
+					//as instance of type Wipf
+					MakeObject()->WipfMethod();
+				}"""
+			),
+			new DefinitionInfo(name:'Clonk', source:''),
+			new DefinitionInfo(name: 'Wipf', source:''),
+			new DefinitionInfo(name: 'User', source:
 				"""
 				func Usage() {
 					return CreateObject(Derived)->MakeObject();
 				}
-				""", name:'User')
+				"""
+			)
 		] as DefinitionInfo[]
 
 		def setup = new Setup(definitions)
@@ -311,7 +316,6 @@ func Usage() {
 		Assert.assertEquals(new MetaDefinition(clonk), base.functionReturnTypes()['Type'])
 		Assert.assertEquals(wipf, derived.functionReturnTypes()['MakeObject'])
 		Assert.assertEquals(new MetaDefinition(wipf), derived.functionReturnTypes()['Type'])
-		
 		Assert.assertEquals(wipf, user.functionReturnTypes()['Usage'])
 	}
 

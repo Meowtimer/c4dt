@@ -1217,6 +1217,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return true;
 	}
 	
+	public Function override(Function function) {
+		if (cachedFunctionMap != null) {
+			final Function ovr = cachedFunctionMap.get(function);
+			if (ovr != null)
+				return ovr;
+		}
+		return function;
+	}
+	
 	@Override
 	public boolean seesSubDeclaration(Declaration subDeclaration) {
 		if (subDeclaration instanceof Function)

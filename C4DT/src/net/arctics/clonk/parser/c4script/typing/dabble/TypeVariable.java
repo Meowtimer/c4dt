@@ -16,5 +16,4 @@ public abstract class TypeVariable implements Cloneable {
 	public TypeVariable clone() throws CloneNotSupportedException { return (TypeVariable)super.clone(); }
 	@Override
 	public String toString() { return "<>: " + get(); } //$NON-NLS-1$
-
 }
