@@ -89,7 +89,7 @@ public abstract class Utilities {
 	}
 
 	public static IFile fileEditedBy(IEditorPart editor) {
-		IEditorInput editorInput = editor.getEditorInput();
+		final IEditorInput editorInput = editor.getEditorInput();
 		return fileFromEditorInput(editorInput);
 	}
 
@@ -123,7 +123,7 @@ public abstract class Utilities {
 	 * @return true if resources are both null or denote the same resource, false if not
 	 */
 	public static boolean eq(Object a, Object b) {
-		return (a == null && b == null) || (a != null && b != null && a.equals(b));
+		return (a == null && b == null) || (a != null && b != null && (a.equals(b)||b.equals(a)));
 	}
 
 	public static boolean objectsNonNullEqual(Object a, Object b) {
