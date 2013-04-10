@@ -38,7 +38,7 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	public boolean equals(Object other) {
 		if (other instanceof Pair<?, ?>) {
 			Pair<?, ?> otherPair = (Pair<?, ?>) other;
-			return Utilities.objectsEqual(first, otherPair.first) && Utilities.objectsEqual(second, otherPair.second);
+			return Utilities.eq(first, otherPair.first) && Utilities.eq(second, otherPair.second);
 		} else
 			return false;
 	}

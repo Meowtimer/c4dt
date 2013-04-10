@@ -900,7 +900,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			final Index externalIndex = index(index);
 			if (externalIndex != null) {
 				result = externalIndex.entityWithId(referencedEntityId);
-				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken))
+				if (result == null || !Utilities.eq(result.additionalEntityIdentificationToken(), referencedEntityToken))
 					if (referencedEntityToken != null)
 						for (final IndexEntity e : externalIndex.entities()) {
 							final Object token = e.additionalEntityIdentificationToken();

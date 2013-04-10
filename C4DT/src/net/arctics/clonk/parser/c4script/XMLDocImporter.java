@@ -99,7 +99,7 @@ public class XMLDocImporter {
 	}
 
 	public synchronized void setRepositoryPath(String repositoryPath) {
-		if (Utilities.objectsEqual(repositoryPath, this.repositoryPath))
+		if (Utilities.eq(repositoryPath, this.repositoryPath))
 			return;
 		this.repositoryPath = repositoryPath;
 		discardInitialization();

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.typing.dabble;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1466,7 +1467,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (origin != null) {
 						final IType elmTy = ty(leftSide.argument(), visitor);
 						for (final IType e : elmTy)
-							if (e == PrimitiveType.STRING)
+							if (eq(e, PrimitiveType.STRING))
 								return judgement(pred, PrimitiveType.PROPLIST, mode, visitor);
 						return judgement(pred, new ArrayType(rightSideType), TypingJudgementMode.UNIFY, visitor);
 					}
@@ -1484,13 +1485,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					else if (PrimitiveType.UNKNOWN != type && PrimitiveType.ANY != type) {
 						final IType argType = ty(arg, visitor);
 						final ASTNode pred = node.predecessorInSequence();
-						if (argType == PrimitiveType.STRING) {
+						if (eq(argType, PrimitiveType.STRING)) {
 							if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 								visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
 							else
 								judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY, visitor);
 						}
-						else if (argType == PrimitiveType.INT)
+						else if (eq(argType, PrimitiveType.INT))
 							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 								visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
 							//else
@@ -2254,7 +2255,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								ty(pred, stmReporter, visitor).typeName(false));
 						else {
 							final IType predTy = ty(pred, visitor);
-							if (predTy == PrimitiveType.UNKNOWN || predTy == PrimitiveType.ANY)
+							if (eq(predTy, PrimitiveType.UNKNOWN) || eq(predTy, PrimitiveType.ANY))
 								judgement(pred, requiredType, TypingJudgementMode.UNIFY, visitor);
 						}
 					}

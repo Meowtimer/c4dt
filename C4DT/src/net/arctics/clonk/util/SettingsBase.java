@@ -30,7 +30,7 @@ public abstract class SettingsBase implements Cloneable {
 			try {
 				Object fVal = f.get(this);
 				Object objVal = f.get(obj);
-				if (!Utilities.objectsEqual(fVal, objVal))
+				if (!Utilities.eq(fVal, objVal))
 					return false;
 			} catch (Exception e) {
 				e.printStackTrace();

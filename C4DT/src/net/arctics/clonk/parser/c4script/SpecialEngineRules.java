@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.Serializable;
 import java.lang.annotation.ElementType;
@@ -455,7 +456,7 @@ public abstract class SpecialEngineRules {
 				t = PrimitiveType.OBJECT;
 			if (t != null) {
 				final Function f = (Function) callFunc.declaration();
-				if (f != null && f.returnType() == PrimitiveType.ARRAY)
+				if (f != null && eq(f.returnType(), PrimitiveType.ARRAY))
 					return new ArrayType(t);
 			}
 			return t;

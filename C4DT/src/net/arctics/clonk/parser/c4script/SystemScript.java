@@ -45,7 +45,7 @@ public class SystemScript extends Script implements Serializable {
 	
 	@Override
 	public void setScriptFile(IFile f) {
-		if (Utilities.objectsEqual(scriptFile, f))
+		if (Utilities.eq(scriptFile, f))
 			return;
 		if (scriptFile != null)
 			super.unPinFrom(scriptFile);

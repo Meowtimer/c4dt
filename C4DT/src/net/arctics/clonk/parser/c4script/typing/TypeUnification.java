@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class TypeUnification {
 			case STRING:
 				break;
 			case BOOL:
-				if (b == PrimitiveType.INT)
+				if (eq(b, PrimitiveType.INT))
 					return b;
 				break;
 			case PROPLIST:

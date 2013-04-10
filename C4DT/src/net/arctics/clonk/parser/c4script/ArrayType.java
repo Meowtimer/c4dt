@@ -55,7 +55,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	public boolean equals(Object obj) {
 		if (obj instanceof ArrayType) {
 			final ArrayType otherArrType = (ArrayType) obj;
-			return Utilities.objectsEqual(this.elementType, otherArrType.elementType);
+			return Utilities.eq(this.elementType, otherArrType.elementType);
 		} else
 			return false;
 	}

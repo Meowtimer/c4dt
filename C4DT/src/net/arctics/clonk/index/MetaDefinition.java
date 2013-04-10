@@ -29,6 +29,6 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	@Override
 	public boolean equals(Object obj) {
 		final MetaDefinition other = as(obj, MetaDefinition.class);
-		return other != null && Utilities.objectsEqual(other.definition(), definition());
+		return other != null && Utilities.eq(other.definition(), definition());
 	}
 }

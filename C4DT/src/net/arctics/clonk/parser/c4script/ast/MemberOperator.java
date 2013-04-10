@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import static net.arctics.clonk.util.Utilities.objectsEqual;
+import static net.arctics.clonk.util.Utilities.eq;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
@@ -101,7 +101,7 @@ public class MemberOperator extends ASTNode {
 		if (!super.equalAttributes(other))
 			return false;
 		MemberOperator otherOp = (MemberOperator) other;
-		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !objectsEqual(id, otherOp.id))
+		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !eq(id, otherOp.id))
 			return false;
 		return true;
 	}

@@ -20,7 +20,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 
 	public abstract T literal();
 	public boolean literalsEqual(Literal<?> other) {
-		return Utilities.objectsEqual(other.literal(), this.literal());
+		return Utilities.eq(other.literal(), this.literal());
 	}
 
 	@Override

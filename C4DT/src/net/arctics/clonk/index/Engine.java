@@ -111,7 +111,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		this.currentSettings = settings;
 		saveSettings();
 		if (
-			!Utilities.objectsEqual(oldSettings.repositoryPath, settings.repositoryPath) ||
+			!Utilities.eq(oldSettings.repositoryPath, settings.repositoryPath) ||
 			oldSettings.readDocumentationFromRepository != settings.readDocumentationFromRepository
 		)
 			if (settings.readDocumentationFromRepository)

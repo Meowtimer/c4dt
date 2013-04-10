@@ -303,7 +303,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @throws CoreException
 	 */
 	public void setDefinitionFolder(IContainer folder) throws CoreException {
-		if (Utilities.objectsEqual(folder, definitionFolder))
+		if (Utilities.eq(folder, definitionFolder))
 			return;
 		if (definitionFolder != null && definitionFolder.exists())
 			definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);

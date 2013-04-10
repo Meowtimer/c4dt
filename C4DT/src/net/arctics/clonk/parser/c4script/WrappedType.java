@@ -25,7 +25,7 @@ public abstract class WrappedType implements IType {
 	public boolean equals(Object obj) {
 		if (obj.getClass() == this.getClass()) {
 			final WrappedType other = (WrappedType)obj;
-			return Utilities.objectsEqual(other.wrappedType, this.wrappedType);
+			return Utilities.eq(other.wrappedType, this.wrappedType);
 		} else
 			return false;
 	}

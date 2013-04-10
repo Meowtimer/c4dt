@@ -54,7 +54,7 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 		if (obj instanceof C4ScriptContextInformation) {
 			C4ScriptContextInformation other = (C4ScriptContextInformation) obj;
 			return
-				Utilities.objectsEqual(getInformationDisplayString(), other.getInformationDisplayString());
+				Utilities.eq(getInformationDisplayString(), other.getInformationDisplayString());
 		}
 		return false;
 	}

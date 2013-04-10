@@ -225,7 +225,7 @@ public class ArrayUtil {
 	 */
 	public static <T> int indexOf(T[] items, T item) {
 		for (int i = 0; i < items.length; i++)
-			if (Utilities.objectsEqual(items[i], item))
+			if (Utilities.eq(items[i], item))
 				return i;
 		return -1;
 	}
@@ -304,7 +304,7 @@ public class ArrayUtil {
 		if (a.length != b.length)
 			return false;
 		for (int i = 0; i < a.length; i++)
-			if (!Utilities.objectsEqual(a[i], b[i]))
+			if (!Utilities.eq(a[i], b[i]))
 				return false;
 		return true;
 	}

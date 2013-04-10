@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -822,7 +823,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					break;
 				case '[':
 					if (typing == Typing.Static || migrationTyping == Typing.Static)
-						if (t == PrimitiveType.ARRAY) {
+						if (eq(t, PrimitiveType.ARRAY)) {
 							eatWhitespace();
 							final IType elementType = parseTypeAnnotation(false, true);
 							expect(']');

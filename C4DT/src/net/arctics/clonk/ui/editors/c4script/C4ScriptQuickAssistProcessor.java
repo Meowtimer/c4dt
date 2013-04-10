@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
 import java.util.ArrayList;
@@ -618,7 +619,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				break;
 			case IncompatibleTypes:
 				final PrimitiveType t = Markers.expectedType(marker);
-				if (t == PrimitiveType.STRING) {
+				if (eq(t, PrimitiveType.STRING)) {
 					final StringLiteral str = new StringLiteral(offendingExpression.toString());
 					str.setLocation(offendingExpression);
 					replacements.add(

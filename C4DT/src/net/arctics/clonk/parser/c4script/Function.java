@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -562,7 +563,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			case Dynamic:
 				break;
 			case ParametersOptionallyTyped:
-				if (returnType == PrimitiveType.REFERENCE)
+				if (eq(returnType, PrimitiveType.REFERENCE))
 					output.append(" &");
 				break;
 			case Static:

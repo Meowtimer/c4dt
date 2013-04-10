@@ -60,7 +60,7 @@ public class Value extends DebugElement implements IValue {
 	public boolean equals(Object obj) {
 		if (obj instanceof Value) {
 			Value other = (Value) obj;
-			return Utilities.objectsEqual(other.value, value);
+			return Utilities.eq(other.value, value);
 		}
 		return false;
 	}

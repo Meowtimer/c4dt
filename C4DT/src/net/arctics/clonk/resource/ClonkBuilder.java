@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.IOException;
@@ -319,7 +320,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 								builder.delete(annot.start(), annot.end());
 								builder.insert(annot.start(), " ");
 								IType type = annot.target().type();
-								if (type == PrimitiveType.UNKNOWN)
+								if (eq(type, PrimitiveType.UNKNOWN))
 									type = PrimitiveType.ANY;
 								builder.insert(annot.start(), type.typeName(false));
 							}

@@ -520,7 +520,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			IniField annot;
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
 				final String category = IniUnitParser.category(annot, object.getClass());
-				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
+				if (defaults != null && Utilities.eq(f.get(object), f.get(defaults)))
 					continue;
 				final IniSectionDefinition dataSection = configuration().sections().get(category);
 				if (dataSection != null) {

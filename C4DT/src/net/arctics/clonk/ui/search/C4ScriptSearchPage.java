@@ -4,7 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.objectsEqual;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +101,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		public boolean equals(Object obj) {
 			if (obj instanceof Recent) {
 				Recent r = (Recent)obj;
-				return objectsEqual(template, r.template) && objectsEqual(replacement, r.replacement);
+				return eq(template, r.template) && eq(replacement, r.replacement);
 			}
 			else
 				return false;

@@ -122,7 +122,7 @@ public abstract class Utilities {
 	 * @param b the second resource
 	 * @return true if resources are both null or denote the same resource, false if not
 	 */
-	public static boolean objectsEqual(Object a, Object b) {
+	public static boolean eq(Object a, Object b) {
 		return (a == null && b == null) || (a != null && b != null && a.equals(b));
 	}
 

@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -455,7 +456,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				typing = ((ProjectIndex)index).nature().settings().typing;
 			switch (typing) {
 			case Static:
-				if (vi.type == PrimitiveType.ERRONEOUS) {
+				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
 					proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values()) 
@@ -835,7 +836,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		try {
 			// HACK: if changed, hide the old one -.-
-			if (!Utilities.objectsEqual(prevInformation, info))
+			if (!Utilities.eq(prevInformation, info))
 				hideProposals();
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {

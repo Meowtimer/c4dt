@@ -75,7 +75,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
 		T result = null;
 		for (final T s : list)
-			if (Utilities.objectsEqual(s.structure(), structure)) {
+			if (Utilities.eq(s.structure(), structure)) {
 				result = s;
 				break;
 			}

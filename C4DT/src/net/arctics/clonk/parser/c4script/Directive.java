@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
-import static net.arctics.clonk.util.Utilities.objectsEqual;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
@@ -144,7 +144,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		switch (type) {
 		case APPENDTO: case INCLUDE:
 			final ID id = contentAsID();
-			return Utilities.objectsEqual(id, definition.id());
+			return Utilities.eq(id, definition.id());
 		default:
 			return false;
 		}
@@ -162,7 +162,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		final Directive d = (Directive) other;
-		if (objectsEqual(d.content, this.content))
+		if (eq(d.content, this.content))
 			return true;
 		return false;
 	}

@@ -205,7 +205,6 @@ public enum PrimitiveType implements IType {
 				break;
 			}
 			break;
-
 		case ANY:
 			return value;
 		default:
@@ -257,7 +256,14 @@ public enum PrimitiveType implements IType {
 		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
 		public PrimitiveType base() { return PrimitiveType.this; }
 		@Override
-		public boolean equals(Object obj) { return obj instanceof Unified && ((Unified)obj).simpleType() == this.simpleType(); }
+		public boolean equals(Object obj) {
+			if (obj instanceof PrimitiveType)
+				return obj == PrimitiveType.this;
+			else if (obj instanceof Unified)
+				return ((Unified)obj).simpleType() == this.simpleType();
+			else
+				return false;
+		}
 	}
 
 	final Unified unified = new Unified();

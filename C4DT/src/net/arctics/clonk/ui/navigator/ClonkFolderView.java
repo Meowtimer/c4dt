@@ -284,7 +284,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
 			? new File( clonkPath)
 			: new File("/"); //$NON-NLS-1$
-		if (!onlyIfInputChanged || !Utilities.objectsEqual(folderTree.getInput(), clonkFolder))
+		if (!onlyIfInputChanged || !Utilities.eq(folderTree.getInput(), clonkFolder))
 			folderTree.setInput(clonkFolder);
 	}
 
