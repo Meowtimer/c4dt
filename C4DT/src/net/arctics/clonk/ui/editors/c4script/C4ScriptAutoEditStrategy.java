@@ -127,8 +127,8 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 		if (tabOverOverrideRegion(c))
 			return;
-
-		if (tabToNextParameter(c))
+		
+		if (tabToNextParameter(d, c))
 			return;
 
 		// auto-block
@@ -146,7 +146,16 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		super.customizeDocumentCommand(d, c);
 	}
 
-	private boolean tabToNextParameter(DocumentCommand c) {
+	private boolean tabToNextParameter(IDocument d, DocumentCommand c) {
+		if (c.offset > 0)
+			try {
+				switch (d.getChar(c.offset-1)) {
+				case '\t': case '\n': case '\r':
+					return false;
+				default:
+					break;
+				}
+			} catch (final BadLocationException e) { return false; }
 		try {
 			if (c.text.equals("\t")) {
 				final FuncCallInfo call = configuration().editor().innermostFunctionCallParmAtOffset(c.offset);
