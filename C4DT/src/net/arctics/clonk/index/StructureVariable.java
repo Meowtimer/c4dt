@@ -13,7 +13,7 @@ import net.arctics.clonk.util.IHasRelatedResource;
 import org.eclipse.core.resources.IResource;
 
 public class StructureVariable extends Variable implements IReplacedWhenSaved {
-	protected static class Ticket implements Serializable, ISerializationResolvable {
+	protected static class Ticket implements Serializable, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name, resourcePath;
 		public Ticket(String name, String resourcePath) {

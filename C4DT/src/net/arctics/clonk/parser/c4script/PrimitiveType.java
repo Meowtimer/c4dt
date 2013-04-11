@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.ISerializationResolvable;
+import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
@@ -244,7 +244,7 @@ public enum PrimitiveType implements IType {
 		return this;
 	}
 
-	public class Unified implements IType, ISerializationResolvable {
+	public class Unified implements IType, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public Iterator<IType> iterator() { return PrimitiveType.this.iterator(); }

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.ISerializationResolvable;
+import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 
 /**
@@ -13,7 +13,7 @@ import net.arctics.clonk.index.Index;
  * @author madeen
  *
  */
-public final class ID implements Serializable, ISerializationResolvable {
+public final class ID implements Serializable, IDeserializationResolvable {
 	private static final Map<String, ID> idPool = new HashMap<String, ID>();
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final ID NULL = get("NULL"); //$NON-NLS-1$

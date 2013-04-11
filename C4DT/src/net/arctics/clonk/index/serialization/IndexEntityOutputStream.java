@@ -1,9 +1,12 @@
-package net.arctics.clonk.index;
+package net.arctics.clonk.index.serialization;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+import net.arctics.clonk.index.IReplacedWhenSaved;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 

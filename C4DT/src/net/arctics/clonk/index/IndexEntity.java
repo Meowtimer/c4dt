@@ -14,7 +14,6 @@ import net.arctics.clonk.util.Sink;
 /**
  * Entity in a {@link Index} which is stored in its own file inside the \<name\>.index folder
  * @author madeen
- *
  */
 public abstract class IndexEntity extends Structure implements IReplacedWhenSaved {
 
@@ -61,7 +60,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 		if (needLoad)
 			try {
 				index.loadEntity(this);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				if (e instanceof FileNotFoundException)
 					System.out.println("Entity file for " + this.toString() + " not found");
 				e.printStackTrace();
@@ -114,7 +113,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 			try {
 				requireLoaded();
 				index.saveEntity(this);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}

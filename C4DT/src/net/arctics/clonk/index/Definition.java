@@ -202,7 +202,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	public IType simpleType() { return PrimitiveType.OBJECT; }
 
-	private static class ProxyVarSaveReplacement implements ISerializationResolvable, Serializable {
+	private static class ProxyVarSaveReplacement implements IDeserializationResolvable, Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Definition definition;
 		public ProxyVarSaveReplacement(Definition definition) {

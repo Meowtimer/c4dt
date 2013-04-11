@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Variable;
 
 public class EngineVariable extends Variable implements IReplacedWhenSaved {
-	protected static class Ticket implements Serializable, ISerializationResolvable {
+	protected static class Ticket implements Serializable, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name;
 		public Ticket(String name) {

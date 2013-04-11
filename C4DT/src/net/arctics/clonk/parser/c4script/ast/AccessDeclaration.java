@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.DeferredDeclaration;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
@@ -61,22 +62,15 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Return the declaration name this expression uses to refer to a {@link Declaration}.
 	 * @return The declaration name
 	 */
-	public String name() {
-		return declarationName;
-	}
+	public String name() { return declarationName; }
 
 	/**
 	 * Set the declaration name.
 	 * @param declarationName The name
 	 */
-	public void setName(String declarationName) {
-		this.declarationName = declarationName;
-	}
-
+	public void setName(String declarationName) { this.declarationName = declarationName; }
 	@Override
-	public int identifierLength() {
-		return name().length();
-	}
+	public int identifierLength() { return name().length(); }
 
 	/**
 	 * Return whether this expression only indirectly refers to a declaration (e.g. inherited/_inherited)
@@ -90,7 +84,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
-		AccessDeclaration otherDec = (AccessDeclaration) other;
+		final AccessDeclaration otherDec = (AccessDeclaration) other;
 		if (!name().equals(otherDec.declarationName))
 			return false;
 		return true;
@@ -100,17 +94,15 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Returns the class declarations referenced by this {@link AccessDeclaration} need to be instances of.
 	 * @return The {@link Declaration} class
 	 */
-	public Class<? extends Declaration> declarationClass() {
-		return Declaration.class;
-	}
-
+	public Class<? extends Declaration> declarationClass() { return Declaration.class; }
 	@Override
 	public String patternMatchingText() { return name(); }
-
+	
 	@Override
 	public void postLoad(ASTNode parent, ProblemReportingContext context) {
 		super.postLoad(parent, context);
-		assert Boolean.TRUE;
+		if (declaration instanceof DeferredDeclaration)
+			declaration = ((DeferredDeclaration)declaration).resolve();
 	}
 
 }

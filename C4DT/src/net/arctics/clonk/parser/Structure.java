@@ -51,7 +51,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the editor input
 	 */
 	public IEditorInput makeEditorInput() {
-		Object storage = script() != null ? script().source() : resource();
+		final Object storage = script() != null ? script().source() : resource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
 		if (storage instanceof IStorage && this instanceof Script)
@@ -75,7 +75,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public void pinTo(IResource resource) {
 		try {
 			resource.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -101,7 +101,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 					result.pinTo(file);
 			}
 			return result;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			return null;
 		}
 	}
@@ -122,11 +122,11 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	public static Structure unPinFrom(IFile file) {
-		Structure pinned = pinned(file, false, false);
+		final Structure pinned = pinned(file, false, false);
 		if (pinned != null)
 			try {
 				file.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		return pinned;
@@ -164,12 +164,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
 	public static Structure createStructureForFile(IResource file, boolean duringBuild) {
-		for (IStructureFactory factory : structureFactories)
+		for (final IStructureFactory factory : structureFactories)
 			try {
-				Structure result = factory.create(file, duringBuild);
+				final Structure result = factory.create(file, duringBuild);
 				if (result != null)
 					return result;
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Core.instance().getLog().log(new Status(Status.ERROR, Core.PLUGIN_ID,
 					String.format("Some Structure factory caused an exception while operating on '%s'", file.getProjectRelativePath().toOSString()), e)
 				);
@@ -213,12 +213,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return The {@link Declaration} or null if not found.
 	 */
 	public Declaration findDeclarationByPath(String path, Class<? extends Declaration> cls) {
-		String[] parts = path.split("\\.");
+		final String[] parts = path.split("\\.");
 		Declaration d = this;
-		for (String p : parts) {
+		for (final String p : parts) {
 			if (!(d instanceof Structure))
 				return null;
-			Declaration n = ((Structure)d).findLocalDeclaration(p, cls);
+			final Declaration n = ((Structure)d).findLocalDeclaration(p, cls);
 			if (n == null)
 				return null;
 			d = n;

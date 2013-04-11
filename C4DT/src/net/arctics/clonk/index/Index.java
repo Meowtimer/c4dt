@@ -25,6 +25,12 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.index.serialization.IndexEntityInputStream;
+import net.arctics.clonk.index.serialization.IndexEntityOutputStream;
+import net.arctics.clonk.index.serialization.replacements.EngineRef;
+import net.arctics.clonk.index.serialization.replacements.EntityDeclaration;
+import net.arctics.clonk.index.serialization.replacements.EntityId;
+import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -746,6 +752,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				}, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
+					index.shallowAwake();
 					for (final IndexEntity e : index.entities())
 						e.index = index;
 				} finally {
@@ -817,18 +824,43 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		return null;
 	}
 
+	private transient ThreadLocal<Queue<IndexEntity>> entityLoadQueue;
+	
+	{ shallowAwake(); }
+	
+	protected void shallowAwake() {
+		entityLoadQueue = new ThreadLocal<Queue<IndexEntity>>() {
+			@Override
+			protected Queue<IndexEntity> initialValue() { return new LinkedList<>(); }
+		};
+	}
+	
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		//System.out.println("Load entity " + entity.toString());
 		try {
+			final Queue<IndexEntity> queue = entityLoadQueue.get();
+			final int count = queue.size();
+			queue.add(entity);
+			
 			final ObjectInputStream inputStream = newEntityInputStream(entity);
-			if (inputStream != null) try {
-				entity.load(inputStream);
-			} finally {
-				inputStream.close();
-			}
-			entity.postLoad(this, this);
+			if (inputStream != null)
+				try (final ObjectInputStream s = inputStream) {
+					entity.load(s);
+				} catch (final Exception e) {
+					System.out.println(e.getMessage());
+				}
 			if (entity instanceof Script)
 				addGlobalsFromScript((Script)entity, appendages);
+			
+			if (count == 0) {
+				IndexEntity e;
+				while ((e = queue.poll()) != null) try {
+					e.postLoad(this, this);
+				} catch (final Exception x) {
+					System.out.println(x.getMessage());
+				}
+			}
+			
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -879,106 +911,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 	}
 
-	private static class EntityId implements Serializable, ISerializationResolvable {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		protected long referencedEntityId;
-		protected Object referencedEntityToken;
-		public EntityId(IndexEntity referencedEntity) {
-			this.referencedEntityId = referencedEntity.entityId();
-			this.referencedEntityToken = referencedEntity.additionalEntityIdentificationToken();
-		}
-		@Override
-		public String toString() {
-			return String.format("(%d, %s)", referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
-		}
-		protected Index index(Index context) {
-			return context; // ;>
-		}
-		@Override
-		public IndexEntity resolve(Index index) {
-			IndexEntity result = null;
-			final Index externalIndex = index(index);
-			if (externalIndex != null) {
-				result = externalIndex.entityWithId(referencedEntityId);
-				if (result == null || !Utilities.eq(result.additionalEntityIdentificationToken(), referencedEntityToken))
-					if (referencedEntityToken != null)
-						for (final IndexEntity e : externalIndex.entities()) {
-							final Object token = e.additionalEntityIdentificationToken();
-							if (e != null && referencedEntityToken.equals(token)) {
-								result = e;
-								break;
-							}
-						}
-			}
-			else
-				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s' from '%s'", this.toString(), index.name()));
-			return result;
-		}
-	}
-
-	private static class EntityReference extends EntityId {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		protected String referencedProjectName;
-		public EntityReference(IndexEntity referencedEntity) {
-			super(referencedEntity);
-			if (referencedEntity != null && referencedEntity.index() != null)
-				referencedProjectName = referencedEntity.index().name();
-		}
-		@Override
-		protected Index index(Index context) {
-			if (referencedProjectName != null) {
-				final ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
-				return nat != null ? nat.index() : null;
-			} else
-				return null;
-		}
-		@Override
-		public String toString() {
-			return String.format("(%s, %d, %s)", referencedProjectName, referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
-		}
-	}
-
-	private static class EntityDeclaration implements Serializable, ISerializationResolvable {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		private final IndexEntity containingEntity;
-		private final String declarationPath;
-		private final Class<? extends Declaration> declarationClass;
-		public EntityDeclaration(Declaration declaration, IndexEntity containingEntity) {
-			this.containingEntity = containingEntity;
-			this.declarationPath = declaration.pathRelativeToIndexEntity();
-			this.declarationClass = declaration.getClass();
-		}
-		@Override
-		public Declaration resolve(Index index) {
-			if (containingEntity instanceof Structure)
-				return containingEntity.findDeclarationByPath(declarationPath, declarationClass);
-			else
-				return null;
-		}
-	}
-
-	private static class EngineRef implements Serializable, ISerializationResolvable {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		private final String engineName;
-		public EngineRef(Engine engine) {
-			this.engineName = engine.name();
-		}
-		@Override
-		public Object resolve(Index index) {
-			return Core.instance().loadEngine(engineName);
-		}
-	}
-
 	public IndexEntity entityWithId(long entityId) {
 		return entities.get(entityId);
 	}
 
 	/**
-	 * Return an object that will be serialized instead of an entity. It will implement {@link ISerializationResolvable}.
+	 * Return an object that will be serialized instead of an entity. It will implement {@link IDeserializationResolvable}.
 	 * @param entity
 	 * @return
 	 */
-	public ISerializationResolvable saveReplacementForEntity(IndexEntity entity) {
+	public IDeserializationResolvable saveReplacementForEntity(IndexEntity entity) {
 		if (entity == null)
 			return null;
 		if (entity instanceof Engine)

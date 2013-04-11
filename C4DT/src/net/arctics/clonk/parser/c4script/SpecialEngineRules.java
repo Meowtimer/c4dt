@@ -25,7 +25,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
-import net.arctics.clonk.index.ISerializationResolvable;
+import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
@@ -161,7 +161,7 @@ public abstract class SpecialEngineRules {
 	 */
 	public static abstract class SpecialRule implements IReplacedWhenSaved {
 
-		public static class Ticket implements ISerializationResolvable, Serializable {
+		public static class Ticket implements IDeserializationResolvable, Serializable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			private final String name;
 			public Ticket(SpecialRule obj) {

@@ -25,21 +25,22 @@ public class Scenario extends Definition {
 	public static final String PROPLIST_NAME = "Scenario";
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private Variable scenarioPropList = createScenarioProplist();
+	private Declaration scenarioPropList; { createScenarioProplist(); }
 
-	private synchronized Variable createScenarioProplist() {
+	private synchronized Declaration createScenarioProplist() {
 		if (scenarioPropList == null && engine().settings().supportsGlobalProplists) {
-			ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
+			final ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
-			scenarioPropList = new Variable(PROPLIST_NAME, type);
-			scenarioPropList.setParent(this);
-			scenarioPropList.setScope(Scope.STATIC);
+			final Variable v = new Variable(PROPLIST_NAME, type);
+			v.setParent(this);
+			v.setScope(Scope.STATIC);
+			scenarioPropList = v;
 		}
 		return scenarioPropList;
 	}
 
-	public Variable propList() {
+	public Declaration propList() {
 		return scenarioPropList;
 	}
 
@@ -54,7 +55,7 @@ public class Scenario extends Definition {
 	}
 
 	public static Scenario get(IContainer folder) {
-		Definition obj = definitionCorrespondingToFolder(folder);
+		final Definition obj = definitionCorrespondingToFolder(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 
@@ -62,7 +63,7 @@ public class Scenario extends Definition {
 		if (res == null)
 			return null;
 		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
-			Scenario s = get(c);
+			final Scenario s = get(c);
 			if (s != null)
 				return s;
 		}
@@ -78,8 +79,16 @@ public class Scenario extends Definition {
 	}
 
 	public ScenarioUnit scenarioConfiguration() {
-		IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
+		final IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
 		return scenarioFile != null ? Structure.pinned(scenarioFile, true, false, ScenarioUnit.class) : null;
+	}
+	
+	@Override
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+		if (declarationName.equals(PROPLIST_NAME))
+			return scenarioPropList;
+		else
+			return super.findLocalDeclaration(declarationName, declarationClass);
 	}
 
 }

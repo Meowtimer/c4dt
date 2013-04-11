@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.ISerializationResolvable;
+import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.c4script.Function;
@@ -47,7 +47,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode() {}
 	protected ASTNode(int start, int end) { super(start, end); }
 
-	public static class Ticket implements ISerializationResolvable, Serializable, IASTVisitor<Object> {
+	public static class Ticket implements IDeserializationResolvable, Serializable, IASTVisitor<Object> {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Declaration owner;
 		private final String textRepresentation;
