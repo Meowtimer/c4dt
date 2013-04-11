@@ -11,7 +11,6 @@ import org.eclipse.jface.text.IRegion;
 public class SourceLocation implements IRegion, Serializable, Cloneable, Comparable<SourceLocation> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 	public static final SourceLocation ZERO = new SourceLocation(0, 0);
 
 	protected int start, end;
@@ -35,48 +34,24 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
 	}
 	public SourceLocation(String stringRepresentation) {
-		int comma = stringRepresentation.indexOf(",");
+		final int comma = stringRepresentation.indexOf(",");
 		start = Integer.parseInt(stringRepresentation.substring(1, comma));
 		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
 	}
 
-	/**
-	 * @param start the start to set
-	 */
-	public void setStart(int start) {
-		this.start = start;
-	}
-	/**
-	 * @return the start
-	 */
-	public int start() {
-		return start;
-	}
-	/**
-	 * @param end the end to set
-	 */
-	public void setEnd(int end) {
-		this.end = end;
-	}
-	/**
-	 * @return the end
-	 */
-	public int end() {
-		return end;
-	}
+	public void setStart(int start) { this.start = start; }
+	public int start() { return start; }
+	public void setEnd(int end) { this.end = end; }
+	public int end() { return end; }
 	@Override
-	public int getLength() {
-		return end-start;
-	}
+	public int getLength() { return end-start; }
 	@Override
-	public int getOffset() {
-		return start;
-	}
+	public int getOffset() { return start; }
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof SourceLocation) {
-			SourceLocation cmp = (SourceLocation) obj;
+			final SourceLocation cmp = (SourceLocation) obj;
 			return (cmp.start() == start && cmp.end() == end);
 		}
 		else
@@ -102,7 +77,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public SourceLocation clone() {
 		try {
 			return (SourceLocation)super.clone();
-		} catch (CloneNotSupportedException e) {
+		} catch (final CloneNotSupportedException e) {
 			e.printStackTrace();
 			return null;
 		}

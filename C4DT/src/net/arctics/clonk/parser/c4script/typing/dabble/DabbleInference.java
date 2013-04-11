@@ -1262,7 +1262,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (currentFunction != null && var.parentDeclaration() == currentFunction) {
 							final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
 							if (locationUsed < var.start())
-								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
+								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, String.format("%s @(%d, %d)", var.name(), var.start(), var.end()));
 						}
 						break;
 					case PARAMETER:

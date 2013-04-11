@@ -20,7 +20,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 		try {
 			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1 - actually, I removed it and it's okay
 			statements_ = doc.get(statementRegion.getOffset(), Math.min(statementRegion.getLength(), doc.getLength()-statementRegion.getOffset()));
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			statements_ = ""; // well... //$NON-NLS-1$
 		}
 		return statements_;
@@ -36,7 +36,12 @@ public class FunctionFragmentParser extends C4ScriptParser {
 	@Override
 	protected String functionSource(Function function) { return new String(buffer); }
 	public boolean update() {
-		String functionSource = functionSource(function);
+		synchronized (function) {
+			return doUpdate();
+		}
+	}
+	private boolean doUpdate() {
+		final String functionSource = functionSource(function);
 		FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;
 		// if block is non-existent or outdated, parse function code and store block
 		if (cachedBlock == null) {
@@ -45,12 +50,12 @@ public class FunctionFragmentParser extends C4ScriptParser {
 					function.clearLocalVars();
 				setCurrentFunction(function);
 				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
-				EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+				final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				ASTNode body;
 				if (function instanceof InitializationFunction)
 					body = parseExpression();
 				else {
-					LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
+					final LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
 					parseStatementBlock(offset, statements, options, false);
 					body = cachedBlock = new FunctionBody(function, statements);
 				}
@@ -58,13 +63,13 @@ public class FunctionFragmentParser extends C4ScriptParser {
 					function.storeBody(body, functionSource);
 					script().generateCaches();
 				}
-			} catch (ParsingException pe) {}
+			} catch (final ParsingException pe) {}
 			return true;
 		} else
 			return false;
 	}
 	public static FunctionFragmentParser update(IDocument document, Script script, Function function, Markers markers) {
-		FunctionFragmentParser updater = new FunctionFragmentParser(document, script, function, markers);
+		final FunctionFragmentParser updater = new FunctionFragmentParser(document, script, function, markers);
 		updater.update();
 		return updater;
 	}

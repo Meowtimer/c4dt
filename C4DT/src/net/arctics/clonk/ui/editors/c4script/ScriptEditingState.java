@@ -226,9 +226,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@SuppressWarnings("serial")
 	static class MarkerConfines extends HashSet<ASTNode> implements IMarkerListener {
-		public MarkerConfines(ASTNode... confines) {
-			this.addAll(Arrays.asList(confines));
-		}
+		public MarkerConfines(ASTNode... confines) { this.addAll(Arrays.asList(confines)); }
 		@Override
 		public Decision markerEncountered(
 			Markers markers, IASTPositionProvider positionProvider,
@@ -257,11 +255,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						removeMarkers(fn, structure);
 						final Function f = (Function) fn.latestVersion();
 						final Markers markers = reparseFunction(f, ReparseFunctionMode.FULL);
-						for (final Variable localVar : f.locals()) {
-							final SourceLocation l = localVar;
-							l.setStart(f.bodyLocation().getOffset()+l.getOffset());
-							l.setEnd(f.bodyLocation().getOffset()+l.end());
-						}
 						markers.deploy();
 					}
 				} catch (final Exception e) {
@@ -303,9 +296,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final Set<Function> oldCalledFunctions = mode.contains(ReparseFunctionMode.REVISIT_CALLED_FUNCTIONS) ? new HashSet<Function>() : null;
 		if (oldCalledFunctions != null)
 			addCalls(oldCalledFunctions, function);
+		final FunctionFragmentParser updater = new FunctionFragmentParser(document, structure, function, markers);
+		updater.update();
 		
 		// actual reparsing
-		final C4ScriptParser parser = FunctionFragmentParser.update(document, structure, function, markers);
+		final C4ScriptParser parser = updater;
 		
 		// see above continued
 		if (oldCalledFunctions != null) {
@@ -454,6 +449,31 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				break;
 			}
 		return r;
+	}
+	
+	private int functionFragmentOffset = -1;
+	
+	public boolean updateCurrentFunctionFragmentOffset(int offset) 	{
+		if (offset != functionFragmentOffset) {
+			functionFragmentOffset = offset;
+			return true;
+		} else
+			return false;
+	}
+	
+	public FunctionFragmentParser updateFunctionFragment(
+		Function function,
+		IASTVisitor<ProblemReportingContext> observer,
+		boolean typingContextVisitInAnyCase
+	) {
+		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
+		final boolean change = fparser.update();
+		if (change || typingContextVisitInAnyCase) {
+			final ProblemReportingContext typingContext = typingStrategy.localTypingContext(fparser.script(), fparser.fragmentOffset(), null);
+			typingContext.setObserver(observer);
+			typingContext.visitFunction(function);
+		}
+		return fparser;
 	}
 	
 }

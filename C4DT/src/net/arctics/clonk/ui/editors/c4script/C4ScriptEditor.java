@@ -13,7 +13,6 @@ import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.Script;
@@ -358,8 +357,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
-		final FunctionFragmentParser parser = new FunctionFragmentParser(getSourceViewer().getDocument(), script(), f, null);
-		parser.update();
+		editingState().updateFunctionFragment(f, null, editingState().updateCurrentFunctionFragmentOffset(offset));
 		final EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 

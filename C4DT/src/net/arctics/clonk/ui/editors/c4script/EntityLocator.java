@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.TraversalContinuation;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
@@ -44,15 +43,12 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class EntityLocator extends ExpressionLocator<Object> {
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
-	private C4ScriptParser parser;
 
 	/**
 	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
 	 * @return Set of potential entities
 	 */
-	public Set<? extends IIndexEntity> potentialEntities() {
-		return potentialEntities;
-	}
+	public Set<? extends IIndexEntity> potentialEntities() { return potentialEntities; }
 
 	private static IPredicate<IIndexEntity> IS_GLOBAL = new IPredicate<IIndexEntity>() {
 		@Override
@@ -225,16 +221,16 @@ public class EntityLocator extends ExpressionLocator<Object> {
 
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, Object context) {
-		expression.traverse(new IASTVisitor<Object>() {
+		expression.traverse(new IASTVisitor<Void>() {
 			@Override
-			public TraversalContinuation visitNode(ASTNode expression, Object context) {
+			public TraversalContinuation visitNode(ASTNode expression, Void _) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;
 				}
 				return TraversalContinuation.Continue;
 			}
-		}, parser);
+		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
 }

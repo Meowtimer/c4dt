@@ -26,7 +26,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.parser.Structure;
@@ -36,7 +35,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.FunctionFragmentParser;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
@@ -290,8 +288,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		C4ScriptParser parser = null;
 		if (editorScript != null)
-			if (parser == null)
-				parser = updateFunctionFragment(doc, editorScript, activeFunc, problemReportingObserver);
+			if (parser == null) {
+				final ScriptEditingState editingState = editor().editingState();
+				parser = editingState.updateFunctionFragment(activeFunc, problemReportingObserver, editingState.updateCurrentFunctionFragmentOffset(offset));
+			}
 		
 		final Sequence contextSequence = problemReportingObserver.contextSequence;
 		final ASTNode contextExpression = problemReportingObserver.contextExpression;
@@ -333,15 +333,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			return false;
 		}
 		return true;
-	}
-
-	private FunctionFragmentParser updateFunctionFragment(IDocument doc, Script editorScript, Function activeFunc, IASTVisitor<ProblemReportingContext> observer) {
-		final FunctionFragmentParser fparser = new FunctionFragmentParser(doc, editorScript, activeFunc, null);
-		fparser.update();
-		final ProblemReportingContext typingContext = typingStrategy.localTypingContext(fparser.script(), fparser.fragmentOffset(), null);
-		typingContext.setObserver(observer);
-		typingContext.visitFunction(activeFunc);
-		return fparser;
 	}
 
 	private void innerProposalsInFunction(int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Index index, final Function activeFunc, Script editorScript, C4ScriptParser parser, final Sequence contextSequence, final ASTNode contextExpression, final IType sequenceType) {
@@ -804,7 +795,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 			final Function cursorFunc = editor().functionAtCursor();
 			if (cursorFunc != null)
-				updateFunctionFragment(viewer.getDocument(), editor().script(), cursorFunc, null);
+				editor().editingState().updateFunctionFragment(cursorFunc, null, false);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(TypeUtil.problemReportingContext(editor.functionAtCursor()));

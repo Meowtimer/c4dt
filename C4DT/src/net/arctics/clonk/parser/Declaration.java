@@ -66,8 +66,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * @param Set the location of the declaration in its declaring file.
 	 */
 	public void setLocation(SourceLocation location) {
-		this.start = location != null ? location.start() : 0;
-		this.end = location != null ? location.end() : 0;
+		setLocation(location != null ? location.start() : 0, location != null ? location.end() : 0);
 	}
 
 	/**

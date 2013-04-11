@@ -706,7 +706,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 				final Declaration outerDec = currentDeclaration();
 				try {
-					final Variable var = script.createVarInScope(this, currentFunction, varName, scope, bt, this.offset, comment);
+					final Variable var = script.createVarInScope(this, currentFunction, varName, scope, fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
 					if (typeAnnotation != null)
 						typeAnnotation.setTarget(var);
 					if (staticType != null)
