@@ -386,10 +386,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final FunctionVisitReturnTypeVariable calledTy = delegateFunctionVisit(f, f.parentOfType(Script.class), false, true);
-					final Visitor visitor = calledTy != null ? calledTy.visitor : null;
-					visitors[ci] = visitor;
-					Function ref = as(visitor != null ? visitor.obtainDeclaration(call) : call.declaration(), Function.class);
+					final FunctionVisitReturnTypeVariable callTy = delegateFunctionVisit(f, f.parentOfType(Script.class), false, true);
+					visitors[ci] = callTy != null ? callTy.visitor : null;
+					Function ref = as(call.declaration(), Function.class);
 					if (ref != null) {
 						ref = ref.baseFunction();
 						if (ref != null)
@@ -401,11 +400,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final ASTNode concretePar = call.params()[pa];
 									if (concretePar != null) {
 										script().addUsedScript(other);
-										IType ty = null;
-										if (visitor != null)
-											ty = visitor.typeOf(concretePar);
-										if (ty == null)
-											ty = concretePar.inferredType();
+										final IType ty = concretePar.inferredType();
 										types[ci][pa] = ty;
 									}
 								}
@@ -1756,6 +1751,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							script = ((MetaDefinition)ty).definition();
 						if (script == null)
 							continue;
+						script.requireLoaded();
 						final FindDeclarationInfo info = new FindDeclarationInfo(visitor.script().index());
 						info.searchOrigin = visitor.script();
 						info.contextFunction = node.parentOfType(Function.class);
