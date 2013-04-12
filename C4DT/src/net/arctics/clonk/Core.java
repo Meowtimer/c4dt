@@ -7,7 +7,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -357,27 +356,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public File requestFolderInStateLocation(String name) {
 		final File result = new File(new File(getStateLocation().toOSString()), name);
 		return result.mkdirs() ? result : null;
-	}
-
-	public void exportEngineToXMLInWorkspace(String engineName) {
-		try {
-			final IPath engineXML = workspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
-
-			final File engineXMLFile = engineXML.toFile();
-			if (engineXMLFile.exists())
-				engineXMLFile.delete();
-
-			final FileWriter writer = new FileWriter(engineXMLFile);
-			try {
-				this.activeEngine().exportAsXML(writer);
-			} finally {
-				writer.close();
-			}
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void saveEngineInWorkspace(String engineName) {

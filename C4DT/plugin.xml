@@ -296,10 +296,6 @@
 
 	<extension point="org.eclipse.ui.views">
 		<category id="net.arctics.clonk" name="Clonk" />
-
-		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineDeclarationsView"
-			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineDeclarationsView"
-			name="%EngineDeclarations_Name" />
 		
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.navigator.ClonkPreviewView"
 			id="net.arctics.clonk.views.ClonkPreviewView"

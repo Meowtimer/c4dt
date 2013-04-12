@@ -10,11 +10,9 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.filter;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,14 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
@@ -75,16 +65,11 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
@@ -101,7 +86,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Map<Variable, IType> variableTypes;
 	private transient Map<String, IType> functionReturnTypes;
 
-	// set of scripts this script is using functions and/or static variables from
+	// serialized directly
+	/** set of scripts this script is using functions and/or static variables from */
 	private Set<Script> usedScripts;
 	protected List<Directive> definedDirectives;
 
@@ -949,75 +935,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					all.add(sd);
 			}
 		return all.toArray(new INode[all.size()]);
-	}
-
-	public void exportAsXML(Writer writer) throws IOException {
-		requireLoaded();
-		writer.write("<script>\n"); //$NON-NLS-1$
-		writer.write("\t<functions>\n"); //$NON-NLS-1$
-		for (final Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.name(), f.returnType().typeName(true))); //$NON-NLS-1$
-			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
-			for (final Variable p : f.parameters())
-				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.name(), p.type().typeName(true))); //$NON-NLS-1$
-			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
-			if (f.obtainUserDescription() != null) {
-				writer.write("\t\t\t<description>"); //$NON-NLS-1$
-				writer.write(f.obtainUserDescription());
-				writer.write("</description>\n"); //$NON-NLS-1$
-			}
-			writer.write("\t\t</function>\n"); //$NON-NLS-1$
-		}
-		writer.write("\t</functions>\n"); //$NON-NLS-1$
-		writer.write("\t<variables>\n"); //$NON-NLS-1$
-		for (final Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.name(), v.type().typeName(true), Boolean.valueOf(v.scope() == Scope.CONST))); //$NON-NLS-1$
-			if (v.obtainUserDescription() != null) {
-				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
-				writer.write("\t\t\t\t"+v.obtainUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
-				writer.write("\t\t\t</description>\n"); //$NON-NLS-1$
-			}
-			writer.write("\t\t</variable>\n"); //$NON-NLS-1$
-		}
-		writer.write("\t</variables>\n"); //$NON-NLS-1$
-		writer.write("</script>\n"); //$NON-NLS-1$
-	}
-
-	public void importFromXML(InputStream stream, IProgressMonitor monitor) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-
-		final XPathFactory xpathF = XPathFactory.newInstance();
-		final XPath xPath = xpathF.newXPath();
-
-		final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		final Document doc = builder.parse(stream);
-
-		final NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
-		final NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
-		monitor.beginTask(Messages.ImportingEngineFromXML, functions.getLength()+variables.getLength());
-		for (int i = 0; i < functions.getLength(); i++) {
-			final Node function = functions.item(i);
-			final NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
-			final Variable[] p = new Variable[parms.getLength()];
-			for (int j = 0; j < p.length; j++)
-				p[j] = new Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			final Function f = new Function(function.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
-			final Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE); //$NON-NLS-1$
-			if (desc != null)
-				f.setUserDescription(desc.getTextContent());
-			this.addDeclaration(f);
-			monitor.worked(1);
-		}
-		for (int i = 0; i < variables.getLength(); i++) {
-			final Node variable = variables.item(i);
-			final Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.fromString(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? Scope.CONST : Scope.STATIC); //$NON-NLS-1$
-			final Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
-			if (desc != null)
-				v.setUserDescription(desc.getTextContent());
-			this.addDeclaration(v);
-			monitor.worked(1);
-		}
-		monitor.done();
 	}
 
 	private String sourceComment;
