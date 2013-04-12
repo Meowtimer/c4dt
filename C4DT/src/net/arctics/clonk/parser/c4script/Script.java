@@ -45,7 +45,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTVisitor;
@@ -75,7 +74,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -100,6 +98,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient List<Function> definedFunctions;
 	protected transient List<Variable> definedVariables;
 	protected transient Map<String, Effect> definedEffects;
+	private transient Map<Variable, IType> variableTypes;
+	private transient Map<String, IType> functionReturnTypes;
 
 	// set of scripts this script is using functions and/or static variables from
 	private Set<Script> usedScripts;
@@ -115,8 +115,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
-	private transient Map<Variable, IType> variableTypes;
-	private transient Map<String, IType> functionReturnTypes;
 
 	public Map<Variable, IType> variableTypes() {
 		requireLoaded();
@@ -283,52 +281,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 	
 	protected final void populateDictionary() { populateDictionary(conglomerate()); }
-
-	/**
-	 * Return an array that acts as a map line number -> function at that line. Used for fast function lookups when only the line number is known.
-	 * @return The pseudo-map for getting the function at some line.
-	 */
-	public Function[] calculateLineToFunctionMap() {
-		requireLoaded();
-		String scriptText;
-		try {
-			scriptText = StreamUtil.stringFromInputStream(this.source().getContents());
-		} catch (final CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
-		int lineStart = 0;
-		int lineEnd = 0;
-		final List<Function> mappingAsList = new LinkedList<Function>();
-		final MutableRegion region = new MutableRegion(0, 0);
-		for (final BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
-			final int read = scanner.read();
-			boolean newLine = false;
-			switch (read) {
-			case '\r':
-				newLine = true;
-				if (scanner.read() != '\n')
-					scanner.unread();
-				break;
-			case '\n':
-				newLine = true;
-				break;
-			default:
-				lineEnd = scanner.tell();
-			}
-			if (newLine) {
-				region.setOffset(lineStart);
-				region.setLength(lineEnd-lineStart);
-				Function f = this.funcAt(region);
-				if (f == null)
-					f = this.funcAt(lineEnd);
-				mappingAsList.add(f);
-				lineStart = scanner.tell();
-				lineEnd = lineStart;
-			}
-		}
-		return mappingAsList.toArray(new Function[mappingAsList.size()]);
-	}
 
 	/**
 	 * Returns the strict level of the script

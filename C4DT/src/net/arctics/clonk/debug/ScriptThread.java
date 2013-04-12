@@ -2,6 +2,7 @@ package net.arctics.clonk.debug;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,8 +10,11 @@ import java.util.Set;
 import net.arctics.clonk.debug.Target.Commands;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -35,15 +39,15 @@ public class ScriptThread extends DebugElement implements IThread {
 	public Script findScript(String path, Index index, Set<Index> alreadySearched) throws CoreException {
 		if (alreadySearched.contains(index))
 			return null;
-		Script script = index.findScriptByPath(path);
+		final Script script = index.findScriptByPath(path);
 		if (script != null)
 			return script;
 		alreadySearched.add(index);
 		if (index instanceof ProjectIndex)
-			for (IProject proj : ((ProjectIndex) index).nature().getProject().getReferencedProjects()) {
-				ProjectIndex projIndex = ProjectIndex.get(proj);
+			for (final IProject proj : ((ProjectIndex) index).nature().getProject().getReferencedProjects()) {
+				final ProjectIndex projIndex = ProjectIndex.get(proj);
 				if (projIndex != null) {
-					Script _result = findScript(path, projIndex, alreadySearched);
+					final Script _result = findScript(path, projIndex, alreadySearched);
 					if (_result != null)
 						return _result;
 				}
@@ -52,12 +56,12 @@ public class ScriptThread extends DebugElement implements IThread {
 	}
 
 	public void setStackTrace(List<String> stackTrace) throws CoreException {
-		ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
+		final ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
 		if (index == null) {
 			nullOut();
 			return;
 		}
-		StackFrame[] newStackFrames = new StackFrame[stackTrace.size()];
+		final StackFrame[] newStackFrames = new StackFrame[stackTrace.size()];
 		int stillToBeReused = stackFrames != null ? stackFrames.length : 0;
 		for (int i = 0; i < stackTrace.size(); i++) {
 			String sourcePath = stackTrace.get(i);
@@ -66,14 +70,14 @@ public class ScriptThread extends DebugElement implements IThread {
 				nullOut();
 				return;
 			}
-			String fullSourcePath = sourcePath;
-			int delim = sourcePath.lastIndexOf(':');
-			String linePart = sourcePath.substring(delim+1);
-			int line = Integer.parseInt(linePart)+1;
+			final String fullSourcePath = sourcePath;
+			final int delim = sourcePath.lastIndexOf(':');
+			final String linePart = sourcePath.substring(delim+1);
+			final int line = Integer.parseInt(linePart)+1;
 			sourcePath = sourcePath.substring(0, delim);
-			Script script = findScript(sourcePath, index, new HashSet<Index>());
-			Function f = script != null ? funcAtLine(script, line) : null;
-			Object funObj = f != null ? f : fullSourcePath;
+			final Script script = findScript(sourcePath, index, new HashSet<Index>());
+			final Function f = script != null ? funcAtLine(script, line) : null;
+			final Object funObj = f != null ? f : fullSourcePath;
 			if (stillToBeReused > 0)
 				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
 					newStackFrames[i] = stackFrames[--stillToBeReused];
@@ -85,11 +89,57 @@ public class ScriptThread extends DebugElement implements IThread {
 		stackFrames = newStackFrames;
 	}
 	
+	/**
+	 * Return an array that acts as a map mapping line number to function at that line. Used for fast function lookups when only the line number is known.
+	 * @return The pseudo-map for getting the function at some line.
+	 */
+	static Function[] calculateLineToFunctionMap(Script script) {
+		script.requireLoaded();
+		String scriptText;
+		try {
+			scriptText = StreamUtil.stringFromInputStream(script.source().getContents());
+		} catch (final CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+		int lineStart = 0;
+		int lineEnd = 0;
+		final List<Function> mappingAsList = new LinkedList<Function>();
+		final MutableRegion region = new MutableRegion(0, 0);
+		for (final BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
+			final int read = scanner.read();
+			boolean newLine = false;
+			switch (read) {
+			case '\r':
+				newLine = true;
+				if (scanner.read() != '\n')
+					scanner.unread();
+				break;
+			case '\n':
+				newLine = true;
+				break;
+			default:
+				lineEnd = scanner.tell();
+			}
+			if (newLine) {
+				region.setOffset(lineStart);
+				region.setLength(lineEnd-lineStart);
+				Function f = script.funcAt(region);
+				if (f == null)
+					f = script.funcAt(lineEnd);
+				mappingAsList.add(f);
+				lineStart = scanner.tell();
+				lineEnd = lineStart;
+			}
+		}
+		return mappingAsList.toArray(new Function[mappingAsList.size()]);
+	}
+	
 	private Function funcAtLine(Script script, int line) {
 		line--;
 		Function[] map = lineToFunctionMaps.get(script);
 		if (map == null) {
-			map = script.calculateLineToFunctionMap();
+			map = calculateLineToFunctionMap(script);
 			lineToFunctionMaps.put(script, map);
 		}
 		return line >= 0 && line < map.length ? map[line] : null;
