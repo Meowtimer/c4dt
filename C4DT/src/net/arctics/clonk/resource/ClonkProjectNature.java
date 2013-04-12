@@ -165,7 +165,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private void loadIndex() {
 		settings();
-		if (Core.instance().updateTookPlace()) {
+		if (Core.instance().wasUpdated()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
 			index = new ProjectIndex(getProject(), indexFolder());
 			performBuildOnOutdatedProject();
