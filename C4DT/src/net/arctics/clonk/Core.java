@@ -1,14 +1,7 @@
 package net.arctics.clonk;
 
-import static net.arctics.clonk.util.Utilities.apiCall;
-import static net.arctics.clonk.util.Utilities.apiTyped;
-
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
@@ -19,9 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.SystemScript;
@@ -30,6 +20,7 @@ import net.arctics.clonk.parser.landscapescript.LandscapeScript;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.APIReflection;
 import net.arctics.clonk.util.FolderStorageLocation;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.PathUtil;
@@ -60,7 +51,6 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
-import org.xml.sax.SAXException;
 
 /**
  * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
@@ -157,7 +147,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		loadActiveEngine();
 
 		try {
-			apiCall(ResourcesPlugin.getWorkspace(), "addSaveParticipant", PLUGIN_ID, apiTyped(this, ISaveParticipant.class));
+			APIReflection.call(ResourcesPlugin.getWorkspace(), "addSaveParticipant", PLUGIN_ID, APIReflection.typed(this, ISaveParticipant.class));
 		} catch (NoSuchMethodException | SecurityException e) {
 			ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
 		}
@@ -176,7 +166,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			}
 		});
 
-		if (updateTookPlace())
+		if (wasUpdated())
 			informAboutUpdate(versionFromLastRun, getBundle().getVersion());
 	}
 
@@ -326,7 +316,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		};
 	}
 
-	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+	public void loadActiveEngine() {
 		setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
@@ -358,31 +348,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return result.mkdirs() ? result : null;
 	}
 
-	public void saveEngineInWorkspace(String engineName) {
-		try {
-			final IPath engine = workspaceStorageLocationForEngine(engineName);
-
-			final File engineFile = engine.toFile();
-			if (engineFile.exists())
-				engineFile.delete();
-
-			final FileOutputStream outputStream = new FileOutputStream(engineFile);
-			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
-			final ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			encoder.writeObject(activeEngine());
-			encoder.close();
-			loadedEngines.remove(engineName);
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void saveActiveEngineInWorkspace() {
-		saveEngineInWorkspace(activeEngine().name());
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
@@ -391,7 +356,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	@SuppressWarnings("deprecation")
 	public void stop(BundleContext context) throws Exception {
 		//saveExternIndex(); clean build causes save
-		ResourcesPlugin.getWorkspace().removeSaveParticipant(this);
+		try {
+			APIReflection.call(ResourcesPlugin.getWorkspace(), "removeSaveParticipant", PLUGIN_ID);
+		} catch (NoSuchMethodException | SecurityException e) {
+			ResourcesPlugin.getWorkspace().removeSaveParticipant(this);
+		}
 		instance = null;
 		super.stop(context);
 	}
@@ -412,7 +381,8 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			instance = new Core(true);
 			instance.engineConfigurationFolder = engineConfigurationFolder;
 			instance.setActiveEngineByName(engine);
-		}
+		} else
+			throw new IllegalStateException("Already initialized");
 	}
 
 	/**
@@ -596,7 +566,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		}
 	}
 
-	public boolean updateTookPlace() {
+	public boolean wasUpdated() {
 		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
 	
