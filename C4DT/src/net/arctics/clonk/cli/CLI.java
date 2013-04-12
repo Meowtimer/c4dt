@@ -26,7 +26,13 @@ import org.eclipse.equinox.app.IApplicationContext;
 public class CLI implements IApplication {
 
 	public static void main(String[] args) throws Exception {
-		new CLI().run(args);
+		try {
+			new CLI().run(args);
+			System.exit(2);
+		} catch (final Exception e) {
+			System.out.println(e.getMessage());
+			System.exit(0);
+		}
 	}
 
 	public String engine;
@@ -34,20 +40,20 @@ public class CLI implements IApplication {
 
 	private int parseOptions(String[] args) {
 		for (int i = 0; i < args.length; i++) {
-			String a = args[i];
+			final String a = args[i];
 			if (a.equals("-application")) {
 				i++; // ignore standard Equinox application argument
 				continue;
 			}
 			if (a.startsWith("--")) {
-				String option = a.substring(2);
+				final String option = a.substring(2);
 				++i;
 				if (i >= args.length)
 					throw new IllegalArgumentException("Value required for " + option);
-				String value = args[i];
+				final String value = args[i];
 				try {
 					getClass().getField(option).set(this, value);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					throw new IllegalArgumentException(String.format("Invalid value for '%s': '%s'", option, value));
 				}
 			} else
@@ -64,19 +70,19 @@ public class CLI implements IApplication {
 	public void run(String[] args) {
 		if (args == null || args.length == 0)
 			args = Platform.getCommandLineArgs();
-		int methodIndex = parseOptions(args);
+		final int methodIndex = parseOptions(args);
 		if (methodIndex == args.length)
 			throw new IllegalArgumentException("Missing command");
-		String methodName = args[methodIndex];
-		for (Method method : getClass().getMethods())
+		final String methodName = args[methodIndex];
+		for (final Method method : getClass().getMethods())
 			if (method.getName().equals(methodName))
 				try {
 					initialize();
 					method.invoke(this, (Object[])Arrays.copyOfRange(args, methodIndex+1, args.length));
 					return;
-				} catch (IllegalArgumentException e) {
+				} catch (final IllegalArgumentException e) {
 					throw e;
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 					// fallthrough to invalid command
 				}
@@ -93,17 +99,17 @@ public class CLI implements IApplication {
 	 * repl interface using c4script expressions
 	 */
 	public void repl() {
-		boolean done = false;
-		Scanner scanner = new Scanner(System.in);
+		final boolean done = false;
+		final Scanner scanner = new Scanner(System.in);
 		try {
 			while (!done) {
-				String command = scanner.nextLine();
-				ExecutableScript script = Command.executableScriptFromCommand(command);
+				final String command = scanner.nextLine();
+				final ExecutableScript script = Command.executableScriptFromCommand(command);
 				if (script != null) try {
-					Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
+					final Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
 					if (result != null)
 						System.out.println(result.toString());
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -113,7 +119,7 @@ public class CLI implements IApplication {
 	}
 
 	public void verifyScript(String fileName) {
-		C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+		final C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {
@@ -122,9 +128,21 @@ public class CLI implements IApplication {
 		}));
 		try {
 			parser.parse();
-		} catch (ParsingException e) {
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void printAST(String fileName) throws ParsingException {
+		final C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Engine engine() {
+				return Core.instance().activeEngine();
+			}
+		}));
+		parser.parse();
+		System.out.println(parser.script().printed());
 	}
 
 	@Override

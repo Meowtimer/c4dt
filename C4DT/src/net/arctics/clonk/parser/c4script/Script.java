@@ -35,6 +35,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTVisitor;
@@ -446,12 +447,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
-		if ((mask & DeclMask.FUNCTIONS) != 0)
-			addAllSynchronized(definedFunctions, decs);
-		if ((mask & DeclMask.VARIABLES) != 0)
-			addAllSynchronized(definedVariables, decs);
 		if ((mask & DeclMask.DIRECTIVES) != 0)
 			addAllSynchronized(definedDirectives, decs);
+		if ((mask & DeclMask.VARIABLES) != 0)
+			addAllSynchronized(definedVariables, decs);
+		if ((mask & DeclMask.FUNCTIONS) != 0)
+			addAllSynchronized(definedFunctions, decs);
 		if ((mask & DeclMask.IMPLICIT) != 0 && definedEffects != null)
 			addAllSynchronized(definedEffects.values(), decs);
 		return decs;
@@ -1289,7 +1290,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ASTNode[] subElements() {
-		final List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
+		final List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.STATIC_VARIABLES|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
 		return decs.toArray(new ASTNode[decs.size()]);
+	}
+	
+	@Override
+	public void doPrint(ASTNodePrinter output, int depth) {
+		for (final ASTNode se : subElements())
+			if (se != null) {
+				if (se instanceof Function)
+					output.append("\n\n");
+				se.print(output, depth);
+			}
 	}
 }

@@ -88,6 +88,7 @@ import net.arctics.clonk.resource.ProjectSettings.Typing;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -186,7 +187,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(Script script) {
-		this((IFile) script.source(), script);
+		this(script.source(), script);
 		initialize();
 	}
 
@@ -221,9 +222,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param scriptFile
 	 * @param obj
 	 */
-	public C4ScriptParser(IFile scriptFile, Script script) {
+	public C4ScriptParser(IStorage scriptFile, Script script) {
 		super(scriptFile);
-		this.scriptFile = scriptFile;
+		this.scriptFile = as(scriptFile, IFile.class);
 		this.script = script;
 		initialize();
 	}

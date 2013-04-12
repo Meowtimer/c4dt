@@ -18,6 +18,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 
@@ -106,6 +107,15 @@ public class StreamUtil {
 		}
 	}
 
+	public static String stringFromStorage(IStorage storage) {
+		try (InputStream s = storage.getContents()) {
+			return stringFromInputStream(s);
+		} catch (IOException | CoreException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
 	public static String stringFromFileDocument(IFile file) {
 		return Core.instance().performActionsOnFileDocument(file, new IDocumentAction<String>() {
 			@Override

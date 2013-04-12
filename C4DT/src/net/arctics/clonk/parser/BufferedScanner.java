@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.rules.ICharacterScanner;
@@ -68,7 +68,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	protected byte figureOutIndentation() {
 		Set<BigInteger> leadingWhitespaceCounts = null;
-		for (String line : StringUtil.lines(new CharArrayReader(buffer)))
+		for (final String line : StringUtil.lines(new CharArrayReader(buffer)))
 			if (line.length() > 0 && line.charAt(0) == '\t')
 				// one tab is enough to conclude that
 				return indentationMode = TABINDENTATIONMODE;
@@ -83,7 +83,7 @@ public class BufferedScanner implements ICharacterScanner {
 			}
 		if (leadingWhitespaceCounts != null) {
 			BigInteger gcd = null;
-			for (BigInteger wc : leadingWhitespaceCounts)
+			for (final BigInteger wc : leadingWhitespaceCounts)
 				gcd = gcd == null ? wc : wc.gcd(gcd);
 			return indentationMode = gcd.byteValue();
 		} else
@@ -109,8 +109,8 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	private static String stringFromSource(Object source) {
-		if (source instanceof IFile)
-			return StreamUtil.stringFromFileDocument((IFile) source);
+		if (source instanceof IStorage)
+			return StreamUtil.stringFromStorage((IStorage) source);
 		else if (source instanceof Reader)
 			return StreamUtil.stringFromReader((Reader)source);
 		else if (source instanceof InputStream)
@@ -153,7 +153,7 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String readString(int length) {
 		if (offset+length > size)
 			return null;
-		String result = new String(buffer, offset, length);
+		final String result = new String(buffer, offset, length);
 		offset += length;
 		return result;
 	}
@@ -183,11 +183,11 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the code-word
 	 */
 	public final String readIdent() {
-		int start = offset;
+		final int start = offset;
 		int length = 0;
 		do {
-			int readByte = read();
-			boolean win = offset == start+1
+			final int readByte = read();
+			final boolean win = offset == start+1
 				? isWordStart(readByte)
 				: isWordPart(readByte);
 			if (win)
@@ -206,17 +206,17 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return string sequence, without delimiter char
 	 */
 	public final String readStringUntil(char ...delimiters) {
-		int start = offset;
+		final int start = offset;
 		int subtract = 0;
 		Outer: do {
-			int readByte = read();
+			final int readByte = read();
 			for (int i = 0; i < delimiters.length; i++)
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
 		} while(!reachedEOF());
-		int stringLength = offset - start - subtract;
+		final int stringLength = offset - start - subtract;
 		seek(start);
 		return readString(stringLength);
 	}
@@ -225,7 +225,7 @@ public class BufferedScanner implements ICharacterScanner {
 		int subtract = 0;
 		int len;
 		Outer: for (len = 0; !reachedEOF(); len++) {
-			int readByte = read();
+			final int readByte = read();
 			for(int i = 0; i < delimiters.length;i++)
 				if (readByte == delimiters[i]) {
 					subtract = 1;
@@ -253,8 +253,8 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the line without newline char(s)
 	 */
 	public final String readLine() {
-		int start = offset;
-		String line = readStringUntil(NEWLINE_CHARS);
+		final int start = offset;
+		final String line = readStringUntil(NEWLINE_CHARS);
 		if (line == null)
 			return readStringAt(start, offset);
 		if (read() == '\r') {
@@ -279,7 +279,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final void moveUntil(char[] delimiters) {
 		do {
-			int readByte = read();
+			final int readByte = read();
 			for(int i = 0; i < delimiters.length;i++)
 				if (readByte == delimiters[i])
 					return;
@@ -295,7 +295,7 @@ public class BufferedScanner implements ICharacterScanner {
 			return 0; // no unreading() when already reached EOF
 		int result = 0;
 		do {
-			int readByte = read();
+			final int readByte = read();
 			boolean doEat = false;
 			for (int i = 0; i < charsToEat.length;i++)
 				if (readByte == charsToEat[i]) {
@@ -316,7 +316,7 @@ public class BufferedScanner implements ICharacterScanner {
 			return 0; // no unreading() when already reached EOF
 		int result = 0;
 		do {
-			int readByte = read();
+			final int readByte = read();
 			boolean isDelimiter = false;
 			for (int i = 0; i < delimiters.length;i++)
 				if (readByte == delimiters[i]) {
@@ -438,9 +438,9 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String readStringAt(int start, int end) {
 		if (start == end)
 			return ""; //$NON-NLS-1$
-		int p = tell();
+		final int p = tell();
 		seek(start);
-		String result = readString(end-start);
+		final String result = readString(end-start);
 		seek(p);
 		return result;
 	}
@@ -477,7 +477,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the line string
 	 */
 	public final String lineAtRegion(IRegion region) {
-		IRegion lineRegion = regionOfLineContainingRegion(region);
+		final IRegion lineRegion = regionOfLineContainingRegion(region);
 		return new String(buffer, lineRegion.getOffset(), lineRegion.getLength());
 	}
 
@@ -525,7 +525,7 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the next char
 	 */
 	public final int peek() {
-		int p = read();
+		final int p = read();
 		unread();
 		return p;
 	}
@@ -535,16 +535,16 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return
 	 */
 	public final int peekAfterWhitespace() {
-		int pos = offset;
+		final int pos = offset;
 		eatWhitespace();
-		int result = read();
+		final int result = read();
 		seek(pos);
 		return result;
 	}
 
 	public final String peekString(int length) {
-		int pos = offset;
-		String result = readString(Math.min(length, size-offset));
+		final int pos = offset;
+		final String result = readString(Math.min(length, size-offset));
 		seek(pos);
 		return result;
 	}
