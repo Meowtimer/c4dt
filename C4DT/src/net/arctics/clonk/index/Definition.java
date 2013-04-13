@@ -210,7 +210,7 @@ public class Definition extends Script implements IProplistDeclaration {
 			this.definition = definition;
 		}
 		@Override
-		public Object resolve(Index index) { return definition != null ? definition.proxyVar() : null; }
+		public Object resolve(Index index, IndexEntity deserializee) { return definition != null ? definition.proxyVar() : null; }
 	}
 
 	/**
@@ -392,13 +392,8 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public boolean isAdHoc() {
-		return false;
-	}
-
-	@Override
 	public List<Variable> components(boolean includeAdhocComponents) {
-		return this.definedVariables;
+		return this.variables;
 	}
 
 	@Override
@@ -411,9 +406,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public Variable findComponent(String declarationName) {
-		return findVariable(declarationName);
-	}
+	public Variable findComponent(String declarationName) { return findVariable(declarationName); }
 
 	@Override
 	public IProplistDeclaration prototype() {
@@ -444,7 +437,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public String qualifiedName() { return id().stringValue(); }
 
 	static {
-		if (!Core.instance().runsHeadless()) {
+		if (!Core.instance().runsHeadless())
 			Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {
@@ -460,6 +453,5 @@ public class Definition extends Script implements IProplistDeclaration {
 					}
 				}
 			});
-		}
 	}
 }

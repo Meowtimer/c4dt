@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -255,7 +256,7 @@ public enum PrimitiveType implements IType {
 		@Override
 		public IType simpleType() { return PrimitiveType.this; }
 		@Override
-		public Object resolve(Index index) { return PrimitiveType.this.unified(); }
+		public Object resolve(Index index, IndexEntity deserializee) { return PrimitiveType.this.unified(); }
 		public PrimitiveType base() { return PrimitiveType.this; }
 		@Override
 		public boolean equals(Object obj) {

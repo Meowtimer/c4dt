@@ -23,10 +23,10 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 
 import org.eclipse.core.runtime.IPath;
 
-public class IniSection extends Declaration implements
-		IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>,
-		IniItem {
-
+public class IniSection
+	extends Declaration
+	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem
+{
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private Map<String, IniItem> itemMap;
@@ -35,67 +35,53 @@ public class IniSection extends Declaration implements
 	private int indentation;
 	private int sectionEnd;
 
-	public int sectionEnd() {
-		return sectionEnd;
-	}
-
-	public void setSectionEnd(int sectionEnd) {
-		this.sectionEnd = sectionEnd;
-	}
-
-	public IniSectionDefinition definition() {
-		return definition;
-	}
-
-	public void setDefinition(IniSectionDefinition sectionData) {
-		this.definition = sectionData;
-	}
+	public int sectionEnd() { return sectionEnd; }
+	public void setSectionEnd(int sectionEnd) { this.sectionEnd = sectionEnd; }
+	public IniSectionDefinition definition() { return definition; }
+	public void setDefinition(IniSectionDefinition sectionData) { this.definition = sectionData; }
+	public Map<String, IniItem> subItemMap() { return itemMap; }
+	public IniItem subItemByKey(String key) { return itemMap.get(key); }
+	public List<IniItem> subItemList() { return itemList; }
+	@Override
+	public String key() { return name(); }
+	@Override
+	public String stringValue() { return ""; } //$NON-NLS-1$
+	@Override
+	public Object[] children() { return subItemList().toArray(new Object[subItemList().size()]); }
+	@Override
+	public boolean hasChildren() { return !itemMap.isEmpty(); }
+	@Override
+	public void setStringValue(String value, Object context) { }
+	@Override
+	public Collection<? extends IniItem> childCollection() { return itemList; }
+	@Override
+	public String nodeName() { return name(); }
+	@Override
+	public ITreeNode parentNode() { return null; }
+	@Override
+	public IPath path() { return ITreeNode.Default.path(this); }
+	@Override
+	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	public int indentation() { return indentation; }
+	public void setIndentation(int indentation) { this.indentation = indentation; }
+	@Override
+	public int sortCategory() { return 1; }
+	public IniUnit iniUnit() { return parentOfType(IniUnit.class); }
+	@Override
+	public boolean isTransient() { return false; }
+	@Override
+	public Object[] subDeclarationsForOutline() { return hasChildren() ? this.children() : null; }
+	@Override
+	public Iterator<IniItem> iterator() { return new ReadOnlyIterator<IniItem>(this.itemMap.values().iterator()); }
 
 	protected IniSection(SourceLocation location, String name) {
 		setLocation(location);
 		this.name = name;
 	}
 
-	public Map<String, IniItem> subItemMap() {
-		return itemMap;
-	}
-
 	public void setSubItems(Map<String, IniItem> map, List<IniItem> list) {
 		this.itemMap = map;
 		this.itemList = list;
-	}
-
-	public IniItem subItemByKey(String key) {
-		return itemMap.get(key);
-	}
-
-	public List<IniItem> subItemList() {
-		return itemList;
-	}
-
-	@Override
-	public String key() {
-		return name();
-	}
-
-	@Override
-	public String stringValue() {
-		return ""; //$NON-NLS-1$
-	}
-
-	@Override
-	public Object[] children() {
-		return subItemList().toArray(new Object[subItemList().size()]);
-	}
-
-	@Override
-	public boolean hasChildren() {
-		return !itemMap.isEmpty();
-	}
-
-	@Override
-	public void setStringValue(String value, Object context) {
-		// FIXME?
 	}
 
 	@Override
@@ -116,7 +102,7 @@ public class IniSection extends Declaration implements
 				return item instanceof IniEntry
 					? (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false)
 					: item;
-			} catch (IniParserException e) {
+			} catch (final IniParserException e) {
 				return null;
 			}
 		}
@@ -130,44 +116,9 @@ public class IniSection extends Declaration implements
 	}
 
 	@Override
-	public Collection<? extends IniItem> childCollection() {
-		return itemList;
-	}
-
-	@Override
-	public String nodeName() {
-		return name();
-	}
-
-	@Override
-	public ITreeNode parentNode() {
-		return null;
-	}
-
-	@Override
-	public IPath path() {
-		return ITreeNode.Default.path(this);
-	}
-
-	@Override
-	public boolean subNodeOf(ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
-	}
-
-	@Override
 	public String toString() {
-		IniUnit unit = iniUnit();
+		final IniUnit unit = iniUnit();
 		return unit != null ? unit.sectionToString(this) : name();
-	}
-
-	@Override
-	public Object[] subDeclarationsForOutline() {
-		return hasChildren() ? this.children() : null;
-	}
-
-	@Override
-	public Iterator<IniItem> iterator() {
-		return new ReadOnlyIterator<IniItem>(this.itemMap.values().iterator());
 	}
 
 	public void putEntry(IniEntry entry) {
@@ -183,7 +134,7 @@ public class IniSection extends Declaration implements
 		writer.append(']');
 		writer.append('\n');
 
-		for (IniItem item : subItemList()) {
+		for (final IniItem item : subItemList()) {
 			if (item.isTransient())
 				continue;
 			item.print(writer, indentation + 1);
@@ -192,7 +143,7 @@ public class IniSection extends Declaration implements
 	}
 
 	public boolean hasPersistentItems() {
-		for (IniItem item : subItemList())
+		for (final IniItem item : subItemList())
 			if (!item.isTransient())
 				return true;
 		return false;
@@ -200,27 +151,14 @@ public class IniSection extends Declaration implements
 
 	@Override
 	public void validate(Markers markers) throws ParsingException {
-		for (IniItem e : this)
+		for (final IniItem e : this)
 			e.validate(markers);
-	}
-
-	public int indentation() {
-		return indentation;
-	}
-
-	public void setIndentation(int indentation) {
-		this.indentation = indentation;
-	}
-
-	@Override
-	public int sortCategory() {
-		return 1;
 	}
 
 	public Iterable<IniSection> sections() {
 		// unable to make this work generically ;c
-		List<IniSection> sections = new LinkedList<IniSection>();
-		for (ITreeNode node : childCollection())
+		final List<IniSection> sections = new LinkedList<IniSection>();
+		for (final ITreeNode node : childCollection())
 			if (node instanceof IniSection)
 				sections.add((IniSection) node);
 		return sections;
@@ -231,19 +169,10 @@ public class IniSection extends Declaration implements
 				: null;
 	}
 
-	public IniUnit iniUnit() {
-		return parentOfType(IniUnit.class);
-	}
-
 	@Override
 	public String infoText(IIndexEntity context) {
-		IniUnit unit = iniUnit();
+		final IniUnit unit = iniUnit();
 		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText(context));
-	}
-
-	@Override
-	public boolean isTransient() {
-		return false;
 	}
 
 	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
@@ -256,15 +185,15 @@ public class IniSection extends Declaration implements
 	}
 
 	public void commit(Object object, boolean takeIntoAccountCategory) {
-		for (IniItem item : subItemMap().values())
+		for (final IniItem item : subItemMap().values())
 			if (item instanceof IniSection)
 				((IniSection)item).commit(object, takeIntoAccountCategory);
 			else if (item instanceof IniEntry) {
-				IniEntry entry = (IniEntry) item;
+				final IniEntry entry = (IniEntry) item;
 				Field f;
 				try {
 					f = object.getClass().getField(entry.name());
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					// don't panic - probably unknown field
 					//e.printStackTrace();
 					continue;
@@ -279,7 +208,7 @@ public class IniSection extends Declaration implements
 							setFromString(f, object, (String)val);
 						else try {
 							f.set(object, val);
-						} catch (IllegalArgumentException e) {
+						} catch (final IllegalArgumentException e) {
 							if (val instanceof Long && f.getType() == Integer.TYPE) {
 								f.set(object, (int)(long)(Long)val);
 								continue;
@@ -292,14 +221,14 @@ public class IniSection extends Declaration implements
 							}
 							// unboxing failed
 							try {
-								Constructor<?> ctor = f.getType().getConstructor(val.getClass());
+								final Constructor<?> ctor = f.getType().getConstructor(val.getClass());
 								f.set(object, ctor.newInstance(val));
-							} catch (NoSuchMethodException nsm) {
+							} catch (final NoSuchMethodException nsm) {
 								System.out.println(f.getName());
 								nsm.printStackTrace();
 							}
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 						continue;
 					}

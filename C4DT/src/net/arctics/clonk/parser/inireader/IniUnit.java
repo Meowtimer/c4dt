@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -452,11 +453,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & DeclMask.IMPLICIT) != 0)
 			return this.sectionsList;
 		else
-			return NO_SUB_DECLARATIONS;
+			return Collections.emptyList();
 	}
 
 	@Override

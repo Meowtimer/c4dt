@@ -707,7 +707,8 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 				final Declaration outerDec = currentDeclaration();
 				try {
-					final Variable var = script.createVarInScope(this, currentFunction, varName, scope, fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
+					final Variable var = script.createVarInScope(this, currentFunction, varName, scope,
+						fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
 					if (typeAnnotation != null)
 						typeAnnotation.setTarget(var);
 					if (staticType != null)
@@ -1509,22 +1510,22 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
 			final ASTNode elm = new PropListExpression(proplDec);
-			if (currentFunction != null)
-				currentFunction.addOtherDeclaration(proplDec);
-			//proplDec.setName(elm.toString());
 			return elm;
 		}
 		return null;
 	}
+	
+	private int proplistCounter = 0;
+	private String newPropListName() { return "proplist"+(++proplistCounter); }
 
 	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ParsingException {
 		final int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			final ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
-			proplistDeclaration.setParent(currentDeclaration() != null ? currentDeclaration() : script);
+			final ProplistDeclaration pl = new ProplistDeclaration(newPropListName());
+			pl.setParent(script);
 			final Declaration oldDec = currentDeclaration();
-			setCurrentDeclaration(proplistDeclaration);
+			setCurrentDeclaration(pl);
 			try {
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
@@ -1568,7 +1569,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 							} finally {
 								setCurrentDeclaration(outerDec);
 							}
-							proplistDeclaration.addComponent(v, false);
+							pl.addComponent(v, false);
 							expectingComma = true;
 						}
 						else {
@@ -1579,11 +1580,10 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				}
 				if (!properlyClosed)
 					error(Problem.MissingClosingBracket, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, "}"); //$NON-NLS-1$
-				proplistDeclaration.setLocation(absoluteSourceLocation(propListStart, offset));
-				return proplistDeclaration;
-			} finally {
-				setCurrentDeclaration(oldDec);
-			}
+				pl.setLocation(absoluteSourceLocation(propListStart, offset));
+				script.addDeclaration(pl);
+				return pl;
+			} finally { setCurrentDeclaration(oldDec); }
 		}
 		else
 			unread();

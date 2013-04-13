@@ -15,6 +15,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
+import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasCode;
 import net.arctics.clonk.parser.c4script.IType;
@@ -64,7 +65,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			this.depth = depth(elm);
 		}
 		@Override
-		public Object resolve(Index index) {
+		public Object resolve(Index index, IndexEntity deserializee) {
 			if (owner instanceof IHasCode) {
 				if (owner instanceof IndexEntity)
 					((IndexEntity) owner).requireLoaded();
@@ -704,11 +705,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return as(parent(), Sequence.class);
 	}
 
-	public void postLoad(ASTNode parent, ProblemReportingContext context) {
+	public void postLoad(ASTNode parent) {
 		this.parent = parent;
+		
+		final IDeferredDeclaration deferred = as(inferredType, IDeferredDeclaration.class);
+		if (deferred != null)
+			inferredType = as(deferred.resolve(), IType.class);
+		
 		for (final ASTNode e : subElements())
 			if (e != null)
-				e.postLoad(this, context);
+				e.postLoad(this);
 	}
 
 	/**

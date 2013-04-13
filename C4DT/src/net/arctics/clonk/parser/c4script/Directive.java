@@ -79,9 +79,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	/**
 	 * @return the content
 	 */
-	public String contents() {
-		return content;
-	}
+	public String contents() { return content; }
 
 	@Override
 	public String toString() {
@@ -181,7 +179,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 			default:
 				return null;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// ignore those feeble attempts
 			return super.subElements();
 		}

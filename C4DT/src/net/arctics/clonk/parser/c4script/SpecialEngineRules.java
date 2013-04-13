@@ -27,6 +27,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
@@ -168,7 +169,7 @@ public abstract class SpecialEngineRules {
 				this.name = obj.name;
 			}
 			@Override
-			public Object resolve(Index index) {
+			public Object resolve(Index index, IndexEntity deserializee) {
 				return index.engine().specialRules().rule(name);
 			}
 		}

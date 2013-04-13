@@ -9,7 +9,8 @@ public interface IDeserializationResolvable {
 	/**
 	 * Resolve this object to some other equivalent object, including itself.
 	 * @param index {@link Index} acting as context
+	 * @param deserializee TODO
 	 * @return An equivalent object or this one.
 	 */
-	Object resolve(Index index);
+	Object resolve(Index index, IndexEntity deserializee);
 }

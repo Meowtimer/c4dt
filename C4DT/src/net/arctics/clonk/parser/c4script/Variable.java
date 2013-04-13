@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
+import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
@@ -10,11 +11,11 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
+import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
-import net.arctics.clonk.parser.c4script.typing.TypeUtil;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
@@ -296,7 +297,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression != null)
-			initializationExpression.postLoad(this, TypeUtil.problemReportingContext(this));
+			initializationExpression.postLoad(this);
 		if (initializationExpression instanceof PropListExpression)
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
 	}
@@ -308,15 +309,15 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean isActualParm() { return !name().equals("..."); } //$NON-NLS-1$
 
 	@Override
-	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
-		builder.append(scope().toKeyword());
-		builder.append(" "); //$NON-NLS-1$
-		builder.append(name());
-		builder.append(";"); //$NON-NLS-1$
+	public void doPrint(ASTNodePrinter output, int depth) {
+		output.append(scope().toKeyword());
+		output.append(" "); //$NON-NLS-1$
+		output.append(name());
+		output.append(";"); //$NON-NLS-1$
 	}
 
 	@Override
-	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if (initializationExpression instanceof Declaration)
 			return ((Declaration)initializationExpression).subDeclarations(contextIndex, mask);
 		else

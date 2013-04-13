@@ -24,8 +24,7 @@ public class Effect extends ProplistDeclaration {
 	public Effect(String name, Iterable<EffectFunction> functions) {
 		super(new ArrayList<Variable>(5));
 		setName(name);
-		adHoc = true;
-		for (EffectFunction f : functions)
+		for (final EffectFunction f : functions)
 			addFunction(f);
 	}
 
@@ -49,7 +48,7 @@ public class Effect extends ProplistDeclaration {
 	}
 
 	public static IType[] parameterTypesForCallback(String callbackName, Script script, IType proplistType) {
-		boolean proplistParameters = script.engine().settings().supportsProplists;
+		final boolean proplistParameters = script.engine().settings().supportsProplists;
 		if (isAnyOf(callbackName, "Start", "Timer", "Stop"))
 			return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
 		if (callbackName.equals("Effect"))

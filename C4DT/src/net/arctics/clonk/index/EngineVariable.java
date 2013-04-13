@@ -15,7 +15,7 @@ public class EngineVariable extends Variable implements IReplacedWhenSaved {
 			this.name = name;
 		}
 		@Override
-		public Object resolve(Index index) {
+		public Object resolve(Index index, IndexEntity deserializee) {
 			return index.engine().findVariable(name);
 		}
 	}

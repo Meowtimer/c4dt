@@ -6,6 +6,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 
 public class EngineRef implements Serializable, IDeserializationResolvable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -14,7 +15,7 @@ public class EngineRef implements Serializable, IDeserializationResolvable {
 		this.engineName = engine.name();
 	}
 	@Override
-	public Object resolve(Index index) {
+	public Object resolve(Index index, IndexEntity deserializee) {
 		return Core.instance().loadEngine(engineName);
 	}
 }

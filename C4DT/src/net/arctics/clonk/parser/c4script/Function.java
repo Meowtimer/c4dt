@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -12,7 +13,6 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,9 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
-import net.arctics.clonk.parser.c4script.typing.TypeUtil;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
@@ -56,10 +54,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private FunctionScope visibility;
 	private List<Variable> localVars;
 	protected List<Variable> parameters;
-	/**
-	 * Various other declarations (like proplists) that aren't variables/parameters
-	 */
-	private List<Declaration> otherDeclarations;
 	private IType returnType;
 	private String description;
 	private String returnDescription;
@@ -511,7 +505,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Object[] subDeclarationsForOutline() {
-		return ArrayUtil.concat(locals().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
+		return locals().toArray();
 	}
 
 	/**
@@ -661,14 +655,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Iterable<Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.VARIABLES) != 0) {
 			decs.addAll(localVars);
 			decs.addAll(parameters);
 		}
-		if ((mask & DeclMask.IMPLICIT) != 0 && otherDeclarations != null)
-			decs.addAll(otherDeclarations);
 		return decs;
 	}
 
@@ -691,8 +683,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	/**
-	 * Invoke this function. Left empty for 'regular' functions, only defined in special interpreter functions
-	 * @param context TODO
+	 * Invoke this function using a crude AST interpreter.
+	 * @param context Context object
 	 * @return the result
 	 */
 	public Object invoke(IEvaluationContext context) {
@@ -706,66 +698,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 	}
 
-	@Override
-	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
-		builder.append(visibility().toKeyword());
-		builder.append(" "); //$NON-NLS-1$
-		builder.append(Keywords.Func);
-		builder.append(" "); //$NON-NLS-1$
-		builder.append(parameterString(EnumSet.of(ParameterStringOption.FunctionName)));
-		switch (Conf.braceStyle) {
-		case NewLine:
-			builder.append("\n{\n"); //$NON-NLS-1$
-			break;
-		case SameLine:
-			builder.append(" {\n"); //$NON-NLS-1$
-			break;
-		}
-		if (cookie instanceof ASTNode)
-			((ASTNode)cookie).print(builder, 1);
-		builder.append("\n}"); //$NON-NLS-1$
-	}
-
 	/**
 	 * Remove local variables.
 	 */
 	public void clearLocalVars() {
 		localVars.clear();
-		if (otherDeclarations != null)
-			otherDeclarations.clear();
-	}
-
-	/**
-	 * Add declaration that is neither parameter nor variable. Most likely an implicit proplist.
-	 * @param d The declaration to add
-	 * @return Return d. Any proplist declarations already added to the other declarations list with the same location will be removed in favor of d.
-	 */
-	public Declaration addOtherDeclaration(Declaration d) {
-		if (otherDeclarations == null)
-			otherDeclarations = new ArrayList<Declaration>(3);
-		else
-			for (final Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
-				final Declaration existing = it.next();
-				if (existing.sameLocation(d)) {
-					it.remove();
-					break;
-				}
-			}
-		otherDeclarations.add(d);
-		return d;
-	}
-
-	private static final List<Declaration> NO_OTHER_DECLARATIONS = new ArrayList<Declaration>();
-
-	/**
-	 * Return 'other' declarations (neither parameters nor variables)
-	 * @return The list of other declarations. Will not be null, even if there are not other declarations.
-	 */
-	public List<Declaration> otherDeclarations() {
-		if (otherDeclarations == null)
-			return NO_OTHER_DECLARATIONS;
-		else
-			return otherDeclarations;
 	}
 
 	@Override
@@ -792,11 +729,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The code block or null if it was created from differing source.
 	 */
 	public FunctionBody bodyMatchingSource(String source) {
-		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
-			if (body != null)
-				body.postLoad(this, TypeUtil.problemReportingContext(this));
+		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode()))
+			//if (body != null)
+			//	body.postLoad(this, TypeUtil.problemReportingContext(this));
 			return body;
-		} else
+		else
 			return body = null;
 	}
 
@@ -808,19 +745,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return bodyMatchingSource(null);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
 		if (from instanceof Variable)
 			return super.latestVersionOf(from);
-		else {
-			if (otherDeclarations == null)
-				return null;
-			for (final Declaration other : otherDeclarations)
-				if (other.getClass() == from.getClass() && other.sameLocation(from))
-					return (T) other;
-		}
-		return null;
+		else
+			return null;
 	}
 
 	/**
@@ -894,7 +824,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public ASTNode[] subElements() { return new ASTNode[] { body() }; }
+	public ASTNode[] subElements() {
+		return concat(super.subElements(), body());
+	}
 	@Override
 	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
 

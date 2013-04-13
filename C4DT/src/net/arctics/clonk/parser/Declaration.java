@@ -1,7 +1,9 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,7 +24,6 @@ import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ProjectSettings.Typing;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Sink;
@@ -210,15 +211,13 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return (Declaration)parent;
 	}
 
-	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.iterable();
-
 	/**
 	 * Return an {@link Iterable} to iterate over declarations accessible from this object that match the supplied bit mask
 	 * @param contextIndex {@link Index} Context index. Required for correctly returning appended scripts if a project a completion proposal is invoked in contains scripts appending themselves to scripts from another project.
 	 * @param mask a bit mask specifying what to include in the returned {@link Iterable}, formed by the static variables in this interface
 	 * @return An iterable to iterate over sub declarations satifying the passed mask
 	 */
-	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) { return NO_SUB_DECLARATIONS; }
+	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) { return Collections.emptyList(); }
 	public boolean seesSubDeclaration(Declaration subDeclaration) { return true; }
 
 	public Function findFunction(String functionName) { return null; }
@@ -239,11 +238,13 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public void postLoad(Declaration parent, Index index) {
 		if (name != null)
 			name = name.intern();
-		setParent(parent);
-		final Iterable<? extends Declaration> subDecs = this.subDeclarations(this.index(), DeclMask.ALL);
-		if (subDecs != null)
-			for (final Declaration d : subDecs)
-				d.postLoad(this, index);
+		postLoad(parent);
+	}
+	
+	@Override
+	public ASTNode[] subElements() {
+		final List<? extends Declaration> sd = this.subDeclarations(this.index(), DeclMask.ALL);
+		return sd.toArray(new ASTNode[sd.size()]);
 	}
 
 	/**
@@ -312,10 +313,6 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			else
 				return null;
 		}
-	}
-
-	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
-		System.out.println("dunno");
 	}
 
 	public StringTbl localStringTblMatchingLanguagePref() {

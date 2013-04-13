@@ -22,7 +22,7 @@ public class StructureVariable extends Variable implements IReplacedWhenSaved {
 			this.resourcePath = resourcePath;
 		}
 		@Override
-		public Object resolve(Index index) {
+		public Object resolve(Index index, IndexEntity deserializee) {
 			ProjectIndex prj = as(index, ProjectIndex.class);
 			if (prj != null) {
 				IResource res = prj.nature().getProject().findMember(resourcePath);

@@ -524,7 +524,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		public static class Ticket implements Serializable, IDeserializationResolvable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public Object resolve(Index index) {
+			public Object resolve(Index index, IndexEntity deserializee) {
 				return index.engine().templateScenario();
 			}
 		}

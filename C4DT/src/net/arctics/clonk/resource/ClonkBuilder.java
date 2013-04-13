@@ -182,18 +182,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 		@Override
 		protected IStatus run(final IProgressMonitor monitor) {
-			monitor.beginTask(buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.length+3);
+			monitor.beginTask(buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.length+3+5);
 			try {
 				for (final Script s : scriptsToSave)
 					try {
 						s.save();
+						monitor.worked(1);
 					} catch (final IOException e) {
 						e.printStackTrace();
 					}
-				//Index index = ClonkProjectNature.get(project).index();
-				//index.saveShallow();
 				monitor.worked(3);
+				ClonkProjectNature.get(project).saveIndex();
+				monitor.worked(5);
 				return Status.OK_STATUS;
+			} catch (final CoreException e) {
+				e.printStackTrace();
+				return new Status(Status.ERROR, Core.PLUGIN_ID, String.format("Errors while saving index of '%s'", project.getName()));
 			} finally {
 				monitor.done();
 			}

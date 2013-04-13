@@ -6,7 +6,6 @@ import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -18,7 +17,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ReferenceType;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.WrappedType;
 import net.arctics.clonk.parser.c4script.ast.ThisType;
 import net.arctics.clonk.parser.c4script.ast.TypeChoice;
@@ -128,7 +126,7 @@ public class TypeUnification {
 				return _b;
 			else if (_b.numComponents(true) == 0)
 				return _a;
-			return new UnifiedProplistDeclarations(new ArrayList<Variable>(), _a, _b);
+			return PrimitiveType.PROPLIST.unified(); // screw it
 		}
 
 		if (a instanceof WrappedType) {

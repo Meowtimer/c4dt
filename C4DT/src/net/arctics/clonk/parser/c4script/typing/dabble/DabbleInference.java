@@ -1285,7 +1285,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								node.setDeclaration(declaration = var);
 								foundSomeVar = true;
 							}
-							else if (t instanceof IProplistDeclaration && ((IProplistDeclaration)t).isAdHoc()) {
+							else if (t instanceof IProplistDeclaration) {
 								final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
 								final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
 								var.setLocation(node.absolute());

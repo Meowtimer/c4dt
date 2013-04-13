@@ -6,12 +6,15 @@ import java.io.ObjectInputStream;
 
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 
 public class IndexEntityInputStream extends ObjectInputStream {
 	private Index index;
-	public IndexEntityInputStream(Index index, InputStream input) throws IOException {
+	private final IndexEntity entity;
+	public IndexEntityInputStream(Index index, IndexEntity entity, InputStream input) throws IOException {
 		super(input);
 		this.index = index;
+		this.entity = entity;
 		enableResolveObject(true);
 	}
 	@Override
@@ -19,7 +22,7 @@ public class IndexEntityInputStream extends ObjectInputStream {
 		if (index == null && obj instanceof Index)
 			index = (Index)obj;
 		else if (obj instanceof IDeserializationResolvable)
-			return ((IDeserializationResolvable)obj).resolve(index);
+			return ((IDeserializationResolvable)obj).resolve(index, entity);
 		else
 			return super.resolveObject(obj);
 		return obj;

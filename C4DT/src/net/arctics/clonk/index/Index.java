@@ -41,7 +41,6 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SystemScript;
@@ -98,14 +97,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private final Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
 	private final List<Script> indexedScripts = new LinkedList<Script>();
 	private final List<Scenario> indexedScenarios = new LinkedList<Scenario>();
-	private final List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 	private Variable globalProplist;
 
 	public synchronized Variable global() {
 		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
-			final ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
+			final ProplistDeclaration type = new ProplistDeclaration(GLOBAL_PROPLIST_NAME);
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
 			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, type);
@@ -242,12 +240,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 	}
 
-	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
-		indexedProplistDeclarations.add(proplistDeclaration);
-		for (final Variable v : proplistDeclaration.components(true))
-			addToDeclarationMap(v);
-	}
-
 	private void detectAppendages(Script script, Map<ID, List<Script>> detectedAppendages) {
 		if (detectedAppendages != null)
 			for (final Directive d : script.directives())
@@ -265,9 +257,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		for (final Function func : script.functions()) {
 			if (func.visibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
-			for (final Declaration otherDec : func.otherDeclarations())
-				if (otherDec instanceof IProplistDeclaration)
-					addToProplistDeclarations((ProplistDeclaration) otherDec);
 			addToDeclarationMap(func);
 		}
 		for (final Variable var : script.variables()) {
@@ -508,29 +497,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		});
 	}
 
-	public List<Scenario> indexedScenarios() {
-		return Collections.unmodifiableList(indexedScenarios);
-	}
-
-	public List<Script> indexedScripts() {
-		return Collections.unmodifiableList(indexedScripts);
-	}
-
-	public List<ProplistDeclaration> indexedProplistDeclarations() {
-		return indexedProplistDeclarations;
-	}
-
-	public List<Function> globalFunctions() {
-		return Collections.unmodifiableList(globalFunctions);
-	}
-
-	public List<Variable> staticVariables() {
-		return Collections.unmodifiableList(staticVariables);
-	}
-
-	public Map<String, List<Declaration>> declarationMap() {
-		return Collections.unmodifiableMap(declarationMap);
-	}
+	public List<Scenario> indexedScenarios() { return Collections.unmodifiableList(indexedScenarios); }
+	public List<Script> indexedScripts() { return Collections.unmodifiableList(indexedScripts); }
+	public List<Function> globalFunctions() { return Collections.unmodifiableList(globalFunctions); }
+	public List<Variable> staticVariables() { return Collections.unmodifiableList(staticVariables); }
+	public Map<String, List<Declaration>> declarationMap() { return Collections.unmodifiableMap(declarationMap); }
 
 	/**
 	 * Return the last {@link Definition} with the specified {@link ID}, whereby 'last' is arbitrary, maybe loosely based on the directory and lexical structure of the project.
@@ -677,7 +648,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		indexedScripts.clear();
 		indexedScenarios.clear();
-		indexedProplistDeclarations.clear();
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
@@ -749,7 +719,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 					private static final long serialVersionUID = 1L;
 					@Override
 					public Engine engine() { return engine; }
-				}, in);
+				}, null, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
 					index.shallowAwake();
@@ -836,7 +806,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
-		//System.out.println("Load entity " + entity.toString());
+		System.out.println("Load entity " + entity.toString());
 		try {
 			final Queue<IndexEntity> queue = entityLoadQueue.get();
 			final int count = queue.size();
@@ -847,6 +817,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				try (final ObjectInputStream s = inputStream) {
 					entity.load(s);
 				} catch (final Exception e) {
+					System.out.println(String.format("Failed to load entity '%s'", entity.qualifiedName()));
 					System.out.println(e.getMessage());
 				}
 			if (entity instanceof Script)
@@ -904,7 +875,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public ObjectInputStream newEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
 		try {
-			return new IndexEntityInputStream(this, new GZIPInputStream(new FileInputStream(entityFile(entity))));
+			return new IndexEntityInputStream(this, entity, new GZIPInputStream(new FileInputStream(entityFile(entity))));
 		} catch (final FileNotFoundException e) {
 			// might not be necessary to have an entity file
 			return null;
@@ -1016,11 +987,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public Object saveReplacementForEntityDeclaration(Declaration obj, IndexEntity entity) {
 		final Index objIndex = obj.index();
-		final IndexEntity owningEntity = obj.parentOfType(IndexEntity.class);
-		if (objIndex == null || (objIndex == this && entity == owningEntity))
+		final IndexEntity objOwner = obj.parentOfType(IndexEntity.class);
+		if (objIndex == null || (objIndex == this && entity == objOwner))
 			return obj;
-		else
-			return new EntityDeclaration(obj, owningEntity);
+		else {
+			System.out.println(String.format("%s: Replacement for '%s' (from '%s')",
+				entity != null ? entity.qualifiedName() : "<index>", obj.qualifiedName(), objOwner != null ? objOwner.qualifiedName() : "<null>"));
+			return new EntityDeclaration(obj, objOwner);
+		}
 	}
 
 	public void loadScriptsContainingDeclarationsNamed(final String name) {

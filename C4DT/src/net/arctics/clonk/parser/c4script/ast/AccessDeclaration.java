@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.DeferredDeclaration;
+import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
@@ -99,10 +99,10 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public String patternMatchingText() { return name(); }
 	
 	@Override
-	public void postLoad(ASTNode parent, ProblemReportingContext context) {
-		super.postLoad(parent, context);
-		if (declaration instanceof DeferredDeclaration)
-			declaration = ((DeferredDeclaration)declaration).resolve();
+	public void postLoad(ASTNode parent) {
+		super.postLoad(parent);
+		if (declaration instanceof IDeferredDeclaration)
+			declaration = ((IDeferredDeclaration)declaration).resolve();
 	}
 
 }

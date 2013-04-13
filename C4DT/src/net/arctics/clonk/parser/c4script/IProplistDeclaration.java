@@ -6,13 +6,6 @@ public interface IProplistDeclaration {
 	public static final String PROTOTYPE_KEY = "Prototype";
 
 	/**
-	 * Whether the declaration was "explicit" {blub=<blub>...} or
-	 * by assigning values separately (effect.var1 = ...; ...)
-	 * @return adhoc-ness
-	 */
-	boolean isAdHoc();
-
-	/**
 	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
 	 * @param includeAdhocComponents Whether the returned list also contains adhoc-components in addition to the ones present in the initial declaration
 	 * @return Return the list of component variables this proplist declaration is made up of.

@@ -7,6 +7,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 
 /**
  * Represents a C4ID. This class manages a global pool of unique {@link ID} objects and restricts construction of new instances to calling {@link #get(String)}..
@@ -29,7 +30,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 * Resolve serialized {@link ID} by returning an interned version of it.
 	 */
 	@Override
-	public ID resolve(Index index) {
+	public ID resolve(Index index, IndexEntity deserializee) {
 		synchronized (idPool) {
 			ID special = idPool.get(name);
 			if (special == null) {

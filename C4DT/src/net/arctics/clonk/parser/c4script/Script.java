@@ -81,16 +81,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	// will be written by #save
-	protected transient List<Function> definedFunctions;
-	protected transient List<Variable> definedVariables;
-	protected transient Map<String, Effect> definedEffects;
+	protected transient List<Function> functions;
+	protected transient List<Variable> variables;
+	protected transient Map<String, Effect> effects;
+	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
 	private transient Map<Variable, IType> variableTypes;
 	private transient Map<String, IType> functionReturnTypes;
 
 	// serialized directly
 	/** set of scripts this script is using functions and/or static variables from */
 	private Set<Script> usedScripts;
-	protected List<Directive> definedDirectives;
+	protected List<Directive> directives;
 
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
@@ -137,12 +138,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The list of used scripts
 	 */
 	public Collection<? extends Script> usedScripts() {
-		return copyListOrReturnDefaultList(usedScripts, NO_SCRIPTS);
+		return copyListOrReturnDefaultList(usedScripts, Collections.<Script>emptyList());
 	}
 
 	protected Script(Index index) { super(index); }
 
-	public static class Declarations implements Serializable {
+	protected static class SaveState implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public Map<String, Effect> effects;
 		public List<Function> functions;
@@ -150,44 +151,68 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public Set<Script> used;
 		public Map<Variable, IType> variableTypes;
 		public Map<String, IType> functionReturnTypes;
-		public Declarations(Map<String, Effect> effects, List<Function> functions, List<Variable> variables, Set<Script> used, Map<Variable, IType> variableTypes, Map<String, IType> functionTypes) {
-			super();
+		public Map<String, ProplistDeclaration> proplistDeclarations;
+		public void initialize(
+			Map<String, Effect> effects,
+			List<Function> functions,
+			List<Variable> variables,
+			Set<Script> used,
+			Map<Variable, IType> variableTypes,
+			Map<String, IType> functionTypes,
+			Map<String, ProplistDeclaration> proplistDeclarations
+		) {
 			this.effects = effects;
 			this.functions = functions;
 			this.variables = variables;
 			this.used = used;
 			this.variableTypes = variableTypes;
 			this.functionReturnTypes = functionTypes;
+			this.proplistDeclarations = proplistDeclarations;
 		}
 	}
 
 	@Override
 	public void save(ObjectOutputStream stream) throws IOException {
 		super.save(stream);
-		stream.writeObject(new Declarations(
-			definedEffects,
-			definedFunctions,
-			definedVariables,
+		final SaveState state = makeSaveState();
+		state.initialize(
+			effects,
+			functions,
+			variables,
 			usedScripts,
 			variableTypes,
-			functionReturnTypes
-		));
+			functionReturnTypes,
+			proplistDeclarations
+		);
+		stream.writeObject(state);
 		populateDictionary();
 	}
+	
+	public SaveState makeSaveState() { return new SaveState(); }
 
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 		loadIncludes();
-		final Declarations declarations = (Declarations)stream.readObject();
-		definedEffects = declarations.effects;
-		definedFunctions = declarations.functions;
-		definedVariables = declarations.variables;
-		usedScripts = declarations.used;
-		variableTypes = declarations.variableTypes;
-		functionReturnTypes = declarations.functionReturnTypes;
-		purgeNullEntries(definedFunctions, definedVariables, usedScripts);
-		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
+		extractSaveState((SaveState)stream.readObject());
+		loadUsedScripts();
+	}
+	
+	public void extractSaveState(final SaveState state) {
+		effects = state.effects;
+		functions = state.functions;
+		variables = state.variables;
+		usedScripts = state.used;
+		variableTypes = state.variableTypes;
+		functionReturnTypes = state.functionReturnTypes;
+		proplistDeclarations = state.proplistDeclarations;
+		
+		purgeNullEntries(functions, variables, usedScripts);
+	}
+	
+	private void loadUsedScripts() {
+		// also load scripts this script uses global declarations from
+		// so they will be present when the script gets parsed
 		try {
 			if (usedScripts != null)
 				for (final Script s : usedScripts)
@@ -197,10 +222,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void postLoad(Declaration parent, Index root) {
+		loadIncludes();
+		loadUsedScripts();
+		super.postLoad(parent, root);
+		generateCaches();
+		findScenario();
+	}
 
 	private void loadIncludes() {
-		if (definedDirectives != null && index != null)
-			for (final Directive d : definedDirectives)
+		if (directives != null && index != null)
+			for (final Directive d : directives)
 				switch (d.type()) {
 				case APPENDTO: case INCLUDE:
 					final ID id = d.contentAsID();
@@ -248,11 +282,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			};
 			if (effectName != null) {
 				allEffectFunctions.removeAll(effectCandidates);
-				if (definedEffects == null)
-					definedEffects = new HashMap<String, Effect>();
+				if (effects == null)
+					effects = new HashMap<String, Effect>();
 				final Effect effect = new Effect(effectName, effectCandidates);
 				effect.setParent(this);
-				definedEffects.put(effectName, effect);
+				effects.put(effectName, effect);
 			}
 		}
 	}
@@ -312,10 +346,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
 		if (!set.add(this))
 			return false;
-		if (definedDirectives != null) {
+		if (directives != null) {
 			List<Directive> directivesCopy;
-			synchronized(definedDirectives) {
-				directivesCopy = new ArrayList<Directive>(definedDirectives);
+			synchronized(directives) {
+				directivesCopy = new ArrayList<Directive>(directives);
 			}
 			for (final Directive d : directivesCopy) {
 				if (d == null)
@@ -417,6 +451,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		requireLoaded();
+		if (declarationClass.isAssignableFrom(Effect.class)) {
+			final Effect e = effects().get(declarationName);
+			if (e != null)
+				return e;
+		}
+		if (declarationClass.isAssignableFrom(ProplistDeclaration.class)) {
+			final ProplistDeclaration dec = proplistDeclarations().get(declarationName);
+			if (dec != null)
+				return dec;
+		}
 		if (declarationClass.isAssignableFrom(Variable.class))
 			for (final Variable v : variables())
 				if (v.name().equals(declarationName))
@@ -425,11 +469,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			for (final Function f : functions())
 				if (f.name().equals(declarationName))
 					return f;
-		if (declarationClass.isAssignableFrom(Effect.class)) {
-			final Effect e = effects().get(declarationName);
-			if (e != null)
-				return e;
-		}
 		return null;
 	}
 
@@ -448,13 +487,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.DIRECTIVES) != 0)
-			addAllSynchronized(definedDirectives, decs);
+			addAllSynchronized(directives, decs);
 		if ((mask & DeclMask.VARIABLES) != 0)
-			addAllSynchronized(definedVariables, decs);
+			addAllSynchronized(variables, decs);
 		if ((mask & DeclMask.FUNCTIONS) != 0)
-			addAllSynchronized(definedFunctions, decs);
-		if ((mask & DeclMask.IMPLICIT) != 0 && definedEffects != null)
-			addAllSynchronized(definedEffects.values(), decs);
+			addAllSynchronized(functions, decs);
+		if ((mask & DeclMask.IMPLICIT) != 0 && effects != null)
+			addAllSynchronized(effects.values(), decs);
 		return decs;
 	}
 
@@ -536,13 +575,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				requireLoaded();
 				// a function defined in this object
 				if (decClass == null || decClass == Function.class) {
-					final Function f = definedDeclarationNamed(name, Function.class);
+					final Function f = declarationNamed(name, Function.class);
 					if (f != null)
 						return f;
 				}
 				// a variable
 				if (decClass == null || decClass == Variable.class) {
-					final Variable v = definedDeclarationNamed(name, Variable.class);
+					final Variable v = declarationNamed(name, Variable.class);
 					if (v != null)
 						return v;
 				}
@@ -615,27 +654,33 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		declaration.setParent(this);
 		if (declaration instanceof Function)
 			synchronized (this) {
-				if (definedFunctions == null)
-					definedFunctions = new ArrayList<Function>(5);
-				definedFunctions.add((Function)declaration);
+				if (functions == null)
+					functions = new ArrayList<Function>(5);
+				functions.add((Function)declaration);
 				// function added after generating cache? put it
 				if (cachedFunctionMap != null)
 					cachedFunctionMap.put(declaration.name(), (Function) declaration);
 			}
 		else if (declaration instanceof Variable)
 			synchronized (this) {
-				if (definedVariables == null)
-					definedVariables = new ArrayList<Variable>(5);
-				definedVariables.add((Variable)declaration);
+				if (variables == null)
+					variables = new ArrayList<Variable>(5);
+				variables.add((Variable)declaration);
 				// variable added after generating cache? put it
 				if (cachedVariableMap != null)
 					cachedVariableMap.put(declaration.name(), (Variable) declaration);
 			}
 		else if (declaration instanceof Directive)
 			synchronized (this) {
-				if (definedDirectives == null)
-					definedDirectives = new ArrayList<Directive>(5);
-				definedDirectives.add((Directive)declaration);
+				if (directives == null)
+					directives = new ArrayList<Directive>(5);
+				directives.add((Directive)declaration);
+			}
+		else if (declaration instanceof ProplistDeclaration)
+			synchronized (this) {
+				if (proplistDeclarations == null)
+					proplistDeclarations = new HashMap<>();
+				proplistDeclarations.put(declaration.name(), (ProplistDeclaration) declaration);
 			}
 		if (dictionary != null)
 			synchronized (dictionary) { dictionary.add(declaration.name()); }
@@ -646,27 +691,27 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (declaration.script() != this)
 			declaration.setParent(this);
 		if (declaration instanceof Function) {
-			if (definedFunctions != null) synchronized (definedFunctions) {
-				definedFunctions.remove(declaration);
+			if (functions != null) synchronized (functions) {
+				functions.remove(declaration);
 			}
 		}
 		else if (declaration instanceof Variable) {
-			if (definedVariables != null) synchronized (definedFunctions) {
-				definedVariables.remove(declaration);
+			if (variables != null) synchronized (functions) {
+				variables.remove(declaration);
 			}
 		}
 		else if (declaration instanceof Directive)
-			if (definedDirectives != null) synchronized (definedDirectives) {
-				definedDirectives.remove(declaration);
+			if (directives != null) synchronized (directives) {
+				directives.remove(declaration);
 			}
 	}
 
 	public synchronized void clearDeclarations() {
 		loaded = true;
 		usedScripts = null;
-		definedDirectives = null;
-		definedFunctions = null;
-		definedVariables = null;
+		directives = null;
+		functions = null;
+		variables = null;
 		cachedFunctionMap = null;
 		cachedVariableMap = null;
 	}
@@ -820,15 +865,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				variableMap.put(v.name(), v);
 		}
 		for (final Variable v : toBeRemoved)
-			definedVariables.remove(v);
+			variables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
-
-	private static final List<Directive> NO_DIRECTIVES = Collections.unmodifiableList(new ArrayList<Directive>());
-	private static final List<Function> NO_FUNCTIONS = Collections.unmodifiableList(new ArrayList<Function>());
-	private static final List<Variable> NO_VARIABLES = Collections.unmodifiableList(new ArrayList<Variable>());
-	private static final List<Script> NO_SCRIPTS = Collections.unmodifiableList(new ArrayList<Script>());
-	private static final Map<String, Effect> NO_EFFECTS = Collections.unmodifiableMap(new HashMap<String, Effect>());
 
 	/**
 	 * Return the list of functions defined in this script.
@@ -836,18 +875,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public List<? extends Function> functions() {
 		requireLoaded();
-		return definedFunctions != null ? definedFunctions : NO_FUNCTIONS;
+		return functions != null ? functions : Collections.<Function>emptyList();
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends Declaration> T definedDeclarationNamed(String name, Class<T> cls) {
+	private <T extends Declaration> T declarationNamed(String name, Class<T> cls) {
 		List<T> list;
 		if (cls == Variable.class)
-			list = (List<T>)definedVariables;
+			list = (List<T>)variables;
 		else if (cls == Function.class)
-			list = (List<T>)definedFunctions;
+			list = (List<T>)functions;
 		else if (cls == Directive.class)
-			list = (List<T>)definedDirectives;
+			list = (List<T>)directives;
 		else
 			return null;
 		synchronized (this) {
@@ -875,7 +914,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public List<? extends Variable> variables() {
 		requireLoaded();
-		return copyListOrReturnDefaultList(definedVariables, NO_VARIABLES);
+		return copyListOrReturnDefaultList(variables, Collections.<Variable>emptyList());
 	}
 
 	/**
@@ -884,7 +923,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public List<? extends Directive> directives() {
 		requireLoaded();
-		return definedDirectives != null ? definedDirectives : NO_DIRECTIVES;
+		return directives != null ? directives : Collections.<Directive>emptyList();
 	}
 
 	/**
@@ -893,7 +932,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Map<String, Effect> effects() {
 		requireLoaded();
-		return definedEffects != null ? definedEffects : NO_EFFECTS;
+		return effects != null ? effects : Collections.<String, Effect>emptyMap();
+	}
+	
+	public Map<String, ProplistDeclaration> proplistDeclarations() {
+		requireLoaded();
+		return proplistDeclarations != null ? proplistDeclarations : Collections.<String, ProplistDeclaration>emptyMap();
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
@@ -1132,8 +1176,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		generateFindDeclarationCache(conglo);
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();
-		if (definedFunctions != null && index() != null)
-			for (final Function f : definedFunctions) {
+		if (functions != null && index() != null)
+			for (final Function f : functions) {
 				f.findInherited();
 				detectMapNodesInFunction(f, false);
 			}
@@ -1145,8 +1189,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		for (final Script i : conglo)
 			if (i instanceof Script) {
 				final Script s = i;
-				if (s.definedFunctions != null)
-					for (final Function f1 : s.definedFunctions) {
+				if (s.functions != null)
+					for (final Function f1 : s.functions) {
 						// prefer putting non-global functions into the map so when in doubt the object function is picked
 						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
 						final Function existing = cachedFunctionMap.get(f1.name());
@@ -1154,8 +1198,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 							continue;
 						cachedFunctionMap.put(f1.name(), f1);
 					}
-				if (s.definedVariables != null)
-					for (final Variable v : s.definedVariables)
+				if (s.variables != null)
+					for (final Variable v : s.variables)
 						cachedVariableMap.put(v.name(), v);
 			}
 	}
@@ -1182,13 +1226,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	@Override
-	public void postLoad(Declaration parent, Index root) {
-		super.postLoad(parent, root);
-		generateCaches();
-		indexRefresh();
-	}
-
-	@Override
 	public String qualifiedName() {
 		if (resource() == null)
 			return this.toString();
@@ -1198,10 +1235,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public void indexRefresh() {
 		if (loaded) {
-			final IResource res = resource();
-			scenario = res != null ? Scenario.containingScenario(res) : null;
+			findScenario();
 			detectEffects();
 		}
+	}
+	
+	private void findScenario() {
+		final IResource res = resource();
+		scenario = res != null ? Scenario.containingScenario(res) : null;
 	}
 
 	/**

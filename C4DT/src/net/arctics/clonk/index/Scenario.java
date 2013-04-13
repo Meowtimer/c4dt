@@ -1,6 +1,9 @@
 package net.arctics.clonk.index;
 
 import static net.arctics.clonk.util.Utilities.as;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -25,11 +28,11 @@ public class Scenario extends Definition {
 	public static final String PROPLIST_NAME = "Scenario";
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private Declaration scenarioPropList; { createScenarioProplist(); }
+	private transient Declaration scenarioPropList; { createScenarioProplist(); }
 
 	private synchronized Declaration createScenarioProplist() {
 		if (scenarioPropList == null && engine().settings().supportsGlobalProplists) {
-			final ProplistDeclaration type = ProplistDeclaration.newAdHocDeclaration();
+			final ProplistDeclaration type = new ProplistDeclaration(PROPLIST_NAME);
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
 			final Variable v = new Variable(PROPLIST_NAME, type);
@@ -40,9 +43,7 @@ public class Scenario extends Definition {
 		return scenarioPropList;
 	}
 
-	public Declaration propList() {
-		return scenarioPropList;
-	}
+	public Declaration propList() { return scenarioPropList; }
 
 	@Override
 	public void postLoad(Declaration parent, Index root) {
@@ -52,6 +53,30 @@ public class Scenario extends Definition {
 
 	public Scenario(Index index, String name, IContainer container) {
 		super(index, ID.get(container != null ? container.getName() : name), name, container);
+	}
+	
+	@Override
+	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		super.load(stream);
+	}
+	
+	protected static class ScenarioSaveState extends SaveState {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public ScenarioSaveState() {}
+		public Declaration scenarioProplist;
+	}
+	
+	@Override
+	public SaveState makeSaveState() {
+		final ScenarioSaveState state = new ScenarioSaveState();
+		state.scenarioProplist = scenarioPropList;
+		return state;
+	}
+	
+	@Override
+	public void extractSaveState(SaveState state) {
+		super.extractSaveState(state);
+		scenarioPropList = ((ScenarioSaveState)state).scenarioProplist;
 	}
 
 	public static Scenario get(IContainer folder) {

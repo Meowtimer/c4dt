@@ -48,8 +48,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public ClonkTextEditor editor() { return editor; }
 
 	private void openForeignDeclarations() {
-		IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
-		for (IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
+		final IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
+		for (final IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
 			@Override
 			public IIndexEntity convert(Object from) {
 				if (from instanceof IAdaptable)
@@ -65,8 +65,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			if (entity != null) {
 				List<? extends IIndexEntity> entities;
 				if (entity instanceof Directive) {
-					Directive d = (Directive)entity;
-					Iterable<? extends Definition> defs = editor.structure().index().definitionsWithID(d.contentAsID());
+					final Directive d = (Directive)entity;
+					final Iterable<? extends Definition> defs = editor.structure().index().definitionsWithID(d.contentAsID());
 					if (defs != null)
 						entities = ArrayUtil.list(defs);
 					else
@@ -83,7 +83,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	@Override
 	public void createControl(Composite parent) {
 		composite = new Composite(parent, SWT.NO_SCROLL);
-		GridLayout layout = new GridLayout(1, false);
+		final GridLayout layout = new GridLayout(1, false);
 		composite.setLayout(layout);
 		filterBox = new Text(composite, SWT.SEARCH | SWT.CANCEL);
 		filterBox.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -102,9 +102,9 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
 						return true;
 					if (element instanceof Declaration) {
-						Object[] subDecs = ((Declaration)element).subDeclarationsForOutline();
+						final Object[] subDecs = ((Declaration)element).subDeclarationsForOutline();
 						if (subDecs != null)
-							for (Object sd : subDecs)
+							for (final Object sd : subDecs)
 								if (select(viewer, element, sd))
 									return true;
 					}
@@ -130,7 +130,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			public void mouseDoubleClick(MouseEvent e) {openForeignDeclarations();}
 		});
 		if (editor != null) {
-			Declaration topLevelDeclaration = editor().structure();
+			final Declaration topLevelDeclaration = editor().structure();
 			if (topLevelDeclaration != null)
 				setTreeViewerInput(topLevelDeclaration);
 		}
@@ -142,7 +142,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		public int category(Object element) {
 			int multiplier = 1;
 			if (element instanceof Declaration) {
-				Declaration d = (Declaration)element;
+				final Declaration d = (Declaration)element;
 				if (!d.containedIn(editor.structure()))
 					multiplier = 1000;
 				return d.sortCategory() * multiplier;
@@ -152,10 +152,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	};
 	
 	private void setTreeViewerInput(Declaration obj) {
-		TreeViewer treeViewer = this.getTreeViewer();
+		final TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
-		WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider(this));
+		final WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider(this));
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
 		treeViewer.setSorter(provider.sorter(DECLARATION_SORTER));
@@ -169,7 +169,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			return;
 		if (event.getSelection() instanceof IStructuredSelection) {
 			Declaration dec = (Declaration) ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
-			dec = dec.latestVersion();
+			if (dec != null)
+				dec = dec.latestVersion();
 			if (dec != null)
 				if (dec.containedIn(editor.structure()))
 					editor.selectAndReveal(dec);
@@ -184,7 +185,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		Declaration newInput = editor().structure();
+		final Declaration newInput = editor().structure();
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else
@@ -192,7 +193,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 	
 	public void select(Declaration field) {
-		TreeViewer viewer = getTreeViewer();
+		final TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
 		try {
 			this.setSelection(new StructuredSelection(field));

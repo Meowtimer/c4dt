@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,40 +29,15 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected List<Variable> components;
-	protected List<Variable> adhocComponents;
-	protected boolean adHoc;
+	protected List<Variable> added;
 	protected ProplistDeclaration prototype;
-
-	/* (non-Javadoc)
-	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#isAdHoc()
-	 */
-	@Override
-	public boolean isAdHoc() {
-		return adHoc;
-	}
-
-	private ProplistDeclaration() {
-		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
-	}
 
 	/**
 	 * Create a new ProplistDeclaration, passing it component variables it takes over directly. The list won't be copied.
 	 * @param components The component variables
 	 */
-	public ProplistDeclaration(List<Variable> components) {
-		this.components = components;
-	}
-
-	/**
-	 * Create an adhoc proplist declaration.
-	 * @return The newly created adhoc proplist declaration.
-	 */
-	public static ProplistDeclaration newAdHocDeclaration() {
-		final ProplistDeclaration result = new ProplistDeclaration();
-		result.adHoc = true;
-		result.components = new LinkedList<Variable>();
-		return result;
-	}
+	public ProplistDeclaration(List<Variable> components) { this.components = components; }
+	public ProplistDeclaration(String name) { this(new LinkedList<Variable>()); setName(name); }
 
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#addComponent(net.arctics.clonk.parser.c4script.Variable)
@@ -75,9 +51,9 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			List<Variable> list;
 			if (adhoc)
 				synchronized (components) {
-					if (adhocComponents == null)
-						adhocComponents = new ArrayList<Variable>(5);
-					list = adhocComponents;
+					if (added == null)
+						added = new ArrayList<Variable>(5);
+					list = added;
 				}
 			else
 				list = components;
@@ -97,8 +73,8 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			for (final Variable v : components)
 				if (v.name().equals(declarationName))
 					return v;
-			if (adhocComponents != null)
-				for (final Variable v : adhocComponents)
+			if (added != null)
+				for (final Variable v : added)
 					if (v.name().equals(declarationName))
 						return v;
 		}
@@ -125,8 +101,8 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			for (final Variable v : components)
 				if (v.name().equals(declarationName))
 					return v;
-			if (adhocComponents != null)
-				for (final Variable v : adhocComponents)
+			if (added != null)
+				for (final Variable v : added)
 					if (v.name().equals(declarationName))
 						return v;
 		}
@@ -134,16 +110,16 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public Iterable<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
 		if ((mask & DeclMask.VARIABLES) != 0) {
-			final ArrayList<Variable> items = new ArrayList<>(components.size()+(adhocComponents != null ? adhocComponents.size() : 0));
+			final ArrayList<Variable> items = new ArrayList<>(components.size()+(added != null ? added.size() : 0));
 			items.addAll(components);
-			if (adhocComponents != null)
-				items.addAll(adhocComponents);
+			if (added != null)
+				items.addAll(added);
 			return items;
 		}
 		else
-			return NO_SUB_DECLARATIONS;
+			return Collections.emptyList();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -235,7 +211,6 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			clonedComponents.add(v.clone());
 		final ProplistDeclaration clone = new ProplistDeclaration(clonedComponents);
 		clone.setLocation(this);
-		clone.adHoc = this.adHoc;
 		return clone;
 	}
 
@@ -249,22 +224,15 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @param prototypeExpression The implicit prototype to set
 	 * @return This one.
 	 */
-	public void setPrototype(ProplistDeclaration prototype) {
-		this.prototype = prototype;
-	}
-
-	@Override
-	public void postLoad(Declaration parent, Index root) {
-		super.postLoad(parent, root);
-	}
+	public void setPrototype(ProplistDeclaration prototype) { this.prototype = prototype; }
 
 	@Override
 	public Collection<Variable> components(boolean includeAdhocComponents) {
 		synchronized(components) {
-			final ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&adhocComponents!=null?adhocComponents.size():0));
+			final ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&added!=null?added.size():0));
 			list.addAll(components);
-			if (includeAdhocComponents && adhocComponents != null)
-				list.addAll(adhocComponents);
+			if (includeAdhocComponents && added != null)
+				list.addAll(added);
 			return list;
 		}
 	}
@@ -272,15 +240,13 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	public int numComponents(boolean includeAdhocComponents) {
 		synchronized(components) {
 			int result = components.size();
-			if (includeAdhocComponents && adhocComponents != null)
-				result += adhocComponents.size();
+			if (includeAdhocComponents && added != null)
+				result += added.size();
 			return result;
 		}
 	}
 
 	@Override
-	public PrimitiveType primitiveType() {
-		return PrimitiveType.PROPLIST;
-	}
+	public PrimitiveType primitiveType() { return PrimitiveType.PROPLIST; }
 
 }

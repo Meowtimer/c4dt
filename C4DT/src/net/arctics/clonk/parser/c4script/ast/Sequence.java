@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
 
 public class Sequence extends ASTNodeWithSubElementsArray {
 
@@ -21,7 +20,7 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	public Sequence(ASTNode... elms) {
 		super(elms);
 		ASTNode prev = null;
-		for (ASTNode e : elements) {
+		for (final ASTNode e : elements) {
 			if (e != null)
 				e.setPredecessorInSequence(prev);
 			prev = e;
@@ -32,14 +31,14 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	}
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		for (ASTNode e : elements)
+		for (final ASTNode e : elements)
 			e.print(output, depth+1);
 	}
 	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
-		List<ASTNode> currentSequenceExpressions = new LinkedList<ASTNode>();
-		List<Statement> result = new ArrayList<Statement>(elements.length);
+		final List<ASTNode> currentSequenceExpressions = new LinkedList<ASTNode>();
+		final List<Statement> result = new ArrayList<Statement>(elements.length);
 		ASTNode p = null;
-		for (ASTNode e : elements) {
+		for (final ASTNode e : elements) {
 			if (!e.isValidInSequence(p)) {
 				result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 				currentSequenceExpressions.clear();
@@ -55,28 +54,28 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		}
 	}
 	public Sequence subSequenceUpTo(ASTNode elm) {
-		List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
-		for (ASTNode e : elements)
+		final List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
+		for (final ASTNode e : elements)
 			if (e == elm)
 				break;
 			else
 				list.add(e);
 		if (list.size() > 0) {
-			Sequence s = new Sequence(list);
+			final Sequence s = new Sequence(list);
 			s.setParent(parent());
 			return s;
 		} else
 			return null;
 	}
 	public Sequence subSequenceIncluding(ASTNode elm) {
-		List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
-		for (ASTNode e : elements) {
+		final List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
+		for (final ASTNode e : elements) {
 			list.add(e);
 			if (e == elm)
 				break;
 		}
 		if (list.size() > 0) {
-			Sequence s = new Sequence(list);
+			final Sequence s = new Sequence(list);
 			s.setParent(parent());
 			return s;
 		} else
@@ -93,10 +92,10 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		return lastElement().evaluate(context);
 	}
 	@Override
-	public void postLoad(ASTNode parent, ProblemReportingContext context) {
-		super.postLoad(parent, context);
+	public void postLoad(ASTNode parent) {
+		super.postLoad(parent);
 		ASTNode prev = null;
-		for (ASTNode e : subElements()) {
+		for (final ASTNode e : subElements()) {
 			if (e != null)
 				e.setPredecessorInSequence(prev);
 			prev = e;

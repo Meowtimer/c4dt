@@ -100,7 +100,7 @@ public class MemberOperator extends ASTNode {
 	public boolean equalAttributes(ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
-		MemberOperator otherOp = (MemberOperator) other;
+		final MemberOperator otherOp = (MemberOperator) other;
 		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !eq(id, otherOp.id))
 			return false;
 		return true;
@@ -108,8 +108,8 @@ public class MemberOperator extends ASTNode {
 
 	@Override
 	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
-		if (context.script().engine().settings().supportsProplists) {
-			ASTNode succ = successorInSequence();
+		if (!dotNotation && !context.script().engine().settings().supportsProplists) {
+			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
 				return makeDotOperator();
 		}

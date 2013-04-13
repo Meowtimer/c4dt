@@ -24,7 +24,7 @@ public class EntityId implements Serializable, IDeserializationResolvable {
 		return context; // ;>
 	}
 	@Override
-	public IndexEntity resolve(Index index) {
+	public IndexEntity resolve(Index index, IndexEntity deserializee) {
 		IndexEntity result = null;
 		final Index externalIndex = index(index);
 		if (externalIndex != null) {
