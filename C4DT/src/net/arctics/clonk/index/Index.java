@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.Flags.DEBUG;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -806,7 +808,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 	
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
-		System.out.println("Load entity " + entity.toString());
+		if (DEBUG)
+			System.out.println("Load entity " + entity.toString());
 		try {
 			final Queue<IndexEntity> queue = entityLoadQueue.get();
 			final int count = queue.size();
@@ -828,7 +831,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				while ((e = queue.poll()) != null) try {
 					e.postLoad(this, this);
 				} catch (final Exception x) {
-					System.out.println(x.getMessage());
+					System.out.println(String.format("Error post-loading '%s': %s", e.qualifiedName(), x.getMessage()));
 				}
 			}
 			
@@ -991,8 +994,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (objIndex == null || (objIndex == this && entity == objOwner))
 			return obj;
 		else {
-			System.out.println(String.format("%s: Replacement for '%s' (from '%s')",
-				entity != null ? entity.qualifiedName() : "<index>", obj.qualifiedName(), objOwner != null ? objOwner.qualifiedName() : "<null>"));
+			if (DEBUG)
+				System.out.println(String.format("%s: Replacement for '%s' (from '%s')",
+					entity != null ? entity.qualifiedName() : "<index>", obj.qualifiedName(), objOwner != null ? objOwner.qualifiedName() : "<null>"));
 			return new EntityDeclaration(obj, objOwner);
 		}
 	}
