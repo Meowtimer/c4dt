@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
@@ -282,9 +283,9 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			cursorPosition = replacementString.length();
 			super.apply(document);
 
-			for (final Replacement.AdditionalDeclaration dec : replacement.additionalDeclarations()) {
+			for (final Declaration dec : replacement.additionalDeclarations()) {
 				final StringBuilder builder = new StringBuilder(50);
-				dec.declaration.sourceCodeRepresentation(builder, dec.code);
+				dec.print(new AppendableBackedExprWriter(builder), 0);
 				builder.append("\n"); //$NON-NLS-1$
 				builder.append("\n"); //$NON-NLS-1$
 				try {
@@ -317,19 +318,10 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	private static class Replacement {
-		public static class AdditionalDeclaration {
-			public Declaration declaration;
-			public ASTNode code;
-			public AdditionalDeclaration(Declaration declaration, ASTNode code) {
-				super();
-				this.declaration = declaration;
-				this.code = code;
-			}
-		}
 		private String title;
 		private final ASTNode replacementExpression;
 		private final ASTNode[] specifiable;
-		private final List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
+		private final List<Declaration> additionalDeclarations = new LinkedList<Declaration>();
 		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
 		public Replacement(String title, ASTNode replacementExpression, ASTNode... specifiable) {
 			super();
@@ -338,21 +330,11 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.specifiable = specifiable;
 			this.regionToBeReplacedSpecifiedByReplacementExpression = !(replacementExpression instanceof Statement);
 		}
-		public String title() {
-			return title;
-		}
-		public void setTitle(String title) {
-			this.title = title;
-		}
-		public ASTNode replacementExpression() {
-			return replacementExpression;
-		}
-		public ASTNode[] specifiable() {
-			return specifiable;
-		}
-		public List<AdditionalDeclaration> additionalDeclarations() {
-			return additionalDeclarations;
-		}
+		public String title() { return title; }
+		public void setTitle(String title) { this.title = title; }
+		public ASTNode replacementExpression() { return replacementExpression; }
+		public ASTNode[] specifiable() { return specifiable; }
+		public List<Declaration> additionalDeclarations() { return additionalDeclarations; }
 		@Override
 		public boolean equals(Object other) {
 			if (other instanceof Replacement) {
@@ -533,19 +515,13 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						ASTNode.NULL_EXPR,
 						false, false
 					);
-					final List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.additionalDeclarations();
+					final List<Declaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 					if (accessDec instanceof AccessVar)
-						decs.add(new Replacement.AdditionalDeclaration(
-							new Variable(accessDec.name(), Scope.LOCAL),
-							ASTNode.NULL_EXPR
-						));
+						decs.add(new Variable(accessDec.name(), Scope.LOCAL));
 					else {
 						final CallDeclaration callFunc = (CallDeclaration) accessDec;
 						Function function;
-						decs.add(new Replacement.AdditionalDeclaration(
-							function = new Function(accessDec.name(), FunctionScope.PUBLIC),
-							ASTNode.NULL_EXPR
-						));
+						decs.add(function = new Function(accessDec.name(), FunctionScope.PUBLIC));
 						final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 						int p = 0;
 						for (final ASTNode parm : callFunc.params())
