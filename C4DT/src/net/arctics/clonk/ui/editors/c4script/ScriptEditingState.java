@@ -451,16 +451,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return r;
 	}
 	
-	private int functionFragmentOffset = -1;
-	
-	public boolean updateCurrentFunctionFragmentOffset(int offset) 	{
-		if (offset != functionFragmentOffset) {
-			functionFragmentOffset = offset;
-			return true;
-		} else
-			return false;
-	}
-	
 	public FunctionFragmentParser updateFunctionFragment(
 		Function function,
 		IASTVisitor<ProblemReportingContext> observer,

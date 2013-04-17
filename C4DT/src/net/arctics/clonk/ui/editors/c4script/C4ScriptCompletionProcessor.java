@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -46,7 +45,6 @@ import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules;
 import net.arctics.clonk.parser.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallDeclaration;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
@@ -245,6 +243,37 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		else
 			return null;
 	}
+	
+	class PrecedingExpressionTypeExtractor extends ExpressionLocator<ProblemReportingContext> {
+		public ASTNode contextExpression;
+		public Sequence contextSequence;
+		public IType precedingType;
+		public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
+		public PrecedingExpressionTypeExtractor() { super(-1); }
+		@Override
+		public TraversalContinuation visitNode(ASTNode expression, ProblemReportingContext context) {
+			final ASTNode old = exprAtRegion;
+			final TraversalContinuation c = super.visitNode(expression, context);
+			if (old != exprAtRegion) {
+				contextExpression = exprAtRegion;
+				if (
+					contextExpression instanceof MemberOperator ||
+					(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
+				) {
+					// we only care about sequences
+					final ASTNode pred = contextExpression.predecessorInSequence();
+					contextSequence = pred != null ? Utilities.as(contextExpression.parent(), Sequence.class) : null;
+					if (contextSequence != null)
+						contextSequence = contextSequence.subSequenceIncluding(contextExpression);
+					precedingType = pred != null ? context.typeOf(pred) : null;
+				}
+			}
+			return c;
+		}
+		public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
+	}
+	
+	final PrecedingExpressionTypeExtractor typeExtractor = new PrecedingExpressionTypeExtractor();
 
 	private boolean computeProposalsInFunction(int offset, int wordOffset,
 		IDocument doc, String prefix,
@@ -256,48 +285,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		final Script editorScript = Utilities.scriptForEditor(editor);
 		final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 		
-		class ProblemReportingObserver extends ExpressionLocator<ProblemReportingContext> {
-			public ASTNode contextExpression;
-			public Sequence contextSequence;
-			public IType precedingType;
-			public ProblemReportingObserver(int pos) { super(pos); }
-			@Override
-			public TraversalContinuation visitNode(ASTNode expression, ProblemReportingContext context) {
-				final ASTNode old = exprAtRegion;
-				final TraversalContinuation c = super.visitNode(expression, context);
-				if (old != exprAtRegion) {
-					contextExpression = exprAtRegion;
-					if (
-						contextExpression instanceof MemberOperator ||
-						(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
-					) {
-						// we only care about sequences
-						final ASTNode pred = contextExpression.predecessorInSequence();
-						contextSequence = pred != null ? Utilities.as(contextExpression.parent(), Sequence.class) : null;
-						if (contextSequence != null)
-							contextSequence = contextSequence.subSequenceIncluding(contextExpression);
-						precedingType = pred != null ? context.typeOf(pred) : null;
-					}
-				}
-				return c;
-			}
-			public IType sequenceType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
-		}
-		
-		final ProblemReportingObserver problemReportingObserver = new ProblemReportingObserver(preservedOffset);
-		
+		typeExtractor.pos(preservedOffset);
 		C4ScriptParser parser = null;
 		if (editorScript != null)
 			if (parser == null) {
 				final ScriptEditingState editingState = editor().editingState();
-				parser = editingState.updateFunctionFragment(activeFunc, problemReportingObserver, editingState.updateCurrentFunctionFragmentOffset(offset));
+				parser = editingState.updateFunctionFragment(activeFunc, typeExtractor, true);
 			}
 		
-		final Sequence contextSequence = problemReportingObserver.contextSequence;
-		final ASTNode contextExpression = problemReportingObserver.contextExpression;
-		final IType sequenceType = problemReportingObserver.sequenceType();
-		
-		innerProposalsInFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc, editorScript, parser, contextSequence, contextExpression, sequenceType);
+		innerProposalsInFunction(
+			offset, wordOffset, doc, prefix,
+			proposals, index, activeFunc, editorScript, parser,
+			typeExtractor.contextSequence, typeExtractor.contextExpression, typeExtractor.precedingType()
+		);
 		return true;
 	}
 
@@ -412,14 +412,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
-		for (final Index x : index.relevantIndexes())
+		/*for (final Index x : index.relevantIndexes())
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function)
 					proposalForFunc((Function) d, prefix, offset, proposals, d.script().name(), true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar((Variable)d, prefix, offset, proposals);
-			}
+			}*/
 	}
 
 	private List<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {

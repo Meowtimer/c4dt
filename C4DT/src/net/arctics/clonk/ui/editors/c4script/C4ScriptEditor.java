@@ -357,7 +357,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
-		editingState().updateFunctionFragment(f, null, editingState().updateCurrentFunctionFragmentOffset(offset));
+		editingState().updateFunctionFragment(f, null, false);
 		final EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 
