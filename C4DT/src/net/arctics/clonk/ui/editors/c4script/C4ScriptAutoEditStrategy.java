@@ -60,7 +60,8 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	private static final Autopair[] AUTOPAIRS = {
 		PARM_BRACKETS_AUTOPAIR,
 		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE),
-		new Autopair("$", "$", 0)
+		new Autopair("$", "$", 0),
+		new Autopair("\"", "\"", 0)
 	};
 
 	private static class AutoInsertedRegion extends MutableRegion {
@@ -194,7 +195,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		try {
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
 				final Function f = configuration().editor().functionAtCursor();
-				if (f != null && unbalanced(d, f.bodyLocation())) {
+				if (f != null && c.offset > f.bodyLocation().start() && unbalanced(d, f.bodyLocation())) {
 					final IRegion r = d.getLineInformationOfOffset(c.offset);
 					final int start = r.getOffset();
 					final int end = findEndOfWhiteSpace(d, start, c.offset);
