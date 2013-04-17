@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import net.arctics.clonk.index.IReplacedWhenSaved;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
+import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 
@@ -24,21 +25,21 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 	@Override
 	protected Object replaceObject(Object obj) throws IOException {
 		try {
+			if (obj instanceof IDeferredDeclaration)
+				throw new IllegalStateException("Deferred declaration while serializing? No way");
 			if (obj instanceof IReplacedWhenSaved)
 				return ((IReplacedWhenSaved)obj).saveReplacement(index);
 			if (obj instanceof Declaration && !(obj instanceof Index))
 				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
 			if (entity != null && obj instanceof ASTNode) {
-				ASTNode elm = (ASTNode)obj;
-				Declaration owner = elm.owningDeclaration();
+				final ASTNode elm = (ASTNode)obj;
+				final Declaration owner = elm.owningDeclaration();
 				if (owner != null && !owner.containedIn(entity))
 					return new ASTNode.Ticket(owner, elm);
 			}
-			if (obj instanceof String)
-				return ((String)obj).intern();
 
 			return super.replaceObject(obj);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
