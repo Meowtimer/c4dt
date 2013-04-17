@@ -19,6 +19,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.Definition.ProxyVar;
@@ -1195,10 +1196,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public IType type(T node, Visitor visitor) {
 				final Declaration d = internalObtainDeclaration(node, visitor);
-				if (d == Variable.THIS)
-					return node.parentOfType(Function.class).isGlobal()
+				if (d == Variable.THIS) {
+					final Function fn = node.parentOfType(Function.class);
+					return fn != null && fn.isGlobal()
 						? CallTargetType.INSTANCE // global func - don't assume this to be typed as this script
 						: visitor.input.thisType;
+				}
 				final TypeVariable stored = findTypeVariable(node, visitor);
 				if (stored != null)
 					return stored.get();
@@ -1274,24 +1277,31 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (declaration == Variable.THIS)
 					return true;
 				if (declaration == null && origin != null) {
+					if (node.name().startsWith("Turn"))
+						internalObtainDeclaration(node, visitor);
 					final IType predType = predecessorType(node, visitor);
 					if (predType != null) {
 						boolean foundSomeVar = false;
 						for (final IType t : predType)
-							if (t == visitor.script()) {
+							if (t == visitor.script() && visitor.script() == node.parentOfType(Script.class)) {
 								final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
 								initializeFromAssignment(node, type, origin, visitor, var);
 								visitor.script().addDeclaration(var);
 								node.setDeclaration(declaration = var);
 								foundSomeVar = true;
 							}
-							else if (t instanceof IProplistDeclaration) {
+							else if (t instanceof Declaration && t instanceof IProplistDeclaration) {
 								final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
-								final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
-								var.setLocation(node.absolute());
-								node.setDeclaration(declaration = var);
-								initializeFromAssignment(node, type, origin, visitor, var);
-								foundSomeVar = true;
+								final Declaration d = (Declaration) t;
+								if (d.parentOfType(IndexEntity.class) == visitor.script()) {
+									final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
+									var.setLocation(node.absolute());
+									node.setDeclaration(declaration = var);
+									initializeFromAssignment(node, type, origin, visitor, var);
+									foundSomeVar = true;
+								} else
+									//System.out.println(String.format("%s: Won't add '%s' to '%s'", visitor.script().name(), node.name(), d.qualifiedName()));
+									foundSomeVar = true;
 							}
 						if (!foundSomeVar) {
 							final ProplistDeclaration proplDecl = new ProplistDeclaration(new ArrayList<Variable>());
@@ -1301,6 +1311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							node.setDeclaration(declaration = var);
 							initializeFromAssignment(node, type, origin, visitor, var);
 							judgement(node.predecessorInSequence(), proplDecl, TypingJudgementMode.UNIFY, visitor);
+							visitor.script().addDeclaration(proplDecl);
 						}
 					}
 				}
@@ -1308,7 +1319,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void initializeFromAssignment(T node, IType type, ASTNode origin, Visitor visitor, final Variable var) {
-				var.assignType(type);
 				var.setLocation(visitor.absoluteSourceLocationFromExpr(node));
 				var.forceType(type);
 				var.setInitializationExpression(origin);
@@ -1993,7 +2003,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public Declaration typeEnvironmentKey(CallInherited node, Visitor visitor) {
-					return node.parentOfType(Function.class).inheritedFunction();
+					final Function f = node.parentOfType(Function.class);
+					return f != null ? f.inheritedFunction() : null;
 				}
 			},
 

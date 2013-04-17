@@ -651,6 +651,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return index().engine().findDeclaration(name, info);
 	}
 
+	/**
+	 * Add declaration to this script. Proplists will be named automatically when added without prior name.
+	 * @param declaration Declaration to add. Can be a {@link Variable}, a {@link Function}, a {@link Directive} or a {@link ProplistDeclaration}
+	 */
 	public void addDeclaration(Declaration declaration) {
 		requireLoaded();
 		declaration.setParent(this);
@@ -682,8 +686,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			synchronized (this) {
 				if (proplistDeclarations == null)
 					proplistDeclarations = new HashMap<>();
+				if (declaration.name() == null)
+					declaration.setName("proplist"+proplistDeclarations.size());
 				proplistDeclarations.put(declaration.name(), (ProplistDeclaration) declaration);
 			}
+		else
+			throw new IllegalArgumentException("declaration");
 		if (dictionary != null)
 			synchronized (dictionary) { dictionary.add(declaration.name()); }
 	}

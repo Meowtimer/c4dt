@@ -1,6 +1,8 @@
 package net.arctics.clonk.index.serialization.replacements;
 
+import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -38,7 +40,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		if (result == null)
 			if (containingEntity != null)
 				return makeDeferred();
-			else
+			else if (DEBUG)
 				System.out.println(String.format("Giving up on resolving '%s::%s'",
 					containingEntity != null ? containingEntity.qualifiedName() : "<null>",
 					declarationPath
@@ -57,13 +59,14 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 			return null;
 	}
 	
-	Declaration resolveDeferred() {
+	Object resolveDeferred() {
 		final Declaration d = containingEntity.findDeclarationByPath(declarationPath, declarationClass);
-		if (d == null)
-			System.out.println(String.format("%s: Failed to resolve %s::%s",
+		if (d == null && DEBUG)
+			System.out.println(String.format("%s: Failed to resolve %s::%s (%s)",
 				deserializee != null ? deserializee.qualifiedName() : "<null>",
 				containingEntity.qualifiedName(),
-				declarationPath
+				declarationPath,
+				declarationClass.getSimpleName()
 			));
 		return d;
 	}
@@ -71,19 +74,19 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 	@SuppressWarnings("serial")
 	class DeferredVariable extends Variable implements IDeferredDeclaration {
 		@Override
-		public Declaration resolve() { return resolveDeferred(); }
+		public Object resolve() { return resolveDeferred(); }
 	}
 	
 	@SuppressWarnings("serial")
 	class DeferredFunction extends Function implements IDeferredDeclaration {
 		@Override
-		public Declaration resolve() { return resolveDeferred(); }
+		public Object resolve() { return resolveDeferred(); }
 	}
 
 	@SuppressWarnings("serial")
 	class DeferredType extends Declaration implements IType, IDeferredDeclaration {
 		@Override
-		public Declaration resolve() { return resolveDeferred(); }
+		public Object resolve() { return defaulting(resolveDeferred(), PrimitiveType.ANY); }
 		@Override
 		public Iterator<IType> iterator() { return iterable((IType)PrimitiveType.ANY).iterator(); }
 		@Override

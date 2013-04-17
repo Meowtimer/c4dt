@@ -796,25 +796,34 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		return null;
 	}
 
-	private transient ThreadLocal<Queue<IndexEntity>> entityLoadQueue;
-	
-	{ shallowAwake(); }
-	
-	protected void shallowAwake() {
-		entityLoadQueue = new ThreadLocal<Queue<IndexEntity>>() {
+	private class EntityLoader {
+		@SuppressWarnings("serial")
+		class PostLoadQueue extends LinkedList<IndexEntity> {}
+		private final ThreadLocal<PostLoadQueue> postLoadQueue = new ThreadLocal<PostLoadQueue>() {
 			@Override
-			protected Queue<IndexEntity> initialValue() { return new LinkedList<>(); }
+			protected PostLoadQueue initialValue() { return new PostLoadQueue(); }
 		};
-	}
-	
-	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
-		if (DEBUG)
-			System.out.println("Load entity " + entity.toString());
-		try {
-			final Queue<IndexEntity> queue = entityLoadQueue.get();
-			final int count = queue.size();
-			queue.add(entity);
-			
+		private void doPostLoad(final IndexEntity e) {
+			try {
+				e.postLoad(Index.this, Index.this);
+			} catch (final Exception x) {
+				System.out.println(String.format("Error post-loading '%s': %s", e.qualifiedName(), x.getMessage()));
+			}
+		}
+		public void loadEntity(IndexEntity entity) {
+			try {
+				final PostLoadQueue queue = postLoadQueue.get();
+				final boolean initialCall = queue.size() == 0;
+				queue.offer(entity);
+				doLoad(entity);
+				if (initialCall)
+					for (IndexEntity e; (e = queue.poll()) != null;)
+						doPostLoad(e);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		}
+		private void doLoad(IndexEntity entity) throws FileNotFoundException, IOException {
 			final ObjectInputStream inputStream = newEntityInputStream(entity);
 			if (inputStream != null)
 				try (final ObjectInputStream s = inputStream) {
@@ -825,21 +834,23 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				}
 			if (entity instanceof Script)
 				addGlobalsFromScript((Script)entity, appendages);
-			
-			if (count == 0) {
-				IndexEntity e;
-				while ((e = queue.poll()) != null) try {
-					e.postLoad(this, this);
-				} catch (final Exception x) {
-					System.out.println(String.format("Error post-loading '%s': %s", e.qualifiedName(), x.getMessage()));
-				}
-			}
-			
-		} catch (final Exception e) {
-			e.printStackTrace();
 		}
-	};
-
+	}
+	
+	private transient EntityLoader entityLoader;
+	
+	{ shallowAwake(); }
+	
+	protected void shallowAwake() {
+		entityLoader = new EntityLoader();
+	}
+	
+	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
+		if (DEBUG)
+			System.out.println("Load entity " + entity.toString());
+		entityLoader.loadEntity(entity);
+	}
+	
 	public void saveEntity(IndexEntity entity) throws IOException {
 		final ObjectOutputStream s = newEntityOutputStream(entity);
 		try {

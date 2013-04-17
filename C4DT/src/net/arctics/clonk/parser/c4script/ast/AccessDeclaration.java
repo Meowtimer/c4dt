@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 import net.arctics.clonk.parser.ASTNode;
@@ -102,7 +103,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public void postLoad(ASTNode parent) {
 		super.postLoad(parent);
 		if (declaration instanceof IDeferredDeclaration)
-			declaration = ((IDeferredDeclaration)declaration).resolve();
+			declaration = as(((IDeferredDeclaration)declaration).resolve(), Declaration.class);
 	}
 
 }

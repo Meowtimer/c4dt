@@ -1515,14 +1515,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return null;
 	}
 	
-	private int proplistCounter = 0;
-	private String newPropListName() { return "proplist"+(++proplistCounter); }
-
 	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ParsingException {
 		final int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			final ProplistDeclaration pl = new ProplistDeclaration(newPropListName());
+			final ProplistDeclaration pl = new ProplistDeclaration((String)null);
 			pl.setParent(script);
 			final Declaration oldDec = currentDeclaration();
 			setCurrentDeclaration(pl);
