@@ -94,7 +94,7 @@ public class TypeChoice implements IType {
 	public String typeName(boolean special) {
 		final List<IType> types = new ArrayList<>(10);
 		collect(types);
-		if (special && types.size() == 2 && types.contains(PrimitiveType.ANY)) {
+		if (special && types.size() == 2 && types.contains(PrimitiveType.ANY.unified())) {
 			types.remove(PrimitiveType.ANY);
 			return types.get(0).typeName(true) + "?";
 		}

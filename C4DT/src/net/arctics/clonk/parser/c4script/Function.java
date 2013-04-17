@@ -317,7 +317,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 						includeType = false;
 					else
 						includeType = true;
-					return comment + (includeType ? (type.typeName(false) + " ") : "") + par.name();
+					return comment + (includeType ? (type.typeName(!engineCompatible) + " ") : "") + par.name();
 				}
 			}));
 	}
