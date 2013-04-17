@@ -32,7 +32,7 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T[] concat(T first, T... rest) {
-		T[] result = (T[]) Array.newInstance(rest.getClass().getComponentType(), 1+rest.length);
+		final T[] result = (T[]) Array.newInstance(rest.getClass().getComponentType(), 1+rest.length);
 		result[0] = first;
 		for (int i = 0; i < rest.length; i++)
 			result[1+i] = rest[i];
@@ -41,6 +41,7 @@ public class ArrayUtil {
 
 	public static <T, B extends T> T[] arrayRange(B[] source, int start, int length, Class<T> elementClass) {
 		@SuppressWarnings("unchecked")
+		final
 		T[] result = (T[]) Array.newInstance(elementClass, length);
 		for (int i = 0; i < length; i++)
 			result[i] = source[start+i];
@@ -53,14 +54,15 @@ public class ArrayUtil {
 
 	public static <T> T[] removeNullElements(T[] array, Class<T> cls) {
 		int actualCount = 0;
-		for (T t : array)
+		for (final T t : array)
 			if (t != null)
 				actualCount++;
 		if (actualCount != array.length) {
 			@SuppressWarnings("unchecked")
+			final
 			T[] nonNullIngredients = (T[])Array.newInstance(cls, actualCount);
 			actualCount = 0;
-			for (T t : array)
+			for (final T t : array)
 				if (t != null)
 					nonNullIngredients[actualCount++] = t;
 			array = nonNullIngredients;
@@ -70,15 +72,15 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <E> ArrayList<E> list(E... elements) {
-		ArrayList<E> result = new ArrayList<E>(elements.length);
-		for (E e : elements)
+		final ArrayList<E> result = new ArrayList<E>(elements.length);
+		for (final E e : elements)
 			result.add(e);
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> T[] convertArray(Object[] baseArray, Class<T> newElementClass) {
-		T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
+		final T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
 		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
 		return result;
 	}
@@ -86,9 +88,9 @@ public class ArrayUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
 		try {
-			List<T> list = Utilities.filter(iterable(array), filter);
+			final List<T> list = Utilities.filter(iterable(array), filter);
 			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -96,8 +98,8 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T, C> C[] filter(Iterable<T> iterable, Class<C> cls) {
-		LinkedList<C> result = new LinkedList<C>();
-		for (T item : iterable)
+		final LinkedList<C> result = new LinkedList<C>();
+		for (final T item : iterable)
 			if (cls.isAssignableFrom(item.getClass()))
 				result.add((C) item);
 		return result.toArray((C[]) Array.newInstance(cls, result.size()));
@@ -105,8 +107,8 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <A, B> B[] filter(A[] array, Class<B> cls) {
-		List<B> items = new ArrayList<B>(array.length);
-		for (A item : array)
+		final List<B> items = new ArrayList<B>(array.length);
+		for (final A item : array)
 			if (cls.isAssignableFrom(item.getClass()))
 				items.add((B)item);
 		return items.toArray((B[]) Array.newInstance(cls, items.size()));
@@ -156,14 +158,14 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <From, To> To[] map(From[] elms, Class<To> toClass, IConverter<From, To> converter) {
-		To[] result = (To[]) Array.newInstance(toClass, elms.length);
+		final To[] result = (To[]) Array.newInstance(toClass, elms.length);
 		for (int i = 0; i < result.length; i++)
 			result[i] = converter.convert(elms[i]);
 		return result;
 	}
 
 	public static <T> Map<T, Integer> mapValueToIndex(T[] items) {
-		Map<T, Integer> result = new HashMap<T, Integer>();
+		final Map<T, Integer> result = new HashMap<T, Integer>();
 		for (int i = 0; i < items.length; i++)
 			result.put(items[i], i);
 		return result;
@@ -187,7 +189,7 @@ public class ArrayUtil {
 			for (int i = 0; i < keysAndValues.length-1; i += 2)
 				resultMap.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
 			return modifiable ? resultMap : Collections.unmodifiableMap(resultMap);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -195,10 +197,10 @@ public class ArrayUtil {
 
 	public static <KeyType, ValueType> Map<ValueType, KeyType> reverseMap(Map<KeyType, ValueType> originalMap, Map<ValueType, KeyType> resultMap) {
 		try {
-			for (Map.Entry<KeyType, ValueType> entry : originalMap.entrySet())
+			for (final Map.Entry<KeyType, ValueType> entry : originalMap.entrySet())
 				resultMap.put(entry.getValue(), entry.getKey());
 			return resultMap;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -231,34 +233,34 @@ public class ArrayUtil {
 	}
 
 	public static void purgeNullEntries(Collection<?>... collections) {
-		for (Collection<?> c : collections)
+		for (final Collection<?> c : collections)
 			if (c != null)
 				c.removeAll(Collections.singletonList(null));
 	}
 
 	public static <T> Set<T> set(@SuppressWarnings("unchecked") T... items) {
-		HashSet<T> t = new HashSet<T>();
-		for (T i : items)
+		final HashSet<T> t = new HashSet<T>();
+		for (final T i : items)
 			t.add(i);
 		return t;
 	}
 
 	public static <T> Set<? extends T> setFromIterable(Iterable<T> iterable) {
-		Set<T> set = new HashSet<T>();
-		for (T d : iterable)
+		final Set<T> set = new HashSet<T>();
+		for (final T d : iterable)
 			set.add(d);
 		return set;
 	}
 
 	public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
-		List<T> list = new ArrayList<T>(c);
+		final List<T> list = new ArrayList<T>(c);
 		Collections.sort(list);
 		return list;
 	}
 
 	public static <T> List<T> listFromIterable(Iterable<T> iterable) {
-		LinkedList<T> result = new LinkedList<T>();
-		for (T t : iterable)
+		final LinkedList<T> result = new LinkedList<T>();
+		for (final T t : iterable)
 			result.add(t);
 		return result;
 	}
@@ -271,22 +273,24 @@ public class ArrayUtil {
 		}
 	}
 
-	public static <T> void addAllSynchronized(Collection<? extends T> list, List<T> into) {
-		if (list != null)
-			synchronized (list) {
+	public static <T> void addAllSynchronized(Collection<? extends T> list, List<T> into, Object lock) {
+		if (lock == null)
+			lock = list;
+		if (list != null && lock != null)
+			synchronized (lock) {
 				into.addAll(list);
 			}
 	}
 
 	public static <T> List<T> list(Iterable<? extends T> iterable) {
-		List<T> result = new ArrayList<T>();
-		for (T i : iterable)
+		final List<T> result = new ArrayList<T>();
+		for (final T i : iterable)
 			result.add(i);
 		return result;
 	}
 
 	public static <T> Decision sink(Iterable<? extends T> iterable, Sink<T> sink) {
-		Iterator<? extends T> it = iterable.iterator();
+		final Iterator<? extends T> it = iterable.iterator();
 		while (it.hasNext())
 			switch (sink.elutriate(it.next())) {
 			case PurgeItem:
