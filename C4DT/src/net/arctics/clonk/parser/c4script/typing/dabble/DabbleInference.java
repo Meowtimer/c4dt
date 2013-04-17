@@ -189,10 +189,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return new Visitor(originator, input);
 			// add new input when run locally but only if this is the first hop from an existing visitor
 			// and if the function to be visited previously required parameter typing from calls
-			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint())
+			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint()) {
+				if (DEBUG)
+					System.out.println(String.format("Make new visitor for '%s'", function.qualifiedName()));
 				return (Visitor)localTypingContext(script, 0, originator);
-			else
+			}
+			else {
+				if (DEBUG)
+					System.out.println(String.format("No visitor for '%s'", function.qualifiedName()));
 				return null;
+			}
 		}
 	}
 
@@ -512,7 +518,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (function == null || function.body() == null)
 				return null;
 			
-
 			final Script funScript = function.script();
 			FunctionVisitReturnTypeVariable returnType;
 			returnType = input.plan.get(function);
@@ -642,6 +647,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public final FunctionVisitReturnTypeVariable delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
+			if (DEBUG)
+				System.out.println(String.format("Delegate function visit for '%s'", function.qualifiedName()));
 			if (function.body() == null)
 				return null;
 			for (Visitor v = this; v != null; v = v.originator)
@@ -1299,9 +1306,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 									node.setDeclaration(declaration = var);
 									initializeFromAssignment(node, type, origin, visitor, var);
 									foundSomeVar = true;
-								} else
-									//System.out.println(String.format("%s: Won't add '%s' to '%s'", visitor.script().name(), node.name(), d.qualifiedName()));
+								} else {
+									if (DEBUG)
+										System.out.println(String.format("%s: Won't add '%s' to '%s'", visitor.script().name(), node.name(), d.qualifiedName()));
 									foundSomeVar = true;
+								}
 							}
 						if (!foundSomeVar) {
 							final ProplistDeclaration proplDecl = new ProplistDeclaration(new ArrayList<Variable>());
@@ -1812,6 +1821,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					} else
 						f = findUsingType(visitor, node, declarationName, ty(p, visitor));
+					if (f instanceof Function && shared.local)
+						visitor.delegateFunctionVisit((Function)f, visitor.script(), node.predecessorInSequence() == null, false);
 					return f;
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
