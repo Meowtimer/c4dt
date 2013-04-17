@@ -487,13 +487,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.DIRECTIVES) != 0)
-			addAllSynchronized(directives, decs);
+			addAllSynchronized(directives, decs, null);
 		if ((mask & DeclMask.VARIABLES) != 0)
-			addAllSynchronized(variables, decs);
+			addAllSynchronized(variables, decs, null);
 		if ((mask & DeclMask.FUNCTIONS) != 0)
-			addAllSynchronized(functions, decs);
-		if ((mask & DeclMask.IMPLICIT) != 0 && effects != null)
-			addAllSynchronized(effects.values(), decs);
+			addAllSynchronized(functions, decs, null);
+		if ((mask & DeclMask.EFFECTS) != 0 && effects != null)
+			addAllSynchronized(effects.values(), decs, effects);
+		if ((mask & DeclMask.PROPLISTS) != 0 && proplistDeclarations != null)
+			addAllSynchronized(proplistDeclarations.values(), decs, proplistDeclarations);
 		return decs;
 	}
 
@@ -1331,7 +1333,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ASTNode[] subElements() {
-		final List<Declaration> decs = subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.STATIC_VARIABLES|DeclMask.VARIABLES|DeclMask.DIRECTIVES);
+		final List<Declaration> decs = subDeclarations(index(), DeclMask.ALL);
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 	

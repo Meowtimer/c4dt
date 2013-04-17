@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.Declaration;
@@ -85,7 +86,8 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	public String toString() {
 		if (content != "" && content != null) { //$NON-NLS-1$
 			if (type == DirectiveType.APPENDTO || type == DirectiveType.INCLUDE) {
-				final Definition d = this.index().anyDefinitionWithID(this.contentAsID());
+				final Index index = this.index();
+				final Definition d = index != null ? index.anyDefinitionWithID(this.contentAsID()) : null;
 				if (d != null)
 					return String.format("#%s %s (%s)", type.toString(), content, d.name());
 			}

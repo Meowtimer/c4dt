@@ -9,10 +9,6 @@ public class DeclMask {
 	 */
 	public static final int VARIABLES = 1;
 	/**
-	 * Return static {@link Variable}s
-	 */
-	public static final int STATIC_VARIABLES = 32;
-	/**
 	 * Return accessible {@link Function}s
 	 */
 	public static final int FUNCTIONS = 2;
@@ -25,7 +21,19 @@ public class DeclMask {
 	 */
 	public static final int IMPLICIT = 16;
 	/**
-	 * Mask including {@link VARIABLES}, {@link FUNCTIONS}, {@link DIRECTIVES} and {@link IMPLICIT}
+	 * Return static {@link Variable}s
 	 */
-	public static final int ALL = VARIABLES|FUNCTIONS|DIRECTIVES|IMPLICIT;
+	public static final int STATIC_VARIABLES = 32;
+	/**
+	 * Effects detected in a script.
+	 */
+	public static final int EFFECTS = 64;
+	/**
+	 * Proplist declarations.
+	 */
+	public static final int PROPLISTS = 128;
+	/**
+	 * Mask where every flag is set.
+	 */
+	public static final int ALL = Integer.MAX_VALUE;
 }
