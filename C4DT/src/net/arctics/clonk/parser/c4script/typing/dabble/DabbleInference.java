@@ -295,14 +295,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.plan = Collections.synchronizedMap(makePlan());
 		}
 		public void apply() {
-			final Map<Variable, IType> variableTypes = new HashMap<>();
+			final Map<String, IType> variableTypes = new HashMap<>();
 			final Map<String, IType> functionReturnTypes = new HashMap<>();
 			for (final TypeVariable tyVar : typeEnvironment.values()) {
 				final Declaration d = tyVar.declaration();
 				if (d.containedIn(script))
 					tyVar.apply(false);
 				if (d instanceof Variable)
-					variableTypes.put((Variable)d, tyVar.get());
+					variableTypes.put(d.name(), tyVar.get());
 				else if (d instanceof Function)
 					functionReturnTypes.put(d.name(), tyVar.get());
 			}
@@ -1224,7 +1224,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final ScriptInput nput = shared.getInput((Script) _t);
 									if (nput != null)
 										new Visitor(visitor, nput).reportProblems();
-									final IType frt = ((Script)_t).variableTypes().get(d);
+									final IType frt = ((Script)_t).variableTypes().get(d.name());
 									t = TypeUnification.unify(t, frt);
 								}
 					}
@@ -1862,7 +1862,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
 					}
 					if (d instanceof Variable) {
-						final IType t = shared.local && node.predecessorInSequence() == null ? visitor.script().variableTypes().get(d) : null;
+						final IType t = shared.local && node.predecessorInSequence() == null
+							? visitor.script().variableTypes().get(d.name()) : null;
 						return t != null ? t : ((Variable)d).type();
 					}
 					return supr != null ? supr.type(node, visitor) : PrimitiveType.UNKNOWN;

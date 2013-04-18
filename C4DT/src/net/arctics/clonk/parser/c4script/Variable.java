@@ -109,7 +109,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public IType type(Script script) {
 		IType type = null;
 		if (script != null && script.variableTypes() != null)
-			type = script.variableTypes().get(this);
+			type = script.variableTypes().get(name());
 		if (type == null)
 			type = type();
 		return type;

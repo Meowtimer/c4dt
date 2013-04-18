@@ -85,7 +85,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient List<Variable> variables;
 	protected transient Map<String, Effect> effects;
 	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
-	private transient Map<Variable, IType> variableTypes;
+	private transient Map<String, IType> variableTypes;
 	private transient Map<String, IType> functionReturnTypes;
 
 	// serialized directly
@@ -104,16 +104,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
 
-	public Map<Variable, IType> variableTypes() {
+	public Map<String, IType> variableTypes() {
 		requireLoaded();
-		return defaulting(variableTypes, Collections.<Variable, IType>emptyMap());
+		return defaulting(variableTypes, Collections.<String, IType>emptyMap());
 	}
+	
 	public Map<String, IType> functionReturnTypes() {
 		requireLoaded();
 		return defaulting(functionReturnTypes, Collections.<String, IType>emptyMap());
 	}
 
-	public void setTypings(Map<Variable, IType> variableTypes, Map<String, IType> functionReturnTypes) {
+	public void setTypings(Map<String, IType> variableTypes, Map<String, IType> functionReturnTypes) {
 		this.variableTypes = variableTypes;
 		this.functionReturnTypes = functionReturnTypes;
 	}
@@ -149,7 +150,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public List<Function> functions;
 		public List<Variable> variables;
 		public Set<Script> used;
-		public Map<Variable, IType> variableTypes;
+		public Map<String, IType> variableTypes;
 		public Map<String, IType> functionReturnTypes;
 		public Map<String, ProplistDeclaration> proplistDeclarations;
 		public void initialize(
@@ -157,7 +158,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			List<Function> functions,
 			List<Variable> variables,
 			Set<Script> used,
-			Map<Variable, IType> variableTypes,
+			Map<String, IType> variableTypes,
 			Map<String, IType> functionTypes,
 			Map<String, ProplistDeclaration> proplistDeclarations
 		) {
