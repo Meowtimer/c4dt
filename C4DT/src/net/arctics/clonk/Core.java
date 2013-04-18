@@ -381,8 +381,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			instance = new Core(true);
 			instance.engineConfigurationFolder = engineConfigurationFolder;
 			instance.setActiveEngineByName(engine);
-		} else
-			throw new IllegalStateException("Already initialized");
+		}
 	}
 
 	/**
