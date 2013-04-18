@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.parser.c4script.CallTargetType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.util.IPredicate;
@@ -94,9 +95,12 @@ public class TypeChoice implements IType {
 	public String typeName(boolean special) {
 		final List<IType> types = new ArrayList<>(10);
 		collect(types);
-		if (special && types.size() == 2 && types.contains(PrimitiveType.ANY.unified())) {
-			types.remove(PrimitiveType.ANY);
-			return types.get(0).typeName(true) + "?";
+		if (special) {
+			final List<IType> t = new ArrayList<>(types);
+			t.remove(PrimitiveType.ANY.unified());
+			t.remove(CallTargetType.INSTANCE);
+			if (t.size() == 1)
+				return t.get(0).typeName(true) + "?";
 		}
 		final Set<String> typeNames = new HashSet<>(types.size());
 		for (final IType t : types)
