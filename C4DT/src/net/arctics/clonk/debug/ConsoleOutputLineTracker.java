@@ -47,7 +47,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		String projName;
 		try {
 			projName = console.getProcess().getLaunch().getLaunchConfiguration().getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "");
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -81,10 +81,10 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		@Override
 		public void linkActivated() {
 			try {
-				IEditorPart part = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), file);
+				final IEditorPart part = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), file);
 				if (part instanceof ClonkTextEditor)
-					((ClonkTextEditor)part).selectAndRevealLine(line);
-			} catch (PartInitException e) {
+					((ClonkTextEditor)part).selectAndRevealLine(line-1);
+			} catch (final PartInitException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -95,12 +95,12 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	private static List<IResource> getSubResourcesFromResourceCollection(Iterable<IResource> parentResources, String parentName) {
 		if (parentName != null)
 			parentName = parentName.toUpperCase();
-		List<IResource> result = new LinkedList<IResource>();
-		for (IResource r : parentResources)
+		final List<IResource> result = new LinkedList<IResource>();
+		for (final IResource r : parentResources)
 			if (r instanceof IContainer && (parentName == null || r.getName().toUpperCase().equals(parentName)))
 				try {
 					result.addAll(Arrays.asList(((IContainer)r).members()));
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
 		return result;
@@ -109,14 +109,14 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	@Override
 	public void lineAppended(IRegion line) {
 		try {
-			String lineStr = console.getDocument().get(line.getOffset(), line.getLength());
+			final String lineStr = console.getDocument().get(line.getOffset(), line.getLength());
 			try {
 				createResourceLinksInLine(lineStr, resourcesInRelevantProjects, console, line);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				System.out.println("Failed for " + lineStr);
 				e.printStackTrace();
 			}
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			e.printStackTrace();
 		}
 	}
@@ -136,7 +136,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		int pathStart = 0;
 		boolean started = false;
 		for (int i = 0; i < lineStr.length(); i++) {
-			char c = Character.toUpperCase(lineStr.charAt(i));
+			final char c = Character.toUpperCase(lineStr.charAt(i));
 			if ((c == '/' || c == '\\') && started) {
 				resourceCandidatesAtCurrentFolderLevel = getSubResourcesFromResourceCollection(resourceCandidatesAtCurrentFolderLevel, lineStr.substring(folderNameStart, i));
 				if (resourceCandidatesAtCurrentFolderLevel.size() == 0) {
@@ -148,28 +148,28 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 				started = false;
 				continue;
 			} else if (c == ':' && started && resourceCandidatesAtCurrentFolderLevel.size() > 0) {
-				String lastPathPart = lineStr.substring(folderNameStart, i).toUpperCase();
+				final String lastPathPart = lineStr.substring(folderNameStart, i).toUpperCase();
 				int lineStart;
 				for (lineStart = ++i; i < lineStr.length() && Character.isDigit(lineStr.charAt(i)); i++);
 				try {
-					int lineNumber = Integer.parseInt(lineStr.substring(lineStart, i));
-					for (IResource r : resourceCandidatesAtCurrentFolderLevel)
+					final int lineNumber = Integer.parseInt(lineStr.substring(lineStart, i));
+					for (final IResource r : resourceCandidatesAtCurrentFolderLevel)
 						if (r instanceof IFile && r.getName().toUpperCase().equals(lastPathPart)) {
 							console.addLink(new FileHyperlink((IFile) r, lineNumber), lineRegion.getOffset()+pathStart, i-pathStart);
 							break;
 						}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					// probably no line number
 					i++;
 				}
 				pathStart = folderNameStart = i--;
 			}
-			Iterator<IResource> it = resourceCandidatesAtCurrentFolderLevel.iterator();
+			final Iterator<IResource> it = resourceCandidatesAtCurrentFolderLevel.iterator();
 			while (it.hasNext()) {
-				IResource r = it.next();
-				String n = r.getName();
+				final IResource r = it.next();
+				final String n = r.getName();
 				if (folderNameCharacterIndex >= n.length()) {it.remove(); continue;}
-				char chr = n.charAt(folderNameCharacterIndex);
+				final char chr = n.charAt(folderNameCharacterIndex);
 				if (Character.toUpperCase(chr) != c)
 					it.remove();
 			}
