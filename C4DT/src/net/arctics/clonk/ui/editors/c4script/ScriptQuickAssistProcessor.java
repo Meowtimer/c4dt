@@ -90,14 +90,14 @@ import org.eclipse.ui.views.markers.WorkbenchMarkerResolution;
  * @author ZokRadonh
  *
  */
-public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
+public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	private static final ICompletionProposal[] NO_SUGGESTIONS = new ICompletionProposal[0];
-	private static C4ScriptQuickAssistProcessor singleton;
+	private static ScriptQuickAssistProcessor singleton;
 
-	public static C4ScriptQuickAssistProcessor singleton() { return singleton; }
+	public static ScriptQuickAssistProcessor singleton() { return singleton; }
 
-	public C4ScriptQuickAssistProcessor() {
+	public ScriptQuickAssistProcessor() {
 		super();
 		assert(singleton == null);
 		singleton = this;
@@ -439,7 +439,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return;
 		final Function func = script.funcAt(position.getOffset());
 		final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
-		final ExpressionLocator<C4ScriptQuickAssistProcessor> locator = new ExpressionLocator<C4ScriptQuickAssistProcessor>(position.getOffset()-func.bodyLocation().start());
+		final ExpressionLocator<ScriptQuickAssistProcessor> locator = new ExpressionLocator<ScriptQuickAssistProcessor>(position.getOffset()-func.bodyLocation().start());
 		func.traverse(locator, this);
 		final FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 		final ASTNode offendingExpression = locator.expressionAtRegion();
@@ -536,7 +536,7 @@ public class C4ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						expr = sequence.subSequenceUpTo(offendingExpression);
 					} else
 						expr = null;
-					final List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression
+					final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
 						(expr, func, parser, document);
 					for (final ICompletionProposal p : possible)
 						if (p instanceof ClonkCompletionProposal) {

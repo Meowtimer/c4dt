@@ -14,7 +14,7 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 
-public class C4ScriptContextInformationValidator implements IContextInformationPresenter, IContextInformationValidator {
+public class ScriptContextInformationValidator implements IContextInformationPresenter, IContextInformationValidator {
 
 	private IContextInformation fInformation;
 	private ITextViewer fTextViewer;
@@ -30,7 +30,7 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 	@Override
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
 		offset = fTextViewer.getSelectedRange().x;
-		final C4ScriptContextInformation info = as(fInformation, C4ScriptContextInformation.class);
+		final ScriptContextInformation info = as(fInformation, ScriptContextInformation.class);
 		if (info == null)
 			return false;
 		if (!info.valid(offset))
@@ -50,7 +50,7 @@ public class C4ScriptContextInformationValidator implements IContextInformationP
 	@Override
 	public boolean isContextInformationValid(int offset) {
 		try {
-			if (fInformation instanceof C4ScriptContextInformation && !((C4ScriptContextInformation) fInformation).valid(offset))
+			if (fInformation instanceof ScriptContextInformation && !((ScriptContextInformation) fInformation).valid(offset))
 				return false;
 			final IDocument document = fTextViewer.getDocument();
 			final IRegion line = document.getLineInformationOfOffset(fOffset);

@@ -64,7 +64,7 @@ public class C4ScriptCompletionProcessorTest extends TestBase {
 		
 		def (base, derived) = setup.scripts
 		
-		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(derived)
+		ScriptCompletionProcessor processor = new ScriptCompletionProcessor(derived)
 		processor.computeCompletionProposals(viewer, derivedSourcePart1.length())
 	}
 }

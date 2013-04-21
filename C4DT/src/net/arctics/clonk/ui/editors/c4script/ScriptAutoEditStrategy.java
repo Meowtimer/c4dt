@@ -35,7 +35,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
  * @author ZokRadonh
  *
  */
-public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy implements IPropertyChangeListener {
+public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy implements IPropertyChangeListener {
 
 	private static class Autopair {
 		public static final int FOLLOWSIDENT = 1;
@@ -87,13 +87,13 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 
 	private static final WeakListenerManagerPCL weakListenerManager = new WeakListenerManagerPCL();
 
-	private final C4ScriptSourceViewerConfiguration configuration;
+	private final ScriptSourceViewerConfiguration configuration;
 	private final List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	private boolean disabled;
 
-	public C4ScriptSourceViewerConfiguration configuration() { return configuration; }
+	public ScriptSourceViewerConfiguration configuration() { return configuration; }
 
-	public C4ScriptAutoEditStrategy(C4ScriptSourceViewerConfiguration configuration) {
+	public ScriptAutoEditStrategy(ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
 		weakListenerManager.addListener(this);
 		disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);

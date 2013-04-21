@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -81,7 +82,7 @@ public class ReferencesQuery extends SearchQueryBase {
 				Declaration dec = accessDeclExpr.declaration();
 				if (dec != null)
 					dec = dec.latestVersion();
-				if (dec == declaration)
+				if (dec == declaration || (dec instanceof ProxyVar && ((ProxyVar)dec).definition() == declaration))
 					result.addMatch(node, context, false, accessDeclExpr.indirectAccess());
 				else if (
 					dec instanceof Function && declaration instanceof Function &&

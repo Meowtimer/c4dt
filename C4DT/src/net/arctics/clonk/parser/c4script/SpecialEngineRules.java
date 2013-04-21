@@ -23,9 +23,9 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
-import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
@@ -64,8 +64,8 @@ import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Sink;
@@ -307,7 +307,7 @@ public abstract class SpecialEngineRules {
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
 			CallDeclaration callFunc, ProblemReportingContext processor, int index, ASTNode parmExpression,
-			C4ScriptCompletionProcessor completions, String prefix,
+			ScriptCompletionProcessor completions, String prefix,
 			int offset, List<ICompletionProposal> proposals) {}
 	}
 

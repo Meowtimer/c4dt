@@ -6,8 +6,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptQuickAssistProcessor;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptQuickAssistProcessor.ParameterizedProposal;
+import net.arctics.clonk.ui.editors.c4script.ScriptQuickAssistProcessor;
+import net.arctics.clonk.ui.editors.c4script.ScriptQuickAssistProcessor.ParameterizedProposal;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -20,7 +20,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 	
 	@Override
 	public IMarkerResolution[] getResolutions(IMarker marker) {
-		C4ScriptQuickAssistProcessor quickAssist = C4ScriptQuickAssistProcessor.singleton();
+		ScriptQuickAssistProcessor quickAssist = ScriptQuickAssistProcessor.singleton();
 		Script script = Script.get(marker.getResource(), true);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(10);
 		quickAssist.collectProposals(marker, new Position(marker.getAttribute(IMarker.CHAR_START, 0), marker.getAttribute(IMarker.CHAR_END, 0)-marker.getAttribute(IMarker.CHAR_START, 0)),
@@ -28,7 +28,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		List<IMarkerResolution> res = new ArrayList<IMarkerResolution>(10);
 		for (ICompletionProposal p : proposals)
 			if (p instanceof ParameterizedProposal)
-				res.add(new C4ScriptQuickAssistProcessor.ParameterizedProposalMarkerResolution((ParameterizedProposal) p, marker));
+				res.add(new ScriptQuickAssistProcessor.ParameterizedProposalMarkerResolution((ParameterizedProposal) p, marker));
 		return res.toArray(new IMarkerResolution[res.size()]);
 	}
 
@@ -36,7 +36,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 	public boolean hasResolutions(IMarker marker) {
 		try {
 			return
-				C4ScriptQuickAssistProcessor.singleton() != null &&
+				ScriptQuickAssistProcessor.singleton() != null &&
 				(marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR) ||
 				 marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING));
 		} catch (CoreException e) {

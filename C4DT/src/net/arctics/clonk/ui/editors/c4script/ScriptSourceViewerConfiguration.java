@@ -30,12 +30,12 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
 
-public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<C4ScriptEditor> {
+public class ScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<C4ScriptEditor> {
 
 	public final class C4ScriptContentAssistant extends ContentAssistant {
-		private C4ScriptCompletionProcessor processor;
+		private ScriptCompletionProcessor processor;
 		public C4ScriptContentAssistant(ISourceViewer sourceViewer) {
-			processor = new C4ScriptCompletionProcessor(editor(), this);
+			processor = new ScriptCompletionProcessor(editor(), this);
 			for (final String s : CStylePartitionScanner.PARTITIONS)
 				setContentAssistProcessor(processor, s);
 			install(sourceViewer);
@@ -61,7 +61,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		public void hide() { super.hide(); }
 		@Override
 		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
-		public C4ScriptCompletionProcessor processor() { return processor; }
+		public ScriptCompletionProcessor processor() { return processor; }
 	}
 
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
@@ -85,13 +85,13 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		}
 	}
 
-	private static ScannerPerEngine<C4ScriptCodeScanner> SCANNERS = new ScannerPerEngine<C4ScriptCodeScanner>(C4ScriptCodeScanner.class);
+	private static ScannerPerEngine<ScriptCodeScanner> SCANNERS = new ScannerPerEngine<ScriptCodeScanner>(ScriptCodeScanner.class);
 
 	private ITextDoubleClickStrategy doubleClickStrategy;
 	private ContentAssistant contentAssistant;
-	private final C4ScriptAutoEditStrategy autoEditStrategy = new C4ScriptAutoEditStrategy(this);
+	private final ScriptAutoEditStrategy autoEditStrategy = new ScriptAutoEditStrategy(this);
 
-	public C4ScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, C4ScriptEditor textEditor) {
+	public ScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, C4ScriptEditor textEditor) {
 		super(store, colorManager, textEditor);
 	}
 
@@ -103,7 +103,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
 		if (doubleClickStrategy == null)
-			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
+			doubleClickStrategy = new ScriptDoubleClickStrategy(this);
 		return doubleClickStrategy;
 	}
 
@@ -117,7 +117,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
 		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
-		assistant.setQuickAssistProcessor(new C4ScriptQuickAssistProcessor());
+		assistant.setQuickAssistProcessor(new ScriptQuickAssistProcessor());
 		return assistant;
 	}
 
@@ -125,7 +125,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
-		final C4ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
+		final ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
 
 		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
@@ -162,7 +162,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		};
 	}
 
-	public C4ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
+	public ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
 
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
@@ -172,7 +172,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
 	    if (hover == null)
-	    	hover = new C4ScriptTextHover(this);
+	    	hover = new ScriptTextHover(this);
 	    return hover;
 	}
 

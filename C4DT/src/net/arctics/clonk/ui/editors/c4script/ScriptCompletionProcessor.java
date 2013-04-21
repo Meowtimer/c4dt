@@ -63,8 +63,8 @@ import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
+import net.arctics.clonk.ui.editors.c4script.ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -99,7 +99,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
  * @author madeen
  *
  */
-public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
+public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
 
 	private final ContentAssistant assistant;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
@@ -112,13 +112,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			typingStrategy = script.index().nature().instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
 	}
 
-	public C4ScriptCompletionProcessor(Script script) {
+	public ScriptCompletionProcessor(Script script) {
 		super(null, null);
 		assistant = null;
 		setTypingStrategyFromScript(script);
 	}
 
-	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
+	public ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor, assistant);
 		if (editor != null)
 			setTypingStrategyFromScript(editor.script());
@@ -486,7 +486,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private void ruleBasedProposals(int offset, String prefix, List<ICompletionProposal> proposals, C4ScriptParser parser, ASTNode contextExpression) {
 		if (contextExpression == null)
 			return;
-		final CallDeclaration innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
+		final CallDeclaration innermostCallFunc = contextExpression.thisOrParentOfType(CallDeclaration.class);
 		if (innermostCallFunc != null) {
 			final SpecialEngineRules rules = parser.specialEngineRules();
 			if (rules != null) {
@@ -562,7 +562,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	/**
 	 * Generate a list of proposals for some expression.
-	 * This static standalone version internally creates a {@link C4ScriptCompletionProcessor} instance and lets it do the things it does when invoking Content Assist normally.
+	 * This static standalone version internally creates a {@link ScriptCompletionProcessor} instance and lets it do the things it does when invoking Content Assist normally.
 	 * It is used for computing the list of similarly named declarations when invoking Quick Fix for unknown identifiers.
 	 * @param expression The expression preceding the location for which proposals should be generated
 	 * @param function The function containing the expression/function from which local variable definitions are pulled
@@ -572,7 +572,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	 */
 	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, C4ScriptParser parser, IDocument document) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-		final C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(parser.script());
+		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(parser.script());
 		processor.innerProposalsInFunction(
 			expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, function.script(), parser, expression.parentOfType(Sequence.class), expression, PrimitiveType.UNKNOWN);
@@ -787,7 +787,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	private IContextInformation prevInformation;
-	private final C4ScriptContextInformationValidator contextInformationValidator = new C4ScriptContextInformationValidator();
+	private final ScriptContextInformationValidator contextInformationValidator = new ScriptContextInformationValidator();
 
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
@@ -830,7 +830,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (function != null) {
 					if (function instanceof IDocumentedDeclaration)
 						((IDocumentedDeclaration)function).fetchDocumentation();
-					info = new C4ScriptContextInformation(
+					info = new ScriptContextInformation(
 						function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
 						function, funcCallInfo.parmIndex,
 						funcCallInfo.parmsStart, funcCallInfo.parmsEnd

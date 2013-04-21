@@ -21,7 +21,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	private static final String FACTORY_ID = Core.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
-	private WeakReference<Script> script;
+	private final WeakReference<Script> script;
 	
 	public ScriptWithStorageEditorInput(Script script) {
 		super();
@@ -32,14 +32,9 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	@Override
-	public boolean exists() {
-		return script != null && script.get() != null;
-	}
-
+	public boolean exists() { return script != null && script.get() != null; }
 	@Override
-	public ImageDescriptor getImageDescriptor() {
-		return Core.instance().iconImageDescriptorFor("C4Object"); //$NON-NLS-1$
-	}
+	public ImageDescriptor getImageDescriptor() { return Core.instance().iconImageDescriptorFor("C4Object"); } //$NON-NLS-1$
 
 	@Override
 	public String getName() {
@@ -68,7 +63,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 			if (script instanceof ITreeNode)
 				return ((ITreeNode)script).path();
 			return getStorage().getFullPath();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}

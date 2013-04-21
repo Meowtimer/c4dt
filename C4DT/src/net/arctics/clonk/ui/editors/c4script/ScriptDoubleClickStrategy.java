@@ -18,11 +18,11 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
+public class ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 	
-	private final C4ScriptSourceViewerConfiguration configuration;
+	private final ScriptSourceViewerConfiguration configuration;
 	
-	public C4ScriptDoubleClickStrategy(C4ScriptSourceViewerConfiguration configuration) {
+	public ScriptDoubleClickStrategy(ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
 	}
 	

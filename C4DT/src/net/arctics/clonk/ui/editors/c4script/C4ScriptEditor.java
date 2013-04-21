@@ -31,7 +31,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.ReparseFunctionMode;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
+import net.arctics.clonk.ui.editors.c4script.ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.search.C4ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
@@ -90,7 +90,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
-		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
+		setSourceViewerConfiguration(new ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 	}
 
 	public void showContentAssistance() {
@@ -276,8 +276,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	}
 
-	private final C4ScriptSourceViewerConfiguration sourceViewerConfiguration() {
-		return (C4ScriptSourceViewerConfiguration)getSourceViewerConfiguration();
+	private final ScriptSourceViewerConfiguration sourceViewerConfiguration() {
+		return (ScriptSourceViewerConfiguration)getSourceViewerConfiguration();
 	}
 
 	@Override

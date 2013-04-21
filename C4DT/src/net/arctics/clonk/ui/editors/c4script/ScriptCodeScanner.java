@@ -25,7 +25,7 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
+public class ScriptCodeScanner extends ClonkRuleBasedScanner {
 
 	private static final class OperatorRule implements IRule {
 
@@ -88,7 +88,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
 	
-	public C4ScriptCodeScanner(ColorManager manager, Engine engine) {
+	public ScriptCodeScanner(ColorManager manager, Engine engine) {
 		super(manager, engine, "DEFAULT");
 	}
 	

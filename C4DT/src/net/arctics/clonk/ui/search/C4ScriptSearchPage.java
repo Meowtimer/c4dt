@@ -74,14 +74,8 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	private ComboViewer recentsCombo;
 
 	public C4ScriptSearchPage() {}
-
-	public C4ScriptSearchPage(String title) {
-		super(title);
-	}
-
-	public C4ScriptSearchPage(String title, ImageDescriptor image) {
-		super(title, image);
-	}
+	public C4ScriptSearchPage(String title) { super(title); }
+	public C4ScriptSearchPage(String title, ImageDescriptor image) { super(title, image); }
 
 	@Override
 	public void createControl(Composite parent) {
@@ -100,7 +94,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof Recent) {
-				Recent r = (Recent)obj;
+				final Recent r = (Recent)obj;
 				return eq(template, r.template) && eq(replacement, r.replacement);
 			}
 			else
@@ -115,16 +109,16 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	public static final int MAX_RECENTS = 20;
 
 	private void addRecent() {
-		Recent recent = new Recent(templateText.getText(), replacementText.getText());
-		ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList((Recent[])recentsCombo.getInput()));
-		int ndx = list.indexOf(recent);
+		final Recent recent = new Recent(templateText.getText(), replacementText.getText());
+		final ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList((Recent[])recentsCombo.getInput()));
+		final int ndx = list.indexOf(recent);
 		if (ndx != -1)
 			list.remove(ndx);
 		list.add(recent);
 		while (list.size() > MAX_RECENTS)
 			list.remove(0);
 		recentsCombo.setInput(list.toArray(new Recent[list.size()]));
-		IPreferenceStore prefs = Core.instance().getPreferenceStore();
+		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list, new IConverter<Recent, String>() {
 			@Override
 			public String convert(Recent recent) {
@@ -134,21 +128,21 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	}
 
 	private void readConfiguration() {
-		IPreferenceStore prefs = Core.instance().getPreferenceStore();
+		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		templateText.setText(defaulting(prefs.getString(PREF_TEMPLATE_TEXT), "")); //$NON-NLS-1$
 		replacementText.setText(defaulting(prefs.getString(PREF_REPLACEMENT_TEXT), "")); //$NON-NLS-1$
 
 		//prefs.setValue(PREF_RECENTS, "");
-		String s = prefs.getString(PREF_RECENTS);
-		String[] recentsRaw = s != null ? s.split(Pattern.quote(RECENTS_SEPARATOR)) : new String[0];
-		Recent[] recents = new Recent[recentsRaw.length/2+recentsRaw.length%2];
+		final String s = prefs.getString(PREF_RECENTS);
+		final String[] recentsRaw = s != null ? s.split(Pattern.quote(RECENTS_SEPARATOR)) : new String[0];
+		final Recent[] recents = new Recent[recentsRaw.length/2+recentsRaw.length%2];
 		for (int i = 0; i < recents.length; i++)
 			recents[i] = new Recent(recentsRaw[i*2], i*2+1 < recentsRaw.length ? recentsRaw[i*2+1] : ""); //$NON-NLS-1$
 		recentsCombo.setInput(recents);
 	}
 
 	private void writeConfiguration() {
-		IPreferenceStore prefs = Core.instance().getPreferenceStore();
+		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		prefs.setValue(PREF_TEMPLATE_TEXT, templateText.getText());
 		prefs.setValue(PREF_REPLACEMENT_TEXT, replacementText.getText());
 		prefs.setValue(PREF_SCOPE, container.getSelectedScope());
@@ -161,16 +155,16 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	}
 
 	private void createTextFields(Composite parent) {
-		Composite ctrl = new Composite(parent, SWT.NONE);
+		final Composite ctrl = new Composite(parent, SWT.NONE);
 		setControl(ctrl);
-		GridLayout gl_ctrl = new GridLayout(2, false);
+		final GridLayout gl_ctrl = new GridLayout(2, false);
 		ctrl.setLayout(gl_ctrl);
 
-		Label recentTemplatesLabel = new Label(ctrl, SWT.LEFT);
+		final Label recentTemplatesLabel = new Label(ctrl, SWT.LEFT);
 		recentTemplatesLabel.setText(Messages.C4ScriptSearchPage_Recents);
 
-		Combo recentsCombo = new Combo(ctrl, SWT.READ_ONLY);
-		GridData gd_presetCombo = new GridData(GridData.FILL_HORIZONTAL);
+		final Combo recentsCombo = new Combo(ctrl, SWT.READ_ONLY);
+		final GridData gd_presetCombo = new GridData(GridData.FILL_HORIZONTAL);
 		gd_presetCombo.widthHint = 568;
 		recentsCombo.setLayoutData(gd_presetCombo);
 		this.recentsCombo = new ComboViewer(recentsCombo);
@@ -178,31 +172,31 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		this.recentsCombo.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				ISelection sel = event.getSelection();
+				final ISelection sel = event.getSelection();
 				if (!sel.isEmpty()) {
-					Recent r = (Recent)((IStructuredSelection)sel).getFirstElement();
+					final Recent r = (Recent)((IStructuredSelection)sel).getFirstElement();
 					templateText.setText(r.template);
 					replacementText.setText(r.replacement);
 				}
 			}
 		});
 
-		Label templateLabel = new Label(ctrl, SWT.LEFT);
+		final Label templateLabel = new Label(ctrl, SWT.LEFT);
 		templateLabel.setText(Messages.C4ScriptSearchPage_Template);
 		templateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 
 		templateText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
-		GridData gd_templateText = new GridData(GridData.FILL_BOTH);
+		final GridData gd_templateText = new GridData(GridData.FILL_BOTH);
 		//gd_templateText.widthHint = 527;
 		gd_templateText.heightHint = 80;
 		templateText.setLayoutData(gd_templateText);
 
-		Label replacementLabel = new Label(ctrl, SWT.LEFT);
+		final Label replacementLabel = new Label(ctrl, SWT.LEFT);
 		replacementLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		replacementLabel.setText(Messages.C4ScriptSearchPage_Replacement);
 
 		replacementText = new Text(ctrl, SWT.BORDER|SWT.MULTI);
-		GridData gd_replacementText = new GridData(GridData.FILL_BOTH);
+		final GridData gd_replacementText = new GridData(GridData.FILL_BOTH);
 		gd_replacementText.heightHint = 80;
 		replacementText.setLayoutData(gd_replacementText);
 	}
@@ -216,14 +210,14 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		templateText.selectAll();
 	}
 
-	private C4ScriptSearchQuery newQuery() {
-		ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
-		ISelection sel = selectionService.getSelection();
+	private ScriptSearchQuery newQuery() {
+		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
+		final ISelection sel = selectionService.getSelection();
 		final Set<Script> scope = new HashSet<Script>();
-		IResourceVisitor scopeVisitor = new IResourceVisitor() {
+		final IResourceVisitor scopeVisitor = new IResourceVisitor() {
 			@Override
 			public boolean visit(IResource resource) throws CoreException {
-				Script script = Script.get(resource, true);
+				final Script script = Script.get(resource, true);
 				if (script != null)
 					scope.add(script);
 				return true;
@@ -231,7 +225,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		};
 		switch (container.getSelectedScope()) {
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:
-			for (ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), new IConverter<String, ClonkProjectNature>() {
+			for (final ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), new IConverter<String, ClonkProjectNature>() {
 				@Override
 				public ClonkProjectNature convert(String from) {
 					return ClonkProjectNature.get(from);
@@ -246,24 +240,24 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 					});
 			break;
 		case ISearchPageContainer.SELECTION_SCOPE:
-			IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
+			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
 			IStructuredSelection ssel;
 			if (input != null)
 				ssel = new StructuredSelection(input.getFile());
 			else
 				ssel = as(sel, IStructuredSelection.class);
 			if (ssel != null)
-				for (Object s : ssel.toArray())
+				for (final Object s : ssel.toArray())
 					if (s instanceof IResource)
 						try {
 							((IResource)s).accept(scopeVisitor);
-						} catch (CoreException e1) {
+						} catch (final CoreException e1) {
 							e1.printStackTrace();
 						}
 			break;
 		case ISearchPageContainer.WORKSPACE_SCOPE:
-			for (IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
-				ClonkProjectNature nature = ClonkProjectNature.get(proj);
+			for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
+				final ClonkProjectNature nature = ClonkProjectNature.get(proj);
 				if (nature != null)
 					nature.index().allScripts(new Sink<Script>() {
 						@Override
@@ -274,13 +268,13 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			}
 			break;
 		case ISearchPageContainer.WORKING_SET_SCOPE:
-			for (IWorkingSet workingSet : container.getSelectedWorkingSets())
-				for (IAdaptable a : workingSet.getElements()) {
-					IResource res = (IResource)a.getAdapter(IResource.class);
+			for (final IWorkingSet workingSet : container.getSelectedWorkingSets())
+				for (final IAdaptable a : workingSet.getElements()) {
+					final IResource res = (IResource)a.getAdapter(IResource.class);
 					if (res != null)
 						try {
 							res.accept(scopeVisitor);
-						} catch (CoreException e) {
+						} catch (final CoreException e) {
 							e.printStackTrace();
 						}
 				}
@@ -289,8 +283,8 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return null;
 		}
 		try {
-			return new C4ScriptSearchQuery(templateText.getText(), replacementText.getText(), scope);
-		} catch (ParsingException e) {
+			return new ScriptSearchQuery(templateText.getText(), replacementText.getText(), scope);
+		} catch (final ParsingException e) {
 			e.printStackTrace();
 			MessageDialog.openError(this.getShell(), e.parser().bufferSequence(0).toString(), e.getMessage());
 			return null;
@@ -307,29 +301,29 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	@Override
 	public boolean performReplace() {
 		addRecent();
-		final C4ScriptSearchQuery query = newQuery();
-		IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
+		final ScriptSearchQuery query = newQuery();
+		final IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
 		if (status.matches(IStatus.CANCEL))
 			return false;
 
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
+				final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
 				if (view != null) {
-					ClonkSearchResultPage page = as(view.getActivePage(), ClonkSearchResultPage.class);
+					final ClonkSearchResultPage page = as(view.getActivePage(), ClonkSearchResultPage.class);
 					if (page != null) {
-						ClonkSearchResult result = (ClonkSearchResult)page.getInput();
-						for (Object element : result.getElements()) {
-							Script script = as(element, Script.class);
+						final ClonkSearchResult result = (ClonkSearchResult)page.getInput();
+						for (final Object element : result.getElements()) {
+							final Script script = as(element, Script.class);
 							if (script == null)
 								continue;
-							Match[] matches = result.getMatches(element);
-							List<ASTNode> replacements = new LinkedList<ASTNode>();
-							for (Match m : matches)
-								if (m instanceof C4ScriptSearchQuery.Match) {
-									C4ScriptSearchQuery.Match qm = (C4ScriptSearchQuery.Match) m;
-									ASTNode replacement = query.replacement();
+							final Match[] matches = result.getMatches(element);
+							final List<ASTNode> replacements = new LinkedList<ASTNode>();
+							for (final Match m : matches)
+								if (m instanceof ScriptSearchQuery.Match) {
+									final ScriptSearchQuery.Match qm = (ScriptSearchQuery.Match) m;
+									final ASTNode replacement = query.replacement();
 									ASTNode repl = replacement.transform(qm.subst(), null);
 									if (repl == replacement)
 										repl = repl.clone();
@@ -347,7 +341,5 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	}
 
 	@Override
-	public void setContainer(ISearchPageContainer container) {
-		this.container = container;
-	}
+	public void setContainer(ISearchPageContainer container) { this.container = container; }
 }

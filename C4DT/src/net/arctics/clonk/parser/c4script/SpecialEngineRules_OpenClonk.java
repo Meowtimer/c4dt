@@ -52,7 +52,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
+import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
@@ -320,7 +320,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration node, ProblemReportingContext processor, int index, ASTNode parmExpression, C4ScriptCompletionProcessor completions, String prefix, int offset, List<ICompletionProposal> proposals) {
+			public void contributeAdditionalProposals(CallDeclaration node, ProblemReportingContext processor, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
 				final IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : processor.script();

@@ -14,7 +14,7 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationExtension;
 import org.eclipse.swt.graphics.Image;
 
-public class C4ScriptContextInformation implements IContextInformation, IContextInformationExtension {
+public class ScriptContextInformation implements IContextInformation, IContextInformationExtension {
 
 	private String contextDisplayString;
 	private Image image;
@@ -26,7 +26,7 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 
 	public Function function() { return function; }
 	public boolean valid(int offset) { return parmIndex != -1 && offset >= parmsStart(); }
-	public C4ScriptContextInformation() { this.parmIndex = -1; }
+	public ScriptContextInformation() { this.parmIndex = -1; }
 	@Override
     public String getContextDisplayString() { return contextDisplayString; }
 	@Override
@@ -51,15 +51,15 @@ public class C4ScriptContextInformation implements IContextInformation, IContext
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof C4ScriptContextInformation) {
-			C4ScriptContextInformation other = (C4ScriptContextInformation) obj;
+		if (obj instanceof ScriptContextInformation) {
+			ScriptContextInformation other = (ScriptContextInformation) obj;
 			return
 				Utilities.eq(getInformationDisplayString(), other.getInformationDisplayString());
 		}
 		return false;
 	}
 
-	public C4ScriptContextInformation(String contextDisplayString, Image image, Function function, int parmIndex, int parmsStart, int parmsEnd) {
+	public ScriptContextInformation(String contextDisplayString, Image image, Function function, int parmIndex, int parmsStart, int parmsEnd) {
 	    super();
 	    this.contextDisplayString = contextDisplayString;
 	    this.image = image;

@@ -15,11 +15,11 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
-public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
+public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 
 	private EntityLocator entityLocator;
 	
-	public C4ScriptTextHover(ClonkSourceViewerConfiguration<C4ScriptEditor> clonkSourceViewerConfiguration) {
+	public ScriptTextHover(ClonkSourceViewerConfiguration<C4ScriptEditor> clonkSourceViewerConfiguration) {
 	    super(clonkSourceViewerConfiguration);
     }
 
