@@ -84,31 +84,22 @@ public enum Problem {
 	InvalidType(Messages.InvalidType),
 	UnexpectedBlock(Messages.UnexpectedBlock),
 	ConcreteArgumentMismatch(Messages.ConcreteArgumentMismatch,
-		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got);
+		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got),
+	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container);
 
 	private String message;
 	private String[] formatArgumentDescriptions;
 
-	Problem(String message) {
-		this.message = message;
-	}
+	Problem(String message) { this.message = message; }
 
 	Problem(String message, String... formatArgumentDescriptions) {
 		this(message);
 		this.formatArgumentDescriptions = formatArgumentDescriptions;
 	}
 
-	public String makeErrorString(Object... format) {
-		return String.format(message, format);
-	}
-
-	public String message() {
-		return message;
-	}
-
-	public String[] formatArgumentDescriptions() {
-		return formatArgumentDescriptions;
-	}
+	public String makeErrorString(Object... format) { return String.format(message, format); }
+	public String message() { return message; }
+	public String[] formatArgumentDescriptions() { return formatArgumentDescriptions; }
 
 	public String messageWithFormatArgumentDescriptions() {
 		String msg = message();

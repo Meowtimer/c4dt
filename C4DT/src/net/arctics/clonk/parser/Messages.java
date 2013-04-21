@@ -72,6 +72,9 @@ public class Messages extends NLS {
 	public static String GenericError;
 	public static String ConditionAlwaysTrue;
 	public static String ConditionAlwaysFalse;
+	public static String DeclarationNotFound;
+	public static String DNF_Container;
+	public static String DNF_DeclarationName;
 	public static String DotNotationNotSupported;
 	public static String DragonsHere;
 	public static String DuplicateDeclarationName;

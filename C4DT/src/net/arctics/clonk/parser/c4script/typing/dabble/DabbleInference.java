@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.typing.dabble;
 
+import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -16,13 +17,13 @@ import java.util.concurrent.ExecutorService;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
@@ -35,12 +36,12 @@ import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.ArrayType;
+import net.arctics.clonk.parser.c4script.CallTargetType;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Function.FunctionScope;
-import net.arctics.clonk.parser.c4script.CallTargetType;
 import net.arctics.clonk.parser.c4script.FunctionType;
 import net.arctics.clonk.parser.c4script.IProplistDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
@@ -121,8 +122,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-import static net.arctics.clonk.Flags.DEBUG;
-
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
 public class DabbleInference extends ProblemReportingStrategy {
 
@@ -142,8 +141,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public void setArgs(String args) {
 		typeThisAsObject = false;
-		for (final String a : args.split(","))
-			if (a.equals("typeThisAsObject"))
+		for (final String a : args.split(",")) //$NON-NLS-1$
+			if (a.equals("typeThisAsObject")) //$NON-NLS-1$
 				typeThisAsObject = true;
 	}
 
@@ -191,12 +190,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			// and if the function to be visited previously required parameter typing from calls
 			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint()) {
 				if (DEBUG)
-					System.out.println(String.format("Make new visitor for '%s'", function.qualifiedName()));
+					System.out.println(String.format("Make new visitor for '%s'", function.qualifiedName())); //$NON-NLS-1$
 				return (Visitor)localTypingContext(script, 0, originator);
 			}
 			else {
 				if (DEBUG)
-					System.out.println(String.format("No visitor for '%s'", function.qualifiedName()));
+					System.out.println(String.format("No visitor for '%s'", function.qualifiedName())); //$NON-NLS-1$
 				return null;
 			}
 		}
@@ -353,7 +352,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public FunctionVisitReturnTypeVariable visitee;
 		
 		@Override
-		public String toString() { return String.format("Visitor (%s)", input.toString()); }
+		public String toString() { return String.format("Visitor (%s)", input.toString()); } //$NON-NLS-1$
 		@Override
 		public void setObserver(IASTVisitor<ProblemReportingContext> observer) { this.observer = observer; }
 		
@@ -529,14 +528,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case INPROGRESS:
 						if (wait && returnType.thread != Thread.currentThread()) {
 							if (DEBUG && originator != null && originator.visitee != null)
-								System.out.println(String.format("'%s' waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName()));
+								System.out.println(String.format("'%s' waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName())); //$NON-NLS-1$
 							int i;
 							for (i = 0; i < 3 && returnType.state != State.FINISHED; i++)
 								try {
 									returnType.wait(40);
 								} catch (final InterruptedException e) {}
 							if (i == 3 && originator != null && originator.visitee != null)
-								System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName()));
+								System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visitee.function().qualifiedName(), function.qualifiedName())); //$NON-NLS-1$
 							else
 								return returnType;
 						}
@@ -554,7 +553,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public FunctionVisitReturnTypeVariable uncheckedVisit(Function function, final Script funScript, FunctionVisitReturnTypeVariable returnType) {
 			if (DEBUG)
-				System.out.println(String.format("%s: Visiting %s", this.script().name(), function.qualifiedName()));
+				System.out.println(String.format("%s: Visiting %s", this.script().name(), function.qualifiedName())); //$NON-NLS-1$
 			final FunctionVisitReturnTypeVariable oldVisitee = visitee;
 			final boolean ownedFunction = funScript == script();
 			final ASTNode[] statements = function.body().statements();
@@ -648,7 +647,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public final FunctionVisitReturnTypeVariable delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
 			if (DEBUG)
-				System.out.println(String.format("Delegate function visit for '%s'", function.qualifiedName()));
+				System.out.println(String.format("Delegate function visit for '%s'", function.qualifiedName())); //$NON-NLS-1$
 			if (function.body() == null)
 				return null;
 			for (Visitor v = this; v != null; v = v.originator)
@@ -819,7 +818,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void run() {
 			if (progressMonitor.isCanceled())
 				return;
-			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name()));
+			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name())); //$NON-NLS-1$
 			reportProblems();
 			progressMonitor.worked(1);
 		}
@@ -935,7 +934,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public boolean isModifiable(T node, Visitor visitor) { return true; }
 
 		@Override
-		public String toString() { return String.format("Expert<%s>", cls.getSimpleName()); }
+		public String toString() { return String.format("Expert<%s>", cls.getSimpleName()); } //$NON-NLS-1$
 
 		public final IType predecessorType(ASTNode node, Visitor visitor) {
 			final ASTNode p = node.predecessorInSequence();
@@ -1267,7 +1266,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (currentFunction != null && var.parentDeclaration() == currentFunction) {
 							final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
 							if (locationUsed < var.start())
-								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, String.format("%s @(%d, %d)", var.name(), var.start(), var.end()));
+								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, String.format("%s @(%d, %d)", var.name(), var.start(), var.end())); //$NON-NLS-1$
 						}
 						break;
 					case PARAMETER:
@@ -1284,7 +1283,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (declaration == Variable.THIS)
 					return true;
 				if (declaration == null && origin != null) {
-					if (node.name().startsWith("Turn"))
+					if (node.name().startsWith("Turn")) //$NON-NLS-1$
 						internalObtainDeclaration(node, visitor);
 					final IType predType = predecessorType(node, visitor);
 					if (predType != null) {
@@ -1308,7 +1307,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									foundSomeVar = true;
 								} else {
 									if (DEBUG)
-										System.out.println(String.format("%s: Won't add '%s' to '%s'", visitor.script().name(), node.name(), d.qualifiedName()));
+										System.out.println(String.format("%s: Won't add '%s' to '%s'", visitor.script().name(), node.name(), d.qualifiedName())); //$NON-NLS-1$
 									foundSomeVar = true;
 								}
 							}
@@ -1619,9 +1618,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (
 						left instanceof CallDeclaration &&
 						((CallDeclaration)left).params().length >= 1 &&
-						((CallDeclaration)left).name().equals("GetType") &&
+						((CallDeclaration)left).name().equals("GetType") && //$NON-NLS-1$
 						right instanceof AccessVar &&
-						((AccessVar)right).name().startsWith("C4V_")
+						((AccessVar)right).name().startsWith("C4V_") //$NON-NLS-1$
 					) {
 						final IType type = PrimitiveType.fromString(((AccessVar)right).name().substring(4).toLowerCase());
 						if (type != null) {
@@ -1868,30 +1867,30 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return supr != null ? supr.type(node, visitor) : PrimitiveType.UNKNOWN;
 				}
-				private boolean unknownFunctionShouldBeError(CallDeclaration node, Visitor visitor) {
+				private IType unknownFunctionShouldBeError(CallDeclaration node, Visitor visitor) {
 					ASTNode pred = node.predecessorInSequence();
 					// stand-alone function? always bark!
 					if (pred == null)
-						return true;
+						return visitor.script();
 					// not typed? weird
 					final IType predType = ty(pred, visitor);
 					if (predType == null)
-						return false;
+						return null;
 					// called via ~? ok
 					if (pred instanceof MemberOperator)
 						if (((MemberOperator)pred).hasTilde())
-							return false;
+							return null;
 						else
 							pred = pred.predecessorInSequence();
 					// allow this->Unknown()
 					final AccessDeclaration ad = as(pred, AccessDeclaration.class);
 					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == visitor.cachedEngineDeclarations().This))
-						return false;
+						return null;
 					boolean anyScripts = false;
 					for (final IType t : predType)
 						if (t instanceof Definition)
 							anyScripts = true;
-					return anyScripts;
+					return anyScripts ? predType : null;
 				}
 				@Override
 				public IType type(CallDeclaration node, Visitor visitor) {
@@ -1949,13 +1948,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final IType unified = unifyDeclaredAndGiven(given, parmTy, visitor);
 								if (unified == null)
 									visitor.incompatibleTypesMarker(node, given, parmTy, ty(given, visitor));
-								else
+								else if (eq(parmTy, PrimitiveType.UNKNOWN))
 									judgement(given, unified, TypingJudgementMode.UNIFY, visitor);
 							}
 						}
-					} else if (declaration == null && unknownFunctionShouldBeError(node, visitor)) {
-						final int start = node.start();
-						visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, start, start+declarationName.length(), Markers.NO_THROW, declarationName);
+					} else if (declaration == null) {
+						final IType container = unknownFunctionShouldBeError(node, visitor);
+						if (container != null) {
+							final int start = node.start();
+							visitor.markers().error(visitor, Problem.DeclarationNotFound,
+								node, start, start+declarationName.length(), Markers.NO_THROW, declarationName, container.typeName(true));
+						}
 					}
 				}
 				@Override
@@ -2444,11 +2447,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						int searchStart = 0;
 						do {
 							markerPriority = IMarker.PRIORITY_LOW;
-							int todoIndex = s.indexOf("TODO", searchStart);
+							int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
 							if (todoIndex != -1)
 								markerPriority = IMarker.PRIORITY_NORMAL;
 							else {
-								todoIndex = s.indexOf("FIXME", searchStart);
+								todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
 								if (todoIndex != -1)
 									markerPriority = IMarker.PRIORITY_HIGH;
 							}

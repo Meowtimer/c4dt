@@ -812,8 +812,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			}
 			else if (pt != null && script != engine)
 				/* give explicit parameter types authority boost -
-				 * they won't unify with Definitions so that expressions
-				 * which might be any object are restricted to that Definition
+				 * they won't unify with Definitions so that parameters
+				 * explicitly accepting any object won't be restricted to specific
+				 * definitions
 				 */
 				t = pt.unified();
 			if (t != null) {
