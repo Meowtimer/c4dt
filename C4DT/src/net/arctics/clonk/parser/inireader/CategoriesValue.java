@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;

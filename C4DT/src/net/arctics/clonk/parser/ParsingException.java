@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.C4ScriptParser;
 
 /**
  * Exception thrown when a parsing error occurs.

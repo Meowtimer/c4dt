@@ -1,6 +1,6 @@
 package net.arctics.clonk.resource;
 
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.UI;
 

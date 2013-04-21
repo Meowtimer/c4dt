@@ -2,11 +2,11 @@ package net.arctics.clonk.index;
 
 import java.lang.reflect.Field;
 
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 
 /**
- * Holds references to common engine functions that some {@link AccessDeclaration#optimize(net.arctics.clonk.parser.c4script.C4ScriptParser)} implementations
+ * Holds references to common engine functions that some {@link AccessDeclaration#optimize(net.arctics.clonk.c4script.C4ScriptParser)} implementations
  * might compare their declarations with to determine viable code transformations. All the public fields of this class will be set to refer to functions of the
  * same name from the engine this helper object is associated with.
  */

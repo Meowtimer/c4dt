@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.c4script.Directive;
 
 /** Contains constants to combine as mask for {@link Declaration#subDeclarations(Index, int)} */
 public class DeclMask {

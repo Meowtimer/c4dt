@@ -4,8 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;

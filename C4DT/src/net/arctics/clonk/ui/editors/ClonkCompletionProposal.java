@@ -4,10 +4,10 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;

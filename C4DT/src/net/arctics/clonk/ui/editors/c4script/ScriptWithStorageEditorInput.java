@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IStorage;

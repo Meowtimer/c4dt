@@ -4,9 +4,9 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Function.ParameterStringOption;
-import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Function.ParameterStringOption;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;

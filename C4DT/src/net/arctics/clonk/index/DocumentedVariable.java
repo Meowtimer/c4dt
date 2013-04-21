@@ -2,7 +2,7 @@ package net.arctics.clonk.index;
 
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.c4script.IType;
 
 public final class DocumentedVariable extends EngineVariable implements IDocumentedDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

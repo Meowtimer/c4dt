@@ -8,14 +8,14 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
 
 public class EntityDeclaration implements Serializable, IDeserializationResolvable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

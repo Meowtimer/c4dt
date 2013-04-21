@@ -5,14 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.CategoriesValue;
 import net.arctics.clonk.parser.inireader.DefinitionPack;

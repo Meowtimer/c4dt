@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.Sink;

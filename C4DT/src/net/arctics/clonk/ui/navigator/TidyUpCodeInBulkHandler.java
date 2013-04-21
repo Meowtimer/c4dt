@@ -9,9 +9,9 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;

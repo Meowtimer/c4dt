@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimerTask;
 
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.parser.DeclMask;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.DocumentEvent;

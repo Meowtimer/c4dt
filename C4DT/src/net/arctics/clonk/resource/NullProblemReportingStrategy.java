@@ -1,6 +1,15 @@
 package net.arctics.clonk.resource;
 
 import static net.arctics.clonk.util.Utilities.as;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ASTNode;
@@ -8,15 +17,6 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.parser.c4script.ProblemReportingStrategy.Capabilities;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.parser.c4script.typing.TypingJudgementMode;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;

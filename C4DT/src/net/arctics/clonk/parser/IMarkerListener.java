@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.C4ScriptParser;
 
 /**
  * A listener that will be notified if a marker is about to be created.

@@ -1,12 +1,12 @@
 package net.arctics.clonk.command;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInference;
 
 import org.eclipse.core.resources.IStorage;
 

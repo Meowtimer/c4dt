@@ -1,9 +1,9 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.IHasEditorPart;
 
 import org.eclipse.core.resources.IStorage;

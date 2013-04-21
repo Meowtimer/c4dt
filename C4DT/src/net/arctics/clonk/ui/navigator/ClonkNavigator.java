@@ -3,9 +3,9 @@ package net.arctics.clonk.ui.navigator;
 import java.net.URI;
 import java.util.Collection;
 
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;

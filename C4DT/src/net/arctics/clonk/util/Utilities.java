@@ -5,10 +5,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;

@@ -7,11 +7,11 @@ import java.util.Collection;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;

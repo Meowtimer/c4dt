@@ -3,7 +3,7 @@ package net.arctics.clonk.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.c4script.ast.Comment;
 
 /**
  * Scanner that ignores C-style comments

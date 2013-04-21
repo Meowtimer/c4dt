@@ -3,9 +3,9 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;

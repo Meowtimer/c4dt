@@ -6,21 +6,21 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.c4script.ScriptsHelper;
+import net.arctics.clonk.c4script.ast.ASTComparisonDelegate;
+import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.BinaryOp;
+import net.arctics.clonk.c4script.ast.Block;
+import net.arctics.clonk.c4script.ast.CallExpr;
+import net.arctics.clonk.c4script.ast.CombinedMatchingPlaceholder;
+import net.arctics.clonk.c4script.ast.MatchingPlaceholder;
+import net.arctics.clonk.c4script.ast.Parenthesized;
+import net.arctics.clonk.c4script.ast.Placeholder;
+import net.arctics.clonk.c4script.ast.Sequence;
+import net.arctics.clonk.c4script.ast.Unfinished;
+import net.arctics.clonk.c4script.ast.MatchingPlaceholder.Multiplicity;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ASTNode.ITransformer;
-import net.arctics.clonk.parser.c4script.ScriptsHelper;
-import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate;
-import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.BinaryOp;
-import net.arctics.clonk.parser.c4script.ast.Block;
-import net.arctics.clonk.parser.c4script.ast.CallExpr;
-import net.arctics.clonk.parser.c4script.ast.CombinedMatchingPlaceholder;
-import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder;
-import net.arctics.clonk.parser.c4script.ast.MatchingPlaceholder.Multiplicity;
-import net.arctics.clonk.parser.c4script.ast.Parenthesized;
-import net.arctics.clonk.parser.c4script.ast.Placeholder;
-import net.arctics.clonk.parser.c4script.ast.Sequence;
-import net.arctics.clonk.parser.c4script.ast.Unfinished;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ASTNodeMatcher extends ASTComparisonDelegate {

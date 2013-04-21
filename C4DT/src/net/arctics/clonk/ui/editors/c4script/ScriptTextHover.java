@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.StringUtil;

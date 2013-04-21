@@ -8,6 +8,9 @@ import org.junit.Before
 import net.arctics.clonk.Core
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase
+import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.Operator;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine
 import net.arctics.clonk.index.EngineSettings
 import net.arctics.clonk.index.Index

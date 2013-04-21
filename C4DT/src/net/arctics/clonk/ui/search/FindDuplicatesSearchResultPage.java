@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
 import org.eclipse.jface.viewers.IStructuredSelection;

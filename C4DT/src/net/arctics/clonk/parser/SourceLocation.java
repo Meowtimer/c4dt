@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.c4script.Function;
 
 import org.eclipse.jface.text.IRegion;
 

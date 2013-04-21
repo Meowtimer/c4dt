@@ -5,13 +5,13 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.ProplistDeclaration;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.ProplistDeclaration;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 
 import org.eclipse.core.resources.IContainer;

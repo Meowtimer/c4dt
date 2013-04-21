@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {

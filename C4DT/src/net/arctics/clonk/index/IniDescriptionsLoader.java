@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.arctics.clonk.c4script.IHasName;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.IHasName;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;

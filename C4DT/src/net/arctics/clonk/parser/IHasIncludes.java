@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Script;
 
 /**
  * Some type that has includes. Most likely some kind of {@link Script}.

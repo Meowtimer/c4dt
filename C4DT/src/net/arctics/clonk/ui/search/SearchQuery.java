@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import static net.arctics.clonk.util.Utilities.as;
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Utilities;
 

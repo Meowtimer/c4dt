@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.StructureVariable;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;

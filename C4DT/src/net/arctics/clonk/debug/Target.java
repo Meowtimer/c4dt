@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import net.arctics.clonk.util.ICreate;
 

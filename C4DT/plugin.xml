@@ -755,7 +755,7 @@
 	
 	<extension point="org.eclipse.ui.ide.markerResolution">
 		<markerResolutionGenerator markerType="net.arctics.clonk.c4scripterror"
-			class="net.arctics.clonk.parser.c4script.quickfix.C4ScriptMarkerResolutionGenerator">
+			class="net.arctics.clonk.c4script.quickfix.C4ScriptMarkerResolutionGenerator">
 		</markerResolutionGenerator>
 	</extension>
 	

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import net.arctics.clonk.parser.c4script.Script;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.ui.search.DuplicatesSearchQuery;
 
 import org.eclipse.core.commands.AbstractHandler;

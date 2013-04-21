@@ -3,12 +3,12 @@ package net.arctics.clonk.ui.search;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.IHasLabelAndImage;

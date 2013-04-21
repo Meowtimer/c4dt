@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.IniData.IniEntryDefinition;
 
 /**

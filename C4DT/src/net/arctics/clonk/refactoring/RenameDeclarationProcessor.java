@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.FindDeclarationInfo;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;

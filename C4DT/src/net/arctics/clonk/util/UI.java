@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.IProplistDeclaration;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.Directive;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IProplistDeclaration;
-import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;

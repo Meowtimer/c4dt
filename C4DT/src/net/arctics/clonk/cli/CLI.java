@@ -6,12 +6,12 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.Platform;

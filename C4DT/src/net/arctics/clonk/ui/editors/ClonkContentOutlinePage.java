@@ -4,10 +4,10 @@ import static net.arctics.clonk.util.ArrayUtil.map;
 
 import java.util.List;
 
+import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
 import net.arctics.clonk.util.ArrayUtil;

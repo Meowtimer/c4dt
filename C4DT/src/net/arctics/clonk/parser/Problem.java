@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.c4script.Keywords;
 
 public enum Problem {
 	TokenExpected(Messages.TokenExpected, Messages.ParserErrorCode_Arg_Token),

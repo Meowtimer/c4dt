@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.MutableRegion;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.debug.Target.Commands;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.MutableRegion;
-import net.arctics.clonk.parser.c4script.Script;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IProject;

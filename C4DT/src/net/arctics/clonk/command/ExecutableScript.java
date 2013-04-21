@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.Script;
 
 
 public class ExecutableScript extends SelfContainedScript {

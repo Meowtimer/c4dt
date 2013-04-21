@@ -4,11 +4,11 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Collection;
 
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.InitializationFunction;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.InitializationFunction;
-import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 

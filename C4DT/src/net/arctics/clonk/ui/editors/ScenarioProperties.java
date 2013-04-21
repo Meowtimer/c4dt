@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
@@ -18,7 +19,6 @@ import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
