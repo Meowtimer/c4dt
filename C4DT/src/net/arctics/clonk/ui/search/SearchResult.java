@@ -19,10 +19,10 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.IEditorMatchAdapter;
 import org.eclipse.search.ui.text.IFileMatchAdapter;
 
-public class ClonkSearchResult extends AbstractTextSearchResult {
-	private final SearchQueryBase query;
+public class SearchResult extends AbstractTextSearchResult {
+	private final SearchQuery query;
 	private final Map<Script, BufferedScanner> scanners = new HashMap<>();
-	public ClonkSearchResult(SearchQueryBase query) { this.query = query; }
+	public SearchResult(SearchQuery query) { this.query = query; }
 	@Override
 	public IEditorMatchAdapter getEditorMatchAdapter() { return query; }
 	@Override
@@ -51,7 +51,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult {
 		}
 		IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
 		String line = scanner.bufferSubstringAtRegion(lineRegion);
-		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
+		addMatch(new SearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
 	}
 	public void addMatch(ASTNode match, ProblemReportingContext context, boolean potential, boolean indirect) {
 		addMatch(context, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());

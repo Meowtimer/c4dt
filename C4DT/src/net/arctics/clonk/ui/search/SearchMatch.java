@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.Structure;
 
 import org.eclipse.search.ui.text.Match;
 
-public class ClonkSearchMatch extends Match {
+public class SearchMatch extends Match {
 
 	private final String line;
 	private final int lineOffset;
@@ -17,7 +17,7 @@ public class ClonkSearchMatch extends Match {
 		return line;
 	}
 	
-	public ClonkSearchMatch(String line, int lineOffset, Object element, int offset, int length, boolean potential, boolean indirect) {
+	public SearchMatch(String line, int lineOffset, Object element, int offset, int length, boolean potential, boolean indirect) {
 		super(element, offset, length);
 		this.line = defaulting(line, "...");
 		this.lineOffset = lineOffset;

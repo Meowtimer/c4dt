@@ -3,12 +3,12 @@ package net.arctics.clonk.ui.search;
 import net.arctics.clonk.parser.c4script.Function;
 import org.eclipse.jface.viewers.Viewer;
 
-public class FindDuplicatesSearchContentProvider extends ClonkSearchContentProvider {
+public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 
-	private DuplicatesQuery query;
+	private DuplicatesSearchQuery query;
 	private FindDuplicatesSearchResult result;
 	
-	public FindDuplicatesSearchContentProvider(ClonkSearchResultPage page, boolean flat) {
+	public FindDuplicatesSearchContentProvider(SearchResultPage page, boolean flat) {
 		super(page, flat);
 	}
 	

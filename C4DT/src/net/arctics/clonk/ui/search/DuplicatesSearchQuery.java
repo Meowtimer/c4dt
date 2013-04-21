@@ -38,7 +38,7 @@ import org.eclipse.ui.IEditorPart;
  * @author madeen
  *
  */
-public class DuplicatesQuery extends SearchQueryBase {
+public class DuplicatesSearchQuery extends SearchQuery {
 
 	private final Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
 	private final Set<Index> indexes = new HashSet<Index>();
@@ -103,15 +103,15 @@ public class DuplicatesQuery extends SearchQueryBase {
 		return detectedDupes;
 	}
 
-	private DuplicatesQuery() {}
+	private DuplicatesSearchQuery() {}
 
 	/**
 	 * Return a new FindDuplicatesQuery that will operate on a list of functions.
 	 * @param functions The function list
 	 * @return The new query
 	 */
-	public static DuplicatesQuery queryWithFunctions(List<Function> functions) {
-		DuplicatesQuery result = new DuplicatesQuery();
+	public static DuplicatesSearchQuery queryWithFunctions(List<Function> functions) {
+		DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		result.fillFunctionMapWithFunctionList(functions);
 		for (List<Function> fnList : result.functionsToBeChecked.values())
 			for (Function f : fnList)
@@ -125,8 +125,8 @@ public class DuplicatesQuery extends SearchQueryBase {
 	 * @param scripts The script list
 	 * @return The new query
 	 */
-	public static DuplicatesQuery queryWithScripts(Iterable<Script> scripts) {
-		DuplicatesQuery result = new DuplicatesQuery();
+	public static DuplicatesSearchQuery queryWithScripts(Iterable<Script> scripts) {
+		DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		List<Function> fns = new LinkedList<Function>();
 		for (Script script : scripts) {
 			fns.addAll(script.functions());

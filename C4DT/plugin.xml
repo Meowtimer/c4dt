@@ -652,15 +652,15 @@
 
 	<extension id="ClonkSearchResultPage" point="org.eclipse.search.searchResultViewPages">
 		<viewPage id="net.arctics.clonk.ui.ClonkSearchResultPage"
-			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
-			class="net.arctics.clonk.ui.search.ClonkSearchResultPage" />
+			searchResultClass="net.arctics.clonk.ui.search.SearchResult"
+			class="net.arctics.clonk.ui.search.SearchResultPage" />
 		<viewPage id="net.arctics.clonk.ui.FindDuplicatesSearchResultPage"
 			searchResultClass="net.arctics.clonk.ui.search.FindDuplicatesSearchResult"
 			class="net.arctics.clonk.ui.search.FindDuplicatesSearchResultPage" />
 	</extension>
 	
 	<extension point="org.eclipse.search.searchPages">
-		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
+		<page class="net.arctics.clonk.ui.search.ScriptSearchPage"
     		id="net.arctics.clonk.ui.C4ScriptSearchPage"
 			label="%SearchPage_Title"
 			icon="icons/c4scriptIcon.png"

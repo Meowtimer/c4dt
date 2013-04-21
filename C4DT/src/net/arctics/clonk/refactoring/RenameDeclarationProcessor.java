@@ -16,9 +16,9 @@ import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.search.ClonkSearchMatch;
-import net.arctics.clonk.ui.search.ClonkSearchResult;
-import net.arctics.clonk.ui.search.ReferencesQuery;
+import net.arctics.clonk.ui.search.SearchMatch;
+import net.arctics.clonk.ui.search.SearchResult;
+import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -70,9 +70,9 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
-		ReferencesQuery query = new ReferencesQuery(decl, ClonkProjectNature.get(declaringFile));
+		ReferencesSearchQuery query = new ReferencesSearchQuery(decl, ClonkProjectNature.get(declaringFile));
 		query.run(monitor);
-		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
+		SearchResult searchResult = (SearchResult) query.getSearchResult();
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration location
@@ -127,7 +127,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 //					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
 //				}
 				for (Match m : searchResult.getMatches(element)) {
-					ClonkSearchMatch match = (ClonkSearchMatch) m;
+					SearchMatch match = (SearchMatch) m;
 					try {
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 					} catch (MalformedTreeException e) {

@@ -10,8 +10,8 @@ import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.C4ScriptSearch")
-public class C4ScriptSearchAction extends ClonkTextEditorAction {
-	public C4ScriptSearchAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+public class ScriptSearchAction extends ClonkTextEditorAction {
+	public ScriptSearchAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 	@Override

@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.ui.search.DuplicatesQuery;
+import net.arctics.clonk.ui.search.DuplicatesSearchQuery;
 
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -35,7 +35,7 @@ public class FindDuplicatesAction extends ClonkTextEditorAction {
 			else for (Function f : ((C4ScriptEditor)getTextEditor()).script().functions())
 				functions.add(f);
 			if (functions.size() > 0)
-				NewSearchUI.runQueryInBackground(DuplicatesQuery.queryWithFunctions(functions));
+				NewSearchUI.runQueryInBackground(DuplicatesSearchQuery.queryWithFunctions(functions));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

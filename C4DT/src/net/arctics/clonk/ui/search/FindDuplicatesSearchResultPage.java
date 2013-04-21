@@ -8,9 +8,9 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.PartInitException;
 
-public class FindDuplicatesSearchResultPage extends ClonkSearchResultPage {
+public class FindDuplicatesSearchResultPage extends SearchResultPage {
 	@Override
-	protected ClonkSearchContentProvider getContentAndLabelProvider(boolean flat) {
+	protected SearchContentProvider getContentAndLabelProvider(boolean flat) {
 		return new FindDuplicatesSearchContentProvider(this, flat);
 	}
 	@Override

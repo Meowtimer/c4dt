@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import net.arctics.clonk.parser.c4script.Script;
-import net.arctics.clonk.ui.search.DuplicatesQuery;
+import net.arctics.clonk.ui.search.DuplicatesSearchQuery;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -47,7 +47,7 @@ public class FindDuplicatesHandler extends AbstractHandler {
 					}
 				}
 			}
-			NewSearchUI.runQueryInBackground(DuplicatesQuery.queryWithScripts(scripts));
+			NewSearchUI.runQueryInBackground(DuplicatesSearchQuery.queryWithScripts(scripts));
 		}
 		return null;
 	}

@@ -15,22 +15,22 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.ShowInContext;
-import net.arctics.clonk.ui.search.ClonkSearchContentProvider;
+import net.arctics.clonk.ui.search.SearchContentProvider;
 
-public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements IShowInSource, IShowInTargetList {
+public class SearchResultPage extends AbstractTextSearchViewPage implements IShowInSource, IShowInTargetList {
 	
 	@Override
 	protected void clear() {
 		// yep
 	}
 
-	protected ClonkSearchContentProvider getContentAndLabelProvider(boolean flat) {
-		return new ClonkSearchContentProvider(this, flat);
+	protected SearchContentProvider getContentAndLabelProvider(boolean flat) {
+		return new SearchContentProvider(this, flat);
 	}
 	
 	@Override
 	protected void configureTableViewer(TableViewer tableViewer) {
-		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
+		SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
 		tableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		tableViewer.setContentProvider(contentAndLabelProvider);
 		tableViewer.setComparator(contentAndLabelProvider.getComparator());
@@ -38,7 +38,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 
 	@Override
 	protected void configureTreeViewer(TreeViewer treeViewer) {
-		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
+		SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
 		treeViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		treeViewer.setContentProvider(contentAndLabelProvider);
 		treeViewer.setComparator(contentAndLabelProvider.getComparator());
@@ -51,7 +51,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	
 	@Override
 	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
-		ClonkSearchMatch clonkMatch = (ClonkSearchMatch) match;
+		SearchMatch clonkMatch = (SearchMatch) match;
 		ClonkTextEditor editor;
 		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.structure(), activate);
 		editor.selectAndReveal(currentOffset, currentLength);

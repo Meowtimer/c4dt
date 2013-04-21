@@ -18,9 +18,9 @@ import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter, IEditorMatchAdapter {
+public abstract class SearchQuery implements ISearchQuery, IFileMatchAdapter, IEditorMatchAdapter {
 	protected static final Match[] NO_MATCHES = new Match[0];
-	protected ClonkSearchResult result;
+	protected SearchResult result;
 	@Override
 	public boolean canRerun() { return true; }
 	@Override
@@ -28,7 +28,7 @@ public abstract class SearchQueryBase implements ISearchQuery, IFileMatchAdapter
 	@Override
 	public synchronized ISearchResult getSearchResult() {
 		if (result == null)
-			result = new ClonkSearchResult(this);
+			result = new SearchResult(this);
 		return result;
 	}
 	protected abstract IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException;

@@ -50,13 +50,13 @@ import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class ReferencesQuery extends SearchQueryBase {
+public class ReferencesSearchQuery extends SearchQuery {
 
 	protected Declaration declaration;
 	private final Object[] scope;
 	protected ProblemReportingStrategy strategy;
 
-	public ReferencesQuery(Declaration declaration, ClonkProjectNature project) {
+	public ReferencesSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration.latestVersion();
 		this.scope = declaration.occurenceScope(project);
@@ -156,7 +156,7 @@ public class ReferencesQuery extends SearchQueryBase {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				for (final Object scope : ReferencesQuery.this.scope)
+				for (final Object scope : ReferencesSearchQuery.this.scope)
 					if (scope instanceof IContainer) try {
 						((IContainer)scope).accept(visitor);
 					} catch (final Exception e) {
@@ -205,19 +205,19 @@ public class ReferencesQuery extends SearchQueryBase {
 											if (obj != null) {
 												final Declaration declaration = obj.findFunction(complex.stringValue());
 												if (declaration == this.declaration)
-													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+													result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
 										}
 										else if (declaration instanceof Definition)
 											if (entryClass == ID.class) {
 												if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
-													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+													result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 											}
 											else if (entryClass == IDArray.class)
 												for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
 													final Definition obj = script.index().anyDefinitionWithID(pair.key());
 													if (obj == declaration)
-														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+														result.addMatch(new SearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
 												}
 									}
 								}

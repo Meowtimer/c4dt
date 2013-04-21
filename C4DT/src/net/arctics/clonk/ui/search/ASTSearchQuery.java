@@ -25,9 +25,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-public class ScriptSearchQuery extends SearchQueryBase {
+public class ASTSearchQuery extends SearchQuery {
 
-	public static class Match extends ClonkSearchMatch {
+	public static class Match extends SearchMatch {
 		private final ASTNode matched;
 		private final Map<String, Object> subst;
 		public ASTNode matched() { return matched; }
@@ -69,7 +69,7 @@ public class ScriptSearchQuery extends SearchQueryBase {
 		return e;
 	}
 
-	public ScriptSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
+	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
 		this.templateText = templateExpressionText;
 		final Engine engine = commonEngine(scope);
 		this.template = ASTNodeMatcher.matchingExpr(templateExpressionText, engine);

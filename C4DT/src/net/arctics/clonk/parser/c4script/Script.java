@@ -886,7 +886,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public List<? extends Function> functions() {
 		requireLoaded();
-		return functions != null ? functions : Collections.<Function>emptyList();
+		return copyListOrReturnDefaultList(functions, Collections.<Function>emptyList());
 	}
 
 	@SuppressWarnings("unchecked")

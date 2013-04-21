@@ -59,12 +59,12 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 
-public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
+public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
 
-	public static final String PREF_TEMPLATE_TEXT = C4ScriptSearchPage.class.getSimpleName()+".templateText"; //$NON-NLS-1$
-	public static final String PREF_REPLACEMENT_TEXT = C4ScriptSearchPage.class.getSimpleName()+".replacementText"; //$NON-NLS-1$
-	public static final String PREF_SCOPE = C4ScriptSearchPage.class.getSimpleName()+".scope"; //$NON-NLS-1$
-	public static final String PREF_RECENTS = C4ScriptSearchPage.class.getSimpleName()+".recents"; //$NON-NLS-1$
+	public static final String PREF_TEMPLATE_TEXT = ScriptSearchPage.class.getSimpleName()+".templateText"; //$NON-NLS-1$
+	public static final String PREF_REPLACEMENT_TEXT = ScriptSearchPage.class.getSimpleName()+".replacementText"; //$NON-NLS-1$
+	public static final String PREF_SCOPE = ScriptSearchPage.class.getSimpleName()+".scope"; //$NON-NLS-1$
+	public static final String PREF_RECENTS = ScriptSearchPage.class.getSimpleName()+".recents"; //$NON-NLS-1$
 
 	private static final String RECENTS_SEPARATOR = "<>"; //$NON-NLS-1$
 
@@ -73,9 +73,9 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	private ISearchPageContainer container;
 	private ComboViewer recentsCombo;
 
-	public C4ScriptSearchPage() {}
-	public C4ScriptSearchPage(String title) { super(title); }
-	public C4ScriptSearchPage(String title, ImageDescriptor image) { super(title, image); }
+	public ScriptSearchPage() {}
+	public ScriptSearchPage(String title) { super(title); }
+	public ScriptSearchPage(String title, ImageDescriptor image) { super(title, image); }
 
 	@Override
 	public void createControl(Composite parent) {
@@ -210,7 +210,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 		templateText.selectAll();
 	}
 
-	private ScriptSearchQuery newQuery() {
+	private ASTSearchQuery newQuery() {
 		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		final ISelection sel = selectionService.getSelection();
 		final Set<Script> scope = new HashSet<Script>();
@@ -283,7 +283,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			return null;
 		}
 		try {
-			return new ScriptSearchQuery(templateText.getText(), replacementText.getText(), scope);
+			return new ASTSearchQuery(templateText.getText(), replacementText.getText(), scope);
 		} catch (final ParsingException e) {
 			e.printStackTrace();
 			MessageDialog.openError(this.getShell(), e.parser().bufferSequence(0).toString(), e.getMessage());
@@ -301,7 +301,7 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 	@Override
 	public boolean performReplace() {
 		addRecent();
-		final ScriptSearchQuery query = newQuery();
+		final ASTSearchQuery query = newQuery();
 		final IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
 		if (status.matches(IStatus.CANCEL))
 			return false;
@@ -311,9 +311,9 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 			public void run() {
 				final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
 				if (view != null) {
-					final ClonkSearchResultPage page = as(view.getActivePage(), ClonkSearchResultPage.class);
+					final SearchResultPage page = as(view.getActivePage(), SearchResultPage.class);
 					if (page != null) {
-						final ClonkSearchResult result = (ClonkSearchResult)page.getInput();
+						final SearchResult result = (SearchResult)page.getInput();
 						for (final Object element : result.getElements()) {
 							final Script script = as(element, Script.class);
 							if (script == null)
@@ -321,8 +321,8 @@ public class C4ScriptSearchPage extends DialogPage implements ISearchPage, IRepl
 							final Match[] matches = result.getMatches(element);
 							final List<ASTNode> replacements = new LinkedList<ASTNode>();
 							for (final Match m : matches)
-								if (m instanceof ScriptSearchQuery.Match) {
-									final ScriptSearchQuery.Match qm = (ScriptSearchQuery.Match) m;
+								if (m instanceof ASTSearchQuery.Match) {
+									final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
 									final ASTNode replacement = query.replacement();
 									ASTNode repl = replacement.transform(qm.subst(), null);
 									if (repl == replacement)

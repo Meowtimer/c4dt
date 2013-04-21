@@ -32,7 +32,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.ReparseFunctionMode;
 import net.arctics.clonk.ui.editors.c4script.ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
-import net.arctics.clonk.ui.search.C4ScriptSearchAction;
+import net.arctics.clonk.ui.search.ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -230,7 +230,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			RenameDeclarationAction.class,
 			FindDuplicatesAction.class,
 			ToggleCommentAction.class,
-			C4ScriptSearchAction.class,
+			ScriptSearchAction.class,
 			EvaluateC4Script.class
 		);
 	}

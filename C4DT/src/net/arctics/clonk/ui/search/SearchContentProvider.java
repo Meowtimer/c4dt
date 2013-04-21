@@ -24,12 +24,12 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
 
-public class ClonkSearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider, DelegatingStyledCellLabelProvider.IStyledLabelProvider {
+public class SearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider, DelegatingStyledCellLabelProvider.IStyledLabelProvider {
 
 	private final boolean flat;
-	private ClonkSearchResult searchResult;
+	private SearchResult searchResult;
 	
-	public ClonkSearchContentProvider(ClonkSearchResultPage page, boolean flat) {
+	public SearchContentProvider(SearchResultPage page, boolean flat) {
 		super();
 		this.flat = flat;
 	}
@@ -73,7 +73,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		searchResult = (ClonkSearchResult) newInput;
+		searchResult = (SearchResult) newInput;
 	}
 	
 	@Override
@@ -105,9 +105,9 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	}
 	@Override
 	public StyledString getStyledText(Object element) {
-		if (element instanceof ClonkSearchMatch) try {
+		if (element instanceof SearchMatch) try {
 			StyledString result = new StyledString();
-			ClonkSearchMatch match = (ClonkSearchMatch) element;
+			SearchMatch match = (SearchMatch) element;
 			String firstHalf = match.line().substring(0, match.getOffset()-match.lineOffset());
 			String matchStr = match.line().substring(match.getOffset()-match.lineOffset(), match.getOffset()-match.lineOffset()+match.getLength());
 			String secondHalf = match.line().substring(match.getOffset()-match.lineOffset()+match.getLength(), match.line().length());
@@ -118,7 +118,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			result.append(match.structure().resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			return result;
 		} catch (Exception e) {
-			return new StyledString(((ClonkSearchMatch)element).line());
+			return new StyledString(((SearchMatch)element).line());
 		}
 		else if (element instanceof Function)
 			return new StyledString(((Function)element).qualifiedName());
