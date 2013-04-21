@@ -827,11 +827,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public Definition definition() { return as(input.script, Definition.class); }
 		@Override
 		public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
-			final Function f = expression.parentOfType(Function.class);
-			final int bodyOffset = f != null ? f.bodyLocation().start() : 0;
+			int fragmentOffset = input.fragmentOffset;
+			if (fragmentOffset == 0) {
+				final Function f = expression.parentOfType(Function.class);
+				fragmentOffset = f != null ? f.bodyLocation().start() : 0;
+			}
 			return new SourceLocation(
-				input.fragmentOffset+bodyOffset+expression.start(),
-				input.fragmentOffset+bodyOffset+expression.end()
+				fragmentOffset+expression.start(),
+				fragmentOffset+expression.end()
 			);
 		}
 		@Override
