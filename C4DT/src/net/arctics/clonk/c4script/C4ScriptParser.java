@@ -2268,11 +2268,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				eatWhitespace();
 				w = readIdent();
 				if (w.equals(Keywords.In)) {
-					// too much manual setting of stuff
 					final AccessVar accessVar = new AccessVar(varName);
 					setRelativeLocation(accessVar, pos, pos+varName.length());
 					initialization = new SimpleStatement(accessVar);
-					setRelativeLocation(initialization, pos, pos+varName.length());
 				} else
 					w = null;
 			}

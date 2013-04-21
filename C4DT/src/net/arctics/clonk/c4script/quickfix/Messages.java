@@ -3,7 +3,7 @@ package net.arctics.clonk.c4script.quickfix;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.parser.c4script.quickfix.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "net.arctics.clonk.c4script.quickfix.messages"; //$NON-NLS-1$
 	public static String Fix;
 	public static String MarkerResolutionDefaultMessage;
 	public static String MarkerResolutionDescription;

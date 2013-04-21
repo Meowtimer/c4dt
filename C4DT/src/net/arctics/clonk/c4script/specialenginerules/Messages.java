@@ -3,7 +3,7 @@ package net.arctics.clonk.c4script.specialenginerules;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.parser.c4script.specialEngineRules.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "net.arctics.clonk.c4script.specialEngineRules.messages"; //$NON-NLS-1$
 	public static String specialEngineRules_OpenClonk_ActionCompletionTemplate;
 	static {
 		// initialize resource bundle
