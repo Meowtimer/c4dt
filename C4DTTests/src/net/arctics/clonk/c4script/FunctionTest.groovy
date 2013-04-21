@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.c4script;
 
 import static org.junit.Assert.*;
 
@@ -6,7 +6,7 @@ import net.arctics.clonk.c4script.ArrayType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Function.ParameterStringOption;
+import net.arctics.clonk.c4script.Function.ParameterStringOption;
 
 import org.junit.Assert;
 import org.junit.Test;

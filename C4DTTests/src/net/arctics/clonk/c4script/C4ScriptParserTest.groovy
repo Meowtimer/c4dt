@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script
+package net.arctics.clonk.c4script
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -22,23 +22,23 @@ import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.parser.ParsingException
 import net.arctics.clonk.parser.Problem
 import net.arctics.clonk.parser.SimpleScriptStorage
-import net.arctics.clonk.parser.c4script.ast.ASTComparisonDelegate
-import net.arctics.clonk.parser.c4script.ast.AccessVar
-import net.arctics.clonk.parser.c4script.ast.BinaryOp
-import net.arctics.clonk.parser.c4script.ast.Block
-import net.arctics.clonk.parser.c4script.ast.BreakStatement
-import net.arctics.clonk.parser.c4script.ast.BunchOfStatements
-import net.arctics.clonk.parser.c4script.ast.CallDeclaration
-import net.arctics.clonk.parser.c4script.ast.ForStatement
-import net.arctics.clonk.parser.c4script.ast.IntegerLiteral
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement
-import net.arctics.clonk.parser.c4script.ast.StringLiteral
-import net.arctics.clonk.parser.c4script.ast.True
-import net.arctics.clonk.parser.c4script.ast.UnaryOp
-import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement
-import net.arctics.clonk.parser.c4script.ast.VarInitialization
-import net.arctics.clonk.parser.c4script.ast.WhileStatement
-import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement
+import net.arctics.clonk.c4script.ast.ASTComparisonDelegate
+import net.arctics.clonk.c4script.ast.AccessVar
+import net.arctics.clonk.c4script.ast.BinaryOp
+import net.arctics.clonk.c4script.ast.Block
+import net.arctics.clonk.c4script.ast.BreakStatement
+import net.arctics.clonk.c4script.ast.BunchOfStatements
+import net.arctics.clonk.c4script.ast.CallDeclaration
+import net.arctics.clonk.c4script.ast.ForStatement
+import net.arctics.clonk.c4script.ast.IntegerLiteral
+import net.arctics.clonk.c4script.ast.SimpleStatement
+import net.arctics.clonk.c4script.ast.StringLiteral
+import net.arctics.clonk.c4script.ast.True
+import net.arctics.clonk.c4script.ast.UnaryOp
+import net.arctics.clonk.c4script.ast.VarDeclarationStatement
+import net.arctics.clonk.c4script.ast.VarInitialization
+import net.arctics.clonk.c4script.ast.WhileStatement
+import net.arctics.clonk.c4script.ast.UnaryOp.Placement
 
 import org.eclipse.core.resources.IStorage
 import org.junit.Test

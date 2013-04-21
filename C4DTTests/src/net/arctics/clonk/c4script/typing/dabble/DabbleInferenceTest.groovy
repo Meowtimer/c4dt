@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script.typing.dabble
+package net.arctics.clonk.c4script.typing.dabble
 
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase
@@ -7,10 +7,10 @@ import net.arctics.clonk.index.Definition
 import net.arctics.clonk.index.MetaDefinition
 import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.parser.Problem;
-import net.arctics.clonk.parser.c4script.C4ScriptParserTest
-import net.arctics.clonk.parser.c4script.PrimitiveType
-import net.arctics.clonk.parser.c4script.ast.ThisType;
-import net.arctics.clonk.parser.c4script.ast.TypeChoice
+import net.arctics.clonk.c4script.C4ScriptParserTest
+import net.arctics.clonk.c4script.PrimitiveType
+import net.arctics.clonk.c4script.ast.ThisType;
+import net.arctics.clonk.c4script.ast.TypeChoice
 import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.runtime.NullProgressMonitor

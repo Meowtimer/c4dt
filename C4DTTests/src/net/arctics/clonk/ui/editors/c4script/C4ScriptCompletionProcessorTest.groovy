@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.c4script
 
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase;
-import net.arctics.clonk.parser.c4script.typing.dabble.DabbleInferenceTest.Setup
+import net.arctics.clonk.c4script.typing.dabble.DabbleInferenceTest.Setup
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
@@ -45,7 +45,7 @@ public class C4ScriptCompletionProcessorTest extends TestBase {
 		}
 		"""
 		def derivedSource = derivedSourcePart1 + derivedSourcePart2
-		def setup = new Setup(
+		Setup setup = new Setup(
 			new DefinitionInfo(name: "Base", source: baseSource),
 			new DefinitionInfo(name: "Derived", source: derivedSource)
 		)

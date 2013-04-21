@@ -1,19 +1,19 @@
 package net.arctics.clonk.parser
 
 import net.arctics.clonk.TestBase
-import net.arctics.clonk.parser.c4script.Operator
-import net.arctics.clonk.parser.c4script.ast.AccessVar
-import net.arctics.clonk.parser.c4script.ast.BinaryOp
-import net.arctics.clonk.parser.c4script.ast.Block
-import net.arctics.clonk.parser.c4script.ast.BreakStatement
-import net.arctics.clonk.parser.c4script.ast.CallDeclaration
-import net.arctics.clonk.parser.c4script.ast.IntegerLiteral
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement
-import net.arctics.clonk.parser.c4script.ast.StringLiteral
-import net.arctics.clonk.parser.c4script.ast.True
-import net.arctics.clonk.parser.c4script.ast.UnaryOp
-import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement
-import net.arctics.clonk.parser.c4script.ast.WhileStatement
+import net.arctics.clonk.c4script.Operator
+import net.arctics.clonk.c4script.ast.AccessVar
+import net.arctics.clonk.c4script.ast.BinaryOp
+import net.arctics.clonk.c4script.ast.Block
+import net.arctics.clonk.c4script.ast.BreakStatement
+import net.arctics.clonk.c4script.ast.CallDeclaration
+import net.arctics.clonk.c4script.ast.IntegerLiteral
+import net.arctics.clonk.c4script.ast.SimpleStatement
+import net.arctics.clonk.c4script.ast.StringLiteral
+import net.arctics.clonk.c4script.ast.True
+import net.arctics.clonk.c4script.ast.UnaryOp
+import net.arctics.clonk.c4script.ast.UnaryOp.Placement
+import net.arctics.clonk.c4script.ast.WhileStatement
 import org.junit.Assert
 import org.junit.Test
 
