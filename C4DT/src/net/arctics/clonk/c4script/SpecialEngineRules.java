@@ -919,17 +919,6 @@ public abstract class SpecialEngineRules {
 		};
 	};
 
-	/**
-	 * Modifies the return type of CreateArray to be an ArrayType
-	 */
-	@AppliedTo(functions={"CreateArray"})
-	public final SpecialFuncRule createArrayTypingRule = new SpecialFuncRule() {
-		@Override
-		public IType returnType(ProblemReportingContext processor, CallDeclaration callFunc) {
-			return new ArrayType(PrimitiveType.ANY);
-		};
-	};
-
 	@AppliedTo(functions={"GetScenarioVal"})
 	public final SpecialFuncRule scenarioValResultRule = new SpecialFuncRule() {
 		@Override
