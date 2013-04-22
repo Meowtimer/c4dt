@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Flags;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -243,7 +244,6 @@ public class Command {
 					}
 				});
 		}
-		
 		@CommandFunction
 		public static void CountNodes(Object context, String projectName) {
 			class Counter {
@@ -258,6 +258,10 @@ public class Command {
 				}
 			}
 			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
+		}
+		@CommandFunction
+		public static void ToggleDebug(Object context) {
+			Flags.DEBUG = !Flags.DEBUG;
 		}
 	}
 
