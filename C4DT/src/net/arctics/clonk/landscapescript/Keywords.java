@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.landscapescript;
+package net.arctics.clonk.landscapescript;
 
 public class Keywords {
 	public static final String Point = "point"; //$NON-NLS-1$

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.landscapescript;
+package net.arctics.clonk.landscapescript;
 
 import static net.arctics.clonk.mapcreator.GlobalFunctions.Random;
 

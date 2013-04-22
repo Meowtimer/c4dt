@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.landscapescript;
+package net.arctics.clonk.landscapescript;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

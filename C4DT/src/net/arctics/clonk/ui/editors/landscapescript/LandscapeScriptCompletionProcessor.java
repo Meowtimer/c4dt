@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.landscapescript.OverlayBase;
+import net.arctics.clonk.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 

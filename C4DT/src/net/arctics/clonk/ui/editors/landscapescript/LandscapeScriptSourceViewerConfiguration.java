@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.landscapescript;
 
-import net.arctics.clonk.parser.landscapescript.Overlay;
-import net.arctics.clonk.parser.landscapescript.OverlayBase;
+import net.arctics.clonk.landscapescript.Overlay;
+import net.arctics.clonk.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;

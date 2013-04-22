@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.landscapescript;
 
-import net.arctics.clonk.parser.landscapescript.LandscapeScript;
-import net.arctics.clonk.parser.landscapescript.LandscapeScriptLexer;
-import net.arctics.clonk.parser.landscapescript.LandscapeScriptParser;
+import net.arctics.clonk.landscapescript.LandscapeScript;
+import net.arctics.clonk.landscapescript.LandscapeScriptLexer;
+import net.arctics.clonk.landscapescript.LandscapeScriptParser;
 import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;

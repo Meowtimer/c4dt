@@ -1,5 +1,5 @@
 // $ANTLR 3.4 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g 2012-11-16 15:02:20
-package net.arctics.clonk.parser.landscapescript;
+package net.arctics.clonk.landscapescript;
 
 import org.antlr.runtime.*;
 import java.util.Stack;
