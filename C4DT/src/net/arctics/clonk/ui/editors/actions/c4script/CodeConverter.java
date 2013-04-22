@@ -59,7 +59,7 @@ public abstract class CodeConverter {
 			final TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			final List<Declaration> decs = new ArrayList<Declaration>();
-			for (final Declaration d : script.subDeclarations(script.index(), DeclMask.ALL & ~DeclMask.IMPLICIT))
+			for (final Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.STATIC_VARIABLES))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
