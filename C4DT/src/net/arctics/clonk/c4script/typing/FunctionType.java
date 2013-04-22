@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
@@ -6,6 +6,10 @@ import static net.arctics.clonk.util.ArrayUtil.map;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 

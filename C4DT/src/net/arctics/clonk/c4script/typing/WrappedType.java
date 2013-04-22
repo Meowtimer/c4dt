@@ -1,6 +1,7 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.util.Utilities;
 
 public abstract class WrappedType implements IType {

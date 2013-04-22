@@ -1,17 +1,17 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ReferenceType extends WrappedType implements IRefinedPrimitiveType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	ReferenceType(IType type) {
-		super(type);
-	}
+	public ReferenceType(IType type) { super(type); }
 
 	public IType type() {
 		return wrappedType;

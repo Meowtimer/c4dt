@@ -73,6 +73,7 @@ import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.ast.WhileStatement;
 import net.arctics.clonk.c4script.ast.Whitespace;
 import net.arctics.clonk.c4script.effect.EffectFunction;
+import net.arctics.clonk.c4script.typing.ReferenceType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.index.Definition;

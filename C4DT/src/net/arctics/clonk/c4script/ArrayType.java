@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.util.Utilities;
 

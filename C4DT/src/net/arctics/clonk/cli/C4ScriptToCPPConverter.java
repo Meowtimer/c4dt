@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.cli;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -17,6 +17,9 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.ast.Block;

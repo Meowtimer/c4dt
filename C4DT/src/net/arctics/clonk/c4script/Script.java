@@ -46,6 +46,7 @@ import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
+import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;

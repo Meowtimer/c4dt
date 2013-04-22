@@ -1,10 +1,12 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.PrimitiveType;
 
 public class NillableType extends WrappedType {
 

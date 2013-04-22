@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.CallTargetType;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;

@@ -8,15 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.c4script.ArrayType;
-import net.arctics.clonk.c4script.CallTargetType;
-import net.arctics.clonk.c4script.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.NillableType;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProplistDeclaration;
-import net.arctics.clonk.c4script.ReferenceType;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.WrappedType;
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.ast.TypeChoice;
 import net.arctics.clonk.index.Definition;
