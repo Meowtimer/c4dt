@@ -301,7 +301,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (d.containedIn(script))
 					tyVar.apply(false);
 				if (d instanceof Variable)
-					variableTypes.put(d.name(), tyVar.get());
+					switch (((Variable)d).scope()) {
+					case LOCAL:
+						variableTypes.put(d.name(), tyVar.get());
+						break;
+					default:
+						break;
+					}
 				else if (d instanceof Function)
 					functionReturnTypes.put(d.name(), tyVar.get());
 			}
@@ -1220,20 +1226,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (d instanceof Function)
 					return new FunctionType((Function)d);
 				else if (d instanceof Variable) {
-					IType t = PrimitiveType.UNKNOWN;
-					if (node.predecessorInSequence() != null) {
-						final IType predTy = ty(node.predecessorInSequence(), visitor);
-						if (predTy != null)
-							for (final IType _t : predTy)
-								if (_t instanceof Script) {
-									final ScriptInput nput = shared.getInput((Script) _t);
-									if (nput != null)
-										new Visitor(visitor, nput).reportProblems();
-									final IType frt = ((Script)_t).variableTypes().get(d.name());
-									t = TypeUnification.unify(t, frt);
-								}
+					final Variable v = (Variable)d;
+					switch (v.scope()) {
+					case LOCAL:
+						IType t = PrimitiveType.UNKNOWN;
+						if (node.predecessorInSequence() != null) {
+							final IType predTy = ty(node.predecessorInSequence(), visitor);
+							if (predTy != null)
+								for (final IType _t : predTy)
+									if (_t instanceof Script) {
+										final ScriptInput nput = shared.getInput((Script) _t);
+										if (nput != null)
+											new Visitor(visitor, nput).reportProblems();
+										final IType frt = ((Script)_t).variableTypes().get(d.name());
+										t = TypeUnification.unify(t, frt);
+									}
+						}
+						return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
+					default:
+						return v.type(); 
 					}
-					return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
 				}
 				else if (d instanceof ITypeable)
 					return ((ITypeable) d).type();
@@ -1867,9 +1879,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
 					}
 					if (d instanceof Variable) {
-						final IType t = shared.local && node.predecessorInSequence() == null
-							? visitor.script().variableTypes().get(d.name()) : null;
-						return t != null ? t : ((Variable)d).type();
+						final Variable v = (Variable)d;
+						switch (v.scope()) {
+						case LOCAL:
+							final IType t = shared.local && node.predecessorInSequence() == null
+							? visitor.script().variableTypes().get(v.name()) : null;
+							return t != null ? t : v.type();
+						default:
+							return v.type();
+						}
 					}
 					return supr != null ? supr.type(node, visitor) : PrimitiveType.UNKNOWN;
 				}

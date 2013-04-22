@@ -67,9 +67,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 
-	private Variable(String name) {
-		this.name = name;
-	}
+	private Variable(String name) { this.name = name; }
 
 	private Variable(String name, IType type, String desc) {
 		this(name);
@@ -108,8 +106,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	public IType type(Script script) {
 		IType type = null;
-		if (script != null && script.variableTypes() != null)
-			type = script.variableTypes().get(name());
+		switch (scope()) {
+		case LOCAL:
+			if (script != null && script.variableTypes() != null)
+				type = script.variableTypes().get(name());
+			break;
+		default:
+			break;
+		}
 		if (type == null)
 			type = type();
 		return type;
@@ -158,32 +162,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public String userDescription() {
-		return description;
-	}
-
+	public String userDescription() { return description; }
 	/**
 	 * @param description the description to set
 	 */
 	@Override
-	public void setUserDescription(String description) {
-		this.description = description;
-	}
-
+	public void setUserDescription(String description) { this.description = description; }
 	/**
 	 * @param scope the scope to set
 	 */
-	public void setScope(Scope scope) {
-		this.scope = scope;
-	}
-
-	public boolean isUsed() {
-		return used;
-	}
-
-	public void setUsed(boolean used) {
-		this.used = used;
-	}
+	public void setScope(Scope scope) { this.scope = scope; }
+	public boolean isUsed() { return used; }
+	public void setUsed(boolean used) { this.used = used; }
 
 	/**
 	 * The scope of a variable
@@ -198,12 +188,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		PARAMETER;
 
 		public static Scope makeScope(String scopeString) {
-			if (scopeString.equals(Keywords.VarNamed)) return Scope.VAR;
-			if (scopeString.equals(Keywords.LocalNamed)) return Scope.LOCAL;
-			if (scopeString.equals(Keywords.GlobalNamed)) return Scope.STATIC;
-			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return Scope.CONST; //$NON-NLS-1$
-			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
-			else return null;
+			switch (scopeString) {
+			case Keywords.VarNamed:
+				return Scope.VAR;
+			case Keywords.LocalNamed:
+				return Scope.LOCAL;
+			case Keywords.GlobalNamed:
+				return Scope.STATIC;
+			case Keywords.GlobalNamed + " " + Keywords.Const:
+				return Scope.CONST;
+			default:
+				return null;
+			}
 		}
 
 		public String toKeyword() {
@@ -221,7 +217,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			}
 		}
 
-		public final boolean isLocal() {
+		public boolean isLocal() {
 			switch (this) {
 			case PARAMETER: case VAR:
 				return true;
