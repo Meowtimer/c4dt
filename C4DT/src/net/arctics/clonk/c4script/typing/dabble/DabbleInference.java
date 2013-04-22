@@ -647,7 +647,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public final FunctionVisitReturnTypeVariable delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
 			if (DEBUG)
-				System.out.println(String.format("Delegate function visit for '%s'", function.qualifiedName())); //$NON-NLS-1$
+				System.out.println(String.format("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
+					function.qualifiedName(),
+					this.visitee != null ? this.visitee.function.qualifiedName() : "<null>"
+				));
 			if (function.body() == null)
 				return null;
 			for (Visitor v = this; v != null; v = v.originator)
