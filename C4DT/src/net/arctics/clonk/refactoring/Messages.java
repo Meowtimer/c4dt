@@ -3,7 +3,7 @@ package net.arctics.clonk.refactoring;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.refactoring.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String OutsideProject;
 	public static String DuplicateItem;
 	public static String Success;

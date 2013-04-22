@@ -9,13 +9,13 @@ import java.net.URL;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.DeclarationLocation;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationLocation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;

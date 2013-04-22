@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.debug;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.debug.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String LaunchMainTab_ProjectTitle;
 	public static String LaunchMainTab_Browse;
 	public static String LaunchMainTab_InvalidProjectName;

@@ -3,8 +3,8 @@ package net.arctics.clonk.c4script;
 import java.util.EnumSet;
 import java.util.LinkedList;
 
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.ast.FunctionBody;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 

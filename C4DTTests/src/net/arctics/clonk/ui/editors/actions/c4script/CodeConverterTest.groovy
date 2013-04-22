@@ -6,8 +6,8 @@ import org.eclipse.jface.text.IDocument;
 import org.junit.Test;
 
 import net.arctics.clonk.TestBase;
-import net.arctics.clonk.parser.ASTNode
-import net.arctics.clonk.parser.Declaration
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.C4ScriptParser
 import net.arctics.clonk.c4script.C4ScriptParserTest.Setup
 import net.arctics.clonk.c4script.typing.TypeUtil;

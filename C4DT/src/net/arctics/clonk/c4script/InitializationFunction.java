@@ -3,12 +3,12 @@ package net.arctics.clonk.c4script;
 import java.util.Arrays;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
 
 public class InitializationFunction extends Function {
 	public static final class VarInitializationAccess extends AccessVar {

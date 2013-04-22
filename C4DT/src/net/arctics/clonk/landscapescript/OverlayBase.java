@@ -7,11 +7,11 @@ import java.util.Collection;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Conf;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;

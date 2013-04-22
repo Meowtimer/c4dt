@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.IASTVisitor;
-import net.arctics.clonk.parser.TraversalContinuation;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.TraversalContinuation;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;

@@ -3,7 +3,7 @@ package net.arctics.clonk.c4script;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.util.SelfcontainedStorage;
 
 import org.eclipse.core.resources.IStorage;
 
@@ -21,5 +21,5 @@ public final class TempScript extends Script {
 	}
 
 	@Override
-	public IStorage source() { return new SimpleScriptStorage(text, text); }
+	public IStorage source() { return new SelfcontainedStorage(text, text); }
 }

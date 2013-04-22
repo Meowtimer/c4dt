@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ini.MaterialUnit;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IContainer;

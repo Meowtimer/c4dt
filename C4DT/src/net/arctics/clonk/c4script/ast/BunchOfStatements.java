@@ -3,9 +3,9 @@ package net.arctics.clonk.c4script.ast;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Conf;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
 
 public class BunchOfStatements extends Block {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

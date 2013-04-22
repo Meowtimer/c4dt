@@ -3,10 +3,10 @@ package net.arctics.clonk.c4script.ast;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 

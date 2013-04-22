@@ -3,12 +3,12 @@ package net.arctics.clonk.ui.editors;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.DeclarationLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.DeclarationLocation;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;

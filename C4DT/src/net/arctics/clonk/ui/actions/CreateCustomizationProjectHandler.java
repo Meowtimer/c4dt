@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.actions;
 
-import net.arctics.clonk.resource.CustomizationNature;
+import net.arctics.clonk.builder.CustomizationNature;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
@@ -19,8 +21,6 @@ import net.arctics.clonk.c4script.ast.FunctionDescription;
 import net.arctics.clonk.c4script.ast.Parenthesized;
 import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFile;

@@ -6,7 +6,7 @@ import static net.arctics.clonk.util.Utilities.filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.util.IPredicate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;

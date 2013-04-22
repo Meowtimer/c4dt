@@ -6,7 +6,7 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.util.SelfcontainedStorage;
 
 import org.eclipse.core.resources.IStorage;
 
@@ -31,7 +31,7 @@ public class SelfContainedScript extends Script {
 
 	@Override
 	public IStorage source() {
-		return new SimpleScriptStorage(name(), script);
+		return new SelfcontainedStorage(name(), script);
 	}
 
 }

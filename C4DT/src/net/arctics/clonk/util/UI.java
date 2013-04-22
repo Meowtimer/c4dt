@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IProplistDeclaration;
@@ -17,9 +20,6 @@ import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.landscapescript.Overlay;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
 import org.eclipse.core.resources.IContainer;

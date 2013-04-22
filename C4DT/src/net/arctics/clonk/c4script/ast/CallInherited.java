@@ -1,8 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.parser.ASTNode;
 
 public class CallInherited extends CallDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

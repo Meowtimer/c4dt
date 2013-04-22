@@ -1,8 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
 
 public abstract class ConditionalStatement extends KeywordStatement {
 

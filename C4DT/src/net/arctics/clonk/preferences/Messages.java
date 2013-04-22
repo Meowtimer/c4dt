@@ -3,7 +3,7 @@ package net.arctics.clonk.preferences;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.preferences.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String ClonkPreferencePage_Author;
 	public static String ClonkPreferencePage_DefaultEngine;
 	public static String ClonkPreferencePage_EngineConfigurationTitle;

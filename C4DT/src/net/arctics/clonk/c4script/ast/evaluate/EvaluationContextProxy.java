@@ -1,10 +1,10 @@
 package net.arctics.clonk.c4script.ast.evaluate;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.IEvaluationContext;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;

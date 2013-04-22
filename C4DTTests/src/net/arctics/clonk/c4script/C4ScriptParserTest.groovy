@@ -8,6 +8,8 @@ import org.junit.Before
 import net.arctics.clonk.Core
 import net.arctics.clonk.DefinitionInfo
 import net.arctics.clonk.TestBase
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
@@ -15,13 +17,11 @@ import net.arctics.clonk.index.Engine
 import net.arctics.clonk.index.EngineSettings
 import net.arctics.clonk.index.Index
 import net.arctics.clonk.index.Definition
-import net.arctics.clonk.parser.ASTNode
 import net.arctics.clonk.parser.BufferedScanner
-import net.arctics.clonk.parser.ID
 import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.parser.ParsingException
 import net.arctics.clonk.parser.Problem
-import net.arctics.clonk.parser.SimpleScriptStorage
+import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.c4script.ast.ASTComparisonDelegate
 import net.arctics.clonk.c4script.ast.AccessVar
 import net.arctics.clonk.c4script.ast.BinaryOp
@@ -63,20 +63,20 @@ public class C4ScriptParserTest extends TestBase {
 				if (source instanceof String)
 					new Script(index) {
 						@Override
-						IStorage source() { new SimpleScriptStorage(name(), source) }
+						IStorage source() { new SelfcontainedStorage(name(), source) }
 					}
 				else if (source instanceof DefinitionInfo) {
 					final info = source as DefinitionInfo
 					new Definition(index, ID.get(info.name), info.name) {
 						@Override
-						IStorage source() { new SimpleScriptStorage(name(), info.source) }
+						IStorage source() { new SelfcontainedStorage(name(), info.source) }
 					}
 				} else
 					throw new IllegalArgumentException(source.toString())
 			}
 			this.scripts.each { it -> this.index.addScript(it) }
 			this.parsers = this.scripts.collect { script -> new C4ScriptParser(
-				(script.source() as SimpleScriptStorage).contentsAsString(), script, null
+				(script.source() as SelfcontainedStorage).contentsAsString(), script, null
 			) }
 			this.script = this.scripts[0]
 			this.parser = this.parsers[0]

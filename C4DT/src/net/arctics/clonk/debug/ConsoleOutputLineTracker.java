@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;

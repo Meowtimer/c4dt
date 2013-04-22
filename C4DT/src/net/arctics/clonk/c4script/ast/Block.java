@@ -6,11 +6,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 
 /**

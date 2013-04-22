@@ -3,10 +3,10 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.typing.TypeUtil;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;

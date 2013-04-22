@@ -3,9 +3,9 @@ package net.arctics.clonk.c4script.ast;
 import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.IEvaluationContext;
 
 public class WhileStatement extends ConditionalStatement implements ILoop {
 

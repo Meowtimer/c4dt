@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.ITreeNode;

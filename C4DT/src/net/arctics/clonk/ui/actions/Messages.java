@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.actions;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.actions.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String AboutHandler_BuildTimeInfoFormat;
 	public static String AboutHandler_InfoTemplate;
 	public static String AboutHandler_Title;

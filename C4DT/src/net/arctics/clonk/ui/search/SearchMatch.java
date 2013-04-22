@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
-import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.ast.Structure;
 
 import org.eclipse.search.ui.text.Match;
 

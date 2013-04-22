@@ -5,6 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
@@ -25,9 +28,6 @@ import net.arctics.clonk.ini.UnsignedInteger;
 import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
-import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 

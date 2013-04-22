@@ -1,9 +1,9 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 
 public class OperatorExpression extends ASTNode implements IPlaceholderPatternMatchTarget {
 

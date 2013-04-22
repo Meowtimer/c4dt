@@ -1,8 +1,8 @@
 package net.arctics.clonk.c4script;
 
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IASTPositionProvider;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.parser.Problem;
 
 import org.eclipse.core.resources.IFile;

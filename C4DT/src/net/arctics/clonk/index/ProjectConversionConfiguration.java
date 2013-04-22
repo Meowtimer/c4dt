@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
@@ -16,8 +18,6 @@ import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;

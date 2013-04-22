@@ -14,6 +14,13 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodeMatcher;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -26,7 +33,6 @@ import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
-import net.arctics.clonk.c4script.specialenginerules.Messages;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
@@ -40,17 +46,10 @@ import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.PlayerControlsUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodeMatcher;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
-import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -336,7 +335,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (prefix != null && !comp.name().toLowerCase().contains(prefix))
 											continue;
 										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), String.format(Messages.specialEngineRules_OpenClonk_ActionCompletionTemplate, comp.name()), null, comp.infoText(processor.script()), "", completions.editor()));
+											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(processor.script()), "", completions.editor()));
 									}
 								}
 					}

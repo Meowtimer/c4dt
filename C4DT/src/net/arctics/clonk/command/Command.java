@@ -12,6 +12,12 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -20,14 +26,8 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IEvaluationContext;
-import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ProjectConverter;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IStorage;
@@ -49,7 +49,7 @@ public class Command {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public IStorage source() {
-				return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
+				return new SelfcontainedStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			@Override
 			public String name() {

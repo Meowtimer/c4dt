@@ -2,7 +2,7 @@ package net.arctics.clonk.ini;
 
 import java.io.Writer;
 
-import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.ITreeNode;

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ini;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.ast.Declaration;
 
 public class ParticleDefinition extends Declaration {
 

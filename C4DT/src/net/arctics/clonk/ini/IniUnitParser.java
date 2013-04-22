@@ -5,14 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTPositionProvider;
+import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IASTPositionProvider;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.Problem;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;

@@ -24,7 +24,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;

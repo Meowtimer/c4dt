@@ -11,10 +11,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
 import org.omg.CORBA.UNKNOWN;

@@ -2,9 +2,9 @@ package net.arctics.clonk.ui.wizards;
 
 import java.lang.reflect.Field;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;

@@ -1,9 +1,9 @@
 package net.arctics.clonk.index.serialization.replacements;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.resource.ClonkProjectNature;
 
 public class EntityReference extends EntityId {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

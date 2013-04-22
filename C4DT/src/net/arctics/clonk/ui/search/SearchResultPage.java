@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;

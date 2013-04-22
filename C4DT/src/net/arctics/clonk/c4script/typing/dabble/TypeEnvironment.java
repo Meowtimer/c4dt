@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.typing.TypeUnification;
-import net.arctics.clonk.parser.Declaration;
 
 public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

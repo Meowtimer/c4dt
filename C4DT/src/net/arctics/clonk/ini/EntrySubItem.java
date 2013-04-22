@@ -19,9 +19,9 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 		this.index = index;
 	}
 
-	private EntryType entry;
-	private Object context;
-	private int index;
+	private final EntryType entry;
+	private final Object context;
+	private final int index;
 
 	@Override
 	public Object context() {
@@ -36,11 +36,6 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	@Override
 	public String stringValue() {
 		return entry.valueOfChildAt(index).toString();
-	}
-
-	@Override
-	public void setStringValue(String value, Object context) {
-		entry.setValueOfChildAt(index, value);
 	}
 
 	@Override

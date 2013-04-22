@@ -4,7 +4,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
-import net.arctics.clonk.resource.c4group.C4GroupFileSystem;
+import net.arctics.clonk.c4group.C4GroupFileSystem;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;

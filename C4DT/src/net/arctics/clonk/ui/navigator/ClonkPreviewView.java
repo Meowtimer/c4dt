@@ -15,12 +15,12 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;

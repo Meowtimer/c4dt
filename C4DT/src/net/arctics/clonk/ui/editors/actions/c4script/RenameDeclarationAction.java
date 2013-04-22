@@ -5,8 +5,8 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;

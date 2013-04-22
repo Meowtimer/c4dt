@@ -1,10 +1,10 @@
 package net.arctics.clonk.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.BraceStyleType;
 import net.arctics.clonk.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;

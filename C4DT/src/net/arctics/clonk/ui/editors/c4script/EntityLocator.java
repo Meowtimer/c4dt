@@ -7,6 +7,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IType;
@@ -20,13 +26,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 

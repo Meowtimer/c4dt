@@ -1,14 +1,14 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.evaluate.EvaluationContextProxy;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IEvaluationContext;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;

@@ -10,13 +10,16 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTPositionProvider;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.IMarkerListener.Decision;
-import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

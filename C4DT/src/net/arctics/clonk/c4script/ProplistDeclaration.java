@@ -13,11 +13,10 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.StringUtil;
 
 /**

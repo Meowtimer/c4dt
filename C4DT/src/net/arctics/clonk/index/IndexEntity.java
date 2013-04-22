@@ -7,8 +7,8 @@ import java.io.ObjectOutputStream;
 import java.security.InvalidParameterException;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.util.Sink;
 
 /**

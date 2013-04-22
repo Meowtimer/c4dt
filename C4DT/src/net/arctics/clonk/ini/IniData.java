@@ -10,8 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
 import org.w3c.dom.Document;
@@ -29,24 +28,24 @@ public class IniData {
 		protected IniConfiguration() {}
 		
 		public static IniConfiguration fromXML(Node fileNode) throws InvalidIniConfigurationException {
-			IniConfiguration conf = new IniConfiguration();
+			final IniConfiguration conf = new IniConfiguration();
 			if (fileNode.getAttributes() == null ||  fileNode.getAttributes().getNamedItem("name") == null) //$NON-NLS-1$
 				throw new InvalidIniConfigurationException("A <file> tag must have a name"); //$NON-NLS-1$
 			conf.filename = fileNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			conf.factory = EntryFactory.INSTANCE;
 
-			NodeList sectionNodes = fileNode.getChildNodes();
+			final NodeList sectionNodes = fileNode.getChildNodes();
 			for(int i = 0; i < sectionNodes.getLength(); i++)
 				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
-					IniSectionDefinition section = IniSectionDefinition.fromXML(sectionNodes.item(i), conf.factory);
+					final IniSectionDefinition section = IniSectionDefinition.fromXML(sectionNodes.item(i), conf.factory);
 					conf.sections().put(section.sectionName(), section);
 				}
 			return conf;
 		}
 		
 		public static IniConfiguration createFromClass(Class<?> clazz) {
-			IniConfiguration result = new IniConfiguration();
-			for (Field f : clazz.getFields()) {
+			final IniConfiguration result = new IniConfiguration();
+			for (final Field f : clazz.getFields()) {
 				IniField annotation;
 				if ((annotation = f.getAnnotation(IniField.class)) != null) {
 					IniSectionDefinition section = result.sections().get(IniUnitParser.category(annotation, clazz));
@@ -95,22 +94,22 @@ public class IniData {
 		protected IniSectionDefinition() {}
 		
 		public static IniSectionDefinition fromXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
-			IniSectionDefinition section = new IniSectionDefinition();
+			final IniSectionDefinition section = new IniSectionDefinition();
 			if (sectionNode.getAttributes() == null || 
 					sectionNode.getAttributes().getLength() == 0 || 
 					sectionNode.getAttributes().getNamedItem("name") == null)
 				throw new InvalidIniConfigurationException("A <section> tag must have a name=\"\" attribute"); //$NON-NLS-1$
 			section.sectionName = sectionNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
-			NodeList entryNodes = sectionNode.getChildNodes();
+			final NodeList entryNodes = sectionNode.getChildNodes();
 			for(int i = 0; i < entryNodes.getLength();i++) {
-				Node node = entryNodes.item(i);
+				final Node node = entryNodes.item(i);
 				// there was a '==' comparison all the time :D - did work by chance or what?
 				if (node.getNodeName().equals("entry")) { //$NON-NLS-1$
-					IniEntryDefinition entry = IniEntryDefinition.fromXML(node, factory);
+					final IniEntryDefinition entry = IniEntryDefinition.fromXML(node, factory);
 					section.entries().put(entry.name(), entry);
 				}
 				else if (node.getNodeName().equals("section")) {
-					IniSectionDefinition sec = IniSectionDefinition.fromXML(node, factory);
+					final IniSectionDefinition sec = IniSectionDefinition.fromXML(node, factory);
 					section.entries().put(sec.sectionName(), sec);
 				}
 			}
@@ -130,7 +129,7 @@ public class IniData {
 		}
 		
 		public boolean hasSection(String section) {
-			IniDataBase item = entryForKey(section);
+			final IniDataBase item = entryForKey(section);
 			return item instanceof IniSectionDefinition;
 		}
 
@@ -166,25 +165,25 @@ public class IniData {
 			if (name.equals("C4ID")) //$NON-NLS-1$
 				return ID.class;
 			if (!name.contains("."))
-				name = Core.id("parser.inireader."+name); //$NON-NLS-1$
+				name = IniItem.class.getPackage().getName()+"."+name; //$NON-NLS-1$
 			try {
 				return Class.forName(name);
-			} catch (ClassNotFoundException e) {
+			} catch (final ClassNotFoundException e) {
 				return null;
 			}
 		}
 		
 		public static IniEntryDefinition fromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
 			Node n;
-			IniEntryDefinition entry = new IniEntryDefinition();
+			final IniEntryDefinition entry = new IniEntryDefinition();
 			if (entryNode.getAttributes() == null || 
 					entryNode.getAttributes().getLength() < 2 || 
 					entryNode.getAttributes().getNamedItem("name") == null || //$NON-NLS-1$
 					entryNode.getAttributes().getNamedItem("class") == null)
 				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
 			entry.name = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
-			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue(); //$NON-NLS-1$
-			Class<?> configClass = cls(className);
+			final String className = entryNode.getAttributes().getNamedItem("class").getNodeValue(); //$NON-NLS-1$
+			final Class<?> configClass = cls(className);
 			if (configClass == null)
 				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$ //$NON-NLS-2$
 			entry.entryClass = configClass;
@@ -231,26 +230,26 @@ public class IniData {
 	
 	public void parse() {
 		try {			
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document doc = db.parse(xmlFile);
+			final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			final DocumentBuilder db = dbf.newDocumentBuilder();
+			final Document doc = db.parse(xmlFile);
 			doc.getDocumentElement().normalize();
 			if (!doc.getDocumentElement().getNodeName().equals("clonkiniconfig"))
 				throw new ParserConfigurationException("Invalid xml document. Wrong root node '" + doc.getDocumentElement().getNodeName() + "'."); //$NON-NLS-1$ //$NON-NLS-2$
-			NodeList nodeList = doc.getElementsByTagName("file"); //$NON-NLS-1$
+			final NodeList nodeList = doc.getElementsByTagName("file"); //$NON-NLS-1$
 			for (int i = 0; i < nodeList.getLength();i++)
 				try {
-					IniConfiguration conf = IniConfiguration.fromXML(nodeList.item(i));
+					final IniConfiguration conf = IniConfiguration.fromXML(nodeList.item(i));
 					configurations.put(conf.fileName(), conf);
 				}
-				catch (InvalidIniConfigurationException e) {
+				catch (final InvalidIniConfigurationException e) {
 					e.printStackTrace();
 				}
-		} catch (ParserConfigurationException e) {
+		} catch (final ParserConfigurationException e) {
 			e.printStackTrace();
-		} catch (SAXException e) {
+		} catch (final SAXException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}

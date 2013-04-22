@@ -1,9 +1,9 @@
 package net.arctics.clonk.landscapescript;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;

@@ -1,9 +1,9 @@
 package net.arctics.clonk.c4script.typing;
 
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.ITypeable;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.parser.SourceLocation;
 
 /**
  * A type annotation in a {@link Script}.

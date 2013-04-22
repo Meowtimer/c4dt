@@ -3,10 +3,10 @@ package net.arctics.clonk.ui;
 import java.util.Comparator;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.events.ModifyEvent;

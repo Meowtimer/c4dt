@@ -11,12 +11,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings;
+import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.command.CommandFunction;
-import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ProjectSettings;
-import net.arctics.clonk.resource.ProjectSettings.Typing;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;

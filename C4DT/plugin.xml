@@ -32,14 +32,14 @@
 	<extension point="org.eclipse.core.resources.natures" id="clonknature"
 		name="Clonk Nature">
 		<runtime>
-			<run class="net.arctics.clonk.resource.ClonkProjectNature" />
+			<run class="net.arctics.clonk.builder.ClonkProjectNature" />
 		</runtime>
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
 	
 	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization" name="%C4DTCustomization_MenuTitle"> 
 		<runtime>
-			<run class="net.arctics.clonk.resource.CustomizationNature" />
+			<run class="net.arctics.clonk.builder.CustomizationNature" />
 		</runtime>
 	</extension>
 
@@ -140,7 +140,7 @@
 				<or>
 					<instanceof value="org.eclipse.core.resources.IResource" />
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.Declaration" />
+					<instanceof value="net.arctics.clonk.ast.Declaration" />
 				</or>
 			</possibleChildren>
 
@@ -269,7 +269,7 @@
 
 	<extension id="builder" name="C4DT Builder" point="org.eclipse.core.resources.builders">
 		<builder hasNature="true">
-			<run class="net.arctics.clonk.resource.ClonkBuilder" />
+			<run class="net.arctics.clonk.builder.ClonkBuilder" />
 		</builder>
 	</extension>
 
@@ -706,11 +706,11 @@
 	<extension point="org.eclipse.core.expressions.propertyTesters">
 		<propertyTester id="net.arctics.clonk.resource.ResourceTester"
 			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject,isPackedGroup"
-			type="org.eclipse.core.resources.IResource" class="net.arctics.clonk.resource.ResourceTester" />
+			type="org.eclipse.core.resources.IResource" class="net.arctics.clonk.builder.ResourceTester" />
 
 		<propertyTester id="net.arctics.clonk.resource.ResourceTesterEditor"
 			namespace="net.arctics.clonk.resource.editor" properties="isScenario,isDefinition,isFolder,isResource,isInScenario"
-			type="org.eclipse.ui.part.FileEditorInput" class="net.arctics.clonk.resource.ResourceTester" />
+			type="org.eclipse.ui.part.FileEditorInput" class="net.arctics.clonk.builder.ResourceTester" />
 
 	</extension>
 
@@ -743,7 +743,7 @@
 			<selectionEnablement>
 				<or>
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.Declaration" />
+					<instanceof value="net.arctics.clonk.ast.Declaration" />
 				</or>
 			</selectionEnablement>
 			<editorInputEnablement>
@@ -761,7 +761,7 @@
 	
 	<extension point="org.eclipse.core.filesystem.filesystems">
     	<filesystem scheme="c4group">
-			<run class="net.arctics.clonk.resource.c4group.C4GroupFileSystem" />
+			<run class="net.arctics.clonk.c4group.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
 	
@@ -774,7 +774,7 @@
 	</extension>
 	<extension id="net.arctics.clonk.cli.CLI" point="org.eclipse.core.runtime.applications">
 		<application cardinality="singleton-global" thread="main" visible="true">
-			<run class="net.arctics.clonk.cli.CLI"/>
+			<run class="net.arctics.clonk.CLI"/>
 		</application>
 	</extension>
 	

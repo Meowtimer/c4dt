@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.resource.c4group.C4GroupExporter;
+import net.arctics.clonk.c4group.C4GroupExporter;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

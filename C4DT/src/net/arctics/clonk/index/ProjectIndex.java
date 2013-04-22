@@ -5,11 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ObjectFinderVisitor;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;

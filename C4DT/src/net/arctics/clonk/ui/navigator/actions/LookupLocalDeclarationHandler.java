@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IHasIncludes.GatherIncludesOptions;
+import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
@@ -30,7 +30,7 @@ public class LookupLocalDeclarationHandler extends AbstractHandler {
 				final Set<Declaration> declarations = new HashSet<Declaration>();
 				for (final Script s : scripts)
 					if (s instanceof Script)
-						for (final Declaration d : s.subDeclarations(s.index(), net.arctics.clonk.parser.DeclMask.ALL))
+						for (final Declaration d : s.subDeclarations(s.index(), net.arctics.clonk.ast.DeclMask.ALL))
 							declarations.add(d);
 				final EntityChooser chooser = new EntityChooser(
 					Platform.getResourceString(Core.instance().getBundle(), "%LookupLocalDeclaration_Name"),

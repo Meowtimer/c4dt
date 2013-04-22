@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
 import org.eclipse.jface.text.IRegion;

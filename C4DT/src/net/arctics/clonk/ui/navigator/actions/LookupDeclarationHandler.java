@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 
 import org.eclipse.core.commands.AbstractHandler;

@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.Statement;
-import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
 
 import org.eclipse.jface.text.BadLocationException;

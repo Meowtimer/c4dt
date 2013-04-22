@@ -3,8 +3,8 @@ package net.arctics.clonk.ui.debug;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import net.arctics.clonk.builder.ResourceTester;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
-import net.arctics.clonk.resource.ResourceTester;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

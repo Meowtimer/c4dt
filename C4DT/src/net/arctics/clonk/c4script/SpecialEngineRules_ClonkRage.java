@@ -3,12 +3,12 @@ package net.arctics.clonk.c4script;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ID;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");

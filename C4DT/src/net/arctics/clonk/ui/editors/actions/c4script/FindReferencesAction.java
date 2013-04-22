@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;

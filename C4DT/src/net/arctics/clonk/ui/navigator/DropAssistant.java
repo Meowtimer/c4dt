@@ -2,7 +2,8 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.Core;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.builder.ClonkProjectNature;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;

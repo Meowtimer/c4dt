@@ -8,6 +8,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
@@ -21,10 +25,6 @@ import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;

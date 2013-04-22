@@ -1,14 +1,14 @@
 package net.arctics.clonk.c4script;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.IASTVisitor;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
 
 public class ScriptsHelper {
 	/**

@@ -2,12 +2,12 @@ package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.eq;
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.ProblemReportingContext;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ID;
 
 import org.eclipse.jface.text.Region;
 

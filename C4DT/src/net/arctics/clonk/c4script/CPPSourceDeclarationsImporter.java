@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.DocumentedFunction;
 import net.arctics.clonk.index.DocumentedVariable;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.IProgressMonitor;

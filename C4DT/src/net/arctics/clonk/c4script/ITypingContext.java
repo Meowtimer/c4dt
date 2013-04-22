@@ -1,9 +1,9 @@
 package net.arctics.clonk.c4script;
 
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
 
 import org.eclipse.jface.text.IRegion;
 

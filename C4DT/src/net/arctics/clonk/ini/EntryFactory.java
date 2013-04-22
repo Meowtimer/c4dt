@@ -1,7 +1,7 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.Utilities;
 
 public enum EntryFactory implements IEntryFactory {

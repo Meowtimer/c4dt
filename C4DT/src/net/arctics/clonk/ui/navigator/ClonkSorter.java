@@ -4,11 +4,11 @@ import java.text.Collator;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

@@ -1,14 +1,14 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.IEvaluationContext;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.StringUtil;
 

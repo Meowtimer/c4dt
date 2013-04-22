@@ -3,8 +3,8 @@ package net.arctics.clonk.c4script;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.Declaration;
 
 /**
  * Helper object containing context information when doing a search for a declaration.

@@ -1,9 +1,9 @@
 package net.arctics.clonk.ui;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFolder;

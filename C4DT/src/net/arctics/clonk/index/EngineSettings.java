@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4script.CPPSourceDeclarationsImporter;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.SettingsBase;
 

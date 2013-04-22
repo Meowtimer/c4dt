@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimerTask;
 
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.parser.DeclMask;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.DocumentEvent;
@@ -157,7 +157,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 			final int offset = event.getOffset();
 			final int diff = newText.length() - replLength;
 			// mixed
-			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.parser.DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.ast.DeclMask.ALL))
 				if (dec.start() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {

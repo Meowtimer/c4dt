@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4GroupImporter;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4GroupImporter;
 import net.arctics.clonk.util.ArrayUtil;
 
 import org.eclipse.core.commands.ExecutionEvent;

@@ -5,9 +5,9 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.BufferedScanner;
 
 import org.eclipse.jface.resource.ImageDescriptor;

@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;

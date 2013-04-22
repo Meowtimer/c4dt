@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -24,7 +25,6 @@ import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
-import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;

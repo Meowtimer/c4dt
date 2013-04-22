@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 import java.util.Map;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.viewers.IStructuredSelection;

@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -50,8 +50,6 @@ public class IniSection
 	public Object[] children() { return subItemList().toArray(new Object[subItemList().size()]); }
 	@Override
 	public boolean hasChildren() { return !itemMap.isEmpty(); }
-	@Override
-	public void setStringValue(String value, Object context) { }
 	@Override
 	public Collection<? extends IniItem> childCollection() { return itemList; }
 	@Override

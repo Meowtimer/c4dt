@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.ast.Block;
@@ -30,7 +31,6 @@ import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.ReplacementStatement;
 import net.arctics.clonk.util.StreamUtil;

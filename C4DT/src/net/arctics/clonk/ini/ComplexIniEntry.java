@@ -41,7 +41,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniEntryDefinition config, boolean createErrorMarkers) {
-		ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
+		final ComplexIniEntry cmpl = new ComplexIniEntry(entry.start(), entry.end(), entry.key(), entry.stringValue());
 		cmpl.definition = config;
 		cmpl.extendedValue = extendedValue;
 		cmpl.setParent(entry.parentDeclaration());
@@ -60,18 +60,6 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	@Override
 	public Object value() {
 		return extendedValue;
-	}
-
-	@Override
-	public void setStringValue(String value, Object context) {
-		if (extendedValue instanceof IIniEntryValue)
-			try {
-				((IIniEntryValue)extendedValue).setInput(value, definition, (IniUnit) context);
-			} catch (IniParserException e) {
-				e.printStackTrace();
-			}
-		else if (extendedValue instanceof String)
-			extendedValue = value;
 	}
 
 	@Override

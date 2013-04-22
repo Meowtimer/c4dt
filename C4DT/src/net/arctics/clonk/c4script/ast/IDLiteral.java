@@ -1,12 +1,12 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.EntityRegion;
-import net.arctics.clonk.parser.ID;
 
 public final class IDLiteral extends Literal<ID> {
 

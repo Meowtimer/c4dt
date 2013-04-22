@@ -11,6 +11,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.command.Command;
@@ -18,15 +23,10 @@ import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IEvaluationContext;
-import net.arctics.clonk.parser.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
+import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IStorage;
@@ -42,7 +42,7 @@ public class MatchingPlaceholder extends Placeholder {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public IStorage source() {
-			return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
+			return new SelfcontainedStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		@Override
 		public String name() {

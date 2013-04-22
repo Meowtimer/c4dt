@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;

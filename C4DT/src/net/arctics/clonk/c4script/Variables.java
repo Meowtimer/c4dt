@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.ast.VarInitialization;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.Declaration;
 
 public class Variables extends Declaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

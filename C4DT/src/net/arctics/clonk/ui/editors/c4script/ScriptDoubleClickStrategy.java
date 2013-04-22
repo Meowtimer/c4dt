@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
@@ -9,7 +10,6 @@ import net.arctics.clonk.c4script.ast.KeywordStatement;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;

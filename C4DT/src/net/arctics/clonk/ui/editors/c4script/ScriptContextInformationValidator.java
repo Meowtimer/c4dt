@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
-import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.ast.SourceLocation;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;

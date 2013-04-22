@@ -6,10 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.IEvaluationContext;
 
 public class Sequence extends ASTNodeWithSubElementsArray {
 

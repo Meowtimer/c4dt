@@ -1,7 +1,7 @@
 package net.arctics.clonk.preferences;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IProject;

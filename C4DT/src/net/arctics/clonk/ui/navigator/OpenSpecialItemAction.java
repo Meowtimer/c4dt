@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;

@@ -1,9 +1,9 @@
 package net.arctics.clonk.ini;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.ASTNodePrinter;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.StringUtil;
 

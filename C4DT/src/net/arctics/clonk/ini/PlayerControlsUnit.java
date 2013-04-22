@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.StructureVariable;
-import net.arctics.clonk.parser.Declaration;
 
 public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

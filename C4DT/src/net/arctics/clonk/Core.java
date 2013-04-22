@@ -12,13 +12,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.APIReflection;
 import net.arctics.clonk.util.FolderStorageLocation;

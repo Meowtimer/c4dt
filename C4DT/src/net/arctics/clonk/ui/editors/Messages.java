@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors;
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.editors.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String ColorManager_BRACKET;
 	public static String ColorManager_COMMENT;
 	public static String ColorManager_DEFAULT;

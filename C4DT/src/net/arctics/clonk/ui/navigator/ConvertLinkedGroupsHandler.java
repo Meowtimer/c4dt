@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.commands.ExecutionEvent;

@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.io.File;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
 import net.arctics.clonk.util.ArrayUtil;

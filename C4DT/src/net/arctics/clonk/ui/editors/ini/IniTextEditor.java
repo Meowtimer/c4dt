@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.StructureEditingState;

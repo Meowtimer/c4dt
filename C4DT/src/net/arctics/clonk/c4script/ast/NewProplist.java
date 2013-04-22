@@ -1,11 +1,11 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
 
 /**
  * new <protoype> { ... } expression as syntactic sugar for { Prototype = <prototype>, ... }

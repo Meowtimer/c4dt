@@ -6,17 +6,17 @@ import java.io.Serializable;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ASTNode;
-import net.arctics.clonk.parser.ASTNodePrinter;
-import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.IEvaluationContext;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
 
