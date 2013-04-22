@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.ASTNode;
 import net.arctics.clonk.parser.ASTNodePrinter;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
-import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.stringtbl.StringTbl;
 
 public class Placeholder extends ASTNode {
 

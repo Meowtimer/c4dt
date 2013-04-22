@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.EntityRegion;
 import net.arctics.clonk.parser.IEvaluationContext;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;

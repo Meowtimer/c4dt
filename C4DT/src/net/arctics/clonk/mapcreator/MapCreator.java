@@ -3,9 +3,9 @@ package net.arctics.clonk.mapcreator;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.inireader.IniUnitParser;
-import net.arctics.clonk.parser.inireader.ScenarioUnit;
+import net.arctics.clonk.ini.IniSection;
+import net.arctics.clonk.ini.IniUnitParser;
+import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
 

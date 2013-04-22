@@ -2,7 +2,7 @@ package net.arctics.clonk.mapcreator;
 
 import static net.arctics.clonk.mapcreator.GlobalFunctions.BoundBy;
 import static net.arctics.clonk.mapcreator.GlobalFunctions.Random;
-import net.arctics.clonk.parser.inireader.CategoriesValue;
+import net.arctics.clonk.ini.CategoriesValue;
 
 public class ScenarioValue {
 	public int Std, Rnd, Min, Max;

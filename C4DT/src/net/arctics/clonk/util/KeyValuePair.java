@@ -3,7 +3,7 @@ package net.arctics.clonk.util;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.inireader.EntrySubItem;
+import net.arctics.clonk.ini.EntrySubItem;
 
 import org.eclipse.core.runtime.IPath;
 

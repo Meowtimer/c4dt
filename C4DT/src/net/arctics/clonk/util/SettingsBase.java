@@ -7,7 +7,7 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 
 import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.parser.inireader.CustomIniUnit;
+import net.arctics.clonk.ini.CustomIniUnit;
 
 public abstract class SettingsBase implements Cloneable {		
 

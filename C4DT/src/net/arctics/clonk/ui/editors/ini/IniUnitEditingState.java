@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 
 import org.eclipse.jface.text.DocumentEvent;

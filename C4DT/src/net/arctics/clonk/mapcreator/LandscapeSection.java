@@ -1,9 +1,9 @@
 package net.arctics.clonk.mapcreator;
 
-import net.arctics.clonk.parser.inireader.IDArray;
-import net.arctics.clonk.parser.inireader.IniDefaultSection;
-import net.arctics.clonk.parser.inireader.IniField;
-import net.arctics.clonk.parser.inireader.MaterialArray;
+import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IniDefaultSection;
+import net.arctics.clonk.ini.IniField;
+import net.arctics.clonk.ini.MaterialArray;
 
 @IniDefaultSection(name="Landscape")
 public class LandscapeSection {

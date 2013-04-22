@@ -6,8 +6,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.parser.inireader.IntegerArray;
-import net.arctics.clonk.parser.inireader.MaterialUnit;
+import net.arctics.clonk.ini.IntegerArray;
+import net.arctics.clonk.ini.MaterialUnit;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 

@@ -15,8 +15,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.parser.Problem;
-import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StringUtil;
 

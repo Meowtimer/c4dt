@@ -21,7 +21,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.inireader.CustomIniUnit;
+import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ProjectSettings.ProblemReportingStrategyInfo;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
