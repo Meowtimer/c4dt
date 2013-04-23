@@ -101,10 +101,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		 * Map mapping function name to return type.
 		 */
 		public final Map<String, IType> functionReturnTypes;
-		public Typings(Map<String, IType> variableTypes, Map<String, IType> functionReturnTypes) {
+		public final Map<String, IType[]> functionASTTypes;
+		public Typings(
+			Map<String, IType> variableTypes,
+			Map<String, IType> functionReturnTypes,
+			Map<String, IType[]> functionASTTypes
+		) {
 			super();
 			this.variableTypes = variableTypes;
 			this.functionReturnTypes = functionReturnTypes;
+			this.functionASTTypes = functionASTTypes;
 		}
 	}
 	private transient Typings typings;
@@ -127,7 +133,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	private static final Typings NO_TYPINGS = new Typings(
 		Collections.<String, IType>emptyMap(),
-		Collections.<String, IType>emptyMap()
+		Collections.<String, IType>emptyMap(),
+		Collections.<String, IType[]>emptyMap()
 	);
 	
 	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
