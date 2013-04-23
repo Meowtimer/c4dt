@@ -316,7 +316,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final ProblemReportingContext mainTyping = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
 			if (markers != null)
 				mainTyping.setMarkers(markers);
-			mainTyping.visitFunction(function);
+			mainTyping.visit(function);
 			if (oldCalledFunctions != null)
 				revisit(function, markers, oldCalledFunctions, strategy, mainTyping);
 		}
@@ -333,7 +333,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 							p.forceType(PrimitiveType.UNKNOWN, false);
 						final ProblemReportingContext calledTyping = strategy.localTypingContext(fn.parentOfType(Script.class), 0, mainTyping);
 						calledTyping.setMarkers(markers);
-						calledTyping.visitFunction(fn);
+						calledTyping.visit(fn);
 					}
 	}
 
@@ -461,7 +461,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (change || typingContextVisitInAnyCase) {
 			final ProblemReportingContext typingContext = typingStrategy.localTypingContext(fparser.script(), fparser.fragmentOffset(), null);
 			typingContext.setObserver(observer);
-			typingContext.visitFunction(function);
+			typingContext.visit(function);
 		}
 		return fparser;
 	}

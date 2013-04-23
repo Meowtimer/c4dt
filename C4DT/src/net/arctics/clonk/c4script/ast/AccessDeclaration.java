@@ -35,7 +35,9 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Assign a declaration. Called from obtainment logic
 	 * @param d The declaration to assign this node
 	 */
-	public void setDeclaration(Declaration d) { this.declaration = d; }
+	public void setDeclaration(Declaration d) {
+		this.declaration = d;
+	}
 
 	/**
 	 * Create AccessDeclaration object using a declaration name.

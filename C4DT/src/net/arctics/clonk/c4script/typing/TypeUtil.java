@@ -56,9 +56,9 @@ public class TypeUtil {
 			@Override
 			public void reportProblems() {}
 			@Override
-			public Object visitFunction(Function function) { return null; }
+			public Object visit(Function function) { return null; }
 			@Override
-			public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {}
+			public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 			@Override
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override

@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.util.Utilities.defaulting;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,9 +13,7 @@ import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.InitializationFunction;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
@@ -133,9 +129,9 @@ public class EntityLocator extends ExpressionLocator<Object> {
 			List<IIndexEntity> projectDeclarations = new LinkedList<IIndexEntity>();
 			final String declarationName = access.name();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			final IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().inferredType() : null, PrimitiveType.UNKNOWN);
-			for (final IType t : ty)
-				if (t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN || t == PrimitiveType.ID) {
+			//final IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().typingSnapshot() : null, PrimitiveType.UNKNOWN);
+			//for (final IType t : ty)
+				//if (t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN || t == PrimitiveType.ID) {
 					for (final Index i : script.index().relevantIndexes())
 						i.loadScriptsContainingDeclarationsNamed(declarationName);
 					for (final Index i : script.index().relevantIndexes()) {
@@ -143,8 +139,8 @@ public class EntityLocator extends ExpressionLocator<Object> {
 						if (decs != null)
 							projectDeclarations.addAll(decs);
 					}
-					break;
-				}
+				//	break;
+			//	}
 
 			if (projectDeclarations != null)
 				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<IIndexEntity>() {

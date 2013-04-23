@@ -42,6 +42,7 @@ import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.Placeholder;
 import net.arctics.clonk.c4script.ast.Sequence;
@@ -51,7 +52,6 @@ import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
-import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IIndexEntity;
@@ -791,6 +791,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private IContextInformation prevInformation;
 	private final ScriptContextInformationValidator contextInformationValidator = new ScriptContextInformationValidator();
 
+	Function functionFromCall(IFunctionCall call) {
+		if (call instanceof CallDeclaration)
+			return as(((CallDeclaration) call).declaration(), Function.class);
+		else
+			return null;
+	}
+	
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
@@ -800,7 +807,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				editor().editingState().updateFunctionFragment(cursorFunc, null, false);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
-				IIndexEntity entity = funcCallInfo.callFunc.quasiCalledFunction(TypeUtil.problemReportingContext(editor.functionAtCursor()));
+				IIndexEntity entity = functionFromCall(funcCallInfo.callFunc);
 				if (entity == null) {
 					final RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, editor().script(), new Region(offset, 1))) {

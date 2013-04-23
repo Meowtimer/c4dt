@@ -31,7 +31,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 		return new ProblemReportingContext() {
 			final Markers markers = new Markers();
 			@Override
-			public void judgement(ASTNode node, IType type, TypingJudgementMode mode) {}
+			public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as((IType)PrimitiveType.ANY, cls); }
 			@Override
@@ -49,7 +49,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public Script script() { return script; }
 			@Override
-			public Object visitFunction(Function function) { return null; }
+			public Object visit(Function function) { return null; }
 			@Override
 			public void reportProblems() {}
 			@Override

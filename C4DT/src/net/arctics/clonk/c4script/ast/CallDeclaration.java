@@ -14,7 +14,6 @@ import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.PrimitiveType;
@@ -133,7 +132,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
 	public final SpecialFuncRule specialRuleFromContext(ProblemReportingContext context, int role) {
-		Engine engine = context.script().engine();
+		final Engine engine = context.script().engine();
 		if (engine != null && engine.specialRules() != null)
 			return engine.specialRules().funcRuleFor(declarationName, role);
 		else
@@ -155,16 +154,16 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	protected BinaryOp applyOperatorTo(ProblemReportingContext context, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
-		BinaryOp result = op;
+		final BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
-			ASTNode one = parms[i].optimize(context);
-			ASTNode two = i+1 < parms.length ? parms[i+1] : null;
+			final ASTNode one = parms[i].optimize(context);
+			final ASTNode two = i+1 < parms.length ? parms[i+1] : null;
 			if (op.leftSide() == null)
 				op.setLeftSide(one);
 			else if (two == null)
 				op.setRightSide(one);
 			else {
-				BinaryOp nu = new BinaryOp(operator);
+				final BinaryOp nu = new BinaryOp(operator);
 				op.setRightSide(nu);
 				nu.setLeftSide(one);
 				op = nu;
@@ -176,7 +175,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public ASTNode optimize(ProblemReportingContext context) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
-		Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
+		final Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
 			if (replOperator.numArgs() == 2)
@@ -191,10 +190,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
 		if (params.length >= 2 && declaration == context.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
-			ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
+			final ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = params[i+2].optimize(context);
-			String lit = ((StringLiteral)params[1]).stringValue();
+			final String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~')
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ASTNode[] {
@@ -223,8 +222,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// Par(5) -> nameOfParm6
 		if (params.length <= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
-			IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
-			Function func = this.parentOfType(Function.class);
+			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
+			final Function func = this.parentOfType(Function.class);
 			if (func != null)
 				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && func.parameter(number.intValue()).isActualParm())
 					return new AccessVar(parentOfType(Function.class).parameter(number.intValue()).name());
@@ -244,9 +243,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// Call("Func", 5, 5) -> Func(5, 5)
 		if (params.length >= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
-			String lit = ((StringLiteral)params[0]).stringValue();
+			final String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
-				ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
+				final ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].optimize(context);
 				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
@@ -276,7 +275,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 	@Override
 	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
-		Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
+		final Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
 		return new EntityRegion(entities, new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {
@@ -301,8 +300,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 	public Variable parmDefinitionForParmExpression(ASTNode parm) {
 		if (declaration instanceof Function) {
-			Function f = (Function) declaration;
-			int i = indexOfParm(parm);
+			final Function f = (Function) declaration;
+			final int i = indexOfParm(parm);
 			return i >= 0 && i < f.numParameters() ? f.parameter(i) : null;
 		} else
 			return null;
@@ -311,15 +310,15 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
-	    	Object[] args = new Object[params().length];
+	    	final Object[] args = new Object[params().length];
 	    	for (int i = 0; i < args.length; i++)
 				try {
 					args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
-				} catch (ControlFlowException e) {
+				} catch (final ControlFlowException e) {
 					args[i] = null;
 					e.printStackTrace();
 				}
-	    	Function f = (Function)declaration;
+	    	final Function f = (Function)declaration;
 			return f.invoke(f.new FunctionInvocation(args, context, context != null ? context.cookie() : null));
 	    }
 	    else
@@ -331,32 +330,12 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return Function.class;
 	}
 
-	@Override
-	public Function quasiCalledFunction(ProblemReportingContext context) {
-		if (declaration instanceof Variable)
-			for (IType type : ((Variable)declaration).type())
-				if (type instanceof FunctionType)
-					return ((FunctionType)type).prototype();
-		return function();
-	}
-
 	public final Function function(ProblemReportingContext context) {
 		return as(context.obtainDeclaration(this), Function.class);
 	}
 
 	public final Function function() {
 		return as(declaration, Function.class);
-	}
-
-	@Override
-	public IType concreteParameterType(Variable parameter, ProblemReportingContext context) {
-		if (declaration instanceof Function) {
-			Function f = (Function)declaration;
-			int ndx = f.parameters().indexOf(parameter);
-			if (ndx != -1 && ndx < params.length)
-				return context.typeOf(params[ndx]);
-		}
-		return PrimitiveType.UNKNOWN;
 	}
 
 }

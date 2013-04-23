@@ -22,9 +22,11 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -73,6 +75,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Hash code of the string the block was parsed from.
 	 */
 	private int blockSourceHash;
+	
+	private int totalNumASTNodes;
+	
+	public int totalNumASTNodes() { return totalNumASTNodes; }
 
 	/**
 	 * Create a new function.
@@ -714,12 +720,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		for (final Variable v : locals())
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
-
+	
+	private static final IASTVisitor<Function> AST_ASSIGN_IDENTIFIER_VISITOR = new IASTVisitor<Function>() {
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Function context) {
+			if (node != null)
+				node.localIdentifier(context.totalNumASTNodes++);
+			return TraversalContinuation.Continue;
+		}
+	};
+	
 	public void storeBody(ASTNode block, String source) {
 		body = (FunctionBody)block;
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
 			body.setLocation(0, bodyLocation.getLength());
+		totalNumASTNodes = 0;
+		body.traverse(AST_ASSIGN_IDENTIFIER_VISITOR, this);
 		body.setParent(this);
 	}
 

@@ -16,7 +16,7 @@ public interface ProblemReportingContext extends IASTPositionProvider, ITypingCo
 	void setMarkers(Markers markers);
 	Script script();
 	void reportProblems();
-	Object visitFunction(Function function);
+	Object visit(Function function);
 	boolean triggersRevisit(Function function, Function called);
 	public void setObserver(IASTVisitor<ProblemReportingContext> observer);
 }

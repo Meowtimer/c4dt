@@ -346,12 +346,19 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	}
 
 	/**
-	 * Return a string identifying the declaration and the {@link Script} it's declared in.
-	 * @return
+	 * Return a string representing this declaration sufficiently as to be recognizable by the user.
+	 * @return Qualified name.
 	 */
-	public String qualifiedName() {
-		if (parentDeclaration() != null)
-			return String.format("%s::%s", parentDeclaration().qualifiedName(), this.name());
+	public String qualifiedName() { return qualifiedName(parentDeclaration()); }
+
+	/**
+	 * Return a string identifying the declaration and the parent declaration.
+	 * @param parent The parent declaration to use
+	 * @return A string specifying both the parent and this declaration
+	 */
+	public String qualifiedName(Declaration parent) {
+		if (parent != null)
+			return String.format("%s::%s", parent.qualifiedName(), this.name());
 		else
 			return name();
 	}

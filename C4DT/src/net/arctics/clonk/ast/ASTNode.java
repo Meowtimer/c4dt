@@ -14,7 +14,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.c4script.ast.ASTComparisonDelegate;
@@ -31,7 +30,6 @@ import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
@@ -721,11 +719,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public void postLoad(ASTNode parent) {
 		this.parent = parent;
-		
-		final IDeferredDeclaration deferred = as(inferredType, IDeferredDeclaration.class);
-		if (deferred != null)
-			inferredType = as(deferred.resolve(), IType.class);
-		
 		for (final ASTNode e : subElements())
 			if (e != null)
 				e.postLoad(this);
@@ -826,11 +819,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		});
 	}
 
-	private IType inferredType;
-	public IType inferredType() { return inferredType; }
-	public void inferredType(IType type) { inferredType = type; }
-
-	public transient Object temporaryProblemReportingObject;
+	private int localIdentifier = -1;
+	public final int localIdentifier() { return localIdentifier; }
+	public final void localIdentifier(int v) { localIdentifier = v; }
 
 	public final int sectionOffset() {
 		final Function f = parentOfType(Function.class);
