@@ -930,7 +930,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				else if (d instanceof Function)
 					functionReturnTypes.put(d.name(), tyVar.get());
 			}
-			script.setTypings(variableTypes, functionReturnTypes);
+			script.setTypings(new Script.Typings(variableTypes, functionReturnTypes));
 		}
 		public void mainVisit(Visitor visitor) {
 			final TypeEnvironment env2 = visitor.newTypeEnvironment();
@@ -1257,7 +1257,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 										final Input nput = shared.getInput((Script) _t);
 										if (nput != null)
 											nput.new Visitor(visitor).reportProblems();
-										final IType frt = ((Script)_t).variableTypes().get(d.name());
+										final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
 										t = TypeUnification.unify(t, frt);
 									}
 						}
@@ -1901,7 +1901,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						switch (v.scope()) {
 						case LOCAL:
 							final IType t = shared.local && node.predecessorInSequence() == null
-							? visitor.script().variableTypes().get(v.name()) : null;
+							? visitor.script().typings().variableTypes.get(v.name()) : null;
 							return t != null ? t : v.type();
 						default:
 							return v.type();

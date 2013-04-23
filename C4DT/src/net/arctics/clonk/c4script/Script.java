@@ -85,8 +85,29 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient List<Variable> variables;
 	protected transient Map<String, Effect> effects;
 	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
-	private transient Map<String, IType> variableTypes;
-	private transient Map<String, IType> functionReturnTypes;
+	
+	/**
+	 * Typing judgements on variables and function return types.
+	 * @author madeen
+	 *
+	 */
+	public static class Typings implements Serializable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		/**
+		 * Map mapping field variable name to type.
+		 */
+		public final Map<String, IType> variableTypes;
+		/**
+		 * Map mapping function name to return type.
+		 */
+		public final Map<String, IType> functionReturnTypes;
+		public Typings(Map<String, IType> variableTypes, Map<String, IType> functionReturnTypes) {
+			super();
+			this.variableTypes = variableTypes;
+			this.functionReturnTypes = functionReturnTypes;
+		}
+	}
+	private transient Typings typings;
 
 	// serialized directly
 	/** set of scripts this script is using functions and/or static variables from */
@@ -104,19 +125,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
 
-	public Map<String, IType> variableTypes() {
-		requireLoaded();
-		return defaulting(variableTypes, Collections.<String, IType>emptyMap());
-	}
+	private static final Typings NO_TYPINGS = new Typings(
+		Collections.<String, IType>emptyMap(),
+		Collections.<String, IType>emptyMap()
+	);
 	
-	public Map<String, IType> functionReturnTypes() {
-		requireLoaded();
-		return defaulting(functionReturnTypes, Collections.<String, IType>emptyMap());
-	}
-
-	public void setTypings(Map<String, IType> variableTypes, Map<String, IType> functionReturnTypes) {
-		this.variableTypes = variableTypes;
-		this.functionReturnTypes = functionReturnTypes;
+	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
+	public void setTypings(Typings typings) {
+		this.typings = typings;
 	}
 
 	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
@@ -150,24 +166,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public List<Function> functions;
 		public List<Variable> variables;
 		public Set<Script> used;
-		public Map<String, IType> variableTypes;
-		public Map<String, IType> functionReturnTypes;
+		public Typings typings;
 		public Map<String, ProplistDeclaration> proplistDeclarations;
 		public void initialize(
 			Map<String, Effect> effects,
 			List<Function> functions,
 			List<Variable> variables,
 			Set<Script> used,
-			Map<String, IType> variableTypes,
-			Map<String, IType> functionTypes,
+			Typings typings,
 			Map<String, ProplistDeclaration> proplistDeclarations
 		) {
 			this.effects = effects;
 			this.functions = functions;
 			this.variables = variables;
 			this.used = used;
-			this.variableTypes = variableTypes;
-			this.functionReturnTypes = functionTypes;
+			this.typings = typings;
 			this.proplistDeclarations = proplistDeclarations;
 		}
 	}
@@ -181,8 +194,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			functions,
 			variables,
 			usedScripts,
-			variableTypes,
-			functionReturnTypes,
+			typings,
 			proplistDeclarations
 		);
 		stream.writeObject(state);
@@ -200,12 +212,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 	
 	public void extractSaveState(final SaveState state) {
-		effects = state.effects;
-		functions = state.functions;
-		variables = state.variables;
+		effects     = state.effects;
+		functions   = state.functions;
+		variables   = state.variables;
 		usedScripts = state.used;
-		variableTypes = state.variableTypes;
-		functionReturnTypes = state.functionReturnTypes;
+		typings     = state.typings;
 		proplistDeclarations = state.proplistDeclarations;
 		
 		purgeNullEntries(functions, variables, usedScripts);

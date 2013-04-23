@@ -108,8 +108,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		IType type = null;
 		switch (scope()) {
 		case LOCAL:
-			if (script != null && script.variableTypes() != null)
-				type = script.variableTypes().get(name());
+			if (script != null)
+				type = script.typings().variableTypes.get(name());
 			break;
 		default:
 			break;

@@ -376,7 +376,11 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		return String.format(INFO_TEXT_TEMPLATE, name(), super.infoText(context), definitionFolder().getFullPath().toOSString());
+		return String.format(INFO_TEXT_TEMPLATE,
+			name(),
+			super.infoText(context),
+			definitionFolder().getFullPath().toOSString()
+		);
 	}
 
 	/**

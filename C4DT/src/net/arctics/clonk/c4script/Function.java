@@ -172,8 +172,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public IType returnType(Script script) {
 		IType retType = null;
-		if (script != null && script.functionReturnTypes() != null)
-			retType = script.functionReturnTypes().get(this.name());
+		if (script != null && script.typings().functionReturnTypes != null)
+			retType = script.typings().functionReturnTypes.get(this.name());
 		if (retType == null)
 			retType = returnType();
 		return retType;
