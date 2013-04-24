@@ -131,7 +131,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public List<Variable> parameters() { return parameters; }
 
 	public boolean typeFromCallsHint() { return typeFromCallsHint; 	}
-	public void setTypeFromCallsHint(boolean typeFromCallsHint) { this.typeFromCallsHint = typeFromCallsHint; }
+	public void setTypeFromCallsHint(boolean value) {
+		this.typeFromCallsHint = value;
+		if (!value && name().equals("PrepareRescues"))
+			System.out.println("What gives");
+	}
 
 	public Variable addParameter(Variable parameter) {
 		synchronized (parameters) {

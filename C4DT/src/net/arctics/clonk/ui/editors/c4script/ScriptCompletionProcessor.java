@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -39,9 +38,9 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.Placeholder;
@@ -295,12 +294,15 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				parser = editingState.updateFunctionFragment(activeFunc, typeExtractor, true);
 			}
 		
-		innerProposalsInFunction(
-			offset, wordOffset, doc, prefix,
-			proposals, index, activeFunc, editorScript, parser,
-			typeExtractor.contextSequence, typeExtractor.contextExpression, typeExtractor.precedingType()
-		);
-		return true;
+		if (!skipProposalsInFunction(typeExtractor.contextExpression)) {
+			innerProposalsInFunction(
+				offset, wordOffset, doc, prefix,
+				proposals, index, activeFunc, editorScript, parser,
+				typeExtractor.contextSequence, typeExtractor.contextExpression, typeExtractor.precedingType()
+			);
+			return true;
+		} else
+			return false;
 	}
 
 	private boolean checkProposalConditions(int wordOffset, IDocument doc) {
@@ -359,6 +361,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		keywordProposals(offset, prefix, proposals, contextSequence);
 	}
 
+	private boolean skipProposalsInFunction(ASTNode contextExpression) {
+		return contextExpression instanceof Comment;
+	}
+
 	private void engineProposals(int offset, String prefix, List<ICompletionProposal> proposals, Script editorScript, final Sequence contextSequence) {
 		if (proposalCycle == ProposalCycle.ALL)
 			if (editorScript.index().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
@@ -414,14 +420,14 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
-		for (final Index x : index.relevantIndexes())
+		/*for (final Index x : index.relevantIndexes())
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function)
 					proposalForFunc((Function) d, prefix, offset, proposals, d.script().name(), true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar((Variable)d, prefix, offset, proposals);
-			}
+			}*/
 	}
 
 	private List<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {

@@ -7,10 +7,12 @@ import net.arctics.clonk.index.Definition
 import net.arctics.clonk.index.MetaDefinition
 import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.parser.Problem;
+import net.arctics.clonk.c4script.ArrayType
 import net.arctics.clonk.c4script.C4ScriptParserTest
 import net.arctics.clonk.c4script.PrimitiveType
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.ast.TypeChoice
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.runtime.NullProgressMonitor
@@ -166,10 +168,10 @@ func Usage() {
 		setup.scripts.each { it.generateCaches() }
 		setup.inference.run()
 
-		Assert.assertEquals(clonk, base.functionReturnTypes()['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(clonk), base.functionReturnTypes()['Type'])
-		Assert.assertEquals(wipf, derived.functionReturnTypes()['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(wipf), derived.functionReturnTypes()['Type'])
+		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
+		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionReturnTypes['Type'])
+		Assert.assertEquals(wipf, derived.typings().functionReturnTypes['MakeObject'])
+		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
 	}
 	
 	@Test
@@ -284,7 +286,7 @@ func Test()
 		
 		def (base, derived) = setup.scripts
 		
-		def t = derived.functionReturnTypes()['TakeObject']
+		def t = derived.typings().functionReturnTypes['TakeObject']
 		Assert.assertEquals(derived, t)
 	}
 	
@@ -328,11 +330,120 @@ func Test()
 		setup.scripts.each { it.generateCaches() }
 		setup.inference.run()
 
-		Assert.assertEquals(clonk, base.functionReturnTypes()['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(clonk), base.functionReturnTypes()['Type'])
-		Assert.assertEquals(wipf, derived.functionReturnTypes()['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(wipf), derived.functionReturnTypes()['Type'])
-		Assert.assertEquals(wipf, user.functionReturnTypes()['Usage'])
+		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
+		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionReturnTypes['Type'])
+		Assert.assertEquals(wipf, derived.typings().functionReturnTypes['MakeObject'])
+		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
+		Assert.assertEquals(wipf, user.typings().functionReturnTypes['Usage'])
+	}
+	
+	@Test
+	public void testAbysseses() {
+		System.out.println("Abyssesses! ---")
+		def funcs = [
+			'''
+			func MakeAbyssMarkers()
+			{
+				RemoveAll(Find_ID(Abyss));
+				var waypoints = FindObjects(Find_ID(Waypoint), Sort_Distance(0, 0));
+				WaypointsCheck(waypoints);
+				var abyssObjects = CreateArray(GetLength(waypoints)/2);
+				for (var i = 0; i < GetLength(waypoints); i += 2)
+				{
+					var num = i / 2;
+					var first = waypoints[i];
+					var second = waypoints[i + 1];
+					var abyss = CreateObject(Abyss);
+					abyssObjects[num] = PrepareAbyss(first, second, abyss, num);
+				}
+				return abyssObjects;
+			}
+			''',
+			
+			'''
+			func PrepareAbyss(first, second, abyss, num)
+			{
+				abyss->SetLeft(first);
+				abyss->SetRight(second);
+				if (num == 0)
+					return PrepareAbyssOne(abyss);
+				else if (num == 1)
+					return PrepareAbyssTwo(abyss);
+			}
+			''',
+			
+			'''
+			func PrepareAbyssOne(abyss)
+			{
+				var tactic = CreateObject(RopebridgeRescue);
+				var objectCreator = CreateObject(ConfigurableObjectCreator);
+				objectCreator->SetType(Ropebridge_Post);
+				tactic->SetObjectCreator(objectCreator);
+				abyss->SetStrategy(tactic);
+				return abyss;
+			}
+			''',
+			
+			'''
+			func PrepareAbyssTwo(abyss)
+			{
+				var tactic = CreateObject(JumpRescue);
+				abyss->SetStrategy(tactic);
+				return abyss;
+			}
+			'''
+		]
+		
+		def vector = Factory.createVector(funcs)
+		def gen = Factory.createPermutationGenerator(vector)
+		def failedAssertions = new ArrayList<String>()
+		
+		int counter = 0
+		for (ICombinatoricsVector<String> fns : gen) {
+			def rescuesBuilderSource = StringUtil.blockString("", "", "\n", fns)
+			def definitions = [
+				new DefinitionInfo(name:'Waypoint', source:''),
+				new DefinitionInfo(name:'Abyss', source:''),
+				new DefinitionInfo(name:'RescuesBuilder', source:rescuesBuilderSource)
+			] as DefinitionInfo[]
+			def setup = new Setup(definitions)
+			def (waypoint, abyss, rescuesBuilder) = setup.scripts
+			setup.parsers.each { it.run() }
+			setup.index.refresh()
+			setup.scripts.each { it.generateCaches() }
+			
+			def functionNames = rescuesBuilder.functions().collect { it.name() }.toList()
+			def makeAbyssMarkersIndex = functionNames.indexOf("MakeAbyssMarkers")
+			def prepareAbyssIndex = functionNames.indexOf("PrepareAbyss")
+			def prepareAbyssOneIndex = functionNames.indexOf("PrepareAbyssOne")
+			def prepareAbyssTwoIndex = functionNames.indexOf("PrepareAbyssTwo")
+			def fnOrderStr = StringUtil.blockString("", "", ", ", rescuesBuilder.functions().collect { it.name() })
+			
+			System.out.println()
+			System.out.println(fnOrderStr)
+			setup.inference.run()
+			
+			try {
+				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssOne").parameter(0).type())
+				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssTwo").parameter(0).type())
+				Assert.assertEquals(new ArrayType(abyss), rescuesBuilder.findFunction("MakeAbyssMarkers").returnType())
+			} catch (AssertionError e) {
+				if (prepareAbyssIndex > makeAbyssMarkersIndex)
+					System.out.println("--- PrepareAbyss after MakeAbyssMarkers")
+				if (prepareAbyssOneIndex < prepareAbyssIndex || prepareAbyssTwoIndex < prepareAbyssIndex)
+					System.out.println("--- PrepareAbyssOne or PrepareAbyssTwo before PrepareAbyss")
+				def msg = String.format("%s: %s (%d)",
+					fnOrderStr,
+					e.getMessage(),
+					counter
+				)
+				System.out.println(msg)
+				failedAssertions.add(msg);
+			}
+			counter++
+		}
+		
+		Assert.assertEquals(StringUtil.blockString("", "", "\n", failedAssertions), 0, failedAssertions.size())
 	}
 
 }

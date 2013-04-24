@@ -1206,7 +1206,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();
 		if (functions != null && index() != null)
-			for (final Function f : functions) {
+			for (final Function f : functions()) {
 				f.findInherited();
 				detectMapNodesInFunction(f, false);
 			}

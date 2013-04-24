@@ -10,8 +10,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
@@ -182,6 +184,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 	
 	private Visitor requestVisitor(Script script, Function function, Visitor originator) {
+		if (script == null || function.body() == null)
+			return null;
 		synchronized (shared) {
 			final Input input = shared.input.get(script);
 			if (input != null)
@@ -230,6 +234,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 *
 	 */
 	protected final class Input {
+		
+		class DelayedVisit {
+			final Function function;
+			final Script script;
+			final boolean allowThis;
+			final boolean allowWait;
+			public DelayedVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
+				super();
+				this.function = function;
+				this.script = script;
+				this.allowThis = allowThis;
+				this.allowWait = allowWait;
+			}
+		}
+		
 		/**
 		 * Type variable for the return type of a function that was visited.
 		 * {@link FunctionReturnTypeVariable}s are pre-created ({@link Input#makePlan()}) and determined (set to state {@link State#FINISHED}) in a not quite deterministic order.
@@ -242,6 +261,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Visitor visitor;
 			IType[] inferredTypes;
 			Expert<?>[] experts;
+			
+			final LinkedList<DelayedVisit> delayedVisits = new LinkedList<>();
 			
 			public void state(State state) {
 				this.state = state;
@@ -303,7 +324,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			public final <T extends ASTNode> IType ty(T node, Expert<T> expert) {
 				final IType type = expert.type(node, this);
-				visit.inferredTypes[node.localIdentifier()] = type;
+				if (visit != null)
+					visit.inferredTypes[node.localIdentifier()] = type;
 				return type;
 			}
 
@@ -351,11 +373,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Visitor[] visitors = new Visitor[calls.size()];
 					for (int ci = 0; ci < calls.size(); ci++) {
 						final CallDeclaration call = calls.get(ci);
+						Function ref = as(call.declaration(), Function.class);
+						// not related - short circuit skip
+						//if (ref != null && ref.baseFunction() != null && ref.baseFunction().latestVersion() != baseFunction)
+						//	continue;
 						final Function f = call.parentOfType(Function.class);
 						final Script other = f.parentOfType(Script.class);
 						final Visit fVisit = delegateFunctionVisit(f, other, false, true);
 						final Visitor visitor = visitors[ci] = fVisit != null ? fVisit.visitor : null;
-						Function ref = as(call.declaration(), Function.class);
+						ref = as(call.declaration(), Function.class);
 						if (ref != null) {
 							ref = ref.baseFunction();
 							if (ref != null)
@@ -369,7 +395,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 											script().addUsedScript(other);
 											types[ci][pa] = parType(f, other, fVisit, visitor, concretePar);
 										}
-									}
+									} else
+										System.out.println(String.format("\tSkip parameter %s", function.parameter(pa).name()));
 							}
 						}
 					}
@@ -466,6 +493,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (astTypes != null)
 						ty = astTypes[concretePar.localIdentifier()];
 				}
+				System.out.println(String.format("\t%s: %s", concretePar.printed(), ty != null ? ty.typeName(true) : "null"));
 				return ty;
 			}
 		
@@ -525,7 +553,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return inPreliminaryVisit;
 			}
 			
-			public Visit uncheckedVisit(Function function, final Script funScript, Visit returnType) {
+			public Visit uncheckedVisit(Function function, final Script funScript, Visit _visit) {
 				if (DEBUG)
 					System.out.println(String.format("%s: Visiting %s", script().name(), function.qualifiedName(script()))); //$NON-NLS-1$
 				final Visit oldVisitee = visit;
@@ -533,13 +561,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ASTNode[] statements = function.body().statements();
 				if (funScript != input().script)
 					startRoaming();
-				visit = returnType;
-				returnType.visitor = this;
-				returnType.assignExperts();
+				visit = _visit;
+				_visit.visitor = this;
+				_visit.assignExperts();
 				try {
 					final TypeEnvironment env = newTypeEnvironment();
 					{
-						env.add(returnType);
+						env.add(_visit);
 						if (!ownedFunction)
 							for (final Variable l : function.locals()) {
 								final AccessVar av = AccessVar.temp(l, function.body());
@@ -549,21 +577,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						final List<Variable> parameters = function.parameters();
 						final Function baseFunction = function.baseFunction();
-						final boolean typeFromCalls =
-							ownedFunction && !assignDefaultParmTypesToFunction(function) &&
-							input().typing == Typing.ParametersOptionallyTyped &&
-							input().script instanceof Definition &&
-							!inPreliminaryVisit() &&
-							function.numParameters() > 0 &&
-							(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
-						function.setTypeFromCallsHint(typeFromCalls);
+						boolean typeFromCalls;
+						if (!inPreliminaryVisit()) {
+							typeFromCalls =
+								input().typing == Typing.ParametersOptionallyTyped &&
+								input().script instanceof Definition &&
+								ownedFunction && function.numParameters() > 0 &&
+								!assignDefaultParmTypesToFunction(function) &&
+								(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
+							if (function.name().equals("PrepareRescues"))
+								System.out.println("bla");
+							function.setTypeFromCallsHint(typeFromCalls);
+						} else
+							typeFromCalls = false;
 		
 						// create type variables for parameters
 						final TypeVariable[] callTypes = new TypeVariable[parameters.size()];
 						for (int i = 0; i < callTypes.length; i++) {
 							final Variable p = function.parameter(i);
 							final TypeVariable tyvar = new VariableTypeVariable(p);
-							tyvar.set(p.type());
+							tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
 							typeEnvironment.add(tyvar);
 							callTypes[i] = tyvar;
 						}
@@ -591,7 +624,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 							inPreliminaryVisit = false;
 							function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
 							initialParameterTypesFromCalls(function, baseFunction, callTypes);
-						}
+						} else
+							if (DEBUG)
+								System.out.println(String.format("%s: Not typing from calls", function.qualifiedName(script())));
 						if (ownedFunction)
 							for (int i = 0; i < callTypes.length; i++)
 								callTypes[i].apply(false);
@@ -608,21 +643,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				catch (final ParsingException e) { return null; }
 				finally {
-					synchronized (returnType) {
+					synchronized (_visit) {
 						if (funScript == input().script)
-							function.assignType(returnType.get(), false);
-						returnType.state(State.FINISHED);
-						returnType.visitor = null;
-						returnType.notifyAll();
+							function.assignType(_visit.get(), false);
+						_visit.state(State.FINISHED);
+						_visit.visitor = null;
+						_visit.notifyAll();
 					}
 					visit = oldVisitee;
 					if (funScript != input().script)
 						endRoaming();
 				}
-				return returnType;
+				return _visit;
 			}
 		
 			public final Visit delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
+				if (function.body() == null)
+					return null;
 				if (inPreliminaryVisit) {
 					if (DEBUG)
 						System.out.println(String.format("%s: Skip delegating visit to function '%s'", toString(), function.qualifiedName(script)));
@@ -946,9 +983,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				else if (d instanceof Function)
 					functionReturnTypes.put(d.name(), tyVar.get());
-				if (tyVar instanceof Visit)
-					functionASTTypes.put(d.name(), ((Visit)tyVar).inferredTypes);
 			}
+			for (final Entry<Function, Visit> v : plan.entrySet())
+				functionASTTypes.put(v.getKey().name(), v.getValue().inferredTypes);
 			script.setTypings(new Script.Typings(variableTypes, functionReturnTypes, functionASTTypes));
 		}
 		public void mainVisit(Visitor visitor) {
@@ -1879,8 +1916,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						predTy = visitor.ty(p);
 						f = findUsingType(visitor, node, declarationName, visitor.ty(p));
 					}
-					if (f instanceof Function && shared.local)
-						visitor.delegateFunctionVisit((Function)f, as(predTy, Script.class), node.predecessorInSequence() == null, false);
 					return f;
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
@@ -1915,8 +1950,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 										final TypeVariable rtv = other != null ? other.visit(_s.override(fn)) : null;
 										t = TypeUnification.unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 									}
-						} else
-							visitor.delegateFunctionVisit(fn, visitor.script(), true, false);
+						} else {
+							final Visit v = visitor.delegateFunctionVisit(fn, visitor.script(), true, false);
+							if (v != null)
+								t = v.get();
+						}
 						return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
 					}
 					if (d instanceof Variable) {
@@ -2001,6 +2039,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 								visitor.markers().warning(visitor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 					} else if (declaration instanceof Function) {
 						final Function f = (Function)declaration;
+						
+						/*if (shared.local) {
+							final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
+							visitor.delegateFunctionVisit(f, as(predTy, Script.class), node.predecessorInSequence() == null, false);
+						}*/
+						
 						if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
 							visitor.script().addUsedScript(f.script());
 

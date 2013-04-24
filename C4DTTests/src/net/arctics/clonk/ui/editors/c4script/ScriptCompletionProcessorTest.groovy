@@ -10,7 +10,7 @@ import org.eclipse.swt.graphics.Point
 import org.junit.Assert
 import org.junit.Test
 
-public class C4ScriptCompletionProcessorTest extends TestBase {
+public class ScriptCompletionProcessorTest extends TestBase {
 	@Test
 	public void testProposalsBasedOnRevisiting() {
 		def baseSource =
