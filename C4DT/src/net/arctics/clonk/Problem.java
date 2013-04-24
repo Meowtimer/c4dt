@@ -1,7 +1,6 @@
 package net.arctics.clonk;
 
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.parser.Messages;
 
 /**
  * Enumeration for all problems which c4dt might potentially add to the problems view.
