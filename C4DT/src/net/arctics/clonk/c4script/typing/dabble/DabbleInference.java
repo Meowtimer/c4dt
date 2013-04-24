@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -606,6 +607,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							initialParameterTypesFromCalls(function, baseFunction, callTypes);
 						}
 						actualVisit(ownedFunction, statements, callTypes);
+						typeUntypedCallTargets(function);
 						delayedVisits();
 					}
 					if (ownedFunction)
@@ -625,6 +627,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 						endRoaming();
 				}
 				return _visit;
+			}
+
+			private void typeUntypedCallTargets(Function function) {
+				function.body().traverse(new IASTVisitor<Visitor>() {
+					final IType[] types = visit.inferredTypes;
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, Visitor context) {
+						if (node instanceof CallDeclaration && node.predecessorInSequence() != null) {
+							final CallDeclaration cd = (CallDeclaration) node;
+							final IType predTy = types[node.predecessorInSequence().localIdentifier()];
+							if (predTy instanceof CallTargetType) {
+								IType unified = null;
+								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
+									unified = unify(unified, f.script());
+								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
+									judgement(node.predecessorInSequence(), unified, TypingJudgementMode.UNIFY);
+							}
+						}
+						return TraversalContinuation.Continue;
+					}
+				}, this);
 			}
 
 			private boolean determineTypingFromCalls(final Function function, final boolean ownedFunction) {
