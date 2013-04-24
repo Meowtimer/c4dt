@@ -5,7 +5,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 
 public class UnaryOp extends OperatorExpression {
 
@@ -56,7 +56,7 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
 		ASTNode arg = argument().optimize(context);
 		if (arg instanceof BinaryOp)

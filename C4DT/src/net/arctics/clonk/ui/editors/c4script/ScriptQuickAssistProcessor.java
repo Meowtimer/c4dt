@@ -12,8 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Problem;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -22,15 +22,15 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -407,7 +407,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localTypingContext(editor.script(), 0, null));
+		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localReporter(editor.script(), 0, null));
 	}
 
 	public void collectProposals(
@@ -416,7 +416,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		final List<ICompletionProposal> proposals,
 		IDocument document,
 		final Script script,
-		final ProblemReportingContext problemReporting
+		final ProblemReporter problemReporting
 	) {
 		if (document != null)
 			internalCollectProposals(marker, position, proposals, document, script, problemReporting);
@@ -430,7 +430,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}, false);
 	}
 
-	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReportingContext problemReporting) {
+	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReporter problemReporting) {
 		final Problem errorCode = Markers.problem(marker);
 		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
 		if (expressionRegion.getOffset() == -1)
@@ -634,8 +634,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						final BinaryOp binaryOp = (BinaryOp) statement.expression();
 						if (binaryOp.operator() == Operator.Equal && problemReporting.isModifiable(binaryOp.leftSide()))
 							replacements.add(
-									Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-									new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
+								Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
+								new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
 							);
 					}
 				}

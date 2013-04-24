@@ -6,7 +6,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
@@ -95,7 +95,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
 			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
 		else

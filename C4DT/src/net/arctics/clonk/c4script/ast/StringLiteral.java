@@ -6,7 +6,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.stringtbl.StringTbl;
@@ -37,7 +37,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 
 		// first check if a string tbl entry is referenced
 		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), context.script(), true);

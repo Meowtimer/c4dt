@@ -6,7 +6,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.parser.BufferedScanner;
 
@@ -35,7 +35,7 @@ public class SearchResult extends AbstractTextSearchResult {
 	public ISearchQuery getQuery() { return query; }
 	@Override
 	public String getTooltip() { return null; }
-	public void addMatch(ProblemReportingContext context, boolean potential, boolean indirect, int s, int l) {
+	public void addMatch(ProblemReporter context, boolean potential, boolean indirect, int s, int l) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
 			scanner = scanners.get(context.script());
@@ -53,7 +53,7 @@ public class SearchResult extends AbstractTextSearchResult {
 		String line = scanner.bufferSubstringAtRegion(lineRegion);
 		addMatch(new SearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
 	}
-	public void addMatch(ASTNode match, ProblemReportingContext context, boolean potential, boolean indirect) {
+	public void addMatch(ASTNode match, ProblemReporter context, boolean potential, boolean indirect) {
 		addMatch(context, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());
 	}
 	public void clearScanners() { scanners.clear(); }

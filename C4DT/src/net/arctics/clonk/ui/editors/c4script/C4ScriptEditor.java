@@ -12,7 +12,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
@@ -399,7 +399,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public ProblemReportingContext declarationObtainmentContext() {
+	public ProblemReporter declarationObtainmentContext() {
 		return editingState().declarationObtainmentContext();
 	}
 

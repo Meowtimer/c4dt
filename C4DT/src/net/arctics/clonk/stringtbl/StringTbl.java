@@ -16,7 +16,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
@@ -250,7 +250,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	 * @param region The region describing the string table reference in question
 	 * @param node
 	 */
-	public static void reportMissingStringTblEntries(ProblemReportingContext context, EntityRegion region, ASTNode node) {
+	public static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
 		StringBuilder miss = null;
 		try {
 			for (IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {

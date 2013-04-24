@@ -33,7 +33,7 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 			ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
 			Script context = pred == null
 				? configuration.editor().script()
-				: configuration.editor().editingState().typingStrategy().localTypingContext
+				: configuration.editor().editingState().typingStrategy().localReporter
 					(configuration.editor().script(), 0, null).typeOf(pred, Script.class);
 			messageBuilder.append(entityLocator.entity().infoText(context));
 		}

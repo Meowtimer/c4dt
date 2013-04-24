@@ -18,7 +18,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index == 1 && node.name().equals("ObjectSetAction")) {
 					IType t = processor.typeOf(node.params()[0]);
 					if (t != null) for (IType ty : t)

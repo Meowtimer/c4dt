@@ -30,7 +30,7 @@ import net.arctics.clonk.c4script.IHasIncludes;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
@@ -247,14 +247,14 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return null;
 	}
 	
-	class PrecedingExpressionTypeExtractor extends ExpressionLocator<ProblemReportingContext> {
+	class PrecedingExpressionTypeExtractor extends ExpressionLocator<ProblemReporter> {
 		public ASTNode contextExpression;
 		public Sequence contextSequence;
 		public IType precedingType;
 		public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
 		public PrecedingExpressionTypeExtractor() { super(-1); }
 		@Override
-		public TraversalContinuation visitNode(ASTNode expression, ProblemReportingContext context) {
+		public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {
 			final ASTNode old = exprAtRegion;
 			final TraversalContinuation c = super.visitNode(expression, context);
 			if (old != exprAtRegion) {
@@ -503,7 +503,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localTypingContext(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
 				}
 			}
 		}

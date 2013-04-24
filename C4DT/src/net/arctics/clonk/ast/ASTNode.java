@@ -15,7 +15,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ast.ASTComparisonDelegate;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
@@ -289,7 +289,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode exhaustiveOptimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode exhaustiveOptimize(final ProblemReporter context) throws CloneNotSupportedException {
 		ASTNode repl;
 		for (ASTNode original = this; (repl = original.optimize(context)) != original; original = repl);
 		return repl;
@@ -303,7 +303,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return a #strict/#strict 2/readability enhanced version of the original expression
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
 		return transformSubElements(new ITransformer() {
 			@Override
 			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
@@ -459,10 +459,10 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	/**
 	 * Return an entity that this expression refers to at the specified relative offset.
 	 * @param offset The offset
-	 * @param context {@link ProblemReportingContext} being contexty
+	 * @param context {@link ProblemReporter} being contexty
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		return null;
 	}
 

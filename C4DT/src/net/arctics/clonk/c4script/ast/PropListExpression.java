@@ -10,7 +10,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.util.StringUtil;
@@ -150,7 +150,7 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		final int secOff = sectionOffset();
 		final int absolute = secOff+start()+offset;
 		for (final Variable v : this.components())

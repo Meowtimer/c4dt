@@ -31,26 +31,26 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.ArrayType;
 import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IProplistDeclaration;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.ITypeable;
 import net.arctics.clonk.c4script.InitializationFunction;
+import net.arctics.clonk.c4script.InitializationFunction.VarInitializationAccess;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
-import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Directive.DirectiveType;
-import net.arctics.clonk.c4script.Function.FunctionScope;
-import net.arctics.clonk.c4script.InitializationFunction.VarInitializationAccess;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -94,11 +94,11 @@ import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.TypeChoice;
 import net.arctics.clonk.c4script.ast.UnaryOp;
+import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.ast.WhileStatement;
-import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
@@ -167,21 +167,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				final Visitor[] visitors = new Visitor[shared.scripts.length];
-				int i = 0;
 				for (final Script p : shared.scripts)
 					if (p != null) {
 						final Input info = new Input(p, 0, shared);
 						shared.input.put(p.script(), info);
-						final Visitor v = info.new Visitor(null);
-						v.setMarkers(markers);
-						visitors[i++] = v;
 					}
-				for (final Visitor v : visitors)
-					if (v != null)
-						pool.execute(v);
+				for (final Input input : shared.input.values())
+					pool.execute(input);
 			}
 		}, 20);
+		for (final Input input : shared.input.values())
+			input.apply();
 	}
 	
 	private Visitor requestVisitor(Script script, Function function, Visitor originator) {
@@ -196,7 +192,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint()) {
 				if (DEBUG)
 					System.out.println(String.format("Make new visitor for '%s'", function.qualifiedName(script))); //$NON-NLS-1$
-				return (Visitor)localTypingContext(script, 0, originator);
+				return (Visitor)localReporter(script, 0, originator);
 			}
 			else {
 				if (DEBUG)
@@ -207,7 +203,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public ProblemReportingContext localTypingContext(Script script, int fragmentOffset, ProblemReportingContext chain) {
+	public ProblemReporter localReporter(Script script, int fragmentOffset, ProblemReporter chain) {
 		if (chain instanceof Visitor) {
 			final Input p = ((Visitor) chain).input().shared.input.get(script);
 			if (p != null)
@@ -234,8 +230,36 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * @author madeen
 	 *
 	 */
-	protected final class Input {
+	protected final class Input implements Runnable {
 		
+		@Override
+		public void run() {
+			if (progressMonitor.isCanceled())
+				return;
+			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name())); //$NON-NLS-1$
+			innerRun(new Visitor(null));
+			progressMonitor.worked(1);
+		}
+		
+		private void innerRun(Visitor visitor) {
+			synchronized (this) {
+				switch (mainVisitState) {
+				case UNDETERMINED:
+					mainVisitState = State.INPROGRESS;
+					break;
+				case FINISHED:
+					return;
+				case INPROGRESS:
+					return; // meh
+				}
+			}
+			visitAllPlanned(visitor);
+			synchronized (this) {
+				mainVisitState = State.FINISHED;
+				notifyAll();
+			}
+		}
+
 		/**
 		 * Type variable for the return type of a function that was visited.
 		 * {@link FunctionReturnTypeVariable}s are pre-created ({@link Input#makePlan()}) and determined (set to state {@link State#FINISHED}) in a not quite deterministic order.
@@ -287,7 +311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public void apply(boolean soft) { /* done by Dabble */ }
 		}
 		
-		final class Visitor implements Runnable, ProblemReportingContext, IEvaluationContext {
+		final class Visitor implements ProblemReporter, IEvaluationContext {
 		
 			final Visitor originator;
 			final Input input() { return Input.this; }
@@ -296,12 +320,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Markers markers;
 			TypeEnvironment typeEnvironment;
 			boolean inPreliminaryVisit;
-			IASTVisitor<ProblemReportingContext> observer;
+			IASTVisitor<ProblemReporter> observer;
 			Thread thread;
 			
 			final Thread thread() { return thread; }
 			
 			Visit visit;
+			
+			@Override
+			public void run() { visitAllPlanned(this); }
 			
 			public Visitor(Visitor originator, Script... scope) {
 				this.originator = originator;
@@ -343,7 +370,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					input().toString(), visit != null ? visit.function().qualifiedName(script()) : "<no function>"); //$NON-NLS-1$
 			}
 			@Override
-			public void setObserver(IASTVisitor<ProblemReportingContext> observer) { this.observer = observer; }
+			public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 			
 			public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
 				final Engine engine = script().engine();
@@ -360,9 +387,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 							return true;
 				return false;
 			}
-		
-			@Override
-			public boolean triggersRevisit(Function function, Function called) { return called.typeFromCallsHint(); }
 		
 			private void delayVisit(Function function, Script script) {
 				if (visit == null)
@@ -896,35 +920,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 		
 			@Override
-			public void reportProblems() {
-				synchronized (input()) {
-					switch (input().mainVisitState) {
-					case UNDETERMINED:
-						input().mainVisitState = State.INPROGRESS;
-						break;
-					case FINISHED:
-						return;
-					case INPROGRESS:
-						return; // meh
-					}
-				}
-				input().mainVisit(this);
-				synchronized (input()) {
-					input().mainVisitState = State.FINISHED;
-					input().notifyAll();
-				}
-			}
-		
-			@Override
-			public void run() {
-				if (progressMonitor.isCanceled())
-					return;
-				progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name())); //$NON-NLS-1$
-				reportProblems();
-				progressMonitor.worked(1);
-			}
-		
-			@Override
 			public Definition definition() { return as(input().script, Definition.class); }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
@@ -1046,6 +1041,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final Map<String, IType> variableTypes = new HashMap<>();
 			final Map<String, IType> functionReturnTypes = new HashMap<>();
 			final Map<String, IType[]> functionASTTypes = new HashMap<>();
+			fillTypingMaps(variableTypes, functionReturnTypes);
+			fillASTTypingMap(functionASTTypes);
+			script.setTypings(new Script.Typings(variableTypes, functionReturnTypes, functionASTTypes));
+		}
+		private void fillASTTypingMap(final Map<String, IType[]> functionASTTypes) {
+			for (final Entry<Function, Visit> v : plan.entrySet())
+				functionASTTypes.put(v.getKey().name(), v.getValue().inferredTypes);
+		}
+		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, IType> functionReturnTypes) {
 			for (final TypeVariable tyVar : typeEnvironment.values()) {
 				final Declaration d = tyVar.declaration();
 				if (d.containedIn(script))
@@ -1061,18 +1065,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				else if (d instanceof Function)
 					functionReturnTypes.put(d.name(), tyVar.get());
 			}
-			for (final Entry<Function, Visit> v : plan.entrySet())
-				functionASTTypes.put(v.getKey().name(), v.getValue().inferredTypes);
-			script.setTypings(new Script.Typings(variableTypes, functionReturnTypes, functionASTTypes));
 		}
-		public void mainVisit(Visitor visitor) {
+		private void visitAllPlanned(Visitor visitor) {
 			final TypeEnvironment env2 = visitor.newTypeEnvironment();
 			final Function[] plan_;
 			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
 			for (final Function f : plan_)
 				visitor.visit(f, null, false);
 			visitor.endTypeEnvironment(env2, true, false);
-			apply();
 		}
 		@Override
 		public String toString() { return script.name(); }
@@ -1389,7 +1389,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									if (_t instanceof Script) {
 										final Input nput = shared.getInput((Script) _t);
 										if (nput != null)
-											nput.new Visitor(visitor).reportProblems();
+											nput.new Visitor(visitor).run();
 										final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
 										t = TypeUnification.unify(t, frt);
 									}
@@ -1923,7 +1923,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new AccessDeclarationExpert<CallDeclaration>(CallDeclaration.class) {
 				/**
-				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReportingContext)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
+				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReporter)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
 				 * @param input Context to use for searching
 				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #name()}
 				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
@@ -2148,6 +2148,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 								else if (eq(parmTy, PrimitiveType.UNKNOWN))
 									visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
 							}
+							/*if (params.length > f.numParameters() && !(f.script() instanceof Engine))
+								markers().error(visitor, Problem.TooManyParameters, node, node, Markers.NO_THROW,
+									f.numParameters(), params.length, f.name()); */
 						}
 					} else if (declaration == null) {
 						final IType container = unknownFunctionShouldBeError(node, visitor);

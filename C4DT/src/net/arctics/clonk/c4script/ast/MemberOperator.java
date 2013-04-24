@@ -7,7 +7,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.C4ScriptParser;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 
 import org.eclipse.jface.text.Region;
 
@@ -90,7 +90,7 @@ public class MemberOperator extends ASTNode {
 	public boolean isValidAtEndOfSequence() { return false; }
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
 			return new EntityRegion(context.script().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
@@ -107,7 +107,7 @@ public class MemberOperator extends ASTNode {
 	}
 
 	@Override
-	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
 		if (!dotNotation && !context.script().engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)

@@ -8,7 +8,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.stringtbl.StringTbl;
 
 import org.eclipse.jface.text.Region;
@@ -34,7 +34,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		if (contents == null)
 			return null;
 		String[] parts = contents.split("\\|"); //$NON-NLS-1$

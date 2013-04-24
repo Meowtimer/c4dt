@@ -14,7 +14,7 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -67,7 +67,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReportingContext> {
+	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReporter> {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				final CallDeclaration callFunc = (CallDeclaration) expression;
@@ -76,7 +76,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, ProblemReportingContext context) {
+		public TraversalContinuation visitNode(ASTNode node, ProblemReporter context) {
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
 				Declaration dec = accessDeclExpr.declaration();
@@ -118,11 +118,11 @@ public class ReferencesSearchQuery extends SearchQuery {
 		
 		public void searchScript(IResource resource, Script script) {
 			final C4ScriptParser parser = new C4ScriptParser(script);
-			final ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+			final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset(), null);
 			searchScript(resource, ctx);
 		}
 		
-		public void searchScript(IResource resource, ProblemReportingContext context) {
+		public void searchScript(IResource resource, ProblemReporter context) {
 			final Script script = context.script();
 			if (script.scriptFile() != null) {
 				if (declaration instanceof Definition) {
@@ -169,7 +169,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 							public void run() {
 								try {
 									final C4ScriptParser parser = new C4ScriptParser(script);
-									final ProblemReportingContext ctx = strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null);
+									final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset(), null);
 									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (final Exception e) {}
 							}
@@ -178,7 +178,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 					else if (scope instanceof Function) {
 						final Function func = (Function)scope;
 						final C4ScriptParser parser = new C4ScriptParser(func.script());
-						func.traverse(visitor, strategy.localTypingContext(parser.script(), parser.fragmentOffset(), null));
+						func.traverse(visitor, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
 					}
 			}
 		}, 20);

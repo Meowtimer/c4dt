@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 
 /**
  * Simple statement wrapper for an expression.
@@ -47,7 +47,7 @@ public class SimpleStatement extends Statement {
 	}
 
 	@Override
-	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
 		final ASTNode exprReplacement = expression.optimize(context);
 		if (exprReplacement instanceof Statement)
 			return exprReplacement;

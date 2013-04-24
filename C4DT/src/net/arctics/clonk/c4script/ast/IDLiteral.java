@@ -5,7 +5,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ID;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.index.Definition;
 
 public final class IDLiteral extends Literal<ID> {
@@ -32,11 +32,11 @@ public final class IDLiteral extends Literal<ID> {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		return new EntityRegion(definition(context), region(0));
 	}
 	
-	public Definition definition(ProblemReportingContext context) {
+	public Definition definition(ProblemReporter context) {
 		return context.script().nearestDefinitionWithId(idValue());
 	}
 

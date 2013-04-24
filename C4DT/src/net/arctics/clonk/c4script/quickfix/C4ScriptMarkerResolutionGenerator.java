@@ -24,7 +24,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		Script script = Script.get(marker.getResource(), true);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(10);
 		quickAssist.collectProposals(marker, new Position(marker.getAttribute(IMarker.CHAR_START, 0), marker.getAttribute(IMarker.CHAR_END, 0)-marker.getAttribute(IMarker.CHAR_START, 0)),
-			proposals, null, script, script.index().nature().instantiateProblemReportingStrategies(ProblemReportingStrategy.Capabilities.TYPING).get(0).localTypingContext(script, 0, null));
+			proposals, null, script, script.index().nature().instantiateProblemReportingStrategies(ProblemReportingStrategy.Capabilities.TYPING).get(0).localReporter(script, 0, null));
 		List<IMarkerResolution> res = new ArrayList<IMarkerResolution>(10);
 		for (ICompletionProposal p : proposals)
 			if (p instanceof ParameterizedProposal)

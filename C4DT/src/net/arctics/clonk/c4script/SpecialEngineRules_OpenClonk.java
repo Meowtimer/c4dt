@@ -87,7 +87,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(ProblemReportingContext processor, Function function) {
+		public boolean assignDefaultParmTypes(ProblemReporter processor, Function function) {
 			final EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
 				fun.effect();
@@ -104,7 +104,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return null;
 		};
 		@Override
-		public IType returnType(ProblemReportingContext processor, CallDeclaration node) {
+		public IType returnType(ProblemReporter processor, CallDeclaration node) {
 			Object parmEv;
 			if (!node.name().equals("RemoveEffect") && node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
 				final String effectName = (String) parmEv;
@@ -114,7 +114,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		};
 		@Override
 		public EntityRegion locateEntityInParameter(
-			CallDeclaration node, ProblemReportingContext processor, int index,
+			CallDeclaration node, ProblemReporter processor, int index,
 			int offsetInExpression, ASTNode parmExpression
 		) {
 			if (parmExpression instanceof StringLiteral && node.params().length >= 1 && node.params()[0] == parmExpression) {
@@ -141,7 +141,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 		};
 		@Override
-		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) {
+		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReporter processor) {
 			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction) {
 				final Object nameEv = arguments[0].evaluateStatic(node.parentOfType(Function.class));
 				if (nameEv instanceof String) {
@@ -217,7 +217,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallDeclaration node, final ASTNode[] arguments, final ProblemReportingContext processor, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ProblemException {
+		private boolean checkParm(CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ProblemException {
 			if (parmIndex+1 >= arguments.length) {
 				if (evTracer.tracedFile == null)
 					return true;
@@ -238,7 +238,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false;
 		}
 		@Override
-		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) throws ProblemException {
+		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReporter processor) throws ProblemException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parentOfType(Function.class))).evaluation instanceof String) {
@@ -306,7 +306,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 			};
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReportingContext processor, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index != 0)
 					return null;
 				final IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : null;
@@ -319,7 +319,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration node, ProblemReportingContext processor, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, String prefix, int offset, List<ICompletionProposal> proposals) {
+			public void contributeAdditionalProposals(CallDeclaration node, ProblemReporter processor, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
 				final IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : processor.script();

@@ -9,7 +9,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.ITypeable;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.index.CachedEngineDeclarations;
@@ -20,8 +20,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 public class TypeUtil {
-	public static ProblemReportingContext problemReportingContext(final Declaration context) {
-		return new ProblemReportingContext() {
+	public static ProblemReporter problemReportingContext(final Declaration context) {
+		return new ProblemReporter() {
 			@Override
 			public Definition definition() { return script() instanceof Definition ? (Definition)script() : null; }
 			@Override
@@ -54,7 +54,7 @@ public class TypeUtil {
 			@Override
 			public void setMarkers(Markers markers) { /* ignore */ }
 			@Override
-			public void reportProblems() {}
+			public void run() {}
 			@Override
 			public Object visit(Function function) { return null; }
 			@Override
@@ -64,9 +64,7 @@ public class TypeUtil {
 			@Override
 			public boolean isModifiable(ASTNode node) { return false; }
 			@Override
-			public boolean triggersRevisit(Function function, Function called) { return true; }
-			@Override
-			public void setObserver(IASTVisitor<ProblemReportingContext> observer) {}
+			public void setObserver(IASTVisitor<ProblemReporter> observer) {}
 		};
 	}
 	public static Definition definition(IType type) {

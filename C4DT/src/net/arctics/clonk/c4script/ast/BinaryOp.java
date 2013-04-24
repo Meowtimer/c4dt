@@ -9,14 +9,14 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 
 public class BinaryOp extends OperatorExpression {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public ASTNode optimize(final ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
 		if (context.script().strictLevel() >= 2) {
 			Operator op = operator();
@@ -38,7 +38,7 @@ public class BinaryOp extends OperatorExpression {
 		return super.optimize(context);
 	}
 
-	private ASTNode convertOperatorHackToBlock(ProblemReportingContext context) throws CloneNotSupportedException {
+	private ASTNode convertOperatorHackToBlock(ProblemReporter context) throws CloneNotSupportedException {
 		final LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
 		ASTNode r;
 		boolean works = true;

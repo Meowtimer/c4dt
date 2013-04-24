@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 
 public class Parenthesized extends ASTNode {
 
@@ -31,7 +31,7 @@ public class Parenthesized extends ASTNode {
 	public ASTNode innerExpression() { return innerExpr; }
 
 	@Override
-	public ASTNode optimize(final ProblemReportingContext context)
+	public ASTNode optimize(final ProblemReporter context)
 	throws CloneNotSupportedException {
 		if (!(parent() instanceof OperatorExpression) && !(parent() instanceof Sequence))
 			return innerExpr.optimize(context);

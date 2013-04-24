@@ -5,7 +5,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.NameValueAssignment;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.stringtbl.StringTbl;
 
 public class Placeholder extends ASTNode {
@@ -35,7 +35,7 @@ public class Placeholder extends ASTNode {
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		StringTbl stringTbl = context.script().localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			NameValueAssignment entry = stringTbl.map().get(entryName);

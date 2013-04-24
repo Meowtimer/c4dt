@@ -23,7 +23,7 @@ public class SelfContainedScript extends Script {
 		try {
 			parser.parse();
 			generateCaches();
-			new DabbleInference().localTypingContext(parser.script(), parser.fragmentOffset(), null).reportProblems();
+			new DabbleInference().localReporter(parser.script(), parser.fragmentOffset(), null).run();
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}

@@ -10,7 +10,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.index.Definition;
@@ -103,7 +103,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		);
 	}
 
-	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReportingContext context) {
+	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReporter context) {
 		try {
 			StyledString result = new StyledString();
 			if (foreign && element instanceof Declaration) {

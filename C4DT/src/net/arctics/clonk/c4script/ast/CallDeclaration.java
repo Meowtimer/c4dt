@@ -17,7 +17,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
@@ -131,7 +131,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	 * @param role Role mask passed to {@link SpecialEngineRules#funcRuleFor(String, int)}
 	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
 	 */
-	public final SpecialFuncRule specialRuleFromContext(ProblemReportingContext context, int role) {
+	public final SpecialFuncRule specialRuleFromContext(ProblemReporter context, int role) {
 		final Engine engine = context.script().engine();
 		if (engine != null && engine.specialRules() != null)
 			return engine.specialRules().funcRuleFor(declarationName, role);
@@ -152,7 +152,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public void setSubElements(ASTNode[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(ProblemReportingContext context, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(ProblemReporter context, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		final BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
@@ -172,7 +172,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return result;
 	}
 	@Override
-	public ASTNode optimize(ProblemReportingContext context) throws CloneNotSupportedException {
+	public ASTNode optimize(ProblemReporter context) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
 		final Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
@@ -274,7 +274,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReportingContext context) {
+	public EntityRegion entityAt(int offset, ProblemReporter context) {
 		final Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
 		return new EntityRegion(entities, new Region(start(), name().length()));
 	}
@@ -330,7 +330,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return Function.class;
 	}
 
-	public final Function function(ProblemReportingContext context) {
+	public final Function function(ProblemReporter context) {
 		return as(context.obtainDeclaration(this), Function.class);
 	}
 

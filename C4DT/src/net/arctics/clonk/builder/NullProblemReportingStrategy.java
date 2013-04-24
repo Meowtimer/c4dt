@@ -8,10 +8,10 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReportingContext;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.CachedEngineDeclarations;
@@ -27,8 +27,8 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	public void run() {}
 
 	@Override
-	public ProblemReportingContext localTypingContext(final Script script, int fragmentOffset, ProblemReportingContext chain) {
-		return new ProblemReportingContext() {
+	public ProblemReporter localReporter(final Script script, int fragmentOffset, ProblemReporter chain) {
+		return new ProblemReporter() {
 			final Markers markers = new Markers();
 			@Override
 			public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
@@ -51,7 +51,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public Object visit(Function function) { return null; }
 			@Override
-			public void reportProblems() {}
+			public void run() {}
 			@Override
 			public Markers markers() { return markers; }
 			@Override
@@ -65,9 +65,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(ASTNode node) { return true; }
 			@Override
-			public boolean triggersRevisit(Function function, Function called) { return false; }
-			@Override
-			public void setObserver(IASTVisitor<ProblemReportingContext> observer) {}
+			public void setObserver(IASTVisitor<ProblemReporter> observer) {}
 		};
 	}
 }
