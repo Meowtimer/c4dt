@@ -40,9 +40,9 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			Directives;
 		public void defaultOrdering() {
 			int i = 0;
-			Variables = ++i;
 			LocalFunction = ++i;
 			Functions = ++i;
+			Variables = ++i;
 			Definitions = ++i;
 			NewFunction = ++i;
 			Callbacks = ++i;

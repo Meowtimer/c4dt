@@ -26,19 +26,19 @@ import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
+import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
-import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Function.FunctionScope;
-import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
@@ -405,7 +405,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private void structureProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, Script editorScript, final Sequence contextSequence, final IType sequenceType, int whatToDisplayFromScripts) {
-		final List<Declaration> proposalTypes = determineProposalTypes(editorScript, contextSequence, sequenceType);
+		final Set<Declaration> proposalTypes = determineProposalTypes(editorScript, contextSequence, sequenceType);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes) {
 				proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
@@ -432,8 +432,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 	}
 
-	private List<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {
-		final List<Declaration> contextStructures = new LinkedList<Declaration>();
+	private Set<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {
+		final Set<Declaration> contextStructures = new HashSet<Declaration>();
 		if (contextSequence != null)
 			for (final IType t : sequenceType) {
 				Declaration structure;
