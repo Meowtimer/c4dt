@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4GroupStreamOpener;
@@ -32,7 +33,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
@@ -463,7 +463,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		for (final Structure s : gatheredStructures) {
 			try {
 				s.validate(markers);
-			} catch (final ParsingException e) {}
+			} catch (final ProblemException e) {}
 			if (s.requiresScriptReparse()) {
 				final Script script = Script.get(s.resource(), false);
 				if (script != null) {
@@ -484,7 +484,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (pinned != null)
 						try {
 							pinned.validate(markers);
-						} catch (final ParsingException e) {}
+						} catch (final ProblemException e) {}
 				}
 		}
 	}
@@ -517,7 +517,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parser != null)
 			try {
 				parser.parse();
-			} catch (final ParsingException e) {
+			} catch (final ProblemException e) {
 				e.printStackTrace();
 			}
 	}

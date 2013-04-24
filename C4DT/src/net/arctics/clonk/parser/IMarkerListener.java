@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.c4script.C4ScriptParser;

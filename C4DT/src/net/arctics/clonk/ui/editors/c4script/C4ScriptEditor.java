@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.C4ScriptParser;
@@ -17,7 +18,6 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.CStyleScanner;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -288,7 +288,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				reparse(true);
 				editingState().scheduleReparsing(false);
 			}
-		} catch (IOException | ParsingException e) {
+		} catch (IOException | ProblemException e) {
 			e.printStackTrace();
 		}
 		Display.getCurrent().asyncExec(new Runnable() {
@@ -324,7 +324,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return listener != null ? listener.structure() : null;
 	}
 	
-	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
 		if (script() == null)
 			return null;
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
@@ -353,7 +353,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ParsingException {
+	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ProblemException {
 		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;

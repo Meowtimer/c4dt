@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
@@ -101,9 +103,9 @@ public class Markers extends LinkedList<Marker> {
 	 * @param noThrow true means that no exception will be thrown after creating the marker.
 	 * @param severity IMarker severity value
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+	public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
 		if (!errorEnabled(code))
 			return;
 
@@ -135,23 +137,23 @@ public class Markers extends LinkedList<Marker> {
 		final String problem = code.makeErrorString(args);
 		add(new Marker(positionProvider, code, node, markerStart, markerEnd, severity, args));
 		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
-			throw new ParsingException(problem);
+			throw new ProblemException(problem);
 	}
 
 	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			marker(positionProvider, code, node, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			// won't happen
 		}
 	}
 	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion region, int flags, Object... args) {
 		warning(positionProvider, code, node, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion errorRegion, int flags, Object... args) throws ParsingException {
+	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion errorRegion, int flags, Object... args) throws ProblemException {
 		error(positionProvider, code, node, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
+	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) throws ProblemException {
 		marker(positionProvider, code, node, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 

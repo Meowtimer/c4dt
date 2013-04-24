@@ -1,16 +1,16 @@
 package net.arctics.clonk.c4script.ast;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.parser.ParsingException;
 
 public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	private static final long serialVersionUID = 1L;
 	private final MatchingPlaceholder left, right;
 	private final Operator operator;
 
-	public CombinedMatchingPlaceholder(MatchingPlaceholder left, MatchingPlaceholder right, Operator operator) throws ParsingException {
+	public CombinedMatchingPlaceholder(MatchingPlaceholder left, MatchingPlaceholder right, Operator operator) throws ProblemException {
 		super();
 		this.left = left;
 		this.right = right;

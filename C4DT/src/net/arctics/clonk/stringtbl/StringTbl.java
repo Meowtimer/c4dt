@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
@@ -17,7 +18,6 @@ import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;

@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.util.StringUtil;

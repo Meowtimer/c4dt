@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.IASTVisitor;
@@ -14,7 +15,6 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -69,7 +69,7 @@ public class ASTSearchQuery extends SearchQuery {
 		return e;
 	}
 
-	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ParsingException {
+	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ProblemException {
 		this.templateText = templateExpressionText;
 		final Engine engine = commonEngine(scope);
 		this.template = ASTNodeMatcher.matchingExpr(templateExpressionText, engine);

@@ -5,14 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -41,7 +41,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			this.reset(StreamUtil.stringFromFile(file));
 	}
 
-	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) throws ParsingException {
+	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) throws ProblemException {
 		int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
 		int rollback = tell();
 		while (skipComment());
@@ -119,11 +119,11 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	public final synchronized void parse(boolean modifyMarkers) throws ParsingException {
+	public final synchronized void parse(boolean modifyMarkers) throws ProblemException {
 		parse(modifyMarkers, true);
 	}
 
-	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) throws ParsingException {
+	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) throws ProblemException {
 		unit.startParsing();
 		try {
 			if (resetScannerWithFileContents)
@@ -148,7 +148,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ParsingException {
+	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
 		int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
 		int rollback = tell();
 		while (skipComment());
@@ -189,7 +189,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ParsingException {
+	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
 		IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
 		if (entry != null)
 			return entry;

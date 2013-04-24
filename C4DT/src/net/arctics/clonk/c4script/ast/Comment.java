@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
@@ -15,7 +16,6 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReportingContext;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.StringUtil;
 
@@ -158,7 +158,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 				}
 			};
 			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
-		} catch (final ParsingException e) {}
+		} catch (final ProblemException e) {}
 		if (locator.expressionAtRegion() != null) {
 			final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, context);
 			if (reg != null)

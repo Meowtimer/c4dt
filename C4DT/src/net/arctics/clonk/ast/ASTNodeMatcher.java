@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode.ITransformer;
 import net.arctics.clonk.c4script.ScriptsHelper;
 import net.arctics.clonk.c4script.ast.ASTComparisonDelegate;
@@ -21,7 +22,6 @@ import net.arctics.clonk.c4script.ast.Sequence;
 import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.MatchingPlaceholder.Multiplicity;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ASTNodeMatcher extends ASTComparisonDelegate {
@@ -100,7 +100,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 					if (expression.getClass() == Placeholder.class)
 						try {
 							return new MatchingPlaceholder(((Placeholder)expression));
-						} catch (final ParsingException e) {
+						} catch (final ProblemException e) {
 							e.printStackTrace();
 							return null;
 						}
@@ -113,7 +113,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 							if (mpl != null && mpr != null)
 								try {
 									return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
-								} catch (final ParsingException e) {
+								} catch (final ProblemException e) {
 									e.printStackTrace();
 									return null;
 								}
@@ -146,7 +146,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
 			return matchingExpr(ScriptsHelper.parse(statementText, engine));
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 			return null;
 		}

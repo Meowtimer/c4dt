@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
@@ -22,7 +23,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
@@ -84,9 +84,9 @@ public class EntityLocator extends ExpressionLocator<Object> {
 	 * @param doc The script document
 	 * @param region Region in the script
 	 * @throws BadLocationException
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
+	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
 		final Script script = Utilities.scriptForEditor(editor);
 		if (script == null)
 			return;

@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.MutableRegion;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
@@ -171,7 +171,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 					}
 				}
 			}
-		} catch (BadLocationException | ParsingException e) {}
+		} catch (BadLocationException | ProblemException e) {}
 		return false;
 	}
 

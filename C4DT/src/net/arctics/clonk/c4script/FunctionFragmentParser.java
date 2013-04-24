@@ -3,10 +3,10 @@ package net.arctics.clonk.c4script;
 import java.util.EnumSet;
 import java.util.LinkedList;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -63,7 +63,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 					function.storeBody(body, functionSource);
 					script().generateCaches();
 				}
-			} catch (final ParsingException pe) {}
+			} catch (final ProblemException pe) {}
 			return true;
 		} else
 			return false;

@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -56,7 +57,6 @@ import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayUtil;

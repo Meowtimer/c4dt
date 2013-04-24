@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
@@ -22,7 +23,6 @@ import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -174,7 +174,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					final C4ScriptParser parser = new C4ScriptParser(script);
 					try {
 						parser.parse();
-					} catch (final ParsingException e) {
+					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
 					for (final Directive d : script.directives())

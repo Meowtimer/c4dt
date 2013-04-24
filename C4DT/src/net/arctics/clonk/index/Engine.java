@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
@@ -42,8 +44,6 @@ import net.arctics.clonk.ini.IniData;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
@@ -414,7 +414,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					try {
 						unit.parser().parse(false);
-					} catch (ParsingException e) {
+					} catch (ProblemException e) {
 						e.printStackTrace();
 					}
 					for (IniSection section : unit.sections()) {
@@ -447,7 +447,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 							@Override
 							public void marker(Problem code,
 								int errorStart, int errorEnd, int flags,
-								int severity, Object... args) throws ParsingException {
+								int severity, Object... args) throws ProblemException {
 								if (firstMessage) {
 									firstMessage = false;
 									System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
@@ -467,7 +467,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 						};
 						try {
 							parser.parse();
-						} catch (ParsingException e) {
+						} catch (ProblemException e) {
 							e.printStackTrace();
 						}
 						postLoad((Declaration)null, (Index)null);

@@ -7,6 +7,8 @@ import org.junit.Before
 
 import net.arctics.clonk.Core
 import net.arctics.clonk.DefinitionInfo
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.TestBase
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ID;
@@ -19,8 +21,6 @@ import net.arctics.clonk.index.Index
 import net.arctics.clonk.index.Definition
 import net.arctics.clonk.parser.BufferedScanner
 import net.arctics.clonk.parser.Markers
-import net.arctics.clonk.parser.ParsingException
-import net.arctics.clonk.parser.Problem
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.c4script.ast.ASTComparisonDelegate
 import net.arctics.clonk.c4script.ast.AccessVar
@@ -96,7 +96,7 @@ public class C4ScriptParserTest extends TestBase {
 		final Setup setup = new Setup(String.format("func Test() {%s}", body.printed()))
 		try {
 			setup.parser.parse()
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace()
 		}
 		Assert.assertTrue(setup.parserMarkers.size() == 0)

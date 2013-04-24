@@ -1,8 +1,8 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 
 public interface ISelfValidatingIniEntryValue {
-	public void validate(Markers markers, ComplexIniEntry context) throws ParsingException;
+	public void validate(Markers markers, ComplexIniEntry context) throws ProblemException;
 }

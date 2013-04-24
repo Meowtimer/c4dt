@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.index.Definition;
@@ -25,7 +26,6 @@ import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.IConverter;
@@ -918,7 +918,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	public boolean performCancel() {
 		try {
 			scenarioConfiguration.parser().parse(false, true);
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 		return super.performCancel();

@@ -13,6 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
@@ -48,8 +50,6 @@ import net.arctics.clonk.ini.PlayerControlsUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -217,7 +217,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallDeclaration node, final ASTNode[] arguments, final ProblemReportingContext processor, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+		private boolean checkParm(CallDeclaration node, final ASTNode[] arguments, final ProblemReportingContext processor, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ProblemException {
 			if (parmIndex+1 >= arguments.length) {
 				if (evTracer.tracedFile == null)
 					return true;
@@ -238,7 +238,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false;
 		}
 		@Override
-		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) throws ParsingException {
+		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReportingContext processor) throws ProblemException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parentOfType(Function.class))).evaluation instanceof String) {
@@ -562,7 +562,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}, true);
 		try {
 			new C4ScriptParser(script).parse();
-		} catch (final ParsingException e) {}
+		} catch (final ProblemException e) {}
 		f = script.findLocalFunction(name, false);
 		return f;
 	}

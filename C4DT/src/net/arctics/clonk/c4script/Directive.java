@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -17,8 +19,6 @@ import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
@@ -114,7 +114,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		return result;
 	}
 
-	public void validate(C4ScriptParser parser) throws ParsingException {
+	public void validate(C4ScriptParser parser) throws ProblemException {
 		switch (type()) {
 		case APPENDTO:
 			break; // don't create error marker when appending to unknown object

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 
 import org.eclipse.jface.text.DocumentEvent;
@@ -70,7 +70,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 			structure.parser().reset(newDocumentString);
 			try {
 				structure.parser().parse(false, false);
-			} catch (final ParsingException e) {
+			} catch (final ProblemException e) {
 				e.printStackTrace();
 			}
 		}

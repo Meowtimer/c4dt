@@ -15,10 +15,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
@@ -284,7 +284,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 		}
 		try {
 			return new ASTSearchQuery(templateText.getText(), replacementText.getText(), scope);
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 			MessageDialog.openError(this.getShell(), e.parser().bufferSequence(0).toString(), e.getMessage());
 			return null;

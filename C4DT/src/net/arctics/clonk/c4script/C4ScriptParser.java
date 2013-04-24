@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.Declaration;
@@ -83,8 +85,6 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -258,9 +258,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 
 	/**
 	 * Perform a full parsing (that includes cleaning up the current state of the script container, parsing declarations and parsing function code).
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public void parse() throws ParsingException {
+	public void parse() throws ProblemException {
 		clear(true, true);
 		parseDeclarations();
 		validate();
@@ -270,12 +270,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	public void run() {
 		try {
 			parse();
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public String parseTokenAndReturnAsString() throws ParsingException {
+	public String parseTokenAndReturnAsString() throws ProblemException {
 		String s;
 		Number number;
 		if ((s = parseString()) != null)
@@ -288,7 +288,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			return String.valueOf((char)read());
 	}
 
-	public ASTNode parseNode() throws ParsingException {
+	public ASTNode parseNode() throws ProblemException {
 		ASTNode node = parseDeclaration();
 		if (node == null)
 			node = parseStatement();
@@ -314,13 +314,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (v.initializationExpression() != null && v.initializationExpression().parent() == null)
 					v.initializationExpression().setParent(v);
 		}
-		catch (final ParsingException e) { return; }
+		catch (final ProblemException e) { return; }
 		finally {
 			if (markers != null)
 				markers.deploy();
 		}
 	}
-	private void readUnexpectedBlock() throws ParsingException {
+	private void readUnexpectedBlock() throws ProblemException {
 		eatWhitespace();
 		if (!reachedEOF()) {
 			final int start = this.offset;
@@ -358,9 +358,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Parse function code. Side effects include:
 	 * 	-Errors (or things the parser thinks are errors) listed in the Problems view
 	 * 	-Types for variables inferred more or less accurately
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public void validate() throws ParsingException {
+	public void validate() throws ProblemException {
 		setCurrentDeclaration(null);
 		for (final Directive directive : script.directives())
 			directive.validate(this);
@@ -389,9 +389,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse code of one single function. {@link #validate()} calls this for all functions in the script.
 	 * @param function The function to be parsed
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private void parseFunctionBody(Function function) throws ParsingException {
+	private void parseFunctionBody(Function function) throws ProblemException {
 		final int bodyStart = this.offset;
 		if (!function.staticallyTyped())
 			function.assignType(PrimitiveType.UNKNOWN, false);
@@ -442,9 +442,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parses the declaration at the current this position.
 	 * @return whether parsing was successful
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	protected Declaration parseDeclaration() throws ParsingException {
+	protected Declaration parseDeclaration() throws ProblemException {
 		final int startOfDeclaration = this.offset;
 		Declaration result = null;
 
@@ -549,7 +549,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			this.typeAnnotation = typeAnnotation;
 			this.desc = desc;
 		}
-		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ParsingException {
+		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ProblemException {
 			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;
@@ -632,7 +632,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 	}
 
-	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ParsingException {
+	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ProblemException {
 		if (scope == null)
 			return null;
 
@@ -778,7 +778,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return typeAnnotation;
 	}
 
-	private void typeRequiredAt(int typeExpectedAt) throws ParsingException {
+	private void typeRequiredAt(int typeExpectedAt) throws ProblemException {
 		error(Problem.TypeExpected, typeExpectedAt, typeExpectedAt+1,  Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 	}
 
@@ -787,7 +787,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return new Variable(varName, scope);
 	}
 
-	private IType parseTypeAnnotation(boolean topLevel, boolean required) throws ParsingException {
+	private IType parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
 		if (topLevel)
 			parsedTypeAnnotation = null;
 		final int backtrack = this.offset;
@@ -882,9 +882,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Parse a function declaration.
 	 * @param firstWord The first word that led to the conclusion that a function declaration is up next
 	 * @return Whether parsing of the function declaration succeeded
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private Function parseFunctionDeclaration(FunctionHeader header) throws ParsingException {
+	private Function parseFunctionDeclaration(FunctionHeader header) throws ProblemException {
 		int endOfHeader;
 		eatWhitespace();
 		setCurrentFunction(null);
@@ -1017,7 +1017,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return null;
 	}
 
-	private Number parseHexNumber() throws ParsingException {
+	private Number parseHexNumber() throws ProblemException {
 		int offset = this.offset;
 		final boolean isHex = read() == '0' && read() == 'x';
 		if (!isHex) {
@@ -1054,7 +1054,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 	}
 
-	private Number parseNumber() throws ParsingException {
+	private Number parseNumber() throws ProblemException {
 		Number number;
 		final int offset = this.offset;
 		int count = 0;
@@ -1107,7 +1107,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return false;
 	}
 
-	private String parseMemberOperator() throws ParsingException {
+	private String parseMemberOperator() throws ProblemException {
 		int savedOffset = this.offset;
 		final int firstChar = read();
 		if (firstChar == '.')
@@ -1188,14 +1188,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private void warning(Problem code, int errorStart, int errorEnd, int flags, Object... args) {
 		try {
 			marker(code, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			// won't happen
 		}
 	}
 	private void warning(Problem code, IRegion region, int flags, Object... args) {
 		warning(code, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	private void error(Problem code, int errorStart, int errorEnd, int flags, Object... args) throws ParsingException {
+	private void error(Problem code, int errorStart, int errorEnd, int flags, Object... args) throws ProblemException {
 		marker(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 
@@ -1223,9 +1223,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param noThrow true means that no exception will be thrown after creating the marker.
 	 * @param severity IMarker severity value
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public void marker(Problem code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+	public void marker(Problem code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
 		markers().marker(this, code, null, markerStart, markerEnd, flags, severity, args);
 	}
 
@@ -1233,7 +1233,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return markers().todo(file(), null, todoText, markerStart, markerEnd, priority);
 	}
 
-	private void tokenExpectedError(String token) throws ParsingException {
+	private void tokenExpectedError(String token) throws ProblemException {
 		int off = this.offset;
 		while (off >= 0 && off < size && buffer[off] == '\t')
 			off--;
@@ -1254,7 +1254,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	private transient ASTNode[] _elementsReusable = new ASTNode[4];
 	private transient boolean _elementsInUse = false;
 
-	private ASTNode parseSequence(boolean reportErrors) throws ParsingException {
+	private ASTNode parseSequence(boolean reportErrors) throws ProblemException {
 		ASTNode[] _elements;
 		final boolean useReusable = !_elementsInUse;
 		if (useReusable) {
@@ -1504,11 +1504,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return result;
 	}
 
-	protected Placeholder makePlaceholder(String placeholder) throws ParsingException {
+	protected Placeholder makePlaceholder(String placeholder) throws ProblemException {
 		return new Placeholder(placeholder);
 	}
 
-	private ASTNode parsePropListExpression(boolean reportErrors, ASTNode prevElm) throws ParsingException {
+	private ASTNode parsePropListExpression(boolean reportErrors, ASTNode prevElm) throws ProblemException {
 		final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
 			final ASTNode elm = new PropListExpression(proplDec);
@@ -1517,7 +1517,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return null;
 	}
 	
-	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ParsingException {
+	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ProblemException {
 		final int propListStart = offset;
 		int c = read();
 		if (c == '{') {
@@ -1598,7 +1598,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
-	private ASTNode parseArrayExpression(boolean reportErrors, ASTNode prevElm) throws ParsingException {
+	private ASTNode parseArrayExpression(boolean reportErrors, ASTNode prevElm) throws ProblemException {
 		ASTNode elm = null;
 		int c = read();
 		if (c == '[') {
@@ -1669,7 +1669,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return elm;
 	}
 
-	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo, boolean reportErrors) throws ParsingException {
+	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo, boolean reportErrors) throws ProblemException {
 		boolean expectingComma = false;
 		int lastStart = this.offset;
 		Loop: while (!reachedEOF()) {
@@ -1708,11 +1708,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 	}
 
-	protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
+	protected ASTNode parseTupleElement(boolean reportErrors) throws ProblemException {
 		return parseExpression(reportErrors);
 	}
 
-	protected ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
+	protected ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ProblemException {
 
 		final int offset = this.offset;
 
@@ -1826,20 +1826,20 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			return new Region(offset+region.getOffset(), region.getLength());
 	}
 
-	protected ASTNode parseExpression(boolean reportErrors) throws ParsingException {
+	protected ASTNode parseExpression(boolean reportErrors) throws ProblemException {
 		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
 	}
 
-	protected ASTNode parseExpression() throws ParsingException {
+	protected ASTNode parseExpression() throws ProblemException {
 		return parseExpression(true);
 	}
 
 	/**
 	 * Parse a string literal and store it in the {@link FunctionContext#parsedString} field.
 	 * @return Whether parsing was successful.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private String parseString() throws ParsingException {
+	private String parseString() throws ProblemException {
 		final int quotes = read();
 		if (quotes != '"') {
 			unread();
@@ -1875,9 +1875,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse an identifier and store it in the {@link FunctionContext#parsedString} field.
 	 * @return Whether parsing the identifier was successful.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private String parseIdentifier() throws ParsingException {
+	private String parseIdentifier() throws ProblemException {
 		final String word = readIdent();
 		if (word != null && word.length() > 0)
 			return word;
@@ -1888,9 +1888,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a $...$ placeholder.
 	 * @return Whether there was a placeholder at the current offset.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private String parsePlaceholderString() throws ParsingException {
+	private String parsePlaceholderString() throws ProblemException {
 		if (read() != '$') {
 			unread();
 			return null;
@@ -1928,13 +1928,13 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a statement without specifying options.
 	 * @return The parsed statement or null if parsing was unsuccessful.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	protected Statement parseStatement() throws ParsingException {
+	protected Statement parseStatement() throws ProblemException {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
 
-	private Statement parseStatementWithPrependedComments() throws ParsingException {
+	private Statement parseStatementWithPrependedComments() throws ProblemException {
 		// parse comments and attach them to the statement so the comments won't be removed by code reformatting
 		final List<Comment> prependedComments = collectComments();
 		final Statement s = parseStatement();
@@ -1947,9 +1947,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Parse a statement.
 	 * @param options Options on how to parse the statement
 	 * @return The parsed statement or null if parsing was unsuccessful.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ParsingException {
+	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ProblemException {
 		int emptyLines = -1;
 		int delim;
 		for (; (delim = peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); read()) {
@@ -2061,9 +2061,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param statements List the parsed statements will be added to.
 	 * @param options Option enum set specifying how the statements are to be parsed
 	 * @param flavour Whether parsing statements or only expressions
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	protected void parseStatementBlock(int start, List<ASTNode> statements, EnumSet<ParseStatementOption> options, boolean oldStyle) throws ParsingException {
+	protected void parseStatementBlock(int start, List<ASTNode> statements, EnumSet<ParseStatementOption> options, boolean oldStyle) throws ProblemException {
 		boolean done = false;
 		int garbageStart = -1;
 		while (!reachedEOF()) {
@@ -2097,7 +2097,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			read(); // should be }
 	}
 
-	private int maybeAddGarbageStatement(List<ASTNode> statements, int garbageStart, int potentialGarbageEnd) throws ParsingException {
+	private int maybeAddGarbageStatement(List<ASTNode> statements, int garbageStart, int potentialGarbageEnd) throws ProblemException {
 		String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null && garbageString.length() > 0) {
@@ -2132,9 +2132,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Expect a certain character.
 	 * @param expected The character expected
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private void expect(char expected) throws ParsingException {
+	private void expect(char expected) throws ProblemException {
 		if (read() != expected) {
 			unread();
 			tokenExpectedError(String.valueOf(expected));
@@ -2144,9 +2144,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Expect a certain identifier at the current offset.
 	 * @param expected The identifier expected
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private void expect(String expected) throws ParsingException {
+	private void expect(String expected) throws ProblemException {
 		final String r = readIdent();
 		if (r == null || !r.equals(expected))
 			tokenExpectedError(expected);
@@ -2174,9 +2174,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * loop control flow statements (break/continue) and return.
 	 * @param keyWord The keyword that has already been parsed and decides on the kind of statement to parse.
 	 * @return The parsed KeywordStatement or null if the keyword was not recognized
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private Statement parseKeyword(String keyWord) throws ParsingException {
+	private Statement parseKeyword(String keyWord) throws ProblemException {
 		Statement result = null;
 		if (keyWord.equals(Keywords.If))
 			result = parseIf();
@@ -2201,9 +2201,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a return statement.
 	 * @return The parsed return statement
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private Statement parseReturn() throws ParsingException {
+	private Statement parseReturn() throws ProblemException {
 		Statement result;
 		eatWhitespace();
 		ASTNode returnExpr;
@@ -2223,9 +2223,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a do {...} while statement.
 	 * @return The parsed DoWhileStatement
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private DoWhileStatement parseDoWhile() throws ParsingException {
+	private DoWhileStatement parseDoWhile() throws ProblemException {
 		final Statement block = parseStatement();
 		eatWhitespace();
 		expect(Keywords.While);
@@ -2242,9 +2242,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a for statement. The result is either a {@link ForStatement} or an {@link IterateArrayStatement}.
 	 * @return The parsed for loop.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private KeywordStatement parseFor() throws ParsingException {
+	private KeywordStatement parseFor() throws ProblemException {
 		int savedOffset;
 		KeywordStatement result;
 
@@ -2361,9 +2361,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse a WhileStatement.
 	 * @return The parsed WhileStatement
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private WhileStatement parseWhile() throws ParsingException {
+	private WhileStatement parseWhile() throws ProblemException {
 		int offset;
 		WhileStatement result;
 		eatWhitespace();
@@ -2386,9 +2386,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse an IfStatement.
 	 * @return The IfStatement
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private IfStatement parseIf() throws ParsingException {
+	private IfStatement parseIf() throws ProblemException {
 		IfStatement result;
 		eatWhitespace();
 		expect('(');
@@ -2418,7 +2418,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return result;
 	}
 
-	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ParsingException {
+	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ProblemException {
 		return statement != null
 			? statement
 				: new MissingStatement(offsetWhereExpected-sectionOffset());
@@ -2427,9 +2427,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Parse an id. On successful parsing, the parsed will be stored in the parsedID field.
 	 * @return Whether parsing the id was successful. If false, one can be assured that parsedID will be null.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private ID parseID() throws ParsingException {
+	private ID parseID() throws ProblemException {
 		ID id;
 		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseId(this) : null) != null)
 			return id;
@@ -2441,9 +2441,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * Parse a parameter at the current offset.
 	 * @param function The function to create the parameter in
 	 * @return Whether parsing the parameter was successful
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	private Variable parseParameter(Function function) throws ParsingException {
+	private Variable parseParameter(Function function) throws ProblemException {
 
 		final int backtrack = this.offset;
 		eatWhitespace();
@@ -2568,14 +2568,14 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		return result;
 	}
 
-	public static ASTNode parse(final String source, Engine engine) throws ParsingException {
+	public static ASTNode parse(final String source, Engine engine) throws ProblemException {
 		return ScriptsHelper.parseStandaloneNode(source, null, null, null, engine, null);
 	}
 
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
 			return ASTNodeMatcher.matchingExpr(parse(statementText, engine));
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -2588,9 +2588,9 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param context Function context. If null, some temporary context will be created internally.
 	 * @param visitor Script parser visitor
 	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public <T> ASTNode parseStandaloneStatement(final String statementText, Function function) throws ParsingException {
+	public <T> ASTNode parseStandaloneStatement(final String statementText, Function function) throws ProblemException {
 		init(statementText);
 		setCurrentFunction(function);
 		markers().enableError(Problem.NotFinished, false);

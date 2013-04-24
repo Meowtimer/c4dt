@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.builder.ClonkBuilder;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 import org.eclipse.core.resources.IFile;
@@ -199,9 +199,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	/**
 	 * Called by the {@link ClonkBuilder} in phase 2 to give Structure files a chance to complain about things like missing functions (which ought to have been created as of now since the {@link ClonkBuilder} is in phase 2)
 	 * @param markers
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
-	public void validate(Markers markers) throws ParsingException {}
+	public void validate(Markers markers) throws ProblemException {}
 
 	@Override
 	@SuppressWarnings("unchecked")

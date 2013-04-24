@@ -1,7 +1,13 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk;
 
 import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.parser.Messages;
 
+/**
+ * Enumeration for all problems which c4dt might potentially add to the problems view.
+ * @author madeen
+ *
+ */
 public enum Problem {
 	TokenExpected(Messages.TokenExpected, Messages.ParserErrorCode_Arg_Token),
 	NotAllowedHere(Messages.NotAllowedHere, Messages.ParserErrorCode_Arg_DisallowedToken),

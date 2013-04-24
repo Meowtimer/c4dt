@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.DeclMask;
@@ -33,7 +34,6 @@ import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
@@ -421,7 +421,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public void validate(Markers markers) throws ParsingException {
+	public void validate(Markers markers) throws ProblemException {
 		// don't bother letting items complain if errors shouldn't be shown anyway (in linked groups)
 		if (C4GroupItem.groupItemBackingResource(iniFile) != null)
 			return;
@@ -507,7 +507,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 		try {
 			parser().parse(false);
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 		commit(obj);

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.IHasName;
 import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.ini.IEntryFactory;
@@ -18,7 +19,6 @@ import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
@@ -82,7 +82,7 @@ public class IniDescriptionsLoader {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
 						try {
 							unit.parser().parse(false);
-						} catch (ParsingException e) {
+						} catch (ProblemException e) {
 							e.printStackTrace();
 						}
 						IniSection section = unit.sectionWithName("Descriptions", false); //$NON-NLS-1$

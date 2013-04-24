@@ -2,9 +2,9 @@
 
 package net.arctics.clonk.landscapescript;
 
+import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4group.C4GroupItem;
-import net.arctics.clonk.parser.Problem;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

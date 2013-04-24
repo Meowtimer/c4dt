@@ -10,7 +10,6 @@ import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.Platform;
@@ -127,12 +126,12 @@ public class CLI implements IApplication {
 		}));
 		try {
 			parser.parse();
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void printAST(String fileName) throws ParsingException {
+	public void printAST(String fileName) throws ProblemException {
 		final C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override

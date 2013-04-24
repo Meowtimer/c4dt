@@ -1,12 +1,11 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.C4ScriptParser;
 
 /**
- * Exception thrown when a parsing error occurs.
+ * Exception thrown when a {@link Problem} comes up.
  */
-public class ParsingException extends Exception {
+public class ProblemException extends Exception {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -14,7 +13,7 @@ public class ParsingException extends Exception {
 	
 	public C4ScriptParser parser() { return parser; }
 	
-	public ParsingException(String msg) {
+	public ProblemException(String msg) {
 		super(msg);
 	}
 }

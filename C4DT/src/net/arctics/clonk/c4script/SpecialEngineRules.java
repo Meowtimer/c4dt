@@ -21,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
@@ -62,8 +64,6 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -253,10 +253,10 @@ public abstract class SpecialEngineRules {
 		 * @param arguments The arguments (also obtainable from callFunc)
 		 * @param processor The processor serving as processor
 		 * @return Returns false if this rule doesn't handle validation of the passed function call. Default validation will be executed.
-		 * @throws ParsingException
+		 * @throws ProblemException
 		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
-		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, ProblemReportingContext processor) throws ParsingException {
+		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, ProblemReportingContext processor) throws ProblemException {
 			return false;
 		}
 		/**
@@ -567,12 +567,12 @@ public abstract class SpecialEngineRules {
 								if (markers.errorEnabled(code))
 									try {
 										markers.marker(positionProvider, code, node, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
-									} catch (final ParsingException e1) {}
+									} catch (final ProblemException e1) {}
 								return Decision.PassThrough;
 							}
 						}
 					}, processor.script().engine(), null);
-				} catch (final ParsingException e) {
+				} catch (final ProblemException e) {
 					// that on slipped through - pretend nothing happened
 				}
 			return false; // don't stop regular parameter validating
@@ -584,7 +584,7 @@ public abstract class SpecialEngineRules {
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
 				try {
 					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, processor.script().engine(), null);
-				} catch (final ParsingException e) {}
+				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
 					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, processor);
 					if (reg != null)

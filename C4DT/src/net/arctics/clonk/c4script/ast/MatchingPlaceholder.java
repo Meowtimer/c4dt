@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -24,7 +25,6 @@ import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.StringUtil;
@@ -138,7 +138,7 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void parse(Placeholder original) throws ParsingException {
+	private void parse(Placeholder original) throws ProblemException {
 		final String matchText = original.entryName();
 		final BufferedScanner scanner = new BufferedScanner(matchText);
 		final String entry = scanner.readIdent();
@@ -252,7 +252,7 @@ public class MatchingPlaceholder extends Placeholder {
 						continue;
 					}
 				if (requiredClass == null)
-					throw new ParsingException(String.format("AST class not found: %s", className));
+					throw new ProblemException(String.format("AST class not found: %s", className));
 			}
 		}
 		this.entryName = entry;
@@ -381,7 +381,7 @@ public class MatchingPlaceholder extends Placeholder {
 
 	protected MatchingPlaceholder() { super(""); }
 	
-	public MatchingPlaceholder(Placeholder original) throws ParsingException {
+	public MatchingPlaceholder(Placeholder original) throws ProblemException {
 		super(original.entryName());
 		parse(original);
 	}

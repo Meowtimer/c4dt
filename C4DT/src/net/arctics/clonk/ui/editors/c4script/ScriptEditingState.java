@@ -13,6 +13,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
@@ -32,8 +34,6 @@ import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.Utilities;
@@ -129,7 +129,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return parser;
 	}
 	
-	private C4ScriptParser reparse(boolean onlyDeclarations) throws ParsingException {
+	private C4ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
 		cancelReparsingTimer();
 		return reparseWithDocumentContents(onlyDeclarations, document, structure(), new Runnable() {
 			@Override
@@ -146,7 +146,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		boolean onlyDeclarations, Object document,
 		final Script script,
 		Runnable uiRefreshRunnable
-	) throws ParsingException {
+	) throws ProblemException {
 		final Markers markers = new Markers();
 		markers.applyProjectSettings(script.index());
 		final C4ScriptParser parser = parserForDocument(document, script);
@@ -313,7 +313,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				if (file.exists())
 					reparseWithDocumentContents(false, file, structure, null);
 			}
-		} catch (final ParsingException e) {
+		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 		super.cleanupAfterRemoval();

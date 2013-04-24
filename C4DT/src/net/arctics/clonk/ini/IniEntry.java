@@ -1,10 +1,10 @@
 package net.arctics.clonk.ini;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.StringUtil;
 
 public class IniEntry extends NameValueAssignment implements IniItem {
@@ -26,7 +26,7 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 	}
 
 	@Override
-	public void validate(Markers markers) throws ParsingException {}
+	public void validate(Markers markers) throws ProblemException {}
 
 	@Override
 	public int sortCategory() {

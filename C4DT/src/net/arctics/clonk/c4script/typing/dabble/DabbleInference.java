@@ -17,6 +17,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Problem;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
@@ -112,8 +114,6 @@ import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.Problem;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
@@ -677,7 +677,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					endTypeEnvironment(env, true, true);
 					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
 				}
-				catch (final ParsingException e) { return null; }
+				catch (final ProblemException e) { return null; }
 				finally {
 					synchronized (_visit) {
 						if (ownedFunction)
@@ -737,7 +737,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						Markers.NO_THROW, IMarker.SEVERITY_WARNING,
 						argument, parameter.name(), callee.qualifiedName(), expected.typeName(true), got.typeName(true)
 					);
-				} catch (final ParsingException e) {}
+				} catch (final ProblemException e) {}
 			}
 		
 			@Override
@@ -751,10 +751,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						input().typing == Typing.Static ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
 						left.typeName(true), right.typeName(true)
 					);
-				} catch (final ParsingException e) {}
+				} catch (final ProblemException e) {}
 			}
 		
-			public final <T extends ASTNode> T visit(T expression, boolean recursive) throws ParsingException {
+			public final <T extends ASTNode> T visit(T expression, boolean recursive) throws ProblemException {
 				if (expression == null)
 					return null;
 				final Expert<? super T> expert = expert(expression);
@@ -838,7 +838,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					this.depth = 1;
 				}
 				@Override
-				public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
+				public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
 					if (node == null || node.parentOfType(Script.class) != origin || (inPreliminaryVisit && node.containedIn(visit.function)))
 						return;
 					else
@@ -1090,7 +1090,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return Do you just show up, play the music,
 		 */
 		public boolean skipReportingProblemsForSubElements() {return false;}
-		public void visit(T node, Visitor visitor) throws ParsingException {}
+		public void visit(T node, Visitor visitor) throws ProblemException {}
 		public IType type(T node, Visitor visitor) { return PrimitiveType.UNKNOWN; }
 		public Declaration typeEnvironmentKey(T node, Visitor visitor) { return null; }
 		public TypeVariable createTypeVariable(T node, Visitor visitor) { return null; }
@@ -1235,7 +1235,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public AccessDeclarationExpert(Class<T> cls) { super(cls); }
 		protected Declaration obtainDeclaration(T node, Visitor visitor) { return null; }
 		@Override
-		public void visit(T node, Visitor visitor) throws ParsingException {
+		public void visit(T node, Visitor visitor) throws ProblemException {
 			super.visit(node, visitor);
 			internalObtainDeclaration(node, visitor);
 		}
@@ -1368,7 +1368,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			@Override
-			public void visit(T node, Visitor visitor) throws ParsingException {
+			public void visit(T node, Visitor visitor) throws ProblemException {
 				super.visit(node, visitor);
 				final ASTNode pred = node.predecessorInSequence();
 				final Declaration declaration = node.declaration();
@@ -1524,7 +1524,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean skipReportingProblemsForSubElements() {return true;}
 			@Override
-			public void visit(ConditionalStatement node, Visitor visitor) throws ParsingException {
+			public void visit(ConditionalStatement node, Visitor visitor) throws ProblemException {
 				final ControlFlow t = visitor.controlFlow;
 				visitor.controlFlow = ControlFlow.Continue;
 				TypeEnvironment env = visitor.newTypeEnvironment();
@@ -1570,7 +1570,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (leftSide.declaration() instanceof Variable && ((Variable)leftSide.declaration()).scope() == Scope.CONST && !origin.isConstant())
 							try {
 								visitor.markers().error(visitor, Problem.NonConstGlobalVarAssignment, origin, origin, Markers.NO_THROW);
-							} catch (final ParsingException e) { }
+							} catch (final ProblemException e) { }
 					return true;
 				}
 				@Override
@@ -1624,7 +1624,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return true;
 				}
 				@Override
-				public void visit(ArrayElementExpression node, Visitor visitor) throws ParsingException {
+				public void visit(ArrayElementExpression node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					IType type = predecessorType(node, visitor);
 					if (type == null)
@@ -1660,7 +1660,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, node, 0);
 				}
 				@Override
-				public void visit(ArraySliceExpression node, Visitor visitor) throws ParsingException {
+				public void visit(ArraySliceExpression node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final IType type = predecessorType(node, visitor);
 					warnIfNotArray(node.predecessorInSequence(), visitor, type);
@@ -1697,7 +1697,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 				@Override
-				public void visit(BinaryOp node, Visitor visitor) throws ParsingException {
+				public void visit(BinaryOp node, Visitor visitor) throws ProblemException {
 					final Operator op = node.operator();
 					// sanity
 					final ASTNode left = node.leftSide();
@@ -1790,7 +1790,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public IType type(UnaryOp node, Visitor visitor) { return node.operator().returnType(); }
 				@Override
-				public void visit(UnaryOp node, Visitor visitor) throws ParsingException {
+				public void visit(UnaryOp node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final ASTNode arg = node.argument();
 					if (node.operator().modifiesArgument() && !visitor.expert(arg).isModifiable(arg, visitor))
@@ -1810,7 +1810,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public void visit(BoolLiteral node, Visitor visitor) throws ParsingException {
+				public void visit(BoolLiteral node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					if (node.parent() instanceof BinaryOp) {
 						final Operator op = ((BinaryOp) node.parent()).operator();
@@ -1822,7 +1822,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<ContinueStatement>(ContinueStatement.class) {
 				@Override
-				public void visit(ContinueStatement node, Visitor visitor) throws ParsingException {
+				public void visit(ContinueStatement node, Visitor visitor) throws ProblemException {
 					if (node.parentOfType(ILoop.class) == null)
 						visitor.markers().error(visitor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
 					supr.visit(node, visitor);
@@ -1831,7 +1831,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<BreakStatement>(BreakStatement.class) {
 				@Override
-				public void visit(BreakStatement node, Visitor visitor) throws ParsingException {
+				public void visit(BreakStatement node, Visitor visitor) throws ProblemException {
 					if (node.parentOfType(ILoop.class) == null)
 						visitor.markers().error(visitor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
 					supr.visit(node, visitor);
@@ -1839,7 +1839,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<ReturnStatement>(ReturnStatement.class) {
-				private void warnAboutTupleInReturnExpr(Visitor visitor, ASTNode node, boolean tupleIsError) throws ParsingException {
+				private void warnAboutTupleInReturnExpr(Visitor visitor, ASTNode node, boolean tupleIsError) throws ProblemException {
 					if (node == null)
 						return;
 					if (node instanceof Tuple)
@@ -1852,7 +1852,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						warnAboutTupleInReturnExpr(visitor, e, true);
 				}
 				@Override
-				public void visit(ReturnStatement node, Visitor visitor) throws ParsingException {
+				public void visit(ReturnStatement node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final ASTNode returnExpr = node.returnExpr();
 					warnAboutTupleInReturnExpr(visitor, returnExpr, false);
@@ -2042,7 +2042,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
-				public void visit(CallDeclaration node, Visitor visitor) throws ParsingException {
+				public void visit(CallDeclaration node, Visitor visitor) throws ProblemException {
 					
 					// call ty() for parameter nodes to store inferredType which is queried by initialParameterTypesFromCalls
 					for (final ASTNode e : node.params())
@@ -2161,7 +2161,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public void visit(CallInherited node, Visitor visitor) throws ParsingException {
+				public void visit(CallInherited node, Visitor visitor) throws ProblemException {
 					if (node.parentOfType(Script.class) == visitor.script()) {
 						// inherited/_inherited not allowed in non-strict mode
 						if (visitor.input().strictLevel <= 0)
@@ -2192,7 +2192,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return visitor.judgement(node.lastElement(), type, origin, mode);
 				}
 				@Override
-				public void visit(Sequence node, Visitor visitor) throws ParsingException {
+				public void visit(Sequence node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					ASTNode p = null;
 					for (final ASTNode e : node.subElements()) {
@@ -2231,7 +2231,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return PrimitiveType.UNKNOWN;
 				}
 				@Override
-				public void visit(Nil node, Visitor visitor) throws ParsingException {
+				public void visit(Nil node, Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsNil)
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, visitor.script().engine().name());
 				}
@@ -2241,7 +2241,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public IType type(StringLiteral node, Visitor visitor) { return PrimitiveType.STRING; }
 				@Override
-				public void visit(StringLiteral node, Visitor visitor) throws ParsingException {
+				public void visit(StringLiteral node, Visitor visitor) throws ProblemException {
 					// warn about overly long strings
 					final long max = visitor.script().index().engine().settings().maxStringLen;
 					final String lit = node.literal();
@@ -2282,7 +2282,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new LiteralExpert<FloatLiteral>(FloatLiteral.class) {
 				@Override
-				public void visit(FloatLiteral node, Visitor visitor) throws ParsingException {
+				public void visit(FloatLiteral node, Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsFloats)
 						visitor.markers().error(visitor, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
 					supr.visit(node, visitor);
@@ -2315,7 +2315,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return PrimitiveType.ANY;
 				}
 				@Override
-				public void visit(CallExpr node, Visitor visitor) throws ParsingException {
+				public void visit(CallExpr node, Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsFunctionRefs)
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
 					else {
@@ -2342,7 +2342,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().warning(visitor, Problem.NoSideEffects, node, node, 0);
 				}
 				@Override
-				public void visit(Statement node, Visitor visitor) throws ParsingException {
+				public void visit(Statement node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					warnIfNoSideEffects(node, visitor);
 					if (visitor.controlFlow != ControlFlow.Continue)
@@ -2352,7 +2352,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<VarDeclarationStatement>(VarDeclarationStatement.class) {
 				@Override
-				public void visit(VarDeclarationStatement node, Visitor visitor) throws ParsingException {
+				public void visit(VarDeclarationStatement node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					for (final VarInitialization initialization : node.variableInitializations())
 						if (initialization.variable != null)
@@ -2384,7 +2384,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return node.definedDeclaration();
 				}
 				@Override
-				public void visit(PropListExpression node, Visitor visitor) throws ParsingException {
+				public void visit(PropListExpression node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					if (!visitor.script().engine().settings().supportsProplists)
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW,
@@ -2425,7 +2425,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return p != null ? visitor.expert(p).judgement(p, type, origin, visitor, mode) : false;
 				}
 				@Override
-				public void visit(MemberOperator node, Visitor visitor) throws ParsingException {
+				public void visit(MemberOperator node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final ASTNode pred = node.predecessorInSequence();
 					final EngineSettings settings = visitor.script().engine().settings();
@@ -2452,7 +2452,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
-				public void visit(IterateArrayStatement node, Visitor visitor) throws ParsingException {
+				public void visit(IterateArrayStatement node, Visitor visitor) throws ProblemException {
 					final ControlFlow t = visitor.controlFlow;
 					visitor.controlFlow = ControlFlow.Continue;
 					Variable loopVariable;
@@ -2494,7 +2494,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<SimpleStatement>(SimpleStatement.class) {
 				@Override
-				public void visit(SimpleStatement node, Visitor visitor) throws ParsingException {
+				public void visit(SimpleStatement node, Visitor visitor) throws ProblemException {
 					final BinaryOp op = as(node.expression(), BinaryOp.class);
 					if (op != null && !op.operator().modifiesArgument())
 						visitor.markers().warning(visitor, Problem.NoAssignment, node, op, 0);
@@ -2504,7 +2504,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ConditionalStatementExpert<IfStatement>(IfStatement.class) {
 				@Override
-				public void visit(IfStatement node, Visitor visitor) throws ParsingException {
+				public void visit(IfStatement node, Visitor visitor) throws ProblemException {
 					final ControlFlow old = visitor.controlFlow;
 					final ASTNode condition = node.condition();
 					visitor.visit(condition, true);
@@ -2536,7 +2536,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ConditionalStatementExpert<ForStatement>(ForStatement.class) {
 				@Override
-				public void visit(ForStatement node, Visitor visitor) throws ParsingException {
+				public void visit(ForStatement node, Visitor visitor) throws ProblemException {
 					if (node.initializer() != null)
 						visitor.visit(node.initializer(), true);
 					super.visit(node, visitor);
@@ -2549,35 +2549,35 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<NewProplist>(NewProplist.class) {
 				@Override
-				public void visit(NewProplist node, Visitor visitor) throws ParsingException {
+				public void visit(NewProplist node, Visitor visitor) throws ProblemException {
 					node.definedDeclaration().setPrototype(as(visitor.ty(node.prototype()), ProplistDeclaration.class));
 				}
 			},
 
 			new Expert<Placeholder>(Placeholder.class) {
 				@Override
-				public void visit(Placeholder node, Visitor visitor) throws ParsingException {
+				public void visit(Placeholder node, Visitor visitor) throws ProblemException {
 					StringTbl.reportMissingStringTblEntries(visitor, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
 			new Expert<MissingStatement>(MissingStatement.class) {
 				@Override
-				public void visit(MissingStatement node, Visitor visitor) throws ParsingException {
+				public void visit(MissingStatement node, Visitor visitor) throws ProblemException {
 					visitor.markers().error(visitor, Problem.MissingStatement, node, node, Markers.NO_THROW);
 				}
 			},
 
 			new Expert<GarbageStatement>(GarbageStatement.class) {
 				@Override
-				public void visit(GarbageStatement node, Visitor visitor) throws ParsingException {
+				public void visit(GarbageStatement node, Visitor visitor) throws ProblemException {
 					visitor.markers().error(visitor, Problem.Garbage, node, node, Markers.NO_THROW, node.garbage());
 				}
 			},
 
 			new Expert<FunctionDescription>(FunctionDescription.class) {
 				@Override
-				public void visit(FunctionDescription node, Visitor visitor) throws ParsingException {
+				public void visit(FunctionDescription node, Visitor visitor) throws ProblemException {
 					if (visitor.input().hasAppendTo)
 						return;
 					int off = 1;
@@ -2596,7 +2596,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Comment>(Comment.class) {
 				@Override
-				public void visit(Comment node, Visitor visitor) throws ParsingException {
+				public void visit(Comment node, Visitor visitor) throws ProblemException {
 					if (node.parentOfType(Script.class) == visitor.script()) {
 						final String s = node.text();
 						int markerPriority;
@@ -2629,7 +2629,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return visitor.ty(node.expression());
 				}
 				@Override
-				public void visit(Unfinished node, Visitor visitor) throws ParsingException {
+				public void visit(Unfinished node, Visitor visitor) throws ProblemException {
 					visitor.markers().error(visitor, Problem.NotFinished, node, node, Markers.NO_THROW, node);
 				}
 			}

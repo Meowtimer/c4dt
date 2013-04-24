@@ -8,10 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -109,7 +109,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 														final C4ScriptParser parser = new C4ScriptParser(file, script);
 														try {
 															parser.parse();
-														} catch (ParsingException e1) {
+														} catch (ProblemException e1) {
 															e1.printStackTrace();
 														}
 														Core.instance().performActionsOnFileDocument(file, new IDocumentAction<Void>() {

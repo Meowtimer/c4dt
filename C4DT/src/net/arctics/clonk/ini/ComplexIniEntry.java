@@ -3,9 +3,9 @@ package net.arctics.clonk.ini;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -91,7 +91,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 
 	@Override
-	public void validate(Markers markers) throws ParsingException {
+	public void validate(Markers markers) throws ProblemException {
 		if (extendedValue() instanceof ISelfValidatingIniEntryValue)
 			((ISelfValidatingIniEntryValue)extendedValue()).validate(markers, this);
 	}

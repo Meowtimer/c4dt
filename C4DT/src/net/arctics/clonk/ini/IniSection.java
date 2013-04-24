@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -148,7 +148,7 @@ public class IniSection
 	}
 
 	@Override
-	public void validate(Markers markers) throws ParsingException {
+	public void validate(Markers markers) throws ProblemException {
 		for (final IniItem e : this)
 			e.validate(markers);
 	}

@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
@@ -8,7 +9,6 @@ import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.IMarkerListener;
-import net.arctics.clonk.parser.ParsingException;
 
 public class ScriptsHelper {
 	/**
@@ -18,7 +18,7 @@ public class ScriptsHelper {
 	 * @param visitor Script parser visitor
 	 * @param markerListener Marker visitor
 	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
-	 * @throws ParsingException
+	 * @throws ProblemException
 	 */
 	public static <T> ASTNode parseStandaloneNode(
 		final String source,
@@ -27,7 +27,7 @@ public class ScriptsHelper {
 		final IMarkerListener markerListener,
 		Engine engine,
 		T context
-	) throws ParsingException {
+	) throws ProblemException {
 		if (function == null) {
 			final Script tempScript = new TempScript(source, engine);
 			function = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
@@ -38,7 +38,7 @@ public class ScriptsHelper {
 			@Override
 			public int sectionOffset() { return 0; }
 			@Override
-			protected ASTNode parseTupleElement(boolean reportErrors) throws ParsingException {
+			protected ASTNode parseTupleElement(boolean reportErrors) throws ProblemException {
 				final Statement s = parseStatement();
 				if (s instanceof SimpleStatement)
 					return ((SimpleStatement)s).expression();
@@ -54,7 +54,7 @@ public class ScriptsHelper {
 			result.traverse(visitor, context);
 		return result;
 	}
-	public static ASTNode parse(final String source, Engine engine) throws ParsingException {
+	public static ASTNode parse(final String source, Engine engine) throws ProblemException {
 		return ScriptsHelper.parseStandaloneNode(source, null, null, null, engine, null);
 	}
 }
