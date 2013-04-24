@@ -270,7 +270,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				state = State.UNDETERMINED;
 			}
 			
-			void assignExperts() {
+			void prepare() {
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
 				function.body().traverse(new IASTVisitor<Void>() {
@@ -577,7 +577,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void startVisit(Visit _visit) {
 				visit = _visit;
 				_visit.visitor = this;
-				_visit.assignExperts();
+				_visit.prepare();
 				_visit.delayedVisits.clear();
 			}
 			
@@ -634,15 +634,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final IType[] types = visit.inferredTypes;
 					@Override
 					public TraversalContinuation visitNode(ASTNode node, Visitor context) {
-						if (node instanceof CallDeclaration && node.predecessorInSequence() != null) {
+						final ASTNode pred = node.predecessorInSequence();
+						if (node instanceof CallDeclaration && pred != null) {
 							final CallDeclaration cd = (CallDeclaration) node;
-							final IType predTy = types[node.predecessorInSequence().localIdentifier()];
+							final IType predTy = types[pred.localIdentifier()];
 							if (predTy instanceof CallTargetType) {
 								IType unified = null;
 								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
 									unified = unify(unified, f.script());
 								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
-									judgement(node.predecessorInSequence(), unified, TypingJudgementMode.UNIFY);
+									judgement(pred, unified, TypingJudgementMode.UNIFY);
 							}
 						}
 						return TraversalContinuation.Continue;
@@ -1507,6 +1508,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (r != null)
 					return r;
 				final Declaration d = node.declaration();
+				visitFunctionsContainingAssignmentToVariable(node, visitor, d);
+				return super.findTypeVariable(node, visitor);
+			}
+			
+			private void visitFunctionsContainingAssignmentToVariable(T node, Visitor visitor, final Declaration d) {
 				if (
 					d != null && d.parent() == visitor.script() &&
 					!(node.parent() instanceof BinaryOp && ((BinaryOp)node.parent()).operator().isAssignment())
@@ -1516,11 +1522,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final AccessVar ref : references)
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-									visitor.visit(ref.parentOfType(Function.class), visitor, false);
+									visitor.delegateFunctionVisit(ref.parentOfType(Function.class), visitor.script(), true, true);
 									break;
 								}
 				}
-				return super.findTypeVariable(node, visitor);
 			}
 
 			@Override

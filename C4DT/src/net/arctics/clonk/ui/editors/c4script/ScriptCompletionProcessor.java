@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -38,6 +39,7 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -420,14 +422,14 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
-		/*for (final Index x : index.relevantIndexes())
+		for (final Index x : index.relevantIndexes())
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function)
 					proposalForFunc((Function) d, prefix, offset, proposals, d.script().name(), true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar((Variable)d, prefix, offset, proposals);
-			}*/
+			}
 	}
 
 	private List<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {
