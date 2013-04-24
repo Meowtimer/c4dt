@@ -378,8 +378,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					
 					final IType[][] types = new IType[calls.size()][parameterTypes.length];
 					final Visitor[] visitors = new Visitor[calls.size()];
-					if (function.name().equals("Prepare"))
-						System.out.println("here");
 					gatherCallTypes(function, baseFunction, parameterTypes, calls, types, visitors);
 		
 					for (int pa = 0; pa < parameterTypes.length; pa++) {
@@ -412,10 +410,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (concreteTy == null)
 								continue;
 							final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
-							if (unified == null) {
-								System.out.println(String.format("%s <~> %s", result.typeName(true), concreteTy.typeName(true)));
+							if (unified == null)
 								discord++;
-							}
 							else
 								result = unified;
 						}
@@ -596,86 +592,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final List<Variable> parameters = function.parameters();
 				final Function baseFunction = function.baseFunction();
 				
-				if (funScript != input().script)
+				if (!ownedFunction)
 					startRoaming();
 				startVisit(_visit);
 				try {
 					final TypeEnvironment env = newTypeEnvironment();
 					{
 						env.add(_visit);
-						if (!ownedFunction)
-							for (final Variable l : function.locals()) {
-								final AccessVar av = AccessVar.temp(l, function.body());
-								final TypeVariable ti = expert(av).requestTypeVariable(av, this);
-								if (ti != null)
-									ti.set(PrimitiveType.UNKNOWN);
-							}
-						
-						boolean typeFromCalls;
-						if (!inPreliminaryVisit()) {
-							typeFromCalls =
-								input().typing == Typing.ParametersOptionallyTyped &&
-								input().script instanceof Definition &&
-								ownedFunction && function.numParameters() > 0 &&
-								!assignDefaultParmTypesToFunction(function) &&
-								(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
-							function.setTypeFromCallsHint(typeFromCalls);
-						} else
-							typeFromCalls = false;
-		
-						// create type variables for parameters
-						final TypeVariable[] callTypes = new TypeVariable[parameters.size()];
-						for (int i = 0; i < callTypes.length; i++) {
-							final Variable p = function.parameter(i);
-							final TypeVariable tyvar = new VariableTypeVariable(p);
-							tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
-							typeEnvironment.add(tyvar);
-							callTypes[i] = tyvar;
-						}
-		
-						if (typeFromCalls) {
-							// when taking parameter types from calls to the function visit the function body preliminarily
-							// before visiting the functions the calls are in.
-							// Merge insights about types from visiting the body with the types of concrete parameters.
-							// This way, the functions calling this function - which also call visit - also will have
-							// some preliminary return type for this function.
-							// Also, merging call types with how the parameter is actually used inside the body improves
-							// the chance of correctly deciding which kind of parameters are the 'right' ones to pass to the function.
-							if (DEBUG)
-								System.out.println(String.format("%s: Preliminary visit", toString()));
-							inPreliminaryVisit = true;
-							startRoaming();
-							{
-								final ControlFlow old = controlFlow;
-								controlFlow = ControlFlow.Continue;
-								for (final ASTNode s : statements)
-									visit(s, true);
-								controlFlow = old;
-							}
-							endRoaming();
-							inPreliminaryVisit = false;
-							function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
+						createFunctionLocalsTypeVariables(function);
+						final TypeVariable[] callTypes = createParameterTypeVariables(function, parameters);
+						if (determineTypingFromCalls(function, ownedFunction)) {
+							preliminaryVisit(function, statements);
 							initialParameterTypesFromCalls(function, baseFunction, callTypes);
-						} else
-							if (DEBUG)
-								System.out.println(String.format("%s: Not typing from calls", function.qualifiedName(script())));
-						if (ownedFunction)
-							for (int i = 0; i < callTypes.length; i++)
-								callTypes[i].apply(false);
-						final ControlFlow old = controlFlow;
-						controlFlow = ControlFlow.Continue;
-						for (final ASTNode s : statements)
-							visit(s, true);
-						controlFlow = old;
-						
-						for (final Visit.Delayed d : visit.delayedVisits)
-							delegateFunctionVisit(d.function, d.script, false, true);
-						visit.delayedVisits.clear();
+						}
+						actualVisit(ownedFunction, statements, callTypes);
+						delayedVisits();
 					}
 					if (ownedFunction)
 						env.apply(false);
 					endTypeEnvironment(env, true, true);
-					warnAboutPossibleProblemsWithFunctionLocalVariables(function, statements);
+					unusedWarnings(function, statements);
 				}
 				catch (final ProblemException e) { return null; }
 				finally {
@@ -685,10 +621,87 @@ public class DabbleInference extends ProblemReportingStrategy {
 						endVisit(_visit);
 					}
 					visit = oldVisitee;
-					if (funScript != input().script)
+					if (!ownedFunction)
 						endRoaming();
 				}
 				return _visit;
+			}
+
+			private boolean determineTypingFromCalls(final Function function, final boolean ownedFunction) {
+				if (!inPreliminaryVisit()) {
+					final boolean typeFromCalls =
+						input().typing == Typing.ParametersOptionallyTyped &&
+						input().script instanceof Definition &&
+						ownedFunction && function.numParameters() > 0 &&
+						!assignDefaultParmTypesToFunction(function) &&
+						(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
+					function.setTypeFromCallsHint(typeFromCalls);
+					return typeFromCalls;
+				} else
+					return false;
+			}
+
+			private void createFunctionLocalsTypeVariables(final Function function) {
+				for (final Variable l : function.locals()) {
+					final AccessVar av = AccessVar.temp(l, function.body());
+					final TypeVariable ti = expert(av).requestTypeVariable(av, this);
+					if (ti != null)
+						ti.set(PrimitiveType.UNKNOWN);
+				}
+			}
+
+			private TypeVariable[] createParameterTypeVariables(final Function function, final List<Variable> parameters) {
+				// create type variables for parameters
+				final TypeVariable[] callTypes = new TypeVariable[parameters.size()];
+				for (int i = 0; i < callTypes.length; i++) {
+					final Variable p = function.parameter(i);
+					final TypeVariable tyvar = new VariableTypeVariable(p);
+					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
+					typeEnvironment.add(tyvar);
+					callTypes[i] = tyvar;
+				}
+				return callTypes;
+			}
+
+			private void delayedVisits() {
+				for (final Visit.Delayed d : visit.delayedVisits)
+					delegateFunctionVisit(d.function, d.script, false, true);
+				visit.delayedVisits.clear();
+			}
+
+			private void actualVisit(final boolean ownedFunction, final ASTNode[] statements, final TypeVariable[] callTypes) throws ProblemException {
+				if (ownedFunction)
+					for (int i = 0; i < callTypes.length; i++)
+						callTypes[i].apply(false);
+				final ControlFlow old = controlFlow;
+				controlFlow = ControlFlow.Continue;
+				for (final ASTNode s : statements)
+					visit(s, true);
+				controlFlow = old;
+			}
+
+			private void preliminaryVisit(final Function function, final ASTNode[] statements) throws ProblemException {
+				// when taking parameter types from calls to the function visit the function body preliminarily
+				// before visiting the functions the calls are in.
+				// Merge insights about types from visiting the body with the types of concrete parameters.
+				// This way, the functions calling this function - which also call visit - also will have
+				// some preliminary return type for this function.
+				// Also, merging call types with how the parameter is actually used inside the body improves
+				// the chance of correctly deciding which kind of parameters are the 'right' ones to pass to the function.
+				if (DEBUG)
+					System.out.println(String.format("%s: Preliminary visit", toString()));
+				inPreliminaryVisit = true;
+				startRoaming();
+				{
+					final ControlFlow old = controlFlow;
+					controlFlow = ControlFlow.Continue;
+					for (final ASTNode s : statements)
+						visit(s, true);
+					controlFlow = old;
+				}
+				endRoaming();
+				inPreliminaryVisit = false;
+				function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
 			}
 
 			private void endVisit(Visit _visit) {
@@ -809,7 +822,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			 * @param func The function the block belongs to.
 			 * @param block The {@link Block}
 			 */
-			public void warnAboutPossibleProblemsWithFunctionLocalVariables(Function func, ASTNode[] statements) {
+			public void unusedWarnings(Function func, ASTNode[] statements) {
 				if (func == null)
 					return;
 				if (UNUSEDPARMWARNING)
