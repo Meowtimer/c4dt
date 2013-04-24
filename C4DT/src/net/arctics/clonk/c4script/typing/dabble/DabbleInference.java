@@ -235,20 +235,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 */
 	protected final class Input {
 		
-		class DelayedVisit {
-			final Function function;
-			final Script script;
-			final boolean allowThis;
-			final boolean allowWait;
-			public DelayedVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
-				super();
-				this.function = function;
-				this.script = script;
-				this.allowThis = allowThis;
-				this.allowWait = allowWait;
-			}
-		}
-		
 		/**
 		 * Type variable for the return type of a function that was visited.
 		 * {@link FunctionReturnTypeVariable}s are pre-created ({@link Input#makePlan()}) and determined (set to state {@link State#FINISHED}) in a not quite deterministic order.
@@ -262,15 +248,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 			IType[] inferredTypes;
 			Expert<?>[] experts;
 			
-			final LinkedList<DelayedVisit> delayedVisits = new LinkedList<>();
-			
-			public void state(State state) {
-				this.state = state;
+			class Delayed {
+				final Function function;
+				final Script script;
+				public Delayed(Function function, Script script) {
+					super();
+					this.function = function;
+					this.script = script;
+				}
+				@Override
+				public String toString() { return function.qualifiedName(script); }
 			}
+			
+			final LinkedList<Delayed> delayedVisits = new LinkedList<>();
+			
+			public void state(State state) { this.state = state; }
+			
 			public Visit(Function function) {
 				super(function);
 				state = State.UNDETERMINED;
 			}
+			
 			void assignExperts() {
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
@@ -365,115 +363,142 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean triggersRevisit(Function function, Function called) { return called.typeFromCallsHint(); }
 		
+			private void delayVisit(Function function, Script script) {
+				if (visit == null)
+					return;
+				for (final Visit.Delayed d : visit.delayedVisits)
+					if (function == d.function && script == d.script)
+						return;
+				visit.delayedVisits.add(visit.new Delayed(function, script));
+			}
+			
 			private void initialParameterTypesFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes) {
 				final List<CallDeclaration> calls = input().index.callsTo(function.name());
 				if (calls != null) {
 					
 					final IType[][] types = new IType[calls.size()][parameterTypes.length];
 					final Visitor[] visitors = new Visitor[calls.size()];
-					for (int ci = 0; ci < calls.size(); ci++) {
-						final CallDeclaration call = calls.get(ci);
-						Function ref = as(call.declaration(), Function.class);
-						// not related - short circuit skip
-						//if (ref != null && ref.baseFunction() != null && ref.baseFunction().latestVersion() != baseFunction)
-						//	continue;
-						final Function f = call.parentOfType(Function.class);
-						final Script other = f.parentOfType(Script.class);
-						final Visit fVisit = delegateFunctionVisit(f, other, false, true);
-						final Visitor visitor = visitors[ci] = fVisit != null ? fVisit.visitor : null;
-						ref = as(call.declaration(), Function.class);
-						if (ref != null) {
-							ref = ref.baseFunction();
-							if (ref != null)
-								ref = (Function)ref.latestVersion();
-							if (ref == baseFunction) {
-								final int parNum = Math.min(parameterTypes.length, call.params().length);
-								for (int pa = 0; pa < parNum; pa++)
-									if (!function.parameter(pa).staticallyTyped()) {
-										final ASTNode concretePar = call.params()[pa];
-										if (concretePar != null) {
-											script().addUsedScript(other);
-											types[ci][pa] = parType(f, other, fVisit, visitor, concretePar);
-										}
-									} else
-										System.out.println(String.format("\tSkip parameter %s", function.parameter(pa).name()));
-							}
-						}
-					}
+					if (function.name().equals("Prepare"))
+						System.out.println("here");
+					gatherCallTypes(function, baseFunction, parameterTypes, calls, types, visitors);
 		
 					for (int pa = 0; pa < parameterTypes.length; pa++) {
 						final Variable p = function.parameter(pa);
 						if (p.staticallyTyped())
 							continue;
-						IType result;
-						final boolean lenient = parameterTypes[pa].get() == PrimitiveType.UNKNOWN;
-						// if there are concrete parameter types not unifying seed the unification chain with some primitive type
-						// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
-						// not unifying with that consensus.
-						// Only seeds are considered which unify with parameter usage in the function body in the first place.
-						Seeding: {
-		
-							int leastDiscord = Integer.MAX_VALUE;
-							PrimitiveType bestSeed = null;
-							for (final PrimitiveType seed : callTypingSeeds) {
-								result = TypeUnification.unifyNoChoice(parameterTypes[pa].get(), seed);
-								if (result == null)
-									continue; // disagreement with usage inside body - ignore
-								int discord = 0;
-								for (int ci = 0; ci < calls.size(); ci++) {
-									final IType concreteTy = types[ci][pa];
-									if (concreteTy == null)
-										continue;
-									final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
-									if (unified == null)
-										discord++;
-									else
-										result = unified;
-								}
-								if (discord == 0)
-									// no disagreement - type away
-									break Seeding;
-								else if (discord < leastDiscord) {
-									bestSeed = seed;
-									leastDiscord = discord;
-								}
+						typeFromCalls(function, parameterTypes, pa, calls, types, visitors);
+					}
+				}
+			}
+			
+			private void typeFromCalls(Function function, TypeVariable[] parTyVars, int parameterIndex, List<CallDeclaration> calls, IType[][] types, Visitor[] callVisitors) {
+				IType result;
+				final boolean lenient = parTyVars[parameterIndex].get() == PrimitiveType.UNKNOWN;
+				final Variable p = function.parameter(parameterIndex);
+				// if there are concrete parameter types not unifying seed the unification chain with some primitive type
+				// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
+				// not unifying with that consensus.
+				// Only seeds are considered which unify with parameter usage in the function body in the first place.
+				Seeding: {
+					int leastDiscord = Integer.MAX_VALUE;
+					PrimitiveType bestSeed = null;
+					for (final PrimitiveType seed : callTypingSeeds) {
+						result = TypeUnification.unifyNoChoice(parTyVars[parameterIndex].get(), seed);
+						if (result == null)
+							continue; // disagreement with usage inside body - ignore
+						int discord = 0;
+						for (int ci = 0; ci < calls.size(); ci++) {
+							final IType concreteTy = types[ci][parameterIndex];
+							if (concreteTy == null)
+								continue;
+							final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+							if (unified == null) {
+								System.out.println(String.format("%s <~> %s", result.typeName(true), concreteTy.typeName(true)));
+								discord++;
 							}
-		
-							if (bestSeed != null) {
-								result = TypeUnification.unify(parameterTypes[pa].get(), bestSeed);
-								for (int ci = 0; ci < calls.size(); ci++) {
-									final IType concreteTy = types[ci][pa];
-									if (concreteTy == null)
-										continue;
-									final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
-									if (unified == null) {
-										final Visitor visitor = visitors[ci];
-										final ASTNode concretePar = calls.get(ci).params()[pa];
-										if (visitor != null && !lenient)
-											visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
-									}
-									else
-										result = unified;
-								}
-							} else if (!lenient) {
-								// no consensus at all - warnings at all call sides
-								result = parameterTypes[pa].get();
-								for (int ci = 0; ci < calls.size(); ci++) {
-									final IType concreteTy = types[ci][pa];
-									if (concreteTy == null)
-										continue;
-									final Visitor visitor = visitors[ci];
-									final ASTNode concretePar = calls.get(ci).params()[pa];
-									if (visitor != null)
-										visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
-								}
-							} else
-								result = PrimitiveType.ANY;
-		
+							else
+								result = unified;
 						}
-						if (lenient)
-							result = TypeUnification.unify(result, PrimitiveType.ANY);
-						parameterTypes[pa].set(result);
+						if (discord == 0)
+							// no disagreement - type away
+							break Seeding;
+						else if (discord < leastDiscord) {
+							bestSeed = seed;
+							leastDiscord = discord;
+						}
+					}
+
+					if (bestSeed != null) {
+						result = TypeUnification.unify(parTyVars[parameterIndex].get(), bestSeed);
+						for (int ci = 0; ci < calls.size(); ci++) {
+							final IType concreteTy = types[ci][parameterIndex];
+							if (concreteTy == null)
+								continue;
+							final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+							if (unified == null) {
+								final Visitor visitor = callVisitors[ci];
+								final ASTNode concretePar = calls.get(ci).params()[parameterIndex];
+								if (visitor != null && !lenient)
+									visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
+							}
+							else
+								result = unified;
+						}
+					} else if (!lenient) {
+						// no consensus at all - warnings at all call sides
+						result = parTyVars[parameterIndex].get();
+						for (int ci = 0; ci < calls.size(); ci++) {
+							final IType concreteTy = types[ci][parameterIndex];
+							if (concreteTy == null)
+								continue;
+							final Visitor visitor = callVisitors[ci];
+							final ASTNode concretePar = calls.get(ci).params()[parameterIndex];
+							if (visitor != null)
+								visitor.concreteArgumentMismatch(concretePar, p, function, result, concreteTy);
+						}
+					} else
+						result = PrimitiveType.ANY;
+
+				}
+				if (lenient)
+					result = TypeUnification.unify(result, PrimitiveType.ANY);
+				parTyVars[parameterIndex].set(result);
+			}
+
+			private void gatherCallTypes(
+				Function function,
+				Function baseFunction,
+				TypeVariable[] parameterTypes,
+				final List<CallDeclaration> calls,
+				final IType[][] types,
+				final Visitor[] visitors
+			) {
+				for (int ci = 0; ci < calls.size(); ci++) {
+					final CallDeclaration call = calls.get(ci);
+					Function ref = as(call.declaration(), Function.class);
+					// not related - short circuit skip
+					//if (ref != null && ref.baseFunction() != null && ref.baseFunction().latestVersion() != baseFunction)
+					//	continue;
+					final Function f = call.parentOfType(Function.class);
+					final Script other = f.parentOfType(Script.class);
+					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
+					final Visitor visitor = visitors[ci] = fVisit != null ? fVisit.visitor : null;
+					ref = as(call.declaration(), Function.class);
+					if (ref != null) {
+						ref = ref.baseFunction();
+						if (ref != null)
+							ref = (Function)ref.latestVersion();
+						if (ref == baseFunction) {
+							final int parNum = Math.min(parameterTypes.length, call.params().length);
+							for (int pa = 0; pa < parNum; pa++)
+								if (!function.parameter(pa).staticallyTyped()) {
+									final ASTNode concretePar = call.params()[pa];
+									if (concretePar != null) {
+										script().addUsedScript(other);
+										types[ci][pa] = parType(f, other, fVisit, visitor, concretePar);
+									}
+								}
+						}
 					}
 				}
 			}
@@ -493,7 +518,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (astTypes != null)
 						ty = astTypes[concretePar.localIdentifier()];
 				}
-				System.out.println(String.format("\t%s: %s", concretePar.printed(), ty != null ? ty.typeName(true) : "null"));
 				return ty;
 			}
 		
@@ -513,57 +537,68 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (function == null || function.body() == null)
 					return null;
 				
-				final Script funScript = function.script();
-				Visit returnType;
-				returnType = input().plan.get(function);
-				if (returnType != null)
-					synchronized (returnType) {
-						switch (returnType.state) {
+				Visit _visit;
+				_visit = input().plan.get(function);
+				if (_visit != null)
+					synchronized (_visit) {
+						switch (_visit.state) {
 						case FINISHED:
-							return returnType;
+							return _visit;
 						case INPROGRESS:
-							if (wait && returnType.visitor.thread() != Thread.currentThread()) {
-								if (DEBUG && originator != null && originator.visit != null)
-									System.out.println(String.format("'%s' waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script()))); //$NON-NLS-1$
-								int i;
-								for (i = 0; i < 3 && returnType.state != State.FINISHED; i++)
-									try {
-										returnType.wait(40);
-									} catch (final InterruptedException e) {}
-								if (i == 3 && originator != null && originator.visit != null)
-									System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script()))); //$NON-NLS-1$
-								else
-									return returnType;
-							}
-							return returnType;
+							if (wait && _visit.visitor.thread() != Thread.currentThread())
+								waitForEndOfVisit(function, originator, _visit);
+							return _visit;
 						case UNDETERMINED:
-							returnType.state(State.INPROGRESS);
+							_visit.state(State.INPROGRESS);
 							break;
 						}
 					}
 				else
 					return null;
 		
-				return uncheckedVisit(function, funScript, returnType);
+				return uncheckedVisit(_visit);
+			}
+
+			private void waitForEndOfVisit(Function function, Visitor originator, Visit _visit) {
+				if (DEBUG && originator != null && originator.visit != null)
+					System.out.println(String.format("'%s' waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script()))); //$NON-NLS-1$
+				int i;
+				for (i = 0; i < 3 && _visit.state != State.FINISHED; i++)
+					try {
+						_visit.wait(40);
+					} catch (final InterruptedException e) {}
+				if (i == 3 && originator != null && originator.visit != null)
+					System.out.println(String.format("'%s' gave up waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script()))); //$NON-NLS-1$
 			}
 		
-			private boolean inPreliminaryVisit() {
+			boolean inPreliminaryVisit() {
 				if (DEBUG && inPreliminaryVisit)
 					System.out.println(String.format("%s: Preliminary visit - not typing from calls", this.toString()));
 				return inPreliminaryVisit;
 			}
 			
-			public Visit uncheckedVisit(Function function, final Script funScript, Visit _visit) {
+			private void startVisit(Visit _visit) {
+				visit = _visit;
+				_visit.visitor = this;
+				_visit.assignExperts();
+				_visit.delayedVisits.clear();
+			}
+			
+			public Visit uncheckedVisit(Visit _visit) {
+				
+				final Function function = _visit.function();
+				final Script funScript = function.script();
 				if (DEBUG)
 					System.out.println(String.format("%s: Visiting %s", script().name(), function.qualifiedName(script()))); //$NON-NLS-1$
 				final Visit oldVisitee = visit;
 				final boolean ownedFunction = funScript == script();
 				final ASTNode[] statements = function.body().statements();
+				final List<Variable> parameters = function.parameters();
+				final Function baseFunction = function.baseFunction();
+				
 				if (funScript != input().script)
 					startRoaming();
-				visit = _visit;
-				_visit.visitor = this;
-				_visit.assignExperts();
+				startVisit(_visit);
 				try {
 					final TypeEnvironment env = newTypeEnvironment();
 					{
@@ -575,8 +610,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (ti != null)
 									ti.set(PrimitiveType.UNKNOWN);
 							}
-						final List<Variable> parameters = function.parameters();
-						final Function baseFunction = function.baseFunction();
+						
 						boolean typeFromCalls;
 						if (!inPreliminaryVisit()) {
 							typeFromCalls =
@@ -585,8 +619,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 								ownedFunction && function.numParameters() > 0 &&
 								!assignDefaultParmTypesToFunction(function) &&
 								(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
-							if (function.name().equals("PrepareRescues"))
-								System.out.println("bla");
 							function.setTypeFromCallsHint(typeFromCalls);
 						} else
 							typeFromCalls = false;
@@ -602,10 +634,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 		
 						if (typeFromCalls) {
-							// when taking parameter types from calls to the function visit the function body an additional time
+							// when taking parameter types from calls to the function visit the function body preliminarily
 							// before visiting the functions the calls are in.
 							// Merge insights about types from visiting the body with the types of concrete parameters.
-							// This way, the functions calling this function - which also call visitFunction - also will have
+							// This way, the functions calling this function - which also call visit - also will have
 							// some preliminary return type for this function.
 							// Also, merging call types with how the parameter is actually used inside the body improves
 							// the chance of correctly deciding which kind of parameters are the 'right' ones to pass to the function.
@@ -635,6 +667,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final ASTNode s : statements)
 							visit(s, true);
 						controlFlow = old;
+						
+						for (final Visit.Delayed d : visit.delayedVisits)
+							delegateFunctionVisit(d.function, d.script, false, true);
+						visit.delayedVisits.clear();
 					}
 					if (ownedFunction)
 						env.apply(false);
@@ -644,11 +680,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				catch (final ParsingException e) { return null; }
 				finally {
 					synchronized (_visit) {
-						if (funScript == input().script)
+						if (ownedFunction)
 							function.assignType(_visit.get(), false);
-						_visit.state(State.FINISHED);
-						_visit.visitor = null;
-						_visit.notifyAll();
+						endVisit(_visit);
 					}
 					visit = oldVisitee;
 					if (funScript != input().script)
@@ -656,7 +690,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				return _visit;
 			}
-		
+
+			private void endVisit(Visit _visit) {
+				_visit.state(State.FINISHED);
+				_visit.visitor = null;
+				_visit.notifyAll();
+			}
+
 			public final Visit delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
 				if (function.body() == null)
 					return null;
@@ -725,7 +765,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							visit(e, true);
 				controlFlow = old;
 				expert.visit(expression, this);
-				if (observer != null)
+				if (observer != null && !inPreliminaryVisit())
 					observer.visitNode(expression, this);
 				if (controlFlow == ControlFlow.Continue)
 					controlFlow = expression.controlFlow();
@@ -1904,18 +1944,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return null;
 					final ASTNode p = node.predecessorInSequence();
 					Declaration f;
-					IType predTy;
 					if (p == null) {
-						predTy = visitor.script();
 						f = visitor.input().functionMap.get(node.name());
 						if (f == null && !visitor.input().functionMap.containsKey(node.name())) {
 							f = findUsingType(visitor, node, declarationName, visitor.script());
 							visitor.input().functionMap.put(declarationName, f);
 						}
-					} else {
-						predTy = visitor.ty(p);
+					} else
 						f = findUsingType(visitor, node, declarationName, visitor.ty(p));
-					}
 					return f;
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
@@ -2040,10 +2076,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					} else if (declaration instanceof Function) {
 						final Function f = (Function)declaration;
 						
-						/*if (shared.local) {
+						if (shared.local && !visitor.inPreliminaryVisit()) {
 							final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
-							visitor.delegateFunctionVisit(f, as(predTy, Script.class), node.predecessorInSequence() == null, false);
-						}*/
+							if (predTy instanceof Script)
+								visitor.delayVisit(f, (Script)predTy);
+						}
 						
 						if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
 							visitor.script().addUsedScript(f.script());
@@ -2115,10 +2152,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Function inherited = fn.inheritedFunction();
 					if (inherited != null)
 						if (inherited.body() != null) {
-							final Visit ty = visitor.input().new Visit(inherited);
-							visitor.input().new Visitor(visitor, inherited.script()).uncheckedVisit(inherited, inherited.script(), ty);
-							visitor.judgement(node, ty.get(), TypingJudgementMode.OVERWRITE);
-							return ty.get();
+							final Visit inhv = visitor.input().new Visit(inherited);
+							visitor.input().new Visitor(visitor, inherited.script()).uncheckedVisit(inhv);
+							visitor.judgement(node, inhv.get(), TypingJudgementMode.OVERWRITE);
+							return inhv.get();
 						} else
 							return inherited.returnType();
 					return PrimitiveType.UNKNOWN;
