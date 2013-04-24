@@ -316,7 +316,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				final boolean engineCompatible = options.contains(ParameterStringOption.EngineCompatible);
 				@Override
 				public String convert(Variable par) {
-					final IType type = engineCompatible ? par.type().simpleType() : par.type();
+					final IType type = engineCompatible ?
+						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY) : par.type();
 					if (engineCompatible && !par.isActualParm())
 						return null;
 					final String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
