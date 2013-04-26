@@ -564,7 +564,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					return v;
 			}
 
-
 		final boolean knows = dictionary() == null || dictionary().contains(name);
 		boolean didUseCacheForLocalDeclarations = false;
 		if (knows) {

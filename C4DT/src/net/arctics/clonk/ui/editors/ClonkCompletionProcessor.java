@@ -24,7 +24,7 @@ import org.eclipse.ui.IFileEditorInput;
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected EditorType editor;
-	protected String prefix;
+	protected String prefix, untamperedPrefix;
 	protected Image defIcon;
 
 	protected static class CategoryOrdering {
@@ -43,10 +43,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			Directives;
 		public void defaultOrdering() {
 			int i = 0;
-			LocalFunction = ++i;
 			FunctionLocalVariables = ++i;
-			Definitions = ++i;
+			LocalFunction = ++i;
 			Functions = ++i;
+			Definitions = ++i;
 			Fields = ++i;
 			StaticVariables = ++i;
 			Constants = ++i;
@@ -171,14 +171,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
 			int bonus = 0;
-			if (prefix != null) {
+			if (untamperedPrefix != null) {
 				class Match {
 					boolean startsWith, match, local;
 					Match(ClonkCompletionProposal proposal) {
 						for (final String s : proposal.identifiers())
-							if (s.toLowerCase().startsWith(prefix)) {
+							if (s.startsWith(untamperedPrefix)) {
 								startsWith = true;
-								if (s.length() == prefix.length()) {
+								if (s.length() == untamperedPrefix.length()) {
 									match = true;
 									break;
 								}

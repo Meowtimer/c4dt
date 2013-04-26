@@ -107,7 +107,6 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private final ContentAssistant assistant;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
-	private String untamperedPrefix;
 	private ProblemReportingStrategy typingStrategy;
 	
 	private void setTypingStrategyFromScript(Script script) {
@@ -458,7 +457,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
 					continue;
 				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
-					keyword, null ,null, Messages.C4ScriptCompletionProcessor_Engine, editor());
+					keyword, null ,null, " C4Script", editor());
 				prop.setCategory(cats.Keywords);
 				proposals.add(prop);
 			}
