@@ -191,9 +191,9 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					// match wins
 					return ma.match ? -1 : +1;
 				else if (ma.startsWith != mb.startsWith)
-					bonus += (ma.startsWith ? -1 : +1) * 2000;
+					bonus += (ma.startsWith ? -1 : +1) * 1000000;
 				else if (ma.local != mb.local)
-					bonus += (ma.local ? -1 : +1) * 2000;
+					bonus += (ma.local ? -1 : +1) * 1000000;
 			}
 			int result;
 			if (cb.category() != ca.category()) {
