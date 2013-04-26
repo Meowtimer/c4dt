@@ -241,8 +241,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 		doCycle();
 
-		if (proposals.size() > 0)
+		if (proposals.size() > 0) {
+			for (final ICompletionProposal p : proposals)
+				if (p instanceof ClonkCompletionProposal)
+					System.out.println(String.format("%d: %s", ((ClonkCompletionProposal) p).category(),  p.getDisplayString()));
 			return proposals.toArray(new ICompletionProposal[proposals.size()]);
+		}
 		else
 			return null;
 	}

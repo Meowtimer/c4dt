@@ -18,7 +18,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -27,86 +26,75 @@ import org.eclipse.swt.widgets.Display;
 
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider, IColorProvider {
 	
-	public ClonkLabelProvider() {
-	}
+	public ClonkLabelProvider() {}
 	
 	@Override
 	public Image getImage(Object element) {
-		if (element instanceof IProject) {
+		if (element instanceof IProject)
 			return super.getImage(element);
-		}
 		else if (element instanceof IFile) {
-			if (element.toString().endsWith(".c")) { //$NON-NLS-1$
+			if (element.toString().endsWith(".c"))
 				return UI.SCRIPT_ICON;
-			}
-			if (element.toString().endsWith(".txt")) { //$NON-NLS-1$
+			if (element.toString().endsWith(".txt"))
 				return UI.TEXT_ICON;
-			}
-			Engine engine = ClonkProjectNature.engineFromResource((IFile)element);
-			if (engine != null) {
+			final Engine engine = ClonkProjectNature.engineFromResource((IFile)element);
+			if (engine != null)
 				if (element.toString().endsWith(engine.settings().materialExtension))
 					return engine.image("material");
-			}
 		}
 		else if (element instanceof IFolder) {
-			IFolder folder = (IFolder)element;
-			Engine engine = ClonkProjectNature.engineFromResource(folder);
-			if (engine != null) {
+			final IFolder folder = (IFolder)element;
+			final Engine engine = ClonkProjectNature.engineFromResource(folder);
+			if (engine != null)
 				return engine.image(engine.groupTypeForFileName(folder.getName()));
-			}
 		}
 		return UI.iconFor(element);
 	}
 
 	@Override
 	public String getText(Object element) {
-		if (element instanceof IProject) {
+		if (element instanceof IProject)
 			return ((IProject)element).getName();
-		}
-		else if (element instanceof IFile) {
+		else if (element instanceof IFile)
 			return ((IFile)element).getName();
-		}
 		return super.getText(element);
 	}
 
 	public static String stringWithoutExtension(String s) {
 		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
-			IFolder folder = (IFolder)element;
-			GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
-			if (groupType == GroupType.DefinitionGroup) {
+			final IFolder folder = (IFolder)element;
+			final GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
+			if (groupType == GroupType.DefinitionGroup)
 				// add [C4ID] to .c4d folders
 				try {
-					String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
+					final String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
 					return getIDText(folder.getName(), c4id, false);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
-			}
 			if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
 			return new StyledString(((IFolder)element).getName());
 		}
-		else if (element instanceof IResource) {
+		else if (element instanceof IResource)
 			return new StyledString(((IResource)element).getName());
-		}
 		else if (element instanceof Definition) {
-			Definition obj = (Definition) element;
-			String c4id = obj.id().toString();
+			final Definition obj = (Definition) element;
+			final String c4id = obj.id().toString();
 			return getIDText(obj.nodeName(), c4id, true);
 		}
-		else if (element instanceof INode) {
+		else if (element instanceof INode)
 			return new StyledString(element.toString(), StyledString.COUNTER_STYLER);
-		}
 		return new StyledString(element.toString());
 	}
 
 	private StyledString getIDText(String baseName, String id, boolean virtual) {
-		StyledString buf = new StyledString();
+		final StyledString buf = new StyledString();
 		if (virtual)
 			buf.append(stringWithoutExtension(baseName), StyledString.COUNTER_STYLER);
 		else
@@ -120,23 +108,21 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	protected static ImageDescriptor[][] computeOverlays(Object element) {
-		ImageDescriptor[][] result = new ImageDescriptor[4][1];
+		final ImageDescriptor[][] result = new ImageDescriptor[4][1];
 		if (element instanceof IResource) {
-			IResource res = (IResource)element;
+			final IResource res = (IResource)element;
 			try {
-				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-				if (markers.length > 0) {
-					for(IMarker marker : markers) {
+				final IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+				if (markers.length > 0)
+					for(final IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
 							result[2][0] = UI.imageDescriptorForPath("icons/error_co.gif"); //$NON-NLS-1$
 							break;
 						}
-						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
+						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING)
 							result[2][0] = UI.imageDescriptorForPath("icons/warning_co.gif"); //$NON-NLS-1$
-						}
 					}
-				}
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -144,27 +130,19 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return result;
 	}
 	
-	public void testRefresh() {
-		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
-	}
-
 	@Override
-	public Color getForeground(Object element) {
-		return null;
-	}
+	public Color getForeground(Object element) { return null; }
 
 	@Override
 	public Color getBackground(Object element) {
 		try {
-			if (element instanceof IResource) {
+			if (element instanceof IResource)
 				for (IResource resource = (IResource)element; resource != null; resource = resource.getParent()) {
-					RGB rgb = ColorTagging.rgbForResource(resource);
+					final RGB rgb = ColorTagging.rgbForResource(resource);
 					if (rgb != null)
 						return new Color(Display.getCurrent(), rgb);
 				}
-			}
-		} catch (Exception e) {
-		}
+		} catch (final Exception e) {}
 		return null;
 	}
 	

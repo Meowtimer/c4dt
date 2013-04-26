@@ -29,10 +29,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 	protected static class CategoryOrdering {
 		public int
-			Variables,
+			FunctionLocalVariables,
+			Constants,
+			StaticVariables,
 			Keywords,
 			LocalFunction,
 			Functions,
+			Fields,
 			Definitions,
 			NewFunction,
 			Callbacks,
@@ -41,9 +44,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		public void defaultOrdering() {
 			int i = 0;
 			LocalFunction = ++i;
-			Functions = ++i;
-			Variables = ++i;
+			FunctionLocalVariables = ++i;
 			Definitions = ++i;
+			Functions = ++i;
+			Fields = ++i;
+			StaticVariables = ++i;
+			Constants = ++i;
 			NewFunction = ++i;
 			Callbacks = ++i;
 			EffectCallbacks = ++i;
@@ -86,7 +92,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			final int replacementLength = prefix != null ? prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, " - " + def.id().stringValue(), editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (final Exception e) {}
@@ -136,7 +142,22 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
 			editor()
 		);
-		prop.setCategory(cats.Variables);
+		switch (var.scope()) {
+		case CONST:
+			prop.setCategory(cats.Constants);
+			break;
+		case VAR: case PARAMETER:
+			prop.setCategory(cats.FunctionLocalVariables);
+			break;
+		case STATIC:
+			prop.setCategory(cats.StaticVariables);
+			break;
+		case LOCAL:
+			prop.setCategory(cats.Fields);
+			break;
+		default:
+			break;
+		}
 		proposals.add(prop);
 		return prop;
 	}
@@ -149,6 +170,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
 		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
+			int bonus = 0;
 			if (prefix != null) {
 				class Match {
 					boolean startsWith, match, local;
@@ -166,24 +188,28 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				}
 				final Match ma = new Match(ca), mb = new Match(cb);
 				if (ma.match != mb.match)
+					// match wins
 					return ma.match ? -1 : +1;
 				else if (ma.startsWith != mb.startsWith)
-					return ma.startsWith ? -1 : +1;
+					bonus += (ma.startsWith ? -1 : +1) * 2000;
 				else if (ma.local != mb.local)
-					return ma.local ? -1 : +1;
+					bonus += (ma.local ? -1 : +1) * 2000;
 			}
+			int result;
 			if (cb.category() != ca.category()) {
 				final int diff = Math.abs(cb.category()-ca.category()) * 1000;
-				return cb.category() > ca.category() ? -diff : +diff;
+				result = cb.category() > ca.category() ? -diff : +diff;
+			} else {
+				final String idA = ca.primaryComparisonIdentifier();
+				final String idB = cb.primaryComparisonIdentifier();
+				final boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
+				final boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
+				if (bracketStartA != bracketStartB)
+					result = bracketStartA ? +1 : -1;
+				else
+					result = idA.compareToIgnoreCase(idB);
 			}
-			final String idA = ca.primaryComparisonIdentifier();
-			final String idB = cb.primaryComparisonIdentifier();
-			final boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
-			final boolean bracketStartB = idB.startsWith("["); //$NON-NLS-1$
-			if (bracketStartA != bracketStartB)
-				return bracketStartA ? +1 : -1;
-			else
-				return idA.compareToIgnoreCase(idB);
+			return bonus + result;
 		}
 		return 1;
 	}
