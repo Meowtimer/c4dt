@@ -88,11 +88,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
-			final String displayString = def.name();
+			final String displayString = def.id().stringValue();
 			final int replacementLength = prefix != null ? prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, " - " + def.name(), editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (final Exception e) {}

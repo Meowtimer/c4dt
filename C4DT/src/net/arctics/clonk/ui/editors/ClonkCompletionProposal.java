@@ -2,12 +2,11 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.util.regex.Pattern;
-
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
+import net.arctics.clonk.parser.BufferedScanner;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -144,7 +143,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 				document.replace(replacementOffset, replacementLength, replacementString);
 			if (editor != null)
 				editor.completionProposalApplied(this);
-		} catch (BadLocationException x) {
+		} catch (final BadLocationException x) {
 			// ignore
 		}
 	}
@@ -184,7 +183,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			if (declaration instanceof IDocumentedDeclaration)
 				((IDocumentedDeclaration)declaration).fetchDocumentation();
 			displayString = declaration.displayString(declaration);
-			Function func = as(declaration, Function.class);
+			final Function func = as(declaration, Function.class);
 			if (func != null)
 				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
 				// for more than zero parameters, jump into brackets to let user type her parameters
@@ -219,25 +218,32 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		getDisplayString();
 		if (displayString == null)
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-		StyledString result = new StyledString(displayString);
+		final StyledString result = new StyledString(displayString);
 		result.append(postInfo, StyledString.QUALIFIER_STYLER);
 		return result;
 	}
 
-	public static final Pattern VALID_PREFIX_PATTERN = Pattern.compile("\\w+");
-
+	public static boolean validPrefix(String prefix) {
+		for (int i = 0; i < prefix.length(); i++) {
+			final char c = prefix.charAt(i);
+			if (!(Character.isLetter(c) || BufferedScanner.isWordPart(c)))
+				return false;
+		}
+		return true;
+	}
+	
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		try {
-			int replaceOffset = replacementOffset();
+			final int replaceOffset = replacementOffset();
 			if (offset >= replaceOffset) {
-				String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (!VALID_PREFIX_PATTERN.matcher(prefix).matches())
+				final String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				if (!validPrefix(prefix))
 					return false;
-				for (String s : identifiers())
+				for (final String s : identifiers())
 					if (s.toLowerCase().contains(prefix))
 						return true;
-				String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
+				final String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
 				if (declaration != null) {
 					if (declaration.name().toLowerCase().contains(content))
 						return true;
@@ -245,7 +251,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 						return true;
 				}
 			}
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			// concurrent modification - ignore
 		}
 		return false;

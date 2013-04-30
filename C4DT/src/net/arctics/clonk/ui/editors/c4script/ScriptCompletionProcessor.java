@@ -198,9 +198,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (wordOffset < offset) {
 				prefix = doc.get(wordOffset, offset - wordOffset);
 				offset = wordOffset;
-			}
-			final String brombeeren = doc.get(offset, viewer.getSelectedRange().x-offset);
-			if (brombeeren.length() > 0 && !ClonkCompletionProposal.VALID_PREFIX_PATTERN.matcher(brombeeren).matches())
+			} else
+				prefix = "";
+			if (prefix.length() > 0 && !ClonkCompletionProposal.validPrefix(prefix))
 				return null;
 		} catch (final BadLocationException e) { }
 
