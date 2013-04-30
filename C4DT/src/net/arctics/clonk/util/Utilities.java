@@ -258,7 +258,25 @@ public abstract class Utilities {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T enumValueFromString(Class<T> enumClass, String value) {
-		return (T) Enum.valueOf((Class<Enum>)enumClass, value);
+		try {
+			return (T) Enum.valueOf((Class<Enum>)enumClass, value);
+		} catch (final IllegalArgumentException e) {
+			return (T) Enum.valueOf((Class<Enum>)enumClass, makeJavaConstantString(value));
+		}
+	}
+
+	private static String makeJavaConstantString(String value) {
+		final StringBuilder builder = new StringBuilder(value.length()+5);
+		for (int i = 0; i < value.length(); i++) {
+			final char c = value.charAt(i);
+			if (Character.isUpperCase(c)) {
+				if (i > 0)
+					builder.append('_');
+				builder.append(c);
+			} else
+				builder.append(Character.toUpperCase(c));
+		}
+		return builder.toString();
 	}
 
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
