@@ -250,7 +250,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			final ProjectSettings settings = nature.settings();
 			if (buildKind == FULL_BUILD)
 				if (settings.migrationTyping != null) switch (settings.migrationTyping) {
-				case Static:
+				case STATIC:
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -262,7 +262,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 					});
 					break;
-				case Dynamic: case ParametersOptionallyTyped:
+				case DYNAMIC: case PARAMETERS_OPTIONALLY_TYPED:
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {

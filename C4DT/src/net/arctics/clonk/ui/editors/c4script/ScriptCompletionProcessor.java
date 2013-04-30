@@ -467,11 +467,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private boolean varInitializationProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, final ASTNode contextExpression) {
 		if (contextExpression instanceof VarInitialization) {
 			final VarInitialization vi = (VarInitialization)contextExpression;
-			Typing typing = Typing.ParametersOptionallyTyped;
+			Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
 			if (index instanceof ProjectIndex)
 				typing = ((ProjectIndex)index).nature().settings().typing;
 			switch (typing) {
-			case Static:
+			case STATIC:
 				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
 					proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$

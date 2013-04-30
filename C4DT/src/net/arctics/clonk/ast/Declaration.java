@@ -372,7 +372,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean equals(Object other) { return this == other; /* identity */ }
 
 	protected Typing typing() {
-		Typing typing = Typing.ParametersOptionallyTyped;
+		Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
 		if (index() instanceof ProjectIndex)
 			typing = ((ProjectIndex)index()).nature().settings().typing;
 		return typing;

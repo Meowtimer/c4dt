@@ -563,13 +563,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			output.append(Keywords.Func);
 			final Typing typing = typing();
 			switch (typing) {
-			case Dynamic:
+			case DYNAMIC:
 				break;
-			case ParametersOptionallyTyped:
+			case PARAMETERS_OPTIONALLY_TYPED:
 				if (eq(returnType, PrimitiveType.REFERENCE))
 					output.append(" &");
 				break;
-			case Static:
+			case STATIC:
 				output.append(" ");
 				output.append(returnType.typeName(false));
 				break;

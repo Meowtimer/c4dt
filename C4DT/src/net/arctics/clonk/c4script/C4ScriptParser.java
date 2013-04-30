@@ -203,7 +203,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		if (script != null) {
 			engine = script.engine();
 			specialEngineRules = engine != null ? script.engine().specialRules() : null;
-			typing = Typing.ParametersOptionallyTyped;
+			typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
 			migrationTyping = null;
 			if (script.index() instanceof ProjectIndex) {
 				final ProjectIndex projIndex = (ProjectIndex) script.index();
@@ -570,19 +570,19 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
 						final int bt = parser.offset;
-						if (parser.typing != Typing.Dynamic) {
+						if (parser.typing != Typing.DYNAMIC) {
 							returnType = parser.parseTypeAnnotation(true, true);
 							typeAnnotation = parser.parsedTypeAnnotation;
 						}
 						switch (parser.typing) {
-						case Static:
+						case STATIC:
 							if (returnType == null) {
 								returnType = PrimitiveType.ANY;
 								parser.seek(bt);
 								parser.error(Problem.TypeExpected, bt,bt+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 							}
 							break;
-						case ParametersOptionallyTyped:
+						case PARAMETERS_OPTIONALLY_TYPED:
 							if (parser.engine != parser.script && returnType != PrimitiveType.REFERENCE) {
 								returnType = null;
 								parser.seek(bt);
@@ -676,7 +676,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 						typeAnnotation = parsedTypeAnnotation;
 						eatWhitespace();
 					}
-					else if (typing == Typing.Static) {
+					else if (typing == Typing.STATIC) {
 						typeAnnotation = null;
 						typeExpectedAt = this.offset;
 						staticType = PrimitiveType.ERRONEOUS;
@@ -693,7 +693,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 				if (s > bt && (
 					varName.length() == 0 ||
 					// ugh - for (var object in ...) workaround
-					(migrationTyping == Typing.Static && varName.equals(Keywords.In))
+					(migrationTyping == Typing.STATIC && varName.equals(Keywords.In))
 					)) {
 					seek(s = bt);
 					typeAnnotation = null;
@@ -804,7 +804,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 		}
 		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
 			PrimitiveType pt;
-			t = pt = PrimitiveType.fromString(str, script == engine||typing==Typing.Static);
+			t = pt = PrimitiveType.fromString(str, script == engine||typing==Typing.STATIC);
 			if (pt != null && !script.engine().supportsPrimitiveType(pt))
 				t = null;
 			else if (t == null && typing.allowsNonParameterAnnotations()) {
@@ -826,7 +826,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 					t = ReferenceType.make(t);
 					break;
 				case '[':
-					if (typing == Typing.Static || migrationTyping == Typing.Static)
+					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
 						if (eq(t, PrimitiveType.ARRAY)) {
 							eatWhitespace();
 							final IType elementType = parseTypeAnnotation(false, true);
@@ -864,12 +864,12 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			}
 		}
 		if (t == null) {
-			if (typing == Typing.Static)
+			if (typing == Typing.STATIC)
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
 					return null;
 				}
-			if (migrationTyping == Typing.Static)
+			if (migrationTyping == Typing.STATIC)
 				if (topLevel && typeAnnotations != null)
 					// placeholder annotation
 					typeAnnotations.add(parsedTypeAnnotation = new TypeAnnotation(backtrack, backtrack));
@@ -2471,11 +2471,11 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			parsedTypeAnnotation = placeholderTypeAnnotationIfMigrating(ta);
 		}
 		switch (typing) {
-		case Static:
+		case STATIC:
 			if (type == null)
 				typeRequiredAt(typeStart);
 			break;
-		case Dynamic:
+		case DYNAMIC:
 			if (type != null)
 				error(Problem.NotSupported, typeStart, typeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(typeStart, typeEnd), engine.name() + " with no type annotations");
 			break;

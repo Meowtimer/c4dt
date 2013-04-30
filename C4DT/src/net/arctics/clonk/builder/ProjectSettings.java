@@ -27,15 +27,15 @@ public class ProjectSettings extends SettingsBase {
 	/** Typing mode */
 	public enum Typing {
 		/** Static typing completely disabled. No parameter annotations allowed. */
-		Dynamic,
+		DYNAMIC,
 		/** Allow type annotations for parameters, as the engine does. */
-		ParametersOptionallyTyped,
+		PARAMETERS_OPTIONALLY_TYPED,
 		/** Statically typed */
-		Static;
+		STATIC;
 
 		public boolean allowsNonParameterAnnotations() {
 			switch (this) {
-			case Static:
+			case STATIC:
 				return true;
 			default:
 				return false;
@@ -51,7 +51,7 @@ public class ProjectSettings extends SettingsBase {
 	public String disabledErrors;
 	/** Typing mode for this project. */
 	@IniField
-	public Typing typing = Typing.ParametersOptionallyTyped;
+	public Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
 	/** Typing this project is in the process of being migrated to */
 	@IniField(category="Migration")
 	public Typing migrationTyping = null;
