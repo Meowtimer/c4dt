@@ -15,6 +15,7 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
+import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
@@ -33,12 +34,13 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Little helper thingie to find {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
+ * Locates {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
  *
  */
-public class EntityLocator extends ExpressionLocator<Object> {
+public class EntityLocator extends ExpressionLocator<Void> {
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
+	private final Script script;
 
 	/**
 	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
@@ -87,7 +89,7 @@ public class EntityLocator extends ExpressionLocator<Object> {
 	 * @throws ProblemException
 	 */
 	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
-		final Script script = Utilities.scriptForEditor(editor);
+		script = Utilities.scriptForEditor(editor);
 		if (script == null)
 			return;
 		final RegionDescription d = new RegionDescription();
@@ -100,7 +102,7 @@ public class EntityLocator extends ExpressionLocator<Object> {
 			if (d.func != null)
 				d.func.traverse(this, null);
 			if (exprAtRegion != null) {
-				final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), TypeUtil.problemReportingContext(script));
+				final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), this);
 				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 			}
 		}
@@ -204,19 +206,14 @@ public class EntityLocator extends ExpressionLocator<Object> {
 	/**
 	 * @return Region of the expression detected at the location the {@link EntityLocator} was initialized at.
 	 */
-	public IRegion expressionRegion() {
-		return exprRegion;
-	}
-
+	public IRegion expressionRegion() { return exprRegion; }
 	/**
 	 * @return The entity the expression region refers to with sufficient certainty.
 	 */
-	public IIndexEntity entity() {
-		return entity;
-	}
+	public IIndexEntity entity() { return entity; }
 
 	@Override
-	public TraversalContinuation visitNode(ASTNode expression, Object context) {
+	public TraversalContinuation visitNode(ASTNode expression, Void _) {
 		expression.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode expression, Void _) {
@@ -229,4 +226,14 @@ public class EntityLocator extends ExpressionLocator<Object> {
 		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <X> X context(Class<X> cls) {
+		if (cls == ProblemReporter.class)
+			return (X) TypeUtil.problemReportingContext(script);
+		else
+			return null;
+	}
+	
 }

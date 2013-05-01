@@ -1,6 +1,6 @@
 package net.arctics.clonk.ini;
 
-import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.util.KeyValuePair;
 
 public class IDArray extends KeyValueArrayEntry<ID, Integer> {

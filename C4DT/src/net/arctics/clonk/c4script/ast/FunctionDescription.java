@@ -6,9 +6,10 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.stringtbl.StringTbl;
 
 import org.eclipse.jface.text.Region;
@@ -34,31 +35,32 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		if (contents == null)
 			return null;
-		String[] parts = contents.split("\\|"); //$NON-NLS-1$
+		final String[] parts = contents.split("\\|"); //$NON-NLS-1$
+		final Script script = parentOfType(Script.class);
 		int off = 1;
-		for (String part : parts) {
+		for (final String part : parts) {
 			if (offset >= off && offset < off+part.length()) {
 				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
-					StringTbl stringTbl = context.script().localStringTblMatchingLanguagePref();
+					final StringTbl stringTbl = script.localStringTblMatchingLanguagePref();
 					if (stringTbl != null) {
-						NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
+						final NameValueAssignment entry = stringTbl.map().get(part.substring(1, part.length()-1));
 						if (entry != null)
 							return new EntityRegion(entry, new Region(start()+off, part.length()));
 					}
 				}
 				else {
-					String[] nameValue = part.split("="); //$NON-NLS-1$
+					final String[] nameValue = part.split("="); //$NON-NLS-1$
 					if (nameValue.length == 2) {
-						String name = nameValue[0].trim();
+						final String name = nameValue[0].trim();
 						String value = nameValue[1].trim();
-						int sep = value.indexOf(':');
+						final int sep = value.indexOf(':');
 						if (sep != -1)
 							value = value.substring(0, sep);
 						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
-							return new EntityRegion(context.script().findDeclaration(value), new Region(start()+off+nameValue[0].length()+1, value.length()));
+							return new EntityRegion(script.findDeclaration(value), new Region(start()+off+nameValue[0].length()+1, value.length()));
 					}
 				}
 				break;

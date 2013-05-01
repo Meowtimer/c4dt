@@ -12,12 +12,12 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
+import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.builder.ProjectSettings.ProblemReportingStrategyInfo;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
-import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;

@@ -27,7 +27,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IASTPositionProvider;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
@@ -39,6 +38,7 @@ import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IReplacedWhenSaved;
@@ -51,6 +51,9 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.CategoriesValue;
 import net.arctics.clonk.ini.ComplexIniEntry;
 import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IniData.IniConfiguration;
+import net.arctics.clonk.ini.IniData.IniEntryDefinition;
+import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
@@ -58,9 +61,6 @@ import net.arctics.clonk.ini.IniUnitWithNamedSections;
 import net.arctics.clonk.ini.ParticleUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.ini.SignedInteger;
-import net.arctics.clonk.ini.IniData.IniConfiguration;
-import net.arctics.clonk.ini.IniData.IniEntryDefinition;
-import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
@@ -586,7 +586,7 @@ public abstract class SpecialEngineRules {
 					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, processor.script().engine(), null);
 				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
-					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, processor);
+					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, locator);
 					if (reg != null)
 						return reg.incrementRegionBy(lit.start()+1);
 				}
@@ -654,7 +654,7 @@ public abstract class SpecialEngineRules {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final Index index = processor.script().index();
-				final Scenario scenario = Scenario.nearestScenario(processor.script().resource().getParent());
+				final Scenario scenario = Scenario.nearestScenario(processor.script().resource());
 				if (scenario != null) {
 					final Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
@@ -786,14 +786,19 @@ public abstract class SpecialEngineRules {
 		}
 	};
 
+	/**
+	 * Rule which causes the first argument in a Format call (the format string) to link to a resource as
+	 * required by a containing call the result of Format is the first argument for. 
+	 */
 	@AppliedTo(functions={"Format"})
 	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, ProblemReporter processor) {
-			if (callFunc.parent() instanceof CallDeclaration && ((CallDeclaration)callFunc.parent()).indexOfParm(callFunc) == 0) {
-				final SpecialFuncRule rule = ((CallDeclaration)callFunc.parent()).specialRuleFromContext(processor, DECLARATION_LOCATOR);
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration formatCall, String name, ProjectIndex pi, ProblemReporter processor) {
+			final CallDeclaration containingCall = as(formatCall.parent(), CallDeclaration.class);
+			if (containingCall != null && containingCall.indexOfParm(formatCall) == 0) {
+				final SpecialFuncRule rule = formatCall.parentOfType(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
 				if (rule instanceof LocateResourceByNameRule)
-					return ((LocateResourceByNameRule)rule).locateEntitiesByName(callFunc, name, pi, processor);
+					return ((LocateResourceByNameRule)rule).locateEntitiesByName(formatCall, name, pi, processor);
 			}
 			return null;
 		}

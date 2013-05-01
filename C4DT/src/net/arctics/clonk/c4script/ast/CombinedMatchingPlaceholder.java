@@ -3,6 +3,7 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.MatchingPlaceholder;
 import net.arctics.clonk.c4script.Operator;
 
 public class CombinedMatchingPlaceholder extends MatchingPlaceholder {

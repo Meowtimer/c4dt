@@ -6,39 +6,40 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlow;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.ProblemReporter;
 
-public class BinaryOp extends OperatorExpression {
+public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
+	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		if (context.script().strictLevel() >= 2) {
+		if (tidy.reporter.script().strictLevel() >= 2) {
 			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;
 			else if (op == Operator.ne)
 				op = Operator.NotEqual;
 			if (op != operator())
-				return new BinaryOp(op, leftSide().optimize(context), rightSide().optimize(context));
+				return new BinaryOp(op, tidy.tidy(leftSide()), tidy.tidy(rightSide()));
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
 		if ((operator() == Operator.And || operator() == Operator.Or) && (parent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
-			final ASTNode block = convertOperatorHackToBlock(context);
+			final ASTNode block = convertOperatorHackToBlock(tidy);
 			if (block != null)
 				return block;
 		}
 
-		return super.optimize(context);
+		return this;
 	}
 
-	private ASTNode convertOperatorHackToBlock(ProblemReporter context) throws CloneNotSupportedException {
+	private ASTNode convertOperatorHackToBlock(Tidy tidy) throws CloneNotSupportedException {
 		final LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
 		ASTNode r;
 		boolean works = true;
@@ -62,12 +63,12 @@ public class BinaryOp extends OperatorExpression {
 			final List<ASTNode> statements = new LinkedList<ASTNode>();
 			// wrap expressions in statements
 			for (final ASTNode ex : leftSideArguments)
-				statements.add(new SimpleStatement(ex.optimize(context)));
+				statements.add(new SimpleStatement(tidy.tidy(ex)));
 			// convert func call to proper return statement
 			if (rightSide().controlFlow() == ControlFlow.Return)
-				statements.add(new ReturnStatement(((CallDeclaration)rightSide()).soleParm().optimize(context)));
+				statements.add(new ReturnStatement(tidy.tidy(((CallDeclaration)rightSide()).soleParm())));
 			else
-				statements.add(new SimpleStatement(rightSide().optimize(context)));
+				statements.add(new SimpleStatement(tidy.tidy(rightSide())));
 			return new Block(statements);
 		}
 		return null;

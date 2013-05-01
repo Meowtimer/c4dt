@@ -1,13 +1,10 @@
-package net.arctics.clonk.ast;
+package net.arctics.clonk.index;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.index.IDeserializationResolvable;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.IndexEntity;
 
 /**
  * Represents a C4ID. This class manages a global pool of unique {@link ID} objects and restricts construction of new instances to calling {@link #get(String)}..

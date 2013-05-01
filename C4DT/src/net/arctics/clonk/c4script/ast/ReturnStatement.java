@@ -3,11 +3,12 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlow;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.ProblemReporter;
 
-public class ReturnStatement extends KeywordStatement {
+public class ReturnStatement extends KeywordStatement implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode returnExpr;
@@ -68,10 +69,10 @@ public class ReturnStatement extends KeywordStatement {
 	}
 
 	@Override
-	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
+	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// return (0); -> return 0;
 		if (returnExpr instanceof Parenthesized)
-			return new ReturnStatement(((Parenthesized)returnExpr).innerExpression().optimize(context));
+			return new ReturnStatement(tidy.tidy(((Parenthesized)returnExpr).innerExpression()));
 		// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 		// FIXME: should declare temporary variable so that order of expression execution isn't changed
 		/*
@@ -86,6 +87,6 @@ public class ReturnStatement extends KeywordStatement {
 			return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 		}
 		 */
-		return super.optimize(context);
+		return this;
 	}
 }

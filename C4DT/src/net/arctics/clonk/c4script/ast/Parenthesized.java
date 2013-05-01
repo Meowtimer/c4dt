@@ -4,9 +4,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.ast.Sequence;
 
-public class Parenthesized extends ASTNode {
+public class Parenthesized extends ASTNode implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode innerExpr;
@@ -31,11 +31,11 @@ public class Parenthesized extends ASTNode {
 	public ASTNode innerExpression() { return innerExpr; }
 
 	@Override
-	public ASTNode optimize(final ProblemReporter context)
+	public ASTNode tidy(final Tidy tidy)
 	throws CloneNotSupportedException {
 		if (!(parent() instanceof OperatorExpression) && !(parent() instanceof Sequence))
-			return innerExpr.optimize(context);
-		return super.optimize(context);
+			return tidy.tidy(innerExpr);
+		return this;
 	}
 
 	@Override

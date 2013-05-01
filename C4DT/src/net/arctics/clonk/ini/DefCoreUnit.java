@@ -1,10 +1,10 @@
 package net.arctics.clonk.ini;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.builder.ClonkBuilder;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ID;
 
 public class DefCoreUnit extends IniUnit {
 

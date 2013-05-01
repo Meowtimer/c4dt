@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.ast;
 
 import net.arctics.clonk.Core;
 

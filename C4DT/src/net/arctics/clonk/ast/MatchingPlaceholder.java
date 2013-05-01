@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -12,13 +12,14 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.c4script.ast.GarbageStatement;
+import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
@@ -41,17 +42,11 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
-		public IStorage source() {
-			return new SelfcontainedStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-		}
+		public IStorage source() { return new SelfcontainedStorage("CommandBase", ""); } //$NON-NLS-1$ //$NON-NLS-2$
 		@Override
-		public String name() {
-			return "CommandBaseScript"; //$NON-NLS-1$
-		};
+		public String name() { return "CommandBaseScript"; } //$NON-NLS-1$
 		@Override
-		public String nodeName() {
-			return name();
-		};
+		public String nodeName() { return name(); }
 		@CommandFunction
 		public static List<ASTNode> reverse(Object context, List<ASTNode> input) {
 			final ArrayList<ASTNode> list = new ArrayList<ASTNode>(input);
@@ -137,7 +132,6 @@ public class MatchingPlaceholder extends Placeholder {
 		subElements = elms;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parse(Placeholder original) throws ProblemException {
 		final String matchText = original.entryName();
 		final BufferedScanner scanner = new BufferedScanner(matchText);
@@ -170,24 +164,10 @@ public class MatchingPlaceholder extends Placeholder {
 				multiplicity = Multiplicity.Multiple;
 				break;
 			case '!':
-				String tra = scanner.readString(scanner.bufferSize()-scanner.tell());
-				if (!tra.startsWith("{"))
-					tra = String.format("return %s;", tra);
-				final Index index = original.parentOfType(Declaration.class).index();
-				final Script transformations = new Transformations(index);
-				code = new SelfContainedScript(
-					entry, String.format("func Transform(value) { %s }", tra),
-					index
-				) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
-						if (!super.gatherIncludes(contextIndex, origin, set, options))
-							return false;
-						set.add(transformations);
-						return true;
-					};
-				}.findFunction("Transform");
+				String codeString = scanner.readString(scanner.bufferSize()-scanner.tell());
+				if (!codeString.startsWith("{"))
+					codeString = String.format("return %s;", codeString);
+				setCode(original, entry, codeString);
 				break;
 			case '^':
 				start = scanner.tell(); end = start;
@@ -234,28 +214,50 @@ public class MatchingPlaceholder extends Placeholder {
 					scanner.read();
 					continue;
 				}
-				final String[] packageFormats = new String[] {
-					"%s.c4script.ast.%s",
-					"%s.parser.%s",
-					"%s.c4script.%s",
-					"%s.c4script.ast.%sLiteral",
-					"%s.c4script.ast.%sStatement",
-					"%s.c4script.ast.%sDeclaration",
-					"%s.c4script.ast.Access%s"
-				};
-				for (final String pkgFormat : packageFormats)
-					try {
-						requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
-						if (ASTNode.class.isAssignableFrom(requiredClass))
-							break;
-					} catch (final ClassNotFoundException e) {
-						continue;
-					}
-				if (requiredClass == null)
-					throw new ProblemException(String.format("AST class not found: %s", className));
+				setRequiredClass(className);
 			}
 		}
 		this.entryName = entry;
+	}
+	@SuppressWarnings("unchecked")
+	private void setRequiredClass(final String className) throws ProblemException {
+		final String[] packageFormats = new String[] {
+			"%s.ast.%s",
+			"%s.c4script.ast.%s",
+			"%s.parser.%s",
+			"%s.c4script.%s",
+			"%s.c4script.ast.%sLiteral",
+			"%s.c4script.ast.%sStatement",
+			"%s.c4script.ast.%sDeclaration",
+			"%s.c4script.ast.Access%s"
+		};
+		for (final String pkgFormat : packageFormats)
+			try {
+				requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
+				if (ASTNode.class.isAssignableFrom(requiredClass))
+					break;
+			} catch (final ClassNotFoundException e) {
+				continue;
+			}
+		if (requiredClass == null)
+			throw new ProblemException(String.format("AST class not found: %s", className));
+	}
+	private void setCode(Placeholder original, final String entry, String codeString) {
+		final Index index = original.parentOfType(Declaration.class).index();
+		final Script transformations = new Transformations(index);
+		code = new SelfContainedScript(
+			entry, String.format("func Transform(value) { %s }", codeString),
+			index
+		) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+				if (!super.gatherIncludes(contextIndex, origin, set, options))
+					return false;
+				set.add(transformations);
+				return true;
+			};
+		}.findFunction("Transform");
 	}
 
 	public Object transformSubstitution(Object substitution, Object context) {
@@ -314,7 +316,7 @@ public class MatchingPlaceholder extends Placeholder {
 				if (av != null && av.declaration() instanceof ProxyVar)
 					break RequiredClass;
 			}
-			else if (requiredClass == AccessVar.class && av != null && av.declaration instanceof ProxyVar)
+			else if (requiredClass == AccessVar.class && av != null && av.declaration() instanceof ProxyVar)
 				return false;
 			if (!requiredClass.isInstance(element))
 				return false;

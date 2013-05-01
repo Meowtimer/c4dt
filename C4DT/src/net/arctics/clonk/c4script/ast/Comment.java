@@ -9,11 +9,12 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
@@ -142,11 +143,12 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator _) {
 		// parse comment as expression and see what goes
 		final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
-			final C4ScriptParser commentParser = new C4ScriptParser(comment, context.script(), context.script().scriptFile()) {
+			final Script script = parentOfType(Script.class);
+			final C4ScriptParser commentParser = new C4ScriptParser(comment, script, script.scriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();
@@ -160,14 +162,14 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
 		} catch (final ProblemException e) {}
 		if (locator.expressionAtRegion() != null) {
-			final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, context);
+			final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
 			if (reg != null)
 				return reg.incrementRegionBy(start()+2);
 			else
 				return null;
 		}
 		else
-			return super.entityAt(offset, context);
+			return super.entityAt(offset, locator);
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.ProplistDeclaration;

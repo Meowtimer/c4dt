@@ -6,8 +6,8 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.Action;

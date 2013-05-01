@@ -20,8 +20,11 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
@@ -30,8 +33,6 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.c4script.ast.ControlFlowException;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
 import net.arctics.clonk.index.Definition;
@@ -50,7 +51,7 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode {
+public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode, IASTSection {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private FunctionScope visibility;
@@ -856,5 +857,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Conf.blockPrelude(output, depth);
 		body.print(output, depth);
 	}
+
+	@Override
+	public int absoluteOffset() { return bodyLocation().start(); }
 
 }

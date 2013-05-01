@@ -73,5 +73,7 @@ public class TypeUtil {
 				return (Definition) t; // return the first one found
 		return null;
 	}
-
+	public static boolean convertToBool(Object value) {
+		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
+	}
 }

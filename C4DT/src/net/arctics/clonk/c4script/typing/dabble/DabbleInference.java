@@ -21,11 +21,14 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ControlFlow;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.Placeholder;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
@@ -66,7 +69,6 @@ import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
-import net.arctics.clonk.c4script.ast.ControlFlow;
 import net.arctics.clonk.c4script.ast.FloatLiteral;
 import net.arctics.clonk.c4script.ast.ForStatement;
 import net.arctics.clonk.c4script.ast.FunctionDescription;
@@ -83,10 +85,8 @@ import net.arctics.clonk.c4script.ast.NewProplist;
 import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.OperatorExpression;
 import net.arctics.clonk.c4script.ast.Parenthesized;
-import net.arctics.clonk.c4script.ast.Placeholder;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.ReturnStatement;
-import net.arctics.clonk.c4script.ast.Sequence;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
@@ -2039,7 +2039,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (d instanceof Function) {
 						final Function fn = (Function) d;
 						// Some special rule applies and the return type is set accordingly
-						final SpecialFuncRule rule = node.specialRuleFromContext(visitor, SpecialEngineRules.RETURNTYPE_MODIFIER);
+						final SpecialFuncRule rule = visitor.script().engine().specialRules().funcRuleFor(node.name(), SpecialEngineRules.RETURNTYPE_MODIFIER);
 						if (rule != null) {
 							final IType type = rule.returnType(visitor, node);
 							if (type != null)
@@ -2597,6 +2597,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new ConditionalStatementExpert<IfStatement>(IfStatement.class) {
+				/**
+				 * Check whether the given expression contains a reference to a constant.
+				 * @param condition The expression to check
+				 * @return Whether the expression contains a constant.
+				 */
+				boolean containsConst(ASTNode node) {
+					if (node instanceof AccessVar && ((AccessVar)node).constCondition())
+						return true;
+					for (final ASTNode expression : node.subElements())
+						if(expression != null && containsConst(expression))
+							return true;
+					return false;
+				}
 				@Override
 				public void visit(IfStatement node, Visitor visitor) throws ProblemException {
 					final ControlFlow old = visitor.controlFlow;
@@ -2618,7 +2631,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ifEnvironment.up.inject(ifEnvironment, false);
 					visitor.controlFlow = old;
 
-					if (!condition.containsConst()) {
+					if (!containsConst(condition)) {
 						final Object condEv = PrimitiveType.BOOL.convert(condition.evaluateStatic(node.parentOfType(Function.class)));
 						if (condEv != null && condEv != ASTNode.EVALUATION_COMPLEX)
 							visitor.markers().warning(visitor,

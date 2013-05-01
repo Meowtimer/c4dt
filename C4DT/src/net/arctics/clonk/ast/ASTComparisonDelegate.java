@@ -1,8 +1,7 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.token;
-import net.arctics.clonk.ast.ASTNode;
 
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not

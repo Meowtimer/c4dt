@@ -3,29 +3,25 @@ package net.arctics.clonk.c4script.ast;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
-
-import java.util.Set;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlow;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReporter;
-import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
-import net.arctics.clonk.c4script.SpecialEngineRules.SpecialRule;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
@@ -36,17 +32,12 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class CallDeclaration extends AccessDeclaration implements IFunctionCall {
+public class CallDeclaration extends AccessDeclaration implements IFunctionCall, ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private ASTNode[] params;
 	private int parmsStart, parmsEnd;
-	private transient Set<IIndexEntity> potentialDeclarations;
-
-	public Set<IIndexEntity> potentialDeclarations() { return potentialDeclarations; }
-	public void setPotentialDeclarations(Set<IIndexEntity> potentialDeclarations)
-		{ this.potentialDeclarations = potentialDeclarations; }
 
 	@Override
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
@@ -125,20 +116,6 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	@Override
 	public boolean hasSideEffects() { return true; }
 
-	/**
-	 * Return a {@link SpecialFuncRule} applying to {@link CallDeclaration}s with the same name as this one.
-	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#specialRules()})
-	 * @param role Role mask passed to {@link SpecialEngineRules#funcRuleFor(String, int)}
-	 * @return The {@link SpecialFuncRule} applying to {@link CallDeclaration}s such as this one, or null.
-	 */
-	public final SpecialFuncRule specialRuleFromContext(ProblemReporter context, int role) {
-		final Engine engine = context.script().engine();
-		if (engine != null && engine.specialRules() != null)
-			return engine.specialRules().funcRuleFor(declarationName, role);
-		else
-			return null;
-	}
-
 	@Override
 	public boolean isValidInSequence(ASTNode elm) {
 		return super.isValidInSequence(elm) || elm instanceof MemberOperator;
@@ -152,11 +129,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	public void setSubElements(ASTNode[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(ProblemReporter context, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(Tidy tidy, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		final BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
-			final ASTNode one = parms[i].optimize(context);
+			final ASTNode one = tidy.tidy(parms[i]);
 			final ASTNode two = i+1 < parms.length ? parms[i+1] : null;
 			if (op.leftSide() == null)
 				op.setLeftSide(one);
@@ -172,38 +149,38 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		return result;
 	}
 	@Override
-	public ASTNode optimize(ProblemReporter context) throws CloneNotSupportedException {
+	public ASTNode tidy(Tidy tidy) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
 		final Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
 			if (replOperator.numArgs() == 2)
-				return new BinaryOp(replOperator, params[0].optimize(context), IntegerLiteral.ZERO);
-			ASTNode n = params[0].optimize(context);
+				return new BinaryOp(replOperator, tidy.tidy(params[0]), IntegerLiteral.ZERO);
+			ASTNode n = tidy.tidy(params[0]);
 			if (n instanceof BinaryOp)
 				n = new Parenthesized(n);
 			return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
 		}
 		if (replOperator != null && params.length >= 2)
-			return applyOperatorTo(context, params, replOperator);
+			return applyOperatorTo(tidy, params, replOperator);
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && declaration == context.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && declaration == tidy.reporter.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			final ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
-				parmsWithoutObject[i] = params[i+2].optimize(context);
+				parmsWithoutObject[i] = tidy.tidy(params[i+2]);
 			final String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~')
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ASTNode[] {
-						params[0].optimize(context),
+						tidy.tidy(params[0]),
 						new MemberOperator(false, true, null, 0),
 						new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 					)
-					: new IfStatement(params[0].optimize(context),
+					: new IfStatement(tidy.tidy(params[0]),
 						new SimpleStatement(new Sequence(new ASTNode[] {
-							params[0].optimize(context),
+							tidy.tidy(params[0]),
 							new MemberOperator(false, true, null, 0),
 							new CallDeclaration(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 						)),
@@ -213,7 +190,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!context.script().engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!tidy.reporter.script().engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
@@ -221,7 +198,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
+		if (params.length <= 1 && declaration != null && declaration == tidy.reporter.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
 			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
 			final Function func = this.parentOfType(Function.class);
 			if (func != null)
@@ -230,29 +207,29 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 		}
 
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == context.cachedEngineDeclarations().SetVar || declaration == context.cachedEngineDeclarations().SetLocal || declaration == context.cachedEngineDeclarations().AssignVar))
-			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(context)), params[1].optimize(context)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		if (params.length == 2 && declaration != null && (declaration == tidy.reporter.cachedEngineDeclarations().SetVar || declaration == tidy.reporter.cachedEngineDeclarations().SetLocal || declaration == tidy.reporter.cachedEngineDeclarations().AssignVar))
+			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), tidy.tidy(params[0])), tidy.tidy(params[1])); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == context.cachedEngineDeclarations().DecVar || declaration == context.cachedEngineDeclarations().IncVar))
-			return new UnaryOp(declaration == context.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallDeclaration(context.cachedEngineDeclarations().Var.name(), new ASTNode[] {
-						params.length == 1 ? params[0].optimize(context) : IntegerLiteral.ZERO
+		if (params.length <= 1 && declaration != null && (declaration == tidy.reporter.cachedEngineDeclarations().DecVar || declaration == tidy.reporter.cachedEngineDeclarations().IncVar))
+			return new UnaryOp(declaration == tidy.reporter.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
+					new CallDeclaration(tidy.reporter.cachedEngineDeclarations().Var.name(), new ASTNode[] {
+						params.length == 1 ? tidy.tidy(params[0]) : IntegerLiteral.ZERO
 					})
 			);
 
 		// Call("Func", 5, 5) -> Func(5, 5)
-		if (params.length >= 1 && declaration != null && declaration == context.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
+		if (params.length >= 1 && declaration != null && declaration == tidy.reporter.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
 			final String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				final ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
-					parmsWithoutName[i] = params[i+1].optimize(context);
+					parmsWithoutName[i] = tidy.tidy(params[i+1]);
 				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 			}
 		}
 
-		return super.optimize(context);
+		return this;
 	}
 
 	private boolean containedInLoopHeaderOrNotStandaloneExpression() {
@@ -274,9 +251,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall 
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
-		final Set<? extends IIndexEntity> entities = potentialDeclarations != null ? potentialDeclarations : set(declaration());
-		return new EntityRegion(entities, new Region(start(), name().length()));
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+		return new EntityRegion(set(declaration()), new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {
 		if (params.length == 1)

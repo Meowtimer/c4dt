@@ -4,9 +4,11 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.stringtbl.StringTbl;
@@ -37,34 +39,37 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 
 		// first check if a string tbl entry is referenced
-		EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), context.script(), true);
+		final EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parentOfType(Script.class), true);
 		if (result != null)
 			return result;
 
 		// look whether some special linking rule can be applied to this literal
 		if (parent() instanceof CallDeclaration) {
-			CallDeclaration parentFunc = (CallDeclaration) parent();
-			int myIndex = parentFunc.indexOfParm(this);
+			final CallDeclaration parentFunc = (CallDeclaration) parent();
+			final int myIndex = parentFunc.indexOfParm(this);
 			// delegate finding a link to special function rules
-			SpecialFuncRule funcRule = parentFunc.specialRuleFromContext(context, SpecialEngineRules.DECLARATION_LOCATOR);
+			final SpecialFuncRule funcRule = parentOfType(Declaration.class).engine().specialRules().funcRuleFor(parentFunc.name(), SpecialEngineRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
-				EntityRegion region = funcRule.locateEntityInParameter(parentFunc, context, myIndex, offset, this);
-				if (region != null)
-					return region;
+				final ProblemReporter reporter = locator.context(ProblemReporter.class);
+				if (reporter != null) {
+					final EntityRegion region = funcRule.locateEntityInParameter(parentFunc, reporter, myIndex, offset, this);
+					if (region != null)
+						return region;
+				}
 			}
 		}
-		return super.entityAt(offset, context);
+		return super.entityAt(offset, locator);
 	}
 
 	@Override
 	public String evaluateStatic(IEvaluationContext context) {
-		String escapesEvaluated = StringUtil.evaluateEscapes(literal());
+		final String escapesEvaluated = StringUtil.evaluateEscapes(literal());
 		if (context == null || context.script() == null)
 			return escapesEvaluated;
-		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), escapesEvaluated, false);
+		final StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.script(), escapesEvaluated, false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to
 		if (r.singleDeclarationRegionUsed != null && literal().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.region(), (IFile) r.singleDeclarationRegionUsed.entityAs(Declaration.class).resource());

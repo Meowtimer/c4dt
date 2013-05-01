@@ -10,7 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.util.ArrayUtil;
 
 import org.w3c.dom.Document;

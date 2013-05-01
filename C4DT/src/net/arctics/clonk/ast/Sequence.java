@@ -1,15 +1,10 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.ast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.C4ScriptParser;
 
 public class Sequence extends ASTNodeWithSubElementsArray {
 
@@ -33,25 +28,6 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	public void doPrint(ASTNodePrinter output, int depth) {
 		for (final ASTNode e : elements)
 			e.print(output, depth+1);
-	}
-	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
-		final List<ASTNode> currentSequenceExpressions = new LinkedList<ASTNode>();
-		final List<Statement> result = new ArrayList<Statement>(elements.length);
-		ASTNode p = null;
-		for (final ASTNode e : elements) {
-			if (!e.isValidInSequence(p)) {
-				result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
-				currentSequenceExpressions.clear();
-			}
-			currentSequenceExpressions.add(e);
-			p = e;
-		}
-		if (result.size() == 0)
-			return new Statement[] {SimpleStatement.wrapExpression(this)};
-		else {
-			result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
-			return result.toArray(new Statement[result.size()]);
-		}
 	}
 	public Sequence subSequenceUpTo(ASTNode elm) {
 		final List<ASTNode> list = new ArrayList<ASTNode>(elements.length);

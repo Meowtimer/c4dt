@@ -7,18 +7,19 @@ import java.io.InputStream;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ASTNode.ITransformer;
+import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.C4ScriptParser;
 import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
@@ -155,7 +156,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			}).transform(null, null, expression);
 			if (node != null)
 				try {
-					node = node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()));
+					node = new Tidy(TypeUtil.problemReportingContext(parser.script())).tidyExhaustive(node);
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}

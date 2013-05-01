@@ -5,9 +5,8 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.ProblemReporter;
 
-public class UnaryOp extends OperatorExpression {
+public class UnaryOp extends OperatorExpression implements ITidyable {
 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -56,15 +55,15 @@ public class UnaryOp extends OperatorExpression {
 	}
 
 	@Override
-	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
+	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
-		ASTNode arg = argument().optimize(context);
+		final ASTNode arg = tidy.tidy(argument());
 		if (arg instanceof BinaryOp)
 			return new UnaryOp(operator(), placement, new Parenthesized(arg));
 		if (operator() == Operator.Not && arg instanceof Parenthesized) {
-			Parenthesized brackets = (Parenthesized)arg;
+			final Parenthesized brackets = (Parenthesized)arg;
 			if (brackets.innerExpression() instanceof BinaryOp) {
-				BinaryOp op = (BinaryOp) brackets.innerExpression();
+				final BinaryOp op = (BinaryOp) brackets.innerExpression();
 				Operator oppo = null;
 				switch (op.operator()) {
 				case Equal:
@@ -83,10 +82,10 @@ public class UnaryOp extends OperatorExpression {
 					break;
 				}
 				if (oppo != null)
-					return new BinaryOp(oppo, op.leftSide().optimize(context), op.rightSide().optimize(context));
+					return new BinaryOp(oppo, tidy.tidy(op.leftSide()), tidy.tidy(op.rightSide()));
 			}
 		}
-		return super.optimize(context);
+		return this;
 	}
 
 	@Override
@@ -97,8 +96,8 @@ public class UnaryOp extends OperatorExpression {
 	@Override
 	public Object evaluateStatic(IEvaluationContext context) {
 		try {
-			Object ev = argument.evaluateStatic(context);
-			Object conv = operator().firstArgType().convert(ev);
+			final Object ev = argument.evaluateStatic(context);
+			final Object conv = operator().firstArgType().convert(ev);
 			switch (operator()) {
 			case Not:
 				return !(Boolean)conv;
@@ -110,8 +109,8 @@ public class UnaryOp extends OperatorExpression {
 				break;
 			}
 		}
-		catch (ClassCastException e) {}
-		catch (NullPointerException e) {}
+		catch (final ClassCastException e) {}
+		catch (final NullPointerException e) {}
 		return super.evaluateStatic(context);
 	}
 

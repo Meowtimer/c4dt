@@ -3,8 +3,10 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.c4script.typing.TypeUtil;
 
 public class ForStatement extends ConditionalStatement implements ILoop {
 
@@ -56,7 +58,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 			initializer.evaluate(context);
 		Object ev = null;
 		while (true) {
-			if (condition != null && !convertToBool(condition.evaluate(context)))
+			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context)))
 				break;
 			ev = body.evaluate(context);
 			if (increment != null)

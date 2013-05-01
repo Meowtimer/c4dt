@@ -7,8 +7,8 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
@@ -71,7 +71,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		Function activeFunc = this.parentOfType(Function.class);
 		if (activeFunc != null) {
 			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
@@ -83,6 +83,6 @@ public class VarDeclarationStatement extends KeywordStatement {
 					return new EntityRegion(var, new Region(var.start()-activeFunc.bodyLocation().start(), var.getLength()));
 			}
 		}
-		return super.entityAt(offset, context);
+		return super.entityAt(offset, locator);
 	}
 }

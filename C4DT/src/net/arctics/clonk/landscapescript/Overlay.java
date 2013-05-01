@@ -8,9 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.ast.ControlFlowException;
 import net.arctics.clonk.mapcreator.MapCreator;
 
 public class Overlay extends OverlayBase {

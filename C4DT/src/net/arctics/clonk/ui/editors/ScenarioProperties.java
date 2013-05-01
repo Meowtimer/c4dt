@@ -12,9 +12,9 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.ComplexIniEntry;

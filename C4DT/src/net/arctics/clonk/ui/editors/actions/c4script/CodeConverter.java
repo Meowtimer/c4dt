@@ -10,6 +10,7 @@ import java.util.List;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.C4ScriptParser;
@@ -21,7 +22,6 @@ import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
-import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;

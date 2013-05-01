@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Function;

@@ -12,27 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IHasCode;
-import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.ProblemReporter;
-import net.arctics.clonk.c4script.ast.ASTComparisonDelegate;
-import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
-import net.arctics.clonk.c4script.ast.Comment;
-import net.arctics.clonk.c4script.ast.ControlFlow;
-import net.arctics.clonk.c4script.ast.ControlFlowException;
-import net.arctics.clonk.c4script.ast.ForStatement;
-import net.arctics.clonk.c4script.ast.MatchingPlaceholder;
-import net.arctics.clonk.c4script.ast.Placeholder;
-import net.arctics.clonk.c4script.ast.Sequence;
-import net.arctics.clonk.c4script.ast.Statement;
-import net.arctics.clonk.index.IDeserializationResolvable;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.IPrintable;
 
 import org.eclipse.jface.text.IRegion;
@@ -45,48 +26,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public ASTNode() {}
 	protected ASTNode(int start, int end) { super(start, end); }
-
-	public static class Ticket implements IDeserializationResolvable, Serializable, IASTVisitor<Object> {
-		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		private final Declaration owner;
-		private final String textRepresentation;
-		private final int depth;
-		private transient ASTNode found;
-		private static int depth(ASTNode elm) {
-			int depth;
-			for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
-			return depth;
-		}
-		public Ticket(Declaration owner, ASTNode elm) {
-			this.owner = owner;
-			this.textRepresentation = elm.toString();
-			this.depth = depth(elm);
-		}
-		@Override
-		public Object resolve(Index index, IndexEntity deserializee) {
-			if (owner instanceof IHasCode) {
-				if (owner instanceof IndexEntity)
-					((IndexEntity) owner).requireLoaded();
-				final ASTNode code = ((IHasCode) owner).code();
-				if (code != null)
-					code.traverse(this, null);
-				return found;
-			}
-			return null;
-		}
-		@Override
-		public TraversalContinuation visitNode(ASTNode expression, Object context) {
-			final int ed = depth(expression);
-			if (ed == depth && textRepresentation.equals(expression.toString())) {
-				found = expression;
-				return TraversalContinuation.Cancel;
-			}
-			else if (ed > depth)
-				return TraversalContinuation.SkipSubElements;
-			else
-				return TraversalContinuation.Continue;
-		}
-	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -259,17 +198,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public void setPredecessorInSequence(ASTNode p) { predecessorInSequence = p; }
 	public ASTNode predecessorInSequence() { return predecessorInSequence; }
 
-	public ASTNode successorInSequence() {
-		if (parent() instanceof Sequence)
-			return ((Sequence)parent()).successorOfSubElement(this);
-		else
-			return null;
-	}
-
 	/**
 	 * Return the sub elements of this {@link ASTNode}.
 	 * The resulting array may contain nulls since the order of elements in the array is always the same but some expressions may allow leaving out some elements.
-	 * A {@link ForStatement} does not require a condition, for example.
 	 * @return The array of sub elements
 	 */
 	public ASTNode[] subElements() { return EMPTY_EXPR_ARRAY; }
@@ -281,64 +212,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public void setSubElements(ASTNode[] elms) {
 		if (subElements().length > 0)
 			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	/**
-	 * Keeps applying optimize to the expression and its modified versions until an expression and its replacement are identical e.g. there is nothing to be modified anymore
-	 * @param context
-	 * @return
-	 * @throws CloneNotSupportedException
-	 */
-	public ASTNode exhaustiveOptimize(final ProblemReporter context) throws CloneNotSupportedException {
-		ASTNode repl;
-		for (ASTNode original = this; (repl = original.optimize(context)) != original; original = repl);
-		return repl;
-	}
-
-	/**
-	 * Returns an expression that is functionally equivalent to the original expression but modified to adhere to #strict/#strict 2 rules and be more readable.
-	 * For example, And/Or function calls get replaced by operators, uses of the Call function get converted to direct function calls.
-	 * This method tries to reuse existing objects and reassigns the parents of those objects so the original ExprElm tree might be invalid in subtle ways.
-	 * @param context the script parser as a context for accessing the script the expression has been parsed in
-	 * @return a #strict/#strict 2/readability enhanced version of the original expression
-	 * @throws CloneNotSupportedException
-	 */
-	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
-		return transformSubElements(new ITransformer() {
-			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
-				if (expression == null)
-					return expression;
-				try {
-					return expression.optimize(context);
-				} catch (final CloneNotSupportedException e) {
-					e.printStackTrace();
-					return expression;
-				}
-			}
-		});
-	}
-
-	/**
-	 * Interface for transforming an element in an expression.
-	 * @author madeen
-	 *
-	 */
-	public interface ITransformer {
-		/**
-		 * Canonical object to be returned by {@link #transform(ASTNode, ASTNode, ASTNode)} if the passed element is to be removed
-		 * instead of being replaced.
-		 */
-		static final ASTNode REMOVE = new ASTNode();
-		/**
-		 * Transform the passed expression. For various purposes some context is supplied as well so the transformer can
-		 * see the last expression it was passed and what it transformed it to.
-		 * @param previousExpression The previous expression passed to the transformer
-		 * @param previousTransformationResult The previous transformation result
-		 * @param expression The expression to be transformed now.
-		 * @return The transformed expression, the expression unmodified or some canonical object like {@link #REMOVE}
-		 */
-		Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression);
 	}
 
 	/**
@@ -381,12 +254,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		if (differentSubElms) {
 			final ASTNode replacement = this.clone();
 			if (removal)
-				newSubElms = ArrayUtil.filter(newSubElms, new IPredicate<ASTNode>() {
-					@Override
-					public boolean test(ASTNode item) {
-						return item != ITransformer.REMOVE;
-					}
-				});
+				newSubElms = ArrayUtil.filter(newSubElms, ITransformer.FILTER_REMOVE);
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;
@@ -459,10 +327,10 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	/**
 	 * Return an entity that this expression refers to at the specified relative offset.
 	 * @param offset The offset
-	 * @param context {@link ProblemReporter} being contexty
+	 * @param locator TODO
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		return null;
 	}
 
@@ -482,26 +350,12 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return printed(0);
 	}
 
-	public Comment commentedOut() {
-		final String str = this.toString();
-		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
-	}
-
 	public ControlFlow controlFlow() {
 		return ControlFlow.Continue;
 	}
 
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		return EnumSet.of(controlFlow());
-	}
-
-	public final boolean isAlways(boolean what, IEvaluationContext context) {
-		final Object ev = this.evaluateStatic(context);
-		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
-	}
-
-	public static boolean convertToBool(Object value) {
-		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
 	}
 
 	public final boolean containedIn(ASTNode expression) {
@@ -676,12 +530,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return false;
 	}
 
-	public Statement statement() {
-		ASTNode p;
-		for (p = this; p != null && !(p instanceof Statement); p = p.parent());
-		return (Statement)p;
-	}
-
 	@SuppressWarnings("unchecked")
 	protected <T extends ASTNode> void collectExpressionsOfType(List<T> list, Class<T> type) {
 		if (type.isInstance(this))
@@ -737,20 +585,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	public static Object evaluateStatic(ASTNode element, IEvaluationContext context) {
 		return element != null ? element.evaluateStatic(context) : null;
-	}
-
-	/**
-	 * Check whether the given expression contains a reference to a constant.
-	 * @param condition The expression to check
-	 * @return Whether the expression contains a constant.
-	 */
-	public boolean containsConst() {
-		if (this instanceof AccessVar && ((AccessVar)this).constCondition())
-			return true;
-		for (final ASTNode expression : this.subElements())
-			if(expression != null && expression.containsConst())
-				return true;
-		return false;
 	}
 
 	/**
@@ -824,8 +658,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public final void localIdentifier(int v) { localIdentifier = v; }
 
 	public final int sectionOffset() {
-		final Function f = parentOfType(Function.class);
-		return f != null ? f.bodyLocation().start() : 0;
+		final IASTSection f = parentOfType(IASTSection.class);
+		return f != null ? f.absoluteOffset() : 0;
 	}
 	public IRegion absolute() { return this.region(sectionOffset()); }
 

@@ -7,10 +7,11 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.util.StringUtil;
@@ -150,13 +151,13 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		final int secOff = sectionOffset();
 		final int absolute = secOff+start()+offset;
 		for (final Variable v : this.components())
 			if (v.isAt(absolute))
 				return new EntityRegion(v, v.relativeTo(new Region(secOff, 0)));
-		return super.entityAt(offset, context);
+		return super.entityAt(offset, locator);
 	}
 
 }

@@ -29,7 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
-public class StringTbl extends Structure implements ITreeNode, ITableEntryInformationSink {
+public class StringTbl extends Structure implements ITreeNode {
 
 	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
@@ -57,9 +57,8 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return map;
 	}
 
-	@Override
 	public void addTblEntry(String key, String value, int start, int end) {
-		NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
+		final NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
 		nv.setParent(this);
 		map.put(key, nv);
 	}
@@ -76,7 +75,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return map.get(declarationName);
 	}
 
-	public static void readStringTbl(Reader reader, ITableEntryInformationSink sink) {
+	public static void readStringTbl(Reader reader, StringTbl tbl) {
 		BufferedScanner scanner;
 		scanner = new BufferedScanner(reader);
 		while (!scanner.reachedEOF()) {
@@ -85,13 +84,13 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			else {
 				scanner.unread();
-				int start = scanner.tell();
-				String key = scanner.readStringUntil('=');
+				final int start = scanner.tell();
+				final String key = scanner.readStringUntil('=');
 				if (scanner.read() == '=') {
 					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 					if (value == null)
 						value = "";
-					sink.addTblEntry(key, value, start, scanner.tell());
+					tbl.addTblEntry(key, value, start, scanner.tell());
 				}
 				else
 					scanner.unread();
@@ -118,17 +117,17 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
-					IFile file = (IFile) resource;
-					StringTbl tbl = new StringTbl();
+					final IFile file = (IFile) resource;
+					final StringTbl tbl = new StringTbl();
 					tbl.setFile(file);
 					String fileContents;
 					try {
 						fileContents = StreamUtil.stringFromFileDocument(file);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 						return null;
 					}
-					StringReader reader = new StringReader(fileContents);
+					final StringReader reader = new StringReader(fileContents);
 					tbl.read(reader);
 					return tbl;
 				}
@@ -172,10 +171,10 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 
 	public static EntityRegion entryRegionInString(String stringValue, int exprStart, int offset) {
-		int firstDollar = stringValue.lastIndexOf('$', offset-1);
-		int secondDollar = stringValue.indexOf('$', offset);
+		final int firstDollar = stringValue.lastIndexOf('$', offset-1);
+		final int secondDollar = stringValue.indexOf('$', offset);
 		if (firstDollar != -1 && secondDollar != -1) {
-			String entry = stringValue.substring(firstDollar+1, secondDollar);
+			final String entry = stringValue.substring(firstDollar+1, secondDollar);
 			return new EntityRegion(null, new Region(exprStart+1+firstDollar, secondDollar-firstDollar+1), entry);
 		}
 		return null;
@@ -184,8 +183,8 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public static EntityRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
 		EntityRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
-			StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
-			Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
+			final StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
+			final Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
 			if (e == null && returnNullIfNotFound)
 				result = null;
 			else
@@ -207,8 +206,8 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	 * @return The evaluated string
 	 */
 	public static EvaluationResult evaluateEntries(Declaration context, String value, boolean evaluateEscapes) {
-		int valueLen = value.length();
-		StringBuilder builder = new StringBuilder(valueLen*2);
+		final int valueLen = value.length();
+		final StringBuilder builder = new StringBuilder(valueLen*2);
 		// insert stringtbl entries
 		EntityRegion reg = null;
 		boolean moreThanOneSubstitution = false;
@@ -218,7 +217,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				switch (value.charAt(i)) {
 				case '$':
 					moreThanOneSubstitution = reg != null;
-					EntityRegion region = entryForLanguagePref(value, 0, i+1, context, true);
+					final EntityRegion region = entryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
 						substitutionsApplied = true;
 						builder.append(((NameValueAssignment)region.entityAs(Declaration.class)).stringValue());
@@ -237,7 +236,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 				}
 			builder.append(value.charAt(i++));
 		}
-		EvaluationResult r = new EvaluationResult();
+		final EvaluationResult r = new EvaluationResult();
 		r.evaluated = builder.toString();
 		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
 		r.anySubstitutionsApplied = substitutionsApplied;
@@ -253,14 +252,14 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	public static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
 		StringBuilder miss = null;
 		try {
-			for (IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
+			for (final IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
 				if (!(r instanceof IFile))
 					continue;
-				IFile f = (IFile) r;
-				Matcher m = StringTbl.PATTERN.matcher(r.getName());
+				final IFile f = (IFile) r;
+				final Matcher m = StringTbl.PATTERN.matcher(r.getName());
 				if (m.matches()) {
-					String lang = m.group(1);
-					StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
+					final String lang = m.group(1);
+					final StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
 					if (tbl != null)
 						if (tbl.map().get(region.text()) == null) {
 							if (miss == null)
@@ -271,7 +270,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 						}
 				}
 			}
-		} catch (CoreException e) {}
+		} catch (final CoreException e) {}
 		if (miss != null)
 			context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), miss);
 	}

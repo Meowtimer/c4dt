@@ -5,9 +5,10 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.ID;
-import net.arctics.clonk.c4script.C4ScriptParser;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.Sequence;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.ID;
 
 import org.eclipse.jface.text.Region;
 
@@ -16,7 +17,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class MemberOperator extends ASTNode {
+public class MemberOperator extends ASTNode implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	boolean dotNotation;
@@ -52,7 +53,7 @@ public class MemberOperator extends ASTNode {
 	 * @param dotNotation If true, the operator represents a '.', otherwise '->'
 	 * @param hasTilde Whether '->' is followed by '~'
 	 * @param id {@link ID} specified after '->'. Can be null.
-	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, C4ScriptParser)})
+	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, IEntityLocator)})
 	 */
 	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
 		super();
@@ -90,9 +91,9 @@ public class MemberOperator extends ASTNode {
 	public boolean isValidAtEndOfSequence() { return false; }
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new EntityRegion(context.script().nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
+			return new EntityRegion(parentOfType(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
 	}
 
@@ -105,15 +106,22 @@ public class MemberOperator extends ASTNode {
 			return false;
 		return true;
 	}
+	
+	public ASTNode successorInSequence() {
+		if (parent() instanceof Sequence)
+			return ((Sequence)parent()).successorOfSubElement(this);
+		else
+			return null;
+	}
 
 	@Override
-	public ASTNode optimize(final ProblemReporter context) throws CloneNotSupportedException {
-		if (!dotNotation && !context.script().engine().settings().supportsProplists) {
+	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
+		if (!dotNotation && !tidy.reporter.script().engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
 				return makeDotOperator();
 		}
-		return super.optimize(context);
+		return this;
 	}
 
 	public static boolean unforgiving(ASTNode p) {

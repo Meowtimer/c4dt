@@ -29,7 +29,6 @@ import java.util.zip.GZIPOutputStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.ast.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;

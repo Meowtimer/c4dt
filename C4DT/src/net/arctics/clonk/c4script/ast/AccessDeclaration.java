@@ -6,9 +6,9 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 
@@ -57,7 +57,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
 		return new EntityRegion(declaration(), region(0));
 	}
 

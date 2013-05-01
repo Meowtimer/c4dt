@@ -4,8 +4,11 @@ import java.util.EnumSet;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ControlFlow;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.c4script.typing.TypeUtil;
 
 public class WhileStatement extends ConditionalStatement implements ILoop {
 
@@ -22,7 +25,7 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	
 	@Override
 	public EnumSet<ControlFlow> possibleControlFlows() {
-		EnumSet<ControlFlow> result = body.possibleControlFlows();
+		final EnumSet<ControlFlow> result = body.possibleControlFlows();
 		result.removeAll(EnumSet.of(ControlFlow.BreakLoop, ControlFlow.NextIteration));
 		return result;
 	}
@@ -31,7 +34,7 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		Object ev = null;
 		while (true) {
-			if (condition != null && !convertToBool(condition.evaluate(context)))
+			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context)))
 				break;
 			ev = body.evaluate(context);
 		}

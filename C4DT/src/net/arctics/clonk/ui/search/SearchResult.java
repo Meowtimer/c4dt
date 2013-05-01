@@ -49,8 +49,8 @@ public class SearchResult extends AbstractTextSearchResult {
 				scanners.put(context.script(), scanner);
 			}
 		}
-		IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
-		String line = scanner.bufferSubstringAtRegion(lineRegion);
+		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
+		final String line = scanner.bufferSubstringAtRegion(lineRegion);
 		addMatch(new SearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
 	}
 	public void addMatch(ASTNode match, ProblemReporter context, boolean potential, boolean indirect) {

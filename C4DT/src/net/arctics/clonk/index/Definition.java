@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ID;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.FindDeclarationInfo;

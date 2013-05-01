@@ -7,7 +7,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -16,8 +16,8 @@ import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -25,6 +25,7 @@ import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Definition.ProxyVar;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.ini.ComplexIniEntry;
 import net.arctics.clonk.ini.FunctionEntry;
 import net.arctics.clonk.ini.IDArray;
@@ -67,7 +68,9 @@ public class ReferencesSearchQuery extends SearchQuery {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 	
-	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReporter> {
+	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReporter>, IEntityLocator {
+		private ProblemReporter ctx;
+
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				final CallDeclaration callFunc = (CallDeclaration) expression;
@@ -96,11 +99,11 @@ public class ReferencesSearchQuery extends SearchQuery {
 				}
 			}
 			else if (node instanceof IDLiteral && declaration instanceof Script) {
-				if (((IDLiteral)node).definition(context) == declaration)
+				if (((IDLiteral)node).definition() == declaration)
 					result.addMatch(node, context, false, false);
 			}
 			else if (node instanceof StringLiteral) {
-				final EntityRegion decRegion = node.entityAt(0, context);
+				final EntityRegion decRegion = node.entityAt(0, this);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
 					result.addMatch(node, context, true, true);
 			}
@@ -118,11 +121,20 @@ public class ReferencesSearchQuery extends SearchQuery {
 		
 		public void searchScript(IResource resource, Script script) {
 			final C4ScriptParser parser = new C4ScriptParser(script);
-			final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset(), null);
-			searchScript(resource, ctx);
+			searchScript(resource, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public <X> X context(Class<X> cls) {
+			if (cls == ProblemReporter.class)
+				return (X) ctx;
+			else
+				return null;
 		}
 		
 		public void searchScript(IResource resource, ProblemReporter context) {
+			ctx = context;
 			final Script script = context.script();
 			if (script.scriptFile() != null) {
 				if (declaration instanceof Definition) {
@@ -196,33 +208,37 @@ public class ReferencesSearchQuery extends SearchQuery {
 						final IniUnit iniUnit = (IniUnit) pinned;
 						for (final IniSection sec : iniUnit)
 							for (final IniItem entry : sec)
-								if (entry instanceof ComplexIniEntry) {
-									final ComplexIniEntry complex = (ComplexIniEntry) entry;
-									if (complex.definition() != null) {
-										final Class<?> entryClass = complex.definition().entryClass();
-										if (entryClass == FunctionEntry.class) {
-											final Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
-											if (obj != null) {
-												final Declaration declaration = obj.findFunction(complex.stringValue());
-												if (declaration == this.declaration)
-													result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
-											}
-										}
-										else if (declaration instanceof Definition)
-											if (entryClass == ID.class) {
-												if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
-													result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
-											}
-											else if (entryClass == IDArray.class)
-												for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
-													final Definition obj = script.index().anyDefinitionWithID(pair.key());
-													if (obj == declaration)
-														result.addMatch(new SearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
-												}
-									}
-								}
+								searchIniEntry(script, objectFolder, iniUnit, entry);
 					}
 				}
+		}
+	}
+
+	private void searchIniEntry(Script script, final IContainer objectFolder, final IniUnit iniUnit, final IniItem entry) {
+		if (entry instanceof ComplexIniEntry) {
+			final ComplexIniEntry complex = (ComplexIniEntry) entry;
+			if (complex.definition() != null) {
+				final Class<?> entryClass = complex.definition().entryClass();
+				if (entryClass == FunctionEntry.class) {
+					final Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
+					if (obj != null) {
+						final Declaration declaration = obj.findFunction(complex.stringValue());
+						if (declaration == this.declaration)
+							result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+					}
+				}
+				else if (declaration instanceof Definition)
+					if (entryClass == ID.class) {
+						if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
+							result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+					}
+					else if (entryClass == IDArray.class)
+						for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
+							final Definition obj = script.index().anyDefinitionWithID(pair.key());
+							if (obj == declaration)
+								result.addMatch(new SearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+						}
+			}
 		}
 	}
 	

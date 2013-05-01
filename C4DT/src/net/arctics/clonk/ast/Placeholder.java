@@ -1,11 +1,7 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.NameValueAssignment;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.stringtbl.StringTbl;
 
 public class Placeholder extends ASTNode {
@@ -35,14 +31,14 @@ public class Placeholder extends ASTNode {
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ProblemReporter context) {
-		StringTbl stringTbl = context.script().localStringTblMatchingLanguagePref();
+	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+		final StringTbl stringTbl = parentOfType(Script.class).localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
-			NameValueAssignment entry = stringTbl.map().get(entryName);
+			final NameValueAssignment entry = stringTbl.map().get(entryName);
 			if (entry != null)
 				return new EntityRegion(entry, this);
 		}
-		return super.entityAt(offset, context);
+		return super.entityAt(offset, locator);
 	}
 
 	@Override

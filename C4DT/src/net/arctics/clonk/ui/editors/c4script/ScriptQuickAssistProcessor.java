@@ -16,8 +16,9 @@ import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ID;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.C4ScriptParser;
@@ -34,7 +35,6 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.ast.ArrayExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.Block;
@@ -45,16 +45,17 @@ import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.ReturnStatement;
-import net.arctics.clonk.c4script.ast.Sequence;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeUtil;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -270,8 +271,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							accessDec.setName(s);
 					}
 				try {
-					this.replacementString = replacement.replacementExpression().exhaustiveOptimize
-						(TypeUtil.problemReportingContext(parser.script())).printed(tabIndentation+1);
+					final Tidy tidy = new Tidy(TypeUtil.problemReportingContext(parser.script()));
+					this.replacementString = tidy.tidy(replacement.replacementExpression()).printed(tabIndentation+1);
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
@@ -443,7 +444,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		func.traverse(locator, this);
 		final FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 		final ASTNode offendingExpression = locator.expressionAtRegion();
-		final Statement topLevel = offendingExpression != null ? offendingExpression.statement() : null;
+		final Statement topLevel = offendingExpression != null ? offendingExpression.parentOfType(Statement.class) : null;
 
 		if (offendingExpression != null && topLevel != null) {
 			expressionRegion = offendingExpression.absolute();
@@ -712,7 +713,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			try {
 				replacements.add(
 					Messages.ClonkQuickAssistProcessor_TidyUp,
-					topLevel.exhaustiveOptimize(problemReporting)
+					new Tidy(problemReporting).tidyExhaustive(topLevel)
 				);
 			} catch (final CloneNotSupportedException e) {
 				e.printStackTrace();

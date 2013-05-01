@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.TraversalContinuation;
 
 import org.eclipse.jface.text.IRegion;
@@ -12,7 +13,7 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class ExpressionLocator<T> implements IASTVisitor<T> {
+public class ExpressionLocator<T> implements IASTVisitor<T>, IEntityLocator {
 	
 	protected ASTNode exprAtRegion;
 	protected ASTNode topLevelInRegion;
@@ -41,6 +42,11 @@ public class ExpressionLocator<T> implements IASTVisitor<T> {
 			}
 		}, context);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
+	}
+	
+	@Override
+	public <X> X context(Class<X> cls) { 
+		return null;
 	}
 
 }
