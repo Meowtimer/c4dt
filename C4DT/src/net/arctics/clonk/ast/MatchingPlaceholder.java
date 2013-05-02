@@ -343,7 +343,7 @@ public class MatchingPlaceholder extends Placeholder {
 
 		final FunctionBody body = as(element, FunctionBody.class);
 		if (body != null)
-			return body.owningDeclaration();
+			return body.owner();
 
 		return null;
 	}

@@ -95,7 +95,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
-	
+
 	/**
 	 * Same as {@link #parentOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
 	 * @param type
@@ -131,7 +131,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public void printPrefix(ASTNodePrinter output, int depth) {}
 
 	/**
-	 * Perform the actual intrinsic C4Script-printing for this kind of expression
+	 * Perform the actual intrinsic printing for this kind of expression
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
@@ -335,9 +335,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Returns the expression tree as a C4Script expression string
+	 * Returns a string representation of this node.
 	 * @param depth hint for indentation (only needed for statements)
-	 * @return the C4Script expression string
+	 * @return the expression string
 	 */
 	public final String printed(int depth) {
 		final StringBuilder builder = new StringBuilder();
@@ -591,8 +591,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Return the {@link Declaration} this expression element is owned by. This may be the function whose body this element is contained in.
 	 * @return The owning {@link Declaration}
 	 */
-	public Declaration owningDeclaration() {
-		return parent != null ? parent.owningDeclaration() : null;
+	public Declaration owner() {
+		return parent != null ? parent.owner() : null;
 	}
 
 	/**

@@ -5,7 +5,6 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -17,7 +16,6 @@ import org.eclipse.jface.text.Region;
 public class FunctionBody extends BunchOfStatements {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Function owner;
-	public Function owner() { return owner; }
 	public FunctionBody(Function owner, List<ASTNode> statements) {
 		super(statements);
 		this.owner = owner;
@@ -27,9 +25,7 @@ public class FunctionBody extends BunchOfStatements {
 		this.owner = owner;
 	}
 	@Override
-	public Declaration owningDeclaration() {
-		return owner;
-	}
+	public Function owner() { return owner; }
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		if (owner != null && owner.isOldStyle())

@@ -803,7 +803,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		for (final Variable v : variables()) {
 			final ASTNode initialization = v.initializationExpression();
 			if (initialization != null) {
-				final Function owningFunc = as(initialization.owningDeclaration(), Function.class);
+				final Function owningFunc = as(initialization.owner(), Function.class);
 				final SourceLocation loc = owningFunc != null ? owningFunc.bodyLocation().add(initialization) : initialization;
 				if (loc.containsOffset(region.getOffset()))
 					return v;

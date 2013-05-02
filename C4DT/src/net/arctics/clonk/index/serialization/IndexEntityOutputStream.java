@@ -33,7 +33,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
 			if (entity != null && obj instanceof ASTNode) {
 				final ASTNode elm = (ASTNode)obj;
-				final Declaration owner = elm.owningDeclaration();
+				final Declaration owner = elm.owner();
 				if (owner != null && !owner.containedIn(entity))
 					return new ASTNodeTicket(owner, elm);
 			}
