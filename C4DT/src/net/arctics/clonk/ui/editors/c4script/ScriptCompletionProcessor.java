@@ -108,7 +108,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
 	private ProblemReportingStrategy typingStrategy;
-	
+
 	private void setTypingStrategyFromScript(Script script) {
 		if (script.index().nature() != null)
 			typingStrategy = script.index().nature().instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
@@ -245,7 +245,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		else
 			return null;
 	}
-	
+
 	class PrecedingExpressionTypeExtractor extends ExpressionLocator<ProblemReporter> {
 		public ASTNode contextExpression;
 		public Sequence contextSequence;
@@ -274,7 +274,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 		public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
 	}
-	
+
 	final PrecedingExpressionTypeExtractor typeExtractor = new PrecedingExpressionTypeExtractor();
 
 	private boolean computeProposalsInFunction(int offset, int wordOffset,
@@ -286,7 +286,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return false;
 		final Script editorScript = Utilities.scriptForEditor(editor);
 		final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
-		
+
 		typeExtractor.pos(preservedOffset);
 		C4ScriptParser parser = null;
 		if (editorScript != null)
@@ -294,7 +294,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final ScriptEditingState editingState = editor().editingState();
 				parser = editingState.updateFunctionFragment(activeFunc, typeExtractor, true);
 			}
-		
+
 		if (!skipProposalsInFunction(typeExtractor.contextExpression)) {
 			innerProposalsInFunction(
 				offset, wordOffset, doc, prefix,
@@ -421,7 +421,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
-		for (final Index x : index.relevantIndexes())
+		final List<Index> relevantIndexes = Arrays.<Index>asList();// index.relevantIndexes();
+		for (final Index x : relevantIndexes)
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function)
@@ -475,7 +476,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
 					proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
-					for (final PrimitiveType t : PrimitiveType.values()) 
+					for (final PrimitiveType t : PrimitiveType.values())
 						if (t != PrimitiveType.UNKNOWN && index.engine().supportsPrimitiveType(t)) {
 							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), offset, prefix != null ? prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
@@ -674,7 +675,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 
 		if (!directiveExpectingDefinition) {
-			
+
 			// propose overriding inherited functions
 			final Script script = editor().script();
 			final List<Script> cong = script.conglomerate();
@@ -804,7 +805,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		else
 			return null;
 	}
-	
+
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
