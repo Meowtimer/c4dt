@@ -42,7 +42,7 @@ public class ProjectSettings extends SettingsBase {
 			}
 		}
 	}
-	
+
 	/** Name of engine to use for this project */
 	@IniField
 	public String engineName;
@@ -57,12 +57,12 @@ public class ProjectSettings extends SettingsBase {
 	public Typing migrationTyping = null;
 	@IniField
 	public String problemReportingStrategies;
-	
+
 	private Engine cachedEngine;
 	private HashSet<Problem> disabledErrorsSet;
-	
+
 	public ProjectSettings() {}
-	
+
 	public synchronized Engine engine() {
 		if (cachedEngine == null) {
 			// engineName can be "" or null since that is handled by loadEngine
@@ -72,7 +72,7 @@ public class ProjectSettings extends SettingsBase {
 		}
 		return cachedEngine;
 	}
-	
+
 	public synchronized HashSet<Problem> disabledErrorsSet() {
 		if (disabledErrorsSet == null) {
 			disabledErrorsSet = new HashSet<Problem>();
@@ -88,7 +88,7 @@ public class ProjectSettings extends SettingsBase {
 		}
 		return disabledErrorsSet;
 	}
-	
+
 	public static final class ProblemReportingStrategyInfo {
 		public ProblemReportingStrategyInfo(Class<? extends ProblemReportingStrategy> cls, String args) {
 			super();
@@ -98,11 +98,11 @@ public class ProjectSettings extends SettingsBase {
 		public Class<? extends ProblemReportingStrategy> cls;
 		public String args;
 	}
-	
+
 	private Collection<ProblemReportingStrategyInfo> _problemReportingStrategies;
-	
+
 	public synchronized Collection<ProblemReportingStrategyInfo> problemReportingStrategies() {
-		if (_problemReportingStrategies == null)
+		if (_problemReportingStrategies == null) {
 			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
 				final Matcher strategyRefMatcher = Pattern.compile("(.*?)(\\[(.*?)\\])?").matcher("");
 				final String[] classNames = problemReportingStrategies.split(",");
@@ -123,18 +123,19 @@ public class ProjectSettings extends SettingsBase {
 						}
 					}
 				}
-			} else {
+			} else
 				_problemReportingStrategies = new ArrayList<ProblemReportingStrategyInfo>();
+			if (_problemReportingStrategies.size() == 0)
 				_problemReportingStrategies.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
-			}
+		}
 		return _problemReportingStrategies;
 	}
-	
+
 	public void setDisabledErrors(String disabledErrors) {
 		this.disabledErrors = disabledErrors;
 		disabledErrorsSet = null;
 	}
-	
+
 	public void setDisabledErrorsSet(HashSet<Problem> errorCodes) {
 		this.disabledErrorsSet = errorCodes;
 		if (errorCodes != null)
@@ -143,7 +144,7 @@ public class ProjectSettings extends SettingsBase {
 
 	public String disabledErrorsString() { return disabledErrors; }
 	public String engineName() { return engineName; }
-	
+
 	public void setEngineName(String engineName) {
 		this.engineName = engineName;
 		cachedEngine = null;
