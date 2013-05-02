@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Collection;
-
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
@@ -118,7 +117,6 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (!stringMatchesPrefix(func.name(), prefix))
 				return null;
 		final int replacementLength = prefix != null ? prefix.length() : 0;
-
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			func, replacement, offset, replacementLength,
