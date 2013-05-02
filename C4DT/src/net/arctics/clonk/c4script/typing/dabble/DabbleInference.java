@@ -1454,7 +1454,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (currentFunction != null && var.parentDeclaration() == currentFunction) {
 							final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
 							if (locationUsed < var.start())
-								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, String.format("%s @(%d, %d)", var.name(), var.start(), var.end())); //$NON-NLS-1$
+								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
 						}
 						break;
 					case PARAMETER:
@@ -2137,25 +2137,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 						returnsAsFunctionWarning(node, visitor);
 					else if (declaration instanceof Variable)
 						variableAsFunctionWarning(node, visitor, cachedEngineDeclarations, declaration);
-					else if (declaration instanceof Function) {
-						final Function f = (Function)declaration;
-
-						// when in local-mode (revisiting function being edited) delay visit to called function in any case,
-						// not only in case where the return type of the call is needed
-						if (shared.local && !visitor.inPreliminaryVisit()) {
-							final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
-							if (predTy instanceof Script)
-								visitor.delayVisit(f, (Script)predTy);
-						}
-
-						if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
-							visitor.script().addUsedScript(f.script());
-
-						// not a special case... check regular parameter types
-						if (!applyRuleBasedValidation(node, visitor, params))
-							regularValidation(node, visitor, params, f);
-					} else if (declaration == null)
+					else if (declaration instanceof Function)
+						validateParameters(node, visitor, declaration, params, predecessor);
+					else if (declaration == null)
 						maybeUnknownMarker(node, visitor, declarationName);
+				}
+				private void validateParameters(CallDeclaration node, Visitor visitor, final Declaration declaration, final ASTNode[] params, final ASTNode predecessor) throws ProblemException {
+					final Function f = (Function)declaration;
+
+					// when in local-mode (revisiting function being edited) delay visit to called function in any case,
+					// not only in case where the return type of the call is needed
+					if (shared.local && !visitor.inPreliminaryVisit()) {
+						final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
+						if (predTy instanceof Script)
+							visitor.delayVisit(f, (Script)predTy);
+					}
+
+					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
+						visitor.script().addUsedScript(f.script());
+
+					// not a special case... check regular parameter types
+					if (!applyRuleBasedValidation(node, visitor, params))
+						regularValidation(node, visitor, params, f);
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);
