@@ -77,7 +77,7 @@ public class DabbleInferenceTest extends TestBase {
 			{
 				Log(s);
 			}
-			
+
 			func Func1()
 			{
 				CreateObject(Derived)->Func2(123);
@@ -86,7 +86,7 @@ public class DabbleInferenceTest extends TestBase {
 		def derivedSource =
 			"""
 			#include Base
-			
+
 			func Func2(x)
 			{
 				CreateObject(Base)->Func3(x);
@@ -113,30 +113,32 @@ public class DabbleInferenceTest extends TestBase {
 			setup.scripts.each { it.generateCaches() }
 			setup.inference.run()
 			Assert.assertEquals(PrimitiveType.STRING.unified(), base.findLocalFunction("Func3", false).parameters()[0].type())
-			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type)
+			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type())
 			Assert.assertTrue(setup.inferenceMarkers.size() >= 1)
 			setup.inferenceMarkers.each { it -> Assert.assertTrue(
 				it.code == Problem.IncompatibleTypes ||
 				it.code == Problem.ConcreteArgumentMismatch
 			)}
 		}
-		boolean success = true
+		int successful = 0
+		int runs = 0
 		for (int cores = 1; cores <= Runtime.getRuntime().availableProcessors(); cores++) {
 			TaskExecution.threadPoolSize = cores
 			System.out.println("Using $cores cores")
 			for (int i = 1; i <= 100; i++) {
 				System.out.println("PASS $i")
 				try {
+					runs++
 					order(true)
 					order(false)
+					successful++
 				} catch (AssertionError ae) {
 					System.out.println("(cores=$cores, pass=$i, ${ae.getMessage()})")
-					success = false
 				}
 			}
 		}
-		if (!success)
-			Assert.fail("Not all passes successful")
+		if (successful < runs)
+			Assert.fail("$successful of $runs passes successful")
 	}
 
 	@Test
@@ -173,7 +175,7 @@ func Usage() {
 		Assert.assertEquals(wipf, derived.typings().functionReturnTypes['MakeObject'])
 		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
 	}
-	
+
 	@Test
 	public void testCreateObjectResult() {
 		def setup = new Setup(
@@ -189,15 +191,15 @@ func Test()
 		setup.index.refresh()
 		setup.scripts.each { it.generateCaches() }
 		setup.inference.run()
-		
+
 		def (scr, clonk) = setup.scripts
 		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("a").type())
 		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("b").type())
 	}
-	
+
 	@Test
 	public void testCallTypeConsensus() {
-		
+
 		def infos = [
 			new DefinitionInfo(source:
 				"""
@@ -221,7 +223,7 @@ func Test()
 				""", name: 'B'
 			)
 		]
-		
+
 		def vector = Factory.createVector(infos)
 		def gen = Factory.createPermutationGenerator(vector)
 
@@ -241,7 +243,7 @@ func Test()
 			Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
 		}
 	}
-	
+
 	@Test
 	public void testRevisitIncluded() {
 		def baseSource =
@@ -278,18 +280,18 @@ func Test()
 			new DefinitionInfo(name: "Base", source: baseSource),
 			new DefinitionInfo(name: "Derived", source: derivedSource)
 		)
-		
+
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
 		setup.scripts.each { it.generateCaches() }
 		setup.inference.run()
-		
+
 		def (base, derived) = setup.scripts
-		
+
 		def t = derived.typings().functionReturnTypes['TakeObject']
 		Assert.assertEquals(derived, t)
 	}
-	
+
 	@Test
 	public void testReturnTypeOfInheritedFunctionRevisitedIndirect() {
 		def definitions = [
@@ -303,9 +305,9 @@ func Test()
 			new DefinitionInfo(name:'Derived', source:
 				"""
 				#include Base
-				
+
 				func Type() { return Wipf; }
-				
+
 				func Usage() {
 					// MakeObject() typed
 					//as instance of type Wipf
@@ -336,7 +338,7 @@ func Test()
 		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
 		Assert.assertEquals(wipf, user.typings().functionReturnTypes['Usage'])
 	}
-	
+
 	@Test
 	public void testAbysseses() {
 		System.out.println("Abyssesses! ---")
@@ -359,7 +361,7 @@ func Test()
 				return abyssObjects;
 			}
 			''',
-			
+
 			'''
 			func PrepareAbyss(first, second, abyss, num)
 			{
@@ -371,7 +373,7 @@ func Test()
 					return PrepareAbyssTwo(abyss);
 			}
 			''',
-			
+
 			'''
 			func PrepareAbyssOne(abyss)
 			{
@@ -383,7 +385,7 @@ func Test()
 				return abyss;
 			}
 			''',
-			
+
 			'''
 			func PrepareAbyssTwo(abyss)
 			{
@@ -393,11 +395,11 @@ func Test()
 			}
 			'''
 		]
-		
+
 		def vector = Factory.createVector(funcs)
 		def gen = Factory.createPermutationGenerator(vector)
 		def failedAssertions = new ArrayList<String>()
-		
+
 		int counter = 0
 		for (ICombinatoricsVector<String> fns : gen) {
 			def rescuesBuilderSource = StringUtil.blockString("", "", "\n", fns)
@@ -411,18 +413,18 @@ func Test()
 			setup.parsers.each { it.run() }
 			setup.index.refresh()
 			setup.scripts.each { it.generateCaches() }
-			
+
 			def functionNames = rescuesBuilder.functions().collect { it.name() }.toList()
 			def makeAbyssMarkersIndex = functionNames.indexOf("MakeAbyssMarkers")
 			def prepareAbyssIndex = functionNames.indexOf("PrepareAbyss")
 			def prepareAbyssOneIndex = functionNames.indexOf("PrepareAbyssOne")
 			def prepareAbyssTwoIndex = functionNames.indexOf("PrepareAbyssTwo")
 			def fnOrderStr = StringUtil.blockString("", "", ", ", rescuesBuilder.functions().collect { it.name() })
-			
+
 			System.out.println()
 			System.out.println(fnOrderStr)
 			setup.inference.run()
-			
+
 			try {
 				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssOne").parameter(0).type())
 				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssTwo").parameter(0).type())
@@ -442,7 +444,7 @@ func Test()
 			}
 			counter++
 		}
-		
+
 		Assert.assertEquals(StringUtil.blockString("", "", "\n", failedAssertions), 0, failedAssertions.size())
 	}
 
