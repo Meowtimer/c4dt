@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -191,12 +192,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			// and if the function to be visited previously required parameter typing from calls
 			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint()) {
 				if (DEBUG)
-					System.out.println(String.format("Make new visitor for '%s'", function.qualifiedName(script))); //$NON-NLS-1$
+					originator.log("Make new visitor for '%s'", function.qualifiedName(script)); //$NON-NLS-1$
 				return (Visitor)localReporter(script, 0, originator);
 			}
 			else {
-				if (DEBUG)
-					System.out.println(String.format("No visitor for '%s'", function.qualifiedName(script))); //$NON-NLS-1$
+				if (DEBUG && originator != null)
+					originator.log("No visitor for '%s'", function.qualifiedName(script)); //$NON-NLS-1$
 				return null;
 			}
 		}
@@ -366,7 +367,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public String toString() {
-				final String func = visit != null ? visit.function().qualifiedName(script()) : "<no function>";
+				final String func = visit != null ? visit.function().qualifiedName() : "<no function>";
 				return String.format("Visitor (%s, %s)", input().toString(), func); //$NON-NLS-1$
 			}
 			@Override
@@ -541,6 +542,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
+				if (DEBUG)
+					log("Call types: %s", Arrays.deepToString(types));
 			}
 
 			private IType parType(
@@ -598,7 +601,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 				innerVisit();
 				endVisit();
-				return visit;
+				return _visit;
 			}
 
 			private void waitForEndOfVisit(Function function, Visitor originator, Visit _visit) {
@@ -632,7 +635,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Function function = visit.function();
 				final Script funScript = function.script();
 				if (DEBUG)
-					log("Visiting %s", script().name(), function.qualifiedName(script())); //$NON-NLS-1$
+					log("Visiting %s", function.qualifiedName(script())); //$NON-NLS-1$
 				final Visit oldVisitee = visit;
 				final boolean ownedFunction = funScript == script();
 				final ASTNode[] statements = function.body().statements();
