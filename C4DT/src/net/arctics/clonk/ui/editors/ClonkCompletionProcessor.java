@@ -169,14 +169,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
 			int bonus = 0;
-			if (untamperedPrefix != null) {
+			if (prefix != null) {
 				class Match {
 					boolean startsWith, match, local;
 					Match(ClonkCompletionProposal proposal) {
 						for (final String s : proposal.identifiers())
-							if (s.startsWith(untamperedPrefix)) {
+							if (s.toLowerCase().startsWith(prefix)) {
 								startsWith = true;
-								if (s.length() == untamperedPrefix.length()) {
+								if (s.length() == prefix.length()) {
 									match = true;
 									break;
 								}
