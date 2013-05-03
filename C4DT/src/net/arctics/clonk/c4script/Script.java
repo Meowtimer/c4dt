@@ -85,7 +85,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient List<Variable> variables;
 	protected transient Map<String, Effect> effects;
 	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
-	
+
 	/**
 	 * Typing judgements on variables and function return types.
 	 * @author madeen
@@ -136,7 +136,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		Collections.<String, IType>emptyMap(),
 		Collections.<String, IType[]>emptyMap()
 	);
-	
+
 	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
 	public void setTypings(Typings typings) {
 		this.typings = typings;
@@ -207,7 +207,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		stream.writeObject(state);
 		populateDictionary();
 	}
-	
+
 	public SaveState makeSaveState() { return new SaveState(); }
 
 	@Override
@@ -217,7 +217,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		extractSaveState((SaveState)stream.readObject());
 		loadUsedScripts();
 	}
-	
+
 	public void extractSaveState(final SaveState state) {
 		effects     = state.effects;
 		functions   = state.functions;
@@ -225,10 +225,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		usedScripts = state.used;
 		typings     = state.typings;
 		proplistDeclarations = state.proplistDeclarations;
-		
+
 		purgeNullEntries(functions, variables, usedScripts);
 	}
-	
+
 	private void loadUsedScripts() {
 		// also load scripts this script uses global declarations from
 		// so they will be present when the script gets parsed
@@ -241,7 +241,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		loadIncludes();
@@ -319,7 +319,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			for (final Declaration d : s.subDeclarations(index(), DeclMask.ALL))
 				dictionary.add(d.name());
 	}
-	
+
 	protected final void populateDictionary() { populateDictionary(conglomerate()); }
 
 	/**
@@ -962,7 +962,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		return effects != null ? effects : Collections.<String, Effect>emptyMap();
 	}
-	
+
 	public Map<String, ProplistDeclaration> proplistDeclarations() {
 		requireLoaded();
 		return proplistDeclarations != null ? proplistDeclarations : Collections.<String, ProplistDeclaration>emptyMap();
@@ -1158,7 +1158,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		} else
 			return true;
 	}
-	
+
 	public Function override(Function function) {
 		if (cachedFunctionMap != null) {
 			final Function ovr = cachedFunctionMap.get(function);
@@ -1167,7 +1167,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		return function;
 	}
-	
+
 	@Override
 	public boolean seesSubDeclaration(Declaration subDeclaration) {
 		if (subDeclaration instanceof Function)
@@ -1202,6 +1202,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		Collections.reverse(conglo);
 		populateDictionary(conglo);
 		generateFindDeclarationCache(conglo);
+		generateNodeMaps();
+	}
+
+	private void generateNodeMaps() {
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();
 		if (functions != null && index() != null)
@@ -1210,7 +1214,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				detectMapNodesInFunction(f, false);
 			}
 	}
-	
+
 	private void generateFindDeclarationCache(final List<Script> conglo) {
 		cachedFunctionMap = new HashMap<>();
 		cachedVariableMap = new HashMap<>();
@@ -1267,7 +1271,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			detectEffects();
 		}
 	}
-	
+
 	private void findScenario() {
 		final IResource res = resource();
 		scenario = res != null ? Scenario.containingScenario(res) : null;
@@ -1362,7 +1366,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		final List<Declaration> decs = subDeclarations(index(), DeclMask.ALL);
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		for (final ASTNode se : subElements())

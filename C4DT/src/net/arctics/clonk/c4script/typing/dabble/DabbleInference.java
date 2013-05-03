@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
+import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -2222,10 +2223,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							continue;
 						final TypeVariable parmTyVar = findParameterTypeVariable(parm, visitor);
 						final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
-						final IType unified = unifyDeclaredAndGiven(given, parmTy, visitor);
+						final IType givenTy = visitor.ty(given);
+						final IType unified = unifyNoChoice(parmTy, givenTy);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else
+						else if (eq(PrimitiveType.UNKNOWN, parmTy))
 							visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)

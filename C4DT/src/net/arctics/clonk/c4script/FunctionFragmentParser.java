@@ -42,7 +42,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 	}
 	private boolean doUpdate() {
 		final String functionSource = functionSource(function);
-		FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;
+		final FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;
 		// if block is non-existent or outdated, parse function code and store block
 		if (cachedBlock == null) {
 			try {
@@ -57,7 +57,7 @@ public class FunctionFragmentParser extends C4ScriptParser {
 				else {
 					final LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
 					parseStatementBlock(offset, statements, options, false);
-					body = cachedBlock = new FunctionBody(function, statements);
+					body = new FunctionBody(function, statements);
 				}
 				if (function != null) {
 					function.storeBody(body, functionSource);
