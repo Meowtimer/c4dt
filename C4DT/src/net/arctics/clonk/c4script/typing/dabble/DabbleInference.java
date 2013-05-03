@@ -2232,7 +2232,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						validateParameterCount(node, visitor, params, f);
 				}
 				private void validateParameterCount(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
-					if (params.length != f.numParameters() && !(f.script() instanceof Engine))
+					if (f.index() == visitor.script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
 						try {
 							markers().error(visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
 								f.numParameters(), params.length, f.name());
@@ -2579,7 +2579,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred != null) {
 						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : typeThisAsObject ? PrimitiveType.OBJECT : OBJECTISH;
 						final Expert<? super ASTNode> stmReporter = visitor.expert(pred);
-						if (!TypeUnification.compatible(requiredType, visitor.ty(pred)))
+						if (!TypeUnification.compatible(OBJECTISH, visitor.ty(pred)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
 								visitor.ty(pred, stmReporter).typeName(false));
 						else {
