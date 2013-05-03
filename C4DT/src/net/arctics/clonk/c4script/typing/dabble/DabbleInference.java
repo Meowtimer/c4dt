@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -143,13 +142,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	// flags
 	private boolean typeThisAsObject;
+	private boolean noticeParameterCountMismatch;
 
 	@Override
 	public void setArgs(String args) {
 		typeThisAsObject = false;
-		for (final String a : args.split(",")) //$NON-NLS-1$
-			if (a.equals("typeThisAsObject")) //$NON-NLS-1$
+		for (final String a : args.split("\\|")) //$NON-NLS-1$
+			switch (a) {
+			case "typeThisAsObject": //$NON-NLS-1$
 				typeThisAsObject = true;
+				break;
+			case "noticeParameterCountMismatch": //$NON-NLS-1$
+				noticeParameterCountMismatch = true;
+				break;
+			}
 	}
 
 	@Override
@@ -277,6 +283,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			class Delayed {
 				final Function function;
 				final Script script;
+				Delayed next;
 				public Delayed(Function function, Script script) {
 					super();
 					this.function = function;
@@ -286,7 +293,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public String toString() { return function.qualifiedName(script); }
 			}
 
-			final LinkedList<Delayed> delayedVisits = new LinkedList<>();
+			Delayed delayedVisits;
 
 			public void state(State state) { this.state = state; }
 
@@ -392,10 +399,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void delayVisit(Function function, Script script) {
 				if (visit == null)
 					return;
-				for (final Visit.Delayed d : visit.delayedVisits)
+				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next)
 					if (function == d.function && script == d.script)
 						return;
-				visit.delayedVisits.add(visit.new Delayed(function, script));
+				final Visit.Delayed n = visit.new Delayed(function, script);
+				n.next = visit.delayedVisits;
+				visit.delayedVisits = n;
 			}
 
 			private void typeParametersFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes) {
@@ -448,9 +457,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return result;
 			}
 
-			private IType unifyFromSeed(Function function, final Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors, final boolean lenient, final PrimitiveType bestSeed) {
-				IType result;
-				result = TypeUnification.unify(parTyVar.get(), bestSeed);
+			private IType unifyFromSeed(
+				Function function, final Variable par, TypeVariable parTyVar,
+				List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors,
+				final boolean lenient, final PrimitiveType seed
+			) {
+				IType result = TypeUnification.unify(parTyVar.get(), seed);
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final IType concreteTy = callTypes[ci];
 					if (concreteTy == null)
@@ -626,7 +638,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				visit = v;
 				v.visitor = this;
 				v.prepare();
-				v.delayedVisits.clear();
+				v.delayedVisits = null;
 				v.state(State.INPROGRESS);
 			}
 
@@ -650,7 +662,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						env.add(visit);
 						createFunctionLocalsTypeVariables(function);
 						final TypeVariable[] callTypes = createParameterTypeVariables(function, parameters);
-						if (determineTypingFromCalls(function, ownedFunction)) {
+						if (ownedFunction && shouldTypeFromCalls(function)) {
 							preliminaryVisit(function, statements);
 							typeParametersFromCalls(function, baseFunction, callTypes);
 						}
@@ -697,12 +709,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}, this);
 			}
 
-			private boolean determineTypingFromCalls(final Function function, final boolean ownedFunction) {
+			private boolean shouldTypeFromCalls(final Function function) {
 				if (!inPreliminaryVisit()) {
 					final boolean typeFromCalls =
 						input().typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
 						input().script instanceof Definition &&
-						ownedFunction && function.numParameters() > 0 &&
+						function.numParameters() > 0 &&
 						!assignDefaultParmTypesToFunction(function) &&
 						(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
 					function.setTypeFromCallsHint(typeFromCalls);
@@ -734,9 +746,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void delayedVisits() {
-				for (final Visit.Delayed d : visit.delayedVisits)
+				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next)
 					delegateFunctionVisit(d.function, d.script, false, true);
-				visit.delayedVisits.clear();
+				visit.delayedVisits = null;
 			}
 
 			private void actualVisit(final boolean ownedFunction, final ASTNode[] statements, final TypeVariable[] callTypes) throws ProblemException {
@@ -2213,12 +2225,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType unified = unifyDeclaredAndGiven(given, parmTy, visitor);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else if (eq(parmTy, PrimitiveType.UNKNOWN))
+						else
 							visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
 					}
-					/*if (params.length > f.numParameters() && !(f.script() instanceof Engine))
-						markers().error(visitor, Problem.TooManyParameters, node, node, Markers.NO_THROW,
-							f.numParameters(), params.length, f.name()); */
+					if (noticeParameterCountMismatch)
+						validateParameterCount(node, visitor, params, f);
+				}
+				private void validateParameterCount(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
+					if (params.length != f.numParameters() && !(f.script() instanceof Engine))
+						try {
+							markers().error(visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
+								f.numParameters(), params.length, f.name());
+						} catch (final ProblemException e) {}
 				}
 				private boolean applyRuleBasedValidation(CallDeclaration node, Visitor visitor, final ASTNode[] params) throws ProblemException {
 					final SpecialFuncRule rule = visitor.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);

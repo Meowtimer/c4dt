@@ -138,7 +138,7 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_Arg_WeirdoNumber;
 	public static String ParserErrorCode_Parameter_Name;
 	public static String PrimitiveTypeNotSupported;
-	public static String TooManyParameters;
+	public static String ParameterCountMismatch;
 	
 	static {
 		// initialize resource bundle

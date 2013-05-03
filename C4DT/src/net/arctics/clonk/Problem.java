@@ -50,7 +50,7 @@ public enum Problem {
 	ConditionAlwaysFalse(Messages.ConditionAlwaysFalse, Messages.ParserErrorCode_Arg_Condition),
 	InfiniteLoop(Messages.InfiniteLoop),
 	LocalUsedInGlobal(Messages.LocalUsedInGlobal),
-	TooManyParameters(Messages.TooManyParameters, Messages.ParserErrorCode_Arg_ExpectedNumber, Messages.ParserErrorCode_Arg_ActualNumber, Messages.ParserErrorCode_Arg_Function),
+	ParameterCountMismatch(Messages.ParameterCountMismatch, Messages.ParserErrorCode_Arg_ExpectedNumber, Messages.ParserErrorCode_Arg_ActualNumber, Messages.ParserErrorCode_Arg_Function),
 	StringTooLong(Messages.StringTooLong, Messages.ParserErrorCode_Arg_Size, Messages.ParserErrorCode_Arg_MaximumSize),
 	MissingLocalizations(Messages.MissingLocalizations, Messages.ParserErrorCode_Arg_LanguageId),
 	IdentShadowed(Messages.IdentShadowed, Messages.ParserErrorCode_Arg_Identifier, Messages.ParserErrorCode_Arg_ShadowedIdentifier),
