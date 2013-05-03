@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -146,27 +147,46 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				final Object nameEv = arguments[0].evaluateStatic(node.parentOfType(Function.class));
 				if (nameEv instanceof String) {
 					final SourceLocation loc = processor.absoluteSourceLocationFromExpr(arguments[0]);
-					final Variable var = node.parentOfType(Script.class).createVarInScope(
-						Variable.DEFAULT_VARIABLE_FACTORY,
-						node.parentOfType(Function.class),
-						(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
-					);
-					var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
-					var.setScope(Scope.LOCAL);
-					// clone argument since the offset of the expression inside the func body is relative while
-					// the variable initialization expression location is supposed to be absolute
-					final ASTNode initializationClone = arguments[1].clone();
-					initializationClone.incrementLocation(node.sectionOffset());
-					var.setInitializationExpression(initializationClone);
-					var.forceType(processor.typeOf(arguments[1]));
-					final AccessVar av = new AccessVar(var);
-					processor.judgement(av, processor.typeOf(arguments[1]), TypingJudgementMode.OVERWRITE);
-					var.setParent(node.parentOfType(Function.class));
+					final Script script = node.parentOfType(Script.class);
+					if (script.findLocalVariable((String)nameEv, true) == null) {
+						final Variable var = script.createVarInScope(
+							Variable.DEFAULT_VARIABLE_FACTORY,
+							node.parentOfType(Function.class),
+							(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
+							);
+						var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
+						var.setScope(Scope.LOCAL);
+						// clone argument since the offset of the expression inside the func body is relative while
+						// the variable initialization expression location is supposed to be absolute
+						final ASTNode initializationClone = arguments[1].clone();
+						initializationClone.incrementLocation(node.sectionOffset());
+						var.setInitializationExpression(initializationClone);
+						var.forceType(processor.typeOf(arguments[1]));
+						final AccessVar av = new AccessVar(var);
+						processor.judgement(av, processor.typeOf(arguments[1]), TypingJudgementMode.OVERWRITE);
+						var.setParent(node.parentOfType(Function.class));
+					}
 					//parser.getContainer().addDeclaration(var);
 				}
 			}
 			return false; // default validation
-		};
+		}
+		@Override
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+			String property;
+			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parentOfType(Function.class)), String.class)) != null) {
+				final IType ty = callFunc.predecessorInSequence() != null ? processor.typeOf(callFunc.predecessorInSequence()) : processor.script();
+				final Set<Variable> vars = new HashSet<Variable>();
+				for (final IType t : ty)
+					if (t instanceof IProplistDeclaration) {
+						final Variable v = ((IProplistDeclaration)t).findComponent(property);
+						if (v != null)
+							vars.add(v);
+					}
+				return vars.size() > 0 ? new EntityRegion(vars, parmExpression) : null;
+			} else
+				return null;
+		}
 	};
 
 	private static class EvaluationTracer implements IEvaluationContext {
