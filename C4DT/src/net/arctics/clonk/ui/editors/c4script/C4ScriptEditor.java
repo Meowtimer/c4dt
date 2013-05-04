@@ -15,6 +15,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.CStyleScanner;

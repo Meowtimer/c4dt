@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.StringUtil;
@@ -29,6 +30,12 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
 		final IFile scriptFile = Utilities.fileEditedBy(configuration.editor());
 		final StringBuilder messageBuilder = new StringBuilder();
+		appendEntityInfo(viewer, region, messageBuilder);
+		appendMarkerInfo(region, scriptFile, messageBuilder);
+		return messageBuilder.toString();
+	}
+
+	private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
 		if (entityLocator != null && entityLocator.entity() != null) {
 			final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
 			final Script context = pred == null
@@ -42,6 +49,9 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 			if (superInfo != null)
 				messageBuilder.append(superInfo);
 		}
+	}
+
+	private void appendMarkerInfo(IRegion region, final IFile scriptFile, final StringBuilder messageBuilder) {
 		try {
 			final IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
 			boolean foundSomeMarkers = false;
@@ -66,7 +76,6 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 		} catch (final Exception e) {
 			// whatever
 		}
-		return messageBuilder.toString();
 	}
 
 	@Override

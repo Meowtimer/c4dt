@@ -9,6 +9,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.C4ScriptParser;
@@ -17,7 +18,6 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.StringUtil;
 
 /**

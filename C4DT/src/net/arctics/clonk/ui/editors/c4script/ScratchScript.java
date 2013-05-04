@@ -13,7 +13,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * Temporary script that is created when no other script can be found for this editor
  * @author madeen
- *
  */
 final class ScratchScript extends Script implements IHasEditorPart {
 	private transient final C4ScriptEditor editor;

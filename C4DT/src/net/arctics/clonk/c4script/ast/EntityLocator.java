@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.c4script.ast;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,6 +10,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
@@ -18,7 +19,6 @@ import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;

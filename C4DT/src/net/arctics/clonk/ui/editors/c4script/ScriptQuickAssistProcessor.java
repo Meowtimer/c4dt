@@ -18,6 +18,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;

@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;

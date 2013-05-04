@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 
 import org.eclipse.jface.text.IRegion;

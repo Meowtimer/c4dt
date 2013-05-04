@@ -606,9 +606,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		return s;
 	}
 
-	public ScenarioProperties() {
-		// TODO Auto-generated constructor stub
-	}
+	public ScenarioProperties() {}
 
 	private TabFolder tabs;
 	private Label mapPreviewLabel;
