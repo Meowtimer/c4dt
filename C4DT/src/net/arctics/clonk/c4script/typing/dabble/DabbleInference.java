@@ -592,6 +592,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					thread = Thread.currentThread();
 				if (function == null || function.body() == null)
 					return null;
+				// when in local mode, prevent recursion more than two levels deep
+				if (shared.local && originator != null && originator.originator != null)
+					return null;
 
 				Visit _visit;
 				_visit = input().plan.get(function);
