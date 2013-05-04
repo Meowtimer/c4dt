@@ -6,6 +6,7 @@ import java.util.Collection;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
@@ -91,7 +92,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			final int replacementLength = prefix != null ? prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, " - " + def.name(), editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (final Exception e) {}
@@ -110,7 +111,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected ClonkCompletionProposal proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, String parentName, boolean brackets) {
+	protected ClonkCompletionProposal proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, boolean brackets) {
 		if (func instanceof InitializationFunction)
 			return null;
 		if (prefix != null)
@@ -118,9 +119,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				return null;
 		final int replacementLength = prefix != null ? prefix.length() : 0;
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+		final String postInfo = func.returnType(as(editor().structure(), Script.class)).typeName(true);
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			func, replacement, offset, replacementLength,
-			UI.functionIcon(func), null/*contextInformation*/, null, " - " + parentName, editor() //$NON-NLS-1$
+			UI.functionIcon(func), null/*contextInformation*/, null, ": " + postInfo, editor() //$NON-NLS-1$
 		);
 		prop.setCategory(cats.Functions);
 		proposals.add(prop);
@@ -137,9 +139,15 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var,
 			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
-			null, null, " - " + (var.parentDeclaration() != null ? var.parentDeclaration().name() : "<adhoc>"), //$NON-NLS-1$
+			null, null, ": " + var.type(as(editor().structure(), Script.class)).typeName(true), //$NON-NLS-1$
 			editor()
 		);
+		setVariableCategory(var, prop);
+		proposals.add(prop);
+		return prop;
+	}
+
+	private void setVariableCategory(Variable var, final ClonkCompletionProposal prop) {
 		switch (var.scope()) {
 		case CONST:
 			prop.setCategory(cats.Constants);
@@ -156,8 +164,6 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		default:
 			break;
 		}
-		proposals.add(prop);
-		return prop;
 	}
 
 	@Override

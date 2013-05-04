@@ -168,7 +168,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Scenario s1 = func.scenario();
 					if (s1 != null && s2 != null && s1 != s2)
 						continue;
-					proposalForFunc(func, prefix, offset, proposals, func.script().name(), true);
+					proposalForFunc(func, prefix, offset, proposals, true);
 				}
 			if ((flags & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : index.staticVariables()) {
@@ -370,7 +370,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if (proposalCycle == ProposalCycle.ALL)
 			if (editorScript.index().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
 				for (final Function func : editorScript.index().engine().functions())
-					proposalForFunc(func, prefix, offset, proposals, editorScript.index().engine().name(), true);
+					proposalForFunc(func, prefix, offset, proposals, true);
 				if (contextSequence == null)
 					for (final Variable var : editorScript.index().engine().variables())
 						proposalForVar(var,prefix,offset,proposals);
@@ -426,7 +426,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function)
-					proposalForFunc((Function) d, prefix, offset, proposals, d.script().name(), true);
+					proposalForFunc((Function) d, prefix, offset, proposals, true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar((Variable)d, prefix, offset, proposals);
 			}
@@ -458,7 +458,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
 					continue;
 				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
-					keyword, null ,null, " C4Script", editor());
+					keyword, null ,null, ": keyword", editor());
 				prop.setCategory(cats.Keywords);
 				proposals.add(prop);
 			}
@@ -780,7 +780,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
+				final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, true);
 				if (prop != null)
 					prop.setCategory(cats.LocalFunction);
 			}

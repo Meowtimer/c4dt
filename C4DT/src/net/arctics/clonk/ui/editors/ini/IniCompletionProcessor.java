@@ -205,7 +205,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				if (script == null)
 					continue;
 				for (Function f : script.functions())
-					proposalForFunc(f, prefix, wordOffset, proposals, script.name(), false);
+					proposalForFunc(f, prefix, wordOffset, proposals, false);
 			}
 	}
 
