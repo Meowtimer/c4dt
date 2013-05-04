@@ -1444,20 +1444,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Variable v = (Variable)d;
 					switch (v.scope()) {
 					case LOCAL:
-						IType t = PrimitiveType.UNKNOWN;
-						if (node.predecessorInSequence() != null) {
-							final IType predTy = visitor.ty(node.predecessorInSequence());
-							if (predTy != null)
-								for (final IType _t : predTy)
-									if (_t instanceof Script) {
-										final Input nput = shared.getInput((Script) _t);
-										if (nput != null)
-											nput.new Visitor(visitor).run();
-										final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
-										t = TypeUnification.unify(t, frt);
-									}
-						}
-						return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
+						return unifyVariableTypesForAllPredecessorTypes(node, visitor, d);
 					default:
 						return v.type();
 					}
@@ -1465,6 +1452,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 				else if (d instanceof ITypeable)
 					return ((ITypeable) d).type();
 				return PrimitiveType.UNKNOWN;
+			}
+			private IType unifyVariableTypesForAllPredecessorTypes(T node, Visitor visitor, final Declaration d) {
+				IType t = PrimitiveType.UNKNOWN;
+				if (node.predecessorInSequence() != null) {
+					final IType predTy = visitor.ty(node.predecessorInSequence());
+					if (predTy != null)
+						for (final IType _t : predTy)
+							if (_t instanceof Script) {
+								final Input nput = shared.getInput((Script) _t);
+								if (nput != null)
+									nput.new Visitor(visitor).run();
+								final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
+								t = TypeUnification.unify(t, frt);
+							}
+				}
+				return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
 			}
 
 			@Override
@@ -1477,37 +1480,49 @@ public class DabbleInference extends ProblemReportingStrategy {
 				// local variable used in global function
 				else if (declaration instanceof Variable) {
 					final Variable var = (Variable) declaration;
-					var.setUsed(true);
-					switch (var.scope()) {
-					case LOCAL:
-						final Declaration d = node.parentOfType(Declaration.class);
-						if (d != null && pred == null) {
-							final Function f = d.topLevelParentDeclarationOfType(Function.class);
-							final Variable v = d.topLevelParentDeclarationOfType(Variable.class);
-							if (
-								(f != null && f.visibility() == FunctionScope.GLOBAL) ||
-								(f == null && v != null && v.scope() != Scope.LOCAL)
-							)
-								visitor.markers().error(visitor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
-						}
-						break;
-					case STATIC: case CONST:
-						visitor.script().addUsedScript(var.script());
-						break;
-					case VAR:
-						final Function currentFunction = node.parentOfType(Function.class);
-						if (currentFunction != null && var.parentDeclaration() == currentFunction) {
-							final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
-							if (locationUsed < var.start())
-								visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
-						}
-						break;
-					case PARAMETER:
-						break;
-					}
+					handleVariable(node, visitor, pred, var);
 				} else if (declaration instanceof Function)
 					if (!visitor.script().engine().settings().supportsFunctionRefs)
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
+			}
+			private void handleVariable(T node, Visitor visitor, final ASTNode pred, final Variable var) throws ProblemException {
+				var.setUsed(true);
+				switch (var.scope()) {
+				case LOCAL:
+					handleField(node, visitor, pred);
+					break;
+				case STATIC: case CONST:
+					handleStatic(visitor, var);
+					break;
+				case VAR:
+					handleFunctionLocal(node, visitor, var);
+					break;
+				case PARAMETER:
+					break;
+				}
+			}
+			private void handleFunctionLocal(T node, Visitor visitor, final Variable var) {
+				final Function currentFunction = node.parentOfType(Function.class);
+				if (currentFunction != null && var.parentDeclaration() == currentFunction) {
+					final int locationUsed = currentFunction.bodyLocation().getOffset()+node.start();
+					if (locationUsed < var.start())
+						visitor.markers().warning(visitor, Problem.VarUsedBeforeItsDeclaration, node, node, 0, var.name());
+				}
+			}
+			private void handleStatic(Visitor visitor, final Variable var) {
+				visitor.script().addUsedScript(var.script());
+			}
+			private void handleField(T node, Visitor visitor, final ASTNode pred) throws ProblemException {
+				final Declaration d = node.parentOfType(Declaration.class);
+				if (d != null && pred == null) {
+					final Function f = d.topLevelParentDeclarationOfType(Function.class);
+					final Variable v = d.topLevelParentDeclarationOfType(Variable.class);
+					if (
+						(f != null && f.visibility() == FunctionScope.GLOBAL) ||
+						(f == null && v != null && v.scope() != Scope.LOCAL)
+					)
+						visitor.markers().error(visitor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
+				}
 			}
 
 			@Override
