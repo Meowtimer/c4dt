@@ -31,7 +31,6 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
-import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.ReparseFunctionMode;
 import net.arctics.clonk.ui.search.ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
@@ -176,7 +175,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			editingState.cancelReparsingTimer();
 			final Function cursorFunc = functionAtCursor();
 			if (cursorFunc != null)
-				editingState.reparseFunction(cursorFunc, ReparseFunctionMode.FULL).deploy();
+				editingState.reparseFunction(cursorFunc).deploy();
 		}
 		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
@@ -296,7 +295,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			public void run() {
 				final Function f = functionAtCursor();
 				if (f != null)
-					editingState().reparseFunction(f, ReparseFunctionMode.FULL).deploy();
+					editingState().reparseFunction(f).deploy();
 				showContentAssistance();
 			}
 		});

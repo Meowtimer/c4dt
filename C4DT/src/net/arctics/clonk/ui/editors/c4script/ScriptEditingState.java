@@ -6,7 +6,6 @@ import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
@@ -112,7 +111,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
 			adjustDec(v, offset, add);
 	}
-	
+
 	private static C4ScriptParser parserForDocument(Object document, final Script script) {
 		C4ScriptParser parser = null;
 		if (document instanceof IDocument)
@@ -128,7 +127,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			throw new InvalidParameterException("document");
 		return parser;
 	}
-	
+
 	private C4ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
 		cancelReparsingTimer();
 		return reparseWithDocumentContents(onlyDeclarations, document, structure(), new Runnable() {
@@ -141,7 +140,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		});
 	}
-	
+
 	C4ScriptParser reparseWithDocumentContents(
 		boolean onlyDeclarations, Object document,
 		final Script script,
@@ -249,7 +248,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
 						removeMarkers(fn, structure);
 						final Function f = (Function) fn.latestVersion();
-						final Markers markers = reparseFunction(f, ReparseFunctionMode.FULL);
+						final Markers markers = reparseFunction(f);
 						markers.deploy();
 					}
 				} catch (final Exception e) {
@@ -259,26 +258,17 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}, 1000);
 	}
 
-	public enum ReparseFunctionMode {
-		/** Revisit called functions so that their parameter types are
-		 *  adjusted according to arguments passed here */
-		REVISIT_CALLED_FUNCTIONS;
-		
-		public static final EnumSet<ScriptEditingState.ReparseFunctionMode> FULL = EnumSet.allOf(ScriptEditingState.ReparseFunctionMode.class);
-		public static final EnumSet<ScriptEditingState.ReparseFunctionMode> LIGHT = EnumSet.noneOf(ScriptEditingState.ReparseFunctionMode.class);
-	}
-
-	public Markers reparseFunction(final Function function, EnumSet<ScriptEditingState.ReparseFunctionMode> mode) {
+	public Markers reparseFunction(final Function function) {
 		// ignore this request when errors while typing disabled
 		if (errorsWhileTypingDisabled())
 			return new Markers();
 
 		final Markers markers = new Markers(new MarkerConfines(function));
 		markers.applyProjectSettings(structure.index());
-		
+
 		final FunctionFragmentParser updater = new FunctionFragmentParser(document, structure, function, markers);
 		updater.update();
-		
+
 		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
 		// concrete parameters passed from here
 		structure.deriveInformation();
@@ -322,15 +312,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public static ScriptEditingState state(Script script) {
 		return stateFromList(list, script);
 	}
-	
+
 	/**
 	 *  Created if there is no suitable script to get from somewhere else
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
-	
+
 	private WeakReference<ProblemReporter> cachedDeclarationObtainmentContext;
-	
+
 	@Override
 	public Script structure() {
 		Script result = cachedScript.get();
@@ -341,7 +331,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 		if (editors.isEmpty())
 			return super.structure();
-		
+
 		final IEditorInput input = editors.get(0).getEditorInput();
 		if (input instanceof ScriptWithStorageEditorInput)
 			result = ((ScriptWithStorageEditorInput)input).script();
@@ -380,14 +370,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		this.structure = result;
 		return result;
 	}
-	
+
 	@Override
 	public void invalidate() {
 		cachedScript = new WeakReference<Script>(null);
 		cachedDeclarationObtainmentContext = new WeakReference<ProblemReporter>(null);
 		super.invalidate();
 	}
-	
+
 	public ProblemReporter declarationObtainmentContext() {
 		if (cachedDeclarationObtainmentContext != null) {
 			final ProblemReporter ctx = cachedDeclarationObtainmentContext.get();
@@ -404,7 +394,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		return r;
 	}
-	
+
 	public FunctionFragmentParser updateFunctionFragment(
 		Function function,
 		IASTVisitor<ProblemReporter> observer,
@@ -419,5 +409,5 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 		return fparser;
 	}
-	
+
 }
