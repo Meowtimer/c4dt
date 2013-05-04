@@ -26,7 +26,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 	protected Object replaceObject(Object obj) throws IOException {
 		try {
 			if (obj instanceof IDeferredDeclaration)
-				throw new IllegalStateException("Deferred declaration while serializing? No way");
+				throw new IllegalStateException(String.format("Deferred declaration while serializing? No way: %s", obj.getClass().getSimpleName()));
 			if (obj instanceof IReplacedWhenSaved)
 				return ((IReplacedWhenSaved)obj).saveReplacement(index);
 			if (obj instanceof Declaration && !(obj instanceof Index))
