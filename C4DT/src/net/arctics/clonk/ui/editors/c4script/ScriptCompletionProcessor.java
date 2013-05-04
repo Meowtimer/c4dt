@@ -67,7 +67,6 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.ui.editors.c4script.EntityLocator.RegionDescription;
-import net.arctics.clonk.ui.editors.c4script.ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -867,7 +866,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void hideProposals() {
-		final C4ScriptContentAssistant assistant = as(this.editor().contentAssistant(), C4ScriptContentAssistant.class);
+		final ScriptContentAssistant assistant = as(this.editor().contentAssistant(), ScriptContentAssistant.class);
 		if (assistant != null)
 			assistant.hide();
 	}

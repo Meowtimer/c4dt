@@ -31,7 +31,6 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Locates {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
@@ -82,14 +81,13 @@ public class EntityLocator extends ExpressionLocator<Void> {
 
 	/**
 	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded.
-	 * @param editor The editor
 	 * @param doc The script document
 	 * @param region Region in the script
 	 * @throws BadLocationException
 	 * @throws ProblemException
 	 */
-	public EntityLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
-		script = Utilities.scriptForEditor(editor);
+	public EntityLocator(Script script, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
+		this.script = script;
 		if (script == null)
 			return;
 		final RegionDescription d = new RegionDescription();
@@ -226,7 +224,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <X> X context(Class<X> cls) {
@@ -235,5 +233,5 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		else
 			return null;
 	}
-	
+
 }

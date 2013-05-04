@@ -31,7 +31,6 @@ import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.ReparseFunctionMode;
-import net.arctics.clonk.ui.editors.c4script.ScriptSourceViewerConfiguration.C4ScriptContentAssistant;
 import net.arctics.clonk.ui.search.ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
 
@@ -98,7 +97,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
-				final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
+				final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 				if (a != null && !a.isProposalPopupActive())
 					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
 						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
@@ -150,10 +149,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion region) {
 		try {
 			final EntityLocator info = new EntityLocator(
-				this,
+				script(),
 				this.getDocumentProvider().getDocument(this.getEditorInput()),
 				region
-				);
+			);
 			if (info.entity() != null)
 				return info.entity();
 			else if (fallbackToCurrentFunction)
@@ -178,7 +177,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (cursorFunc != null)
 				editingState.reparseFunction(cursorFunc, ReparseFunctionMode.FULL).deploy();
 		}
-		final C4ScriptContentAssistant a = as(contentAssistant(), C4ScriptContentAssistant.class);
+		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
 			a.hide();
 		super.editorSaved();
@@ -323,7 +322,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final ScriptEditingState listener = editingState();
 		return listener != null ? listener.structure() : null;
 	}
-	
+
 	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
 		if (script() == null)
 			return null;
@@ -358,7 +357,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (f == null)
 			return null;
 		editingState().updateFunctionFragment(f, null, false);
-		final EntityLocator locator = new EntityLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
+		final EntityLocator locator = new EntityLocator(script(), getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
@@ -397,7 +396,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			ClonkProjectNature.get(file).index();
 		super.initializeEditor();
 	}
-	
+
 	@Override
 	public ProblemReporter declarationObtainmentContext() {
 		return editingState().declarationObtainmentContext();

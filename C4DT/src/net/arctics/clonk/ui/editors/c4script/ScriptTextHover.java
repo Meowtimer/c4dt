@@ -18,7 +18,7 @@ import org.eclipse.jface.text.Region;
 public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 
 	private EntityLocator entityLocator;
-	
+
 	public ScriptTextHover(ClonkSourceViewerConfiguration<C4ScriptEditor> clonkSourceViewerConfiguration) {
 	    super(clonkSourceViewerConfiguration);
     }
@@ -27,34 +27,34 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 
 	@Override
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
-		IFile scriptFile = Utilities.fileEditedBy(configuration.editor());
-		StringBuilder messageBuilder = new StringBuilder();
+		final IFile scriptFile = Utilities.fileEditedBy(configuration.editor());
+		final StringBuilder messageBuilder = new StringBuilder();
 		if (entityLocator != null && entityLocator.entity() != null) {
-			ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
-			Script context = pred == null
+			final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
+			final Script context = pred == null
 				? configuration.editor().script()
 				: configuration.editor().editingState().typingStrategy().localReporter
 					(configuration.editor().script(), 0, null).typeOf(pred, Script.class);
 			messageBuilder.append(entityLocator.entity().infoText(context));
 		}
 		else {
-			String superInfo = super.getHoverInfo(viewer, region);
+			final String superInfo = super.getHoverInfo(viewer, region);
 			if (superInfo != null)
 				messageBuilder.append(superInfo);
 		}
 		try {
-			IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
+			final IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
 			boolean foundSomeMarkers = false;
-			for (IMarker m : markers) {
+			for (final IMarker m : markers) {
 				int charStart;
-				IRegion markerRegion = new Region(
+				final IRegion markerRegion = new Region(
 					charStart = m.getAttribute(IMarker.CHAR_START, -1),
 					m.getAttribute(IMarker.CHAR_END, -1)-charStart
 				);
 				if (Utilities.regionContainsOtherRegion(markerRegion, region)) {
 					if (!foundSomeMarkers) {
 						if (messageBuilder.length() > 0)
-							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$ 
+							messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$
 						foundSomeMarkers = true;
 					}
 					String msg = m.getAttribute(IMarker.MESSAGE).toString();
@@ -63,7 +63,7 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 					messageBuilder.append("<br/>"); //$NON-NLS-1$
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// whatever
 		}
 		return messageBuilder.toString();
@@ -72,10 +72,10 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 	@Override
 	public IRegion getHoverRegion(ITextViewer viewer, int offset) {
 		super.getHoverRegion(viewer, offset);
-		IRegion region = new Region(offset, 0);
+		final IRegion region = new Region(offset, 0);
 		try {
-			entityLocator = new EntityLocator(configuration.editor(), viewer.getDocument(), region);
-		} catch (Exception e) {
+			entityLocator = new EntityLocator(configuration.editor().script(), viewer.getDocument(), region);
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
