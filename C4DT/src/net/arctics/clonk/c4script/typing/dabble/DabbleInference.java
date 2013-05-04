@@ -1851,7 +1851,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.expert(left).assignment(left, right, visitor);
 						break;
 					case Equal:
-						if (runtimeTypeCheck(visitor, left, right, true))
+						if (node.parentOfType(IfStatement.class) != null && runtimeTypeCheck(visitor, left, right, true))
 							return;
 						break;
 					case JumpNotNil:
@@ -1892,8 +1892,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (type != null) {
 							visitor.judgement(
 								((CallDeclaration)left).params()[0],
-								TypeChoice.make(PrimitiveType.ANY, type),
-								TypingJudgementMode.UNIFY
+								type,
+								TypingJudgementMode.OVERWRITE
 							);
 							return true;
 						}
@@ -2245,7 +2245,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType unified = unifyNoChoice(parmTy, givenTy);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else if (eq(PrimitiveType.UNKNOWN, parmTy))
+						else if (visitor.inPreliminaryVisit())
 							visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)
@@ -2687,10 +2687,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void visit(IfStatement node, Visitor visitor) throws ProblemException {
 					final ControlFlow old = visitor.controlFlow;
 					final ASTNode condition = node.condition();
-					visitor.visit(condition, true);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
 					final TypeEnvironment ifEnvironment = visitor.newTypeEnvironment();
+					// visit condition with new type environment so judgments arising from will not be unified inside
+					// the true case
+					visitor.visit(condition, true);
 					visitor.visit(node.body(), true);
 					visitor.endTypeEnvironment(ifEnvironment, false, false);
 					visitor.controlFlow = old;
