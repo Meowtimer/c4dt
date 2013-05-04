@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.StreamUtil;
 

@@ -5,9 +5,9 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.StructureVariable;
 
 public class PlayerControlsUnit extends IniUnitWithNamedSections {

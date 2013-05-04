@@ -6,8 +6,8 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;

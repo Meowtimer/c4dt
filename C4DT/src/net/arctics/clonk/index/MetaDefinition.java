@@ -6,9 +6,9 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.Utilities;
 
 public class MetaDefinition implements IRefinedPrimitiveType {

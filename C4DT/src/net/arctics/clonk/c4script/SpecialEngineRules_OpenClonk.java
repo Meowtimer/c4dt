@@ -35,6 +35,8 @@ import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;

@@ -4,9 +4,9 @@ import static org.junit.Assert.*;
 
 import net.arctics.clonk.c4script.ArrayType;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Function.ParameterStringOption;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -3,8 +3,6 @@ package net.arctics.clonk.c4script.typing;
 import java.util.Iterator;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class CallTargetType implements IType {

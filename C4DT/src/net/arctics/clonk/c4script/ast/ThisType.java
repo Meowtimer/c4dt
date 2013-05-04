@@ -1,8 +1,9 @@
 package net.arctics.clonk.c4script.ast;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeChoice;
 import net.arctics.clonk.index.Definition;
 
 public class ThisType extends TypeChoice {

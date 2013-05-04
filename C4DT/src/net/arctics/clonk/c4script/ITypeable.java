@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.IIndexEntity;
 
 /**

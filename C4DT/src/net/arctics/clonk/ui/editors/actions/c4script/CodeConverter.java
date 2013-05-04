@@ -18,13 +18,13 @@ import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
 import net.arctics.clonk.c4script.InitializationFunction;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;

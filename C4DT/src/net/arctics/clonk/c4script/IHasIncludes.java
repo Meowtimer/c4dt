@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.Index;
 
 /**

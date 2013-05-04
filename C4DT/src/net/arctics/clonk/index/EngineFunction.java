@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
+import net.arctics.clonk.c4script.typing.IType;
 
 public class EngineFunction extends Function implements IReplacedWhenSaved {
 	private static class Ticket implements Serializable, IDeserializationResolvable {

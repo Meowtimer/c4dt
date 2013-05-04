@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -11,7 +11,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.typing.ReferenceType;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;

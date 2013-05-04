@@ -1,7 +1,7 @@
 package net.arctics.clonk.debug;
 
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.debug.core.DebugException;

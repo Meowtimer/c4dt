@@ -3,8 +3,8 @@ package net.arctics.clonk.index;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 
 public final class DocumentedFunction extends EngineFunction implements IDocumentedDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

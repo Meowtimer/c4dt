@@ -8,11 +8,11 @@ import java.util.EnumSet;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Function.ParameterStringOption;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.util.UI;

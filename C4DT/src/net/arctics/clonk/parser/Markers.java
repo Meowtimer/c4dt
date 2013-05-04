@@ -18,7 +18,7 @@ import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Marker;
-import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.IMarkerListener.Decision;

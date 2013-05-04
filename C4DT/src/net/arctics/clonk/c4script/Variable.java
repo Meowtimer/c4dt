@@ -13,6 +13,8 @@ import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IVariableFactory;

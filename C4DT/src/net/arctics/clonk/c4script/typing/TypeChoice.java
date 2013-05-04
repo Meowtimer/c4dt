@@ -1,4 +1,4 @@
-package net.arctics.clonk.c4script.ast;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.foldl;
 
@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
-import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;
@@ -97,10 +94,13 @@ public class TypeChoice implements IType {
 		collect(types);
 		if (special) {
 			final List<IType> t = new ArrayList<>(types);
-			t.remove(PrimitiveType.ANY.unified());
-			t.remove(CallTargetType.INSTANCE);
-			if (t.size() == 1)
-				return t.get(0).typeName(true) + "?";
+			if (t.remove(PrimitiveType.ANY.unified()) || t.remove(CallTargetType.INSTANCE)) {
+				final Set<String> typeNames = new HashSet<>(types.size());
+				for (final IType t_ : t)
+					if (t != null)
+						typeNames.add(t_.typeName(special)+"?");
+				return StringUtil.blockString("", "", " | ", typeNames);
+			}
 		}
 		final Set<String> typeNames = new HashSet<>(types.size());
 		for (final IType t : types)

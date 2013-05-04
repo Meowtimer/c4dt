@@ -9,8 +9,8 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.c4script.C4ScriptParser;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
 
 import org.eclipse.core.runtime.IProgressMonitor;

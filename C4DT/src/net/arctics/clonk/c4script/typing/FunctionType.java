@@ -7,8 +7,6 @@ import java.util.Iterator;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;

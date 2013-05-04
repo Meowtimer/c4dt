@@ -10,6 +10,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;

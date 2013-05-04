@@ -3,8 +3,8 @@ package net.arctics.clonk.index;
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 
 public class EngineVariable extends Variable implements IReplacedWhenSaved {
 	protected static class Ticket implements Serializable, IDeserializationResolvable {

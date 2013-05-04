@@ -17,11 +17,11 @@ import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;

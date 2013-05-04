@@ -6,8 +6,8 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.c4script.IType;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
 

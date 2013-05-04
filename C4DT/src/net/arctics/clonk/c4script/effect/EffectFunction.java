@@ -2,8 +2,8 @@ package net.arctics.clonk.c4script.effect;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 
 /**
  * One of the Fx* functions

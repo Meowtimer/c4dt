@@ -17,6 +17,8 @@ import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.StringUtil;
 
