@@ -153,7 +153,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();
-		parser.script().generateCaches();
+		parser.script().deriveInformation();
 		parser.validate();
 		if (!onlyDeclarations) {
 			if (this.typingStrategy() != null) {
@@ -281,7 +281,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		
 		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
 		// concrete parameters passed from here
-		structure.generateCaches();
+		structure.deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
 			final ProblemReporter mainTyping = strategy.localReporter(updater.script(), updater.fragmentOffset(), null);
 			if (markers != null)

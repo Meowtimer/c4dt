@@ -59,7 +59,7 @@ public class ScriptCompletionProcessorTest extends TestBase {
 		
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 		
 		def (base, derived) = setup.scripts

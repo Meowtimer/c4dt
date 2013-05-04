@@ -411,7 +411,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (s instanceof IHasIncludes) {
 					@SuppressWarnings("unchecked")
 					final Iterable<? extends IHasIncludes<?>> includes =
-					((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
+						((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
 					for (final IHasIncludes<?> inc : includes)
 						proposalsForStructure((Declaration) inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
 				}
@@ -777,14 +777,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				continue;
 			final Function func = as(dec, Function.class);
 			final Variable var = as(dec, Variable.class);
-			if (func != null) {
-				if (func.visibility() != FunctionScope.GLOBAL) {
-					if (target instanceof Script && !((Script)target).seesFunction(func))
-						continue;
-					final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
-					if (prop != null)
-						prop.setCategory(cats.LocalFunction);
-				}
+			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
+				if (target instanceof Script && !((Script)target).seesFunction(func))
+					continue;
+				final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, structure.name(), true);
+				if (prop != null)
+					prop.setCategory(cats.LocalFunction);
 			}
 			else if (var != null)
 				proposalForVar(var, prefix, wordOffset, proposals);

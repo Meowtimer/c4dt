@@ -9,6 +9,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
@@ -31,15 +32,15 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	private static final boolean INDEX_C4GROUPS = true;
 	private final Set<Script> obsoleted = new HashSet<Script>();
 	private final ClonkBuilder builder;
-	
+
 	public ScriptGatherer(ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
-	
+
 	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, Index index) {
 		index.allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
 				if (item instanceof Definition) {
-					Definition d = (Definition)item;
+					final Definition d = (Definition)item;
 					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted))
 						return;
 				} else if (item.scriptFile() == null || !item.scriptFile().equals(deleted))
@@ -49,16 +50,16 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			}
 		});
 	}
-	
+
 	private Definition createDefinition(IContainer folder) {
-		IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
-		IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
+		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
+		final IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
 		if (defCore == null && scenario == null)
 			return null;
 		try {
 			Definition def = Definition.definitionCorrespondingToFolder(folder);
 			if (defCore != null) {
-				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
+				final DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (def == null)
 					def = new Definition(builder.index(), defCoreWrapper.definitionID(), defCoreWrapper.name(), folder);
 				else {
@@ -68,14 +69,14 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			} else if (scenario != null)
 				def = new Scenario(builder.index(), folder.getName(), folder);
 			return def;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	@Override
 	public boolean visit(IResourceDelta delta) throws CoreException {
-		if (delta == null) 
+		if (delta == null)
 			return false;
 
 		boolean visitChildren = false;
@@ -88,7 +89,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				if (script == null) {
 					// create if new file
 					// script in a system group
-					if (builder.isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
+					if (isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
 						script = new SystemScript(builder.index(), file);
 					// definition script
 					else
@@ -110,7 +111,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			visitChildren = true;
 		}
 		else if (delta.getResource() instanceof IContainer) {
-			IContainer container = (IContainer)delta.getResource();
+			final IContainer container = (IContainer)delta.getResource();
 			if (!INDEX_C4GROUPS)
 				if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
 					visitChildren = false;
@@ -143,15 +144,15 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			if (!INDEX_C4GROUPS)
 				if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
 					return false;
-			Definition definition = createDefinition((IContainer) resource);
+			final Definition definition = createDefinition((IContainer) resource);
 			if (definition != null)
 				builder.queueScript(definition);
 			return true;
 		}
 		else if (resource instanceof IFile) {
-			IFile file = (IFile) resource;
+			final IFile file = (IFile) resource;
 			// only create standalone-scripts for *.c files residing in System groups
-			if (builder.isSystemScript(resource)) {
+			if (isSystemScript(resource)) {
 				Script script = SystemScript.pinned(file, true);
 				if (script == null)
 					script = new SystemScript(builder.index(), file);
@@ -176,10 +177,10 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			builder.addGatheredStructure(structure);
 		// not parsed as Structure - let definition process the file
 		else if (script instanceof Definition) {
-			Definition def = (Definition)script;
+			final Definition def = (Definition)script;
 			try {
 				def.processDefinitionFolderFile(file);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -188,8 +189,14 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		return result;
 	}
 	public void removeObsoleteScripts() {
-		for (Script s : obsoleted)
+		for (final Script s : obsoleted)
 			builder.index().removeScript(s);
 		obsoleted.clear();
+	}
+	public boolean isSystemScript(IResource resource) {
+		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
+	}
+	private boolean isSystemGroup(IContainer container) {
+		return container.getName().equals(builder.index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$
 	}
 }

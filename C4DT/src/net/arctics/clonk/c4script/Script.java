@@ -69,7 +69,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 
 /**
@@ -247,7 +246,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		loadIncludes();
 		loadUsedScripts();
 		super.postLoad(parent, root);
-		generateCaches();
+		deriveInformation();
 		findScenario();
 	}
 
@@ -798,7 +797,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return null;
 	}
 
-	public Variable variableWithInitializationAt(IRegion region) {
+	public Variable variableInitializedAt(IRegion region) {
 		requireLoaded();
 		for (final Variable v : variables()) {
 			final ASTNode initialization = v.initializationExpression();
@@ -809,15 +808,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					return v;
 			}
 		}
-		return null;
-	}
-
-	// OMG, IRegion <-> ITextSelection
-	public Function funcAt(ITextSelection region) {
-		requireLoaded();
-		for (final Function f : functions())
-			if (f.start() <= region.getOffset() && region.getOffset()+region.getLength() <= f.bodyLocation().end())
-				return f;
 		return null;
 	}
 
@@ -1197,22 +1187,37 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 	};
 
-	public void generateCaches() {
+	/**
+	 * Populate various helper structures and caches with information derived from the truth
+	 * read from the source. These things include:
+	 * <ol>
+	 * 	<li>{@link #dictionary()} is populated with names of declarations contained in this script.</li>
+	 *  <li>An internal cache for finding declarations is generated so that {@link #findDeclaration(String, FindDeclarationInfo)} does faster lookup.</li>
+	 *  <li>{@link #varReferences()} and {@link #callMap()} are populated with references to respective AST nodes ({@link AccessVar} and {@link CallDeclaration}).</li>
+	 * </ol>
+	 */
+	public void deriveInformation() {
 		final List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);
+
 		populateDictionary(conglo);
 		generateFindDeclarationCache(conglo);
+		findInheritedFunctions();
 		generateNodeMaps();
+	}
+
+	private void findInheritedFunctions() {
+		if (functions != null && index() != null)
+			for (final Function f : functions())
+				f.findInherited();
 	}
 
 	private void generateNodeMaps() {
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();
 		if (functions != null && index() != null)
-			for (final Function f : functions()) {
-				f.findInherited();
+			for (final Function f : functions())
 				detectMapNodesInFunction(f, false);
-			}
 	}
 
 	private void generateFindDeclarationCache(final List<Script> conglo) {

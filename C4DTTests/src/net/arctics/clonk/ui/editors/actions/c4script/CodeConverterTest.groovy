@@ -24,7 +24,7 @@ Initialize:
 		def setup = new Setup(source)
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		
 		try {
 			def converter = new CodeConverter() {

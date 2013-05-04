@@ -110,7 +110,7 @@ public class DabbleInferenceTest extends TestBase {
 			}
 			setup.parsers.each { it.run() }
 			setup.index.refresh()
-			setup.scripts.each { it.generateCaches() }
+			setup.scripts.each { it.deriveInformation() }
 			setup.inference.run()
 			Assert.assertEquals(PrimitiveType.STRING.unified(), base.findLocalFunction("Func3", false).parameters()[0].type())
 			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type())
@@ -167,7 +167,7 @@ func Usage() {
 		def (base, derived, clonk, wipf) = setup.scripts
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
@@ -189,7 +189,7 @@ func Test()
 """, new DefinitionInfo(source:'', name:'Clonk'))
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		def (scr, clonk) = setup.scripts
@@ -234,7 +234,7 @@ func Test()
 
 			setup.parsers.each { it.run() }
 			setup.index.refresh()
-			setup.scripts.each { it.generateCaches() }
+			setup.scripts.each { it.deriveInformation() }
 			setup.inference.run()
 
 			Definition a = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('A') }
@@ -283,7 +283,7 @@ func Test()
 
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		def (base, derived) = setup.scripts
@@ -329,7 +329,7 @@ func Test()
 		def (base, derived, clonk, wipf, user) = setup.scripts
 		setup.parsers.each { it.run() }
 		setup.index.refresh()
-		setup.scripts.each { it.generateCaches() }
+		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
@@ -412,7 +412,7 @@ func Test()
 			def (waypoint, abyss, rescuesBuilder) = setup.scripts
 			setup.parsers.each { it.run() }
 			setup.index.refresh()
-			setup.scripts.each { it.generateCaches() }
+			setup.scripts.each { it.deriveInformation() }
 
 			def functionNames = rescuesBuilder.functions().collect { it.name() }.toList()
 			def makeAbyssMarkersIndex = functionNames.indexOf("MakeAbyssMarkers")

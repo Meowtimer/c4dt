@@ -70,7 +70,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public boolean initializeRegionDescription(RegionDescription d, Script script, IRegion region) {
 		d.func = script.funcAt(region);
 		if (d.func == null) {
-			final Variable var = script.variableWithInitializationAt(region);
+			final Variable var = script.variableInitializedAt(region);
 			if (var == null)
 				return false;
 			else

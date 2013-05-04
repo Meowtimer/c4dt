@@ -1,33 +1,22 @@
 package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.eq;
-import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4GroupStreamOpener;
-import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.C4ScriptParser;
-import net.arctics.clonk.c4script.IType;
-import net.arctics.clonk.c4script.PrimitiveType;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
@@ -37,21 +26,15 @@ import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
@@ -83,15 +66,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public Collection<C4ScriptParser> parsers() { return parserMap.values(); }
 	public Collection<Script> scripts() { return parserMap.keySet(); }
 
-	public boolean isSystemScript(IResource resource) {
-		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
-	}
-
-	private boolean isSystemGroup(IContainer container) {
-		return container.getName().equals(index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$
-	}
-
-	private static String buildTask(String text, IProject project) {
+	static String buildTask(String text, IProject project) {
 		return String.format(text, project.getName());
 	}
 
@@ -134,14 +109,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		this.buildKind = kind;
 		this.monitor = monitor;
 		clearState();
-		final List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 
 		//clearUIOfReferencesBeforeBuild();
 		ClonkProjectNature.get(proj).index().beginModification();
 		try {
 			try {
 
-				final Script[] scripts = performBuildPhases(listOfResourcesToBeRefreshed, proj, getDelta(proj));
+				final Script[] scripts = performBuildPhases(proj, getDelta(proj));
 
 				if (monitor.isCanceled()) {
 					monitor.done();
@@ -172,35 +146,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			System.out.println("ClonkBuilder: Not visiting things - no delta but no full build either");
 	}
 
-	private static class SaveScriptsJob extends Job {
-		private final Script[] scriptsToSave;
-		private final IProject project;
-		public SaveScriptsJob(IProject project, Script[] scriptsToSave) {
-			super(buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
-			this.scriptsToSave = scriptsToSave;
-			this.project = project;
-		}
-		@Override
-		protected IStatus run(final IProgressMonitor monitor) {
-			monitor.beginTask(buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.length+3);
-			try {
-				for (final Script s : scriptsToSave)
-					try {
-						s.save();
-						monitor.worked(1);
-					} catch (final IOException e) {
-						e.printStackTrace();
-					}
-				monitor.worked(3);
-				return Status.OK_STATUS;
-			} finally {
-				monitor.done();
-			}
-		}
-	}
-
 	private Script[] performBuildPhases(
-		List<IResource> listOfResourcesToBeRefreshed,
 		final IProject proj,
 		IResourceDelta delta
 	) throws CoreException {
@@ -220,21 +166,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			monitor.beginTask(buildTask(Messages.BuildProject), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? 3000 : IProgressMonitor.UNKNOWN);
 
 			// populate parserMap with first batch of parsers for directly modified scripts
-			parserMap.clear();
-			monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
-			final ScriptGatherer gatherer = new ScriptGatherer(this);
-			visitDeltaOrWholeProject(delta, proj, gatherer);
-			gatherer.removeObsoleteScripts();
-
-			// delete old declarations
-			for (final Script script : parserMap.keySet())
-				script.clearDeclarations();
-			index.refresh(false);
-
+			gatherScripts(proj, delta);
+			clearScripts(index);
 			parseDeclarations(index);
-
-			if (delta != null)
-				listOfResourcesToBeRefreshed.add(delta.getResource());
 
 			final Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
@@ -247,136 +181,74 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 			new SaveScriptsJob(proj, scripts).schedule();
 
-			final ProjectSettings settings = nature.settings();
-			if (buildKind == FULL_BUILD)
-				if (settings.migrationTyping != null) switch (settings.migrationTyping) {
-				case STATIC:
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-								String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
-								"Migration to Static Typing"
-							))
-								migrateToStaticTyping(parsers, settings);
-						}
-					});
-					break;
-				case DYNAMIC: case PARAMETERS_OPTIONALLY_TYPED:
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-								String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
-								"Migration to Dynamic Typing"
-							))
-								migrateToDynamicTyping(parsers, settings);
-						}
-					});
-					break;
-				default:
-					break;
-				}
+			performRequestedTypingMigration(proj, parsers);
 			return scripts;
 		} finally {
 			monitor.done();
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
 		}
 	}
+	private void gatherScripts(final IProject proj, IResourceDelta delta) throws CoreException {
+		parserMap.clear();
+		monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
+		final ScriptGatherer gatherer = new ScriptGatherer(this);
+		visitDeltaOrWholeProject(delta, proj, gatherer);
+		gatherer.removeObsoleteScripts();
+	}
+
+	private void clearScripts(final Index index) {
+		// delete old declarations
+		for (final Script script : parserMap.keySet())
+			script.clearDeclarations();
+		index.refresh(false);
+	}
+
+	private void performRequestedTypingMigration(final IProject proj, final C4ScriptParser[] parsers) {
+		final ProjectSettings settings = nature.settings();
+		if (buildKind == FULL_BUILD)
+			if (settings.migrationTyping != null) switch (settings.migrationTyping) {
+			case STATIC:
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
+							"Migration to Static Typing"
+						))
+							migrateToStaticTyping(parsers, settings);
+					}
+				});
+				break;
+			case DYNAMIC: case PARAMETERS_OPTIONALLY_TYPED:
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
+							"Migration to Dynamic Typing"
+						))
+							migrateToDynamicTyping(parsers, settings);
+					}
+				});
+				break;
+			default:
+				break;
+			}
+	}
 
 	private void migrateToStaticTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
-		new Job("Static Typing Migration") {
-			@Override
-			protected IStatus run(final IProgressMonitor monitor) {
-				monitor.beginTask("Static Typing Migration", parsers.length);
-				runWithoutAutoBuild(new Runnable() { @Override public void run() {
-					for (final C4ScriptParser parser : parsers) {
-						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
-							insertTypeAnnotations(parser);
-						monitor.worked(1);
-					}
-				}});
-				settings.concludeTypingMigration();
-				nature.saveSettings();
-				return Status.OK_STATUS;
-			}
-			private void insertTypeAnnotations(final C4ScriptParser parser) {
-				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
-					@Override
-					public Object run(IDocument document) {
-						final StringBuilder builder = new StringBuilder(document.get());
-						final List<TypeAnnotation> annotations = parser.typeAnnotations();
-						Collections.sort(annotations);
-						for (int i = annotations.size()-1; i >= 0; i--) {
-							final TypeAnnotation annot = annotations.get(i);
-							if (annot.type() == null && annot.target() != null) {
-								/*System.out.println(String.format(
-									"typeable: %s type: %s enviro: %s",
-									annot.typeable().name(),
-									annot.typeable().type().typeName(false),
-									builder.substring(annot.start()-7, annot.end()+7)
-								));*/
-								builder.delete(annot.start(), annot.end());
-								builder.insert(annot.start(), " ");
-								IType type = annot.target().type();
-								if (eq(type, PrimitiveType.UNKNOWN))
-									type = PrimitiveType.ANY;
-								builder.insert(annot.start(), type.typeName(false));
-							}
-						}
-						document.set(builder.toString());
-						return null;
-					}
-				}, true);
-			}
-		}.schedule();
+		new StaticTypingMigrationJob("Static Typing Migration", nature, settings, parsers).schedule();
 	}
 
 	private void migrateToDynamicTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
-		new Job("Dynamic Typing Migration") {
-			@Override
-			protected IStatus run(final IProgressMonitor monitor) {
-				monitor.beginTask("Dynamic Typing Migration", parsers.length);
-				runWithoutAutoBuild(new Runnable() { @Override public void run() {
-					for (final C4ScriptParser parser : parsers) {
-						if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
-							removeTypeAnnotations(parser);
-						monitor.worked(1);
-					}
-				}});
-				settings.concludeTypingMigration();
-				nature.saveSettings();
-				return Status.OK_STATUS;
-			}
-			private void removeTypeAnnotations(final C4ScriptParser parser) {
-				if (parser.typeAnnotations() == null)
-					return;
-				Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
-					@Override
-					public Object run(IDocument document) {
-						final StringBuilder builder = new StringBuilder(document.get());
-						final List<TypeAnnotation> annotations = parser.typeAnnotations();
-						Collections.sort(annotations);
-						for (int i = annotations.size()-1; i >= 0; i--) {
-							final TypeAnnotation annot = annotations.get(i);
-							int end = annot.end();
-							if (end < builder.length() && Character.isWhitespace(builder.charAt(end)))
-								end++;
-							builder.delete(annot.start(), end);
-						}
-						document.set(builder.toString());
-						return null;
-					}
-				}, true);
-			}
-		}.schedule();
+		new DynamicTypingMigrationJob(nature, "Dynamic Typing Migration", parsers, settings).schedule();
 	}
 
 	private void parseDeclarations(Index index) {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
-		final Map<Script, C4ScriptParser>
+		Map<Script, C4ScriptParser>
 			newEnqueued = new HashMap<Script, C4ScriptParser>(),
 			lastEnqueued = new HashMap<Script, C4ScriptParser>();
 		newEnqueued.putAll(parserMap);
@@ -385,45 +257,62 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			for (final Script s : newEnqueued.keySet())
 				nature.index().addScript(s);
 			if (newEnqueued.size() < 8)
-				for (final Script script : newEnqueued.keySet()) {
-					if (monitor.isCanceled())
-						return;
-					performParseDeclarations(script);
-					monitor.worked(1);
-				}
+				parseDeclarationsUsingSingleThread(newEnqueued);
 			else
-				TaskExecution.threadPool(new Sink<ExecutorService>() {
-					@Override
-					public void receivedObject(ExecutorService pool) {
-						for (final Script script : newEnqueued.keySet())
-							pool.execute(new Runnable() {
-								@Override
-								public void run() {
-									if (monitor.isCanceled())
-										return;
-									performParseDeclarations(script);
-									monitor.worked(1);
-								}
-							});
-					}
-				}, 20);
+				parseDeclarationsUsingThreadPool(newEnqueued);
+			if (monitor.isCanceled())
+				return;
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 				break;
-			lastEnqueued.clear();
-			lastEnqueued.putAll(newEnqueued);
-			newEnqueued.clear();
+			lastEnqueued = newEnqueued;
+			newEnqueued = new HashMap<Script, C4ScriptParser>();
 			queueDependentScripts(lastEnqueued, newEnqueued);
 		}
 		while (parserMapSize != parserMap.size());
-		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
+		refreshUI(newEnqueued);
+		indexRefresh(index);
+		markers.deploy();
+	}
+
+	private void parseDeclarationsUsingSingleThread(final Map<Script, C4ScriptParser> newEnqueued) {
+		for (final Script script : newEnqueued.keySet()) {
+			if (monitor.isCanceled())
+				return;
+			performParseDeclarations(script);
+			monitor.worked(1);
+		}
+	}
+
+	private void parseDeclarationsUsingThreadPool(final Map<Script, C4ScriptParser> newEnqueued) {
+		TaskExecution.threadPool(new Sink<ExecutorService>() {
+			@Override
+			public void receivedObject(ExecutorService pool) {
+				for (final Script script : newEnqueued.keySet())
+					pool.execute(new Runnable() {
+						@Override
+						public void run() {
+							if (monitor.isCanceled())
+								return;
+							performParseDeclarations(script);
+							monitor.worked(1);
+						}
+					});
+			}
+		}, 20);
+	}
+
+	private void indexRefresh(Index index) {
 		// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index
 		index.refresh(false);
 		for (final Script script : parserMap.keySet())
-			script.generateCaches();
-		markers.deploy();
+			script.deriveInformation();
+	}
+
+	private void refreshUI(final Map<Script, C4ScriptParser> newEnqueued) {
+		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
 	}
 
 	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
@@ -492,15 +381,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public C4ScriptParser queueScript(Script script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
-			final IStorage storage = script.source();
-			if (storage != null) try {
-				result = new C4ScriptParser(script);
-				result.setMarkers(markers);
-			} catch (final Exception e) {
-				System.out.println(script.resource().getProjectRelativePath().toOSString());
-				e.printStackTrace();
-				result = null;
-			} else
+			if (script.source() != null)
+				try {
+					result = new C4ScriptParser(script);
+					result.setMarkers(markers);
+				} catch (final Exception e) {
+					System.out.println(script.resource().getProjectRelativePath().toOSString());
+					e.printStackTrace();
+					result = null;
+				}
+			else
 				result = null;
 
 			parserMap.put(script, result);
