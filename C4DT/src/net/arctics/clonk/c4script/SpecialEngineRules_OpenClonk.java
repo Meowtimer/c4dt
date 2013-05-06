@@ -14,9 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.EntityRegion;
@@ -441,8 +441,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						modified.add(item.num());
 				} else {
 					final Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
-						"id", new AccessVar(kv.key().stringValue()),
-						"placeCall", new CallDeclaration("Place", new IntegerLiteral(kv.value()))
+						"id", new Object[] {new AccessVar(kv.key().stringValue())},
+						"placeCall", new Object[] {new CallDeclaration("Place", new IntegerLiteral(kv.value()))}
 					), null));
 					wholeFunc = true;
 					function.body().addStatements(newStatement);

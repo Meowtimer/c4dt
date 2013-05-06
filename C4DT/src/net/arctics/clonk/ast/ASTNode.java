@@ -609,18 +609,22 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Return an instance of a specified class with its public fields set to results from {@link #match(ASTNode)}
+	 * Put matches of a {@link #match(ASTNode)} into an arbitrary object that provides
+	 * fields with names corresponding to the matches.
 	 * @param other The other expression to match against
-	 * @param resultType Type of the resulting object
+	 * @param match The object to put matches into
 	 */
-	public <T> boolean match(ASTNode other, T match) {
+	public boolean match(ASTNode other, Object match) {
 		final Map<String, Object> matches = match(other);
 		if (matches != null) try {
 			for (final Map.Entry<String, Object> kv : matches.entrySet())
 				try {
 					final Field f = match.getClass().getField(kv.getKey());
+					Object val = kv.getValue();
+					if (!f.getType().isArray() && val instanceof Object[])
+						val = ((Object[])val).length > 0 ? ((Object[])val)[0] : null;
 					f.setAccessible(true); // my eyes
-					f.set(match, as(kv.getValue(), f.getType()));
+					f.set(match, as(val, f.getType()));
 				} catch (final NoSuchFieldException e) {
 					continue; // ignore non-existing fields
 				}
