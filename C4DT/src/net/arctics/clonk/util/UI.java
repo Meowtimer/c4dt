@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Structure;
@@ -44,6 +46,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
@@ -70,39 +73,65 @@ import org.eclipse.ui.navigator.CommonNavigator;
  * Stores references to some objects needed for various components of the user interface
  */
 public abstract class UI {
-	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$ 
+	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$
 	public final static Image MAP_ICON = imageForPath("icons/map.png");
 	public final static Image MAPOVERLAY_ICON = imageForPath("icons/mapoverlay.png");
-	public static final Image TEXT_ICON = imageForPath("icons/text.png"); //$NON-NLS-1$ 
-	public static final Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$ 
-	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ 
-	public static final Image DUPE_ICON = imageForPath("icons/dupe.png");
-	public static final Image PROPLIST_ICON = imageForPath("icons/proplist.png");
-	public static final Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
-	
+	public final static Image TEXT_ICON = imageForPath("icons/text.png"); //$NON-NLS-1$
+	public final static Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$
+	public final static Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$
+	public final static Image DUPE_ICON = imageForPath("icons/dupe.png");
+	public final static Image PROPLIST_ICON = imageForPath("icons/proplist.png");
+	public final static Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
+	public final static Image WARNING_ICON = imageForPath("icons/warning.png");
+
+	private static Map<String, Image> images = new HashMap<>();
+
+	public static Image halfTransparent(Image image) {
+		String name;
+		Searching: {
+			for (final Map.Entry<String, Image> img : images.entrySet())
+				if (img.getValue() == image) {
+					name = img.getKey();
+					break Searching;
+				}
+			return null;
+		}
+		final String htName = name+"(halfTransparent)";
+		final Image existing = Core.instance().getImageRegistry().get(htName);
+		if (existing != null)
+			return existing;
+		final ImageData data = image.getImageData();
+		for (int x = 0; x < data.width; x++)
+			for (int y = 0; y < data.height; y++)
+				data.setAlpha(x, y, data.getAlpha(x, y)/2);
+		final Image ht = new Image(image.getDevice(), data);
+		Core.instance().getImageRegistry().put(htName, ht);
+		return ht;
+	}
+
 	/**
 	 * Return a function icon signifying the function's protection level.
 	 * @param function The function to return an icon for
 	 * @return The function icon.
 	 */
 	public static Image functionIcon(Function function) {
-		String iconName = function.visibility().name().toLowerCase();
-		return Core.instance().iconImageFor(iconName);
+		final String iconName = function.visibility().name().toLowerCase();
+		return imageForPath(String.format("icons/%s.png", iconName));
 	}
-	
+
 	/**
 	 * Return a variable icon. The icon reflects whether the variable is static or local.
 	 * @param variable The variable to return an icon for
 	 * @return The variable icon.
 	 */
 	public static Image variableIcon(Variable variable) {
-		String iconName = variable.scope().toString().toLowerCase();
-		return Core.instance().iconImageFor(iconName);
+		final String iconName = variable.scope().toString().toLowerCase();
+		return imageForPath(String.format("icons/%s.png", iconName));
 	}
 
 	/**
 	 * Return an icon for some object. Null will be returned if the object isn't of some class one of the
-	 * icon-returning functions ({@link #functionIcon(Function)}, {@link #variableIcon(Variable)} etc) could be called with. 
+	 * icon-returning functions ({@link #functionIcon(Function)}, {@link #variableIcon(Variable)} etc) could be called with.
 	 * @param element The element to return an icon for
 	 * @return The icon or null if the object is of some exotic type.
 	 */
@@ -134,34 +163,38 @@ public abstract class UI {
 	}
 
 	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
-		String path = url.toExternalForm();
-		ImageRegistry reg = Core.instance().getImageRegistry();
+		if (url == null)
+			return null;
+		final String path = url.toExternalForm();
+		final ImageRegistry reg = Core.instance().getImageRegistry();
 		Object result;
 		while ((result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path)) == null)
 			reg.put(path, ImageDescriptor.createFromURL(url));
 		return result;
 	}
-	
+
 	private static Object imageThingieForPath(String path, boolean returnDescriptor) {
 		return imageThingieForURL(FileLocator.find(Core.instance().getBundle(), new Path(path), null), returnDescriptor);
 	}
-	
+
 	public static ImageDescriptor imageDescriptorForPath(String path) {
 		return (ImageDescriptor) imageThingieForPath(path, true);
-	}	
-	
-	public static Image imageForPath(String iconPath) {
-		return (Image) imageThingieForPath(iconPath, false);
 	}
-	
+
+	public static Image imageForPath(String iconPath) {
+		final Image img = (Image) imageThingieForPath(iconPath, false);
+		images.put(iconPath, img);
+		return img;
+	}
+
 	public static ImageDescriptor imageDescriptorForURL(URL url) {
 		return (ImageDescriptor) imageThingieForURL(url, true);
 	}
-	
+
 	public static Image imageForURL(URL url) {
 		return (Image) imageThingieForURL(url, false);
 	}
-	
+
 	public static class ProjectSelectionBlock {
 		public Text text;
 		public Button addButton;
@@ -169,21 +202,21 @@ public abstract class UI {
 			// Create widget group
 			Composite container;
 			if (groupText != null) {
-				Group g = new Group(parent, SWT.NONE);
+				final Group g = new Group(parent, SWT.NONE);
 				g.setText(groupText);
 				container = g;
 			} else
 				container = new Composite(parent, SWT.NONE);
 			container.setLayout(new GridLayout(2, false));
 			container.setLayoutData(groupLayoutData != null ? groupLayoutData : new GridData(GridData.FILL_HORIZONTAL));
-			
+
 			// Text plus button
 			text = new Text(container, SWT.SINGLE | SWT.BORDER);
 			text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
 			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			addButton = new Button(container, SWT.PUSH);
 			addButton.setText(net.arctics.clonk.ui.navigator.Messages.Browse);
-			
+
 			// Install listener
 			if (textModifyListener != null)
 				text.addModifyListener(textModifyListener);
@@ -191,9 +224,9 @@ public abstract class UI {
 				addButton.addSelectionListener(addListener);
 		}
 	}
-	
+
 	public static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
-		FormData result = new FormData();
+		final FormData result = new FormData();
 		result.left = left;
 		result.top = top;
 		result.right = right;
@@ -202,7 +235,7 @@ public abstract class UI {
 	}
 
 	public static CheckboxTableViewer createProjectReferencesViewer(Composite parent) {
-		CheckboxTableViewer result = CheckboxTableViewer.newCheckList(parent, SWT.TOP | SWT.BORDER);
+		final CheckboxTableViewer result = CheckboxTableViewer.newCheckList(parent, SWT.TOP | SWT.BORDER);
 		result.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
 		result.setContentProvider(new WorkbenchContentProvider() {
 			@Override
@@ -214,7 +247,7 @@ public abstract class UI {
 		result.setInput(ResourcesPlugin.getWorkspace());
 		return result;
 	}
-	
+
 	public static boolean confirm(Shell shell, String text, String confirmTitle) {
 		return MessageDialog.openQuestion(
 			shell,
@@ -222,30 +255,30 @@ public abstract class UI {
 			text
 		);
 	}
-	
+
 	public static String input(Shell shell, String title, String prompt, String defaultValue, IInputValidator validator) {
-		InputDialog newNameDialog = new InputDialog(shell, title, prompt, defaultValue, validator);
+		final InputDialog newNameDialog = new InputDialog(shell, title, prompt, defaultValue, validator);
 		switch (newNameDialog.open()) {
 		case Window.CANCEL:
 			return null;
 		}
 		return newNameDialog.getValue();
 	}
-	
+
 	public static String input(Shell shell, String title, String prompt, String defaultValue) {
 		return input(shell, title, prompt, defaultValue, null);
 	}
-	
+
 	public static void message(String message, int kind) {
 		MessageDialog.open(kind, null, Core.HUMAN_READABLE_NAME, message, SWT.NONE);
 	}
-	
+
 	public static void message(String message) {
 		message(message, MessageDialog.INFORMATION);
 	}
-	
+
 	public static void informAboutException(String message, Object... additionalFormatArguments) {
-		Exception exception = additionalFormatArguments.length > 0 && additionalFormatArguments[0] instanceof Exception ? (Exception)additionalFormatArguments[0] : null;
+		final Exception exception = additionalFormatArguments.length > 0 && additionalFormatArguments[0] instanceof Exception ? (Exception)additionalFormatArguments[0] : null;
 		if (exception != null) {
 			exception.printStackTrace();
 			additionalFormatArguments[0] = exception.getMessage();
@@ -258,10 +291,10 @@ public abstract class UI {
 			}
 		});
 	}
-	
+
 	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
 		// Create dialog listing all Clonk projects
-		ElementListSelectionDialog dialog
+		final ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
 		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
 		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
@@ -277,50 +310,50 @@ public abstract class UI {
 		else
 			return null;
 	}
-	
+
 	public static IProject selectClonkProject(IProject initialSelection) {
-		IProject[] projects = selectClonkProjects(false, initialSelection);
+		final IProject[] projects = selectClonkProjects(false, initialSelection);
 		return projects != null ? projects[0] : null;
 	}
-	
+
 	public static IViewPart findViewInActivePage(IWorkbenchSite site, String id) {
 		if (site != null && site.getWorkbenchWindow() != null && site.getWorkbenchWindow().getActivePage() != null)
 			return site.getWorkbenchWindow().getActivePage().findView(id);
 		else
 			return null;
 	}
-	
+
 	public static CommonNavigator projectExplorer() {
-		IWorkbench workbench = PlatformUI.getWorkbench();
+		final IWorkbench workbench = PlatformUI.getWorkbench();
 		if (workbench != null)
 			return projectExplorer(workbench.getActiveWorkbenchWindow());
 		return null;
 	}
-	
+
 	public static ISelection projectExplorerSelection(IWorkbenchSite site) {
 		return site.getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
 	}
-	
+
 	public static ISelection projectExplorerSelection() {
 		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
 	}
 
 	public static CommonNavigator projectExplorer(IWorkbenchWindow window) {
 		if (window != null) {
-			IWorkbenchPage page = window.getActivePage();
+			final IWorkbenchPage page = window.getActivePage();
 			if (page != null) {
-				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
+				final IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
 				if (viewPart instanceof CommonNavigator)
 					return (CommonNavigator) viewPart;
 			}
 		}
 		return null;
 	}
-	
+
 	public static CommonNavigator[] projectExplorers() {
-		List<CommonNavigator> navs = new ArrayList<CommonNavigator>(PlatformUI.getWorkbench().getWorkbenchWindowCount());
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-			CommonNavigator nav = projectExplorer(window);
+		final List<CommonNavigator> navs = new ArrayList<CommonNavigator>(PlatformUI.getWorkbench().getWorkbenchWindowCount());
+		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			final CommonNavigator nav = projectExplorer(window);
 			if (nav != null)
 				navs.add(nav);
 		}
@@ -328,17 +361,17 @@ public abstract class UI {
 	}
 
 	public static void refreshAllProjectExplorers(final Object at) {
-		for (CommonNavigator nav : projectExplorers())
+		for (final CommonNavigator nav : projectExplorers())
 			nav.getCommonViewer().refresh(at);
 	}
-	
+
 	public static Image getPicture(DefCoreUnit defCore, Image graphics) {
 		Image result = null;
-		IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
+		final IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (pictureEntry != null && pictureEntry.value() instanceof IntegerArray) {
-			IntegerArray values = (IntegerArray) pictureEntry.value();
+			final IntegerArray values = (IntegerArray) pictureEntry.value();
 			result = new Image(Display.getCurrent(), values.get(2), values.get(3));
-			GC gc = new GC(result);
+			final GC gc = new GC(result);
 			try {
 				gc.drawImage(graphics, values.get(0), values.get(1), values.get(2), values.get(3), 0, 0, result.getBounds().width, result.getBounds().height);
 			} finally {
@@ -347,20 +380,20 @@ public abstract class UI {
 		}
 		return result;
 	}
-	
+
 	public static Image imageForContainer(IContainer container) throws CoreException, IOException {
 		Image image = null;
 		IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
 		if (graphicsFile == null)
 			graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
 		if (graphicsFile instanceof IFile) {
-			InputStream fileContents = ((IFile)graphicsFile).getContents();
+			final InputStream fileContents = ((IFile)graphicsFile).getContents();
 			try {
-				Image fullGraphics = new Image(Display.getCurrent(), fileContents);
+				final Image fullGraphics = new Image(Display.getCurrent(), fileContents);
 				try {
-					IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
+					final IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
 					if (defCoreFile instanceof IFile) {
-						DefCoreUnit defCore = (DefCoreUnit) Structure.pinned(defCoreFile, true, false);
+						final DefCoreUnit defCore = (DefCoreUnit) Structure.pinned(defCoreFile, true, false);
 						image = getPicture(defCore, fullGraphics);
 					}
 				} finally {

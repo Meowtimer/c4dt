@@ -39,7 +39,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The cursor position after this proposal has been applied. */
 	protected int cursorPosition;
 	/** The image to be displayed in the completion proposal popup. */
-	private final Image image;
+	private Image image;
 	/** The context information of this proposal. */
 	private final IContextInformation contextInformation;
 	/** The additional info of this proposal. */
@@ -53,16 +53,14 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	private boolean displayStringRecomputationNecessary;
 
-	public void setEditor(ClonkTextEditor editor) {
-		this.editor = editor;
-	}
-
+	public void setEditor(ClonkTextEditor editor) { this.editor = editor; }
 	public String replacementString() { return replacementString; }
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
 	public final int category() { return category;}
 	public void setCategory(int category) { this.category = category; }
 	public int cursorPosition() { return cursorPosition; }
+	public void setImage(Image image) { this.image = image; }
 
 	/**
 	 * Creates a new completion proposal based on the provided information. The replacement string is
@@ -231,7 +229,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		try {
