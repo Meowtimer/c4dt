@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -354,10 +355,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		setCategoryOrdering(contextExpression);
 		if (varInitializationProposals(offset, wordOffset, prefix, proposals, index, contextExpression))
 			return;
-		engineProposals(offset, prefix, proposals, editorScript, contextSequence);
-		functionLocalProposals(wordOffset, prefix, proposals, activeFunc, contextSequence);
-		definitionProposals(offset, wordOffset, prefix, proposals, index, editorScript, whatToDisplayFromScripts);
-		structureProposals(offset, wordOffset, prefix, proposals, index, editorScript, contextSequence, sequenceType, whatToDisplayFromScripts);
+		if (unifyNoChoice(PrimitiveType.PROPLIST, sequenceType) != null) {
+			engineProposals(offset, prefix, proposals, editorScript, contextSequence);
+			functionLocalProposals(wordOffset, prefix, proposals, activeFunc, contextSequence);
+			definitionProposals(offset, wordOffset, prefix, proposals, index, editorScript, whatToDisplayFromScripts);
+			structureProposals(offset, wordOffset, prefix, proposals, index, editorScript, contextSequence, sequenceType, whatToDisplayFromScripts);
+		}
 		ruleBasedProposals(offset, prefix, proposals, parser, contextExpression);
 		keywordProposals(offset, prefix, proposals, contextSequence);
 	}
