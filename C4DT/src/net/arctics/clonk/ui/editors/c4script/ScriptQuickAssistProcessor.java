@@ -22,7 +22,7 @@ import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
@@ -215,7 +215,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	public final class ParameterizedProposal extends ClonkCompletionProposal {
 		private final Replacement replacement;
 		private final int tabIndentation;
-		private final C4ScriptParser parser;
+		private final ScriptParser parser;
 		private final Function func;
 
 		private ParameterizedProposal(Declaration declaration,
@@ -225,7 +225,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			String additionalProposalInfo, String postInfo,
 			ClonkTextEditor editor,
 			Replacement replacement, int tabIndentation,
-			C4ScriptParser parser, Function func
+			ScriptParser parser, Function func
 		) {
 			super(declaration, replacementString, replacementOffset,
 				replacementLength, cursorPosition, image, displayString,

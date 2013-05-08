@@ -8,7 +8,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
@@ -20,9 +20,9 @@ import org.eclipse.jface.text.IDocument;
 
 final class StaticTypingMigrationJob extends TypingMigrationJob {
 	private final ProjectSettings settings;
-	private final C4ScriptParser[] parsers;
+	private final ScriptParser[] parsers;
 
-	StaticTypingMigrationJob(String name, ClonkProjectNature nature, ProjectSettings settings, C4ScriptParser[] parsers) {
+	StaticTypingMigrationJob(String name, ClonkProjectNature nature, ProjectSettings settings, ScriptParser[] parsers) {
 		super(name, nature);
 		this.settings = settings;
 		this.parsers = parsers;
@@ -32,7 +32,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 	protected IStatus run(final IProgressMonitor monitor) {
 		monitor.beginTask("Static Typing Migration", parsers.length);
 		runWithoutAutoBuild(new Runnable() { @Override public void run() {
-			for (final C4ScriptParser parser : parsers) {
+			for (final ScriptParser parser : parsers) {
 				if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
 					insertTypeAnnotations(parser);
 				monitor.worked(1);
@@ -43,7 +43,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 		return Status.OK_STATUS;
 	}
 
-	private void insertTypeAnnotations(final C4ScriptParser parser) {
+	private void insertTypeAnnotations(final ScriptParser parser) {
 		Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
 			@Override
 			public Object run(IDocument document) {

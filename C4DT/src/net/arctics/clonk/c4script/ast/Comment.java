@@ -12,7 +12,7 @@ import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -148,7 +148,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 		final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
 			final Script script = parentOfType(Script.class);
-			final C4ScriptParser commentParser = new C4ScriptParser(comment, script, script.scriptFile()) {
+			final ScriptParser commentParser = new ScriptParser(comment, script, script.scriptFile()) {
 				@Override
 				protected void initialize() {
 					super.initialize();

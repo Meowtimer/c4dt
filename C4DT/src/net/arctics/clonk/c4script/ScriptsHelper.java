@@ -34,7 +34,7 @@ public class ScriptsHelper {
 			function.setParent(tempScript);
 			function.setBodyLocation(new SourceLocation(0, source.length()));
 		}
-		final C4ScriptParser tempParser = new C4ScriptParser(source, function.script(), null) {
+		final ScriptParser tempParser = new ScriptParser(source, function.script(), null) {
 			@Override
 			public int sectionOffset() { return 0; }
 			@Override

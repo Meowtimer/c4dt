@@ -7,7 +7,7 @@ import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,10 +16,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IDocument;
 
 final class DynamicTypingMigrationJob extends TypingMigrationJob {
-	private final C4ScriptParser[] parsers;
+	private final ScriptParser[] parsers;
 	private final ProjectSettings settings;
 
-	DynamicTypingMigrationJob(ClonkProjectNature nature, String name, C4ScriptParser[] parsers, ProjectSettings settings) {
+	DynamicTypingMigrationJob(ClonkProjectNature nature, String name, ScriptParser[] parsers, ProjectSettings settings) {
 		super(name, nature);
 		this.parsers = parsers;
 		this.settings = settings;
@@ -29,7 +29,7 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 	protected IStatus run(final IProgressMonitor monitor) {
 		monitor.beginTask("Dynamic Typing Migration", parsers.length);
 		runWithoutAutoBuild(new Runnable() { @Override public void run() {
-			for (final C4ScriptParser parser : parsers) {
+			for (final ScriptParser parser : parsers) {
 				if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
 					removeTypeAnnotations(parser);
 				monitor.worked(1);
@@ -40,7 +40,7 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 		return Status.OK_STATUS;
 	}
 
-	private void removeTypeAnnotations(final C4ScriptParser parser) {
+	private void removeTypeAnnotations(final ScriptParser parser) {
 		if (parser.typeAnnotations() == null)
 			return;
 		Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {

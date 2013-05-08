@@ -114,7 +114,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		return result;
 	}
 
-	public void validate(C4ScriptParser parser) throws ProblemException {
+	public void validate(ScriptParser parser) throws ProblemException {
 		switch (type()) {
 		case APPENDTO:
 			break; // don't create error marker when appending to unknown object

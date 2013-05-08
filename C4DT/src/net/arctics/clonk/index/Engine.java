@@ -27,7 +27,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasName;
 import net.arctics.clonk.c4script.ITypeable;
@@ -442,7 +442,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					try (InputStream stream = url.openStream()) {
 						String scriptFromStream = StreamUtil.stringFromInputStream(stream);
 						final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
-						C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
+						ScriptParser parser = new ScriptParser(scriptFromStream, this, null) {
 							private boolean firstMessage = true;
 							@Override
 							public void marker(Problem code,

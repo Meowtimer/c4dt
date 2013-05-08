@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
@@ -117,7 +117,7 @@ public class CLI implements IApplication {
 	}
 
 	public void verifyScript(String fileName) {
-		final C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {
@@ -132,7 +132,7 @@ public class CLI implements IApplication {
 	}
 	
 	public void printAST(String fileName) throws ProblemException {
-		final C4ScriptParser parser = new C4ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {

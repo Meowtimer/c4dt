@@ -10,7 +10,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
@@ -323,7 +323,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return listener != null ? listener.structure() : null;
 	}
 
-	public C4ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
+	public ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
 		if (script() == null)
 			return null;
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());

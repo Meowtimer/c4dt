@@ -13,7 +13,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
@@ -52,7 +52,7 @@ public abstract class CodeConverter {
 
 	public void runOnDocument(
 		Script script,
-		C4ScriptParser parser,
+		ScriptParser parser,
 		final IDocument document
 	) {
 		synchronized (document) {
@@ -98,13 +98,13 @@ public abstract class CodeConverter {
 		}
 	}
 
-	protected abstract ASTNode performConversion(C4ScriptParser parser, ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
+	protected abstract ASTNode performConversion(ScriptParser parser, ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 
-	private void replaceExpression(Declaration d, IDocument document, ASTNode e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
+	private void replaceExpression(Declaration d, IDocument document, ASTNode e, ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		final IRegion region = e.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();

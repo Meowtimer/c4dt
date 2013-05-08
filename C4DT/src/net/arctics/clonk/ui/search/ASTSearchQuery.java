@@ -10,7 +10,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
@@ -39,12 +39,12 @@ public class ASTSearchQuery extends SearchQuery {
 		}
 	}
 
-	private void addMatch(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+	private void addMatch(ASTNode match, ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		final Match m = match(match, parser, s, l, subst);
 		result.addMatch(m);
 	}
 
-	protected static Match match(ASTNode match, C4ScriptParser parser, int s, int l, Map<String, Object> subst) {
+	protected static Match match(ASTNode match, ScriptParser parser, int s, int l, Map<String, Object> subst) {
 		final IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
 		final String line = parser.bufferSubstringAtRegion(lineRegion);
 		final Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
@@ -82,13 +82,13 @@ public class ASTSearchQuery extends SearchQuery {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService item) {
-				class ScriptSearcher implements Runnable, IASTVisitor<C4ScriptParser> {
-					private final C4ScriptParser parser;
+				class ScriptSearcher implements Runnable, IASTVisitor<ScriptParser> {
+					private final ScriptParser parser;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
 					public ScriptSearcher(Script script) {
-						C4ScriptParser p = null;
+						ScriptParser p = null;
 						try {
-							p = new C4ScriptParser(script);
+							p = new ScriptParser(script);
 						} catch (final Exception e) {
 							System.out.println(String.format("Creating parser failed for '%s'", script));
 						}
@@ -107,7 +107,7 @@ public class ASTSearchQuery extends SearchQuery {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitNode(ASTNode expression, C4ScriptParser parser) {
+					public TraversalContinuation visitNode(ASTNode expression, ScriptParser parser) {
 						final Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							final IRegion r = expression.absolute();

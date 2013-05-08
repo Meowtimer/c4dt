@@ -12,7 +12,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
-public class FunctionFragmentParser extends C4ScriptParser {
+public class FunctionFragmentParser extends ScriptParser {
 	private final Function function;
 	private static String fragmentString(IDocument doc, Function function) {
 		String statements_;

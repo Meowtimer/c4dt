@@ -26,7 +26,7 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -288,7 +288,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
 
 		typeExtractor.pos(preservedOffset);
-		C4ScriptParser parser = null;
+		ScriptParser parser = null;
 		if (editorScript != null)
 			if (parser == null) {
 				final ScriptEditingState editingState = editor().editingState();
@@ -340,7 +340,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return true;
 	}
 
-	private void innerProposalsInFunction(int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Index index, final Function activeFunc, Script editorScript, C4ScriptParser parser, final Sequence contextSequence, final ASTNode contextExpression, final IType sequenceType) {
+	private void innerProposalsInFunction(int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Index index, final Function activeFunc, Script editorScript, ScriptParser parser, final Sequence contextSequence, final ASTNode contextExpression, final IType sequenceType) {
 		if (DEBUG)
 			System.out.println(String.format("%s: %s %s %s",
 				prefix,
@@ -499,7 +499,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return false;
 	}
 
-	private void ruleBasedProposals(int offset, String prefix, List<ICompletionProposal> proposals, C4ScriptParser parser, ASTNode contextExpression) {
+	private void ruleBasedProposals(int offset, String prefix, List<ICompletionProposal> proposals, ScriptParser parser, ASTNode contextExpression) {
 		if (contextExpression == null)
 			return;
 		final CallDeclaration innermostCallFunc = contextExpression.thisOrParentOfType(CallDeclaration.class);
@@ -586,7 +586,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	 * @param document The {@link IDocument} the expression was read from
 	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression
 	 */
-	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, C4ScriptParser parser, IDocument document) {
+	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(parser.script());
 		processor.innerProposalsInFunction(

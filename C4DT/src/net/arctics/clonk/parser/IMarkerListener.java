@@ -3,7 +3,7 @@ package net.arctics.clonk.parser;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTPositionProvider;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 
 /**
  * A listener that will be notified if a marker is about to be created.
@@ -12,7 +12,7 @@ import net.arctics.clonk.c4script.C4ScriptParser;
  */
 public interface IMarkerListener {
 	/**
-	 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, Problem, int, int, int, int, Object...)}
+	 * Result enum for {@link IMarkerListener#markerEncountered(ScriptParser, Problem, int, int, int, int, Object...)}
 	 * @author madeen
 	 *
 	 */

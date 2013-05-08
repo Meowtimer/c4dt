@@ -6,18 +6,18 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 
 /**
- * Holds references to common engine functions that some {@link AccessDeclaration#tidy(net.arctics.clonk.c4script.C4ScriptParser)} implementations
+ * Holds references to common engine functions that some {@link AccessDeclaration#tidy(net.arctics.clonk.c4script.ScriptParser)} implementations
  * might compare their declarations with to determine viable code transformations. All the public fields of this class will be set to refer to functions of the
  * same name from the engine this helper object is associated with.
  */
 public class CachedEngineDeclarations {
 
 	private final Engine engine;
-	
+
 	private Function f(String name) {
 		return engine.findFunction(name);
 	}
-	
+
 	public Function Par;
 	public Function Var;
 	public Function Local;
@@ -38,7 +38,7 @@ public class CachedEngineDeclarations {
 	public Function GetID;
 	public Function GetType;
 	public Object   This; // this as variable name not allowed so exclude this var -.-
-	
+
 	/**
 	 * Functions used to dynamically call functions on an object (Call, PrivateCall, PublicCall)
 	 */
@@ -54,7 +54,7 @@ public class CachedEngineDeclarations {
 
 	/**
 	 * Create new {@link CachedEngineDeclarations} for some {@link Engine}.
-	 * Fields will be initialized by searching for respective functions and variables in the {@link Engine}. 
+	 * Fields will be initialized by searching for respective functions and variables in the {@link Engine}.
 	 * @param engine The engine to create the object for
 	 */
 	public CachedEngineDeclarations(Engine engine) {

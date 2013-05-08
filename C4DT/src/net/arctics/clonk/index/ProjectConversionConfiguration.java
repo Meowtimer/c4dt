@@ -10,7 +10,7 @@ import java.util.Map;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
@@ -123,7 +123,7 @@ public class ProjectConversionConfiguration {
 			builder.append("\n}");
 			text = builder.toString();
 			final Script script = new TempScript(text, sourceEngine);
-			final C4ScriptParser parser = new C4ScriptParser(text, script, null);
+			final ScriptParser parser = new ScriptParser(text, script, null);
 			parser.parse();
 			final Function transformations = parser.script().findLocalFunction("Transformations", false);
 			if (transformations != null && transformations.body() != null)

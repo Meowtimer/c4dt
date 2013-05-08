@@ -14,7 +14,7 @@ import net.arctics.clonk.Flags;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4GroupStreamOpener;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
@@ -49,7 +49,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private IProgressMonitor monitor;
 	private ClonkProjectNature nature;
-	private final Map<Script, C4ScriptParser> parserMap = new HashMap<Script, C4ScriptParser>();
+	private final Map<Script, ScriptParser> parserMap = new HashMap<Script, ScriptParser>();
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
@@ -63,7 +63,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	public Markers markers() { return markers; }
 	public Index index() { return index; }
 	public IProgressMonitor monitor() { return monitor; }
-	public Collection<C4ScriptParser> parsers() { return parserMap.values(); }
+	public Collection<ScriptParser> parsers() { return parserMap.values(); }
 	public Collection<Script> scripts() { return parserMap.keySet(); }
 
 	static String buildTask(String text, IProject project) {
@@ -171,11 +171,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parseDeclarations(index);
 
 			final Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
-			final C4ScriptParser[] parsers = parserMap.values().toArray(new C4ScriptParser[parserMap.values().size()]);
+			final ScriptParser[] parsers = parserMap.values().toArray(new ScriptParser[parserMap.values().size()]);
 
 			reportProblems(parsers, scripts);
 
-			for (final C4ScriptParser parser : parsers)
+			for (final ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)
 					parser.script().setTypeAnnotations(parser.typeAnnotations());
 
@@ -203,7 +203,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		index.refresh(false);
 	}
 
-	private void performRequestedTypingMigration(final IProject proj, final C4ScriptParser[] parsers) {
+	private void performRequestedTypingMigration(final IProject proj, final ScriptParser[] parsers) {
 		final ProjectSettings settings = nature.settings();
 		if (buildKind == FULL_BUILD)
 			if (settings.migrationTyping != null) switch (settings.migrationTyping) {
@@ -236,11 +236,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 	}
 
-	private void migrateToStaticTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
+	private void migrateToStaticTyping(final ScriptParser[] parsers, final ProjectSettings settings) {
 		new StaticTypingMigrationJob("Static Typing Migration", nature, settings, parsers).schedule();
 	}
 
-	private void migrateToDynamicTyping(final C4ScriptParser[] parsers, final ProjectSettings settings) {
+	private void migrateToDynamicTyping(final ScriptParser[] parsers, final ProjectSettings settings) {
 		new DynamicTypingMigrationJob(nature, "Dynamic Typing Migration", parsers, settings).schedule();
 	}
 
@@ -248,9 +248,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
-		Map<Script, C4ScriptParser>
-			newEnqueued = new HashMap<Script, C4ScriptParser>(),
-			lastEnqueued = new HashMap<Script, C4ScriptParser>();
+		Map<Script, ScriptParser>
+			newEnqueued = new HashMap<Script, ScriptParser>(),
+			lastEnqueued = new HashMap<Script, ScriptParser>();
 		newEnqueued.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
@@ -266,7 +266,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 				break;
 			lastEnqueued = newEnqueued;
-			newEnqueued = new HashMap<Script, C4ScriptParser>();
+			newEnqueued = new HashMap<Script, ScriptParser>();
 			indexRefresh(index);
 			queueDependentScripts(lastEnqueued, newEnqueued);
 		}
@@ -276,7 +276,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		markers.deploy();
 	}
 
-	private void parseDeclarationsUsingSingleThread(final Map<Script, C4ScriptParser> newEnqueued) {
+	private void parseDeclarationsUsingSingleThread(final Map<Script, ScriptParser> newEnqueued) {
 		for (final Script script : newEnqueued.keySet()) {
 			if (monitor.isCanceled())
 				return;
@@ -285,7 +285,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private void parseDeclarationsUsingThreadPool(final Map<Script, C4ScriptParser> newEnqueued) {
+	private void parseDeclarationsUsingThreadPool(final Map<Script, ScriptParser> newEnqueued) {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
@@ -312,11 +312,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			script.deriveInformation();
 	}
 
-	private void refreshUI(final Map<Script, C4ScriptParser> newEnqueued) {
+	private void refreshUI(final Map<Script, ScriptParser> newEnqueued) {
 		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
 	}
 
-	private void reportProblems(final C4ScriptParser[] parsers, Script[] scripts) {
+	private void reportProblems(final ScriptParser[] parsers, Script[] scripts) {
 		if (Flags.DEBUG)
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
@@ -334,8 +334,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		parserMap.clear();
 	}
 
-	private void queueDependentScripts(Map<Script, C4ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, C4ScriptParser> newlyAddedParsers) {
-		for (final C4ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
+	private void queueDependentScripts(Map<Script, ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, ScriptParser> newlyAddedParsers) {
+		for (final ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
 			if (monitor.isCanceled())
 				break;
 			if (parser == null)
@@ -357,7 +357,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (s.requiresScriptReparse()) {
 				final Script script = Script.get(s.resource(), false);
 				if (script != null) {
-					final C4ScriptParser p = queueScript(script);
+					final ScriptParser p = queueScript(script);
 					newlyAddedParsers.put(script, p);
 				}
 			}
@@ -379,12 +379,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	public C4ScriptParser queueScript(Script script) {
-		C4ScriptParser result;
+	public ScriptParser queueScript(Script script) {
+		ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			if (script.source() != null)
 				try {
-					result = new C4ScriptParser(script);
+					result = new ScriptParser(script);
 					result.setMarkers(markers);
 				} catch (final Exception e) {
 					System.out.println(script.resource().getProjectRelativePath().toOSString());
@@ -401,7 +401,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void performParseDeclarations(Script script) {
-		C4ScriptParser parser;
+		ScriptParser parser;
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
 		}

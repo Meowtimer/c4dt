@@ -13,7 +13,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Script;
@@ -125,7 +125,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
-		protected ASTNode performConversion(C4ScriptParser parser, ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
+		protected ASTNode performConversion(ScriptParser parser, ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
 			if (configuration == null)
 				return expression;
 			ASTNode node = (ASTNode)(new ITransformer() {
@@ -172,7 +172,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(IDocument document) {
-					final C4ScriptParser parser = new C4ScriptParser(script);
+					final ScriptParser parser = new ScriptParser(script);
 					try {
 						parser.parse();
 					} catch (final ProblemException e) {

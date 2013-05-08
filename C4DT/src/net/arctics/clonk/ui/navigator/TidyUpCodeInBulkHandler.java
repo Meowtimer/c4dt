@@ -10,7 +10,7 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.util.UI;
@@ -106,7 +106,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 													final IFile file = (IFile) resource;
 													final Script script = Script.get(file, true);
 													if (script != null) {
-														final C4ScriptParser parser = new C4ScriptParser(file, script);
+														final ScriptParser parser = new ScriptParser(file, script);
 														try {
 															parser.parse();
 														} catch (ProblemException e1) {

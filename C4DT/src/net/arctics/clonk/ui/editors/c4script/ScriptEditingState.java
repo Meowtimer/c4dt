@@ -23,7 +23,7 @@ import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4group.C4GroupItem;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.ProblemReporter;
@@ -112,15 +112,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			adjustDec(v, offset, add);
 	}
 
-	private static C4ScriptParser parserForDocument(Object document, final Script script) {
-		C4ScriptParser parser = null;
+	private static ScriptParser parserForDocument(Object document, final Script script) {
+		ScriptParser parser = null;
 		if (document instanceof IDocument)
-			parser = new C4ScriptParser(((IDocument)document).get(), script, script.scriptFile());
+			parser = new ScriptParser(((IDocument)document).get(), script, script.scriptFile());
 		else if (document instanceof IFile)
-			parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<C4ScriptParser>() {
+			parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<ScriptParser>() {
 				@Override
-				public C4ScriptParser run(IDocument document) {
-					return new C4ScriptParser(document.get(), script, script.scriptFile());
+				public ScriptParser run(IDocument document) {
+					return new ScriptParser(document.get(), script, script.scriptFile());
 				}
 			}, false);
 		if (parser == null)
@@ -128,7 +128,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return parser;
 	}
 
-	private C4ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
+	private ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
 		cancelReparsingTimer();
 		return reparseWithDocumentContents(onlyDeclarations, document, structure(), new Runnable() {
 			@Override
@@ -141,14 +141,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		});
 	}
 
-	C4ScriptParser reparseWithDocumentContents(
+	ScriptParser reparseWithDocumentContents(
 		boolean onlyDeclarations, Object document,
 		final Script script,
 		Runnable uiRefreshRunnable
 	) throws ProblemException {
 		final Markers markers = new Markers();
 		markers.applyProjectSettings(script.index());
-		final C4ScriptParser parser = parserForDocument(document, script);
+		final ScriptParser parser = parserForDocument(document, script);
 		parser.setMarkers(markers);
 		parser.clear(!onlyDeclarations, !onlyDeclarations);
 		parser.parseDeclarations();

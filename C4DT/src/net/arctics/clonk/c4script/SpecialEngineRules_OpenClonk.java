@@ -377,7 +377,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public ID parseId(BufferedScanner scanner) {
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
 		// a <match all identifiers> pattern would cause zillions of err0rs
-		if (scanner instanceof C4ScriptParser)
+		if (scanner instanceof ScriptParser)
 			return null;
 		final Matcher idMatcher = ID_PATTERN.matcher(scanner.bufferSequence(scanner.tell()));
 		if (idMatcher.lookingAt()) {
@@ -583,7 +583,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 		}, true);
 		try {
-			new C4ScriptParser(script).parse();
+			new ScriptParser(script).parse();
 		} catch (final ProblemException e) {}
 		f = script.findLocalFunction(name, false);
 		return f;

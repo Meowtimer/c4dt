@@ -12,7 +12,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.TestBase
 import net.arctics.clonk.ast.ASTComparisonDelegate;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine
@@ -44,14 +44,14 @@ import org.eclipse.core.resources.IStorage
 import org.junit.Test
 
 
-public class C4ScriptParserTest extends TestBase {
+public class ScriptParserTest extends TestBase {
 
 	static class Setup {
 		Index index
 		Script[] scripts
-		C4ScriptParser[] parsers
+		ScriptParser[] parsers
 		Script script
-		C4ScriptParser parser
+		ScriptParser parser
 		final Markers parserMarkers = new Markers()
 		Setup(final... sources) {
 			this.index = new Index() {
@@ -75,7 +75,7 @@ public class C4ScriptParserTest extends TestBase {
 					throw new IllegalArgumentException(source.toString())
 			}
 			this.scripts.each { it -> this.index.addScript(it) }
-			this.parsers = this.scripts.collect { script -> new C4ScriptParser(
+			this.parsers = this.scripts.collect { script -> new ScriptParser(
 				(script.source() as SelfcontainedStorage).contentsAsString(), script, null
 			) }
 			this.script = this.scripts[0]
@@ -92,7 +92,7 @@ public class C4ScriptParserTest extends TestBase {
 								new IntegerLiteral(100)), new UnaryOp(Operator.Increment, Placement.Postfix, new AccessVar("i")),
 								new Block(new SimpleStatement(
 									new CallDeclaration("Log", new StringLiteral("Hello")))))
-		
+
 		final Setup setup = new Setup(String.format("func Test() {%s}", body.printed()))
 		try {
 			setup.parser.parse()

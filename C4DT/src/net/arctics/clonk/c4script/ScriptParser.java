@@ -102,7 +102,7 @@ import org.eclipse.jface.text.Region;
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
-public class C4ScriptParser extends CStyleScanner implements IASTPositionProvider, IVariableFactory, Runnable {
+public class ScriptParser extends CStyleScanner implements IASTPositionProvider, IVariableFactory, Runnable {
 
 	static final EnumSet<Problem> DISABLED_INSTANT_ERRORS = EnumSet.of(
 		Problem.TokenExpected,
@@ -189,7 +189,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
-	public C4ScriptParser(Script script) {
+	public ScriptParser(Script script) {
 		this(script.source(), script);
 		initialize();
 	}
@@ -225,7 +225,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param scriptFile
 	 * @param obj
 	 */
-	public C4ScriptParser(IStorage scriptFile, Script script) {
+	public ScriptParser(IStorage scriptFile, Script script) {
 		super(scriptFile);
 		this.scriptFile = as(scriptFile, IFile.class);
 		this.script = script;
@@ -239,7 +239,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param size
 	 * @param object
 	 */
-	public C4ScriptParser(InputStream stream, Script script) {
+	public ScriptParser(InputStream stream, Script script) {
 		super(stream);
 		this.scriptFile = null;
 		this.script = script;
@@ -251,7 +251,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 	 * @param withString
 	 * @param script
 	 */
-	public C4ScriptParser(String withString, Script script, IFile scriptFile) {
+	public ScriptParser(String withString, Script script, IFile scriptFile) {
 		super(withString);
 		this.scriptFile = scriptFile;
 		this.script = script;
@@ -551,7 +551,7 @@ public class C4ScriptParser extends CStyleScanner implements IASTPositionProvide
 			this.typeAnnotation = typeAnnotation;
 			this.desc = desc;
 		}
-		public static FunctionHeader parse(C4ScriptParser parser, boolean allowOldStyle) throws ProblemException {
+		public static FunctionHeader parse(ScriptParser parser, boolean allowOldStyle) throws ProblemException {
 			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;

@@ -11,7 +11,7 @@ import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.C4ScriptParser;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
@@ -120,7 +120,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		}
 		
 		public void searchScript(IResource resource, Script script) {
-			final C4ScriptParser parser = new C4ScriptParser(script);
+			final ScriptParser parser = new ScriptParser(script);
 			searchScript(resource, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
 		}
 		
@@ -180,7 +180,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 							@Override
 							public void run() {
 								try {
-									final C4ScriptParser parser = new C4ScriptParser(script);
+									final ScriptParser parser = new ScriptParser(script);
 									final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset(), null);
 									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (final Exception e) {}
@@ -189,7 +189,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 					}
 					else if (scope instanceof Function) {
 						final Function func = (Function)scope;
-						final C4ScriptParser parser = new C4ScriptParser(func.script());
+						final ScriptParser parser = new ScriptParser(func.script());
 						func.traverse(visitor, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
 					}
 			}

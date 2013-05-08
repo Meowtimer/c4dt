@@ -10,7 +10,7 @@ import net.arctics.clonk.index.Definition
 import net.arctics.clonk.index.MetaDefinition
 import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.c4script.ArrayType
-import net.arctics.clonk.c4script.C4ScriptParserTest
+import net.arctics.clonk.c4script.ScriptParserTest
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.TaskExecution;
@@ -24,7 +24,7 @@ import org.paukov.combinatorics.ICombinatoricsVector;
 
 public class DabbleInferenceTest extends TestBase {
 
-	static class Setup extends C4ScriptParserTest.Setup {
+	static class Setup extends ScriptParserTest.Setup {
 		final DabbleInference inference = new DabbleInference();
 		final Markers inferenceMarkers = new Markers();
 		Setup(final... scripts) {
