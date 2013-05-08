@@ -792,7 +792,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void endVisit() {
 				synchronized (visit) {
 					visit.state(State.FINISHED);
-					visit.visitor = null;
+					//visit.visitor = null;
 					visit.notifyAll();
 					visit = null;
 				}
