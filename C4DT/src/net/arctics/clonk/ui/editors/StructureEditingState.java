@@ -178,9 +178,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		if (whichTask != null)
 			try {
 				whichTask.cancel();
-			} catch (final IllegalStateException e) {
-				System.out.println("happens all the time, bitches");
-			}
+			} catch (final IllegalStateException e) {}
 		return null;
 	}
 
@@ -189,7 +187,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	 * @return The {@link Structure}
 	 */
 	public StructureType structure() { return structure; }
-	
+
 	/**
 	 * Invalidate the {@link #structure()} reference and recompute.
 	 */

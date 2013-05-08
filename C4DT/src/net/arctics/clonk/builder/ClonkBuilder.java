@@ -267,6 +267,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				break;
 			lastEnqueued = newEnqueued;
 			newEnqueued = new HashMap<Script, C4ScriptParser>();
+			indexRefresh(index);
 			queueDependentScripts(lastEnqueued, newEnqueued);
 		}
 		while (parserMapSize != parserMap.size());
