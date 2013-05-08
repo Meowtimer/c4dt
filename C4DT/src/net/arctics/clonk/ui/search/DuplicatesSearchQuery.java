@@ -11,6 +11,7 @@ import net.arctics.clonk.ast.ASTComparisonDelegate;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -53,6 +54,8 @@ public class DuplicatesSearchQuery extends SearchQuery {
 		public boolean ignoreRightSubElement(ASTNode rightNode) { return irrelevant(rightNode); }
 		@Override
 		public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+			if (left == null || right == null)
+				return false;
 			if (left instanceof Parenthesized)
 				return ((Parenthesized)left).innerExpression().compare(right, this);
 			if (right instanceof Parenthesized)
@@ -60,11 +63,11 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 			// ignore differing variable names if both variables are parameters at the same index in their respective functions
 			if (left instanceof AccessVar && right instanceof AccessVar) {
-				AccessVar varA = (AccessVar)left;
-				AccessVar varB = (AccessVar)right;
+				final AccessVar varA = (AccessVar)left;
+				final AccessVar varB = (AccessVar)right;
 				if (varA.declaration() instanceof Variable && varB.declaration() instanceof Variable) {
-					int parmA = ((Variable)varA.declaration()).parameterIndex();
-					int parmB = ((Variable)varB.declaration()).parameterIndex();
+					final int parmA = ((Variable)varA.declaration()).parameterIndex();
+					final int parmB = ((Variable)varB.declaration()).parameterIndex();
 					if (parmA != -1 && parmA == parmB)
 						return true;
 				}
@@ -72,17 +75,17 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 			// ignore order of operands in binary associative operator expression
 			if (left.parent() instanceof BinaryOp && right.parent() instanceof BinaryOp) {
-				BinaryOp opA = (BinaryOp) left.parent();
-				BinaryOp opB = (BinaryOp) right.parent();
+				final BinaryOp opA = (BinaryOp) left.parent();
+				final BinaryOp opB = (BinaryOp) right.parent();
 				if (opA.operator() == opB.operator() && opA.operator().isAssociative())
 					if (
 						right == opB.leftSide() || right == opB.rightSide() &&
 						left == opA.leftSide() || left == opA.rightSide()
-						) {
+					) {
 						final ASTNode bCounterpart = opB.leftSide() == right ? opB.rightSide() : opB.leftSide();
 						final ASTNode aCounterpart = opA.leftSide() == left ? opA.rightSide() : opA.leftSide();
 						final ASTComparisonDelegate moi = this;
-						ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
+						final ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
 							@Override
 							public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
 								if (left == aCounterpart || left == bCounterpart)
@@ -111,11 +114,11 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	 * @return The new query
 	 */
 	public static DuplicatesSearchQuery queryWithFunctions(List<Function> functions) {
-		DuplicatesSearchQuery result = new DuplicatesSearchQuery();
+		final DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		result.fillFunctionMapWithFunctionList(functions);
-		for (List<Function> fnList : result.functionsToBeChecked.values())
-			for (Function f : fnList)
-				for (Index i : f.index().relevantIndexes())
+		for (final List<Function> fnList : result.functionsToBeChecked.values())
+			for (final Function f : fnList)
+				for (final Index i : f.index().relevantIndexes())
 					result.indexes.add(i);
 		return result;
 	}
@@ -126,9 +129,9 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	 * @return The new query
 	 */
 	public static DuplicatesSearchQuery queryWithScripts(Iterable<Script> scripts) {
-		DuplicatesSearchQuery result = new DuplicatesSearchQuery();
-		List<Function> fns = new LinkedList<Function>();
-		for (Script script : scripts) {
+		final DuplicatesSearchQuery result = new DuplicatesSearchQuery();
+		final List<Function> fns = new LinkedList<Function>();
+		for (final Script script : scripts) {
 			fns.addAll(script.functions());
 			result.indexes.add(script.index());
 		}
@@ -137,8 +140,8 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	}
 
 	private void fillFunctionMapWithFunctionList(List<Function> functions) {
-		for (Function f : functions) {
-			if (f.body() == null)
+		for (final Function f : functions) {
+			if (f.body() == null || f instanceof InitializationFunction)
 				continue;
 			List<Function> list = functionsToBeChecked.get(f.name());
 			if (list == null) {
@@ -151,40 +154,40 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 	@Override
 	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
-		boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
+		final boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
 
 		detectedDupes.clear();
-		Set<Index> indexes = new HashSet<Index>();
-		Set<Function> deemedDuplicate = new HashSet<Function>();
-		for (List<Function> fnList : functionsToBeChecked.values())
-			for (Function f : fnList)
-				for (Index i : f.index().relevantIndexes())
+		final Set<Index> indexes = new HashSet<Index>();
+		final Set<Function> deemedDuplicate = new HashSet<Function>();
+		for (final List<Function> fnList : functionsToBeChecked.values())
+			for (final Function f : fnList)
+				for (final Index i : f.index().relevantIndexes())
 					indexes.add(i);
-		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet())
+		for (final Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet())
 			for (final Function function : entry.getValue()) {
-				for (Index index : indexes)
+				for (final Index index : indexes)
 					index.loadScriptsContainingDeclarationsNamed(function.name());
 				if (deemedDuplicate.contains(function))
 					continue;
-				Block functionCodeBlock = function.body();
+				final Block functionCodeBlock = function.body();
 				// ignore simple return functions
 				if (ignoreSimpleFunctions)
 					if (functionCodeBlock == null || functionCodeBlock.statements().length == 1 && functionCodeBlock.statements()[0] instanceof ReturnStatement)
 						continue;
-				for (Index index : indexes) {
-					List<Declaration> decs = index.snapshotOfDeclarationsNamed(function.name());
+				for (final Index index : indexes) {
+					final List<Declaration> decs = index.snapshotOfDeclarationsNamed(function.name());
 					if (decs == null)
 						continue;
 					if (!decs.contains(function)) // happens when a newly-parsed function is not already added to the declaration map
 						continue;
-					for (Declaration d : decs)
+					for (final Declaration d : decs)
 						if (d instanceof Function) {
 							final Function otherFn = (Function) d;
 							if (deemedDuplicate.contains(d))
 								continue;
 							if (function == otherFn)
 								continue;
-							Block block = otherFn.body();
+							final Block block = otherFn.body();
 							if (block == null)
 								continue; // -.-
 							if (functionCodeBlock.compare(block, comparisonDelegate)) {
@@ -193,7 +196,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 									dupes = new LinkedList<FindDuplicatesMatch>();
 									detectedDupes.put(function, dupes);
 								}
-								FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.start(), otherFn.getLength(), function, otherFn);
+								final FindDuplicatesMatch match = new FindDuplicatesMatch(otherFn.script(), otherFn.start(), otherFn.getLength(), function, otherFn);
 								dupes.add(match);
 								result.addMatch(match);
 								deemedDuplicate.add(otherFn);
@@ -206,9 +209,9 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 	@Override
 	public String getLabel() {
-		StringBuilder builder = new StringBuilder(30);
+		final StringBuilder builder = new StringBuilder(30);
 		int size = 3;
-		for (String f : functionsToBeChecked.keySet()) {
+		for (final String f : functionsToBeChecked.keySet()) {
 			if (builder.length() > 0)
 				builder.append(", ");
 			if (size-- == 0) {
