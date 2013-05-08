@@ -27,8 +27,21 @@ import org.omg.CORBA.UNKNOWN;
 public enum PrimitiveType implements IType {
 	UNKNOWN,
 
-	ANY,
-	BOOL,
+	ANY {
+		@Override
+		public Object convert(Object value) { return value; }
+	},
+	BOOL {
+		@Override
+		public Object convert(Object value) {
+			switch (correspondingToInstance(value)) {
+			case INT:
+				return ((Number)value).intValue() != 0;
+			default:
+				return null;
+			}
+		}
+	},
 	INT,
 	ID,
 	STRING,
@@ -194,24 +207,7 @@ public enum PrimitiveType implements IType {
 	 * @return the converted value or null if conversion failed
 	 */
 	public Object convert(Object value) {
-		final PrimitiveType valueType = correspondingToInstance(value);
-		if (valueType == this)
-			return value;
-		switch (this) {
-		case BOOL:
-			switch (valueType) {
-			case INT:
-				return ((Number)value).intValue() != 0;
-			default:
-				break;
-			}
-			break;
-		case ANY:
-			return value;
-		default:
-			break;
-		}
-		return null;
+		return correspondingToInstance(value) == this ? value : null;
 	}
 
 	/**
@@ -221,29 +217,20 @@ public enum PrimitiveType implements IType {
 	public Iterator<IType> iterator() {
 		return new Iterator<IType>() {
 			private boolean done = false;
-
 			@Override
-			public boolean hasNext() {
-				return !done;
-			}
-
+			public boolean hasNext() { return !done; }
 			@Override
 			public PrimitiveType next() {
 				done = true;
 				return PrimitiveType.this;
 			}
-
 			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
+			public void remove() { throw new UnsupportedOperationException(); }
 		};
 	}
 
 	@Override
-	public IType simpleType() {
-		return this;
-	}
+	public IType simpleType() { return this; }
 
 	public class Unified implements IType, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
