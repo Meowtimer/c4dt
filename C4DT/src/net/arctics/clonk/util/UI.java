@@ -72,7 +72,10 @@ import org.eclipse.ui.navigator.CommonNavigator;
 /**
  * Stores references to some objects needed for various components of the user interface
  */
-public abstract class UI {
+public enum UI {
+	;
+
+	private final static Map<String, Image> images = new HashMap<>();
 	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$
 	public final static Image MAP_ICON = imageForPath("icons/map.png");
 	public final static Image MAPOVERLAY_ICON = imageForPath("icons/mapoverlay.png");
@@ -83,8 +86,6 @@ public abstract class UI {
 	public final static Image PROPLIST_ICON = imageForPath("icons/proplist.png");
 	public final static Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
 	public final static Image WARNING_ICON = imageForPath("icons/warning.png");
-
-	private static Map<String, Image> images = new HashMap<>();
 
 	public static Image halfTransparent(Image image) {
 		String name;
