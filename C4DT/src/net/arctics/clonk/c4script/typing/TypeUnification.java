@@ -7,7 +7,6 @@ import static net.arctics.clonk.util.Utilities.eq;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.c4script.ArrayType;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.ThisType;

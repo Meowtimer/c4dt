@@ -4,6 +4,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.c4script.typing.ITypingContext;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Markers;

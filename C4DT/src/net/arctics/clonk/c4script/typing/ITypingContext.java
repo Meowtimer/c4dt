@@ -1,10 +1,8 @@
-package net.arctics.clonk.c4script;
+package net.arctics.clonk.c4script.typing;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
-import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 
 import org.eclipse.jface.text.IRegion;
 

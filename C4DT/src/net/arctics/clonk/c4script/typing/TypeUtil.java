@@ -6,7 +6,6 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ITypeable;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;

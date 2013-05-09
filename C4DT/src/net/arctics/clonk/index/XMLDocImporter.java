@@ -26,9 +26,9 @@ import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ITypeable;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StreamUtil;

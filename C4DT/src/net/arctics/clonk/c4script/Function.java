@@ -36,6 +36,7 @@ import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
